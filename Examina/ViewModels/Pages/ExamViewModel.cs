@@ -1,6 +1,7 @@
-using ReactiveUI.Fody.Helpers;
+﻿using System;
 using System.Windows.Input;
 using Prism.Commands;
+using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
 

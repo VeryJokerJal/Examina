@@ -141,8 +141,8 @@ public class StudentAuthController : ControllerBase
                 {
                     Id = user.Id.ToString(),
                     Username = user.Username,
-                    Email = user.Email,
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    AvatarUrl = user.AvatarUrl,
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
@@ -251,8 +251,8 @@ public class StudentAuthController : ControllerBase
                 {
                     Id = user.Id.ToString(),
                     Username = user.Username,
-                    Email = user.Email,
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    AvatarUrl = user.AvatarUrl,
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
@@ -449,8 +449,8 @@ public class StudentAuthController : ControllerBase
             {
                 Id = user.Id.ToString(),
                 Username = user.Username,
-                Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
+                AvatarUrl = user.AvatarUrl,
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
@@ -545,8 +545,8 @@ public class StudentAuthController : ControllerBase
             {
                 Id = user.Id.ToString(),
                 Username = user.Username,
-                Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
+                AvatarUrl = user.AvatarUrl,
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
@@ -559,6 +559,152 @@ public class StudentAuthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户信息失败");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 更新用户资料
+    /// </summary>
+    /// <param name="request">更新资料请求</param>
+    /// <returns>更新后的用户信息</returns>
+    [HttpPost("update-profile")]
+    [Authorize]
+    public async Task<ActionResult<UserInfo>> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        try
+        {
+            // 获取当前用户ID
+            string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
+            // 查找用户
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive || user.Role != UserRole.Student)
+            {
+                return NotFound(new { message = "用户不存在或无权限" });
+            }
+
+            // 验证模型状态
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "输入数据格式不正确" });
+            }
+
+            bool hasChanges = false;
+
+            // 更新用户名（需要检查唯一性）
+            if (!string.IsNullOrEmpty(request.Username) && request.Username != user.Username)
+            {
+                bool usernameExists = await _context.Users
+                    .AnyAsync(u => u.Username == request.Username && u.Id != userId);
+                if (usernameExists)
+                {
+                    return BadRequest(new { message = "用户名已存在，请选择其他用户名" });
+                }
+                user.Username = request.Username;
+                hasChanges = true;
+            }
+
+            // 更新头像URL
+            if (request.AvatarUrl != user.AvatarUrl)
+            {
+                user.AvatarUrl = request.AvatarUrl;
+                hasChanges = true;
+            }
+
+            // 保存更改
+            if (hasChanges)
+            {
+                user.UpdatedAt = DateTime.UtcNow;
+                int changedRows = await _context.SaveChangesAsync();
+                _logger.LogInformation("用户 {UserId} 更新资料成功，数据库更新了 {ChangedRows} 行", userId, changedRows);
+            }
+            else
+            {
+                _logger.LogInformation("用户 {UserId} 没有任何更改", userId);
+            }
+
+            // 返回更新后的用户信息
+            UserInfo userInfo = new()
+            {
+                Id = user.Id.ToString(),
+                Username = user.Username,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                AvatarUrl = user.AvatarUrl,
+                Role = user.Role,
+                IsFirstLogin = user.IsFirstLogin,
+                AllowMultipleDevices = user.AllowMultipleDevices,
+                MaxDeviceCount = user.MaxDeviceCount
+            };
+
+            return Ok(userInfo);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新用户资料失败");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 修改密码
+    /// </summary>
+    /// <param name="request">修改密码请求</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            // 获取当前用户ID
+            string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
+            // 查找用户
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive || user.Role != UserRole.Student)
+            {
+                return NotFound(new { message = "用户不存在或无权限" });
+            }
+
+            // 验证模型状态
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "输入数据格式不正确" });
+            }
+
+            // 验证当前密码
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            {
+                return BadRequest(new { message = "当前密码不正确" });
+            }
+
+            // 检查新密码是否与当前密码相同
+            if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            {
+                return BadRequest(new { message = "新密码不能与当前密码相同" });
+            }
+
+            // 更新密码
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            int changedRows = await _context.SaveChangesAsync();
+            _logger.LogInformation("用户 {UserId} 修改密码成功，数据库更新了 {ChangedRows} 行", userId, changedRows);
+
+            return Ok(new { message = "密码修改成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "修改密码失败");
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }

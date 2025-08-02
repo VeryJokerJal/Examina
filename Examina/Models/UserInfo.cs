@@ -72,8 +72,8 @@ public class UserInfo
 {
     public string Id { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
     public UserRole Role { get; set; }
     public bool IsFirstLogin { get; set; }
     public bool AllowMultipleDevices { get; set; }
@@ -108,4 +108,47 @@ public class DeviceBindRequest
     public string DeviceType { get; set; } = string.Empty;
     public string? OperatingSystem { get; set; }
     public string? BrowserInfo { get; set; }
+}
+
+/// <summary>
+/// 更新用户资料请求模型
+/// 注意：基于后端complete-info端点的实际支持功能
+/// </summary>
+public class UpdateUserProfileRequest
+{
+    /// <summary>
+    /// 用户名（后端支持）
+    /// </summary>
+    public string Username { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 邮箱（后端暂不支持更新）
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 手机号（后端暂不支持更新）
+    /// </summary>
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 头像URL（后端暂不支持）
+    /// </summary>
+    public string? AvatarUrl { get; set; }
+}
+
+/// <summary>
+/// 修改密码请求模型
+/// </summary>
+public class ChangePasswordRequest
+{
+    /// <summary>
+    /// 当前密码
+    /// </summary>
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 新密码
+    /// </summary>
+    public string NewPassword { get; set; } = string.Empty;
 }

@@ -127,3 +127,19 @@ public class PersistentLoginData
     /// </summary>
     public bool RequireDeviceBinding { get; set; }
 }
+
+/// <summary>
+/// 更新用户资料请求模型（后端专用）
+/// </summary>
+public class UpdateProfileRequest
+{
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    public string? Username { get; set; }
+
+    /// <summary>
+    /// 头像URL
+    /// </summary>
+    public string? AvatarUrl { get; set; }
+}

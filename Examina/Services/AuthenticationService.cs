@@ -678,6 +678,138 @@ public class AuthenticationService : IAuthenticationService
     }
 
     /// <summary>
+    /// 更新用户资料
+    /// </summary>
+    /// <param name="request">更新用户资料请求</param>
+    /// <returns>是否更新成功</returns>
+    public async Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request)
+    {
+        try
+        {
+            if (CurrentUser == null)
+            {
+                System.Diagnostics.Debug.WriteLine("UpdateUserProfileAsync: 用户未登录");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(CurrentAccessToken))
+            {
+                System.Diagnostics.Debug.WriteLine("UpdateUserProfileAsync: 访问令牌为空");
+                return false;
+            }
+
+            // 使用专门的update-profile端点
+            // 只发送后端支持的字段：Username和AvatarUrl
+            UpdateProfileRequest updateProfileRequest = new()
+            {
+                Username = request.Username,
+                AvatarUrl = request.AvatarUrl
+                // 注意：Email和PhoneNumber暂不支持更新
+            };
+
+            string requestJson = JsonSerializer.Serialize(updateProfileRequest, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            StringContent content = new(requestJson, Encoding.UTF8, "application/json");
+
+            // 设置Authorization头
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CurrentAccessToken);
+
+            System.Diagnostics.Debug.WriteLine($"UpdateUserProfileAsync: 发送更新用户资料请求到 {BuildApiUrl("update-profile")}");
+            System.Diagnostics.Debug.WriteLine($"请求内容: {requestJson}");
+            System.Diagnostics.Debug.WriteLine("注意：当前支持更新用户名和头像，Email和PhoneNumber暂不支持");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(BuildApiUrl("update-profile"), content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"UpdateUserProfileAsync: 响应状态码={response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"响应内容: {responseContent}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                UserInfo? updatedUser = JsonSerializer.Deserialize<UserInfo>(responseContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (updatedUser != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("UpdateUserProfileAsync: 更新成功，更新本地用户信息");
+                    CurrentUser = updatedUser;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"更新用户资料异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 修改密码
+    /// </summary>
+    /// <param name="request">修改密码请求</param>
+    /// <returns>是否修改成功</returns>
+    public async Task<bool> ChangePasswordAsync(ChangePasswordRequest request)
+    {
+        try
+        {
+            if (CurrentUser == null)
+            {
+                System.Diagnostics.Debug.WriteLine("ChangePasswordAsync: 用户未登录");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(CurrentAccessToken))
+            {
+                System.Diagnostics.Debug.WriteLine("ChangePasswordAsync: 访问令牌为空");
+                return false;
+            }
+
+            // 使用专门的change-password端点
+            // 现在可以验证当前密码了
+            string requestJson = JsonSerializer.Serialize(request, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            StringContent content = new(requestJson, Encoding.UTF8, "application/json");
+
+            // 设置Authorization头
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CurrentAccessToken);
+
+            System.Diagnostics.Debug.WriteLine($"ChangePasswordAsync: 发送修改密码请求到 {BuildApiUrl("change-password")}");
+            System.Diagnostics.Debug.WriteLine($"请求内容: {requestJson}");
+            System.Diagnostics.Debug.WriteLine("注意：现在支持验证当前密码");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(BuildApiUrl("change-password"), content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"ChangePasswordAsync: 响应状态码={response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"响应内容: {responseContent}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                System.Diagnostics.Debug.WriteLine("ChangePasswordAsync: 密码修改成功");
+                return true;
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"修改密码异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 保存登录信息到本地存储
     /// </summary>
     /// <param name="loginResponse">登录响应</param>

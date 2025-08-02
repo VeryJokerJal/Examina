@@ -1,0 +1,138 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Examina.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Examina.Views.Pages.ExamView"
+             x:DataType="vm:ExamViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      
+      <!-- 页面标题 -->
+      <TextBlock Text="{Binding PageTitle}" 
+                 FontSize="28" 
+                 FontWeight="Bold"
+                 FontFamily="Microsoft YaHei"
+                 Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+      
+      <!-- 考试状态卡片 -->
+      <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              CornerRadius="12"
+              Padding="24">
+        <StackPanel Spacing="16">
+          
+          <!-- 考试状态图标和标题 -->
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="📋" FontSize="32"/>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="考试状态" 
+                         FontSize="20" 
+                         FontWeight="SemiBold"
+                         FontFamily="Microsoft YaHei"
+                         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+              <TextBlock Text="{Binding ExamStatus}" 
+                         FontSize="14"
+                         FontFamily="Microsoft YaHei"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            </StackPanel>
+          </StackPanel>
+          
+          <!-- 考试信息（当有正在进行的考试时显示） -->
+          <StackPanel IsVisible="{Binding HasActiveExam}" Spacing="12">
+            <Separator/>
+            
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="考试名称" 
+                           FontSize="12"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <TextBlock Text="{Binding ExamName}" 
+                           FontSize="16" 
+                           FontWeight="SemiBold"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                           Margin="0,4,0,0"/>
+              </StackPanel>
+              
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="剩余时间" 
+                           FontSize="12"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <TextBlock Text="{Binding RemainingTime}" 
+                           FontSize="16" 
+                           FontWeight="SemiBold"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemAccentColor}"
+                           Margin="0,4,0,0"/>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+          
+          <!-- 操作按钮 -->
+          <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+            <Button Content="开始考试" 
+                    Classes="accent"
+                    Command="{Binding StartExamCommand}"
+                    IsVisible="{Binding !HasActiveExam}"
+                    Padding="20,10"
+                    FontFamily="Microsoft YaHei"/>
+            
+            <Button Content="继续考试" 
+                    Classes="accent"
+                    Command="{Binding ContinueExamCommand}"
+                    IsVisible="{Binding HasActiveExam}"
+                    Padding="20,10"
+                    FontFamily="Microsoft YaHei"/>
+            
+            <Button Content="刷新状态" 
+                    Command="{Binding RefreshExamStatusCommand}"
+                    Padding="20,10"
+                    FontFamily="Microsoft YaHei"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      
+      <!-- 考试说明 -->
+      <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              CornerRadius="8"
+              Padding="20">
+        <StackPanel Spacing="12">
+          <TextBlock Text="考试说明" 
+                     FontSize="18" 
+                     FontWeight="SemiBold"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+          
+          <StackPanel Spacing="8">
+            <TextBlock Text="• 请确保网络连接稳定，避免考试过程中断网" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <TextBlock Text="• 考试过程中请勿关闭应用程序或切换到其他程序" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <TextBlock Text="• 考试时间到后系统将自动提交答案" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <TextBlock Text="• 如遇技术问题请及时联系监考老师" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

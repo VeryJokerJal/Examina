@@ -1,0 +1,215 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Examina.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Examina.Views.Pages.OverviewView"
+             x:DataType="vm:OverviewViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      
+      <!-- 页面标题 -->
+      <TextBlock Text="{Binding PageTitle}" 
+                 FontSize="28" 
+                 FontWeight="Bold"
+                 FontFamily="Microsoft YaHei"
+                 Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+      
+      <!-- 欢迎消息 -->
+      <Border Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+              CornerRadius="8"
+              Padding="20">
+        <StackPanel>
+          <TextBlock Text="{Binding WelcomeMessage}" 
+                     FontSize="18" 
+                     FontWeight="SemiBold"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
+                     TextWrapping="Wrap"/>
+          <TextBlock Text="开始您的学习之旅吧！" 
+                     FontSize="14"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
+                     Opacity="0.9"
+                     Margin="0,8,0,0"/>
+        </StackPanel>
+      </Border>
+      
+      <!-- 统计卡片 -->
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 今日练习 -->
+        <Border Grid.Column="0" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8"
+                Padding="16"
+                Margin="0,0,8,0">
+          <StackPanel>
+            <TextBlock Text="今日练习" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <TextBlock Text="{Binding TodayPracticeCount}" 
+                       FontSize="24" 
+                       FontWeight="Bold"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       Margin="0,4,0,0"/>
+            <TextBlock Text="次" 
+                       FontSize="12"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          </StackPanel>
+        </Border>
+        
+        <!-- 总练习次数 -->
+        <Border Grid.Column="1" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8"
+                Padding="16"
+                Margin="4,0">
+          <StackPanel>
+            <TextBlock Text="总练习" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <TextBlock Text="{Binding TotalPracticeCount}" 
+                       FontSize="24" 
+                       FontWeight="Bold"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       Margin="0,4,0,0"/>
+            <TextBlock Text="次" 
+                       FontSize="12"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          </StackPanel>
+        </Border>
+        
+        <!-- 最高分数 -->
+        <Border Grid.Column="2" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8"
+                Padding="16"
+                Margin="4,0">
+          <StackPanel>
+            <TextBlock Text="最高分" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <TextBlock Text="{Binding HighestScore}" 
+                       FontSize="24" 
+                       FontWeight="Bold"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       Margin="0,4,0,0"/>
+            <TextBlock Text="分" 
+                       FontSize="12"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          </StackPanel>
+        </Border>
+        
+        <!-- 平均分数 -->
+        <Border Grid.Column="3" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8"
+                Padding="16"
+                Margin="8,0,0,0">
+          <StackPanel>
+            <TextBlock Text="平均分" 
+                       FontSize="14"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <TextBlock Text="{Binding AverageScore, StringFormat='{}{0:F1}'}" 
+                       FontSize="24" 
+                       FontWeight="Bold"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       Margin="0,4,0,0"/>
+            <TextBlock Text="分" 
+                       FontSize="12"
+                       FontFamily="Microsoft YaHei"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+      
+      <!-- 快速操作 -->
+      <StackPanel>
+        <TextBlock Text="快速操作" 
+                   FontSize="20" 
+                   FontWeight="SemiBold"
+                   FontFamily="Microsoft YaHei"
+                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                   Margin="0,0,0,16"/>
+        
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          
+          <!-- 开始练习 -->
+          <Button Grid.Column="0"
+                  Classes="accent"
+                  HorizontalAlignment="Stretch"
+                  Padding="16"
+                  Margin="0,0,8,0">
+            <StackPanel>
+              <TextBlock Text="📝" FontSize="24" HorizontalAlignment="Center"/>
+              <TextBlock Text="开始练习" 
+                         FontSize="14"
+                         FontFamily="Microsoft YaHei"
+                         HorizontalAlignment="Center"
+                         Margin="0,8,0,0"/>
+            </StackPanel>
+          </Button>
+          
+          <!-- 查看排行榜 -->
+          <Button Grid.Column="1"
+                  HorizontalAlignment="Stretch"
+                  Padding="16"
+                  Margin="4,0">
+            <StackPanel>
+              <TextBlock Text="🏆" FontSize="24" HorizontalAlignment="Center"/>
+              <TextBlock Text="排行榜" 
+                         FontSize="14"
+                         FontFamily="Microsoft YaHei"
+                         HorizontalAlignment="Center"
+                         Margin="0,8,0,0"/>
+            </StackPanel>
+          </Button>
+          
+          <!-- 个人信息 -->
+          <Button Grid.Column="2"
+                  HorizontalAlignment="Stretch"
+                  Padding="16"
+                  Margin="8,0,0,0">
+            <StackPanel>
+              <TextBlock Text="👤" FontSize="24" HorizontalAlignment="Center"/>
+              <TextBlock Text="个人信息" 
+                         FontSize="14"
+                         FontFamily="Microsoft YaHei"
+                         HorizontalAlignment="Center"
+                         Margin="0,8,0,0"/>
+            </StackPanel>
+          </Button>
+        </Grid>
+      </StackPanel>
+      
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

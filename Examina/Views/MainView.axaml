@@ -1,90 +1,55 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:Examina.ViewModels"
-             xmlns:ui="using:FluentAvalonia.UI.Controls"
-             xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
-             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-             x:Class="Examina.Views.MainView"
-             x:DataType="vm:MainViewModel">
-  <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
-  </Design.DataContext>
+﻿<UserControl x:Class="Examina.Views.MainView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="using:FluentAvalonia.UI.Controls" xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives" xmlns:vm="clr-namespace:Examina.ViewModels" d:DesignHeight="800" d:DesignWidth="1200" x:DataType="vm:MainViewModel" mc:Ignorable="d">
+    <Design.DataContext>
+        <!--
+            This only sets the DataContext for the previewer in an IDE,
+            to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)
+        -->
+        <vm:MainViewModel />
+    </Design.DataContext>
 
-  <Grid>
-    <ui:NavigationView x:Name="MainNavigationView"
-                       IsBackButtonVisible="False"
-                       IsSettingsVisible="False"
-                       OpenPaneLength="280"
-                       CompactModeThresholdWidth="1008"
-                       ExpandedModeThresholdWidth="1008"
-                       PaneDisplayMode="Auto"
-                       MenuItemsSource="{Binding NavigationItems}"
-                       SelectedItem="{Binding SelectedNavigationItem}"
-                       SelectionChanged="{Binding NavigationSelectionChangedCommand}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-      <!-- 导航视图头部 -->
-      <ui:NavigationView.Header>
-        <Grid Height="48" Margin="24,0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
+        <!--  自定义标题栏  -->
+        <Border Grid.Row="0" Height="56" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,0,1">
+            <Grid Margin="16,0,24,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-          <!-- 应用Logo和标题 -->
-          <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-            <Border Width="32" Height="32"
-                    Background="{DynamicResource SystemAccentColor}"
-                    CornerRadius="6"
-                    Margin="0,0,12,0">
-              <TextBlock Text="E"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
-                         HorizontalAlignment="Center"
-                         VerticalAlignment="Center"/>
-            </Border>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Examina"
-                         FontSize="16"
-                         FontWeight="SemiBold"
-                         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-              <TextBlock Text="考试练习系统"
-                         FontSize="12"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-            </StackPanel>
-          </StackPanel>
+                <!--  应用Logo和标题  -->
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal">
+                    <Border Width="32" Height="32" Margin="0,0,12,0" Background="{DynamicResource SystemAccentColor}" CornerRadius="6">
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" Text="E" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="Examina" />
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="考试练习系统" />
+                    </StackPanel>
+                </StackPanel>
 
-          <!-- 用户信息区域 -->
-          <StackPanel Grid.Column="1"
-                      Orientation="Horizontal"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Center">
-            <TextBlock Text="{Binding CurrentUser.Username, StringFormat='欢迎，{0}'}"
-                       FontSize="14"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                       VerticalAlignment="Center"
-                       Margin="0,0,12,0"/>
-            <Button Content="退出登录"
-                    Classes="accent"
-                    Command="{Binding LogoutCommand}"
-                    Padding="12,6"/>
-          </StackPanel>
-        </Grid>
-      </ui:NavigationView.Header>
+                <!--  用户信息区域  -->
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock Margin="0,0,12,0" VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding CurrentUser.Username, StringFormat='欢迎，{0}'}" />
+                    <Button Padding="12,6" Classes="accent" Command="{Binding LogoutCommand}" Content="退出登录" FontFamily="Microsoft YaHei" />
+                </StackPanel>
+            </Grid>
+        </Border>
 
-      <!-- 主内容区域 -->
-      <ui:NavigationView.Content>
-        <Grid>
-          <ContentControl Content="{Binding CurrentPageViewModel}"
-                          HorizontalContentAlignment="Stretch"
-                          VerticalContentAlignment="Stretch"/>
-        </Grid>
-      </ui:NavigationView.Content>
+        <!--  NavigationView  -->
+        <ui:NavigationView x:Name="MainNavigationView" Grid.Row="1" CompactModeThresholdWidth="1008" ExpandedModeThresholdWidth="1008" FooterMenuItemsSource="{Binding FooterNavigationItems}" IsBackButtonVisible="False" IsSettingsVisible="False" MenuItemsSource="{Binding NavigationItems}" OpenPaneLength="280" PaneDisplayMode="Left" SelectedItem="{Binding SelectedNavigationItem}">
 
-    </ui:NavigationView>
-  </Grid>
+            <!--  主内容区域  -->
+            <ui:NavigationView.Content>
+                <Grid>
+                    <ContentControl HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Content="{Binding CurrentPageViewModel}" />
+                </Grid>
+            </ui:NavigationView.Content>
+
+        </ui:NavigationView>
+    </Grid>
 </UserControl>

@@ -1,43 +1,37 @@
-<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:sty="using:FluentAvalonia.Styling"
-             x:Class="Examina.App"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+﻿<Application x:Class="Examina.App" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sty="using:FluentAvalonia.Styling" xmlns:views="clr-namespace:Examina.Views.Pages" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" RequestedThemeVariant="Default">
+    <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
         <sty:FluentAvaloniaTheme PreferSystemTheme="True" />
 
-        <!-- 全局字体设置为雅黑 -->
-        <Style Selector="TextBlock">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="Button">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="TextBox">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="Label">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="CheckBox">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="RadioButton">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="ListBox">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="DataGrid">
-            <Setter Property="FontFamily" Value="Microsoft YaHei" />
-        </Style>
-        <Style Selector="MenuItem">
+        <!--  全局字体设置为雅黑  -->
+        <Style Selector="Window">
             <Setter Property="FontFamily" Value="Microsoft YaHei" />
         </Style>
     </Application.Styles>
+
+    <Application.DataTemplates>
+        <!--  页面视图模型到视图的映射  -->
+        <DataTemplate DataType="{x:Type vm:OverviewViewModel}">
+            <views:OverviewView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ExamViewModel}">
+            <views:ExamView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PracticeViewModel}">
+            <views:PracticeView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LeaderboardViewModel}">
+            <views:LeaderboardView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SchoolBindingViewModel}">
+            <views:SchoolBindingView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
+            <views:ProfileView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UnlockAdsViewModel}">
+            <views:UnlockAdsView />
+        </DataTemplate>
+    </Application.DataTemplates>
 </Application>

@@ -1,0 +1,132 @@
+﻿<UserControl x:Class="Examina.Views.Pages.ProfileView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" d:DesignHeight="700" d:DesignWidth="900" x:DataType="vm:ProfileViewModel" mc:Ignorable="d">
+
+    <ScrollViewer Padding="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <Grid Margin="32,24,32,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--  页面标题区域  -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,32" Spacing="8">
+                <TextBlock FontFamily="Microsoft YaHei" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding PageTitle}" />
+                <TextBlock FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="管理您的个人资料和账户设置" />
+            </StackPanel>
+
+            <!--  主内容区域  -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <!--  左侧：个人信息表单  -->
+                <Border Grid.Column="0" Padding="32" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="12">
+                    <StackPanel Spacing="24">
+                        <!--  表单标题  -->
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="基本信息" />
+
+                        <!--  用户名字段  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="用户名" />
+                            <TextBox Height="40" Padding="12,8" VerticalContentAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" IsReadOnly="{Binding !IsEditing}" Text="{Binding Username}" Watermark="请输入用户名" />
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Red" IsVisible="{Binding UsernameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding UsernameError}" />
+                        </StackPanel>
+
+                        <!--  头像字段  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="头像设置" />
+                            <TextBox Height="40" Padding="12,8" VerticalContentAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" IsReadOnly="{Binding !IsEditing}" Text="{Binding AvatarUrl}" Watermark="请输入头像URL地址" />
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="支持http://或https://开头的图片链接" />
+                        </StackPanel>
+
+                        <!--  手机号字段  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="手机号码" />
+                            <TextBox Height="40" Padding="12,8" VerticalContentAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" IsReadOnly="True" Text="{Binding PhoneNumber}" Watermark="未绑定手机号" />
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="手机号码用于账户安全验证，如需修改请联系客服" />
+                        </StackPanel>
+
+                        <!--  功能说明  -->
+                        <Border Margin="0,8,0,0" Padding="16" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="📋 功能说明" />
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Green" Text="✅ 支持修改：用户名、头像" />
+                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Orange" Text="⚠️ 暂不支持：手机号修改（如需修改请联系客服）" />
+                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Green" Text="🔒 密码修改：支持当前密码验证，确保账户安全" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  操作按钮区域  -->
+                        <Border Margin="0,8,0,0" Padding="20" Background="{DynamicResource SystemControlBackgroundAltMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8">
+                            <StackPanel Spacing="16">
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="操作" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <!--  编辑模式按钮  -->
+                                    <Button Padding="16,10" Command="{Binding EditProfileCommand}" Content="✏️ 编辑信息" FontFamily="Microsoft YaHei" FontSize="14" IsVisible="{Binding !IsEditing}" />
+
+                                    <!--  保存按钮  -->
+                                    <Button Padding="16,10" Classes="accent" Command="{Binding SaveProfileCommand}" Content="💾 保存更改" FontFamily="Microsoft YaHei" FontSize="14" IsEnabled="{Binding !IsSaving}" IsVisible="{Binding IsEditing}" />
+
+                                    <!--  取消按钮  -->
+                                    <Button Padding="16,10" Command="{Binding CancelEditCommand}" Content="❌ 取消" FontFamily="Microsoft YaHei" FontSize="14" IsEnabled="{Binding !IsSaving}" IsVisible="{Binding IsEditing}" />
+
+                                    <!--  修改密码按钮  -->
+                                    <Button Padding="16,10" Command="{Binding ChangePasswordCommand}" Content="🔒 修改密码" FontFamily="Microsoft YaHei" FontSize="14" />
+                                </StackPanel>
+
+                                <!--  状态消息  -->
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding StatusMessage}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!--  右侧：头像和账户信息  -->
+                <StackPanel Grid.Column="2" Spacing="24">
+
+                    <!--  头像卡片  -->
+                    <Border Padding="24" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="12">
+                        <StackPanel HorizontalAlignment="Center" Spacing="16">
+                            <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="头像" />
+
+                            <!--  头像显示  -->
+                            <Border Width="120" Height="120" HorizontalAlignment="Center" Background="{DynamicResource SystemAccentColor}" CornerRadius="60">
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="48" FontWeight="Bold" Foreground="White" Text="{Binding FirstLetter}" />
+                            </Border>
+
+                            <!--  上传头像按钮  -->
+                            <Button Padding="12,8" HorizontalAlignment="Center" Command="{Binding UploadAvatarCommand}" Content="📷 更换头像" FontFamily="Microsoft YaHei" FontSize="12" />
+                        </StackPanel>
+                    </Border>
+
+                    <!--  账户信息卡片  -->
+                    <Border Padding="24" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="12">
+                        <StackPanel Spacing="16">
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="账户信息" />
+
+                            <!--  注册时间  -->
+                            <StackPanel Spacing="4">
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="注册时间" />
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding RegistrationDate, StringFormat='{}{0:yyyy年MM月dd日}'}" />
+                            </StackPanel>
+
+                            <!--  最后登录时间  -->
+                            <StackPanel Spacing="4">
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="最后登录" />
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding LastLoginTime, StringFormat='{}{0:MM月dd日 HH:mm}'}" />
+                            </StackPanel>
+
+                            <!--  刷新按钮  -->
+                            <Button Padding="12,8" HorizontalAlignment="Stretch" Command="{Binding RefreshProfileCommand}" Content="🔄 刷新信息" FontFamily="Microsoft YaHei" FontSize="12" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

@@ -64,7 +64,6 @@ public class LoadingViewModel : ViewModelBase
         {
             // 阶段1：检查本地存储
             UpdateStatus("检查本地登录信息...", 20);
-            await Task.Delay(500); // 给用户一些视觉反馈时间
 
             PersistentLoginData? loginData = await _authenticationService.LoadLoginDataAsync();
             if (loginData == null)
@@ -78,7 +77,6 @@ public class LoadingViewModel : ViewModelBase
 
             // 阶段2：验证令牌
             UpdateStatus("验证访问令牌...", 50);
-            await Task.Delay(500);
 
             AuthenticationResult result = await _authenticationService.AutoAuthenticateAsync();
 
@@ -86,7 +84,6 @@ public class LoadingViewModel : ViewModelBase
             {
                 // 阶段3：验证成功
                 UpdateStatus("登录验证成功！", 80);
-                await Task.Delay(500);
 
                 // 检查是否需要完善用户信息
                 if (_authenticationService.RequiresUserInfoCompletion())
@@ -98,7 +95,7 @@ public class LoadingViewModel : ViewModelBase
                 else
                 {
                     UpdateStatus("正在进入主界面...", 100);
-                    await Task.Delay(1000);
+                    await Task.Delay(100);
                     NavigateToMainWindow();
                 }
             }

@@ -69,8 +69,8 @@ public class AuthController : ControllerBase
                 {
                     Id = user.Id.ToString(),
                     Username = user.Username,
-                    Email = user.Email,
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    AvatarUrl = user.AvatarUrl,
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
@@ -145,8 +145,8 @@ public class AuthController : ControllerBase
                 {
                     Id = user.Id.ToString(),
                     Username = user.Username,
-                    Email = user.Email,
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    AvatarUrl = user.AvatarUrl,
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,

@@ -51,6 +51,12 @@ public class User
     public string? WeChatOpenId { get; set; }
 
     /// <summary>
+    /// 用户头像URL
+    /// </summary>
+    [StringLength(500)]
+    public string? AvatarUrl { get; set; }
+
+    /// <summary>
     /// 用户角色
     /// </summary>
     public UserRole Role { get; set; } = UserRole.Student;
@@ -76,6 +82,11 @@ public class User
     /// 创建时间
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
 
     /// <summary>
     /// 最后登录时间
@@ -203,8 +214,8 @@ public class UserInfo
 {
     public string Id { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
     public UserRole Role { get; set; }
     public bool IsFirstLogin { get; set; }
     public bool AllowMultipleDevices { get; set; }
@@ -277,4 +288,41 @@ public class WeChatLoginRequest
     public string QrCode { get; set; } = string.Empty;
 
     public DeviceBindRequest? DeviceInfo { get; set; }
+}
+
+/// <summary>
+/// 更新用户资料请求模型
+/// </summary>
+public class UpdateProfileRequest
+{
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    [StringLength(50)]
+    public string? Username { get; set; }
+
+    /// <summary>
+    /// 头像URL
+    /// </summary>
+    [StringLength(500)]
+    public string? AvatarUrl { get; set; }
+}
+
+/// <summary>
+/// 修改密码请求模型
+/// </summary>
+public class ChangePasswordRequest
+{
+    /// <summary>
+    /// 当前密码
+    /// </summary>
+    [Required]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 新密码
+    /// </summary>
+    [Required]
+    [StringLength(100, MinimumLength = 6)]
+    public string NewPassword { get; set; } = string.Empty;
 }

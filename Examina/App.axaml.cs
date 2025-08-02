@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Examina.Services;
 using Examina.ViewModels;
+using Examina.ViewModels.Pages;
 using Examina.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -68,6 +69,8 @@ public partial class App : Application
         _ = services.AddTransient<MainViewModel>();
         _ = services.AddTransient<UserInfoCompletionViewModel>();
         _ = services.AddTransient<LoadingViewModel>();
+        _ = services.AddTransient<ProfileViewModel>();
+        _ = services.AddTransient<ChangePasswordViewModel>();
 
         _serviceProvider = services.BuildServiceProvider();
     }

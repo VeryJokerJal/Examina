@@ -91,6 +91,20 @@ public interface IAuthenticationService
     bool RequiresUserInfoCompletion();
 
     /// <summary>
+    /// 更新用户资料
+    /// </summary>
+    /// <param name="request">更新用户资料请求</param>
+    /// <returns>是否更新成功</returns>
+    Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request);
+
+    /// <summary>
+    /// 修改密码
+    /// </summary>
+    /// <param name="request">修改密码请求</param>
+    /// <returns>是否修改成功</returns>
+    Task<bool> ChangePasswordAsync(ChangePasswordRequest request);
+
+    /// <summary>
     /// 保存登录信息到本地存储
     /// </summary>
     /// <param name="loginResponse">登录响应</param>

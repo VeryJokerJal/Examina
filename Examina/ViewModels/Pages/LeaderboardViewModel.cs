@@ -1,7 +1,10 @@
-using ReactiveUI.Fody.Helpers;
+﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Prism.Commands;
+using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
 
@@ -21,7 +24,7 @@ public class LeaderboardViewModel : ViewModelBase
     /// <summary>
     /// 排行榜类型列表
     /// </summary>
-    public ObservableCollection<LeaderboardTypeItem> LeaderboardTypes { get; } = new();
+    public ObservableCollection<LeaderboardTypeItem> LeaderboardTypes { get; } = [];
 
     /// <summary>
     /// 选中的排行榜类型
@@ -32,7 +35,7 @@ public class LeaderboardViewModel : ViewModelBase
     /// <summary>
     /// 排行榜数据
     /// </summary>
-    public ObservableCollection<LeaderboardEntry> LeaderboardData { get; } = new();
+    public ObservableCollection<LeaderboardEntry> LeaderboardData { get; } = [];
 
     /// <summary>
     /// 是否正在加载
@@ -77,7 +80,7 @@ public class LeaderboardViewModel : ViewModelBase
     private void InitializeLeaderboardTypes()
     {
         LeaderboardTypes.Clear();
-        
+
         LeaderboardTypes.Add(new LeaderboardTypeItem
         {
             Id = "exam-ranking",
@@ -125,8 +128,8 @@ public class LeaderboardViewModel : ViewModelBase
                 {
                     Rank = i,
                     Username = $"用户{i:D3}",
-                    Score = 100 - i * 2,
-                    CompletionTime = TimeSpan.FromMinutes(30 + i * 2),
+                    Score = 100 - (i * 2),
+                    CompletionTime = TimeSpan.FromMinutes(30 + (i * 2)),
                     CompletionDate = DateTime.Now.AddDays(-i)
                 });
             }
@@ -150,7 +153,10 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private void SwitchLeaderboardType(LeaderboardTypeItem? leaderboardType)
     {
-        if (leaderboardType == null) return;
+        if (leaderboardType == null)
+        {
+            return;
+        }
 
         SelectedLeaderboardType = leaderboardType;
         LoadLeaderboardData();
