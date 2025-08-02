@@ -1,0 +1,94 @@
+﻿<Window x:Class="Examina.Views.LoginWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="using:FluentAvalonia.UI.Controls" xmlns:vm="using:Examina.ViewModels" Title="河北对口计算机新版上机考试系统 - 登录" Width="1100" Height="800" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:LoginViewModel" Background="Transparent" CanResize="False" TransparencyLevelHint="AcrylicBlur" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:LoginViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  左侧宣传图片区域  -->
+        <Border Grid.Column="0">
+            <Image Source="/Assets/login-background.png" />
+        </Border>
+
+        <!--  右侧登录区域  -->
+        <Border Grid.Column="1" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <Border MaxWidth="400" Margin="32,48,32,48" Padding="40,48,40,48" CornerRadius="12">
+                    <StackPanel VerticalAlignment="Center" Spacing="24">
+
+                        <!--  登录标题  -->
+                        <TextBlock Margin="0,0,0,8" HorizontalAlignment="Center" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="登录" />
+
+                        <!--  登录方式切换按钮  -->
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+                            <Button Padding="12,6" Classes="accent" Command="{Binding SwitchToCredentialsCommand}" Content="账号密码" CornerRadius="6" FontWeight="Medium" IsVisible="{Binding !IsCredentialsMode}" />
+                            <Button Padding="12,6" Classes="accent" Command="{Binding SwitchToSmsCommand}" Content="短信验证码" CornerRadius="6" FontWeight="Medium" IsVisible="{Binding !IsSmsMode}" />
+                            <Button Padding="12,6" Background="{DynamicResource SystemFillColorSuccessBrush}" Command="{Binding SwitchToWeChatCommand}" Content="微信扫码" CornerRadius="6" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" IsVisible="{Binding !IsWeChatMode}" />
+                        </StackPanel>
+
+                        <!--  账号密码登录区域  -->
+                        <StackPanel IsVisible="{Binding IsCredentialsMode}" Spacing="16">
+                            <TextBox MinHeight="48" Padding="16,12" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="8" FontSize="15" Text="{Binding Username}" Watermark="请输入用户名或手机号" />
+                            <TextBox MinHeight="48" Padding="16,12" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="8" FontSize="15" PasswordChar="●" Text="{Binding Password}" Watermark="请输入密码" />
+                            <Button MinHeight="48" Margin="0,8,0,0" Padding="16,12" HorizontalAlignment="Stretch" Classes="accent" Command="{Binding LoginCommand}" Content="立即登录" CornerRadius="8" FontSize="16" FontWeight="Medium" />
+                        </StackPanel>
+
+                        <!--  短信验证码登录区域  -->
+                        <StackPanel IsVisible="{Binding IsSmsMode}" Spacing="16">
+                            <TextBox MinHeight="48" Padding="16,12" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="8" FontSize="15" Text="{Binding PhoneNumber}" Watermark="请输入手机号" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBox Grid.Column="0" MinHeight="48" Padding="16,12" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="8" FontSize="15" Text="{Binding SmsCode}" Watermark="请输入验证码" />
+                                <Button Grid.Column="1" MinHeight="48" Margin="8,0,0,0" Padding="16,12" Command="{Binding SendSmsCodeCommand}" CornerRadius="8" FontSize="14" FontWeight="Medium">
+                                    <Button.Content>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding SmsCodeCountdown, StringFormat='{}{0}s后重发'}" IsVisible="{Binding !!SmsCodeCountdown}" />
+                                            <TextBlock Text="发送验证码" IsVisible="{Binding !SmsCodeCountdown}" />
+                                        </StackPanel>
+                                    </Button.Content>
+                                </Button>
+                            </Grid>
+                            <Button MinHeight="48" Margin="0,8,0,0" Padding="16,12" HorizontalAlignment="Stretch" Classes="accent" Command="{Binding LoginCommand}" Content="立即登录" CornerRadius="8" FontSize="16" FontWeight="Medium" />
+                        </StackPanel>
+
+                        <!--  微信扫码登录区域  -->
+                        <StackPanel HorizontalAlignment="Center" IsVisible="{Binding IsWeChatMode}" Spacing="20">
+                            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="使用微信扫一扫登录" />
+
+                            <Border Width="220" Height="220" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" BoxShadow="0 2 8 0 #15000000" CornerRadius="12">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                                    <TextBlock HorizontalAlignment="Center" FontSize="48" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="📱" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding QrCodeStatus}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Button Padding="16,8" HorizontalAlignment="Center" Command="{Binding RefreshQrCodeCommand}" Content="刷新二维码" CornerRadius="6" FontWeight="Medium" />
+                        </StackPanel>
+
+                        <!--  成功信息  -->
+                        <Border Padding="12,8" Background="{DynamicResource SystemFillColorSuccessBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorSuccessBrush}" BorderThickness="1" CornerRadius="6" IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemFillColorSuccessBrush}" Text="{Binding SuccessMessage}" TextWrapping="Wrap" />
+                        </Border>
+
+                        <!--  设备绑定信息  -->
+                        <Border Padding="12,8" Background="{DynamicResource SystemFillColorAttentionBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorAttentionBrush}" BorderThickness="1" CornerRadius="6" IsVisible="{Binding RequireDeviceBinding}">
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemFillColorAttentionBrush}" Text="{Binding DeviceBindingMessage}" TextWrapping="Wrap" />
+                        </Border>
+
+                        <!--  错误信息  -->
+                        <Border Padding="12,8" Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorCriticalBrush}" BorderThickness="1" CornerRadius="6" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemFillColorCriticalBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+                        </Border>
+
+                        <!--  加载指示器  -->
+                        <ui:ProgressRing Width="32" Height="32" HorizontalAlignment="Center" Foreground="{DynamicResource SystemAccentColor}" IsActive="{Binding IsLoading}" />
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

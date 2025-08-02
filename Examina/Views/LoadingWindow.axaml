@@ -1,0 +1,182 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Examina.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+        x:Class="Examina.Views.LoadingWindow"
+        x:DataType="vm:LoadingViewModel"
+        Title="Examina - 正在加载"
+        Width="400" Height="300"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Icon="/Assets/icon.ico">
+
+    <Design.DataContext>
+        <vm:LoadingViewModel />
+    </Design.DataContext>
+
+    <Grid Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Logo区域 -->
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="0,20,0,30">
+            <!-- 这里可以添加应用Logo -->
+            <Border Width="80"
+                    Height="80"
+                    Background="{DynamicResource SystemAccentColor}"
+                    CornerRadius="40"
+                    Margin="0,0,0,20">
+                <TextBlock Text="E"
+                           FontSize="36"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Border>
+
+            <TextBlock Text="Examina"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- 状态和进度区域 -->
+        <StackPanel Grid.Row="2" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center"
+                    Margin="40,0,40,40"
+                    Spacing="20">
+            
+            <!-- 状态文本 -->
+            <TextBlock Text="{Binding StatusText}"
+                       FontSize="16"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"/>
+
+            <!-- 进度条 -->
+            <StackPanel IsVisible="{Binding ShowProgress}" Spacing="10">
+                <ProgressBar Value="{Binding Progress}"
+                             Maximum="100"
+                             Height="6"
+                             Width="280"
+                             Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                             Foreground="{DynamicResource SystemAccentColor}"/>
+
+                <TextBlock Text="{Binding Progress, StringFormat={}{0}%}"
+                           FontSize="12"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- 错误信息 -->
+            <Border IsVisible="{Binding HasError}"
+                    Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                    BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="15"
+                    MaxWidth="300">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="⚠️ 登录验证失败"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource SystemFillColorCautionBrush}"/>
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               FontSize="14"
+                               Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="即将跳转到登录页面..."
+                               FontSize="12"
+                               Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                               FontStyle="Italic"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 加载动画 -->
+            <StackPanel IsVisible="{Binding ShowProgress}"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" Name="Dot1">
+                    <Ellipse.Styles>
+                        <Style Selector="Ellipse#Dot1">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                    <KeyFrame Cue="0%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="33%">
+                                        <Setter Property="Opacity" Value="1.0"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="66%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="100%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Ellipse.Styles>
+                </Ellipse>
+
+                <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" Name="Dot2">
+                    <Ellipse.Styles>
+                        <Style Selector="Ellipse#Dot2">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.2">
+                                    <KeyFrame Cue="0%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="33%">
+                                        <Setter Property="Opacity" Value="1.0"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="66%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="100%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Ellipse.Styles>
+                </Ellipse>
+
+                <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" Name="Dot3">
+                    <Ellipse.Styles>
+                        <Style Selector="Ellipse#Dot3">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.4">
+                                    <KeyFrame Cue="0%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="33%">
+                                        <Setter Property="Opacity" Value="1.0"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="66%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="100%">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Ellipse.Styles>
+                </Ellipse>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
