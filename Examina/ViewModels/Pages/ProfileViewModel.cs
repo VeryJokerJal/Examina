@@ -92,11 +92,7 @@ public class ProfileViewModel : ViewModelBase
 
 
 
-    /// <summary>
-    /// 头像URL
-    /// </summary>
-    [Reactive]
-    public string AvatarUrl { get; set; } = string.Empty;
+
 
     /// <summary>
     /// 是否有验证错误
@@ -200,7 +196,6 @@ public class ProfileViewModel : ViewModelBase
                 _originalUserInfo = currentUser;
                 Username = currentUser.Username;
                 PhoneNumber = currentUser.PhoneNumber;
-                AvatarUrl = string.IsNullOrEmpty(currentUser.AvatarUrl) ? "/Assets/default-avatar.png" : currentUser.AvatarUrl;
 
                 // 注册时间和最后登录时间从服务端获取
                 RegistrationDate = DateTime.Now.AddDays(-30); // 临时数据
@@ -257,8 +252,7 @@ public class ProfileViewModel : ViewModelBase
             // 调用AuthenticationService更新用户信息
             bool success = await _authenticationService.UpdateUserProfileAsync(new UpdateUserProfileRequest
             {
-                Username = Username,
-                AvatarUrl = AvatarUrl
+                Username = Username
             });
 
             if (success)

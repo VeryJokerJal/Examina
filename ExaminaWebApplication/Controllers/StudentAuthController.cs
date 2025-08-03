@@ -142,7 +142,6 @@ public class StudentAuthController : ControllerBase
                     Id = user.Id.ToString(),
                     Username = user.Username,
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
-                    AvatarUrl = user.AvatarUrl,
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
@@ -252,7 +251,6 @@ public class StudentAuthController : ControllerBase
                     Id = user.Id.ToString(),
                     Username = user.Username,
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
-                    AvatarUrl = user.AvatarUrl,
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
@@ -450,7 +448,6 @@ public class StudentAuthController : ControllerBase
                 Id = user.Id.ToString(),
                 Username = user.Username,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
-                AvatarUrl = user.AvatarUrl,
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
@@ -546,7 +543,6 @@ public class StudentAuthController : ControllerBase
                 Id = user.Id.ToString(),
                 Username = user.Username,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
-                AvatarUrl = user.AvatarUrl,
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
@@ -609,12 +605,7 @@ public class StudentAuthController : ControllerBase
                 hasChanges = true;
             }
 
-            // 更新头像URL
-            if (request.AvatarUrl != user.AvatarUrl)
-            {
-                user.AvatarUrl = request.AvatarUrl;
-                hasChanges = true;
-            }
+
 
             // 保存更改
             if (hasChanges)
@@ -634,7 +625,6 @@ public class StudentAuthController : ControllerBase
                 Id = user.Id.ToString(),
                 Username = user.Username,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
-                AvatarUrl = user.AvatarUrl,
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,

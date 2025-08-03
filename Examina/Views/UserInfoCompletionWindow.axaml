@@ -1,16 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Examina.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
-        x:Class="Examina.Views.UserInfoCompletionWindow"
-        x:DataType="vm:UserInfoCompletionViewModel"
-        Title="完善用户信息 - Examina"
-        Width="500" Height="600"
-        WindowStartupLocation="CenterScreen"
-        CanResize="False"
-        Icon="/Assets/icon.ico">
+﻿<Window x:Class="Examina.Views.UserInfoCompletionWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="using:Examina.ViewModels" Title="河北对口计算机上机考试系统 - 完善用户信息" Width="500" Height="600" d:DesignHeight="600" d:DesignWidth="500" x:DataType="vm:UserInfoCompletionViewModel" CanResize="False" Icon="/Assets/icon.ico" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
 
     <Design.DataContext>
         <vm:UserInfoCompletionViewModel />
@@ -18,127 +6,68 @@
 
     <Grid Margin="40">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 标题区域 -->
+        <!--  标题区域  -->
         <StackPanel Grid.Row="0" Margin="0,0,0,30">
-            <TextBlock Text="完善用户信息" 
-                       FontSize="24" 
-                       FontWeight="Bold" 
-                       HorizontalAlignment="Center"
-                       Margin="0,0,0,10"/>
-            <TextBlock Text="请完善您的个人信息，这将有助于更好地为您提供服务" 
-                       FontSize="14" 
-                       Foreground="Gray"
-                       HorizontalAlignment="Center"
-                       TextWrapping="Wrap"/>
+            <TextBlock Margin="0,0,0,10" HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="完善用户信息" />
+            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="Gray" Text="请完善您的个人信息，这将有助于更好地为您提供服务" TextWrapping="Wrap" />
         </StackPanel>
 
-        <!-- 表单区域 -->
+        <!--  表单区域  -->
         <ScrollViewer Grid.Row="1">
             <StackPanel Spacing="20">
-                <!-- 当前用户信息显示 -->
-                <Border Background="{DynamicResource SystemControlBackgroundAltMediumLowBrush}"
-                        CornerRadius="8"
-                        Padding="15"
-                        IsVisible="{Binding CurrentUser, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <!--  当前用户信息显示  -->
+                <Border Padding="15" Background="{DynamicResource SystemControlBackgroundAltMediumLowBrush}" CornerRadius="8" IsVisible="{Binding CurrentUser, Converter={x:Static ObjectConverters.IsNotNull}}">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="当前账户信息" FontWeight="Bold" FontSize="16"/>
-                        <TextBlock Text="{Binding CurrentUser.PhoneNumber, StringFormat='手机号: {0}'}"
-                                   FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        <TextBlock FontSize="16" FontWeight="Bold" Text="当前账户信息" />
+                        <TextBlock FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding CurrentUser.PhoneNumber, StringFormat='手机号: {0}'}" />
                     </StackPanel>
                 </Border>
 
-                <!-- 用户名 -->
+                <!--  用户名  -->
                 <StackPanel>
-                    <TextBlock Text="用户名" FontWeight="Bold" Margin="0,0,0,5"/>
-                    <TextBox Text="{Binding Username}" 
-                             Watermark="请输入用户名（2-50个字符）"
-                             Height="40"/>
-                    <TextBlock Text="用户名用于登录，可以随时修改"
-                               FontSize="12"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               Margin="0,5,0,0"/>
+                    <TextBlock Margin="0,0,0,5" FontWeight="Bold" Text="用户名" />
+                    <TextBox Height="40" Text="{Binding Username}" Watermark="请输入用户名（2-50个字符）" />
+                    <TextBlock Margin="0,5,0,0" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="用户名用于登录，可以随时修改" />
                 </StackPanel>
 
-                <!-- 密码设置 -->
+                <!--  密码设置  -->
                 <StackPanel>
-                    <TextBlock Text="设置密码（可选）" FontWeight="Bold" Margin="0,0,0,5"/>
-                    <TextBox Text="{Binding Password}"
-                             Watermark="请输入密码（至少6位）"
-                             PasswordChar="*"
-                             Height="40"/>
-                    <TextBlock Text="设置密码后可以使用用户名+密码登录"
-                               FontSize="12"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               Margin="0,5,0,0"/>
+                    <TextBlock Margin="0,0,0,5" FontWeight="Bold" Text="设置密码（可选）" />
+                    <TextBox Height="40" PasswordChar="*" Text="{Binding Password}" Watermark="请输入密码（至少6位）" />
+                    <TextBlock Margin="0,5,0,0" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="设置密码后可以使用用户名+密码登录" />
                 </StackPanel>
 
-                <!-- 确认密码 -->
+                <!--  确认密码  -->
                 <StackPanel IsVisible="{Binding Password, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="确认密码" FontWeight="Bold" Margin="0,0,0,5"/>
-                    <TextBox Text="{Binding ConfirmPassword}" 
-                             Watermark="请再次输入密码"
-                             PasswordChar="*"
-                             Height="40"/>
+                    <TextBlock Margin="0,0,0,5" FontWeight="Bold" Text="确认密码" />
+                    <TextBox Height="40" PasswordChar="*" Text="{Binding ConfirmPassword}" Watermark="请再次输入密码" />
                 </StackPanel>
 
-                <!-- 错误消息 -->
-                <TextBlock Text="{Binding ErrorMessage}"
-                           Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                           FontWeight="Bold"
-                           TextWrapping="Wrap"
-                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <!--  错误消息  -->
+                <TextBlock FontWeight="Bold" Foreground="{DynamicResource SystemFillColorCriticalBrush}" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
 
-                <!-- 成功消息 -->
-                <TextBlock Text="{Binding SuccessMessage}"
-                           Foreground="{DynamicResource SystemFillColorSuccessBrush}"
-                           FontWeight="Bold"
-                           TextWrapping="Wrap"
-                           IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <!--  成功消息  -->
+                <TextBlock FontWeight="Bold" Foreground="{DynamicResource SystemFillColorSuccessBrush}" IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding SuccessMessage}" TextWrapping="Wrap" />
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 按钮区域 -->
-        <StackPanel Grid.Row="2" 
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Center" 
-                    Spacing="15" 
-                    Margin="0,30,0,0">
-            <Button Content="跳过"
-                    Width="100"
-                    Height="40"
-                    Background="{DynamicResource SystemControlBackgroundBaseMediumBrush}"
-                    Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
-                    Command="{Binding SkipCommand}"
-                    IsEnabled="{Binding !IsProcessing}"/>
+        <!--  按钮区域  -->
+        <StackPanel Grid.Row="2" Margin="0,30,0,0" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="15">
+            <Button Width="100" Height="40" Background="{DynamicResource SystemControlBackgroundBaseMediumBrush}" Command="{Binding SkipCommand}" Content="跳过" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" IsEnabled="{Binding !IsProcessing}" />
 
-            <Button Content="完成"
-                    Width="100"
-                    Height="40"
-                    Background="{DynamicResource SystemAccentColor}"
-                    Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
-                    Command="{Binding CompleteInfoCommand}"
-                    IsEnabled="{Binding !IsProcessing}"/>
+            <Button Width="100" Height="40" Background="{DynamicResource SystemAccentColor}" Command="{Binding CompleteInfoCommand}" Content="完成" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" IsEnabled="{Binding !IsProcessing}" />
         </StackPanel>
 
-        <!-- 加载指示器 -->
-        <Border Grid.Row="0" Grid.RowSpan="3"
-                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                Opacity="0.8"
-                IsVisible="{Binding IsProcessing}">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                <ProgressBar IsIndeterminate="True"
-                             Width="200"
-                             Height="4"
-                             Margin="0,0,0,10"/>
-                <TextBlock Text="正在更新用户信息..."
-                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                           HorizontalAlignment="Center"/>
+        <!--  加载指示器  -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}" IsVisible="{Binding IsProcessing}" Opacity="0.8">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar Width="200" Height="4" Margin="0,0,0,10" IsIndeterminate="True" />
+                <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="正在更新用户信息..." />
             </StackPanel>
         </Border>
     </Grid>

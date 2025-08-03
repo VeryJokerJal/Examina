@@ -11,6 +11,10 @@ namespace Examina.Services;
 public interface IAuthenticationService
 {
     /// <summary>
+    /// 用户信息更新事件
+    /// </summary>
+    event EventHandler<UserInfo?>? UserInfoUpdated;
+    /// <summary>
     /// 用户名密码登录
     /// </summary>
     /// <param name="username">用户名</param>

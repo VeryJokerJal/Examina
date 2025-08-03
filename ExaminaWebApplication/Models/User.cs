@@ -50,11 +50,7 @@ public class User
     [StringLength(100)]
     public string? WeChatOpenId { get; set; }
 
-    /// <summary>
-    /// 用户头像URL
-    /// </summary>
-    [StringLength(500)]
-    public string? AvatarUrl { get; set; }
+
 
     /// <summary>
     /// 用户角色
@@ -215,7 +211,6 @@ public class UserInfo
     public string Id { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
-    public string? AvatarUrl { get; set; }
     public UserRole Role { get; set; }
     public bool IsFirstLogin { get; set; }
     public bool AllowMultipleDevices { get; set; }
@@ -300,12 +295,6 @@ public class UpdateProfileRequest
     /// </summary>
     [StringLength(50)]
     public string? Username { get; set; }
-
-    /// <summary>
-    /// 头像URL
-    /// </summary>
-    [StringLength(500)]
-    public string? AvatarUrl { get; set; }
 }
 
 /// <summary>

@@ -137,9 +137,4 @@ public class UpdateProfileRequest
     /// 用户名
     /// </summary>
     public string? Username { get; set; }
-
-    /// <summary>
-    /// 头像URL
-    /// </summary>
-    public string? AvatarUrl { get; set; }
 }

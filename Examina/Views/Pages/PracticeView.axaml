@@ -1,46 +1,78 @@
-﻿<UserControl x:Class="Examina.Views.Pages.PracticeView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:PracticeViewModel" mc:Ignorable="d">
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Examina.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Examina.Views.Pages.PracticeView"
+             x:DataType="vm:PracticeViewModel">
 
-    <ScrollViewer>
-        <StackPanel Margin="24" Spacing="24">
-
-            <!--  页面标题  -->
-            <TextBlock FontFamily="Microsoft YaHei" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding PageTitle}" />
-
-            <!--  练习类型列表  -->
-            <ItemsControl ItemsSource="{Binding PracticeTypes}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Spacing="16" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="12">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <!--  图标  -->
-                                <TextBlock Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" FontSize="32" Text="{Binding Icon}" />
-
-                                <!--  内容  -->
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding Name}" />
-                                    <TextBlock Margin="0,4,0,0" FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
-                                </StackPanel>
-
-                                <!--  开始按钮  -->
-                                <Button Grid.Column="2" Padding="16,8" Classes="accent" Command="{Binding $parent[UserControl].DataContext.StartPracticeCommand}" CommandParameter="{Binding}" Content="开始练习" FontFamily="Microsoft YaHei" IsEnabled="{Binding IsEnabled}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-        </StackPanel>
-    </ScrollViewer>
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      
+      <!-- 页面标题 -->
+      <TextBlock Text="{Binding PageTitle}" 
+                 FontSize="28" 
+                 FontWeight="Bold"
+                 FontFamily="Microsoft YaHei"
+                 Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+      
+      <!-- 练习类型列表 -->
+      <ItemsControl ItemsSource="{Binding PracticeTypes}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="16"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="12"
+                    Padding="20">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- 图标 -->
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding Icon}" 
+                           FontSize="32"
+                           VerticalAlignment="Center"
+                           Margin="0,0,16,0"/>
+                
+                <!-- 内容 -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Name}" 
+                             FontSize="18" 
+                             FontWeight="SemiBold"
+                             FontFamily="Microsoft YaHei"
+                             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                  <TextBlock Text="{Binding Description}" 
+                             FontSize="14"
+                             FontFamily="Microsoft YaHei"
+                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                             Margin="0,4,0,0"/>
+                </StackPanel>
+                
+                <!-- 开始按钮 -->
+                <Button Grid.Column="2" 
+                        Content="开始练习"
+                        Classes="accent"
+                        Command="{Binding $parent[UserControl].DataContext.StartPracticeCommand}"
+                        CommandParameter="{Binding}"
+                        IsEnabled="{Binding IsEnabled}"
+                        Padding="16,8"
+                        FontFamily="Microsoft YaHei"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>

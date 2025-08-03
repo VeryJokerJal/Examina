@@ -14,7 +14,7 @@ using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels;
 
-public class MainViewModel : ViewModelBase
+public class MainViewModel : ViewModelBase, IDisposable
 {
     #region 字段
 
@@ -27,7 +27,7 @@ public class MainViewModel : ViewModelBase
     /// <summary>
     /// 导航项目集合
     /// </summary>
-    public ObservableCollection<NavigationViewItem> NavigationItems { get; } = new();
+    public ObservableCollection<NavigationViewItem> NavigationItems { get; } = [];
 
     /// <summary>
     /// 底部导航项目集合
@@ -52,6 +52,12 @@ public class MainViewModel : ViewModelBase
     [Reactive]
     public UserInfo? CurrentUser { get; set; }
 
+    /// <summary>
+    /// NavigationView是否展开
+    /// </summary>
+    [Reactive]
+    public bool IsNavigationPaneOpen { get; set; } = true;
+
     #endregion
 
     #region 命令
@@ -60,6 +66,11 @@ public class MainViewModel : ViewModelBase
     /// 退出登录命令
     /// </summary>
     public ICommand LogoutCommand { get; }
+
+    /// <summary>
+    /// 解锁广告命令
+    /// </summary>
+    public ICommand UnlockAdsCommand { get; }
 
     #endregion
 
@@ -70,14 +81,23 @@ public class MainViewModel : ViewModelBase
         _authenticationService = authenticationService;
 
         LogoutCommand = new DelegateCommand(Logout);
+        UnlockAdsCommand = new DelegateCommand(UnlockAds);
 
         InitializeNavigation();
         LoadCurrentUser();
 
+        // 监听用户信息更新事件
+        _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
+
         // 监听导航项选择变化
-        this.WhenAnyValue(x => x.SelectedNavigationItem)
+        _ = this.WhenAnyValue(x => x.SelectedNavigationItem)
             .Where(item => item != null)
             .Subscribe(item => OnNavigationSelectionChanged(item!));
+    }
+
+    private void UnlockAds()
+    {
+
     }
 
     #endregion
@@ -199,14 +219,6 @@ public class MainViewModel : ViewModelBase
             IconSource = new SymbolIconSource { Symbol = Symbol.Contact },
             Tag = "profile"
         });
-
-        // 解锁广告
-        FooterNavigationItems.Add(new NavigationViewItem
-        {
-            Content = "解锁广告",
-            IconSource = new SymbolIconSource { Symbol = Symbol.Star },
-            Tag = "unlock-ads"
-        });
     }
 
     /// <summary>
@@ -215,6 +227,17 @@ public class MainViewModel : ViewModelBase
     private void LoadCurrentUser()
     {
         CurrentUser = _authenticationService.CurrentUser;
+    }
+
+    /// <summary>
+    /// 用户信息更新事件处理
+    /// </summary>
+    /// <param name="sender">事件发送者</param>
+    /// <param name="userInfo">更新后的用户信息</param>
+    private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
+    {
+        CurrentUser = userInfo;
+        System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户信息已更新，用户名={userInfo?.Username}");
     }
 
     /// <summary>
@@ -248,7 +271,6 @@ public class MainViewModel : ViewModelBase
             "training-ranking" => new LeaderboardViewModel(),
             "school-binding" => new SchoolBindingViewModel(),
             "profile" => ((App)Application.Current!).GetService<ProfileViewModel>() ?? new ProfileViewModel(_authenticationService),
-            "unlock-ads" => new UnlockAdsViewModel(),
             _ => new OverviewViewModel()
         };
     }
@@ -270,6 +292,18 @@ public class MainViewModel : ViewModelBase
             // TODO: 显示错误消息
             System.Diagnostics.Debug.WriteLine($"退出登录失败: {ex.Message}");
         }
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    /// <summary>
+    /// 释放资源
+    /// </summary>
+    public void Dispose()
+    {
+        _authenticationService.UserInfoUpdated -= OnUserInfoUpdated;
     }
 
     #endregion

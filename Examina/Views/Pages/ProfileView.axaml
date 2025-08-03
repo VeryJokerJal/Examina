@@ -34,12 +34,7 @@
                             <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Red" IsVisible="{Binding UsernameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding UsernameError}" />
                         </StackPanel>
 
-                        <!--  头像字段  -->
-                        <StackPanel Spacing="8">
-                            <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="头像设置" />
-                            <TextBox Height="40" Padding="12,8" VerticalContentAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" IsReadOnly="{Binding !IsEditing}" Text="{Binding AvatarUrl}" Watermark="请输入头像URL地址" />
-                            <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="支持http://或https://开头的图片链接" />
-                        </StackPanel>
+
 
                         <!--  手机号字段  -->
                         <StackPanel Spacing="8">
@@ -53,7 +48,7 @@
                             <StackPanel Spacing="8">
                                 <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="📋 功能说明" />
                                 <StackPanel Spacing="4">
-                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Green" Text="✅ 支持修改：用户名、头像" />
+                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Green" Text="✅ 支持修改：用户名" />
                                     <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Orange" Text="⚠️ 暂不支持：手机号修改（如需修改请联系客服）" />
                                     <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Green" Text="🔒 密码修改：支持当前密码验证，确保账户安全" />
                                 </StackPanel>
@@ -86,23 +81,8 @@
                     </StackPanel>
                 </Border>
 
-                <!--  右侧：头像和账户信息  -->
+                <!--  右侧：账户信息  -->
                 <StackPanel Grid.Column="2" Spacing="24">
-
-                    <!--  头像卡片  -->
-                    <Border Padding="24" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="12">
-                        <StackPanel HorizontalAlignment="Center" Spacing="16">
-                            <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="头像" />
-
-                            <!--  头像显示  -->
-                            <Border Width="120" Height="120" HorizontalAlignment="Center" Background="{DynamicResource SystemAccentColor}" CornerRadius="60">
-                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="48" FontWeight="Bold" Foreground="White" Text="{Binding FirstLetter}" />
-                            </Border>
-
-                            <!--  上传头像按钮  -->
-                            <Button Padding="12,8" HorizontalAlignment="Center" Command="{Binding UploadAvatarCommand}" Content="📷 更换头像" FontFamily="Microsoft YaHei" FontSize="12" />
-                        </StackPanel>
-                    </Border>
 
                     <!--  账户信息卡片  -->
                     <Border Padding="24" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="12">

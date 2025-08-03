@@ -22,13 +22,19 @@
                 </Grid.ColumnDefinitions>
 
                 <!--  应用Logo和标题  -->
-                <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal">
-                    <Border Width="32" Height="32" Margin="0,0,12,0" Background="{DynamicResource SystemAccentColor}" CornerRadius="6">
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" Text="E" />
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="12">
+                    <!--  Logo图标  -->
+                    <Border Width="32" Height="32" Background="{DynamicResource SystemAccentColor}" CornerRadius="6">
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Foreground="White" Text="炳" />
                     </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="Examina" />
-                        <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="考试练习系统" />
+
+                    <!--  应用标题和机构信息  -->
+                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="炳焕教育" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="河北对口计算机专业培训机构" />
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" Text="联系方式：18632123665" />
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
 
@@ -41,7 +47,45 @@
         </Border>
 
         <!--  NavigationView  -->
-        <ui:NavigationView x:Name="MainNavigationView" Grid.Row="1" CompactModeThresholdWidth="1008" ExpandedModeThresholdWidth="1008" FooterMenuItemsSource="{Binding FooterNavigationItems}" IsBackButtonVisible="False" IsSettingsVisible="False" MenuItemsSource="{Binding NavigationItems}" OpenPaneLength="280" PaneDisplayMode="Left" SelectedItem="{Binding SelectedNavigationItem}">
+        <ui:NavigationView x:Name="MainNavigationView" Grid.Row="1" CompactModeThresholdWidth="1008" ExpandedModeThresholdWidth="1008" FooterMenuItemsSource="{Binding FooterNavigationItems}" IsBackButtonVisible="False" IsPaneOpen="{Binding IsNavigationPaneOpen}" IsSettingsVisible="False" MenuItemsSource="{Binding NavigationItems}" OpenPaneLength="280" PaneDisplayMode="Left" SelectedItem="{Binding SelectedNavigationItem}">
+
+            <!--  PaneFooter - 解锁广告区域  -->
+            <ui:NavigationView.PaneFooter>
+                <Grid>
+                    <!--  展开状态的广告区域  -->
+                    <Border x:Name="ExpandedAdBorder" Margin="12,8,12,16" Padding="16" BoxShadow="0 2 8 0 #30000000" CornerRadius="12" IsVisible="{Binding IsNavigationPaneOpen}">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Offset="0" Color="#E91E63" />
+                                <GradientStop Offset="1" Color="#9C27B0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <StackPanel Spacing="12">
+                            <!--  广告内容  -->
+                            <StackPanel Spacing="4">
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Bold" Foreground="White" Text="解锁完整版考试系统" TextAlignment="Center" />
+                                <TextBlock FontFamily="Microsoft YaHei" FontSize="11" Foreground="#E0FFFFFF" Text="附赠讲解视频，上岸快人一步！" TextAlignment="Center" />
+                            </StackPanel>
+
+                            <!--  解锁按钮  -->
+                            <Button Padding="12,8" HorizontalAlignment="Stretch" Background="White" Command="{Binding UnlockAdsCommand}" CornerRadius="16" FontFamily="Microsoft YaHei" FontSize="12" FontWeight="Bold" Foreground="#9C27B0">
+                                <TextBlock Text="立即解锁" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!--  收起状态的简化图标  -->
+                    <Button x:Name="CompactAdButton" Width="40" Height="40" Margin="8" Padding="0" Background="Transparent" BorderThickness="0" Command="{Binding UnlockAdsCommand}" CornerRadius="20" IsVisible="{Binding !IsNavigationPaneOpen}">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Offset="0" Color="#E91E63" />
+                                <GradientStop Offset="1" Color="#9C27B0" />
+                            </LinearGradientBrush>
+                        </Button.Background>
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="White" Text="⭐" />
+                    </Button>
+                </Grid>
+            </ui:NavigationView.PaneFooter>
 
             <!--  主内容区域  -->
             <ui:NavigationView.Content>

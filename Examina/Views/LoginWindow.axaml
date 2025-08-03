@@ -1,4 +1,4 @@
-﻿<Window x:Class="Examina.Views.LoginWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="using:FluentAvalonia.UI.Controls" xmlns:vm="using:Examina.ViewModels" Title="河北对口计算机新版上机考试系统 - 登录" Width="1100" Height="800" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:LoginViewModel" Background="Transparent" CanResize="False" TransparencyLevelHint="AcrylicBlur" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
+﻿<Window x:Class="Examina.Views.LoginWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="using:FluentAvalonia.UI.Controls" xmlns:vm="using:Examina.ViewModels" Title="河北对口计算机上机考试系统 - 登录" Width="1100" Height="800" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:LoginViewModel" Background="Transparent" CanResize="False" TransparencyLevelHint="AcrylicBlur" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
 
     <Design.DataContext>
         <vm:LoginViewModel />
@@ -46,8 +46,8 @@
                                 <Button Grid.Column="1" MinHeight="48" Margin="8,0,0,0" Padding="16,12" Command="{Binding SendSmsCodeCommand}" CornerRadius="8" FontSize="14" FontWeight="Medium">
                                     <Button.Content>
                                         <StackPanel>
-                                            <TextBlock Text="{Binding SmsCodeCountdown, StringFormat='{}{0}s后重发'}" IsVisible="{Binding !!SmsCodeCountdown}" />
-                                            <TextBlock Text="发送验证码" IsVisible="{Binding !SmsCodeCountdown}" />
+                                            <TextBlock IsVisible="{Binding !!SmsCodeCountdown}" Text="{Binding SmsCodeCountdown, StringFormat='{}{0}s后重发'}" />
+                                            <TextBlock IsVisible="{Binding !SmsCodeCountdown}" Text="发送验证码" />
                                         </StackPanel>
                                     </Button.Content>
                                 </Button>

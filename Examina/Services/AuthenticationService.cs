@@ -17,12 +17,30 @@ public class AuthenticationService : IAuthenticationService
     private readonly HttpClient _httpClient;
     private readonly IDeviceService _deviceService;
     private readonly ISecureStorageService _secureStorage;
+
+    /// <summary>
+    /// 用户信息更新事件
+    /// </summary>
+    public event EventHandler<UserInfo?>? UserInfoUpdated;
     private const string BaseUrl = "https://qiuzhenbd.com/api";
     private const string StudentAuthUrl = "student/auth";
     private const string PersistentLoginKey = "persistent_login_data";
 
+    private UserInfo? _currentUser;
+
     public bool IsAuthenticated { get; private set; }
-    public UserInfo? CurrentUser { get; private set; }
+    public UserInfo? CurrentUser
+    {
+        get => _currentUser;
+        private set
+        {
+            if (_currentUser != value)
+            {
+                _currentUser = value;
+                UserInfoUpdated?.Invoke(this, value);
+            }
+        }
+    }
     public string? CurrentAccessToken { get; private set; }
     public string? CurrentRefreshToken { get; private set; }
     public DateTime? TokenExpiresAt { get; private set; }
@@ -699,11 +717,10 @@ public class AuthenticationService : IAuthenticationService
             }
 
             // 使用专门的update-profile端点
-            // 只发送后端支持的字段：Username和AvatarUrl
+            // 只发送后端支持的字段：Username
             UpdateProfileRequest updateProfileRequest = new()
             {
-                Username = request.Username,
-                AvatarUrl = request.AvatarUrl
+                Username = request.Username
                 // 注意：Email和PhoneNumber暂不支持更新
             };
 

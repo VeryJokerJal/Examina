@@ -1,215 +1,199 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:Examina.ViewModels.Pages"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-             x:Class="Examina.Views.Pages.OverviewView"
-             x:DataType="vm:OverviewViewModel">
+﻿<UserControl x:Class="Examina.Views.Pages.OverviewView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="clr-namespace:Examina.Views.Pages" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:OverviewViewModel" mc:Ignorable="d">
 
-  <ScrollViewer>
-    <StackPanel Margin="24" Spacing="24">
-      
-      <!-- 页面标题 -->
-      <TextBlock Text="{Binding PageTitle}" 
-                 FontSize="28" 
-                 FontWeight="Bold"
-                 FontFamily="Microsoft YaHei"
-                 Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-      
-      <!-- 欢迎消息 -->
-      <Border Background="{DynamicResource SystemControlBackgroundAccentBrush}"
-              CornerRadius="8"
-              Padding="20">
-        <StackPanel>
-          <TextBlock Text="{Binding WelcomeMessage}" 
-                     FontSize="18" 
-                     FontWeight="SemiBold"
-                     FontFamily="Microsoft YaHei"
-                     Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
-                     TextWrapping="Wrap"/>
-          <TextBlock Text="开始您的学习之旅吧！" 
-                     FontSize="14"
-                     FontFamily="Microsoft YaHei"
-                     Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}"
-                     Opacity="0.9"
-                     Margin="0,8,0,0"/>
+    <ScrollViewer>
+        <StackPanel Margin="24" Spacing="24">
+
+            <!--  页面标题  -->
+            <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" Text="{Binding PageTitle}" />
+
+            <!--  欢迎消息  -->
+            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundAccentBrush}" CornerRadius="8">
+                <StackPanel>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" Text="{Binding WelcomeMessage}" TextWrapping="Wrap" />
+                    <TextBlock Margin="0,8,0,0" FontSize="14" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" Opacity="0.9" Text="开始您的学习之旅吧！" />
+                </StackPanel>
+            </Border>
+
+            <!--  统计卡片  -->
+            <Border Padding="24" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="1" CornerRadius="8">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+
+                    <!--  模拟考试次数  -->
+                    <Button Padding="20,16" Background="{Binding SelectedStatisticType, Converter={x:Static local:StatisticTypeToBackgroundConverter.Instance}, ConverterParameter=MockExam}" BorderThickness="0" Command="{Binding SelectStatisticTypeCommand}" CommandParameter="MockExam" CornerRadius="6">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource MockExamHoverBrush}" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource MockExamTextColor}" Text="模拟考试次数" />
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource MockExamTextColorPrimary}" Text="{Binding MockExamCount}" />
+                                <TextBlock Margin="4,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource MockExamTextColor}" Text="次" />
+                            </StackPanel>
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" Text="暂时没有考试记录" />
+                        </StackPanel>
+                    </Button>
+
+                    <!--  综合实训  -->
+                    <Button Padding="20,16" Background="{Binding SelectedStatisticType, Converter={x:Static local:StatisticTypeToBackgroundConverter.Instance}, ConverterParameter=ComprehensiveTraining}" BorderThickness="0" Command="{Binding SelectStatisticTypeCommand}" CommandParameter="ComprehensiveTraining" CornerRadius="6">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource ComprehensiveTrainingHoverBrush}" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="综合实训" />
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ComprehensiveTrainingTextColorPrimary}" Text="{Binding ComprehensiveTrainingCount}" />
+                                <TextBlock Margin="2,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="/60" />
+                            </StackPanel>
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource ComprehensiveTrainingTextColorSecondary}" Text="综合实训练习度" />
+                        </StackPanel>
+                    </Button>
+
+                    <!--  专项练习  -->
+                    <Button Padding="20,16" Background="{Binding SelectedStatisticType, Converter={x:Static local:StatisticTypeToBackgroundConverter.Instance}, ConverterParameter=SpecialPractice}" BorderThickness="0" Command="{Binding SelectStatisticTypeCommand}" CommandParameter="SpecialPractice" CornerRadius="6">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource SpecialPracticeHoverBrush}" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="专项练习" />
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SpecialPracticeTextColorPrimary}" Text="{Binding SpecialPracticeCount}" />
+                                <TextBlock Margin="2,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="/237" />
+                            </StackPanel>
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource SpecialPracticeTextColorSecondary}" Text="专项练习练习度" />
+                        </StackPanel>
+                    </Button>
+
+                    <!--  上机统考  -->
+                    <Button Padding="20,16" Background="{Binding SelectedStatisticType, Converter={x:Static local:StatisticTypeToBackgroundConverter.Instance}, ConverterParameter=OnlineExam}" BorderThickness="0" Command="{Binding SelectStatisticTypeCommand}" CommandParameter="OnlineExam" CornerRadius="6">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource OnlineExamHoverBrush}" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource OnlineExamTextColor}" Text="上机统考" />
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource OnlineExamTextColorPrimary}" Text="{Binding OnlineExamCount}" />
+                                <TextBlock Margin="4,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource OnlineExamTextColor}" Text="次" />
+                            </StackPanel>
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource OnlineExamTextColorSecondary}" Text="暂时没有考试记录" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!--  成绩列表  -->
+            <StackPanel>
+                <StackPanel Margin="0,0,0,16" Orientation="Horizontal">
+                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}成绩">
+                                <Binding Converter="{x:Static local:StatisticTypeToDisplayNameConverter.Instance}" Path="SelectedStatisticType" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+
+                <!--  表头  -->
+                <Border Padding="16,14" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="4,4,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                            <TextBlock.Text>
+                                <Binding Converter="{x:Static local:StatisticTypeToDisplayNameConverter.Instance}" Path="SelectedStatisticType" />
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" Text="作答用时" />
+                        <TextBlock Grid.Column="2" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" Text="提交时间" />
+                        <TextBlock Grid.Column="3" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" Text="得分" />
+                    </Grid>
+                </Border>
+
+                <!--  成绩列表  -->
+                <Panel>
+                    <!--  有数据时显示列表  -->
+                    <ItemsControl IsVisible="{Binding DisplayedRecords.Count}" ItemsSource="{Binding DisplayedRecords}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="16,14" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1,0,1,1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="3*" />
+                                            <ColumnDefinition Width="1*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="14" FontWeight="Normal" Text="{Binding Name}" />
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="14" FontWeight="Normal" Text="{Binding Duration}" />
+                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="13" FontWeight="Normal" Text="{Binding FormattedCompletionTime}" />
+                                        <Border Grid.Column="3" Padding="10,6" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{DynamicResource SystemAccentColor}" CornerRadius="6">
+                                            <TextBlock HorizontalAlignment="Center" FontSize="13" FontWeight="SemiBold" Text="{Binding Score, StringFormat='{}{0}分'}" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!--  无数据时显示空状态  -->
+                    <Border Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1,0,1,1" IsVisible="{Binding !DisplayedRecords.Count}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock HorizontalAlignment="Center" FontSize="48" Opacity="0.5" Text="📝" />
+                            <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="暂无{0}记录">
+                                        <Binding Converter="{x:Static local:StatisticTypeToDisplayNameConverter.Instance}" Path="SelectedStatisticType" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" Text="开始练习后，您的成绩记录将显示在这里" />
+                        </StackPanel>
+                    </Border>
+                </Panel>
+
+                <!--  分页  -->
+                <StackPanel Margin="0,16,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
+                    <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" FontSize="14" Foreground="#999999" Text="&lt;" />
+
+                    <Border Margin="0,0,4,0" Padding="8,4" Background="{DynamicResource SystemAccentColor}" CornerRadius="4">
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="1" />
+                    </Border>
+
+                    <Border Margin="0,0,4,0" Padding="8,4" Background="Transparent" CornerRadius="4">
+                        <TextBlock FontSize="14" Foreground="#666666" Text="2" />
+                    </Border>
+
+                    <Border Margin="0,0,4,0" Padding="8,4" Background="Transparent" CornerRadius="4">
+                        <TextBlock FontSize="14" Foreground="#666666" Text="3" />
+                    </Border>
+
+                    <Border Margin="0,0,4,0" Padding="8,4" Background="Transparent" CornerRadius="4">
+                        <TextBlock FontSize="14" Foreground="#666666" Text="4" />
+                    </Border>
+
+                    <TextBlock Margin="4,0,4,0" VerticalAlignment="Center" FontSize="14" Foreground="#999999" Text="..." />
+
+                    <Border Margin="0,0,8,0" Padding="8,4" Background="Transparent" CornerRadius="4">
+                        <TextBlock FontSize="14" Foreground="#666666" Text="40" />
+                    </Border>
+
+                    <TextBlock VerticalAlignment="Center" FontSize="14" Foreground="#999999" Text="&gt;" />
+                </StackPanel>
+            </StackPanel>
+
         </StackPanel>
-      </Border>
-      
-      <!-- 统计卡片 -->
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        
-        <!-- 今日练习 -->
-        <Border Grid.Column="0" 
-                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8"
-                Padding="16"
-                Margin="0,0,8,0">
-          <StackPanel>
-            <TextBlock Text="今日练习" 
-                       FontSize="14"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-            <TextBlock Text="{Binding TodayPracticeCount}" 
-                       FontSize="24" 
-                       FontWeight="Bold"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                       Margin="0,4,0,0"/>
-            <TextBlock Text="次" 
-                       FontSize="12"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-          </StackPanel>
-        </Border>
-        
-        <!-- 总练习次数 -->
-        <Border Grid.Column="1" 
-                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8"
-                Padding="16"
-                Margin="4,0">
-          <StackPanel>
-            <TextBlock Text="总练习" 
-                       FontSize="14"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-            <TextBlock Text="{Binding TotalPracticeCount}" 
-                       FontSize="24" 
-                       FontWeight="Bold"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                       Margin="0,4,0,0"/>
-            <TextBlock Text="次" 
-                       FontSize="12"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-          </StackPanel>
-        </Border>
-        
-        <!-- 最高分数 -->
-        <Border Grid.Column="2" 
-                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8"
-                Padding="16"
-                Margin="4,0">
-          <StackPanel>
-            <TextBlock Text="最高分" 
-                       FontSize="14"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-            <TextBlock Text="{Binding HighestScore}" 
-                       FontSize="24" 
-                       FontWeight="Bold"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                       Margin="0,4,0,0"/>
-            <TextBlock Text="分" 
-                       FontSize="12"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-          </StackPanel>
-        </Border>
-        
-        <!-- 平均分数 -->
-        <Border Grid.Column="3" 
-                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8"
-                Padding="16"
-                Margin="8,0,0,0">
-          <StackPanel>
-            <TextBlock Text="平均分" 
-                       FontSize="14"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-            <TextBlock Text="{Binding AverageScore, StringFormat='{}{0:F1}'}" 
-                       FontSize="24" 
-                       FontWeight="Bold"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                       Margin="0,4,0,0"/>
-            <TextBlock Text="分" 
-                       FontSize="12"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-          </StackPanel>
-        </Border>
-      </Grid>
-      
-      <!-- 快速操作 -->
-      <StackPanel>
-        <TextBlock Text="快速操作" 
-                   FontSize="20" 
-                   FontWeight="SemiBold"
-                   FontFamily="Microsoft YaHei"
-                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                   Margin="0,0,0,16"/>
-        
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-          
-          <!-- 开始练习 -->
-          <Button Grid.Column="0"
-                  Classes="accent"
-                  HorizontalAlignment="Stretch"
-                  Padding="16"
-                  Margin="0,0,8,0">
-            <StackPanel>
-              <TextBlock Text="📝" FontSize="24" HorizontalAlignment="Center"/>
-              <TextBlock Text="开始练习" 
-                         FontSize="14"
-                         FontFamily="Microsoft YaHei"
-                         HorizontalAlignment="Center"
-                         Margin="0,8,0,0"/>
-            </StackPanel>
-          </Button>
-          
-          <!-- 查看排行榜 -->
-          <Button Grid.Column="1"
-                  HorizontalAlignment="Stretch"
-                  Padding="16"
-                  Margin="4,0">
-            <StackPanel>
-              <TextBlock Text="🏆" FontSize="24" HorizontalAlignment="Center"/>
-              <TextBlock Text="排行榜" 
-                         FontSize="14"
-                         FontFamily="Microsoft YaHei"
-                         HorizontalAlignment="Center"
-                         Margin="0,8,0,0"/>
-            </StackPanel>
-          </Button>
-          
-          <!-- 个人信息 -->
-          <Button Grid.Column="2"
-                  HorizontalAlignment="Stretch"
-                  Padding="16"
-                  Margin="8,0,0,0">
-            <StackPanel>
-              <TextBlock Text="👤" FontSize="24" HorizontalAlignment="Center"/>
-              <TextBlock Text="个人信息" 
-                         FontSize="14"
-                         FontFamily="Microsoft YaHei"
-                         HorizontalAlignment="Center"
-                         Margin="0,8,0,0"/>
-            </StackPanel>
-          </Button>
-        </Grid>
-      </StackPanel>
-      
-    </StackPanel>
-  </ScrollViewer>
+    </ScrollViewer>
 </UserControl>
