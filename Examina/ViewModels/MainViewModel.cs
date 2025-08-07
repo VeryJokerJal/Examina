@@ -76,6 +76,13 @@ public class MainViewModel : ViewModelBase, IDisposable
 
     #region 构造函数
 
+    /// <summary>
+    /// 无参构造函数，用于设计时或直接实例化
+    /// </summary>
+    public MainViewModel() : this(null!)
+    {
+    }
+
     public MainViewModel(IAuthenticationService authenticationService)
     {
         _authenticationService = authenticationService;
@@ -87,7 +94,10 @@ public class MainViewModel : ViewModelBase, IDisposable
         LoadCurrentUser();
 
         // 监听用户信息更新事件
-        _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
+        if (_authenticationService != null)
+        {
+            _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
+        }
 
         // 监听导航项选择变化
         _ = this.WhenAnyValue(x => x.SelectedNavigationItem)

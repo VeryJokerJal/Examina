@@ -1,11 +1,5 @@
 ﻿<UserControl x:Class="Examina.Views.MainView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="using:FluentAvalonia.UI.Controls" xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives" xmlns:vm="clr-namespace:Examina.ViewModels" d:DesignHeight="800" d:DesignWidth="1200" x:DataType="vm:MainViewModel" mc:Ignorable="d">
-    <Design.DataContext>
-        <!--
-            This only sets the DataContext for the previewer in an IDE,
-            to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)
-        -->
-        <vm:MainViewModel />
-    </Design.DataContext>
+    <!-- 设计时数据上下文已移除，因为ViewModel需要依赖注入 -->
 
     <Grid>
         <Grid.RowDefinitions>

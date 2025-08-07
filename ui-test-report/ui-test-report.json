@@ -1,0 +1,227 @@
+{
+  "timestamp": "2025-08-03T20:34:01.232Z",
+  "summary": {
+    "totalPages": 9,
+    "totalViewports": 3,
+    "totalTests": 27
+  },
+  "results": [
+    {
+      "page": "home",
+      "title": "首页",
+      "url": "/",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:05.232Z"
+    },
+    {
+      "page": "exam-management",
+      "title": "考试管理面板",
+      "url": "/ExamManagement",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:08.600Z"
+    },
+    {
+      "page": "create-exam",
+      "title": "创建考试",
+      "url": "/ExamManagement/CreateExam",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/CreateExam\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/CreateExam\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:11.958Z"
+    },
+    {
+      "page": "exam-list",
+      "title": "考试列表",
+      "url": "/ExamManagement/ExamList",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ExamList\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ExamList\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:15.321Z"
+    },
+    {
+      "page": "question-bank",
+      "title": "题库管理",
+      "url": "/ExamManagement/QuestionBank",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/QuestionBank\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/QuestionBank\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:18.697Z"
+    },
+    {
+      "page": "subject-management",
+      "title": "科目管理",
+      "url": "/ExamManagement/SubjectManagement",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/SubjectManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/SubjectManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:22.068Z"
+    },
+    {
+      "page": "question-management",
+      "title": "题目管理",
+      "url": "/ExamManagement/QuestionManagement",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/QuestionManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/QuestionManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:25.449Z"
+    },
+    {
+      "page": "excel-operations",
+      "title": "Excel操作",
+      "url": "/ExamManagement/ExcelOperations",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ExcelOperations\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ExcelOperations\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:28.823Z"
+    },
+    {
+      "page": "validate-exam",
+      "title": "验证考试",
+      "url": "/ExamManagement/ValidateExam",
+      "viewport": "desktop",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ValidateExam\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ValidateExam\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:32.187Z"
+    },
+    {
+      "page": "home",
+      "title": "首页",
+      "url": "/",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:35.777Z"
+    },
+    {
+      "page": "exam-management",
+      "title": "考试管理面板",
+      "url": "/ExamManagement",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:39.141Z"
+    },
+    {
+      "page": "create-exam",
+      "title": "创建考试",
+      "url": "/ExamManagement/CreateExam",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/CreateExam\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/CreateExam\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:42.523Z"
+    },
+    {
+      "page": "exam-list",
+      "title": "考试列表",
+      "url": "/ExamManagement/ExamList",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ExamList\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ExamList\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:45.883Z"
+    },
+    {
+      "page": "question-bank",
+      "title": "题库管理",
+      "url": "/ExamManagement/QuestionBank",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/QuestionBank\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/QuestionBank\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:49.242Z"
+    },
+    {
+      "page": "subject-management",
+      "title": "科目管理",
+      "url": "/ExamManagement/SubjectManagement",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/SubjectManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/SubjectManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:52.602Z"
+    },
+    {
+      "page": "question-management",
+      "title": "题目管理",
+      "url": "/ExamManagement/QuestionManagement",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/QuestionManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/QuestionManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:55.970Z"
+    },
+    {
+      "page": "excel-operations",
+      "title": "Excel操作",
+      "url": "/ExamManagement/ExcelOperations",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ExcelOperations\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ExcelOperations\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:34:59.332Z"
+    },
+    {
+      "page": "validate-exam",
+      "title": "验证考试",
+      "url": "/ExamManagement/ValidateExam",
+      "viewport": "tablet",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ValidateExam\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ValidateExam\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:02.731Z"
+    },
+    {
+      "page": "home",
+      "title": "首页",
+      "url": "/",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:06.542Z"
+    },
+    {
+      "page": "exam-management",
+      "title": "考试管理面板",
+      "url": "/ExamManagement",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:09.930Z"
+    },
+    {
+      "page": "create-exam",
+      "title": "创建考试",
+      "url": "/ExamManagement/CreateExam",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/CreateExam\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/CreateExam\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:13.284Z"
+    },
+    {
+      "page": "exam-list",
+      "title": "考试列表",
+      "url": "/ExamManagement/ExamList",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ExamList\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ExamList\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:16.651Z"
+    },
+    {
+      "page": "question-bank",
+      "title": "题库管理",
+      "url": "/ExamManagement/QuestionBank",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/QuestionBank\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/QuestionBank\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:20.018Z"
+    },
+    {
+      "page": "subject-management",
+      "title": "科目管理",
+      "url": "/ExamManagement/SubjectManagement",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/SubjectManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/SubjectManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:23.376Z"
+    },
+    {
+      "page": "question-management",
+      "title": "题目管理",
+      "url": "/ExamManagement/QuestionManagement",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/QuestionManagement\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/QuestionManagement\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:26.746Z"
+    },
+    {
+      "page": "excel-operations",
+      "title": "Excel操作",
+      "url": "/ExamManagement/ExcelOperations",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ExcelOperations\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ExcelOperations\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:30.100Z"
+    },
+    {
+      "page": "validate-exam",
+      "title": "验证考试",
+      "url": "/ExamManagement/ValidateExam",
+      "viewport": "mobile",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5117/ExamManagement/ValidateExam\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5117/ExamManagement/ValidateExam\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-08-03T20:35:33.454Z"
+    }
+  ],
+  "issues": []
+}

@@ -1,0 +1,986 @@
+@model IEnumerable<ExaminaWebApplication.Models.Exam.ExamQuestion>
+@{
+    ViewData["Title"] = ViewData["Title"]?.ToString() ?? "题目管理";
+    var subject = ViewBag.Subject as ExaminaWebApplication.Models.Exam.ExamSubject;
+}
+
+<!-- 页面标题和操作按钮 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="bi bi-question-circle me-2"></i>题目管理
+        </h1>
+        @if (subject != null)
+        {
+            <p class="text-muted mb-0">
+                <i class="bi @GetSubjectIcon(subject.SubjectType) me-1"></i>
+                @subject.SubjectName - @subject.Description
+            </p>
+        }
+    </div>
+    <div>
+        @if (subject != null)
+        {
+
+            <a href="@Url.Action("ExamDetails", "ExamManagement", new { id = subject.ExamId })" class="glass-btn">
+                <i class="bi bi-file-earmark-text"></i> 试卷详情
+            </a>
+            <button class="glass-btn glass-btn-primary" onclick="showAddQuestionModal()">
+                <i class="bi bi-plus"></i> 添加题目
+            </button>
+        }
+    </div>
+</div>
+
+<!-- 筛选和搜索区域 -->
+<div class="glass-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-funnel me-2"></i>筛选和搜索
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label for="questionTypeFilter" class="form-label">题目类型</label>
+                <select class="form-select glass-form-control" id="questionTypeFilter" onchange="applyFilters()">
+                    <option value="">全部类型</option>
+                    <option value="1">Excel操作</option>
+                    <option value="2">PowerPoint操作</option>
+                    <option value="3">Word操作</option>
+                    <option value="4">Windows操作</option>
+                    <option value="5">C#编程</option>
+                    <option value="6">选择题</option>
+                    <option value="7">填空题</option>
+                    <option value="8">简答题</option>
+                    <option value="9">综合题</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="difficultyFilter" class="form-label">难度级别</label>
+                <select class="form-select glass-form-control" id="difficultyFilter" onchange="applyFilters()">
+                    <option value="">全部难度</option>
+                    <option value="1">⭐ 简单</option>
+                    <option value="2">⭐⭐ 容易</option>
+                    <option value="3">⭐⭐⭐ 中等</option>
+                    <option value="4">⭐⭐⭐⭐ 困难</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 极难</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="statusFilter" class="form-label">状态</label>
+                <select class="form-select glass-form-control" id="statusFilter" onchange="applyFilters()">
+                    <option value="">全部状态</option>
+                    <option value="true">启用</option>
+                    <option value="false">禁用</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="searchInput" class="form-label">搜索题目</label>
+                <input type="text" class="form-control glass-form-control" id="searchInput" placeholder="搜索题目标题或内容..." onkeyup="applyFilters()">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button class="glass-btn" onclick="clearFilters()">
+                        <i class="bi bi-x-circle"></i> 清除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计信息 -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="glass-card text-center">
+            <div class="card-body">
+                <h4 class="text-success mb-0" id="totalScore">@Model.Sum(q => q.Score)</h4>
+                <small class="text-muted">总分值</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card text-center">
+            <div class="card-body">
+                <h4 class="text-info mb-0" id="enabledQuestions">@Model.Count(q => q.IsEnabled)</h4>
+                <small class="text-muted">启用题目</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card text-center">
+            <div class="card-body">
+                <h4 class="text-warning mb-0" id="avgDifficulty">@(Model.Any() ? Model.Average(q => q.DifficultyLevel).ToString("F1") : "0")</h4>
+                <small class="text-muted">平均难度</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量操作工具栏 -->
+<div class="glass-card mb-4" id="batchToolbar" style="display: none;">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <span class="me-3">
+                <strong id="selectedCount">0</strong> 个题目已选择
+            </span>
+            <div class="btn-group me-3">
+                <button class="glass-btn glass-btn-success btn-sm" onclick="batchEnable()">
+                    <i class="bi bi-check-circle"></i> 批量启用
+                </button>
+                <button class="glass-btn btn-sm" onclick="batchDisable()">
+                    <i class="bi bi-x-circle"></i> 批量禁用
+                </button>
+            </div>
+            <div class="btn-group me-3">
+                <button class="glass-btn glass-btn-primary btn-sm" onclick="showBatchScoreModal()">
+                    <i class="bi bi-calculator"></i> 批量改分
+                </button>
+            </div>
+            <button class="glass-btn glass-btn-danger btn-sm" onclick="batchDelete()">
+                <i class="bi bi-trash"></i> 批量删除
+            </button>
+            <button class="glass-btn btn-sm ms-auto" onclick="clearSelection()">
+                <i class="bi bi-x"></i> 取消选择
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 题目列表 -->
+<div class="glass-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-list me-2"></i>题目列表
+        </h5>
+        <div>
+            <div class="form-check form-check-inline">
+                <label class="glass-checkbox">
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                    <span class="glass-checkmark"></span>
+                    <span class="glass-checkbox-label">全选</span>
+                </label>
+            </div>
+            <div class="btn-group btn-group-sm">
+                <button class="glass-btn btn-sm" onclick="toggleView('table')" id="tableViewBtn">
+                    <i class="bi bi-table"></i> 表格
+                </button>
+                <button class="glass-btn btn-sm" onclick="toggleView('card')" id="cardViewBtn">
+                    <i class="bi bi-grid-3x3-gap"></i> 卡片
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- 表格视图 -->
+        <div id="tableView">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" id="tableSelectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th style="width: 60px;">序号</th>
+                            <th>题目标题</th>
+                            <th style="width: 120px;">类型</th>
+                            <th style="width: 80px;">分值</th>
+                            <th style="width: 100px;">难度</th>
+                            <th style="width: 100px;">预计时长</th>
+                            <th style="width: 80px;">状态</th>
+                            <th style="width: 150px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questionTableBody">
+                        @foreach (var question in Model.OrderBy(q => q.SortOrder))
+                        {
+                            <tr data-question-id="@question.Id" 
+                                data-question-type="@((int)question.QuestionType)"
+                                data-difficulty="@question.DifficultyLevel"
+                                data-enabled="@question.IsEnabled.ToString().ToLower()">
+                                <td>
+                                    <input type="checkbox" class="form-check-input question-checkbox" value="@question.Id">
+                                </td>
+                                <td>@question.QuestionNumber</td>
+                                <td>
+                                    <div class="fw-bold">@question.Title</div>
+                                    <div class="text-muted small">
+                                        @(question.Content.Length > 50 ? question.Content.Substring(0, 50) + "..." : question.Content)
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge @GetQuestionTypeBadgeClass(question.QuestionType)">
+                                        @GetQuestionTypeText(question.QuestionType)
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <strong class="text-primary">@question.Score</strong>
+                                </td>
+                                <td class="text-center">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= question.DifficultyLevel)
+                                        {
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star text-muted"></i>
+                                        }
+                                    }
+                                </td>
+                                <td class="text-center">@question.EstimatedMinutes 分</td>
+                                <td class="text-center">
+                                    @if (question.IsEnabled)
+                                    {
+                                        <span class="badge bg-success">启用</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">禁用</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="glass-btn glass-btn-primary btn-sm" onclick="editQuestion(@question.Id)" title="编辑">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="glass-btn glass-btn-info btn-sm" onclick="previewQuestion(@question.Id)" title="预览">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="glass-btn @(question.IsEnabled ? "" : "glass-btn-success") btn-sm"
+                                                onclick="toggleQuestionStatus(@question.Id, @question.IsEnabled.ToString().ToLower())"
+                                                title="@(question.IsEnabled ? "禁用" : "启用")">
+                                            <i class="bi bi-@(question.IsEnabled ? "x-circle" : "check-circle")"></i>
+                                        </button>
+                                        <button class="glass-btn glass-btn-danger btn-sm" onclick="deleteQuestion(@question.Id, '@question.Title')" title="删除">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 卡片视图 -->
+        <div id="cardView" style="display: none;">
+            <div class="row" id="questionCardContainer">
+                @foreach (var question in Model.OrderBy(q => q.SortOrder))
+                {
+                    <div class="col-md-6 col-lg-4 mb-3 question-card" 
+                         data-question-id="@question.Id"
+                         data-question-type="@((int)question.QuestionType)"
+                         data-difficulty="@question.DifficultyLevel"
+                         data-enabled="@question.IsEnabled.ToString().ToLower()">
+                        <div class="glass-card h-100 @(question.IsEnabled ? "" : "border-secondary")">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input question-checkbox" type="checkbox" value="@question.Id">
+                                    <label class="form-check-label fw-bold">
+                                        题目 @question.QuestionNumber
+                                    </label>
+                                </div>
+                                @if (question.IsEnabled)
+                                {
+                                    <span class="badge bg-success">启用</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">禁用</span>
+                                }
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title">@question.Title</h6>
+                                <p class="card-text text-muted small">
+                                    @(question.Content.Length > 80 ? question.Content.Substring(0, 80) + "..." : question.Content)
+                                </p>
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <small class="text-muted">类型</small>
+                                        <div class="fw-bold">@GetQuestionTypeShortText(question.QuestionType)</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">分值</small>
+                                        <div class="fw-bold text-primary">@question.Score</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">难度</small>
+                                        <div>
+                                            @for (int i = 1; i <= question.DifficultyLevel; i++)
+                                            {
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="btn-group w-100">
+                                    <button class="glass-btn glass-btn-primary btn-sm" onclick="editQuestion(@question.Id)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="glass-btn glass-btn-info btn-sm" onclick="previewQuestion(@question.Id)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="glass-btn @(question.IsEnabled ? "" : "glass-btn-success") btn-sm"
+                                            onclick="toggleQuestionStatus(@question.Id, @question.IsEnabled.ToString().ToLower())">
+                                        <i class="bi bi-@(question.IsEnabled ? "x-circle" : "check-circle")"></i>
+                                    </button>
+                                    <button class="glass-btn glass-btn-danger btn-sm" onclick="deleteQuestion(@question.Id, '@question.Title')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                <h5 class="text-muted mt-2">暂无题目</h5>
+                <p class="text-muted">请点击"添加题目"按钮创建第一道题目</p>
+                @if (subject != null)
+                {
+                    <button class="glass-btn glass-btn-primary" onclick="showAddQuestionModal()">
+                        <i class="bi bi-plus"></i> 添加题目
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetSubjectIcon(ExaminaWebApplication.Models.Exam.SubjectType type)
+    {
+        return type switch
+        {
+            ExaminaWebApplication.Models.Exam.SubjectType.Excel => "bi-table",
+            ExaminaWebApplication.Models.Exam.SubjectType.PowerPoint => "bi-easel",
+            ExaminaWebApplication.Models.Exam.SubjectType.Word => "bi-file-text",
+            ExaminaWebApplication.Models.Exam.SubjectType.Windows => "bi-window",
+            ExaminaWebApplication.Models.Exam.SubjectType.CSharp => "bi-code-slash",
+            _ => "bi-book"
+        };
+    }
+
+    private string GetQuestionTypeBadgeClass(ExaminaWebApplication.Models.Exam.QuestionType type)
+    {
+        return type switch
+        {
+            ExaminaWebApplication.Models.Exam.QuestionType.ExcelOperation => "bg-success",
+            ExaminaWebApplication.Models.Exam.QuestionType.PowerPointOperation => "bg-warning",
+            ExaminaWebApplication.Models.Exam.QuestionType.WordOperation => "bg-info",
+            ExaminaWebApplication.Models.Exam.QuestionType.WindowsOperation => "bg-primary",
+            ExaminaWebApplication.Models.Exam.QuestionType.CSharpProgramming => "bg-danger",
+            ExaminaWebApplication.Models.Exam.QuestionType.MultipleChoice => "bg-secondary",
+            ExaminaWebApplication.Models.Exam.QuestionType.FillInBlank => "bg-dark",
+            ExaminaWebApplication.Models.Exam.QuestionType.ShortAnswer => "bg-light text-dark",
+            ExaminaWebApplication.Models.Exam.QuestionType.Comprehensive => "bg-purple",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetQuestionTypeText(ExaminaWebApplication.Models.Exam.QuestionType type)
+    {
+        return type switch
+        {
+            ExaminaWebApplication.Models.Exam.QuestionType.ExcelOperation => "Excel操作",
+            ExaminaWebApplication.Models.Exam.QuestionType.PowerPointOperation => "PPT操作",
+            ExaminaWebApplication.Models.Exam.QuestionType.WordOperation => "Word操作",
+            ExaminaWebApplication.Models.Exam.QuestionType.WindowsOperation => "Windows操作",
+            ExaminaWebApplication.Models.Exam.QuestionType.CSharpProgramming => "C#编程",
+            ExaminaWebApplication.Models.Exam.QuestionType.MultipleChoice => "选择题",
+            ExaminaWebApplication.Models.Exam.QuestionType.FillInBlank => "填空题",
+            ExaminaWebApplication.Models.Exam.QuestionType.ShortAnswer => "简答题",
+            ExaminaWebApplication.Models.Exam.QuestionType.Comprehensive => "综合题",
+            _ => "未知类型"
+        };
+    }
+
+    private string GetQuestionTypeShortText(ExaminaWebApplication.Models.Exam.QuestionType type)
+    {
+        return type switch
+        {
+            ExaminaWebApplication.Models.Exam.QuestionType.ExcelOperation => "Excel",
+            ExaminaWebApplication.Models.Exam.QuestionType.PowerPointOperation => "PPT",
+            ExaminaWebApplication.Models.Exam.QuestionType.WordOperation => "Word",
+            ExaminaWebApplication.Models.Exam.QuestionType.WindowsOperation => "Win",
+            ExaminaWebApplication.Models.Exam.QuestionType.CSharpProgramming => "C#",
+            ExaminaWebApplication.Models.Exam.QuestionType.MultipleChoice => "选择",
+            ExaminaWebApplication.Models.Exam.QuestionType.FillInBlank => "填空",
+            ExaminaWebApplication.Models.Exam.QuestionType.ShortAnswer => "简答",
+            ExaminaWebApplication.Models.Exam.QuestionType.Comprehensive => "综合",
+            _ => "未知"
+        };
+    }
+}
+
+<!-- Excel题目创建模态框 -->
+@if (subject != null && subject.SubjectType == ExaminaWebApplication.Models.Exam.SubjectType.Excel)
+{
+    <div class="modal fade glass-modal" id="addExcelQuestionModal" tabindex="-1" aria-labelledby="addExcelQuestionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addExcelQuestionModalLabel">
+                        <i class="bi bi-plus-circle me-2"></i>添加Excel题目
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addExcelQuestionForm" class="glass-form">
+                        <input type="hidden" id="subjectId" value="@subject.Id">
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="questionTitle" class="form-label">题目标题 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control glass-form-control" id="questionTitle" name="title" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="operationNumber" class="form-label">操作点编号 <span class="text-danger">*</span></label>
+                                    <select class="form-select glass-form-control" id="operationNumber" name="operationNumber" required>
+                                        <option value="">请选择操作点</option>
+                                        <option value="1">1 - 填充或复制单元格内容</option>
+                                        <option value="2">2 - 设置单元格格式</option>
+                                        <option value="3">3 - 插入或删除行列</option>
+                                        <option value="4">4 - 创建图表</option>
+                                        <option value="5">5 - 使用函数和公式</option>
+                                        <option value="6">6 - 数据排序和筛选</option>
+                                        <option value="7">7 - 数据透视表</option>
+                                        <option value="8">8 - 条件格式</option>
+                                        <option value="9">9 - 数据验证</option>
+                                        <option value="10">10 - 工作表操作</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="questionContent" class="form-label">题目内容 <span class="text-danger">*</span></label>
+                            <textarea class="form-control glass-form-control" id="questionContent" name="content" rows="3" required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="questionScore" class="form-label">分值 <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control glass-form-control" id="questionScore" name="score" min="0.1" max="100" step="0.1" value="10" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="difficultyLevel" class="form-label">难度级别 <span class="text-danger">*</span></label>
+                                    <select class="form-select glass-form-control" id="difficultyLevel" name="difficultyLevel" required>
+                                        <option value="1">⭐ 简单</option>
+                                        <option value="2">⭐⭐ 容易</option>
+                                        <option value="3" selected>⭐⭐⭐ 中等</option>
+                                        <option value="4">⭐⭐⭐⭐ 困难</option>
+                                        <option value="5">⭐⭐⭐⭐⭐ 极难</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="estimatedMinutes" class="form-label">预计时长(分钟) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control glass-form-control" id="estimatedMinutes" name="estimatedMinutes" min="1" max="60" value="5" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">题目属性</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="isRequired" name="isRequired" checked>
+                                        <label class="form-check-label" for="isRequired">必答题</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="questionTags" class="form-label">标签</label>
+                            <input type="text" class="form-control glass-form-control" id="questionTags" name="tags" placeholder="用逗号分隔多个标签">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="questionRemarks" class="form-label">备注</label>
+                            <textarea class="form-control glass-form-control" id="questionRemarks" name="remarks" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="glass-btn" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="glass-btn glass-btn-primary" onclick="createExcelQuestion()">创建题目</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        let currentView = 'table';
+        let selectedQuestions = new Set();
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化工具提示
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // 设置默认视图
+            toggleView('table');
+
+            // 绑定复选框事件
+            bindCheckboxEvents();
+        });
+
+        // 绑定复选框事件
+        function bindCheckboxEvents() {
+            document.querySelectorAll('.question-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        selectedQuestions.add(parseInt(this.value));
+                    } else {
+                        selectedQuestions.delete(parseInt(this.value));
+                    }
+                    updateBatchToolbar();
+                });
+            });
+        }
+
+        // 更新批量操作工具栏
+        function updateBatchToolbar() {
+            const toolbar = document.getElementById('batchToolbar');
+            const countElement = document.getElementById('selectedCount');
+
+            if (selectedQuestions.size > 0) {
+                toolbar.style.display = 'block';
+                countElement.textContent = selectedQuestions.size;
+            } else {
+                toolbar.style.display = 'none';
+            }
+        }
+
+        // 切换视图
+        function toggleView(viewType) {
+            currentView = viewType;
+            const tableView = document.getElementById('tableView');
+            const cardView = document.getElementById('cardView');
+            const tableBtn = document.getElementById('tableViewBtn');
+            const cardBtn = document.getElementById('cardViewBtn');
+
+            if (viewType === 'table') {
+                tableView.style.display = 'block';
+                cardView.style.display = 'none';
+                tableBtn.classList.add('active');
+                cardBtn.classList.remove('active');
+            } else {
+                tableView.style.display = 'none';
+                cardView.style.display = 'block';
+                tableBtn.classList.remove('active');
+                cardBtn.classList.add('active');
+            }
+        }
+
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAll') || document.getElementById('tableSelectAll');
+            const questionCheckboxes = document.querySelectorAll('.question-checkbox');
+
+            questionCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+                if (selectAllCheckbox.checked) {
+                    selectedQuestions.add(parseInt(checkbox.value));
+                } else {
+                    selectedQuestions.delete(parseInt(checkbox.value));
+                }
+            });
+
+            updateBatchToolbar();
+        }
+
+        // 清除选择
+        function clearSelection() {
+            selectedQuestions.clear();
+            document.querySelectorAll('.question-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.getElementById('selectAll').checked = false;
+            if (document.getElementById('tableSelectAll')) {
+                document.getElementById('tableSelectAll').checked = false;
+            }
+            updateBatchToolbar();
+        }
+
+        // 应用筛选
+        function applyFilters() {
+            const typeFilter = document.getElementById('questionTypeFilter').value;
+            const difficultyFilter = document.getElementById('difficultyFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#questionTableBody tr');
+            const cards = document.querySelectorAll('.question-card');
+
+            let visibleCount = 0;
+            let visibleScore = 0;
+            let visibleEnabled = 0;
+            let totalDifficulty = 0;
+
+            // 筛选表格行
+            rows.forEach(row => {
+                const questionType = row.dataset.questionType;
+                const difficulty = row.dataset.difficulty;
+                const enabled = row.dataset.enabled;
+                const title = row.querySelector('td:nth-child(3) .fw-bold').textContent.toLowerCase();
+                const content = row.querySelector('td:nth-child(3) .text-muted').textContent.toLowerCase();
+
+                let visible = true;
+
+                if (typeFilter && questionType !== typeFilter) visible = false;
+                if (difficultyFilter && difficulty !== difficultyFilter) visible = false;
+                if (statusFilter && enabled !== statusFilter) visible = false;
+                if (searchText && !title.includes(searchText) && !content.includes(searchText)) visible = false;
+
+                row.style.display = visible ? '' : 'none';
+
+                if (visible) {
+                    visibleCount++;
+                    const scoreElement = row.querySelector('td:nth-child(5) strong');
+                    if (scoreElement) visibleScore += parseInt(scoreElement.textContent);
+                    if (enabled === 'true') visibleEnabled++;
+                    totalDifficulty += parseInt(difficulty);
+                }
+            });
+
+            // 筛选卡片
+            cards.forEach(card => {
+                const questionType = card.dataset.questionType;
+                const difficulty = card.dataset.difficulty;
+                const enabled = card.dataset.enabled;
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                const content = card.querySelector('.card-text').textContent.toLowerCase();
+
+                let visible = true;
+
+                if (typeFilter && questionType !== typeFilter) visible = false;
+                if (difficultyFilter && difficulty !== difficultyFilter) visible = false;
+                if (statusFilter && enabled !== statusFilter) visible = false;
+                if (searchText && !title.includes(searchText) && !content.includes(searchText)) visible = false;
+
+                card.style.display = visible ? '' : 'none';
+            });
+
+            // 更新统计信息
+            document.getElementById('totalQuestions').textContent = visibleCount;
+            document.getElementById('totalScore').textContent = visibleScore;
+            document.getElementById('enabledQuestions').textContent = visibleEnabled;
+            document.getElementById('avgDifficulty').textContent = visibleCount > 0 ? (totalDifficulty / visibleCount).toFixed(1) : '0';
+        }
+
+        // 清除筛选
+        function clearFilters() {
+            document.getElementById('questionTypeFilter').value = '';
+            document.getElementById('difficultyFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            applyFilters();
+        }
+
+        // 显示添加题目模态框
+        function showAddQuestionModal() {
+            @if (subject != null)
+            {
+                @if (subject.SubjectType == ExaminaWebApplication.Models.Exam.SubjectType.Excel)
+                {
+                    <text>
+                    // Excel科目，显示Excel题目创建模态框
+                    const modal = new bootstrap.Modal(document.getElementById('addExcelQuestionModal'));
+                    modal.show();
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    // 其他科目类型暂不支持
+                    alert('当前只支持Excel科目的题目创建功能');
+                    </text>
+                }
+            }
+            else
+            {
+                <text>
+                alert('科目信息不可用');
+                </text>
+            }
+        }
+
+        // 编辑题目
+        function editQuestion(questionId) {
+            // TODO: 实现编辑题目功能
+            alert(`编辑题目 ${questionId} 功能待实现`);
+        }
+
+        // 预览题目
+        function previewQuestion(questionId) {
+            // TODO: 实现预览题目功能
+            alert(`预览题目 ${questionId} 功能待实现`);
+        }
+
+        // 切换题目状态
+        function toggleQuestionStatus(questionId, currentStatus) {
+            const action = currentStatus ? '禁用' : '启用';
+            if (confirm(`确定要${action}这道题目吗？`)) {
+                fetch(`/api/ExamQuestion/${questionId}/toggle-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(`${action}失败：` + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`${action}失败，请稍后重试`);
+                });
+            }
+        }
+
+        // 删除题目
+        function deleteQuestion(questionId, questionTitle) {
+            if (confirm(`确定要删除题目"${questionTitle}"吗？此操作不可撤销！`)) {
+                fetch(`/api/ExamQuestion/${questionId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('删除失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请稍后重试');
+                });
+            }
+        }
+
+        // 批量启用
+        function batchEnable() {
+            if (selectedQuestions.size === 0) {
+                alert('请先选择要启用的题目');
+                return;
+            }
+
+            if (confirm(`确定要启用选中的 ${selectedQuestions.size} 道题目吗？`)) {
+                fetch('/api/ExamQuestion/batch-enable', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        questionIds: Array.from(selectedQuestions)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('批量启用失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('批量启用失败，请稍后重试');
+                });
+            }
+        }
+
+        // 批量禁用
+        function batchDisable() {
+            if (selectedQuestions.size === 0) {
+                alert('请先选择要禁用的题目');
+                return;
+            }
+
+            if (confirm(`确定要禁用选中的 ${selectedQuestions.size} 道题目吗？`)) {
+                fetch('/api/ExamQuestion/batch-disable', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        questionIds: Array.from(selectedQuestions)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('批量禁用失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('批量禁用失败，请稍后重试');
+                });
+            }
+        }
+
+        // 显示批量改分模态框
+        function showBatchScoreModal() {
+            if (selectedQuestions.size === 0) {
+                alert('请先选择要修改分值的题目');
+                return;
+            }
+
+            const newScore = prompt(`请输入新的分值（当前选中 ${selectedQuestions.size} 道题目）：`);
+            if (newScore && !isNaN(newScore) && parseFloat(newScore) >= 0.1) {
+                batchUpdateScore(parseFloat(newScore));
+            }
+        }
+
+        // 批量修改分值
+        function batchUpdateScore(newScore) {
+            fetch('/api/ExamQuestion/batch-update-score', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    questionIds: Array.from(selectedQuestions),
+                    newScore: newScore
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('批量改分失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('批量改分失败，请稍后重试');
+            });
+        }
+
+        // 批量删除
+        function batchDelete() {
+            if (selectedQuestions.size === 0) {
+                alert('请先选择要删除的题目');
+                return;
+            }
+
+            if (confirm(`确定要删除选中的 ${selectedQuestions.size} 道题目吗？此操作不可撤销！`)) {
+                fetch('/api/ExamQuestion/batch-delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        questionIds: Array.from(selectedQuestions)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('批量删除失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('批量删除失败，请稍后重试');
+                });
+            }
+        }
+
+        // 创建Excel题目
+        function createExcelQuestion() {
+            const form = document.getElementById('addExcelQuestionForm');
+            const formData = new FormData(form);
+
+            // 验证表单
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // 构建请求数据
+            const requestData = {
+                examSubjectId: parseInt(formData.get('subjectId') || document.getElementById('subjectId').value),
+                operationNumber: parseInt(formData.get('operationNumber')),
+                title: formData.get('title'),
+                content: formData.get('content'),
+                score: parseInt(formData.get('score')),
+                difficultyLevel: parseInt(formData.get('difficultyLevel')),
+                estimatedMinutes: parseInt(formData.get('estimatedMinutes')),
+                isRequired: document.getElementById('isRequired').checked,
+                tags: formData.get('tags') || '',
+                remarks: formData.get('remarks') || '',
+                parameters: {}
+            };
+
+            // 发送创建请求
+            fetch('/api/ExamQuestion/excel-operation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text);
+                    });
+                }
+            })
+            .then(data => {
+                alert('Excel题目创建成功！');
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addExcelQuestionModal'));
+                modal.hide();
+                // 刷新页面
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('创建题目失败：' + error.message);
+            });
+        }
+    </script>
+}

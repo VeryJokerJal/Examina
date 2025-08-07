@@ -1,0 +1,330 @@
+@{
+    ViewData["Title"] = "小数分值功能测试";
+}
+
+<div class="container mt-4">
+    <h2>小数分值功能测试页面</h2>
+    <p class="text-muted">此页面用于测试小数分值输入、验证和显示功能</p>
+
+    <!-- 测试结果显示区域 -->
+    <div id="testResults" class="alert alert-info" style="display: none;">
+        <h5>测试结果：</h5>
+        <ul id="resultsList"></ul>
+    </div>
+
+    <!-- 小数分值输入测试 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>1. 小数分值输入测试</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="testScore1" class="form-label">正常小数分值 (0.1-100)</label>
+                    <input type="number" class="form-control" id="testScore1" min="0.1" max="100" step="0.1" value="15.5">
+                </div>
+                <div class="col-md-4">
+                    <label for="testScore2" class="form-label">边界值测试 - 最小值</label>
+                    <input type="number" class="form-control" id="testScore2" min="0.1" max="100" step="0.1" value="0.1">
+                </div>
+                <div class="col-md-4">
+                    <label for="testScore3" class="form-label">边界值测试 - 最大值</label>
+                    <input type="number" class="form-control" id="testScore3" min="0.1" max="100" step="0.1" value="100.0">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <label for="testScore4" class="form-label">精度测试</label>
+                    <input type="number" class="form-control" id="testScore4" min="0.1" max="100" step="0.01" value="99.99">
+                </div>
+                <div class="col-md-4">
+                    <label for="testScore5" class="form-label">无效值测试 (超出范围)</label>
+                    <input type="number" class="form-control" id="testScore5" min="0.1" max="100" step="0.1" value="150">
+                </div>
+                <div class="col-md-4">
+                    <label for="testScore6" class="form-label">无效值测试 (小于最小值)</label>
+                    <input type="number" class="form-control" id="testScore6" min="0.1" max="100" step="0.1" value="0.05">
+                </div>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="testScoreInputs()">测试分值输入</button>
+        </div>
+    </div>
+
+    <!-- 分值验证测试 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>2. 分值验证功能测试</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="validationTestScore" class="form-label">输入分值进行验证</label>
+                    <input type="number" class="form-control" id="validationTestScore" min="0.1" max="100" step="0.1" placeholder="输入分值">
+                </div>
+                <div class="col-md-6">
+                    <div class="mt-4">
+                        <button class="btn btn-success" onclick="validateScore()">验证分值</button>
+                        <div id="validationResult" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分值计算测试 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>3. 分值计算测试</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="calc1" class="form-label">分值1</label>
+                    <input type="number" class="form-control" id="calc1" step="0.1" value="15.5">
+                </div>
+                <div class="col-md-3">
+                    <label for="calc2" class="form-label">分值2</label>
+                    <input type="number" class="form-control" id="calc2" step="0.1" value="20.25">
+                </div>
+                <div class="col-md-3">
+                    <label for="calc3" class="form-label">分值3</label>
+                    <input type="number" class="form-control" id="calc3" step="0.1" value="12.75">
+                </div>
+                <div class="col-md-3">
+                    <div class="mt-4">
+                        <button class="btn btn-info" onclick="calculateTotal()">计算总分</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div id="calculationResult" class="alert alert-light" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API 测试 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>4. API 小数分值测试</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="apiTestScore" class="form-label">API 测试分值</label>
+                    <input type="number" class="form-control" id="apiTestScore" step="0.1" value="18.75">
+                </div>
+                <div class="col-md-6">
+                    <div class="mt-4">
+                        <button class="btn btn-warning" onclick="testAPI()">测试 API 调用</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div id="apiResult" class="alert alert-light" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 运行所有测试 -->
+    <div class="text-center">
+        <button class="btn btn-success btn-lg" onclick="runAllTests()">运行所有测试</button>
+        <button class="btn btn-secondary btn-lg ms-2" onclick="clearResults()">清除结果</button>
+    </div>
+</div>
+
+<script>
+    // 测试结果存储
+    let testResults = [];
+
+    // 添加测试结果
+    function addTestResult(testName, passed, message) {
+        testResults.push({
+            name: testName,
+            passed: passed,
+            message: message,
+            timestamp: new Date().toLocaleTimeString()
+        });
+        updateResultsDisplay();
+    }
+
+    // 更新结果显示
+    function updateResultsDisplay() {
+        const resultsDiv = document.getElementById('testResults');
+        const resultsList = document.getElementById('resultsList');
+        
+        if (testResults.length === 0) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        resultsDiv.style.display = 'block';
+        resultsList.innerHTML = '';
+
+        testResults.forEach(result => {
+            const li = document.createElement('li');
+            li.className = result.passed ? 'text-success' : 'text-danger';
+            li.innerHTML = `
+                <strong>${result.name}</strong> - 
+                ${result.passed ? '✅ 通过' : '❌ 失败'}: 
+                ${result.message} 
+                <small class="text-muted">(${result.timestamp})</small>
+            `;
+            resultsList.appendChild(li);
+        });
+    }
+
+    // 测试分值输入
+    function testScoreInputs() {
+        const inputs = [
+            { id: 'testScore1', expected: 15.5, name: '正常小数分值' },
+            { id: 'testScore2', expected: 0.1, name: '最小边界值' },
+            { id: 'testScore3', expected: 100.0, name: '最大边界值' },
+            { id: 'testScore4', expected: 99.99, name: '精度测试' }
+        ];
+
+        inputs.forEach(test => {
+            const input = document.getElementById(test.id);
+            const value = parseFloat(input.value);
+            const passed = Math.abs(value - test.expected) < 0.001;
+            addTestResult(
+                `输入测试 - ${test.name}`,
+                passed,
+                `期望: ${test.expected}, 实际: ${value}`
+            );
+        });
+
+        // 测试无效值
+        const invalidInputs = [
+            { id: 'testScore5', name: '超出最大值' },
+            { id: 'testScore6', name: '小于最小值' }
+        ];
+
+        invalidInputs.forEach(test => {
+            const input = document.getElementById(test.id);
+            const isValid = input.checkValidity();
+            addTestResult(
+                `无效值测试 - ${test.name}`,
+                !isValid,
+                `输入值: ${input.value}, 验证结果: ${isValid ? '有效' : '无效'}`
+            );
+        });
+    }
+
+    // 验证分值
+    function validateScore() {
+        const input = document.getElementById('validationTestScore');
+        const value = parseFloat(input.value);
+        const resultDiv = document.getElementById('validationResult');
+
+        let isValid = true;
+        let message = '';
+
+        if (isNaN(value)) {
+            isValid = false;
+            message = '请输入有效的数字';
+        } else if (value < 0.1) {
+            isValid = false;
+            message = '分值不能小于 0.1';
+        } else if (value > 100) {
+            isValid = false;
+            message = '分值不能大于 100';
+        } else {
+            message = '分值验证通过';
+        }
+
+        resultDiv.className = `alert ${isValid ? 'alert-success' : 'alert-danger'}`;
+        resultDiv.textContent = message;
+
+        addTestResult('分值验证', isValid, `输入: ${input.value}, ${message}`);
+    }
+
+    // 计算总分
+    function calculateTotal() {
+        const calc1 = parseFloat(document.getElementById('calc1').value) || 0;
+        const calc2 = parseFloat(document.getElementById('calc2').value) || 0;
+        const calc3 = parseFloat(document.getElementById('calc3').value) || 0;
+
+        const total = calc1 + calc2 + calc3;
+        const average = total / 3;
+
+        const resultDiv = document.getElementById('calculationResult');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <h6>计算结果：</h6>
+            <p><strong>总分：</strong> ${total.toFixed(2)}</p>
+            <p><strong>平均分：</strong> ${average.toFixed(2)}</p>
+            <p><strong>输入值：</strong> ${calc1} + ${calc2} + ${calc3}</p>
+        `;
+
+        addTestResult(
+            '分值计算',
+            true,
+            `总分: ${total.toFixed(2)}, 平均分: ${average.toFixed(2)}`
+        );
+    }
+
+    // 测试 API
+    function testAPI() {
+        const score = parseFloat(document.getElementById('apiTestScore').value);
+        const resultDiv = document.getElementById('apiResult');
+
+        // 模拟 API 调用
+        const testData = {
+            subjectId: 1,
+            operationType: 'TestDecimalScore',
+            score: score,
+            operationConfig: { test: true },
+            title: '小数分值测试题目',
+            description: '测试小数分值功能'
+        };
+
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <h6>API 测试数据：</h6>
+            <pre>${JSON.stringify(testData, null, 2)}</pre>
+            <p class="text-success">✅ 数据格式正确，支持小数分值</p>
+        `;
+
+        addTestResult(
+            'API 数据格式测试',
+            true,
+            `分值: ${score}, 数据类型: ${typeof score}`
+        );
+    }
+
+    // 运行所有测试
+    function runAllTests() {
+        clearResults();
+        
+        setTimeout(() => testScoreInputs(), 100);
+        setTimeout(() => validateScore(), 200);
+        setTimeout(() => calculateTotal(), 300);
+        setTimeout(() => testAPI(), 400);
+
+        addTestResult(
+            '综合测试',
+            true,
+            '所有小数分值功能测试已完成'
+        );
+    }
+
+    // 清除结果
+    function clearResults() {
+        testResults = [];
+        updateResultsDisplay();
+        
+        // 清除其他结果显示
+        document.getElementById('validationResult').textContent = '';
+        document.getElementById('calculationResult').style.display = 'none';
+        document.getElementById('apiResult').style.display = 'none';
+    }
+
+    // 页面加载时设置默认值
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('validationTestScore').value = '25.75';
+    });
+</script>

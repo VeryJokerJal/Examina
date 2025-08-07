@@ -1,0 +1,471 @@
+@model ExaminaWebApplication.Models.Exam.Exam
+@{
+    ViewData["Title"] = $"验证试卷 - {Model.Name}";
+    var validationResult = ViewBag.ValidationResult as ExaminaWebApplication.Services.Exam.ExamValidationResult;
+}
+
+<!-- 页面标题和操作按钮 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="bi bi-shield-check me-2"></i>验证试卷
+        </h1>
+        <p class="text-muted mb-0">检查试卷是否满足发布条件</p>
+    </div>
+    <div>
+        <a href="@Url.Action("ExamDetails", "ExamManagement", new { id = Model.Id })" class="glass-btn">
+            <i class="bi bi-arrow-left"></i> 返回详情
+        </a>
+        <a href="@Url.Action("EditExam", "ExamManagement", new { id = Model.Id })" class="glass-btn glass-btn-warning">
+            <i class="bi bi-pencil"></i> 编辑试卷
+        </a>
+    </div>
+</div>
+
+<!-- 验证结果状态 -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        @if (validationResult != null && validationResult.IsValid)
+        {
+            <div class="glass-alert glass-alert-success" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-3" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <h5 class="mb-1">✅ 验证通过</h5>
+                        <p class="mb-0">试卷满足所有发布条件，可以发布！</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="glass-alert glass-alert-danger" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-x-circle-fill me-3" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <h5 class="mb-1">❌ 验证失败</h5>
+                        <p class="mb-0">试卷存在问题，需要修复后才能发布</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- 试卷基本信息 -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>试卷信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="text-muted" style="width: 120px;">试卷名称：</td>
+                                <td><strong>@Model.Name</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">试卷类型：</td>
+                                <td>
+                                    <span class="badge @GetTypeBadgeClass(Model.ExamType)">
+                                        @GetTypeText(Model.ExamType)
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">总分：</td>
+                                <td><strong class="text-primary">@Model.TotalScore 分</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">考试时长：</td>
+                                <td><strong class="text-info">@Model.DurationMinutes 分钟</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="text-muted" style="width: 120px;">科目数量：</td>
+                                <td><strong class="text-success">@Model.Subjects.Count 个</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">题目数量：</td>
+                                <td><strong class="text-success">@Model.Questions.Count 道</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">科目总分：</td>
+                                <td><strong class="text-primary">@Model.Subjects.Sum(s => s.Score) 分</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">题目总分：</td>
+                                <td><strong class="text-primary">@Model.Questions.Sum(q => q.Score) 分</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mt-3">
+                        <h6>试卷描述：</h6>
+                        <p class="text-muted">@Model.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart me-2"></i>验证统计
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                @if (validationResult != null)
+                {
+                    <div class="row g-0">
+                        <div class="col-6">
+                            <div class="border-end pe-3">
+                                <div class="glass-stat-item">
+                                    <h4 class="@(validationResult.IsValid ? "text-success" : "text-danger") mb-1 fw-bold">
+                                        @(validationResult.IsValid ? "通过" : "失败")
+                                    </h4>
+                                    <small class="text-muted d-block">验证结果</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="ps-3">
+                                <div class="glass-stat-item">
+                                    <h4 class="text-danger mb-1 fw-bold">@validationResult.Errors.Count</h4>
+                                    <small class="text-muted d-block">错误数量</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-3 glass-divider">
+                    <div class="row g-0">
+                        <div class="col-6">
+                            <div class="border-end pe-3">
+                                <div class="glass-stat-item">
+                                    <h5 class="text-warning mb-1 fw-bold">@validationResult.Warnings.Count</h5>
+                                    <small class="text-muted d-block">警告数量</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="ps-3">
+                                <div class="glass-stat-item">
+                                    <h5 class="text-info mb-1 fw-bold">@GetValidationScore(validationResult)</h5>
+                                    <small class="text-muted d-block">验证评分</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="glass-stat-item">
+                        <p class="text-muted mb-0">暂无验证结果</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 验证结果详情 -->
+@if (validationResult != null)
+{
+    <div class="row">
+        <!-- 错误列表 -->
+        @if (validationResult.Errors.Any())
+        {
+            <div class="col-md-6 mb-4">
+                <div class="glass-card glass-validation-card border-danger">
+                    <div class="card-header glass-card-header-danger">
+                        <h5 class="mb-0 text-white fw-semibold">
+                            <i class="bi bi-exclamation-triangle me-2"></i>验证错误 (@validationResult.Errors.Count)
+                        </h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <p class="text-muted mb-3 small">以下问题必须修复后才能发布试卷：</p>
+                        <ul class="list-group list-group-flush glass-list-group">
+                            @foreach (var error in validationResult.Errors)
+                            {
+                                <li class="list-group-item glass-list-item d-flex align-items-start">
+                                    <i class="bi bi-x-circle text-danger me-2 mt-1 flex-shrink-0"></i>
+                                    <span class="lh-sm">@error</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- 警告列表 -->
+        @if (validationResult.Warnings.Any())
+        {
+            <div class="col-md-6 mb-4">
+                <div class="glass-card glass-validation-card border-warning">
+                    <div class="card-header glass-card-header-warning">
+                        <h5 class="mb-0 text-dark fw-semibold">
+                            <i class="bi bi-exclamation-triangle me-2"></i>验证警告 (@validationResult.Warnings.Count)
+                        </h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <p class="text-muted mb-3 small">以下问题建议修复，但不影响发布：</p>
+                        <ul class="list-group list-group-flush glass-list-group">
+                            @foreach (var warning in validationResult.Warnings)
+                            {
+                                <li class="list-group-item glass-list-item d-flex align-items-start">
+                                    <i class="bi bi-exclamation-triangle text-warning me-2 mt-1 flex-shrink-0"></i>
+                                    <span class="lh-sm">@warning</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- 验证通过项目 -->
+        @if (validationResult.IsValid || (!validationResult.Errors.Any() && !validationResult.Warnings.Any()))
+        {
+            <div class="col-md-6 mb-4">
+                <div class="glass-card glass-validation-card border-success">
+                    <div class="card-header glass-card-header-success">
+                        <h5 class="mb-0 text-white fw-semibold">
+                            <i class="bi bi-check-circle me-2"></i>验证通过项目
+                        </h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <p class="text-muted mb-3 small">以下验证项目已通过：</p>
+                        <ul class="list-group list-group-flush glass-list-group">
+                            <li class="list-group-item glass-list-item d-flex align-items-start">
+                                <i class="bi bi-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                <span class="lh-sm">试卷名称已设置</span>
+                            </li>
+                            <li class="list-group-item glass-list-item d-flex align-items-start">
+                                <i class="bi bi-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                <span class="lh-sm">试卷总分大于0</span>
+                            </li>
+                            <li class="list-group-item glass-list-item d-flex align-items-start">
+                                <i class="bi bi-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                <span class="lh-sm">考试时长已设置</span>
+                            </li>
+                            @if (Model.Subjects.Any())
+                            {
+                                <li class="list-group-item glass-list-item d-flex align-items-start">
+                                    <i class="bi bi-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                    <span class="lh-sm">包含科目 (@Model.Subjects.Count 个)</span>
+                                </li>
+                            }
+                            @if (Model.Questions.Any())
+                            {
+                                <li class="list-group-item glass-list-item d-flex align-items-start">
+                                    <i class="bi bi-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                    <span class="lh-sm">包含题目 (@Model.Questions.Count 道)</span>
+                                </li>
+                            }
+                            @if (Model.Subjects.Sum(s => s.Score) == Model.TotalScore)
+                            {
+                                <li class="list-group-item glass-list-item d-flex align-items-start">
+                                    <i class="bi bi-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                    <span class="lh-sm">科目分值与总分匹配</span>
+                                </li>
+                            }
+                            @if (Model.Questions.Sum(q => q.Score) == Model.TotalScore)
+                            {
+                                <li class="list-group-item glass-list-item d-flex align-items-start">
+                                    <i class="bi bi-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                    <span class="lh-sm">题目分值与总分匹配</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- 操作按钮区域 -->
+<div class="glass-card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-gear me-2"></i>操作选项
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                @if (validationResult != null && validationResult.IsValid)
+                {
+                    <div class="glass-alert glass-alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>试卷验证通过！</strong> 您现在可以发布这份试卷，发布后学生就可以开始考试。
+                    </div>
+
+                    <button class="glass-btn glass-btn-success btn-lg me-3" onclick="publishExam(@Model.Id, '@Model.Name')">
+                        <i class="bi bi-cloud-upload"></i> 发布试卷
+                    </button>
+                }
+                else
+                {
+                    <div class="glass-alert glass-alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>试卷验证失败！</strong> 请修复上述错误后重新验证。
+                    </div>
+
+                    <button class="glass-btn glass-btn-success btn-lg me-3" disabled>
+                        <i class="bi bi-cloud-upload"></i> 发布试卷
+                    </button>
+                }
+
+                <a href="@Url.Action("EditExam", "ExamManagement", new { id = Model.Id })" class="glass-btn glass-btn-warning me-3">
+                    <i class="bi bi-pencil"></i> 编辑试卷
+                </a>
+
+                <button class="glass-btn glass-btn-primary" onclick="revalidateExam(@Model.Id)">
+                    <i class="bi bi-arrow-clockwise"></i> 重新验证
+                </button>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="@Url.Action("ExamList", "ExamManagement")" class="glass-btn">
+                    <i class="bi bi-list"></i> 返回列表
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetTypeBadgeClass(ExaminaWebApplication.Models.Exam.ExamType type)
+    {
+        return type switch
+        {
+            ExaminaWebApplication.Models.Exam.ExamType.UnifiedExam => "bg-primary",
+            ExaminaWebApplication.Models.Exam.ExamType.MockExam => "bg-success",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetTypeText(ExaminaWebApplication.Models.Exam.ExamType type)
+    {
+        return type switch
+        {
+            ExaminaWebApplication.Models.Exam.ExamType.UnifiedExam => "统一考试",
+            ExaminaWebApplication.Models.Exam.ExamType.MockExam => "综合实训",
+            _ => "未知类型"
+        };
+    }
+
+    private string GetValidationScore(ExaminaWebApplication.Services.Exam.ExamValidationResult result)
+    {
+        if (result.IsValid)
+        {
+            return "100%";
+        }
+
+        // 计算验证评分：基于错误和警告数量
+        int totalIssues = result.Errors.Count + result.Warnings.Count;
+        if (totalIssues == 0)
+        {
+            return "100%";
+        }
+
+        // 错误权重更高
+        int score = Math.Max(0, 100 - (result.Errors.Count * 20) - (result.Warnings.Count * 5));
+        return $"{score}%";
+    }
+}
+
+@section Scripts {
+    <script>
+        // 发布试卷
+        function publishExam(examId, examName) {
+            if (confirm(`确定要发布试卷"${examName}"吗？\n\n发布后试卷将不能再编辑，学生可以开始考试。`)) {
+                // 显示加载状态
+                const publishBtn = event.target;
+                const originalText = publishBtn.innerHTML;
+                publishBtn.disabled = true;
+                publishBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 发布中...';
+
+                fetch(`/api/Exam/${examId}/publish`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        publishedBy: 1 // 假设当前用户ID为1，实际应该从认证信息获取
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success || response.ok) {
+                        alert('试卷发布成功！');
+                        window.location.href = `/ExamManagement/ExamDetails/${examId}`;
+                    } else {
+                        alert('发布失败：' + (data.message || '未知错误'));
+                        publishBtn.disabled = false;
+                        publishBtn.innerHTML = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('发布失败，请稍后重试');
+                    publishBtn.disabled = false;
+                    publishBtn.innerHTML = originalText;
+                });
+            }
+        }
+
+        // 重新验证试卷
+        function revalidateExam(examId) {
+            // 显示加载状态
+            const revalidateBtn = event.target;
+            const originalText = revalidateBtn.innerHTML;
+            revalidateBtn.disabled = true;
+            revalidateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 验证中...';
+
+            // 重新加载页面以获取最新验证结果
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加工具提示
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // 检查验证结果并显示相应提示
+            const isValid = @(validationResult?.IsValid.ToString().ToLower() ?? "false");
+            const errorCount = @(validationResult?.Errors.Count ?? 0);
+
+            if (isValid) {
+                console.log('试卷验证通过，可以发布');
+            } else {
+                console.log(`试卷验证失败，共有 ${errorCount} 个错误需要修复`);
+            }
+
+            // 自动聚焦到主要操作按钮
+            const publishBtn = document.querySelector('button[onclick*="publishExam"]');
+            if (publishBtn && !publishBtn.disabled) {
+                publishBtn.focus();
+            }
+        });
+    </script>
+}

@@ -1,0 +1,218 @@
+@{
+    ViewData["Title"] = "测试操作点选择器";
+}
+
+<div class="container-fluid">
+    <h1>测试操作点选择器</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5>测试容器 1 - 有初始loading元素</h5>
+                </div>
+                <div class="card-body">
+                    <div id="testContainer1" class="operation-point-selector" data-subject-type="4">
+                        <div class="loading-state text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                            <p class="mt-2 text-muted">正在加载操作点...</p>
+                        </div>
+                    </div>
+                    <button class="glass-btn glass-btn-primary mt-3" onclick="testSelector1()">
+                        测试选择器 1
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5>测试容器 2 - 空容器</h5>
+                </div>
+                <div class="card-body">
+                    <div id="testContainer2" class="operation-point-selector" data-subject-type="4">
+                        <!-- 空容器，没有loading元素 -->
+                    </div>
+                    <button class="glass-btn glass-btn-success mt-3" onclick="testSelector2()">
+                        测试选择器 2
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5>测试日志</h5>
+                </div>
+                <div class="card-body">
+                    <div id="testLog" style="height: 200px; overflow-y: auto; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 5px;">
+                        <!-- 测试日志将显示在这里 -->
+                    </div>
+                    <button class="glass-btn glass-btn-warning mt-2" onclick="clearLog()">
+                        清除日志
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/operation-point-selector.js"></script>
+    
+    <script>
+        let selector1 = null;
+        let selector2 = null;
+        
+        function log(message) {
+            const logDiv = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = '';
+        }
+        
+        function testSelector1() {
+            try {
+                log('开始测试选择器 1 (有初始loading元素)...');
+                const container = document.getElementById('testContainer1');
+
+                selector1 = new OperationPointSelector(container, {
+                    subjectId: 6, // 使用一个测试ID
+                    subjectType: 4, // Windows
+                    allowMultiple: true,
+                    onSelectionChange: (points) => {
+                        log(`选择器 1 选择变化: ${points.length} 个操作点`);
+                    }
+                });
+
+                log('选择器 1 初始化成功');
+
+                // 测试showLoading和hideLoading方法
+                setTimeout(() => {
+                    log('测试选择器 1 的 showLoading()...');
+                    try {
+                        selector1.showLoading();
+                        log('showLoading() 执行成功');
+                    } catch (e) {
+                        log(`showLoading() 失败: ${e.message}`);
+                    }
+                }, 1000);
+
+                setTimeout(() => {
+                    log('测试选择器 1 的 hideLoading()...');
+                    try {
+                        selector1.hideLoading();
+                        log('hideLoading() 执行成功');
+                    } catch (e) {
+                        log(`hideLoading() 失败: ${e.message}`);
+                    }
+                }, 2000);
+
+                // 测试渲染方法
+                setTimeout(() => {
+                    log('测试选择器 1 的 renderOperationPoints()...');
+                    try {
+                        // 模拟一些测试数据
+                        selector1.operationPointsData = {
+                            create: [
+                                { operationNumber: 1, name: '创建文件夹', description: '在指定位置创建新文件夹', operationType: 'Create' },
+                                { operationNumber: 2, name: '创建文件', description: '在指定位置创建新文件', operationType: 'Create' }
+                            ],
+                            copy: [
+                                { operationNumber: 3, name: '复制文件', description: '复制文件到指定位置', operationType: 'Copy' }
+                            ]
+                        };
+                        selector1.renderOperationPoints();
+                        log('renderOperationPoints() 执行成功');
+                    } catch (e) {
+                        log(`renderOperationPoints() 失败: ${e.message}`);
+                    }
+                }, 3000);
+
+            } catch (error) {
+                log(`选择器 1 测试失败: ${error.message}`);
+                console.error('选择器 1 错误:', error);
+            }
+        }
+        
+        function testSelector2() {
+            try {
+                log('开始测试选择器 2 (空容器)...');
+                const container = document.getElementById('testContainer2');
+
+                selector2 = new OperationPointSelector(container, {
+                    subjectId: 6, // 使用一个测试ID
+                    subjectType: 4, // Windows
+                    allowMultiple: true,
+                    onSelectionChange: (points) => {
+                        log(`选择器 2 选择变化: ${points.length} 个操作点`);
+                    }
+                });
+
+                log('选择器 2 初始化成功');
+
+                // 测试showLoading和hideLoading方法
+                setTimeout(() => {
+                    log('测试选择器 2 的 showLoading()...');
+                    try {
+                        selector2.showLoading();
+                        log('showLoading() 执行成功');
+                    } catch (e) {
+                        log(`showLoading() 失败: ${e.message}`);
+                    }
+                }, 1000);
+
+                setTimeout(() => {
+                    log('测试选择器 2 的 hideLoading()...');
+                    try {
+                        selector2.hideLoading();
+                        log('hideLoading() 执行成功');
+                    } catch (e) {
+                        log(`hideLoading() 失败: ${e.message}`);
+                    }
+                }, 2000);
+
+                // 测试渲染方法
+                setTimeout(() => {
+                    log('测试选择器 2 的 renderOperationPoints()...');
+                    try {
+                        // 模拟一些测试数据
+                        selector2.operationPointsData = {
+                            create: [
+                                { operationNumber: 4, name: '创建快捷方式', description: '创建文件或文件夹的快捷方式', operationType: 'Shortcut' }
+                            ],
+                            delete: [
+                                { operationNumber: 5, name: '删除文件', description: '删除指定的文件', operationType: 'Delete' },
+                                { operationNumber: 6, name: '删除文件夹', description: '删除指定的文件夹', operationType: 'Delete' }
+                            ]
+                        };
+                        selector2.renderOperationPoints();
+                        log('renderOperationPoints() 执行成功');
+                    } catch (e) {
+                        log(`renderOperationPoints() 失败: ${e.message}`);
+                    }
+                }, 3000);
+
+            } catch (error) {
+                log(`选择器 2 测试失败: ${error.message}`);
+                console.error('选择器 2 错误:', error);
+            }
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('测试页面加载完成');
+            log('点击按钮开始测试操作点选择器...');
+        });
+    </script>
+}

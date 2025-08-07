@@ -19,6 +19,7 @@ html {
 
 body {
   margin-bottom: 60px;
+  line-height: 1.6; /* 改善文本可读性 */
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +29,34 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* 确保主体内容与导航栏的正确间距 */
+.container {
+  padding-top: 0;
+}
+
+main {
+  min-height: calc(100vh - 200px); /* 确保主体内容有足够的高度 */
+}
+
+/* 改善页面标题样式 */
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* 改善段落间距 */
+p {
+  margin-bottom: 1rem;
+}
+
+/* 改善链接样式 */
+a {
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  text-decoration: none;
 }

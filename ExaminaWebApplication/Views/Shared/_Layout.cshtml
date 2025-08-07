@@ -1,19 +1,55 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ExaminaWebApplication</title>
+    <title>@ViewData["Title"] - Examina 考试管理系统</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ExaminaWebApplication.styles.css" asp-append-version="true" />
+    <style>
+        /* Override Bootstrap styles for Glassmorphism */
+        .navbar {
+            background: transparent !important;
+            border-bottom: none !important;
+            box-shadow: none !important;
+        }
+
+        .dropdown-menu {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .footer {
+            background: transparent !important;
+            border-top: 1px solid var(--glass-border) !important;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        /* Glass notification */
+        .glass-notification {
+            background: var(--glass-primary);
+            backdrop-filter: var(--blur-md);
+            -webkit-backdrop-filter: var(--blur-md);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 8px 32px var(--glass-shadow);
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg glass-navbar">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ExaminaWebApplication</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Examina 考试管理系统
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -21,10 +57,82 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1"></i>首页
+                            </a>
                         </li>
+
+                        <!-- 试卷管理下拉菜单 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="examDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-clipboard-check me-1"></i>试卷管理
+                            </a>
+                            <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="examDropdown">
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="ExamManagement" asp-action="Index">
+                                    <i class="bi bi-speedometer2 me-2"></i>管理面板
+                                </a></li>
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="ExamManagement" asp-action="ExamList">
+                                    <i class="bi bi-file-earmark-text me-2"></i>试卷列表
+                                </a></li>
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="ExamManagement" asp-action="CreateExam">
+                                    <i class="bi bi-plus-circle me-2"></i>创建试卷
+                                </a></li>
+
+                            </ul>
+                        </li>
+
+                        <!-- 专项练习菜单 -->
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-controller="SpecializedPractice" asp-action="Index">
+                                <i class="bi bi-lightning me-1"></i>专项练习
+                            </a>
+                        </li>
+
+
+
+                        <!-- 统计分析下拉菜单 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="statisticsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-graph-up me-1"></i>统计分析
+                            </a>
+                            <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="statisticsDropdown">
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="Statistics" asp-action="Index">
+                                    <i class="bi bi-speedometer2 me-2"></i>统计概览
+                                </a></li>
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="Statistics" asp-action="SystemStatistics">
+                                    <i class="bi bi-graph-up me-2"></i>系统统计
+                                </a></li>
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="Statistics" asp-action="ExamStatistics">
+                                    <i class="bi bi-clipboard-data me-2"></i>试卷统计
+                                </a></li>
+                            </ul>
+                        </li>
+
+                        <!-- 系统管理下拉菜单 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="systemDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear me-1"></i>系统管理
+                            </a>
+                            <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="systemDropdown">
+                                <li><a class="dropdown-item glass-dropdown-item" href="#" onclick="createSampleData()">
+                                    <i class="bi bi-database-add me-2"></i>创建示例数据
+                                </a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">
+                                <i class="bi bi-shield-check me-1"></i>隐私政策
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- 右侧状态信息 -->
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <span class="navbar-text system-status">
+                                <i class="bi bi-circle-fill text-success me-1"></i>系统正常运行
+                            </span>
                         </li>
                     </ul>
                 </div>
@@ -37,14 +145,151 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - ExaminaWebApplication - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer text-muted mt-5 glass-card">
+        <div class="container py-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-dark">Examina 考试管理系统</h6>
+                    <p class="mb-2">Office应用程序统一考试管理平台</p>
+                    <p class="mb-0">
+                        <small>
+                            &copy; 2025 - Examina -
+                            <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-decoration-none">隐私政策</a>
+                        </small>
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-dark">支持的科目</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="bi bi-check-circle-fill text-success me-1"></i>Windows 操作系统</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-1"></i>C# 编程语言</li>
+                        <li><i class="bi bi-circle text-muted me-1"></i>PowerPoint 演示文稿</li>
+                        <li><i class="bi bi-circle text-muted me-1"></i>Word 文档处理</li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-dark">系统功能</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="bi bi-clipboard-check me-1"></i>试卷管理</li>
+                        <li><i class="bi bi-graph-up me-1"></i>统计分析</li>
+                        <li><i class="bi bi-gear me-1"></i>系统配置</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        基于 ASP.NET Core 和 Entity Framework 构建
+                    </small>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        版本 1.0.0 |
+                        <span id="system-time"></span>
+                    </small>
+                </div>
+            </div>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/glassmorphism-select.js" asp-append-version="true"></script>
+    <script src="~/js/glassmorphism-select-native.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- 全局脚本 -->
+    <script>
+        // 更新系统时间
+        function updateSystemTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const timeElement = document.getElementById('system-time');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+
+        // 创建示例数据
+        async function createSampleData() {
+            if (confirm('确定要创建示例数据吗？这将创建一个示例试卷和相关题目。')) {
+                try {
+                    const response = await fetch('/api/ExamTest/create-sample-exam', {
+                        method: 'POST'
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        alert('示例数据创建成功！\n' + data.Message);
+                    } else {
+                        const error = await response.text();
+                        alert('创建失败：' + error);
+                    }
+                } catch (error) {
+                    console.error('创建示例数据失败:', error);
+                    alert('创建示例数据失败，请检查控制台错误信息。');
+                }
+            }
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = `glass-notification glass-alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(notification);
+
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 更新系统时间
+            updateSystemTime();
+            setInterval(updateSystemTime, 1000);
+
+            // 导航链接现在使用MVC路由，无需特殊处理
+
+            // 检查系统状态
+            checkSystemStatus();
+        });
+
+        // 检查系统状态
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/api/ExamTest/statistics');
+                const statusElement = document.querySelector('.system-status');
+
+                if (response.ok) {
+                    statusElement.innerHTML = '<i class="bi bi-circle-fill text-success me-1"></i>系统正常运行';
+                } else {
+                    statusElement.innerHTML = '<i class="bi bi-circle-fill text-warning me-1"></i>系统异常';
+                }
+            } catch (error) {
+                const statusElement = document.querySelector('.system-status');
+                statusElement.innerHTML = '<i class="bi bi-circle-fill text-danger me-1"></i>连接失败';
+            }
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

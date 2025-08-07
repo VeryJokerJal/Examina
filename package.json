@@ -1,0 +1,17 @@
+{
+  "name": "examina-ui-testing",
+  "version": "1.0.0",
+  "description": "Playwright UI testing for Examina Web Application",
+  "main": "ui-test.js",
+  "scripts": {
+    "test": "node ui-test.js",
+    "install-browsers": "npx playwright install"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {},
+  "keywords": ["playwright", "ui-testing", "glassmorphism"],
+  "author": "Examina Team",
+  "license": "MIT"
+}

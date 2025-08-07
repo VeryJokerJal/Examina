@@ -60,6 +60,8 @@ public class LoadingViewModel : ViewModelBase
     /// </summary>
     public async Task StartAutoAuthenticationAsync()
     {
+
+
         try
         {
             // 阶段1：检查本地存储

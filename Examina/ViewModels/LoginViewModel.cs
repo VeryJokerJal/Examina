@@ -24,14 +24,30 @@ public class LoginViewModel : ViewModelBase
     public LoginViewModel(IAuthenticationService authenticationService)
     {
         _authenticationService = authenticationService;
+        InitializeCommands();
+        InitializePropertyWatchers();
+        UpdateModeProperties();
+        CheckAutoLoginFailure();
+    }
 
+    /// <summary>
+    /// 初始化命令
+    /// </summary>
+    private void InitializeCommands()
+    {
         LoginCommand = new DelegateCommand(async () => await ExecuteLoginAsync(), CanExecuteLogin);
         SwitchToWeChatCommand = new DelegateCommand(SwitchToWeChat);
         SwitchToCredentialsCommand = new DelegateCommand(SwitchToCredentials);
         SwitchToSmsCommand = new DelegateCommand(SwitchToSms);
         SendSmsCodeCommand = new DelegateCommand(async () => await SendSmsCodeAsync(), CanSendSmsCode);
         RefreshQrCodeCommand = new DelegateCommand(async () => await RefreshQrCodeAsync());
+    }
 
+    /// <summary>
+    /// 初始化属性监听器
+    /// </summary>
+    private void InitializePropertyWatchers()
+    {
         // 监听属性更改以更新命令状态
         _ = this.WhenAnyValue(x => x.Username, x => x.Password, x => x.PhoneNumber, x => x.SmsCode,
                          x => x.IsLoading, x => x.QrCodeUrl, x => x.LoginMode)
@@ -56,12 +72,6 @@ public class LoginViewModel : ViewModelBase
                 IsSmsMode = mode == LoginMode.SmsCode;
                 IsWeChatMode = mode == LoginMode.WeChat;
             });
-
-        // 初始化便利属性
-        UpdateModeProperties();
-
-        // 检查是否是从自动登录失败跳转过来的
-        CheckAutoLoginFailure();
     }
 
     // 基础属性
@@ -94,12 +104,12 @@ public class LoginViewModel : ViewModelBase
     [Reactive] public bool IsWeChatMode { get; set; }
 
     // 命令
-    public ICommand LoginCommand { get; }
-    public ICommand SwitchToWeChatCommand { get; }
-    public ICommand SwitchToCredentialsCommand { get; }
-    public ICommand SwitchToSmsCommand { get; }
-    public ICommand SendSmsCodeCommand { get; }
-    public ICommand RefreshQrCodeCommand { get; }
+    public ICommand LoginCommand { get; private set; } = null!;
+    public ICommand SwitchToWeChatCommand { get; private set; } = null!;
+    public ICommand SwitchToCredentialsCommand { get; private set; } = null!;
+    public ICommand SwitchToSmsCommand { get; private set; } = null!;
+    public ICommand SendSmsCodeCommand { get; private set; } = null!;
+    public ICommand RefreshQrCodeCommand { get; private set; } = null!;
 
     private bool CanExecuteLogin()
     {
@@ -119,6 +129,8 @@ public class LoginViewModel : ViewModelBase
 
     private async Task ExecuteLoginAsync()
     {
+
+
         IsLoading = true;
         ErrorMessage = string.Empty;
         SuccessMessage = string.Empty;
@@ -201,6 +213,8 @@ public class LoginViewModel : ViewModelBase
             ErrorMessage = "请输入手机号";
             return;
         }
+
+
 
         try
         {

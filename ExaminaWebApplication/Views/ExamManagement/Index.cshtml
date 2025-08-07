@@ -1,0 +1,270 @@
+@{
+    ViewData["Title"] = "试卷管理 - 管理面板";
+    var examStats = ViewBag.ExamStatistics as ExaminaWebApplication.Services.Exam.ExamStatistics;
+    var excelStats = ViewBag.ExcelStatistics;
+}
+
+<!-- 页面标题 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="bi bi-speedometer2 me-2"></i>管理面板
+        </h1>
+        <p class="text-muted mb-0">试卷管理系统概览</p>
+    </div>
+    <div>
+        <button class="glass-btn glass-btn-primary me-2" onclick="createSampleExam()">
+            <i class="bi bi-plus"></i> 创建示例试卷
+        </button>
+        <button class="glass-btn glass-btn-info me-2" onclick="refreshStatistics()">
+            <i class="bi bi-arrow-clockwise"></i> 刷新统计
+        </button>
+        <button class="glass-btn glass-btn-success" onclick="testExcelQuestionCreation()">
+            <i class="bi bi-gear"></i> 测试Excel题目创建
+        </button>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="glass-card glass-card-primary text-center">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h5 class="card-title text-primary">总试卷数</h5>
+                        <h2 class="mb-0 text-primary">@(examStats?.TotalExams ?? 0)</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-clipboard-check text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card text-center">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h5 class="card-title text-success">已发布试卷</h5>
+                        <h2 class="mb-0 text-success">@(examStats?.PublishedExams ?? 0)</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card text-center">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h5 class="card-title text-warning">草稿试卷</h5>
+                        <h2 class="mb-0 text-warning">@(examStats?.DraftExams ?? 0)</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-file-earmark text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card text-center">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h5 class="card-title text-info">Excel操作点</h5>
+                        <h2 class="mb-0 text-info">@(excelStats?.TotalOperationPoints ?? 51)</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-table text-info" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>快速操作
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-primary btn-lg w-100 mb-2">
+                            <i class="bi bi-plus-circle me-2"></i>创建新试卷
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="@Url.Action("ExamList", "ExamManagement")" class="glass-btn glass-btn-success btn-lg w-100 mb-2">
+                            <i class="bi bi-list-ul me-2"></i>查看试卷列表
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="@Url.Action("ExcelOperations", "ExamManagement")" class="glass-btn glass-btn-info btn-lg w-100 mb-2">
+                            <i class="bi bi-table me-2"></i>Excel操作点
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="@Url.Action("Statistics", "ExamManagement")" class="glass-btn glass-btn-warning btn-lg w-100 mb-2">
+                            <i class="bi bi-bar-chart me-2"></i>系统统计
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 系统状态 -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear me-2"></i>系统状态
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>科目集成状态</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Excel: 已启用</li>
+                            <li><i class="bi bi-x-circle-fill text-secondary"></i> PowerPoint: 未启用</li>
+                            <li><i class="bi bi-x-circle-fill text-secondary"></i> Word: 未启用</li>
+                            <li><i class="bi bi-x-circle-fill text-secondary"></i> Windows: 未启用</li>
+                            <li><i class="bi bi-x-circle-fill text-secondary"></i> C#: 未启用</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>系统功能</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle-fill text-success"></i> 试卷管理: 正常</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> 题目生成: 正常</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> 参数验证: 正常</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> 数据库: 正常</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock me-2"></i>最近活动
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0">
+                        <div>
+                            <h6 class="mb-1">系统启动</h6>
+                            <p class="mb-1 text-muted">试卷管理系统已成功启动</p>
+                        </div>
+                        <small class="text-muted">刚刚</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0">
+                        <div>
+                            <h6 class="mb-1">数据库连接</h6>
+                            <p class="mb-1 text-muted">数据库连接正常</p>
+                        </div>
+                        <small class="text-muted">1分钟前</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0">
+                        <div>
+                            <h6 class="mb-1">Excel操作点加载</h6>
+                            <p class="mb-1 text-muted">51个操作点加载完成</p>
+                        </div>
+                        <small class="text-muted">2分钟前</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 加载提示 -->
+<div class="loading position-fixed top-50 start-50 translate-middle" id="loading" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">加载中...</span>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 创建示例试卷
+        async function createSampleExam() {
+            try {
+                showLoading();
+                const response = await fetch('/api/ExamTest/create-sample-exam', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showNotification('示例试卷创建成功！', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    const error = await response.text();
+                    showNotification(`创建失败: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('创建示例试卷失败:', error);
+                showNotification('创建示例试卷失败', 'danger');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 测试Excel题目创建
+        async function testExcelQuestionCreation() {
+            try {
+                showLoading();
+                const response = await fetch('/api/ExamTest/test-excel-question-creation', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showNotification('Excel题目创建测试成功！', 'success');
+                } else {
+                    const error = await response.text();
+                    showNotification(`测试失败: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('测试Excel题目创建失败:', error);
+                showNotification('测试Excel题目创建失败', 'danger');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 刷新统计
+        function refreshStatistics() {
+            location.reload();
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+}

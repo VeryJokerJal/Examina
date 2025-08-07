@@ -1,0 +1,382 @@
+@{
+    ViewData["Title"] = "测试文件类型选择功能";
+}
+
+<div class="container-fluid">
+    <h1 class="text-white mb-4">测试文件类型选择功能</h1>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>Windows操作配置测试
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="testOperationType" class="form-label">选择操作类型</label>
+                            <select class="form-select" id="testOperationType" onchange="showTestOperationConfig(this.value)">
+                                <option value="">请选择操作类型</option>
+                                <option value="Create">创建操作</option>
+                                <option value="Delete">删除操作</option>
+                                <option value="Copy">复制操作</option>
+                                <option value="Move">移动操作</option>
+                                <option value="Rename">重命名操作</option>
+                                <option value="CopyAndRename">复制并重命名</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="testScore" class="form-label">题目分值</label>
+                            <input type="number" class="form-control" id="testScore" value="10" min="1" max="100">
+                        </div>
+                    </div>
+                    
+                    <!-- 动态配置区域 -->
+                    <div id="testConfigArea" style="display: none;">
+                        <hr>
+                        <h6 class="text-primary mb-3">操作配置</h6>
+                        <div id="testConfigContent">
+                            <!-- 动态配置内容将在这里显示 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 测试按钮 -->
+                    <div class="mt-4">
+                        <button class="glass-btn glass-btn-primary" onclick="testConfiguration()">
+                            <i class="bi bi-play"></i> 测试配置
+                        </button>
+                        <button class="glass-btn glass-btn-success ms-2" onclick="generatePreview()">
+                            <i class="bi bi-eye"></i> 预览题目
+                        </button>
+                        <button class="glass-btn glass-btn-warning ms-2" onclick="clearTest()">
+                            <i class="bi bi-arrow-clockwise"></i> 重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-code-square me-2"></i>配置数据
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <pre id="configOutput" class="bg-dark text-light p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+{
+  "message": "请选择操作类型并配置参数"
+}
+                    </pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text me-2"></i>题目预览
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="questionPreview">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-file-text" style="font-size: 3rem;"></i>
+                            <p class="mt-2">配置完成后点击"预览题目"查看效果</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 显示测试操作配置
+        function showTestOperationConfig(operationType) {
+            const configArea = document.getElementById('testConfigArea');
+            const configContent = document.getElementById('testConfigContent');
+            
+            if (!operationType) {
+                configArea.style.display = 'none';
+                return;
+            }
+            
+            let configHtml = '';
+            
+            switch(operationType) {
+                case 'Create':
+                    configHtml = `
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="createTargetType" class="form-label">创建类型 *</label>
+                                <select class="form-select" id="createTargetType" required>
+                                    <option value="">请选择</option>
+                                    <option value="File">文件</option>
+                                    <option value="Folder">文件夹</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="createIsFile" class="form-label">文件类型 *</label>
+                                <select class="form-select" id="createIsFile" required>
+                                    <option value="">请选择</option>
+                                    <option value="true">文件</option>
+                                    <option value="false">文件夹</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="createTargetName" class="form-label">名称 *</label>
+                                <input type="text" class="form-control" id="createTargetName" placeholder="例如：新建文件夹" required>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <label for="createTargetPath" class="form-label">创建位置</label>
+                                <input type="text" class="form-control" id="createTargetPath" placeholder="例如：C:\\Users\\Desktop" value="C:\\Users\\Desktop">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'Delete':
+                    configHtml = `
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="deleteTargetType" class="form-label">删除类型 *</label>
+                                <select class="form-select" id="deleteTargetType" required>
+                                    <option value="">请选择</option>
+                                    <option value="File">文件</option>
+                                    <option value="Folder">文件夹</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="deleteIsFile" class="form-label">文件类型 *</label>
+                                <select class="form-select" id="deleteIsFile" required>
+                                    <option value="">请选择</option>
+                                    <option value="true">文件</option>
+                                    <option value="false">文件夹</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="deleteTargetName" class="form-label">目标名称 *</label>
+                                <input type="text" class="form-control" id="deleteTargetName" placeholder="例如：要删除的文件.txt" required>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <label for="deleteTargetPath" class="form-label">目标路径</label>
+                                <input type="text" class="form-control" id="deleteTargetPath" placeholder="例如：C:\\Users\\Desktop" value="C:\\Users\\Desktop">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'Copy':
+                    configHtml = `
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="copySourcePath" class="form-label">源文件路径 *</label>
+                                <input type="text" class="form-control" id="copySourcePath" placeholder="例如：C:\\Users\\Desktop\\源文件.txt" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="copySourceIsFile" class="form-label">源类型 *</label>
+                                <select class="form-select" id="copySourceIsFile" required>
+                                    <option value="">请选择</option>
+                                    <option value="true">文件</option>
+                                    <option value="false">文件夹</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="copyTargetPath" class="form-label">目标路径 *</label>
+                                <input type="text" class="form-control" id="copyTargetPath" placeholder="例如：C:\\Users\\Documents" required>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="copyKeepOriginal" checked>
+                                    <label class="form-check-label" for="copyKeepOriginal">
+                                        保留原文件
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                // 其他操作类型的配置...
+                default:
+                    configHtml = `
+                        <div class="text-center py-3">
+                            <i class="bi bi-info-circle text-info" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2">该操作类型的配置界面正在开发中...</p>
+                        </div>
+                    `;
+            }
+            
+            configContent.innerHTML = configHtml;
+            configArea.style.display = 'block';
+        }
+        
+        // 测试配置
+        function testConfiguration() {
+            const operationType = document.getElementById('testOperationType').value;
+            if (!operationType) {
+                alert('请先选择操作类型');
+                return;
+            }
+            
+            const config = collectTestOperationConfig(operationType);
+            const output = document.getElementById('configOutput');
+            
+            if (config) {
+                output.textContent = JSON.stringify(config, null, 2);
+            } else {
+                output.textContent = JSON.stringify({
+                    "error": "配置数据收集失败",
+                    "message": "请检查必填字段是否完整"
+                }, null, 2);
+            }
+        }
+        
+        // 收集测试操作配置数据
+        function collectTestOperationConfig(operationType) {
+            const config = { operationType: operationType };
+            
+            switch(operationType) {
+                case 'Create':
+                    const createType = document.getElementById('createTargetType')?.value;
+                    const createIsFile = document.getElementById('createIsFile')?.value;
+                    const createName = document.getElementById('createTargetName')?.value;
+                    const createPath = document.getElementById('createTargetPath')?.value;
+                    
+                    if (!createType || !createIsFile || !createName) return null;
+                    
+                    config.targetType = createType;
+                    config.isFile = createIsFile === 'true';
+                    config.targetName = createName;
+                    config.targetPath = createPath || 'C:\\Users\\Desktop';
+                    break;
+                    
+                case 'Delete':
+                    const deleteType = document.getElementById('deleteTargetType')?.value;
+                    const deleteIsFile = document.getElementById('deleteIsFile')?.value;
+                    const deleteName = document.getElementById('deleteTargetName')?.value;
+                    const deletePath = document.getElementById('deleteTargetPath')?.value;
+                    
+                    if (!deleteType || !deleteIsFile || !deleteName) return null;
+                    
+                    config.targetType = deleteType;
+                    config.isFile = deleteIsFile === 'true';
+                    config.targetName = deleteName;
+                    config.targetPath = deletePath || 'C:\\Users\\Desktop';
+                    break;
+                    
+                case 'Copy':
+                    const copySource = document.getElementById('copySourcePath')?.value;
+                    const copySourceIsFile = document.getElementById('copySourceIsFile')?.value;
+                    const copyTarget = document.getElementById('copyTargetPath')?.value;
+                    const copyKeepOriginal = document.getElementById('copyKeepOriginal')?.checked;
+                    
+                    if (!copySource || !copySourceIsFile || !copyTarget) return null;
+                    
+                    config.sourcePath = copySource;
+                    config.sourceIsFile = copySourceIsFile === 'true';
+                    config.targetPath = copyTarget;
+                    config.keepOriginal = copyKeepOriginal;
+                    break;
+            }
+            
+            return config;
+        }
+        
+        // 生成题目预览
+        function generatePreview() {
+            const operationType = document.getElementById('testOperationType').value;
+            const score = document.getElementById('testScore').value;
+            const config = collectTestOperationConfig(operationType);
+            
+            if (!config) {
+                alert('请先完善配置信息');
+                return;
+            }
+            
+            const title = generateTestQuestionTitle(operationType, config);
+            const description = generateTestQuestionDescription(operationType, config);
+            
+            const previewHtml = `
+                <div class="border rounded p-3 bg-light">
+                    <h6 class="text-primary mb-2">题目标题</h6>
+                    <p class="fw-bold">${title}</p>
+                    
+                    <h6 class="text-primary mb-2 mt-3">题目描述</h6>
+                    <p>${description}</p>
+                    
+                    <h6 class="text-primary mb-2 mt-3">题目信息</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>操作类型：</strong>${operationType}</li>
+                        <li><strong>分值：</strong>${score}分</li>
+                        <li><strong>文件类型：</strong>${config.isFile !== undefined ? (config.isFile ? '文件' : '文件夹') : '未指定'}</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('questionPreview').innerHTML = previewHtml;
+        }
+        
+        // 生成测试题目标题
+        function generateTestQuestionTitle(operationType, config) {
+            const fileType = config.isFile ? '文件' : '文件夹';
+            const sourceFileType = config.sourceIsFile ? '文件' : '文件夹';
+            
+            switch(operationType) {
+                case 'Create':
+                    return `创建${fileType}：${config.targetName}`;
+                case 'Delete':
+                    return `删除${fileType}：${config.targetName}`;
+                case 'Copy':
+                    return `复制${sourceFileType}到指定位置`;
+                default:
+                    return `Windows文件操作题目`;
+            }
+        }
+        
+        // 生成测试题目描述
+        function generateTestQuestionDescription(operationType, config) {
+            const fileType = config.isFile ? '文件' : '文件夹';
+            const sourceFileType = config.sourceIsFile ? '文件' : '文件夹';
+            
+            switch(operationType) {
+                case 'Create':
+                    return `请在 ${config.targetPath} 位置创建一个名为 "${config.targetName}" 的${fileType}。`;
+                case 'Delete':
+                    return `请删除位于 ${config.targetPath} 的${fileType} "${config.targetName}"。`;
+                case 'Copy':
+                    return `请将${sourceFileType} "${config.sourcePath}" 复制到 "${config.targetPath}" 位置${config.keepOriginal ? '，保留原文件' : ''}。`;
+                default:
+                    return `请完成指定的Windows文件系统操作。`;
+            }
+        }
+        
+        // 清除测试
+        function clearTest() {
+            document.getElementById('testOperationType').value = '';
+            document.getElementById('testScore').value = '10';
+            document.getElementById('testConfigArea').style.display = 'none';
+            document.getElementById('configOutput').textContent = '{\n  "message": "请选择操作类型并配置参数"\n}';
+            document.getElementById('questionPreview').innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-file-text" style="font-size: 3rem;"></i>
+                    <p class="mt-2">配置完成后点击"预览题目"查看效果</p>
+                </div>
+            `;
+        }
+    </script>
+}

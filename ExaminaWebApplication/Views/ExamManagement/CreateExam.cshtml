@@ -1,0 +1,514 @@
+@{
+    ViewData["Title"] = "试卷管理 - 创建试卷";
+}
+
+<!-- 页面标题 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="bi bi-plus-circle me-2"></i>创建新试卷
+        </h1>
+        <p class="text-muted mb-0">创建一个新的考试试卷</p>
+    </div>
+    <div>
+        <a href="@Url.Action("ExamList", "ExamManagement")" class="glass-btn">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+</div>
+
+<!-- 创建试卷表单 -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-text me-2"></i>试卷基本信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="create-exam-form" class="glass-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="examName" class="form-label">试卷名称 <span class="text-danger">*</span></label>
+                                <input type="text" class="glass-input" id="examName" required
+                                       placeholder="例如：2025年春季统一考试">
+                                <div class="form-text">请输入有意义的试卷名称</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="examType" class="form-label">试卷类型 <span class="text-danger">*</span></label>
+                                <select data-glass-select-native data-placeholder="请选择试卷类型" id="examType" required>
+                                    <option value="">请选择试卷类型</option>
+                                    <option value="1">统一考试</option>
+                                    <option value="2">综合实训</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="totalScore" class="form-label">总分 <span class="text-danger">*</span></label>
+                                <input type="number" class="glass-input" id="totalScore" value="100" min="0.1" max="9999.99" step="0.01" required>
+                                <div class="form-text">建议设置为100分</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="durationMinutes" class="form-label">考试时长（分钟） <span class="text-danger">*</span></label>
+                                <input type="number" class="glass-input" id="durationMinutes" value="120" min="1" max="600" required>
+                                <div class="form-text">建议设置为120分钟</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="passingScore" class="form-label">及格分数 <span class="text-danger">*</span></label>
+                                <input type="number" class="glass-input" id="passingScore" value="60" min="0.1" step="0.01" required>
+                                <div class="form-text">达到此分数即为及格</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="maxRetakeCount" class="form-label">最大重考次数</label>
+                                <input type="number" class="glass-input" id="maxRetakeCount" value="0" min="0" max="10">
+                                <div class="form-text">0表示不允许重考</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="examDescription" class="form-label">试卷描述 (支持Markdown格式)</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <textarea class="glass-input" id="examDescription" rows="6"
+                                          placeholder="请输入试卷的详细描述，包括考试内容、要求等，支持Markdown格式"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="glass-card h-100">
+                                    <div class="card-header glass-card-header py-2">
+                                        <small class="text-muted">Markdown预览</small>
+                                    </div>
+                                    <div class="card-body" id="examDescriptionPreview" style="min-height: 150px; max-height: 150px; overflow-y: auto;">
+                                        <small class="text-muted">在左侧输入Markdown内容，这里将显示预览</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="examTags" class="form-label">试卷标签</label>
+                        <input type="text" class="glass-input" id="examTags"
+                               placeholder="例如：统考,Office,综合考试（用逗号分隔）">
+                        <div class="form-text">用于分类和搜索试卷</div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- 试卷设置 -->
+        <div class="glass-card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-gear me-2"></i>试卷设置
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="glass-checkbox">
+                        <input type="checkbox" id="allowRetake">
+                        <span class="glass-checkmark"></span>
+                        <span class="glass-checkbox-label">允许重考</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 科目设置 -->
+        <div class="glass-card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-list-ul me-2"></i>科目设置
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- 科目设置选项 -->
+                <div class="mb-3">
+                    <label class="form-label">科目设置方式</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="glass-radio">
+                                <input type="radio" name="subjectSetupType" value="standard" id="standardSubjects" checked>
+                                <span class="glass-radio-mark"></span>
+                                <span class="glass-radio-label">创建标准五科目结构</span>
+                            </label>
+                            <div class="form-text">Excel、PowerPoint、Word、Windows、C#</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="glass-radio">
+                                <input type="radio" name="subjectSetupType" value="custom" id="customSubjects">
+                                <span class="glass-radio-mark"></span>
+                                <span class="glass-radio-label">单独设置科目</span>
+                            </label>
+                            <div class="form-text">自定义选择需要的科目</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 标准科目配置 -->
+                <div id="standardSubjectConfig" style="display: none;">
+                    <h6 class="mt-3">标准科目分值配置</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">Excel</label>
+                            <input type="number" class="glass-input glass-input-sm" id="standardExcelScore" value="20" min="0.1" step="0.1">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">PowerPoint</label>
+                            <input type="number" class="glass-input glass-input-sm" id="standardPowerPointScore" value="20" min="0.1" step="0.1">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <label class="form-label">Word</label>
+                            <input type="number" class="glass-input glass-input-sm" id="standardWordScore" value="20" min="0.1" step="0.1">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Windows</label>
+                            <input type="number" class="glass-input glass-input-sm" id="standardWindowsScore" value="20" min="0.1" step="0.1">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <label class="form-label">C#</label>
+                            <input type="number" class="glass-input glass-input-sm" id="standardCSharpScore" value="20" min="0.1" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 自定义科目配置 -->
+                <div id="customSubjectConfig" style="display: none;">
+                    <h6 class="mt-3">自定义科目设置</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">选择科目</label>
+                            <div class="custom-subject-checkboxes">
+                                <label class="glass-checkbox d-block mb-2">
+                                    <input type="checkbox" class="custom-subject-checkbox" data-subject="Excel" data-type="1">
+                                    <span class="glass-checkmark"></span>
+                                    <span class="glass-checkbox-label">Excel</span>
+                                </label>
+                                <label class="glass-checkbox d-block mb-2">
+                                    <input type="checkbox" class="custom-subject-checkbox" data-subject="PowerPoint" data-type="2">
+                                    <span class="glass-checkmark"></span>
+                                    <span class="glass-checkbox-label">PowerPoint</span>
+                                </label>
+                                <label class="glass-checkbox d-block mb-2">
+                                    <input type="checkbox" class="custom-subject-checkbox" data-subject="Word" data-type="3">
+                                    <span class="glass-checkmark"></span>
+                                    <span class="glass-checkbox-label">Word</span>
+                                </label>
+                                <label class="glass-checkbox d-block mb-2">
+                                    <input type="checkbox" class="custom-subject-checkbox" data-subject="Windows" data-type="4">
+                                    <span class="glass-checkmark"></span>
+                                    <span class="glass-checkbox-label">Windows</span>
+                                </label>
+                                <label class="glass-checkbox d-block mb-2">
+                                    <input type="checkbox" class="custom-subject-checkbox" data-subject="CSharp" data-type="5">
+                                    <span class="glass-checkmark"></span>
+                                    <span class="glass-checkbox-label">C#</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">科目分值设置</label>
+                            <div id="customSubjectScores">
+                                <!-- 动态生成的分值输入框 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="glass-card">
+            <div class="card-body">
+                <button type="submit" form="create-exam-form" class="glass-btn glass-btn-success w-100 mb-2">
+                    <i class="bi bi-check"></i> 创建试卷
+                </button>
+                <button type="button" class="glass-btn w-100" onclick="resetForm()">
+                    <i class="bi bi-arrow-clockwise"></i> 重置表单
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 加载提示 -->
+<div class="loading position-fixed top-50 start-50 translate-middle" id="loading" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">创建中...</span>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 绑定表单提交事件
+            document.getElementById('create-exam-form').addEventListener('submit', handleCreateExam);
+
+            // 绑定科目设置方式切换
+            document.querySelectorAll('input[name="subjectSetupType"]').forEach(radio => {
+                radio.addEventListener('change', handleSubjectSetupTypeChange);
+            });
+
+            // 绑定自定义科目选择
+            document.querySelectorAll('.custom-subject-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', handleCustomSubjectChange);
+            });
+
+            // 绑定允许重考复选框
+            document.getElementById('allowRetake').addEventListener('change', function() {
+                const maxRetakeInput = document.getElementById('maxRetakeCount');
+                if (this.checked) {
+                    maxRetakeInput.value = '1';
+                    maxRetakeInput.disabled = false;
+                } else {
+                    maxRetakeInput.value = '0';
+                    maxRetakeInput.disabled = true;
+                }
+            });
+
+            // 初始化科目设置显示
+            handleSubjectSetupTypeChange();
+
+            // 初始化Markdown预览功能
+            initializeMarkdownPreview();
+        });
+
+        // 初始化Markdown预览功能
+        function initializeMarkdownPreview() {
+            const examDescriptionInput = document.getElementById('examDescription');
+            const examDescriptionPreview = document.getElementById('examDescriptionPreview');
+
+            if (examDescriptionInput && examDescriptionPreview) {
+                examDescriptionInput.addEventListener('input', function() {
+                    updateMarkdownPreview(this.value, examDescriptionPreview);
+                });
+            }
+        }
+
+        // 更新Markdown预览
+        function updateMarkdownPreview(markdownText, previewElement) {
+            if (!markdownText.trim()) {
+                previewElement.innerHTML = '<small class="text-muted">在左侧输入Markdown内容，这里将显示预览</small>';
+                return;
+            }
+
+            // 简单的Markdown转换（支持基本语法）
+            let html = markdownText
+                // 标题
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                // 粗体和斜体
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // 代码块
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                // 链接
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                // 列表
+                .replace(/^\* (.*$)/gim, '<li>$1</li>')
+                .replace(/^- (.*$)/gim, '<li>$1</li>')
+                // 换行
+                .replace(/\n/g, '<br>');
+
+            // 包装列表项
+            html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+
+            previewElement.innerHTML = html;
+        }
+
+        // 处理科目设置方式切换
+        function handleSubjectSetupTypeChange() {
+            const standardRadio = document.getElementById('standardSubjects');
+            const customRadio = document.getElementById('customSubjects');
+            const standardConfig = document.getElementById('standardSubjectConfig');
+            const customConfig = document.getElementById('customSubjectConfig');
+
+            // 添加null检查
+            if (!standardRadio || !customRadio || !standardConfig || !customConfig) {
+                return;
+            }
+
+            if (standardRadio.checked) {
+                standardConfig.style.display = 'block';
+                customConfig.style.display = 'none';
+            } else if (customRadio.checked) {
+                standardConfig.style.display = 'none';
+                customConfig.style.display = 'block';
+            }
+        }
+
+        // 处理自定义科目选择变化
+        function handleCustomSubjectChange() {
+            const selectedSubjects = [];
+            document.querySelectorAll('.custom-subject-checkbox:checked').forEach(checkbox => {
+                selectedSubjects.push({
+                    name: checkbox.dataset.subject,
+                    type: parseInt(checkbox.dataset.type),
+                    displayName: checkbox.parentElement.querySelector('.glass-checkbox-label').textContent
+                });
+            });
+
+            // 更新分值设置区域
+            updateCustomSubjectScores(selectedSubjects);
+        }
+
+        // 更新自定义科目分值设置
+        function updateCustomSubjectScores(subjects) {
+            const scoresContainer = document.getElementById('customSubjectScores');
+            scoresContainer.innerHTML = '';
+
+            if (subjects.length === 0) {
+                scoresContainer.innerHTML = '<div class="text-muted">请先选择科目</div>';
+                return;
+            }
+
+            subjects.forEach(subject => {
+                const scoreDiv = document.createElement('div');
+                scoreDiv.className = 'mb-2';
+                scoreDiv.innerHTML = `
+                    <label class="form-label">${subject.displayName}</label>
+                    <input type="number" class="glass-input glass-input-sm custom-subject-score"
+                           data-subject="${subject.name}" data-type="${subject.type}"
+                           value="20" min="0.1" max="9999.99" step="0.1">
+                `;
+                scoresContainer.appendChild(scoreDiv);
+            });
+        }
+
+        // 处理创建试卷表单提交
+        async function handleCreateExam(event) {
+            event.preventDefault();
+
+            // 验证表单
+            if (!validateForm()) {
+                return;
+            }
+
+            // 安全获取DOM元素值，添加null检查
+            const allowRetakeElement = document.getElementById('allowRetake');
+            const createStandardSubjectsElement = document.getElementById('createStandardSubjects');
+
+            const formData = {
+                name: document.getElementById('examName').value,
+                description: document.getElementById('examDescription').value,
+                examType: parseInt(document.getElementById('examType').value),
+                totalScore: parseFloat(document.getElementById('totalScore').value),
+                durationMinutes: parseInt(document.getElementById('durationMinutes').value),
+                passingScore: parseFloat(document.getElementById('passingScore').value),
+                allowRetake: allowRetakeElement ? allowRetakeElement.checked : false,
+                maxRetakeCount: parseInt(document.getElementById('maxRetakeCount').value),
+                randomizeQuestions: false, // 默认不随机题目顺序
+                showScore: true, // 默认显示分数
+                showAnswers: false, // 默认不显示答案
+                createdBy: 1, // 假设当前用户ID为1
+                tags: document.getElementById('examTags').value,
+                createStandardSubjects: createStandardSubjectsElement ? createStandardSubjectsElement.checked : true
+            };
+            
+            try {
+                showLoading();
+                const response = await fetch('/api/Exam', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    const exam = await response.json();
+                    showNotification('试卷创建成功！', 'success');
+                    
+                    // 3秒后跳转到试卷详情页
+                    setTimeout(() => {
+                        window.location.href = `@Url.Action("ExamDetails", "ExamManagement")?id=${exam.id}`;
+                    }, 2000);
+                } else {
+                    const error = await response.text();
+                    showNotification(`创建失败: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('创建试卷失败:', error);
+                showNotification('创建试卷失败', 'danger');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 验证表单
+        function validateForm() {
+            const requiredFields = [
+                { id: 'examName', name: '试卷名称' },
+                { id: 'examType', name: '试卷类型' },
+                { id: 'totalScore', name: '总分' },
+                { id: 'durationMinutes', name: '考试时长' },
+                { id: 'passingScore', name: '及格分数' }
+            ];
+            
+            for (const field of requiredFields) {
+                const element = document.getElementById(field.id);
+                if (!element.value.trim()) {
+                    showNotification(`请填写${field.name}`, 'warning');
+                    element.focus();
+                    return false;
+                }
+            }
+            
+            // 验证及格分数不能超过总分
+            const totalScore = parseFloat(document.getElementById('totalScore').value);
+            const passingScore = parseFloat(document.getElementById('passingScore').value);
+
+            if (passingScore > totalScore) {
+                showNotification('及格分数不能超过总分', 'warning');
+                document.getElementById('passingScore').focus();
+                return false;
+            }
+            
+            return true;
+        }
+
+        // 重置表单
+        function resetForm() {
+            if (confirm('确定要重置表单吗？所有已填写的内容将丢失。')) {
+                document.getElementById('create-exam-form').reset();
+                document.getElementById('totalScore').value = '100';
+                document.getElementById('durationMinutes').value = '120';
+                document.getElementById('passingScore').value = '60';
+                document.getElementById('maxRetakeCount').value = '0';
+
+                // 安全设置复选框状态，添加null检查
+                const createStandardSubjectsElement = document.getElementById('createStandardSubjects');
+                if (createStandardSubjectsElement) {
+                    createStandardSubjectsElement.checked = true;
+                }
+            }
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+}

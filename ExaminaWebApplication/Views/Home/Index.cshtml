@@ -1,8 +1,242 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "首页";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- 欢迎横幅 -->
+<div class="glass-card glass-card-primary py-5 mb-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-mortarboard-fill me-3"></i>
+            Examina 考试管理系统
+        </h1>
+        <p class="lead mb-4">综合考试管理平台</p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <p class="mb-4">支持Windows、C#等多种科目的综合考试管理，提供统考和模拟考两种考试类型，包含完整的题库管理、试卷创建、考试监控和成绩分析功能。</p>
+                <a href="@Url.Action("Index", "ExamManagement")" class="glass-btn glass-btn-primary btn-lg me-3">
+                    <i class="bi bi-clipboard-check me-2"></i>进入管理面板
+                </a>
+                <button class="glass-btn btn-lg" onclick="createSampleData()">
+                    <i class="bi bi-database-add me-2"></i>创建示例数据
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- 功能特性 -->
+<div class="container mb-5">
+    <div class="row text-center mb-5">
+        <div class="col-md-12">
+            <h2 class="fw-bold mb-3">系统功能特性</h2>
+            <p class="text-muted">基于现代化架构设计的全功能考试管理平台</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="glass-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-clipboard-check text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">试卷管理</h5>
+                    <p class="text-muted">创建、编辑、发布和管理各类考试试卷，支持多科目综合考试</p>
+                    <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-primary btn-sm">创建试卷</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-code-slash text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">编程题目</h5>
+                    <p class="text-muted">支持C#编程题目，包含代码示例、输入输出要求等完整功能</p>
+                    <span class="badge bg-primary">Markdown支持</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-question-circle text-info" style="font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">题库管理</h5>
+                    <p class="text-muted">智能题目生成，支持参数配置和难度分级</p>
+                    <a href="@Url.Action("QuestionBank", "ExamManagement")" class="glass-btn glass-btn-info btn-sm">管理题库</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 支持的科目 -->
+<div class="glass-card py-5 mb-5">
+    <div class="container">
+        <div class="row text-center mb-4">
+            <div class="col-md-12">
+                <h2 class="fw-bold mb-3">支持的考试科目</h2>
+                <p class="text-muted">全面覆盖Office应用程序和编程语言</p>
+            </div>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h6 class="fw-bold">Windows</h6>
+                    <small class="text-muted">已实现</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h6 class="fw-bold">C#</h6>
+                    <small class="text-muted">已实现</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="bi bi-circle text-secondary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h6 class="fw-bold">PowerPoint</h6>
+                    <small class="text-muted">开发中</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="bi bi-circle text-secondary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h6 class="fw-bold">Word</h6>
+                    <small class="text-muted">开发中</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 系统统计 -->
+<div class="container mb-5">
+    <div class="row text-center mb-4">
+        <div class="col-md-12">
+            <h2 class="fw-bold mb-3">系统统计</h2>
+            <p class="text-muted">实时系统数据概览</p>
+        </div>
+    </div>
+
+    <div class="row g-4" id="system-statistics">
+        <!-- 统计数据将通过JavaScript动态加载 -->
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-clipboard-check text-primary mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="fw-bold text-primary" id="total-exams">-</h4>
+                    <p class="text-muted mb-0">总试卷数</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-people text-info mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="fw-bold text-info" id="total-users">-</h4>
+                    <p class="text-muted mb-0">系统用户</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-question-circle text-info mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="fw-bold text-info" id="total-questions">-</h4>
+                    <p class="text-muted mb-0">题目总数</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-tags text-warning mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="fw-bold text-warning" id="total-enums">107</h4>
+                    <p class="text-muted mb-0">枚举值</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="glass-card py-5">
+    <div class="container">
+        <div class="row text-center mb-4">
+            <div class="col-md-12">
+                <h2 class="fw-bold mb-3">快速操作</h2>
+                <p class="text-muted">常用功能快速入口</p>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="@Url.Action("Index", "ExamManagement")" class="glass-btn glass-btn-primary btn-lg w-100">
+                            <i class="bi bi-speedometer2 me-2"></i>管理面板
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-success btn-lg w-100">
+                            <i class="bi bi-plus-circle me-2"></i>创建试卷
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <button onclick="createSampleData()" class="glass-btn glass-btn-secondary btn-lg w-100">
+                            <i class="bi bi-database-add me-2"></i>示例数据
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 页面加载完成后加载统计数据
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSystemStatistics();
+        });
+
+        // 加载系统统计数据
+        async function loadSystemStatistics() {
+            try {
+                const response = await fetch('/api/ExamTest/statistics');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // 更新统计数据
+                    document.getElementById('total-exams').textContent = data.ExamStatistics.TotalExams;
+                    document.getElementById('total-users').textContent = data.UserStatistics?.TotalUsers || 0;
+
+                    // 计算总题目数（这里可以根据实际API调整）
+                    const totalQuestions = data.ExamStatistics.TotalExams * 5; // 假设每个试卷平均5道题
+                    document.getElementById('total-questions').textContent = totalQuestions;
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+            }
+        }
+
+
+    </script>
+}

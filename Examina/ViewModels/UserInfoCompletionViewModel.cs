@@ -14,7 +14,17 @@ namespace Examina.ViewModels;
 /// </summary>
 public class UserInfoCompletionViewModel : ViewModelBase
 {
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IAuthenticationService? _authenticationService;
+
+    /// <summary>
+    /// 无参构造函数，用于设计时
+    /// </summary>
+    public UserInfoCompletionViewModel()
+    {
+        _authenticationService = null;
+        CompleteInfoCommand = new DelegateCommand(async () => await CompleteInfoAsync(), CanCompleteInfo);
+        SkipCommand = new DelegateCommand(Skip);
+    }
 
     public UserInfoCompletionViewModel(IAuthenticationService authenticationService)
     {
@@ -22,7 +32,7 @@ public class UserInfoCompletionViewModel : ViewModelBase
 
         CompleteInfoCommand = new DelegateCommand(async () => await CompleteInfoAsync(), CanCompleteInfo);
         SkipCommand = new DelegateCommand(Skip);
-        
+
         // 初始化当前用户信息
         InitializeUserInfo();
     }
@@ -94,10 +104,13 @@ public class UserInfoCompletionViewModel : ViewModelBase
     /// </summary>
     private void InitializeUserInfo()
     {
-        CurrentUser = _authenticationService.CurrentUser;
-        if (CurrentUser != null)
+        if (_authenticationService != null)
         {
-            Username = CurrentUser.Username;
+            CurrentUser = _authenticationService.CurrentUser;
+            if (CurrentUser != null)
+            {
+                Username = CurrentUser.Username;
+            }
         }
     }
 
@@ -115,6 +128,12 @@ public class UserInfoCompletionViewModel : ViewModelBase
     private async Task CompleteInfoAsync()
     {
         if (IsProcessing) return;
+
+        if (_authenticationService == null)
+        {
+            ErrorMessage = "服务不可用";
+            return;
+        }
 
         IsProcessing = true;
         ErrorMessage = string.Empty;
@@ -201,6 +220,12 @@ public class UserInfoCompletionViewModel : ViewModelBase
         try
         {
             System.Diagnostics.Debug.WriteLine($"Skip: 开始跳过流程，当前用户IsFirstLogin: {CurrentUser?.IsFirstLogin}");
+
+            if (_authenticationService == null)
+            {
+                NavigateToMainWindow();
+                return;
+            }
 
             // 即使跳过，也需要调用API更新IsFirstLogin状态
             CompleteUserInfoRequest request = new();

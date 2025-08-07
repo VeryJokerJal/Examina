@@ -1,0 +1,288 @@
+@model List<ExaminaWebApplication.Models.Exam.Exam>
+@{
+    ViewData["Title"] = "试卷管理 - 试卷列表";
+}
+
+<!-- 页面标题 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="bi bi-file-earmark-text me-2"></i>试卷列表
+        </h1>
+        <p class="text-muted mb-0">管理所有试卷</p>
+    </div>
+    <div>
+        <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-primary">
+            <i class="bi bi-plus"></i> 创建新试卷
+        </a>
+        <button class="glass-btn" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> 刷新列表
+        </button>
+    </div>
+</div>
+
+<!-- 筛选和搜索 -->
+<div class="glass-card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">状态筛选</label>
+                <select class="form-select glass-form-control" id="statusFilter" onchange="filterExams()">
+                    <option value="">全部状态</option>
+                    <option value="1">草稿</option>
+                    <option value="2">审核中</option>
+                    <option value="3">已发布</option>
+                    <option value="4">进行中</option>
+                    <option value="5">已结束</option>
+                    <option value="6">已暂停</option>
+                    <option value="7">已取消</option>
+                    <option value="8">已归档</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="typeFilter" class="form-label">类型筛选</label>
+                <select data-glass-select-native data-placeholder="全部类型" id="typeFilter" onchange="filterExams()">
+                    <option value="">全部类型</option>
+                    <option value="1">统一考试</option>
+                    <option value="2">综合实训</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchInput" class="form-label">搜索试卷</label>
+                <input type="text" class="glass-input" id="searchInput" placeholder="输入试卷名称或描述..." onkeyup="filterExams()">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button class="glass-btn glass-btn-primary w-100" onclick="clearFilters()">
+                    <i class="bi bi-x-circle"></i> 清除筛选
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 试卷列表 -->
+@if (Model != null && Model.Any())
+{
+    <div class="row" id="exam-list">
+        @foreach (var exam in Model)
+        {
+            <div class="col-md-6 mb-4 exam-item" 
+                 data-status="@((int)exam.Status)" 
+                 data-type="@((int)exam.ExamType)" 
+                 data-name="@exam.Name.ToLower()" 
+                 data-description="@(exam.Description?.ToLower() ?? "")">
+                <div class="glass-card h-100 exam-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">@exam.Name</h5>
+                            <span class="glass-badge @GetStatusBadgeClass(exam.Status) status-badge">@GetStatusText(exam.Status)</span>
+                        </div>
+                        
+                        <p class="card-text text-muted">@(exam.Description ?? "无描述")</p>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <small class="text-muted">总分</small>
+                                <div class="fw-bold">@exam.TotalScore</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">时长</small>
+                                <div class="fw-bold">@exam.DurationMinutes 分钟</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">科目数</small>
+                                <div class="fw-bold">@(exam.Subjects?.Count ?? 0)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">创建时间</small>
+                                <div class="small">@exam.CreatedAt.ToString("yyyy-MM-dd")</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">考试类型</small>
+                                <div class="small">@GetExamTypeText(exam.ExamType)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="@Url.Action("ExamDetails", "ExamManagement", new { id = exam.Id })"
+                               class="glass-btn glass-btn-primary btn-sm flex-fill">
+                                <i class="bi bi-eye"></i> 查看详情
+                            </a>
+
+                            @if (exam.Status == ExaminaWebApplication.Models.Exam.ExamStatus.Draft)
+                            {
+                                <a href="@Url.Action("EditExam", "ExamManagement", new { id = exam.Id })"
+                                   class="glass-btn glass-btn-warning btn-sm">
+                                    <i class="bi bi-pencil"></i> 编辑
+                                </a>
+                                <a href="@Url.Action("ValidateExam", "ExamManagement", new { id = exam.Id })"
+                                   class="glass-btn glass-btn-success btn-sm">
+                                    <i class="bi bi-check"></i> 验证
+                                </a>
+                            }
+                            else if (exam.Status == ExaminaWebApplication.Models.Exam.ExamStatus.Published)
+                            {
+                                <a href="@Url.Action("EditExam", "ExamManagement", new { id = exam.Id })"
+                                   class="glass-btn glass-btn-warning btn-sm">
+                                    <i class="bi bi-pencil"></i> 编辑信息
+                                </a>
+                            }
+
+                            @if (exam.Status == ExaminaWebApplication.Models.Exam.ExamStatus.Draft || exam.Status == ExaminaWebApplication.Models.Exam.ExamStatus.UnderReview)
+                            {
+                                <button class="glass-btn glass-btn-danger btn-sm" onclick="deleteExam(@exam.Id, '@exam.Name')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <i class="bi bi-file-earmark-text text-muted" style="font-size: 4rem;"></i>
+        <h4 class="text-muted mt-3">暂无试卷</h4>
+        <p class="text-muted">点击上方按钮创建您的第一个试卷</p>
+        <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-primary">
+            <i class="bi bi-plus"></i> 创建试卷
+        </a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // 筛选试卷
+        function filterExams() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            
+            const examItems = document.querySelectorAll('.exam-item');
+            
+            examItems.forEach(item => {
+                const status = item.getAttribute('data-status');
+                const type = item.getAttribute('data-type');
+                const name = item.getAttribute('data-name');
+                const description = item.getAttribute('data-description');
+                
+                let showItem = true;
+                
+                // 状态筛选
+                if (statusFilter && status !== statusFilter) {
+                    showItem = false;
+                }
+                
+                // 类型筛选
+                if (typeFilter && type !== typeFilter) {
+                    showItem = false;
+                }
+                
+                // 搜索筛选
+                if (searchInput && !name.includes(searchInput) && !description.includes(searchInput)) {
+                    showItem = false;
+                }
+                
+                item.style.display = showItem ? 'block' : 'none';
+            });
+        }
+
+        // 清除筛选
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            filterExams();
+        }
+
+        // 删除试卷
+        async function deleteExam(examId, examName) {
+            if (confirm(`确定要删除试卷"${examName}"吗？此操作不可撤销。`)) {
+                try {
+                    const response = await fetch(`/api/Exam/${examId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        showNotification('试卷删除成功！', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        const error = await response.text();
+                        showNotification(`删除失败: ${error}`, 'danger');
+                    }
+                } catch (error) {
+                    console.error('删除试卷失败:', error);
+                    showNotification('删除试卷失败', 'danger');
+                }
+            }
+        }
+
+        // 添加卡片悬停效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const examCards = document.querySelectorAll('.exam-card');
+            examCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                    this.style.transition = 'all 0.2s';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '';
+                });
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetStatusBadgeClass(ExaminaWebApplication.Models.Exam.ExamStatus status)
+    {
+        return status switch
+        {
+            ExaminaWebApplication.Models.Exam.ExamStatus.Draft => "bg-secondary",
+            ExaminaWebApplication.Models.Exam.ExamStatus.UnderReview => "bg-warning",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Published => "bg-success",
+            ExaminaWebApplication.Models.Exam.ExamStatus.InProgress => "bg-primary",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Completed => "bg-info",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Suspended => "bg-warning",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Cancelled => "bg-danger",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Archived => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText(ExaminaWebApplication.Models.Exam.ExamStatus status)
+    {
+        return status switch
+        {
+            ExaminaWebApplication.Models.Exam.ExamStatus.Draft => "草稿",
+            ExaminaWebApplication.Models.Exam.ExamStatus.UnderReview => "审核中",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Published => "已发布",
+            ExaminaWebApplication.Models.Exam.ExamStatus.InProgress => "进行中",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Completed => "已结束",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Suspended => "已暂停",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Cancelled => "已取消",
+            ExaminaWebApplication.Models.Exam.ExamStatus.Archived => "已归档",
+            _ => "未知"
+        };
+    }
+
+    private string GetExamTypeText(ExaminaWebApplication.Models.Exam.ExamType type)
+    {
+        return type switch
+        {
+            ExaminaWebApplication.Models.Exam.ExamType.UnifiedExam => "统一考试",
+            ExaminaWebApplication.Models.Exam.ExamType.MockExam => "综合实训",
+            _ => "未知"
+        };
+    }
+}

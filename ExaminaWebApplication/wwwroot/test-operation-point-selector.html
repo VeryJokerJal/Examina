@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试操作点选择器</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/glassmorphism.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .log-container {
+            height: 300px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-success { color: #28a745; }
+        .log-error { color: #dc3545; }
+        .log-info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="text-white text-center mb-4">操作点选择器测试</h1>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">测试 Windows 操作点选择器</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="windowsTestContainer" class="operation-point-selector mb-3" style="min-height: 200px; border: 1px dashed #ccc; padding: 10px;">
+                            <!-- Windows操作点选择器将在这里初始化 -->
+                        </div>
+                        <button class="glass-btn glass-btn-primary" onclick="testWindowsSelector()">
+                            <i class="bi bi-play"></i> 测试 Windows 选择器
+                        </button>
+                        <button class="glass-btn glass-btn-success ms-2" onclick="testRenderWithData()">
+                            <i class="bi bi-gear"></i> 测试渲染数据
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">测试 Excel 操作点选择器</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="excelTestContainer" class="operation-point-selector mb-3" style="min-height: 200px; border: 1px dashed #ccc; padding: 10px;">
+                            <!-- Excel操作点选择器将在这里初始化 -->
+                        </div>
+                        <button class="glass-btn glass-btn-info" onclick="testExcelSelector()">
+                            <i class="bi bi-play"></i> 测试 Excel 选择器
+                        </button>
+                        <button class="glass-btn glass-btn-warning ms-2" onclick="testErrorHandling()">
+                            <i class="bi bi-exclamation-triangle"></i> 测试错误处理
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="glass-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">测试日志</h5>
+                        <button class="glass-btn glass-btn-secondary btn-sm" onclick="clearLog()">
+                            <i class="bi bi-trash"></i> 清除日志
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="logContainer" class="log-container">
+                            <!-- 测试日志将显示在这里 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/operation-point-selector.js"></script>
+    
+    <script>
+        let windowsSelector = null;
+        let excelSelector = null;
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+        
+        function testWindowsSelector() {
+            try {
+                log('开始测试 Windows 操作点选择器...', 'info');
+                const container = document.getElementById('windowsTestContainer');
+                
+                windowsSelector = new OperationPointSelector(container, {
+                    subjectId: 6,
+                    subjectType: 4, // Windows
+                    allowMultiple: true,
+                    onSelectionChange: (points) => {
+                        log(`Windows 选择器选择变化: ${points.length} 个操作点`, 'success');
+                    }
+                });
+                
+                log('Windows 选择器初始化成功', 'success');
+                
+            } catch (error) {
+                log(`Windows 选择器测试失败: ${error.message}`, 'error');
+                console.error('Windows 选择器错误:', error);
+            }
+        }
+        
+        function testExcelSelector() {
+            try {
+                log('开始测试 Excel 操作点选择器...', 'info');
+                const container = document.getElementById('excelTestContainer');
+                
+                excelSelector = new OperationPointSelector(container, {
+                    subjectId: 1,
+                    subjectType: 1, // Excel
+                    allowMultiple: true,
+                    onSelectionChange: (points) => {
+                        log(`Excel 选择器选择变化: ${points.length} 个操作点`, 'success');
+                    }
+                });
+                
+                log('Excel 选择器初始化成功', 'success');
+                
+            } catch (error) {
+                log(`Excel 选择器测试失败: ${error.message}`, 'error');
+                console.error('Excel 选择器错误:', error);
+            }
+        }
+        
+        function testRenderWithData() {
+            if (!windowsSelector) {
+                log('请先初始化 Windows 选择器', 'error');
+                return;
+            }
+            
+            try {
+                log('测试 Windows 选择器数据渲染...', 'info');
+                
+                // 模拟测试数据
+                windowsSelector.operationPointsData = {
+                    create: [
+                        { operationNumber: 1, name: '创建文件夹', description: '在指定位置创建新文件夹', operationType: 'Create' },
+                        { operationNumber: 2, name: '创建文件', description: '在指定位置创建新文件', operationType: 'Create' }
+                    ],
+                    copy: [
+                        { operationNumber: 3, name: '复制文件', description: '复制文件到指定位置', operationType: 'Copy' },
+                        { operationNumber: 4, name: '复制文件夹', description: '复制文件夹到指定位置', operationType: 'Copy' }
+                    ],
+                    delete: [
+                        { operationNumber: 5, name: '删除文件', description: '删除指定的文件', operationType: 'Delete' }
+                    ]
+                };
+                
+                windowsSelector.renderOperationPoints();
+                log('Windows 选择器数据渲染成功', 'success');
+                
+            } catch (error) {
+                log(`数据渲染失败: ${error.message}`, 'error');
+                console.error('数据渲染错误:', error);
+            }
+        }
+        
+        function testErrorHandling() {
+            if (!excelSelector) {
+                log('请先初始化 Excel 选择器', 'error');
+                return;
+            }
+            
+            try {
+                log('测试错误处理...', 'info');
+                excelSelector.showError('这是一个测试错误消息');
+                log('错误处理测试成功', 'success');
+                
+            } catch (error) {
+                log(`错误处理测试失败: ${error.message}`, 'error');
+                console.error('错误处理测试错误:', error);
+            }
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('测试页面加载完成', 'info');
+            log('点击按钮开始测试操作点选择器...', 'info');
+        });
+    </script>
+</body>
+</html>

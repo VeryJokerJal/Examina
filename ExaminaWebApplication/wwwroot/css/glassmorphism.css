@@ -1,0 +1,4237 @@
+﻿/* Glassmorphism Design System for ExaminaWebApplication */
+
+/* ===== ROOT VARIABLES ===== */
+:root {
+    /* Glassmorphism Colors */
+    --glass-primary: rgba(255, 255, 255, 0.25);
+    --glass-secondary: rgba(255, 255, 255, 0.18);
+    --glass-accent: rgba(255, 255, 255, 0.1);
+    --glass-dark: rgba(0, 0, 0, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: rgba(0, 0, 0, 0.1);
+    
+    /* Gradient Backgrounds */
+    --bg-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bg-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --bg-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --bg-gradient-dark: linear-gradient(135deg, #434343 0%, #000000 100%);
+    
+    /* Text Colors */
+    --text-primary: rgba(255, 255, 255, 0.9);
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-muted: rgba(255, 255, 255, 0.5);
+    --text-dark: rgba(0, 0, 0, 0.8);
+    
+    /* Border Radius */
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+    --border-radius-xl: 20px;
+    
+    /* Blur Effects */
+    --blur-sm: blur(10px);
+    --blur-md: blur(15px);
+    --blur-lg: blur(20px);
+    --blur-xl: blur(25px);
+}
+
+/* ===== BODY AND BACKGROUND ===== */
+body {
+    background: var(--bg-gradient-primary);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: var(--text-primary);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-top: 0; /* 确保没有额外的顶部间距 */
+    margin: 0; /* 移除默认边距 */
+}
+
+/* Animated Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+    z-index: -1;
+    animation: backgroundShift 20s ease-in-out infinite;
+}
+
+@keyframes backgroundShift {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* ===== GLASS COMPONENTS ===== */
+
+/* Glass Card Base */
+.glass-card {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0.1) 100%);
+    /*backdrop-filter: blur(16px);*/
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--border-radius-lg);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 2rem; /* 增加卡片间距 */
+    /*overflow: hidden;*/ /* 确保内容不会溢出圆角 */
+    position: relative;
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glass-card:hover::before {
+    opacity: 1;
+}
+
+.glass-card:hover {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.18) 100%);
+    transform: translateY(-4px);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.2),
+        0 10px 30px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.glass-card:active {
+    transform: translateY(-2px);
+    transition: all 0.1s ease;
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 卡片头部样式 */
+.glass-card .card-header {
+    background: var(--glass-accent);
+    border-radius: var(--border-radius-lg);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem 1.25rem;
+    margin: -1px -1px 0 -1px; /* 确保与卡片边框对齐 */
+}
+
+.glass-card .card-header h5,
+.glass-card .card-header h6 {
+    color: var(--text-primary);
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+/* 卡片主体样式 */
+.glass-card .card-body {
+    padding: 1.5rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* 紧凑型卡片主体 */
+.glass-card .card-body.p-3 {
+    padding: 1rem !important;
+}
+
+/* 卡片内容间距优化 */
+.glass-card .card-body h1,
+.glass-card .card-body h2,
+.glass-card .card-body h3,
+.glass-card .card-body h4,
+.glass-card .card-body h5,
+.glass-card .card-body h6 {
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+
+.glass-card .card-body p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.glass-card .card-body .table td {
+    padding: 0.5rem 0;
+    border: none;
+    vertical-align: middle;
+}
+
+.glass-card .card-body .table tr:not(:last-child) td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 卡片标题样式 */
+.glass-card .card-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+/* Glass Card Variants */
+.glass-card-primary {
+    background: var(--glass-primary);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.glass-card-secondary {
+    background: var(--glass-secondary);
+    border: 1px solid rgba(240, 147, 251, 0.3);
+}
+
+.glass-card-accent {
+    background: var(--glass-accent);
+    border: 1px solid rgba(79, 172, 254, 0.3);
+}
+
+/* Glass Subject Card */
+.glass-subject-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0.12) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-subject-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.2) 100%);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.2),
+        0 10px 30px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.glass-subject-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.6) 20%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0.6) 80%,
+        transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.glass-subject-card:hover::before {
+    opacity: 1;
+}
+
+.glass-subject-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent);
+    transition: left 0.6s ease;
+}
+
+.glass-subject-card:hover::after {
+    left: 100%;
+}
+
+/* Glass Statistics Components */
+.glass-stat-item {
+    padding: 1rem 0.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--border-radius-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-stat-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glass-stat-item:hover {
+    transform: scale(1.05) translateY(-2px);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.glass-stat-item:hover::before {
+    opacity: 1;
+}
+
+.glass-stat-mini {
+    padding: 1rem 0.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--border-radius-sm);
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.glass-stat-mini::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glass-stat-mini:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-3px);
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.glass-stat-mini:hover::before {
+    opacity: 1;
+}
+
+.glass-stats-row {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+}
+
+.glass-stats-row::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.glass-divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3) 20%,
+        rgba(255, 255, 255, 0.6) 50%,
+        rgba(255, 255, 255, 0.3) 80%,
+        transparent);
+    margin: 2rem 0;
+    opacity: 0.8;
+    position: relative;
+}
+
+.glass-divider::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+/* Glass Badge */
+.glass-badge {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 0.75rem;
+    padding: 0.4em 0.8em;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.glass-badge:hover::before {
+    left: 100%;
+}
+
+.glass-badge:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Glass Validation Cards */
+.glass-validation-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-validation-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glass-validation-card:hover::before {
+    opacity: 1;
+}
+
+.glass-card-header-danger {
+    background: linear-gradient(135deg,
+        rgba(220, 53, 69, 0.9) 0%,
+        rgba(220, 53, 69, 0.8) 100%);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border-bottom: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.glass-card-header-warning {
+    background: linear-gradient(135deg,
+        rgba(255, 193, 7, 0.9) 0%,
+        rgba(255, 193, 7, 0.8) 100%);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border-bottom: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.glass-card-header-success {
+    background: linear-gradient(135deg,
+        rgba(25, 135, 84, 0.9) 0%,
+        rgba(25, 135, 84, 0.8) 100%);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border-bottom: 1px solid rgba(25, 135, 84, 0.3);
+}
+
+/* Glass List Group */
+.glass-list-group {
+    background: transparent;
+}
+
+.glass-list-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.75rem 0;
+    transition: all 0.3s ease;
+}
+
+.glass-list-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.glass-list-item:last-child {
+    border-bottom: none;
+}
+
+/* ===== ENHANCED GLASS TABLE STYLES ===== */
+
+/* Glass Table Container */
+.glass-table {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    margin-bottom: 0;
+    position: relative;
+    /* 修复列宽度对齐问题 */
+    width: 100%;
+}
+
+/* Glass Table Header */
+.glass-table thead {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.08) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+}
+
+.glass-table thead::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 100%);
+}
+
+.glass-table thead th {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 确保文本不换行 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.glass-table thead th:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+/* Sortable Header Indicators */
+.glass-table thead th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.glass-table thead th.sortable::after {
+    content: '↕';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.4;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.glass-table thead th.sortable:hover::after {
+    opacity: 0.8;
+}
+
+.glass-table thead th.sort-asc::after {
+    content: '↑';
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.glass-table thead th.sort-desc::after {
+    content: '↓';
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+/* Glass Table Body */
+.glass-table tbody {
+    background: transparent;
+}
+
+.glass-table tbody tr {
+    border: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.glass-table tbody tr::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        rgba(255, 255, 255, 0.02) 100%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    margin: 2px 8px;
+}
+
+.glass-table tbody tr:hover::before {
+    opacity: 1;
+    transform: scale(1.02);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.glass-table tbody tr:hover {
+    transform: translateY(-2px);
+}
+
+.glass-table tbody td {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    padding: 16px;
+    vertical-align: middle;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 确保内容不会破坏列宽 */
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+.glass-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.glass-table tbody tr:hover td {
+    color: var(--text-primary);
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Selected Row State */
+.glass-table tbody tr.selected {
+    background: linear-gradient(135deg,
+        rgba(59, 130, 246, 0.15) 0%,
+        rgba(59, 130, 246, 0.08) 100%);
+}
+
+.glass-table tbody tr.selected::before {
+    opacity: 1;
+    background: linear-gradient(135deg,
+        rgba(59, 130, 246, 0.2) 0%,
+        rgba(59, 130, 246, 0.1) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.glass-table tbody tr.selected td {
+    color: var(--text-primary);
+    border-bottom-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Loading State */
+.glass-table.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.glass-table.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 10;
+}
+
+.glass-table.loading tbody tr {
+    opacity: 0.6;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.3; }
+}
+
+/* Empty State */
+.glass-table-empty {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+}
+
+.glass-table-empty i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.glass-table-empty h5 {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.glass-table-empty p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Glass Table Utilities */
+.glass-table-label {
+    width: 120px;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.glass-table-value {
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.glass-table-value strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Action Buttons in Table */
+.glass-table .btn-group {
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.glass-table tbody tr:hover .btn-group {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .glass-table {
+        border-radius: 12px;
+        margin: 0 -8px;
+    }
+
+    .glass-table thead th {
+        padding: 12px 8px;
+        font-size: 0.75rem;
+    }
+
+    .glass-table tbody td {
+        padding: 12px 8px;
+        font-size: 0.875rem;
+    }
+
+    .glass-table thead th.sortable::after {
+        right: 4px;
+    }
+
+    /* Stack table on very small screens */
+    @media (max-width: 576px) {
+        .glass-table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .glass-table-responsive .glass-table {
+            min-width: 600px;
+        }
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .glass-table {
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .glass-table thead th {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
+    .glass-table tbody td {
+        border-bottom-color: rgba(255, 255, 255, 0.3);
+        color: #ffffff;
+    }
+
+    .glass-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .glass-table,
+    .glass-table *,
+    .glass-table *::before,
+    .glass-table *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ===== EXAM EDIT PAGE RESPONSIVE BUTTON LAYOUTS ===== */
+
+/* 操作按钮容器 */
+.exam-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.exam-action-buttons .glass-btn {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.exam-btn-primary {
+    order: 1;
+}
+
+.exam-btn-secondary {
+    order: 2;
+}
+
+/* 快速操作按钮容器 */
+.exam-quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.exam-quick-actions .glass-btn {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px;
+    font-size: 0.875rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 平板设备响应式设计 (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .exam-action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .exam-action-buttons .exam-btn-primary {
+        grid-column: 1 / -1; /* 主要按钮占满整行 */
+        order: 1;
+    }
+
+    .exam-action-buttons .exam-btn-secondary {
+        order: 2;
+    }
+
+    .exam-quick-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+}
+
+/* 桌面设备响应式设计 (>1024px) */
+@media (min-width: 1025px) {
+    .exam-action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .exam-action-buttons .exam-btn-primary {
+        grid-column: 1 / -1; /* 主要按钮占满整行 */
+        order: 1;
+    }
+
+    .exam-action-buttons .exam-btn-secondary {
+        order: 2;
+    }
+
+    .exam-quick-actions {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+    }
+
+    .exam-quick-actions .glass-btn {
+        flex: 1;
+        min-width: 0; /* 允许按钮收缩 */
+    }
+}
+
+/* 按钮悬停和焦点效果增强 */
+.exam-action-buttons .glass-btn:hover,
+.exam-quick-actions .glass-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.exam-action-buttons .glass-btn:active,
+.exam-quick-actions .glass-btn:active {
+    transform: translateY(0);
+    transition-duration: 0.1s;
+}
+
+/* 确保按钮文本不会换行 */
+.exam-action-buttons .glass-btn,
+.exam-quick-actions .glass-btn {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 移动设备触摸优化 */
+@media (max-width: 767px) {
+    .exam-action-buttons .glass-btn,
+    .exam-quick-actions .glass-btn {
+        min-height: 48px; /* 增加触摸目标大小 */
+        font-size: 0.9rem;
+        padding: 12px 16px;
+    }
+
+    .exam-action-buttons {
+        gap: 16px; /* 增加移动端间距 */
+    }
+
+    .exam-quick-actions {
+        gap: 12px;
+    }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+    .exam-action-buttons .glass-btn,
+    .exam-quick-actions .glass-btn {
+        border-width: 2px;
+        font-weight: 600;
+    }
+}
+
+/* ===== GLASS MARKDOWN EDITOR ===== */
+
+.glass-markdown-editor {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-md);
+    -webkit-backdrop-filter: var(--blur-md);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 4px 16px var(--glass-shadow);
+}
+
+/* Markdown编辑器标签页 */
+.markdown-editor-tabs {
+    display: flex;
+    background: var(--glass-secondary);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 0;
+}
+
+.markdown-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+}
+
+.markdown-tab:hover {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.markdown-tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Markdown编辑器工具栏 */
+.markdown-editor-toolbar {
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--glass-border);
+    flex-wrap: wrap;
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.toolbar-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    padding: 6px 8px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+}
+
+.toolbar-btn:hover {
+    color: var(--text-primary);
+    background: var(--glass-accent);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.toolbar-btn:active {
+    transform: translateY(0);
+}
+
+/* Markdown编辑器内容区域 */
+.markdown-editor-content {
+    position: relative;
+    min-height: 200px;
+}
+
+.markdown-editor-pane {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.markdown-editor-pane.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 分屏模式 */
+.markdown-editor-content.split-mode .markdown-editor-pane {
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+    width: 50%;
+    float: left;
+    border-right: 1px solid var(--glass-border);
+}
+
+.markdown-editor-content.split-mode .preview-pane {
+    border-right: none;
+    border-left: 1px solid var(--glass-border);
+}
+
+/* Markdown文本区域 */
+.markdown-textarea {
+    border: none;
+    background: transparent;
+    resize: vertical;
+    min-height: 200px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding: 16px;
+}
+
+.markdown-textarea:focus {
+    box-shadow: none;
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Markdown预览区域 */
+.markdown-preview {
+    min-height: 200px;
+    padding: 16px;
+    background: transparent;
+    border: none;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.preview-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 150px;
+    color: var(--text-muted);
+}
+
+.preview-placeholder i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+/* Markdown预览内容样式 */
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+    color: var(--text-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.markdown-preview h1 { font-size: 1.5rem; }
+.markdown-preview h2 { font-size: 1.3rem; }
+.markdown-preview h3 { font-size: 1.1rem; }
+
+.markdown-preview p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.markdown-preview li {
+    margin-bottom: 0.25rem;
+}
+
+.markdown-preview code {
+    background: var(--glass-accent);
+    color: var(--text-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.markdown-preview blockquote {
+    border-left: 3px solid var(--primary-color);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.markdown-preview hr {
+    border: none;
+    height: 1px;
+    background: var(--glass-border);
+    margin: 1.5rem 0;
+}
+
+.markdown-preview a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.markdown-preview a:hover {
+    text-decoration: underline;
+}
+
+/* Markdown帮助模态框样式 */
+.markdown-help-item {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--glass-accent);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--glass-border);
+}
+
+.markdown-help-item code {
+    display: block;
+    background: var(--glass-secondary);
+    color: var(--text-primary);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.help-result {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* 独立Markdown编辑器卡片样式 */
+.glass-card .glass-markdown-editor {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.glass-card .glass-markdown-editor .markdown-editor-tabs {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+}
+
+.glass-card .glass-markdown-editor .markdown-editor-content {
+    min-height: 300px;
+}
+
+.glass-card .glass-markdown-editor .markdown-textarea {
+    min-height: 300px;
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+}
+
+.glass-card .glass-markdown-editor .markdown-preview {
+    min-height: 300px;
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+}
+
+/* 独立编辑器的工具栏增强 */
+.glass-card .markdown-editor-toolbar {
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 16px;
+}
+
+
+
+/* Markdown编辑器响应式设计 */
+@media (max-width: 768px) {
+    .markdown-editor-tabs {
+        flex-wrap: wrap;
+    }
+
+    .markdown-tab {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+
+    .markdown-editor-toolbar {
+        padding: 6px 8px;
+        gap: 6px;
+        flex-direction: column;
+    }
+
+    .toolbar-group {
+        justify-content: center;
+        margin-bottom: 6px;
+    }
+
+
+
+    .toolbar-btn {
+        min-width: 28px;
+        height: 28px;
+        padding: 4px 6px;
+        font-size: 0.8rem;
+    }
+
+    .markdown-textarea {
+        font-size: 0.85rem;
+        padding: 12px;
+        min-height: 200px;
+    }
+
+    .markdown-preview {
+        padding: 12px;
+        font-size: 0.85rem;
+        min-height: 200px;
+    }
+
+    .glass-card .glass-markdown-editor .markdown-editor-content {
+        min-height: 200px;
+    }
+
+    .glass-card .glass-markdown-editor .markdown-textarea {
+        min-height: 200px;
+    }
+
+    .glass-card .glass-markdown-editor .markdown-preview {
+        min-height: 200px;
+    }
+
+    /* 移动端禁用分屏模式 */
+    .markdown-tab[data-tab="split"] {
+        display: none;
+    }
+
+    .markdown-editor-content.split-mode .markdown-editor-pane {
+        width: 100%;
+        float: none;
+        border-right: none;
+        border-left: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .toolbar-group:last-child {
+        margin-left: 0;
+        margin-bottom: 0;
+    }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1200px) {
+    .glass-card .glass-markdown-editor .markdown-editor-content {
+        min-height: 400px;
+    }
+
+    .glass-card .glass-markdown-editor .markdown-textarea {
+        min-height: 400px;
+    }
+
+    .glass-card .glass-markdown-editor .markdown-preview {
+        min-height: 400px;
+    }
+
+    /* 分屏模式优化 */
+    .markdown-editor-content.split-mode .markdown-editor-pane {
+        min-height: 400px;
+    }
+}
+
+/* 独立卡片的特殊动画效果 */
+.glass-card .glass-markdown-editor {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card .glass-markdown-editor:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.glass-card .glass-markdown-editor:focus-within {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* 卡片标题样式增强 */
+.glass-card .card-header h5 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.glass-card .card-header h5 small {
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+
+
+@media (max-width: 576px) {
+    .markdown-editor-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar-group {
+        justify-content: center;
+        margin-bottom: 4px;
+    }
+
+    .toolbar-group:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Additional Glass Table Enhancements */
+
+/* Improved checkbox styling within table */
+.glass-table .glass-checkbox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 20px;
+}
+
+.glass-table .glass-checkbox input[type="checkbox"] {
+    margin: 0;
+}
+
+/* Better badge styling in table */
+.glass-table .badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Enhanced button group styling */
+.glass-table .btn-group .glass-btn {
+    border-radius: 6px;
+    margin: 0 2px;
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glass-table .btn-group .glass-btn:first-child {
+    margin-left: 0;
+}
+
+.glass-table .btn-group .glass-btn:last-child {
+    margin-right: 0;
+}
+
+/* Improved text hierarchy */
+.glass-table tbody td strong {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.glass-table tbody td small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+/* Better spacing for content */
+.glass-table tbody td {
+    line-height: 1.5;
+}
+
+/* Enhanced focus states for accessibility */
+.glass-table thead th:focus,
+.glass-table tbody tr:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: -2px;
+    border-radius: 4px;
+}
+
+/* Improved loading state */
+.glass-table.loading tbody tr {
+    pointer-events: none;
+    user-select: none;
+}
+
+.glass-table.loading .btn-group {
+    opacity: 0.3;
+}
+
+/* Better empty state styling */
+.glass-table-empty {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    margin: 16px;
+}
+
+.glass-table-empty i {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+/* Smooth transitions for all interactive elements */
+.glass-table tbody tr,
+.glass-table .glass-btn,
+.glass-table .badge,
+.glass-table .glass-checkbox {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects for better UX */
+.glass-table tbody tr:hover .badge {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.glass-table tbody tr:hover strong {
+    color: var(--primary-color);
+}
+
+/* Selection animation */
+.glass-table tbody tr.selected {
+    animation: selectRow 0.3s ease-out;
+}
+
+@keyframes selectRow {
+    0% {
+        transform: scale(1);
+        background: transparent;
+    }
+    50% {
+        transform: scale(1.02);
+        background: rgba(59, 130, 246, 0.1);
+    }
+    100% {
+        transform: scale(1);
+        background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.15) 0%,
+            rgba(59, 130, 246, 0.08) 100%);
+    }
+}
+
+/* Glass Info Section */
+.glass-info-section {
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.3s ease;
+}
+
+.glass-info-section:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-1px);
+}
+
+/* Enhanced Glass Effects */
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glass-card:hover::before {
+    opacity: 1;
+}
+
+.glass-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        circle at 50% 0%,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.glass-card:hover::after {
+    opacity: 1;
+}
+
+/* Animated Glass Shimmer Effect */
+@keyframes glass-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.glass-card-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    animation: glass-shimmer 2s infinite;
+    pointer-events: none;
+}
+
+/* Glass Glow Effect */
+.glass-glow {
+    position: relative;
+}
+
+.glass-glow::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg,
+        rgba(102, 126, 234, 0.3),
+        rgba(240, 147, 251, 0.3),
+        rgba(79, 172, 254, 0.3),
+        rgba(102, 126, 234, 0.3)
+    );
+    border-radius: var(--border-radius-lg);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    filter: blur(8px);
+}
+
+.glass-glow:hover::before {
+    opacity: 1;
+}
+
+/* Floating Animation */
+@keyframes glass-float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.glass-float {
+    animation: glass-float 3s ease-in-out infinite;
+}
+
+/* Pulse Effect */
+@keyframes glass-pulse {
+    0%, 100% {
+        box-shadow: 0 8px 32px var(--glass-shadow);
+    }
+    50% {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+}
+
+.glass-pulse {
+    animation: glass-pulse 2s ease-in-out infinite;
+}
+
+/* Enhanced Statistics Display */
+.glass-stat-item h4,
+.glass-stat-item h5 {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.glass-stat-item h4::after,
+.glass-stat-item h5::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    transition: width 0.3s ease;
+}
+
+.glass-stat-item:hover h4::after,
+.glass-stat-item:hover h5::after {
+    width: 80%;
+}
+
+.glass-stat-mini h6 {
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Body Enhanced Spacing */
+.glass-card .card-body {
+    padding: 2rem;
+    position: relative;
+}
+
+.glass-card .card-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 1rem;
+    right: 1rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glass-card:hover .card-body::before {
+    opacity: 1;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .glass-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .glass-stat-item {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .glass-stat-mini {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .glass-divider {
+        margin: 1.5rem 0;
+    }
+}
+
+/* Glass Navigation */
+.glass-navbar {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-lg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 4px 16px var(--glass-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    margin-bottom: 1.5rem; /* 增加与主体内容的间距 */
+}
+
+.glass-navbar .navbar-brand {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+}
+
+.glass-navbar .navbar-brand:hover {
+    color: var(--text-primary) !important;
+    text-decoration: none;
+}
+
+.glass-navbar .nav-link {
+    color: var(--text-secondary) !important;
+    transition: all 0.3s ease;
+    border-radius: var(--border-radius-sm);
+    margin: 0 4px;
+    padding: 8px 12px;
+    text-decoration: none;
+}
+
+.glass-navbar .nav-link:hover {
+    color: var(--text-primary) !important;
+    background: var(--glass-accent);
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.glass-navbar .navbar-toggler {
+    border: 1px solid var(--glass-border);
+    background: var(--glass-accent);
+    border-radius: var(--border-radius-sm);
+}
+
+.glass-navbar .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+.glass-navbar .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Glass Buttons */
+.glass-btn {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px var(--glass-shadow);
+}
+
+.glass-btn:hover {
+    background: var(--glass-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--glass-shadow);
+    color: var(--text-primary);
+}
+
+.glass-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px var(--glass-shadow);
+}
+
+/* Glass Button Variants */
+.glass-btn-primary {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    border: 1px solid rgba(102, 126, 234, 0.5);
+}
+
+.glass-btn-success {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.3), rgba(25, 135, 84, 0.3));
+    border: 1px solid rgba(40, 167, 69, 0.5);
+}
+
+.glass-btn-warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 143, 0, 0.3));
+    border: 1px solid rgba(255, 193, 7, 0.5);
+}
+
+.glass-btn-danger {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.3), rgba(176, 42, 55, 0.3));
+    border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+.glass-btn-info {
+    background: linear-gradient(135deg, rgba(13, 202, 240, 0.3), rgba(11, 172, 204, 0.3));
+    border: 1px solid rgba(13, 202, 240, 0.5);
+}
+
+/* Glass Forms */
+.glass-form {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-md);
+    -webkit-backdrop-filter: var(--blur-md);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    box-shadow: 0 8px 32px var(--glass-shadow);
+}
+
+/* ===== GLASSMORPHISM INPUT STYLES ===== */
+
+/* 基础输入框样式 */
+.glass-input,
+.glass-form-control {
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    width: 100%;
+    box-shadow: 0 2px 8px var(--glass-shadow);
+    position: relative;
+}
+
+/* 输入框悬停效果 */
+.glass-input:hover,
+.glass-form-control:hover {
+    background: var(--glass-secondary);
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+    transform: translateY(-1px);
+}
+
+/* 输入框焦点状态 */
+.glass-input:focus,
+.glass-form-control:focus {
+    background: var(--glass-secondary);
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25), 0 6px 16px var(--glass-shadow);
+    color: var(--text-primary);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+/* 占位符样式 */
+.glass-input::placeholder,
+.glass-form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.glass-input:focus::placeholder,
+.glass-form-control:focus::placeholder {
+    opacity: 0.6;
+}
+
+/* 禁用状态 */
+.glass-input:disabled,
+.glass-form-control:disabled {
+    background: var(--glass-dark);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}
+
+.glass-input:disabled::placeholder,
+.glass-form-control:disabled::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* 错误状态 */
+.glass-input.is-invalid,
+.glass-form-control.is-invalid,
+.glass-input.error,
+.glass-form-control.error {
+    border-color: rgba(220, 53, 69, 0.6);
+    background: rgba(220, 53, 69, 0.1);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+}
+
+.glass-input.is-invalid:focus,
+.glass-form-control.is-invalid:focus,
+.glass-input.error:focus,
+.glass-form-control.error:focus {
+    border-color: rgba(220, 53, 69, 0.8);
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25), 0 6px 16px rgba(220, 53, 69, 0.2);
+}
+
+/* 成功状态 */
+.glass-input.is-valid,
+.glass-form-control.is-valid,
+.glass-input.success,
+.glass-form-control.success {
+    border-color: rgba(25, 135, 84, 0.6);
+    background: rgba(25, 135, 84, 0.1);
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.2);
+}
+
+.glass-input.is-valid:focus,
+.glass-form-control.is-valid:focus,
+.glass-input.success:focus,
+.glass-form-control.success:focus {
+    border-color: rgba(25, 135, 84, 0.8);
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.25), 0 6px 16px rgba(25, 135, 84, 0.2);
+}
+
+/* 不同尺寸的输入框 */
+.glass-input.glass-input-sm,
+.glass-form-control.glass-form-control-sm {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: var(--border-radius-sm);
+}
+
+.glass-input.glass-input-lg,
+.glass-form-control.glass-form-control-lg {
+    padding: 16px 20px;
+    font-size: 1rem;
+    border-radius: var(--border-radius-lg);
+}
+
+/* 输入框组样式 */
+.glass-input-group {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
+}
+
+.glass-input-group .glass-input,
+.glass-input-group .glass-form-control {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
+.glass-input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    background: var(--glass-secondary);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 2px 8px var(--glass-shadow);
+}
+
+/* 输入框组合边框处理 */
+.glass-input-group > .glass-input:not(:last-child),
+.glass-input-group > .glass-form-control:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.glass-input-group > .glass-input:not(:first-child),
+.glass-input-group > .glass-form-control:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.glass-input-group > .glass-input-group-text:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.glass-input-group > .glass-input-group-text:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* 表单标签样式 */
+.glass-form .form-label {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+/* 表单文本样式 */
+.glass-form .form-text {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* ===== GLASSMORPHISM CHECKBOX STYLES ===== */
+
+/* 基础复选框容器 */
+.glass-checkbox {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+/* 隐藏原生复选框 */
+.glass-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* 自定义复选框外观 */
+.glass-checkbox .glass-checkmark {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px var(--glass-shadow);
+    margin-right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 复选框标签 */
+.glass-checkbox .glass-checkbox-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+/* 悬停效果 */
+.glass-checkbox:hover .glass-checkmark {
+    background: var(--glass-secondary);
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+    transform: translateY(-1px);
+}
+
+.glass-checkbox:hover .glass-checkbox-label {
+    color: var(--text-primary);
+}
+
+/* 选中状态 */
+.glass-checkbox input[type="checkbox"]:checked + .glass-checkmark {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+    border-color: rgba(102, 126, 234, 0.9);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+/* 选中状态的勾选标记 */
+.glass-checkbox input[type="checkbox"]:checked + .glass-checkmark::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid var(--text-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* 焦点状态 */
+.glass-checkbox input[type="checkbox"]:focus + .glass-checkmark {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25), 0 4px 12px var(--glass-shadow);
+}
+
+/* 禁用状态 */
+.glass-checkbox.disabled,
+.glass-checkbox input[type="checkbox"]:disabled + .glass-checkmark {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.glass-checkbox.disabled .glass-checkmark,
+.glass-checkbox input[type="checkbox"]:disabled + .glass-checkmark {
+    background: var(--glass-dark);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
+.glass-checkbox.disabled .glass-checkbox-label,
+.glass-checkbox input[type="checkbox"]:disabled ~ .glass-checkbox-label {
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+/* 不同尺寸的复选框 */
+.glass-checkbox.glass-checkbox-sm .glass-checkmark {
+    height: 16px;
+    width: 16px;
+    margin-right: 0.5rem;
+}
+
+.glass-checkbox.glass-checkbox-sm .glass-checkbox-label {
+    font-size: 0.8rem;
+}
+
+.glass-checkbox.glass-checkbox-sm input[type="checkbox"]:checked + .glass-checkmark::after {
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+}
+
+.glass-checkbox.glass-checkbox-lg .glass-checkmark {
+    height: 24px;
+    width: 24px;
+    margin-right: 1rem;
+}
+
+.glass-checkbox.glass-checkbox-lg .glass-checkbox-label {
+    font-size: 1rem;
+}
+
+.glass-checkbox.glass-checkbox-lg input[type="checkbox"]:checked + .glass-checkmark::after {
+    left: 8px;
+    top: 3px;
+    width: 7px;
+    height: 12px;
+}
+
+/* 兼容Bootstrap form-check样式 */
+.glass-form .form-check-input {
+    background-color: var(--glass-accent);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px var(--glass-shadow);
+}
+
+.glass-form .form-check-input:hover {
+    background-color: var(--glass-secondary);
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+}
+
+.glass-form .form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25), 0 4px 12px var(--glass-shadow);
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+.glass-form .form-check-input:checked {
+    background-color: rgba(102, 126, 234, 0.8);
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.glass-form .form-check-label {
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+}
+
+.glass-form .form-check:hover .form-check-label {
+    color: var(--text-primary);
+}
+
+/* ===== GLASSMORPHISM SELECT STYLES ===== */
+
+/* ===== 新版本：基于原生SELECT元素的玻璃拟态样式 ===== */
+
+/* 基础原生Select样式 */
+.glass-select-native,
+select.glass-select-native {
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    padding: 12px 40px 12px 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    width: 100%;
+    box-shadow: 0 2px 8px var(--glass-shadow);
+    cursor: pointer;
+    min-height: 44px;
+    margin-bottom: 0.5rem;
+
+    /* 自定义下拉箭头 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+}
+
+/* 原生Select悬停效果 */
+.glass-select-native:hover,
+select.glass-select-native:hover {
+    background-color: var(--glass-secondary);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+    transform: translateY(-1px);
+}
+
+/* 原生Select焦点状态 */
+.glass-select-native:focus,
+select.glass-select-native:focus {
+    background-color: var(--glass-secondary);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25), 0 6px 16px var(--glass-shadow);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+/* 原生Select禁用状态 */
+.glass-select-native:disabled,
+select.glass-select-native:disabled {
+    background-color: var(--glass-dark);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23999999' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}
+
+/* 原生Select选项样式 */
+.glass-select-native option,
+select.glass-select-native option {
+    background: rgba(255, 255, 255, 0.95);
+    color: rgba(0, 0, 0, 0.87);
+    padding: 8px 12px;
+    border: none;
+}
+
+/* 原生Select多选样式 */
+.glass-select-native[multiple],
+select.glass-select-native[multiple] {
+    min-height: 120px;
+    padding: 8px 16px;
+    background-image: none; /* 移除下拉箭头 */
+}
+
+/* ===== 自定义多选组件样式 ===== */
+
+/* 多选容器 */
+.glass-multiselect {
+    position: relative;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+/* 多选输入框显示区域 */
+.glass-multiselect-display {
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    padding: 8px 40px 8px 12px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    width: 100%;
+    box-shadow: 0 2px 8px var(--glass-shadow);
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+
+    /* 下拉箭头 */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+}
+
+/* 多选显示区域悬停效果 */
+.glass-multiselect-display:hover {
+    background-color: var(--glass-secondary);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+    transform: translateY(-1px);
+}
+
+/* 多选显示区域焦点状态 */
+.glass-multiselect.is-open .glass-multiselect-display {
+    background-color: var(--glass-secondary);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25), 0 6px 16px var(--glass-shadow);
+    transform: translateY(-2px);
+}
+
+/* 已选择的标签 */
+.glass-multiselect-tag {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    max-width: 150px;
+}
+
+/* 标签悬停效果 */
+.glass-multiselect-tag:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4));
+    transform: scale(1.05);
+}
+
+/* 标签文本 */
+.glass-multiselect-tag-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+/* 标签删除按钮 */
+.glass-multiselect-tag-remove {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.glass-multiselect-tag-remove:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ff6b6b;
+}
+
+/* 占位符文本 */
+.glass-multiselect-placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+/* 多选下拉选项容器 */
+.glass-multiselect-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    margin-top: 4px;
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-lg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    max-height: 300px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.3s ease;
+}
+
+/* 展开状态的多选下拉选项 */
+.glass-multiselect.is-open .glass-multiselect-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* 多选选项列表 */
+.glass-multiselect-options {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+
+/* 多选选项 */
+.glass-multiselect-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+/* 多选选项悬停效果 */
+.glass-multiselect-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+}
+
+/* 已选中的选项 */
+.glass-multiselect-option.selected {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+    color: var(--text-primary);
+}
+
+/* 选项复选框 */
+.glass-multiselect-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* 选中状态的复选框 */
+.glass-multiselect-option.selected .glass-multiselect-checkbox {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+    border-color: rgba(102, 126, 234, 0.8);
+}
+
+/* 复选框勾选图标 */
+.glass-multiselect-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.glass-multiselect-option.selected .glass-multiselect-checkbox::after {
+    opacity: 1;
+}
+
+/* 原生Select尺寸变体 */
+.glass-select-native.glass-select-sm,
+select.glass-select-native.glass-select-sm {
+    padding: 8px 32px 8px 12px;
+    font-size: 0.8rem;
+    min-height: 36px;
+    background-size: 14px;
+    background-position: right 8px center;
+}
+
+.glass-select-native.glass-select-sm:hover,
+select.glass-select-native.glass-select-sm:hover,
+.glass-select-native.glass-select-sm:focus,
+select.glass-select-native.glass-select-sm:focus {
+    background-size: 14px;
+    background-position: right 8px center;
+}
+
+.glass-select-native.glass-select-lg,
+select.glass-select-native.glass-select-lg {
+    padding: 16px 48px 16px 20px;
+    font-size: 1rem;
+    min-height: 52px;
+    background-size: 18px;
+    background-position: right 16px center;
+}
+
+.glass-select-native.glass-select-lg:hover,
+select.glass-select-native.glass-select-lg:hover,
+.glass-select-native.glass-select-lg:focus,
+select.glass-select-native.glass-select-lg:focus {
+    background-size: 18px;
+    background-position: right 16px center;
+}
+
+/* 原生Select颜色变体 */
+.glass-select-native.glass-select-primary,
+select.glass-select-native.glass-select-primary {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e"), linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+    background-position: right 12px center, 0 0;
+    background-repeat: no-repeat, repeat;
+    background-size: 16px, auto;
+    border: 1px solid rgba(102, 126, 234, 0.4);
+}
+
+.glass-select-native.glass-select-success,
+select.glass-select-native.glass-select-success {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(25, 135, 84, 0.2));
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e"), linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(25, 135, 84, 0.2));
+    background-position: right 12px center, 0 0;
+    background-repeat: no-repeat, repeat;
+    background-size: 16px, auto;
+    border: 1px solid rgba(40, 167, 69, 0.4);
+}
+
+.glass-select-native.glass-select-warning,
+select.glass-select-native.glass-select-warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 143, 0, 0.2));
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e"), linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 143, 0, 0.2));
+    background-position: right 12px center, 0 0;
+    background-repeat: no-repeat, repeat;
+    background-size: 16px, auto;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.glass-select-native.glass-select-danger,
+select.glass-select-native.glass-select-danger {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(176, 42, 55, 0.2));
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e"), linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(176, 42, 55, 0.2));
+    background-position: right 12px center, 0 0;
+    background-repeat: no-repeat, repeat;
+    background-size: 16px, auto;
+    border: 1px solid rgba(220, 53, 69, 0.4);
+}
+
+/* ===== 旧版本：基于DIV的自定义Select样式（保持兼容性）===== */
+
+/* 基础Select容器 */
+.glass-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+/* Select输入框样式 */
+.glass-select-input {
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    padding: 12px 40px 12px 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    width: 100%;
+    box-shadow: 0 2px 8px var(--glass-shadow);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+}
+
+/* Select输入框悬停效果 */
+.glass-select-input:hover {
+    background: var(--glass-secondary);
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+    transform: translateY(-1px);
+}
+
+/* Select输入框焦点状态 */
+.glass-select-input:focus,
+.glass-select.is-open .glass-select-input {
+    background: var(--glass-secondary);
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25), 0 6px 16px var(--glass-shadow);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+/* Select输入框禁用状态 */
+.glass-select-input:disabled,
+.glass-select.disabled .glass-select-input {
+    background: var(--glass-dark);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Select占位符文本 */
+.glass-select-placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+/* Select选中值文本 */
+.glass-select-value {
+    color: var(--text-primary);
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Select下拉箭头 */
+.glass-select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--text-secondary);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+/* 展开状态的箭头 */
+.glass-select.is-open .glass-select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+    border-top-color: rgba(102, 126, 234, 0.8);
+}
+
+/* 禁用状态的箭头 */
+.glass-select.disabled .glass-select-arrow,
+.glass-select-input:disabled ~ .glass-select-arrow {
+    border-top-color: var(--text-muted);
+    opacity: 0.5;
+}
+
+/* 不同尺寸的Select */
+.glass-select.glass-select-sm .glass-select-input {
+    padding: 8px 32px 8px 12px;
+    font-size: 0.8rem;
+    border-radius: var(--border-radius-sm);
+    min-height: 36px;
+}
+
+.glass-select.glass-select-sm .glass-select-arrow {
+    right: 8px;
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-top-width: 5px;
+}
+
+.glass-select.glass-select-lg .glass-select-input {
+    padding: 16px 48px 16px 20px;
+    font-size: 1rem;
+    border-radius: var(--border-radius-lg);
+    min-height: 52px;
+}
+
+.glass-select.glass-select-lg .glass-select-arrow {
+    right: 16px;
+    border-left-width: 7px;
+    border-right-width: 7px;
+    border-top-width: 7px;
+}
+
+/* Select错误状态 */
+.glass-select.is-invalid .glass-select-input,
+.glass-select.error .glass-select-input {
+    border-color: rgba(220, 53, 69, 0.6);
+    background: rgba(220, 53, 69, 0.1);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+}
+
+.glass-select.is-invalid .glass-select-input:focus,
+.glass-select.error .glass-select-input:focus {
+    border-color: rgba(220, 53, 69, 0.8);
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25), 0 6px 16px rgba(220, 53, 69, 0.2);
+}
+
+/* Select成功状态 */
+.glass-select.is-valid .glass-select-input,
+.glass-select.success .glass-select-input {
+    border-color: rgba(25, 135, 84, 0.6);
+    background: rgba(25, 135, 84, 0.1);
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.2);
+}
+
+.glass-select.is-valid .glass-select-input:focus,
+.glass-select.success .glass-select-input:focus {
+    border-color: rgba(25, 135, 84, 0.8);
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.25), 0 6px 16px rgba(25, 135, 84, 0.2);
+}
+
+/* ===== SELECT DROPDOWN OPTIONS ===== */
+
+/* 下拉选项容器 */
+.glass-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    margin-top: 4px;
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-lg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    max-height: 300px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.3s ease;
+}
+
+/* 展开状态的下拉选项 */
+.glass-select.is-open .glass-select-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* 下拉选项列表 */
+.glass-select-options {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+
+/* 单个选项 */
+.glass-select-option {
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* 选项悬停效果 */
+.glass-select-option:hover {
+    background: rgba(102, 126, 234, 0.15);
+    color: var(--text-primary);
+    transform: translateX(4px);
+    box-shadow: inset 3px 0 0 rgba(102, 126, 234, 0.6);
+}
+
+/* 选项焦点状态 */
+.glass-select-option:focus,
+.glass-select-option.focused {
+    background: rgba(102, 126, 234, 0.2);
+    color: var(--text-primary);
+    outline: none;
+    transform: translateX(4px);
+    box-shadow: inset 3px 0 0 rgba(102, 126, 234, 0.8);
+}
+
+/* 选中的选项 */
+.glass-select-option.selected {
+    background: rgba(102, 126, 234, 0.25);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.glass-select-option.selected::after {
+    content: '✓';
+    color: rgba(102, 126, 234, 0.9);
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+/* 禁用的选项 */
+.glass-select-option.disabled {
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.glass-select-option.disabled:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 选项分组标题 */
+.glass-select-group-title {
+    padding: 8px 16px 4px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 4px;
+    background: var(--glass-accent);
+}
+
+/* 选项分隔线 */
+.glass-select-divider {
+    height: 1px;
+    background: var(--glass-border);
+    margin: 8px 12px;
+    opacity: 0.6;
+}
+
+/* 搜索框样式 */
+.glass-select-search {
+    padding: 8px 12px;
+    margin: 8px;
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.glass-select-search:focus {
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+}
+
+.glass-select-search::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+/* 无结果提示 */
+.glass-select-no-results {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* 加载状态 */
+.glass-select-loading {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.glass-select-loading::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-left: 8px;
+    border: 2px solid var(--glass-border);
+    border-top-color: rgba(102, 126, 234, 0.8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 多选模式的选项 */
+.glass-select.multiple .glass-select-option {
+    padding-left: 40px;
+    position: relative;
+}
+
+.glass-select.multiple .glass-select-option::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    background: var(--glass-accent);
+    transition: all 0.3s ease;
+}
+
+.glass-select.multiple .glass-select-option.selected::before {
+    background: rgba(102, 126, 234, 0.8);
+    border-color: rgba(102, 126, 234, 0.8);
+}
+
+.glass-select.multiple .glass-select-option.selected::after {
+    content: '✓';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* Glass Modal */
+.glass-modal .modal-content {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-lg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-xl);
+    box-shadow: 0 16px 64px var(--glass-shadow);
+}
+
+.glass-modal .modal-header {
+    border-bottom: 1px solid var(--glass-border);
+    background: var(--glass-secondary);
+    border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+}
+
+.glass-modal .modal-footer {
+    border-top: 1px solid var(--glass-border);
+    background: var(--glass-secondary);
+    border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
+}
+
+.glass-modal .modal-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Glass Card Modal Styles */
+.modal-content.glass-card {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-lg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-xl);
+    box-shadow: 0 16px 64px var(--glass-shadow);
+}
+
+.glass-card-header {
+    border-bottom: 1px solid var(--glass-border);
+    background: var(--glass-secondary);
+    border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+    color: var(--text-primary);
+}
+
+.glass-card-footer {
+    border-top: 1px solid var(--glass-border);
+    background: var(--glass-secondary);
+    border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
+}
+
+.glass-card-header .modal-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.glass-card-header .btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Glass Dropdown */
+.glass-dropdown {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-lg);
+    -webkit-backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    padding: 0.5rem 0;
+}
+
+.glass-dropdown .dropdown-item {
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.glass-dropdown .dropdown-item:hover,
+.glass-dropdown .dropdown-item:focus {
+    background: var(--glass-secondary);
+    color: var(--text-primary);
+    transform: translateX(2px);
+}
+
+.glass-dropdown .dropdown-divider {
+    border-color: var(--glass-border);
+    margin: 0.5rem 0;
+}
+
+.glass-dropdown .dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+
+
+/* Glass Alert */
+.glass-alert {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-md);
+    -webkit-backdrop-filter: var(--blur-md);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    color: var(--text-primary);
+    box-shadow: 0 4px 16px var(--glass-shadow);
+    padding: 10px;
+}
+
+.glass-alert-warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 143, 0, 0.2));
+    border-color: rgba(255, 193, 7, 0.4);
+}
+
+.glass-alert-success {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(25, 135, 84, 0.2));
+    border-color: rgba(40, 167, 69, 0.4);
+}
+
+.glass-alert-danger {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(176, 42, 55, 0.2));
+    border-color: rgba(220, 53, 69, 0.4);
+}
+
+.glass-alert-info {
+    background: linear-gradient(135deg, rgba(13, 202, 240, 0.2), rgba(11, 172, 204, 0.2));
+    border-color: rgba(13, 202, 240, 0.4);
+}
+
+/* Glass Badge */
+.glass-badge {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Glass Dropdown */
+.glass-dropdown-menu {
+    /* 使用更不透明的背景替代backdrop-filter，确保在absolute定位下的兼容性 */
+    background: rgba(255, 255, 255, 0.95);
+    /* backdrop-filter在absolute定位的下拉菜单中可能不工作，因此注释掉 */
+    /* backdrop-filter: var(--blur-lg); */
+    /* -webkit-backdrop-filter: var(--blur-lg); */
+
+    /* 保留Glassmorphism的其他视觉元素 */
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--border-radius-md);
+
+    /* 增强阴影效果以补偿缺失的模糊效果 */
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+
+    /* 添加微妙的渐变背景增强玻璃效果 */
+    background-image: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(255, 255, 255, 0.92) 100%);
+}
+
+.glass-dropdown-item {
+    /* 调整文字颜色以适应新的不透明背景 */
+    color: rgba(0, 0, 0, 0.8);
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    margin: 2px 8px;
+    text-decoration: none;
+
+    /* 添加微妙的背景过渡效果 */
+    background: transparent;
+}
+
+.glass-dropdown-item:hover {
+    /* 悬停时使用半透明的彩色背景 */
+    background: rgba(102, 126, 234, 0.1);
+    color: rgba(0, 0, 0, 0.9);
+    text-decoration: none;
+    transform: translateX(4px);
+
+    /* 添加微妙的阴影效果 */
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.glass-dropdown-item:focus {
+    background: rgba(102, 126, 234, 0.15);
+    color: rgba(0, 0, 0, 0.9);
+    outline: none;
+    box-shadow:
+        0 0 0 2px rgba(102, 126, 234, 0.3),
+        0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+/* 下拉菜单分隔线 */
+.dropdown-divider {
+    /* 调整分隔线颜色以适应新的不透明背景 */
+    border-color: rgba(0, 0, 0, 0.1);
+    margin: 0.5rem 0;
+    opacity: 0.6;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .glass-card {
+        margin: 8px;
+        border-radius: var(--border-radius-md);
+        margin-bottom: 1rem;
+    }
+
+    .glass-form {
+        padding: 16px;
+        margin: 8px;
+    }
+
+    .glass-btn {
+        padding: 6px 12px;
+        font-size: 0.875rem;
+    }
+
+    .glass-navbar {
+        margin-bottom: 1rem;
+    }
+
+    .glass-navbar .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .glass-navbar .nav-link {
+        padding: 6px 10px;
+        margin: 0 2px;
+    }
+
+    /* 移动端下拉菜单优化 */
+    .glass-dropdown-menu {
+        margin-top: 0.25rem;
+        border-radius: var(--border-radius-sm);
+        /* 在移动端确保背景足够不透明 */
+        background: rgba(255, 255, 255, 0.98);
+        background-image: linear-gradient(135deg,
+            rgba(255, 255, 255, 1) 0%,
+            rgba(255, 255, 255, 0.95) 100%);
+    }
+
+    .glass-dropdown-item {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        /* 在移动端增加触摸友好的间距 */
+        margin: 1px 6px;
+    }
+
+    /* 移动端输入框优化 */
+    .glass-input,
+    .glass-form-control {
+        padding: 14px 16px;
+        font-size: 16px; /* 防止iOS缩放 */
+        border-radius: var(--border-radius-sm);
+    }
+
+    .glass-input.glass-input-sm,
+    .glass-form-control.glass-form-control-sm {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .glass-input.glass-input-lg,
+    .glass-form-control.glass-form-control-lg {
+        padding: 18px 20px;
+        font-size: 16px;
+    }
+
+    /* 移动端复选框优化 */
+    .glass-checkbox .glass-checkmark {
+        height: 22px;
+        width: 22px;
+        margin-right: 0.75rem;
+        /* 增加触摸区域 */
+        min-height: 44px;
+        min-width: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .glass-checkbox .glass-checkmark::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 22px;
+        height: 22px;
+        background: var(--glass-accent);
+        backdrop-filter: var(--blur-sm);
+        -webkit-backdrop-filter: var(--blur-sm);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--border-radius-sm);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px var(--glass-shadow);
+    }
+
+    .glass-checkbox input[type="checkbox"]:checked + .glass-checkmark::before {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+        border-color: rgba(102, 126, 234, 0.9);
+    }
+
+    .glass-checkbox .glass-checkbox-label {
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* 移动端输入框组优化 */
+    .glass-input-group {
+        flex-direction: column;
+    }
+
+    .glass-input-group .glass-input,
+    .glass-input-group .glass-form-control,
+    .glass-input-group .glass-input-group-text {
+        border-radius: var(--border-radius-sm) !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .glass-input-group .glass-input:last-child,
+    .glass-input-group .glass-form-control:last-child,
+    .glass-input-group .glass-input-group-text:last-child {
+        margin-bottom: 0;
+    }
+
+    /* 移动端Select组件优化 */
+
+    /* 移动端原生Select优化 */
+    .glass-select-native,
+    select.glass-select-native {
+        padding: 14px 40px 14px 16px;
+        font-size: 16px; /* 防止iOS缩放 */
+        min-height: 48px; /* 增加触摸区域 */
+        background-size: 18px;
+        background-position: right 14px center;
+    }
+
+    .glass-select-native.glass-select-sm,
+    select.glass-select-native.glass-select-sm {
+        padding: 12px 36px 12px 14px;
+        font-size: 14px;
+        min-height: 44px;
+        background-size: 16px;
+        background-position: right 12px center;
+    }
+
+    .glass-select-native.glass-select-lg,
+    select.glass-select-native.glass-select-lg {
+        padding: 18px 48px 18px 20px;
+        font-size: 16px;
+        min-height: 52px;
+        background-size: 20px;
+        background-position: right 18px center;
+    }
+
+    .glass-select-native[multiple],
+    select.glass-select-native[multiple] {
+        min-height: 140px;
+        padding: 12px 16px;
+    }
+
+    /* 移动端自定义多选优化 */
+    .glass-multiselect-display {
+        padding: 12px 40px 12px 16px;
+        min-height: 48px;
+        font-size: 16px; /* 防止iOS缩放 */
+    }
+
+    .glass-multiselect-tag {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        max-width: 120px; /* 移动端减小标签宽度 */
+    }
+
+    .glass-multiselect-option {
+        padding: 14px 16px; /* 增加触摸区域 */
+        min-height: 48px;
+        font-size: 0.95rem;
+    }
+
+    .glass-multiselect-checkbox {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* 旧版本DIV Select组件 */
+    .glass-select-input {
+        padding: 14px 40px 14px 16px;
+        font-size: 16px; /* 防止iOS缩放 */
+        min-height: 48px; /* 增加触摸区域 */
+    }
+
+    .glass-select.glass-select-sm .glass-select-input {
+        padding: 12px 36px 12px 14px;
+        font-size: 14px;
+        min-height: 44px;
+    }
+
+    .glass-select.glass-select-lg .glass-select-input {
+        padding: 18px 48px 18px 20px;
+        font-size: 16px;
+        min-height: 52px;
+    }
+
+    /* 移动端下拉框优化 */
+    .glass-select-dropdown {
+        max-height: 250px; /* 减少移动端高度 */
+        /* 在移动端使用更不透明的背景确保可读性 */
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: var(--blur-md);
+        -webkit-backdrop-filter: var(--blur-md);
+    }
+
+    .glass-select-option {
+        padding: 14px 16px; /* 增加触摸区域 */
+        font-size: 0.95rem;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    .glass-select-search {
+        padding: 12px 16px;
+        font-size: 16px; /* 防止iOS缩放 */
+        margin: 12px;
+    }
+
+    /* 移动端多选模式优化 */
+    .glass-select.multiple .glass-select-option {
+        padding-left: 48px;
+        min-height: 52px;
+    }
+
+    .glass-select.multiple .glass-select-option::before {
+        width: 20px;
+        height: 20px;
+        left: 16px;
+    }
+
+    .glass-select.multiple .glass-select-option.selected::after {
+        left: 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* 平板设备优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .glass-card {
+        margin-bottom: 1.25rem;
+    }
+
+    .glass-navbar {
+        margin-bottom: 1.25rem;
+    }
+
+    /* 平板端输入框优化 */
+    .glass-input,
+    .glass-form-control {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+
+    .glass-checkbox .glass-checkmark {
+        height: 20px;
+        width: 20px;
+    }
+
+    .glass-checkbox .glass-checkbox-label {
+        font-size: 0.9rem;
+    }
+
+    /* 平板端输入框组恢复水平布局 */
+    .glass-input-group {
+        flex-direction: row;
+    }
+
+    .glass-input-group .glass-input,
+    .glass-input-group .glass-form-control,
+    .glass-input-group .glass-input-group-text {
+        margin-bottom: 0;
+    }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1200px) {
+    .glass-card {
+        margin-bottom: 2rem;
+    }
+
+    .glass-navbar {
+        margin-bottom: 2rem;
+    }
+
+    .container {
+        max-width: 1140px;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --glass-border: rgba(255, 255, 255, 0.8);
+        --text-primary: rgba(255, 255, 255, 1);
+        --text-secondary: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 高对比度模式下的输入框 */
+    .glass-input,
+    .glass-form-control {
+        border-width: 2px;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .glass-input:focus,
+    .glass-form-control:focus {
+        border-width: 3px;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+    }
+
+    /* 高对比度模式下的复选框 */
+    .glass-checkbox .glass-checkmark {
+        border-width: 2px;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .glass-checkbox input[type="checkbox"]:checked + .glass-checkmark {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 255, 255, 1);
+    }
+
+    .glass-checkbox input[type="checkbox"]:checked + .glass-checkmark::after {
+        border-color: rgba(0, 0, 0, 1);
+    }
+
+    /* 高对比度模式下的Select组件 */
+    .glass-select-input {
+        border-width: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        color: rgba(0, 0, 0, 0.9);
+    }
+
+    .glass-select-input:focus,
+    .glass-select.is-open .glass-select-input {
+        border-width: 3px;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 1);
+    }
+
+    .glass-select-arrow {
+        border-top-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .glass-select-dropdown {
+        background: rgba(255, 255, 255, 1);
+        border: 2px solid rgba(0, 0, 0, 0.8);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .glass-select-option {
+        color: rgba(0, 0, 0, 0.9);
+    }
+
+    .glass-select-option:hover,
+    .glass-select-option:focus,
+    .glass-select-option.focused {
+        background: rgba(0, 0, 0, 0.1);
+        color: rgba(0, 0, 0, 1);
+        box-shadow: inset 3px 0 0 rgba(0, 0, 0, 0.8);
+    }
+
+    .glass-select-option.selected {
+        background: rgba(0, 0, 0, 0.15);
+        color: rgba(0, 0, 0, 1);
+        font-weight: 600;
+    }
+
+    .glass-select-search {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(0, 0, 0, 0.6);
+        color: rgba(0, 0, 0, 0.9);
+    }
+
+    .glass-select-search:focus {
+        border-color: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* ===== BROWSER COMPATIBILITY ===== */
+
+/* Firefox 兼容性 */
+@-moz-document url-prefix() {
+    .glass-input,
+    .glass-form-control,
+    .glass-checkbox .glass-checkmark {
+        /* Firefox 不支持 backdrop-filter，使用更不透明的背景 */
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-input:focus,
+    .glass-form-control:focus {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .glass-checkbox input[type="checkbox"]:checked + .glass-checkmark {
+        background: rgba(102, 126, 234, 0.9);
+    }
+
+    /* Firefox下的Select组件优化 */
+
+    /* Firefox下的原生Select优化 */
+    .glass-select-native,
+    select.glass-select-native {
+        /* Firefox 不支持 backdrop-filter，使用更不透明的背景 */
+        background-color: rgba(255, 255, 255, 0.15);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+    }
+
+    .glass-select-native:focus,
+    select.glass-select-native:focus {
+        background-color: rgba(255, 255, 255, 0.25);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+    }
+
+    .glass-select-native option,
+    select.glass-select-native option {
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    /* Firefox下的自定义多选优化 */
+    .glass-multiselect-display,
+    .glass-multiselect-dropdown,
+    .glass-multiselect-tag {
+        /* Firefox 不支持 backdrop-filter，使用更不透明的背景 */
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-multiselect-tag {
+        background: rgba(102, 126, 234, 0.4);
+    }
+
+    /* 旧版本DIV Select组件 */
+    .glass-select-input {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-select-input:focus,
+    .glass-select.is-open .glass-select-input {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .glass-select-dropdown {
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .glass-select-search {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* Safari 兼容性 */
+@supports (-webkit-backdrop-filter: blur(10px)) {
+    .glass-input,
+    .glass-form-control,
+    .glass-checkbox .glass-checkmark,
+    .glass-input-group-text,
+    .glass-select-native,
+    select.glass-select-native {
+        -webkit-backdrop-filter: var(--blur-sm);
+    }
+}
+
+/* 不支持 backdrop-filter 的浏览器回退 */
+@supports not (backdrop-filter: blur(10px)) {
+    .glass-input,
+    .glass-form-control {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-input:focus,
+    .glass-form-control:focus {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .glass-checkbox .glass-checkmark {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-checkbox input[type="checkbox"]:checked + .glass-checkmark {
+        background: rgba(102, 126, 234, 0.9);
+    }
+
+    .glass-input-group-text {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Select组件的浏览器兼容性回退 */
+
+    /* 原生Select组件回退样式 */
+    .glass-select-native,
+    select.glass-select-native {
+        background-color: rgba(255, 255, 255, 0.2);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-select-native:focus,
+    select.glass-select-native:focus {
+        background-color: rgba(255, 255, 255, 0.3);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        border-color: rgba(102, 126, 234, 0.6);
+    }
+
+    /* 旧版本DIV Select组件回退样式 */
+    .glass-select-input {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-select-input:focus,
+    .glass-select.is-open .glass-select-input {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(102, 126, 234, 0.6);
+    }
+
+    .glass-select-dropdown {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-select-search {
+        background: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* 自定义多选组件的浏览器兼容性回退 */
+    .glass-multiselect-display {
+        background-color: rgba(255, 255, 255, 0.2);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-multiselect-display:hover,
+    .glass-multiselect.is-open .glass-multiselect-display {
+        background-color: rgba(255, 255, 255, 0.3);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+    }
+
+    .glass-multiselect-dropdown {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-multiselect-tag {
+        background: rgba(102, 126, 234, 0.6);
+        border: 1px solid rgba(102, 126, 234, 0.4);
+    }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+
+/* 键盘导航支持 */
+.glass-input:focus-visible,
+.glass-form-control:focus-visible {
+    outline: 2px solid rgba(102, 126, 234, 0.8);
+    outline-offset: 2px;
+}
+
+.glass-checkbox input[type="checkbox"]:focus-visible + .glass-checkmark {
+    outline: 2px solid rgba(102, 126, 234, 0.8);
+    outline-offset: 2px;
+}
+
+/* 屏幕阅读器支持 */
+.glass-checkbox input[type="checkbox"]:focus + .glass-checkmark {
+    /* 确保焦点状态对屏幕阅读器可见 */
+    border-color: rgba(102, 126, 234, 0.8);
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+    .glass-checkbox .glass-checkmark {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .glass-input,
+    .glass-form-control {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+
+    /* 移除悬停效果 */
+    .glass-input:hover,
+    .glass-form-control:hover,
+    .glass-checkbox:hover .glass-checkmark {
+        transform: none;
+        box-shadow: 0 2px 8px var(--glass-shadow);
+    }
+
+    /* Select组件触摸设备优化 */
+    .glass-select-input {
+        min-height: 48px;
+        padding: 14px 40px 14px 16px;
+    }
+
+    .glass-select-input:hover {
+        transform: none;
+        box-shadow: 0 2px 8px var(--glass-shadow);
+    }
+
+    .glass-select-option {
+        min-height: 48px;
+        padding: 14px 16px;
+    }
+
+    .glass-select-option:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .glass-select-search {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+
+    /* 多选模式触摸优化 */
+    .glass-select.multiple .glass-select-option {
+        min-height: 52px;
+        padding-left: 48px;
+    }
+
+    .glass-select.multiple .glass-select-option::before {
+        width: 20px;
+        height: 20px;
+        left: 16px;
+    }
+}
+
+/* ===== ADDITIONAL UI IMPROVEMENTS ===== */
+
+/* 改善文本可读性 */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* 统一按钮间距 */
+.glass-btn + .glass-btn {
+    margin-left: 0.5rem;
+}
+
+/* 改善列表样式 */
+.list-group-item {
+    background-color: transparent;
+    border-color: var(--glass-border);
+    color: var(--text-secondary);
+}
+
+.list-group-item:hover {
+    background-color: var(--glass-accent);
+    color: var(--text-primary);
+}
+
+/* 改善表格样式 */
+.table {
+    color: var(--text-secondary);
+}
+
+.table th {
+    color: var(--text-primary);
+    border-color: var(--glass-border);
+}
+
+.table td {
+    border-color: var(--glass-border);
+}
+
+/* 改善徽章样式 */
+.badge {
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+}
+
+/* 改善进度条样式 */
+.progress {
+    background-color: var(--glass-accent);
+    border-radius: var(--border-radius-sm);
+}
+
+/* 改善警告框样式 */
+.alert {
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border-radius: var(--border-radius-md);
+}
+
+/* 改善分页样式 */
+.pagination .page-link {
+    background-color: var(--glass-accent);
+    border-color: var(--glass-border);
+    color: var(--text-secondary);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--glass-secondary);
+    color: var(--text-primary);
+}
+
+/* ===== 下拉菜单额外优化 ===== */
+
+/* 确保下拉菜单在所有浏览器中都有一致的外观 */
+.glass-dropdown-menu {
+    /* 添加最小宽度确保内容不会过于拥挤 */
+    min-width: 180px;
+
+    /* 确保在所有浏览器中都有正确的层级 */
+    z-index: 1050;
+
+    /* 添加微妙的边框内阴影增强玻璃效果 */
+    border: 1px solid rgba(255, 255, 255, 0.5);
+
+    /* 防止内容溢出 */
+    overflow: hidden;
+}
+
+/* 为下拉菜单添加打开动画 */
+.dropdown-menu.show {
+    animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 确保图标在下拉菜单项中正确对齐 */
+.glass-dropdown-item i {
+    width: 16px;
+    text-align: center;
+    margin-right: 8px;
+}
+
+/* 高对比度模式下的下拉菜单优化 */
+
+/* ===== 题目管理表格列宽度修复 ===== */
+
+/* 使用colgroup方法来强制设置列宽 - 这是最可靠的方法 */
+/* 优化后的列宽度分配，确保操作列可见且全选列不与题目标题混淆 */
+/* 现在适用于Bootstrap表格 */
+.table[data-sortable] colgroup col:nth-child(1) {
+    width: 8%; /* 全选列 - 增加宽度避免与题目标题混淆 */
+}
+
+.table[data-sortable] colgroup col:nth-child(2) {
+    width: 30%; /* 题目标题列 - 减少宽度为其他列腾出空间 */
+}
+
+.table[data-sortable] colgroup col:nth-child(3) {
+    width: 10%; /* 操作类型列 - 适度减少 */
+}
+
+.table[data-sortable] colgroup col:nth-child(4) {
+    width: 8%; /* 难度列 - 适度减少 */
+}
+
+.table[data-sortable] colgroup col:nth-child(5) {
+    width: 8%; /* 分值列 - 保持不变 */
+}
+
+.table[data-sortable] colgroup col:nth-child(6) {
+    width: 8%; /* 状态列 - 保持不变 */
+}
+
+.table[data-sortable] colgroup col:nth-child(7) {
+    width: 12%; /* 创建时间列 - 保持不变 */
+}
+
+.table[data-sortable] colgroup col:nth-child(8) {
+    width: 16%; /* 操作列 - 大幅增加确保按钮完全可见 */
+}
+
+/* ===== Bootstrap表格在glassmorphism背景下的可读性优化 ===== */
+
+/* 为Bootstrap表格添加适当的背景和对比度 */
+.table-responsive .table {
+    background: rgba(255, 255, 255, 0.95); /* 半透明白色背景 */
+    backdrop-filter: blur(10px); /* 轻微模糊效果 */
+    border-radius: 12px; /* 圆角 */
+    overflow: hidden; /* 确保圆角效果 */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
+}
+
+/* 表头样式优化 */
+.table-responsive .table thead th {
+    background: rgba(108, 117, 125, 0.1); /* 轻微灰色背景 */
+    color: #495057; /* 深灰色文字 */
+    font-weight: 600; /* 加粗 */
+    border-bottom: 2px solid rgba(108, 117, 125, 0.2); /* 底部边框 */
+    padding: 12px 8px; /* 增加内边距 */
+}
+
+/* 表格内容样式优化 */
+.table-responsive .table tbody td {
+    color: #212529; /* 深色文字确保可读性 */
+    padding: 10px 8px; /* 适当的内边距 */
+    border-top: 1px solid rgba(108, 117, 125, 0.15); /* 轻微边框 */
+}
+
+/* 斑马纹效果优化 */
+.table-responsive .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(248, 249, 250, 0.8); /* 轻微灰色背景 */
+}
+
+/* 悬停效果优化 */
+.table-responsive .table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.1); /* 轻微蓝色悬停效果 */
+    color: #212529; /* 确保文字颜色 */
+}
+
+/* 确保badge和按钮在表格中的可见性 */
+.table-responsive .table .badge {
+    font-weight: 500; /* 适中的字重 */
+}
+
+.table-responsive .table .btn {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 轻微阴影增强可见性 */
+}
+
+/* 备用方案：如果colgroup不存在，使用th/td选择器 */
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(1),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(1) {
+    width: 5%; /* 复选框列 */
+    min-width: 50px;
+}
+
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(2),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(2) {
+    width: 35%; /* 题目标题列 */
+    min-width: 200px;
+}
+
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(3),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(3) {
+    width: 12%; /* 操作类型列 */
+    min-width: 100px;
+}
+
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(4),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(4) {
+    width: 10%; /* 难度列 */
+    min-width: 80px;
+}
+
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(5),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(5) {
+    width: 8%; /* 分值列 */
+    min-width: 70px;
+}
+
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(6),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(6) {
+    width: 8%; /* 状态列 */
+    min-width: 70px;
+}
+
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(7),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(7) {
+    width: 12%; /* 创建时间列 */
+    min-width: 100px;
+}
+
+.glass-table[data-glass-table]:not(:has(colgroup)) thead th:nth-child(8),
+.glass-table[data-glass-table]:not(:has(colgroup)) tbody td:nth-child(8) {
+    width: 10%; /* 操作列 */
+    min-width: 120px;
+}
+
+/* 响应式表格列宽调整 */
+@media (max-width: 1200px) {
+    .glass-table[data-glass-table] thead th:nth-child(2),
+    .glass-table[data-glass-table] tbody td:nth-child(2) {
+        width: 30%; /* 题目标题列在中等屏幕上稍微缩小 */
+    }
+
+    .glass-table[data-glass-table] thead th:nth-child(8),
+    .glass-table[data-glass-table] tbody td:nth-child(8) {
+        width: 15%; /* 操作列在中等屏幕上稍微增大 */
+    }
+}
+
+@media (max-width: 768px) {
+    /* 移动设备上隐藏部分列以保持可读性 */
+    .glass-table[data-glass-table] thead th:nth-child(4),
+    .glass-table[data-glass-table] tbody td:nth-child(4),
+    .glass-table[data-glass-table] thead th:nth-child(7),
+    .glass-table[data-glass-table] tbody td:nth-child(7) {
+        display: none; /* 隐藏难度列和创建时间列 */
+    }
+
+    .glass-table[data-glass-table] thead th:nth-child(2),
+    .glass-table[data-glass-table] tbody td:nth-child(2) {
+        width: 40%; /* 题目标题列在移动设备上占更多空间 */
+    }
+
+    .glass-table[data-glass-table] thead th:nth-child(8),
+    .glass-table[data-glass-table] tbody td:nth-child(8) {
+        width: 20%; /* 操作列在移动设备上占更多空间 */
+    }
+
+    /* 移动设备上的表格内容优化 */
+    .glass-table[data-glass-table] .btn-group .glass-btn {
+        min-width: 28px;
+        height: 28px;
+        padding: 4px;
+        margin: 0 1px;
+    }
+
+    .glass-table[data-glass-table] .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* 超小屏幕设备的额外优化 */
+    .glass-table[data-glass-table] {
+        font-size: 0.8rem;
+    }
+
+    .glass-table[data-glass-table] thead th,
+    .glass-table[data-glass-table] tbody td {
+        padding: 8px 4px;
+    }
+
+    .glass-table[data-glass-table] thead th:nth-child(1),
+    .glass-table[data-glass-table] tbody td:nth-child(1) {
+        width: 8%;
+        min-width: 40px;
+    }
+
+    .glass-table[data-glass-table] thead th:nth-child(2),
+    .glass-table[data-glass-table] tbody td:nth-child(2) {
+        width: 45%;
+    }
+
+    .glass-table[data-glass-table] .btn-group .glass-btn {
+        min-width: 24px;
+        height: 24px;
+        padding: 2px;
+        font-size: 0.7rem;
+    }
+}
+@media (prefers-contrast: high) {
+    .glass-dropdown-menu {
+        background: rgba(255, 255, 255, 1);
+        border: 2px solid rgba(0, 0, 0, 0.8);
+    }
+
+    .glass-dropdown-item {
+        color: rgba(0, 0, 0, 1);
+    }
+
+    .glass-dropdown-item:hover,
+    .glass-dropdown-item:focus {
+        background: rgba(0, 0, 0, 0.1);
+        color: rgba(0, 0, 0, 1);
+    }
+}

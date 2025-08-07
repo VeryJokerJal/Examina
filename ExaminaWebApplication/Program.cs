@@ -2,6 +2,9 @@
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
+using ExaminaWebApplication.Services.Exam;
+using ExaminaWebApplication.Services.Excel;
+using ExaminaWebApplication.Services.Windows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,15 +14,6 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-
-// 确保控制台日志在生产环境中也能工作
-if (builder.Environment.IsProduction())
-{
-    _ = builder.Logging.AddConsole(options =>
-    {
-        options.IncludeScopes = true;
-    });
-}
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -36,6 +30,10 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip;
         // 允许尾随逗号
         options.JsonSerializerOptions.AllowTrailingCommas = true;
+        // 处理循环引用 - 忽略循环引用
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        // 设置最大深度以防止无限递归
+        options.JsonSerializerOptions.MaxDepth = 32;
     });
 
 // 配置MySQL数据库
@@ -61,6 +59,20 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IWeChatService, WeChatService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+
+// 注册Excel相关服务
+builder.Services.AddScoped<ExcelOperationService>();
+builder.Services.AddScoped<ExcelQuestionService>();
+
+// 注册Windows相关服务
+builder.Services.AddScoped<WindowsOperationService>();
+
+// 注册试卷管理相关服务
+builder.Services.AddScoped<ExamService>();
+builder.Services.AddScoped<ExamSubjectService>();
+builder.Services.AddScoped<ExamQuestionService>();
+builder.Services.AddScoped<SimplifiedQuestionService>();
+builder.Services.AddScoped<ExcelImportExportService>();
 
 // 添加后台服务
 builder.Services.AddHostedService<SessionCleanupService>();
@@ -240,6 +252,21 @@ builder.Services.AddCors(options =>
 
 WebApplication app = builder.Build();
 
+// 配置静态Web资产处理
+try
+{
+    // 尝试使用静态Web资产，如果失败则跳过
+    if (app.Environment.IsDevelopment())
+    {
+        // 在开发环境中，静态Web资产可能不存在，这是正常的
+        app.Logger.LogInformation("开发环境：跳过静态Web资产配置");
+    }
+}
+catch (Exception ex)
+{
+    app.Logger.LogWarning(ex, "静态Web资产配置失败，继续运行");
+}
+
 // 获取日志记录器
 ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
 
@@ -250,41 +277,8 @@ logger.LogInformation("应用程序名称: {ApplicationName}", app.Environment.A
 logger.LogInformation("内容根路径: {ContentRoot}", app.Environment.ContentRootPath);
 logger.LogInformation("启动时间: {StartTime}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
-// 初始化MySQL数据库
-using (IServiceScope scope = app.Services.CreateScope())
-{
-    ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    ILogger<Program> dbLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    try
-    {
-        dbLogger.LogInformation("开始初始化MySQL数据库...");
-
-        // 测试数据库连接
-        bool canConnect = context.Database.CanConnect();
-        dbLogger.LogInformation("数据库连接测试: {CanConnect}", canConnect ? "成功" : "失败");
-
-        if (canConnect)
-        {
-            // 应用MySQL数据库迁移
-            context.Database.Migrate();
-            dbLogger.LogInformation("MySQL数据库迁移成功");
-
-            // 初始化测试数据
-            await InitializeTestDataAsync(context, dbLogger);
-        }
-        else
-        {
-            dbLogger.LogError("无法连接到MySQL数据库");
-            throw new InvalidOperationException("数据库连接失败");
-        }
-    }
-    catch (Exception ex)
-    {
-        dbLogger.LogError(ex, "MySQL数据库初始化失败: {ErrorMessage}", ex.Message);
-        throw; // 重新抛出异常，因为MySQL数据库是必需的
-    }
-}
+// 启动前自动迁移数据库 - 增强版实现
+await EnsureDatabaseAsync(app.Services, logger);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -292,6 +286,11 @@ if (!app.Environment.IsDevelopment())
     _ = app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     _ = app.UseHsts();
+}
+else
+{
+    // 开发环境配置
+    _ = app.UseDeveloperExceptionPage();
 }
 
 // 添加API请求调试中间件
@@ -367,6 +366,155 @@ finally
 }
 
 /// <summary>
+/// 确保数据库存在并自动迁移 - 增强版实现
+/// </summary>
+/// <param name="services">服务提供器</param>
+/// <param name="logger">日志记录器</param>
+static async Task EnsureDatabaseAsync(IServiceProvider services, ILogger logger)
+{
+    const int maxRetryAttempts = 5;
+    const int baseDelayMs = 1000; // 基础延迟1秒
+
+    for (int attempt = 1; attempt <= maxRetryAttempts; attempt++)
+    {
+        try
+        {
+            using IServiceScope scope = services.CreateScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            logger.LogInformation("=== 开始数据库自动迁移（第 {Attempt}/{MaxAttempts} 次尝试）===", attempt, maxRetryAttempts);
+
+            // 1. 检查数据库连接
+            logger.LogInformation("正在测试数据库连接...");
+            bool canConnect = await TestDatabaseConnectionAsync(context, logger);
+
+            if (!canConnect)
+            {
+                throw new InvalidOperationException("数据库连接测试失败");
+            }
+
+            // 2. 检查待迁移的项目
+            logger.LogInformation("正在检查待迁移的项目...");
+            IEnumerable<string> pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+            IEnumerable<string> appliedMigrations = await context.Database.GetAppliedMigrationsAsync();
+
+            logger.LogInformation("已应用的迁移数量: {AppliedCount}", appliedMigrations.Count());
+            logger.LogInformation("待应用的迁移数量: {PendingCount}", pendingMigrations.Count());
+
+            if (pendingMigrations.Any())
+            {
+                logger.LogInformation("待应用的迁移列表:");
+                foreach (string migration in pendingMigrations)
+                {
+                    logger.LogInformation("  - {Migration}", migration);
+                }
+            }
+
+            // 3. 应用数据库迁移
+            if (pendingMigrations.Any())
+            {
+                logger.LogInformation("正在应用数据库迁移...");
+                await context.Database.MigrateAsync();
+                logger.LogInformation("✅ 数据库迁移成功完成");
+            }
+            else
+            {
+                logger.LogInformation("✅ 数据库已是最新版本，无需迁移");
+            }
+
+            // 4. 验证数据库状态
+            logger.LogInformation("正在验证数据库状态...");
+            await ValidateDatabaseStateAsync(context, logger);
+
+            // 5. 初始化测试数据
+            logger.LogInformation("正在初始化测试数据...");
+            await InitializeTestDataAsync(context, logger);
+
+            logger.LogInformation("=== 数据库自动迁移完成 ===");
+            return; // 成功完成，退出重试循环
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "数据库自动迁移失败（第 {Attempt}/{MaxAttempts} 次尝试）: {ErrorMessage}",
+                attempt, maxRetryAttempts, ex.Message);
+
+            if (attempt == maxRetryAttempts)
+            {
+                logger.LogCritical("=== 数据库自动迁移最终失败，应用程序无法启动 ===");
+                throw new InvalidOperationException($"数据库迁移失败，已尝试 {maxRetryAttempts} 次", ex);
+            }
+
+            // 指数退避延迟
+            int delayMs = baseDelayMs * (int)Math.Pow(2, attempt - 1);
+            logger.LogWarning("将在 {DelayMs}ms 后进行第 {NextAttempt} 次重试...", delayMs, attempt + 1);
+            await Task.Delay(delayMs);
+        }
+    }
+}
+
+/// <summary>
+/// 测试数据库连接
+/// </summary>
+/// <param name="context">数据库上下文</param>
+/// <param name="logger">日志记录器</param>
+/// <returns>连接是否成功</returns>
+static async Task<bool> TestDatabaseConnectionAsync(ApplicationDbContext context, ILogger logger)
+{
+    try
+    {
+        // 使用异步方法测试连接
+        _ = await context.Database.CanConnectAsync();
+
+        // 获取数据库信息
+        string? connectionString = context.Database.GetConnectionString();
+        string databaseName = context.Database.GetDbConnection().Database;
+
+        logger.LogInformation("✅ 数据库连接成功");
+        logger.LogInformation("数据库名称: {DatabaseName}", databaseName);
+        logger.LogDebug("连接字符串: {ConnectionString}",
+            connectionString?.Replace(context.Database.GetDbConnection().ConnectionString.Split(';')
+                .FirstOrDefault(s => s.Contains("password", StringComparison.OrdinalIgnoreCase))?.Split('=')[1] ?? "", "***"));
+
+        return true;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "❌ 数据库连接失败: {ErrorMessage}", ex.Message);
+        return false;
+    }
+}
+
+/// <summary>
+/// 验证数据库状态
+/// </summary>
+/// <param name="context">数据库上下文</param>
+/// <param name="logger">日志记录器</param>
+static async Task ValidateDatabaseStateAsync(ApplicationDbContext context, ILogger logger)
+{
+    try
+    {
+        // 检查关键表是否存在并可访问
+        int userCount = await context.Users.CountAsync();
+        int examCount = await context.Exams.CountAsync();
+        int excelOpCount = await context.ExcelOperationPoints.CountAsync();
+
+        logger.LogInformation("数据库状态验证成功:");
+        logger.LogInformation("  - 用户数量: {UserCount}", userCount);
+        logger.LogInformation("  - 试卷数量: {ExamCount}", examCount);
+        logger.LogInformation("  - Excel操作点数量: {ExcelOpCount}", excelOpCount);
+
+        // 检查数据库版本信息
+        string? lastMigration = (await context.Database.GetAppliedMigrationsAsync()).LastOrDefault();
+        logger.LogInformation("  - 最新迁移: {LastMigration}", lastMigration ?? "无");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "数据库状态验证出现警告: {ErrorMessage}", ex.Message);
+    }
+}
+
+/// <summary>
 /// 初始化测试数据
 /// </summary>
 /// <param name="context">数据库上下文</param>
@@ -397,15 +545,15 @@ static async Task InitializeTestDataAsync(ApplicationDbContext context, ILogger 
             _ = context.Users.Add(testStudent);
             _ = await context.SaveChangesAsync();
 
-            logger.LogInformation("已创建测试学生用户: 手机号 13800138000, 密码 123456");
+            logger.LogInformation("✅ 已创建测试学生用户: 手机号 13800138000, 密码 123456");
         }
         else
         {
-            logger.LogInformation("测试用户已存在，跳过创建");
+            logger.LogInformation("✅ 测试用户已存在，跳过创建");
         }
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "初始化测试数据失败");
+        logger.LogError(ex, "❌ 初始化测试数据失败: {ErrorMessage}", ex.Message);
     }
 }
