@@ -233,7 +233,7 @@ public partial class ExamSubjectService
                 SortOrder = 3,
                 IsRequired = true,
                 Weight = 1.0m,
-                IsEnabled = false, // 暂未实现，设为禁用
+                IsEnabled = true, // 已实现Word段落操作功能
                 CreatedAt = DateTime.UtcNow
             },
             new ExamSubject

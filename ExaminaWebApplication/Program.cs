@@ -5,6 +5,7 @@ using ExaminaWebApplication.Services;
 using ExaminaWebApplication.Services.Exam;
 using ExaminaWebApplication.Services.Excel;
 using ExaminaWebApplication.Services.Windows;
+using ExaminaWebApplication.Services.Word;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -66,6 +67,11 @@ builder.Services.AddScoped<ExcelQuestionService>();
 
 // 注册Windows相关服务
 builder.Services.AddScoped<WindowsOperationService>();
+
+// 注册Word相关服务
+builder.Services.AddScoped<WordOperationService>();
+builder.Services.AddScoped<WordQuestionService>();
+builder.Services.AddScoped<WordQuestionExcelService>();
 
 // 注册试卷管理相关服务
 builder.Services.AddScoped<ExamService>();

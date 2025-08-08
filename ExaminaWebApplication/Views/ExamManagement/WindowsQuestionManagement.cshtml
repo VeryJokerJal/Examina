@@ -250,13 +250,22 @@
 
 
 
-                <!-- 题目表格 -->
+                <!-- 题目表格（使用glassmorphism样式） -->
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="questionTable">
+                    <table class="glass-table" id="questionTable" data-glass-table>
+                        <colgroup>
+                            <col style="width:56px" />
+                            <col />
+                            <col style="width:10%" />
+                            <col style="width:12%" />
+                            <col style="width:10%" />
+                            <col style="width:16%" />
+                            <col style="width:160px" />
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th width="50">
-                                    <div class="form-check">
+                                <th class="col-select">
+                                    <div class="form-check table-checkbox">
                                         <input class="form-check-input" type="checkbox" id="selectAllQuestions">
                                         <label class="form-check-label visually-hidden" for="selectAllQuestions">全选</label>
                                     </div>
@@ -266,7 +275,7 @@
                                 <th data-sortable="totalScore">总分值</th>
                                 <th data-sortable="status">状态</th>
                                 <th data-sortable="createdAt">创建时间</th>
-                                <th width="200">操作</th>
+                                <th class="text-end">操作</th>
                             </tr>
                         </thead>
                         <tbody id="questionTableBody">
@@ -385,13 +394,23 @@
 
 
 
-                <!-- 操作点表格 -->
+                <!-- 操作点表格（使用glassmorphism样式） -->
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="operationTable">
+                    <table class="glass-table" id="operationTable" data-glass-table>
+                        <colgroup>
+                            <col style="width:56px" />
+                            <col style="width:12%" />
+                            <col />
+                            <col style="width:16%" />
+                            <col style="width:10%" />
+                            <col style="width:10%" />
+                            <col style="width:16%" />
+                            <col style="width:200px" />
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th width="50">
-                                    <div class="form-check">
+                                <th class="col-select">
+                                    <div class="form-check table-checkbox">
                                         <input class="form-check-input" type="checkbox" id="selectAllOperations">
                                         <label class="form-check-label visually-hidden" for="selectAllOperations">全选</label>
                                     </div>
@@ -402,7 +421,7 @@
                                 <th data-sortable="questionScore">题目分值</th>
                                 <th data-sortable="status">状态</th>
                                 <th data-sortable="createdAt">创建时间</th>
-                                <th width="250">操作</th>
+                                <th class="text-end">操作</th>
                             </tr>
                         </thead>
                         <tbody id="operationTableBody">
@@ -3729,7 +3748,7 @@
                 html += `
                     <tr data-question-id="${question.id}">
                         <td>
-                            <div class="form-check">
+                            <div class="form-check table-checkbox">
                                 <input class="form-check-input question-checkbox" type="checkbox" value="${question.id}">
                             </div>
                         </td>
@@ -4354,7 +4373,7 @@
                 html += `
                     <tr data-operation-id="${operation.id}">
                         <td>
-                            <div class="form-check">
+                            <div class="form-check table-checkbox">
                                 <input class="form-check-input operation-checkbox" type="checkbox" value="${operation.id}">
                             </div>
                         </td>
@@ -4489,7 +4508,7 @@
         }
 
         // 加载题目选项
-        async function loadQuestionOptions() {
+        async function loadQuestionOptions(excludeQuestionId = null) {
             try {
                 console.log('加载题目选项，当前题目数量:', currentQuestions.length);
 
@@ -4519,18 +4538,40 @@
 
                         // 添加题目选项
                         if (currentQuestions.length > 0) {
+                            let addedCount = 0;
                             currentQuestions.forEach(question => {
-                                if (question.requirements) {
-                                    const option = document.createElement('option');
-                                    option.value = question.id;
-                                    const displayText = question.requirements.length > 50
+                                // 如果指定了要排除的题目ID，则跳过该题目
+                                if (excludeQuestionId && question.id == excludeQuestionId) {
+                                    console.log(`跳过当前编辑的题目: ${question.id}`);
+                                    return;
+                                }
+
+                                const option = document.createElement('option');
+                                option.value = question.id;
+
+                                // 优先使用requirements，其次使用title，最后使用description
+                                let displayText = '';
+                                if (question.requirements && question.requirements.trim()) {
+                                    displayText = question.requirements.length > 50
                                         ? question.requirements.substring(0, 50) + '...'
                                         : question.requirements;
-                                    option.textContent = `题目${question.id}: ${displayText}`;
-                                    select.appendChild(option);
+                                } else if (question.title && question.title.trim()) {
+                                    displayText = question.title.length > 50
+                                        ? question.title.substring(0, 50) + '...'
+                                        : question.title;
+                                } else if (question.description && question.description.trim()) {
+                                    displayText = question.description.length > 50
+                                        ? question.description.substring(0, 50) + '...'
+                                        : question.description;
+                                } else {
+                                    displayText = `${question.operationType}操作`;
                                 }
+
+                                option.textContent = `题目${question.id}: ${displayText}`;
+                                select.appendChild(option);
+                                addedCount++;
                             });
-                            console.log(`下拉框 ${select.id} 添加了 ${currentQuestions.length} 个题目选项`);
+                            console.log(`下拉框 ${select.id} 添加了 ${addedCount} 个题目选项${excludeQuestionId ? `（排除题目${excludeQuestionId}）` : ''}`);
                         } else {
                             console.warn(`没有可用的题目数据来填充下拉框 ${select.id}`);
                         }
@@ -4543,6 +4584,51 @@
 
             } catch (error) {
                 console.error('加载题目选项失败:', error);
+            }
+        }
+
+        // 更新glass-select组件的显示
+        function updateGlassSelectDisplay(selectId, value) {
+            try {
+                const selectElement = document.getElementById(selectId);
+                if (!selectElement) {
+                    console.warn(`未找到选择器元素: ${selectId}`);
+                    return;
+                }
+
+                // 设置选择器的值
+                selectElement.value = value;
+
+                // 查找对应的选项文本
+                const selectedOption = selectElement.querySelector(`option[value="${value}"]`);
+                if (!selectedOption) {
+                    console.warn(`未找到对应的选项: ${value}`);
+                    return;
+                }
+
+                // 更新glass-select的显示
+                const glassContainer = selectElement.closest('.glass-select');
+                if (glassContainer) {
+                    const displayElement = glassContainer.querySelector('.glass-select-input');
+                    if (displayElement) {
+                        displayElement.textContent = selectedOption.textContent;
+                        displayElement.classList.add('has-value');
+                        console.log(`更新glass-select显示: ${selectId} = ${selectedOption.textContent}`);
+                    }
+                }
+
+                // 如果是原生glass-select，查找对应的显示元素
+                const nativeContainer = selectElement.closest('[data-glass-select-native]');
+                if (nativeContainer) {
+                    const displayInput = nativeContainer.querySelector('.glass-select-display');
+                    if (displayInput) {
+                        displayInput.value = selectedOption.textContent;
+                        displayInput.classList.add('has-value');
+                        console.log(`更新原生glass-select显示: ${selectId} = ${selectedOption.textContent}`);
+                    }
+                }
+            } catch (error) {
+                console.error('更新glass-select显示失败:', error);
             }
         }
 
@@ -4564,32 +4650,89 @@
                 document.getElementById('editOperationPointId').value = operationData.id;
                 document.getElementById('editOperationType').value = operationData.operationType;
 
-                // 预填充配置参数
+                // 更新操作类型的glass-select显示
                 setTimeout(() => {
-                    fillEditConfigFields(operationData.operationConfig, 'editOperation');
-                }, 200);
+                    updateGlassSelectDisplay('editOperationType', operationData.operationType);
+                }, 100);
 
-                // 设置关联题目（如果有的话）
+
+
+                // 设置关联题目 - 从操作配置中获取关联的题目ID
                 const questionSelect = document.getElementById('editOperationQuestionId');
-                if (questionSelect && operationData.operationConfig && operationData.operationConfig.questionId) {
-                    questionSelect.value = operationData.operationConfig.questionId;
-                } else if (questionSelect) {
-                    questionSelect.value = '';
-                }
+                if (questionSelect) {
+                    let relatedQuestionId = '';
 
-                // 更新操作类型配置区域
-                updateOperationTypeConfig('edit');
+                    // 从操作配置中获取关联的题目ID
+                    if (operationData.operationConfig && operationData.operationConfig.questionId) {
+                        relatedQuestionId = operationData.operationConfig.questionId.toString();
+                        console.log('设置关联题目ID:', relatedQuestionId);
+                    } else {
+                        console.log('操作点未关联任何题目');
+                    }
+
+                    questionSelect.value = relatedQuestionId;
+
+                    // 更新glass-select显示
+                    if (relatedQuestionId) {
+                        setTimeout(() => {
+                            updateGlassSelectDisplay('editOperationQuestionId', relatedQuestionId);
+                        }, 300);
+                    }
+                }
 
                 // 显示编辑模态框
                 const modal = new bootstrap.Modal(document.getElementById('editOperationPointModal'));
                 modal.show();
 
-                // 重新初始化Glass Select组件
-                setTimeout(() => {
+                // 等待模态框显示后再进行初始化和数据填充
+                setTimeout(async () => {
+                    // 重新初始化Glass Select组件
                     if (typeof initializeGlassSelectsNative === 'function') {
                         initializeGlassSelectsNative(document.getElementById('editOperationPointModal'));
                     }
-                }, 100);
+
+                    // 确保当前编辑的操作点在题目列表中（用于其他功能，但在关联题目选择中会被排除）
+                    const currentQuestion = currentQuestions.find(q => q.id === operationData.id);
+                    if (!currentQuestion) {
+                        console.log('当前编辑的操作点不在题目列表中，添加到列表');
+                        currentQuestions.push(operationData);
+                    }
+
+                    // 加载题目选项，排除当前编辑的操作点
+                    await loadQuestionOptions(operationData.id);
+
+                    // 更新操作类型配置区域
+                    updateOperationTypeConfig('editOperation');
+
+                    // 等待配置区域生成后再填充配置字段
+                    setTimeout(() => {
+                        // 创建包含操作类型的配置对象
+                        const configWithType = {
+                            ...operationData.operationConfig,
+                            type: operationData.operationType
+                        };
+                        console.log('延迟填充配置字段，配置数据:', configWithType);
+                        // 使用正确的前缀：editOperationOperation
+                        fillEditConfigFields(configWithType, 'editOperationOperation');
+                    }, 300);
+
+                    // 设置关联题目，确保题目选项已加载且glass-select组件已初始化
+                    setTimeout(() => {
+                        const questionSelect = document.getElementById('editOperationQuestionId');
+                        if (questionSelect) {
+                            let relatedQuestionId = '';
+
+                            // 从操作配置中获取关联的题目ID
+                            if (operationData.operationConfig && operationData.operationConfig.questionId) {
+                                relatedQuestionId = operationData.operationConfig.questionId.toString();
+                                console.log('最终设置关联题目:', relatedQuestionId);
+                                updateGlassSelectDisplay('editOperationQuestionId', relatedQuestionId);
+                            } else {
+                                console.log('操作点未关联任何题目，保持空选择');
+                            }
+                        }
+                    }, 400);
+                }, 300);
 
             } catch (error) {
                 console.error('编辑操作点失败:', error);
@@ -5027,17 +5170,41 @@
             try {
                 console.log('更新操作类型配置，前缀:', prefix);
 
-                const operationTypeElement = document.getElementById(`${prefix}OperationType`);
-                const configArea = document.getElementById(`${prefix}OperationConfigArea`);
-                const preview = document.getElementById(`${prefix}OperationPreview`);
+                // 根据前缀确定正确的操作类型元素ID
+                let operationTypeElementId;
+                if (prefix === 'newOperation') {
+                    operationTypeElementId = 'newOperationType';
+                } else if (prefix === 'editOperation') {
+                    operationTypeElementId = 'editOperationType';
+                } else {
+                    operationTypeElementId = `${prefix}OperationType`;
+                }
+
+                const operationTypeElement = document.getElementById(operationTypeElementId);
+
+                // 根据前缀确定正确的配置区域和预览元素ID
+                let configAreaId, previewId;
+                if (prefix === 'newOperation') {
+                    configAreaId = 'newOperationConfigArea';
+                    previewId = 'newOperationPreview';
+                } else if (prefix === 'editOperation') {
+                    configAreaId = 'editOperationConfigArea';
+                    previewId = 'editOperationPreview';
+                } else {
+                    configAreaId = `${prefix}OperationConfigArea`;
+                    previewId = `${prefix}OperationPreview`;
+                }
+
+                const configArea = document.getElementById(configAreaId);
+                const preview = document.getElementById(previewId);
 
                 if (!operationTypeElement) {
-                    console.warn(`未找到操作类型元素: ${prefix}OperationType`);
+                    console.warn(`未找到操作类型元素: ${operationTypeElementId}`);
                     return;
                 }
 
                 if (!configArea) {
-                    console.warn(`未找到配置区域元素: ${prefix}OperationConfigArea`);
+                    console.warn(`未找到配置区域元素: ${configAreaId}`);
                     return;
                 }
 
@@ -5080,9 +5247,19 @@
                 console.log('获取操作配置，前缀:', prefix);
 
                 // 修复DOM元素查询，添加空值检查
-                const operationTypeElement = document.getElementById(`${prefix}OperationType`);
+                // 根据前缀确定正确的操作类型元素ID
+                let operationTypeElementId;
+                if (prefix === 'newOperation') {
+                    operationTypeElementId = 'newOperationType';
+                } else if (prefix === 'editOperation') {
+                    operationTypeElementId = 'editOperationType';
+                } else {
+                    operationTypeElementId = `${prefix}OperationType`;
+                }
+
+                const operationTypeElement = document.getElementById(operationTypeElementId);
                 if (!operationTypeElement) {
-                    console.warn(`未找到操作类型元素: ${prefix}OperationType`);
+                    console.warn(`未找到操作类型元素: ${operationTypeElementId}`);
                     return null;
                 }
 
@@ -5248,9 +5425,19 @@
             try {
                 console.log('更新操作预览，前缀:', prefix);
 
-                const operationTypeElement = document.getElementById(`${prefix}OperationType`);
+                // 根据前缀确定正确的操作类型元素ID
+                let operationTypeElementId;
+                if (prefix === 'newOperation') {
+                    operationTypeElementId = 'newOperationType';
+                } else if (prefix === 'editOperation') {
+                    operationTypeElementId = 'editOperationType';
+                } else {
+                    operationTypeElementId = `${prefix}OperationType`;
+                }
+
+                const operationTypeElement = document.getElementById(operationTypeElementId);
                 if (!operationTypeElement) {
-                    console.warn(`未找到操作类型元素: ${prefix}OperationType`);
+                    console.warn(`未找到操作类型元素: ${operationTypeElementId}`);
                     return;
                 }
 
@@ -5271,21 +5458,34 @@
                     const title = generateWindowsQuestionTitle(operationType, config);
                     const description = generateWindowsQuestionDescription(operationType, config);
 
-                    const titleElement = document.getElementById(`${prefix}OperationPreviewTitle`);
-                    const descElement = document.getElementById(`${prefix}OperationPreviewDesc`);
+                    // 根据前缀确定正确的预览元素ID
+                    let titleElementId, descElementId;
+                    if (prefix === 'newOperation') {
+                        titleElementId = 'newOperationPreviewTitle';
+                        descElementId = 'newOperationPreviewDesc';
+                    } else if (prefix === 'editOperation') {
+                        titleElementId = 'editOperationPreviewTitle';
+                        descElementId = 'editOperationPreviewDesc';
+                    } else {
+                        titleElementId = `${prefix}OperationPreviewTitle`;
+                        descElementId = `${prefix}OperationPreviewDesc`;
+                    }
+
+                    const titleElement = document.getElementById(titleElementId);
+                    const descElement = document.getElementById(descElementId);
 
                     if (titleElement) {
                         titleElement.textContent = title;
                         console.log('更新预览标题:', title);
                     } else {
-                        console.warn(`未找到预览标题元素: ${prefix}OperationPreviewTitle`);
+                        console.warn(`未找到预览标题元素: ${titleElementId}`);
                     }
 
                     if (descElement) {
                         descElement.textContent = description;
                         console.log('更新预览描述:', description);
                     } else {
-                        console.warn(`未找到预览描述元素: ${prefix}OperationPreviewDesc`);
+                        console.warn(`未找到预览描述元素: ${descElementId}`);
                     }
                 } else {
                     console.warn('获取操作配置失败，无法更新预览');
@@ -5749,70 +5949,132 @@
 
         // 填充编辑配置字段
         function fillEditConfigFields(config, prefix) {
-            if (!config) return;
+            if (!config) {
+                console.warn('配置数据为空，无法填充字段');
+                return;
+            }
 
             try {
+                console.log('填充配置字段，操作类型:', config.type, '配置数据:', config);
+
                 switch (config.type) {
                     case 'Copy':
                     case 'Move':
+                        // 使用正确的字段名：SourcePath, TargetPath
                         const sourcePathElement = document.getElementById(`${prefix}SourcePath`);
                         const targetPathElement = document.getElementById(`${prefix}TargetPath`);
-                        if (sourcePathElement && config.sourcePath) sourcePathElement.value = config.sourcePath;
-                        if (targetPathElement && config.targetPath) targetPathElement.value = config.targetPath;
+                        if (sourcePathElement && config.SourcePath) {
+                            sourcePathElement.value = config.SourcePath;
+                            console.log('设置源路径:', config.SourcePath);
+                        }
+                        if (targetPathElement && config.TargetPath) {
+                            targetPathElement.value = config.TargetPath;
+                            console.log('设置目标路径:', config.TargetPath);
+                        }
                         break;
 
                     case 'Create':
-                        const createTypeElement = document.getElementById(`${prefix}CreateType`);
-                        const itemNameElement = document.getElementById(`${prefix}ItemName`);
-                        const createPathElement = document.getElementById(`${prefix}CreatePath`);
-                        if (createTypeElement && config.createType) createTypeElement.value = config.createType;
-                        if (itemNameElement && config.itemName) itemNameElement.value = config.itemName;
-                        if (createPathElement && config.createPath) createPathElement.value = config.createPath;
+                        // 使用正确的字段名：TargetType, TargetName, TargetPath
+                        const fileTypeElement = document.getElementById(`${prefix}FileType`);
+                        const targetNameElement = document.getElementById(`${prefix}TargetName`);
+                        const targetPathElement2 = document.getElementById(`${prefix}TargetPath`);
+                        if (fileTypeElement && config.TargetType) {
+                            fileTypeElement.value = config.TargetType.toLowerCase();
+                            console.log('设置文件类型:', config.TargetType);
+                        }
+                        if (targetNameElement && config.TargetName) {
+                            targetNameElement.value = config.TargetName;
+                            console.log('设置目标名称:', config.TargetName);
+                        }
+                        if (targetPathElement2 && config.TargetPath) {
+                            targetPathElement2.value = config.TargetPath;
+                            console.log('设置目标路径:', config.TargetPath);
+                        }
                         break;
 
                     case 'Delete':
-                        const deletePathElement = document.getElementById(`${prefix}DeletePath`);
-                        if (deletePathElement && config.deletePath) deletePathElement.value = config.deletePath;
+                        // 使用正确的字段名：TargetPath
+                        const deletePathElement = document.getElementById(`${prefix}TargetPath`);
+                        if (deletePathElement && config.TargetPath) {
+                            deletePathElement.value = config.TargetPath;
+                            console.log('设置删除路径:', config.TargetPath);
+                        }
                         break;
 
                     case 'Rename':
-                        const filePathElement = document.getElementById(`${prefix}FilePath`);
-                        const oldNameElement = document.getElementById(`${prefix}OldName`);
+                        // 使用正确的字段名：TargetPath, OriginalName, NewName
+                        const renamePathElement = document.getElementById(`${prefix}TargetPath`);
+                        const originalNameElement = document.getElementById(`${prefix}OriginalName`);
                         const newNameElement = document.getElementById(`${prefix}NewName`);
-                        if (filePathElement && config.filePath) filePathElement.value = config.filePath;
-                        if (oldNameElement && config.oldName) oldNameElement.value = config.oldName;
-                        if (newNameElement && config.newName) newNameElement.value = config.newName;
+                        if (renamePathElement && config.TargetPath) {
+                            renamePathElement.value = config.TargetPath;
+                            console.log('设置重命名路径:', config.TargetPath);
+                        }
+                        if (originalNameElement && config.OriginalName) {
+                            originalNameElement.value = config.OriginalName;
+                            console.log('设置原名称:', config.OriginalName);
+                        }
+                        if (newNameElement && config.NewName) {
+                            newNameElement.value = config.NewName;
+                            console.log('设置新名称:', config.NewName);
+                        }
                         break;
 
                     case 'CreateShortcut':
+                        // 使用正确的字段名：TargetPath, ShortcutLocation
                         const shortcutTargetElement = document.getElementById(`${prefix}TargetPath`);
-                        const shortcutPathElement = document.getElementById(`${prefix}ShortcutPath`);
-                        if (shortcutTargetElement && config.targetPath) shortcutTargetElement.value = config.targetPath;
-                        if (shortcutPathElement && config.shortcutPath) shortcutPathElement.value = config.shortcutPath;
+                        const shortcutLocationElement = document.getElementById(`${prefix}ShortcutLocation`);
+                        if (shortcutTargetElement && config.TargetPath) {
+                            shortcutTargetElement.value = config.TargetPath;
+                            console.log('设置快捷方式目标:', config.TargetPath);
+                        }
+                        if (shortcutLocationElement && config.ShortcutLocation) {
+                            shortcutLocationElement.value = config.ShortcutLocation;
+                            console.log('设置快捷方式位置:', config.ShortcutLocation);
+                        }
                         break;
 
                     case 'ModifyProperties':
-                        const propFilePathElement = document.getElementById(`${prefix}FilePath`);
+                        // 使用正确的字段名：TargetPath, PropertyType
+                        const propTargetPathElement = document.getElementById(`${prefix}TargetPath`);
                         const propertyTypeElement = document.getElementById(`${prefix}PropertyType`);
-                        if (propFilePathElement && config.filePath) propFilePathElement.value = config.filePath;
-                        if (propertyTypeElement && config.propertyType) propertyTypeElement.value = config.propertyType;
+                        if (propTargetPathElement && config.TargetPath) {
+                            propTargetPathElement.value = config.TargetPath;
+                            console.log('设置属性修改路径:', config.TargetPath);
+                        }
+                        if (propertyTypeElement && config.PropertyType) {
+                            propertyTypeElement.value = config.PropertyType;
+                            console.log('设置属性类型:', config.PropertyType);
+                        }
                         break;
 
                     case 'CopyAndRename':
+                        // 使用正确的字段名：SourcePath, TargetPath, NewName
                         const carSourceElement = document.getElementById(`${prefix}SourcePath`);
                         const carTargetElement = document.getElementById(`${prefix}TargetPath`);
                         const carNewNameElement = document.getElementById(`${prefix}NewName`);
-                        if (carSourceElement && config.sourcePath) carSourceElement.value = config.sourcePath;
-                        if (carTargetElement && config.targetPath) carTargetElement.value = config.targetPath;
-                        if (carNewNameElement && config.newName) carNewNameElement.value = config.newName;
+                        if (carSourceElement && config.SourcePath) {
+                            carSourceElement.value = config.SourcePath;
+                            console.log('设置复制重命名源路径:', config.SourcePath);
+                        }
+                        if (carTargetElement && config.TargetPath) {
+                            carTargetElement.value = config.TargetPath;
+                            console.log('设置复制重命名目标路径:', config.TargetPath);
+                        }
+                        if (carNewNameElement && config.NewName) {
+                            carNewNameElement.value = config.NewName;
+                            console.log('设置复制重命名新名称:', config.NewName);
+                        }
                         break;
 
                     default:
-                        const customConfigElement = document.getElementById(`${prefix}CustomConfig`);
-                        if (customConfigElement && config.customConfig) customConfigElement.value = config.customConfig;
+                        console.warn('未知的操作类型:', config.type);
+                        break;
                 }
+
+                console.log('配置字段填充完成');
             } catch (error) {
-                console.error('填充编辑配置字段失败:', error);
+                console.error('填充编辑配置字段失败:', error, '配置数据:', config);
             }
         }
 

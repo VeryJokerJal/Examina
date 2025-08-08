@@ -272,7 +272,7 @@ public class ExcelTestController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("run-tests")]
-    public async Task<ActionResult<object>> RunDatabaseTests()
+    public Task<ActionResult<object>> RunDatabaseTests()
     {
         // TODO: 实现测试功能
         object result = new
@@ -283,7 +283,7 @@ public class ExcelTestController : ControllerBase
             Message = "测试功能暂未实现"
         };
 
-        return Ok(result);
+        return Task.FromResult<ActionResult<object>>(Ok(result));
     }
 }
 

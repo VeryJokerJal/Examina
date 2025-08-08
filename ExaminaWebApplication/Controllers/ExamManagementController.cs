@@ -313,14 +313,30 @@ public class ExamManagementController : Controller
     }
 
     /// <summary>
-    /// Word科目题目管理页面（预留）
+    /// Word科目题目管理页面
     /// </summary>
     /// <param name="subjectId">科目ID</param>
     /// <returns></returns>
     public async Task<IActionResult> WordQuestionManagement(int subjectId)
     {
-        // 暂时重定向到通用题目管理页面
-        return await GeneralQuestionManagement(subjectId);
+        ExamSubject? subject = await _examSubjectService.GetSubjectByIdAsync(subjectId);
+        if (subject == null)
+        {
+            return NotFound();
+        }
+
+        if (subject.SubjectType != SubjectType.Word)
+        {
+            return RedirectToAction("QuestionManagement", new { subjectId });
+        }
+
+        // 题目通过前端API加载，这里返回空列表供视图渲染
+        List<ExamQuestion> questions = new List<ExamQuestion>();
+
+        ViewData["Title"] = $"Word题目管理 - {subject.SubjectName}";
+        ViewBag.Subject = subject;
+
+        return View(questions);
     }
 
     /// <summary>

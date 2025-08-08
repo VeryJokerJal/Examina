@@ -219,17 +219,25 @@
                 </div>
             </div>
 
-            <!-- 题目表格 -->
+            <!-- 题目表格（使用glassmorphism样式） -->
             <div class="table-responsive">
-                <table class="table table-hover glass-table">
+                <table class="glass-table" data-glass-table>
+                    <colgroup>
+                        <col style="width:56px" />
+                        <col />
+                        <col style="width:12%" />
+                        <col style="width:10%" />
+                        <col style="width:10%" />
+                        <col style="width:10%" />
+                        <col style="width:16%" />
+                        <col style="width:160px" />
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th>
-                                <label class="glass-checkbox">
-                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                                    <span class="glass-checkmark"></span>
-                                    <span class="glass-checkbox-label visually-hidden">全选</span>
-                                </label>
+                            <th class="col-select">
+                                <div class="form-check table-checkbox">
+                                    <input type="checkbox" id="selectAll" class="form-check-input" onchange="toggleSelectAll()">
+                                </div>
                             </th>
                             <th>题目标题</th>
                             <th>类型</th>
@@ -237,7 +245,7 @@
                             <th>分值</th>
                             <th>状态</th>
                             <th>创建时间</th>
-                            <th>操作</th>
+                            <th class="text-end">操作</th>
                         </tr>
                     </thead>
                     <tbody id="questionTableBody">

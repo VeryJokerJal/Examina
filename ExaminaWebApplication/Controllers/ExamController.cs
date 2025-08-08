@@ -263,7 +263,7 @@ public class ExamController : ControllerBase
 
             return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { message = "导出失败，请稍后重试" });
         }

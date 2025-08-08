@@ -3,6 +3,7 @@ using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Excel;
 using ExaminaWebApplication.Models.Exam;
 using ExaminaWebApplication.Models.Windows;
+using ExaminaWebApplication.Models.Word;
 using ExaminaWebApplication.Models.Practice;
 using ExaminaWebApplication.Data.Excel;
 using ExaminaWebApplication.Data.Windows;
@@ -40,6 +41,18 @@ public class ApplicationDbContext : DbContext
     // Windows题目相关实体（新的层级结构）
     public DbSet<Models.Exam.WindowsQuestion> WindowsQuestions { get; set; }
     public DbSet<Models.Exam.WindowsQuestionOperationPoint> WindowsQuestionOperationPoints { get; set; }
+
+    // Word操作点相关实体
+    public DbSet<Models.Word.WordOperationPoint> WordOperationPoints { get; set; }
+    public DbSet<WordOperationParameter> WordOperationParameters { get; set; }
+    public DbSet<WordEnumType> WordEnumTypes { get; set; }
+    public DbSet<WordEnumValue> WordEnumValues { get; set; }
+    public DbSet<WordQuestionTemplate> WordQuestionTemplates { get; set; }
+    public DbSet<WordQuestionInstance> WordQuestionInstances { get; set; }
+
+    // Word题目相关实体（新的层级结构）
+    public DbSet<Models.Exam.WordQuestion> WordQuestions { get; set; }
+    public DbSet<Models.Exam.WordQuestionOperationPoint> WordQuestionOperationPoints { get; set; }
 
     // 试卷管理相关实体
     public DbSet<Exam> Exams { get; set; }
@@ -180,6 +193,9 @@ public class ApplicationDbContext : DbContext
 
         // 配置Windows实体
         ConfigureWindowsEntities(modelBuilder);
+
+        // 配置Word实体
+        ConfigureWordEntities(modelBuilder);
 
         // 配置试卷管理实体
         ConfigureExamEntities(modelBuilder);
@@ -1054,6 +1070,224 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Practice)
                   .WithMany(p => p.Questions)
                   .HasForeignKey(e => e.PracticeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureWordEntities(ModelBuilder modelBuilder)
+    {
+        // 配置WordOperationPoint实体
+        modelBuilder.Entity<Models.Word.WordOperationPoint>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.OperationNumber).IsUnique();
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.OperationNumber).IsRequired();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+        });
+
+        // 配置WordOperationParameter实体
+        modelBuilder.Entity<WordOperationParameter>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.OperationPointId);
+            entity.HasIndex(e => e.ParameterKey);
+            entity.HasIndex(e => e.DataType);
+            entity.HasIndex(e => e.IsRequired);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.ParameterKey).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ParameterName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.DefaultValue).HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(300);
+            entity.Property(e => e.IsRequired).HasDefaultValue(true);
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置关系
+            entity.HasOne(e => e.OperationPoint)
+                  .WithMany(op => op.Parameters)
+                  .HasForeignKey(e => e.OperationPointId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.EnumType)
+                  .WithMany(et => et.Parameters)
+                  .HasForeignKey(e => e.EnumTypeId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // 配置WordEnumType实体
+        modelBuilder.Entity<WordEnumType>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.TypeName).IsUnique();
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.TypeName).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(300);
+            entity.Property(e => e.Category).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+        });
+
+        // 配置WordEnumValue实体
+        modelBuilder.Entity<WordEnumValue>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.EnumTypeId);
+            entity.HasIndex(e => e.Value);
+            entity.HasIndex(e => e.SortOrder);
+            entity.HasIndex(e => e.IsDefault);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Value).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.IsDefault).HasDefaultValue(false);
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置关系
+            entity.HasOne(e => e.EnumType)
+                  .WithMany(et => et.EnumValues)
+                  .HasForeignKey(e => e.EnumTypeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置WordQuestionTemplate实体
+        modelBuilder.Entity<WordQuestionTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.OperationPointId);
+            entity.HasIndex(e => e.DifficultyLevel);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.UsageCount);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.TemplateName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.QuestionTemplate).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.ParameterConfiguration).IsRequired().HasColumnType("json");
+            entity.Property(e => e.Tags).HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置关系
+            entity.HasOne(e => e.OperationPoint)
+                  .WithMany(op => op.QuestionTemplates)
+                  .HasForeignKey(e => e.OperationPointId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置WordQuestionInstance实体
+        modelBuilder.Entity<WordQuestionInstance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.QuestionTemplateId);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.UsageCount);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.InstanceName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.QuestionContent).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.ParameterValues).IsRequired().HasColumnType("json");
+            entity.Property(e => e.ExpectedAnswer).HasColumnType("json");
+            entity.Property(e => e.ScoringCriteria).HasColumnType("json");
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置关系
+            entity.HasOne(e => e.QuestionTemplate)
+                  .WithMany(qt => qt.QuestionInstances)
+                  .HasForeignKey(e => e.QuestionTemplateId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置WordQuestion实体
+        modelBuilder.Entity<Models.Exam.WordQuestion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.SubjectId);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.TotalScore).IsRequired().HasColumnType("decimal(5,2)");
+            entity.Property(e => e.Requirements).HasMaxLength(2000);
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置关系
+            entity.HasOne(e => e.Subject)
+                  .WithMany()
+                  .HasForeignKey(e => e.SubjectId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置WordQuestionOperationPoint实体
+        modelBuilder.Entity<Models.Exam.WordQuestionOperationPoint>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置索引
+            entity.HasIndex(e => e.QuestionId);
+            entity.HasIndex(e => e.OperationType);
+            entity.HasIndex(e => e.OrderIndex);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.OperationType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Score).IsRequired().HasColumnType("decimal(5,2)");
+            entity.Property(e => e.OperationConfig).IsRequired().HasColumnType("json");
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置关系
+            entity.HasOne(e => e.Question)
+                  .WithMany(q => q.OperationPoints)
+                  .HasForeignKey(e => e.QuestionId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

@@ -473,7 +473,7 @@ public class ExcelImportExportService
             "- Rename：重命名文件或文件夹，需填写原名称、新名称、目标路径、是否文件",
             "- CreateShortcut：创建快捷方式，需填写目标路径、快捷方式位置",
             "- ModifyProperties：修改属性，需填写文件路径、属性类型（readonly/hidden/noindex）",
-            "            "- CopyAndRename：复制并重命名，需填写源路径、源是否文件、目标路径、新名称",
+            "- CopyAndRename：复制并重命名，需填写源路径、源是否文件、目标路径、新名称",
             "",
             "属性类型说明：",
             "- readonly：只读属性",
@@ -482,7 +482,7 @@ public class ExcelImportExportService
             "",
             "向后兼容性：",
             "- 旧的'archive'属性类型将自动转换为'noindex'",
-            "- 旧的'system'属性类型将自动转换为'readonly'""
+            "- 旧的'system'属性类型将自动转换为'readonly'"
         };
 
         for (int i = 0; i < instructions.Length; i++)

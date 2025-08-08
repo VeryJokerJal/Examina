@@ -278,7 +278,7 @@ public class ExamQuestionController : ControllerBase
 
             return Ok(new { success = true, message = $"成功更新 {questions.Count} 道题目的分值" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { success = false, message = "批量更新分值失败，请稍后重试" });
         }
@@ -332,7 +332,7 @@ public class ExamQuestionController : ControllerBase
 
             return Ok(new { success = true, message = $"成功启用 {questions.Count} 道题目" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { success = false, message = "批量启用失败，请稍后重试" });
         }
@@ -386,7 +386,7 @@ public class ExamQuestionController : ControllerBase
 
             return Ok(new { success = true, message = $"成功禁用 {questions.Count} 道题目" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { success = false, message = "批量禁用失败，请稍后重试" });
         }
@@ -435,7 +435,7 @@ public class ExamQuestionController : ControllerBase
 
             return Ok(new { success = true, message = $"成功删除 {questions.Count} 道题目" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { success = false, message = "批量删除失败，请稍后重试" });
         }

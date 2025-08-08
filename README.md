@@ -171,14 +171,70 @@ Invoke-WebRequest -Uri "http://localhost:5117/api/auth/login" -Method POST -Cont
 - 支持CORS跨域请求
 - 统一的错误处理和日志记录
 
+## 功能模块
+
+### 已实现功能
+
+#### 用户认证系统
+- 账号密码登录
+- 微信扫码登录（模拟）
+- JWT令牌认证
+- 用户权限管理
+
+#### 试卷管理系统
+- 试卷创建和编辑
+- 科目配置管理
+- 题目类型支持
+
+#### Excel题目管理
+- Excel操作点配置
+- 题目模板管理
+- 参数化题目生成
+
+#### Windows题目管理
+- Windows文件系统操作
+- 操作点参数配置
+- 题目自动生成
+
+#### Word题目管理 ✨ 新增
+- Word段落操作（14项知识点）
+- 参数化配置界面
+- 操作点分类管理
+- 支持的操作类型：
+  - 段落文字样式（字体、字号、字形、字间距、颜色）
+  - 段落格式设置（对齐方式、缩进、行间距、首字下沉）
+  - 段落间距与边框（间距、边框颜色/线型/线宽）
+  - 段落背景设置（底纹）
+
+### Word功能设置
+
+#### 快速开始
+1. 运行数据库迁移：
+   ```bash
+   cd ExaminaWebApplication
+   dotnet ef migrations add AddWordOperationSystem
+   dotnet ef database update
+   ```
+
+2. 初始化Word操作点数据：
+   ```bash
+   # 启动应用后访问
+   POST /api/word/operation/initialize
+   ```
+
+3. 创建包含Word科目的试卷，进入Word题目管理页面
+
+#### 详细设置指南
+请参考 [WORD_SETUP_GUIDE.md](WORD_SETUP_GUIDE.md) 获取完整的设置和故障排除指南。
+
 ## 下一步开发计划
 
-1. 实现考试模块功能
-2. 添加用户权限管理
-3. 集成真实的微信登录API
-4. 添加数据库持久化
-5. 实现考试题目管理
-6. 添加考试结果统计
+1. Word功能扩展（页面设置、水印、表格、图片等）
+2. PowerPoint题目管理
+3. C#编程题目管理
+4. 考试执行引擎
+5. 成绩统计分析
+6. 数据库持久化优化
 
 ## 技术支持
 
