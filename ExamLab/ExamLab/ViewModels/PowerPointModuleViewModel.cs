@@ -106,7 +106,7 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
     /// 编辑操作点
     /// </summary>
     /// <param name="operationPoint">要编辑的操作点</param>
-    private void EditOperationPoint(OperationPoint operationPoint)
+    private async void EditOperationPoint(OperationPoint operationPoint)
     {
         if (operationPoint == null)
         {
@@ -114,12 +114,70 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
             return;
         }
 
-        // 选中该操作点，让用户可以在右侧面板编辑
-        SelectedOperationPoint = operationPoint;
-        ClearError();
+        try
+        {
+            // 选中该操作点，让用户可以在右侧面板查看
+            SelectedOperationPoint = operationPoint;
 
-        // TODO: 后续可以实现专门的编辑对话框
-        // 目前用户可以在右侧面板直接编辑参数
+            // 为每个参数显示编辑对话框
+            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+            {
+                string title = $"编辑参数: {parameter.DisplayName}";
+                string message = string.IsNullOrWhiteSpace(parameter.Description) ?
+                    $"请输入 {parameter.DisplayName} 的值:" :
+                    $"{parameter.Description}\n\n请输入 {parameter.DisplayName} 的值:";
+
+                string? newValue = await ExamLab.Services.NotificationService.ShowInputDialogAsync(
+                    title,
+                    message,
+                    parameter.Value ?? parameter.DefaultValue ?? "");
+
+                if (newValue != null) // 用户点击了确定
+                {
+                    // 验证输入值
+                    if (parameter.IsRequired && string.IsNullOrWhiteSpace(newValue))
+                    {
+                        await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 是必填项");
+                        return;
+                    }
+
+                    // 验证数字类型参数
+                    if (parameter.Type == ParameterType.Number && !string.IsNullOrWhiteSpace(newValue))
+                    {
+                        if (!int.TryParse(newValue, out int numValue))
+                        {
+                            await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 必须是有效的数字");
+                            return;
+                        }
+
+                        if (parameter.MinValue.HasValue && numValue < parameter.MinValue.Value)
+                        {
+                            await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}");
+                            return;
+                        }
+
+                        if (parameter.MaxValue.HasValue && numValue > parameter.MaxValue.Value)
+                        {
+                            await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 不能大于 {parameter.MaxValue.Value}");
+                            return;
+                        }
+                    }
+
+                    parameter.Value = newValue;
+                }
+            }
+
+            // 刷新界面显示
+            if (SelectedQuestion != null)
+            {
+                this.RaisePropertyChanged(nameof(SelectedQuestion));
+            }
+            ClearError();
+        }
+        catch (Exception ex)
+        {
+            SetError($"编辑操作点失败：{ex.Message}");
+        }
     }
 
     /// <summary>
