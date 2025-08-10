@@ -24,6 +24,9 @@
             <converters:OrderFormatConverter x:Key="OrderFormatConverter" />
             <converters:QuestionCountFormatConverter x:Key="QuestionCountFormatConverter" />
             <converters:OperationPointCountFormatConverter x:Key="OperationPointCountFormatConverter" />
+            <converters:StringToIntConverter x:Key="StringToIntConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <converters:ParameterCountFormatConverter x:Key="ParameterCountFormatConverter" />
             <converters:ParameterCountDetailFormatConverter x:Key="ParameterCountDetailFormatConverter" />
             <converters:ScoreDisplayConverter x:Key="ScoreDisplayConverter" />

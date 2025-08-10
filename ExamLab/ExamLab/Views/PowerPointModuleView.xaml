@@ -170,7 +170,7 @@
                                                     <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
                                                     <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
                                                 </StackPanel>
-                                                <Button Grid.Column="1" Margin="0,0,8,0" Content="编辑" ToolTipService.ToolTip="编辑操作点" />
+                                                <Button Grid.Column="1" Margin="0,0,8,0" Command="{Binding DataContext.CurrentContentViewModel.EditOperationPointCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="编辑" ToolTipService.ToolTip="编辑操作点" />
                                                 <Button Grid.Column="2" Command="{Binding DataContext.CurrentContentViewModel.DeleteOperationPointCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" />
                                             </Grid>
                                         </DataTemplate>

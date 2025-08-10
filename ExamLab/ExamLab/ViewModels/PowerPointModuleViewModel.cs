@@ -35,6 +35,11 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
     /// </summary>
     public ReactiveCommand<string, Unit> AddOperationPointByTypeCommand { get; }
 
+    /// <summary>
+    /// 编辑操作点命令
+    /// </summary>
+    public ReactiveCommand<OperationPoint, Unit> EditOperationPointCommand { get; }
+
     public PowerPointModuleViewModel(ExamModule module) : base(module)
     {
         // 初始化可用知识点
@@ -46,6 +51,7 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
         // 初始化命令
         AddKnowledgePointCommand = ReactiveCommand.Create<PowerPointKnowledgeType>(AddKnowledgePoint);
         AddOperationPointByTypeCommand = ReactiveCommand.Create<string>(AddOperationPointByType);
+        EditOperationPointCommand = ReactiveCommand.Create<OperationPoint>(EditOperationPoint);
     }
 
     protected override void AddOperationPoint()
@@ -94,6 +100,26 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
         {
             SetError($"未知的知识点类型：{knowledgeTypeString}");
         }
+    }
+
+    /// <summary>
+    /// 编辑操作点
+    /// </summary>
+    /// <param name="operationPoint">要编辑的操作点</param>
+    private void EditOperationPoint(OperationPoint operationPoint)
+    {
+        if (operationPoint == null)
+        {
+            SetError("操作点不能为空");
+            return;
+        }
+
+        // 选中该操作点，让用户可以在右侧面板编辑
+        SelectedOperationPoint = operationPoint;
+        ClearError();
+
+        // TODO: 后续可以实现专门的编辑对话框
+        // 目前用户可以在右侧面板直接编辑参数
     }
 
     /// <summary>
