@@ -24,18 +24,8 @@ public sealed partial class MainWindow : Window
         ViewModel = new MainWindowViewModel();
         mainGrid.DataContext = ViewModel;
 
-        // 在Activated事件中设置XamlRoot，确保UI完全加载
-        Activated += OnMainWindowActivated;
+        XamlRootService.SetXamlRoot(Content.XamlRoot);
         Closed += OnMainWindowClosed;
-    }
-
-    private void OnMainWindowActivated(object sender, WindowActivatedEventArgs e)
-    {
-        // 设置XamlRoot（只设置一次）
-        if (!XamlRootService.IsXamlRootSet() && Content?.XamlRoot != null)
-        {
-            XamlRootService.SetXamlRoot(Content.XamlRoot);
-        }
     }
 
     private void OnMainWindowClosed(object sender, WindowEventArgs e)

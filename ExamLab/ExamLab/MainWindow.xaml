@@ -9,7 +9,6 @@
         <Grid.Resources>
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <converters:OperationPointCountFormatConverter x:Key="OperationPointCountFormatConverter" />
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -42,7 +41,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="260" />
+                        <RowDefinition Height="310" />
                     </Grid.RowDefinitions>
 
                     <!--  试卷列表标题  -->
@@ -71,13 +70,33 @@
                     <ListView Grid.Row="3" Margin="8,0" ItemsSource="{Binding SelectedExam.Modules}" SelectedItem="{Binding SelectedModule, Mode=TwoWay}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Margin="8,4">
+                                <Grid Padding="10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Name}" />
-                                    <InfoBadge Grid.Column="1" Value="{Binding Score}" />
+
+                                    <!--  模块名称  -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding Name}" />
+
+                                    <!--  题目数量 InfoBadge  -->
+                                    <InfoBadge Grid.Row="0" Grid.Column="1" Value="{Binding QuestionCount}" />
+
+                                    <!--  统计信息  -->
+                                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,4,0,0" Orientation="Horizontal" Spacing="12">
+                                        <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
+                                            <Run Text="总分: " />
+                                            <Run Text="{Binding TotalScore}" />
+                                        </TextBlock>
+                                        <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
+                                            <Run Text="操作点: " />
+                                            <Run Text="{Binding OperationPointCount}" />
+                                        </TextBlock>
+                                    </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

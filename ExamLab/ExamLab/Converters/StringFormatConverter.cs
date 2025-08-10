@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.UI.Xaml.Data;
+using ExamLab.Models;
 
 namespace ExamLab.Converters;
 
@@ -143,6 +145,68 @@ public class ScoreDisplayConverter : IValueConverter
             return $"分值：{score}分";
         }
         return value is double doubleScore ? $"分值：{doubleScore}分" : "分值：0分";
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// 模块总分转换器
+/// </summary>
+public class ModuleTotalScoreConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is ExamModule module)
+        {
+            double totalScore = module.Questions.Sum(q => q.Score);
+            return totalScore;
+        }
+        return 0.0;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// 模块操作点数量转换器
+/// </summary>
+public class ModuleOperationPointCountConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is ExamModule module)
+        {
+            int operationPointCount = module.Questions.Sum(q => q.OperationPoints.Count);
+            return operationPointCount;
+        }
+        return 0;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// 模块题目数量转换器
+/// </summary>
+public class ModuleQuestionCountConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is ExamModule module)
+        {
+            return module.Questions.Count;
+        }
+        return 0;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)

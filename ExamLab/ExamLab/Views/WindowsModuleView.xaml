@@ -91,15 +91,13 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <!--  题目详情  -->
                             <StackPanel Grid.Row="0" Spacing="8">
                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="题目详情" />
-                                <TextBox Header="题目标题" Text="{Binding CurrentContentViewModel.SelectedQuestion.Title, Mode=TwoWay}" />
-                                <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay}" TextWrapping="Wrap" />
+                                <TextBox Header="题目标题" Text="{Binding CurrentContentViewModel.SelectedQuestion.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
                                 <NumberBox Header="题目分值" Value="{Binding CurrentContentViewModel.SelectedQuestion.Score, Mode=TwoWay}" />
                             </StackPanel>
 
@@ -168,15 +166,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!--  操作点详情编辑  -->
-                            <TextBlock Grid.Row="4" Margin="0,16,0,8" FontSize="16" FontWeight="SemiBold" Text="操作点详情" Visibility="{Binding CurrentContentViewModel.SelectedOperationPoint, Converter={StaticResource NullToVisibilityConverter}}" />
 
-                            <StackPanel Grid.Row="5" Spacing="8" Visibility="{Binding CurrentContentViewModel.SelectedOperationPoint, Converter={StaticResource NullToVisibilityConverter}}">
-                                <TextBox Header="操作点名称" Text="{Binding CurrentContentViewModel.SelectedOperationPoint.Name, Mode=TwoWay}" />
-                                <TextBox Height="80" AcceptsReturn="True" Header="操作点描述" Text="{Binding CurrentContentViewModel.SelectedOperationPoint.Description, Mode=TwoWay}" TextWrapping="Wrap" />
-                                <NumberBox Header="操作点分值" Value="{Binding CurrentContentViewModel.SelectedOperationPoint.Score, Mode=TwoWay}" />
-                                <CheckBox Content="启用此操作点" IsChecked="{Binding CurrentContentViewModel.SelectedOperationPoint.IsEnabled, Mode=TwoWay}" />
-                            </StackPanel>
                         </Grid>
                     </Border>
 

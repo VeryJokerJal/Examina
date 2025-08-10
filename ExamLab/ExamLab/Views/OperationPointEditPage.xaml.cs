@@ -1,7 +1,7 @@
-using Microsoft.UI.Xaml.Controls;
+﻿using System.Collections.Generic;
 using ExamLab.Models;
-using System.Collections.Generic;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
 namespace ExamLab.Views;
@@ -14,7 +14,7 @@ public sealed partial class OperationPointEditPage : Page
     /// <summary>
     /// 参数编辑控件字典
     /// </summary>
-    private readonly Dictionary<string, FrameworkElement> _parameterControls = new();
+    private readonly Dictionary<string, FrameworkElement> _parameterControls = [];
 
     /// <summary>
     /// 当前编辑的操作点
@@ -60,20 +60,24 @@ public sealed partial class OperationPointEditPage : Page
     private void CreateParameterControl(ConfigurationParameter parameter)
     {
         // 创建参数容器
-        Grid parameterGrid = new() 
-        { 
+        Grid parameterGrid = new()
+        {
             Margin = new Thickness(0, 0, 0, 16)
         };
-        
+
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         // 创建参数标签
-        StackPanel labelPanel = new() { Orientation = Orientation.Horizontal };
-        
-        TextBlock labelText = new() 
-        { 
-            Text = parameter.DisplayName, 
+        StackPanel labelPanel = new()
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+
+        TextBlock labelText = new()
+        {
+            Text = parameter.DisplayName,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -81,9 +85,9 @@ public sealed partial class OperationPointEditPage : Page
 
         if (parameter.IsRequired)
         {
-            TextBlock requiredMark = new() 
-            { 
-                Text = " *", 
+            TextBlock requiredMark = new()
+            {
+                Text = " *",
                 Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red),
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -104,9 +108,9 @@ public sealed partial class OperationPointEditPage : Page
         // 添加参数描述
         if (!string.IsNullOrWhiteSpace(parameter.Description))
         {
-            TextBlock descriptionText = new() 
-            { 
-                Text = parameter.Description, 
+            TextBlock descriptionText = new()
+            {
+                Text = parameter.Description,
                 FontSize = 11,
                 Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
                 TextWrapping = TextWrapping.Wrap
@@ -118,9 +122,9 @@ public sealed partial class OperationPointEditPage : Page
         string constraintInfo = GetConstraintInfo(parameter);
         if (!string.IsNullOrEmpty(constraintInfo))
         {
-            TextBlock constraintText = new() 
-            { 
-                Text = constraintInfo, 
+            TextBlock constraintText = new()
+            {
+                Text = constraintInfo,
                 FontSize = 10,
                 Foreground = new SolidColorBrush(Microsoft.UI.Colors.DarkGray),
                 TextWrapping = TextWrapping.Wrap
@@ -142,7 +146,7 @@ public sealed partial class OperationPointEditPage : Page
     /// <returns>约束信息</returns>
     private static string GetConstraintInfo(ConfigurationParameter parameter)
     {
-        List<string> constraints = new();
+        List<string> constraints = [];
 
         // 添加类型信息
         string typeInfo = parameter.Type switch
@@ -317,19 +321,16 @@ public sealed partial class OperationPointEditPage : Page
     /// <returns>参数值</returns>
     public string GetParameterValue(ConfigurationParameter parameter)
     {
-        if (!_parameterControls.TryGetValue(parameter.Name, out FrameworkElement? control))
-        {
-            return parameter.Value ?? "";
-        }
-
-        return control switch
-        {
-            NumberBox numberBox => numberBox.Value.ToString(),
-            ComboBox comboBox => comboBox.SelectedItem?.ToString() ?? "",
-            CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
-            TextBox textBox => textBox.Text,
-            _ => parameter.Value ?? ""
-        };
+        return !_parameterControls.TryGetValue(parameter.Name, out FrameworkElement? control)
+            ? parameter.Value ?? ""
+            : control switch
+            {
+                NumberBox numberBox => numberBox.Value.ToString(),
+                ComboBox comboBox => comboBox.SelectedItem?.ToString() ?? "",
+                CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
+                TextBox textBox => textBox.Text,
+                _ => parameter.Value ?? ""
+            };
     }
 
     /// <summary>

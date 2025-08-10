@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
@@ -21,6 +23,38 @@ public enum ModuleType
 /// </summary>
 public class ExamModule : ReactiveObject
 {
+    public ExamModule()
+    {
+        // 监听Questions集合变化，通知计算属性更新
+        Questions.CollectionChanged += (sender, e) =>
+        {
+            this.RaisePropertyChanged(nameof(QuestionCount));
+            this.RaisePropertyChanged(nameof(TotalScore));
+            this.RaisePropertyChanged(nameof(OperationPointCount));
+
+            // 监听新添加的题目的属性变化
+            if (e.NewItems != null)
+            {
+                foreach (Question question in e.NewItems.Cast<Question>())
+                {
+                    // 监听题目分值变化
+                    question.PropertyChanged += (s, args) =>
+                    {
+                        if (args.PropertyName == nameof(Question.Score))
+                        {
+                            this.RaisePropertyChanged(nameof(TotalScore));
+                        }
+                    };
+
+                    // 监听题目的操作点集合变化
+                    question.OperationPoints.CollectionChanged += (s, args) =>
+                    {
+                        this.RaisePropertyChanged(nameof(OperationPointCount));
+                    };
+                }
+            }
+        };
+    }
     /// <summary>
     /// 模块ID
     /// </summary>
@@ -60,4 +94,19 @@ public class ExamModule : ReactiveObject
     /// 模块排序
     /// </summary>
     [Reactive] public int Order { get; set; }
+
+    /// <summary>
+    /// 题目数量
+    /// </summary>
+    public int QuestionCount => Questions.Count;
+
+    /// <summary>
+    /// 总分
+    /// </summary>
+    public double TotalScore => Questions.Sum(q => q.Score);
+
+    /// <summary>
+    /// 操作点数量
+    /// </summary>
+    public int OperationPointCount => Questions.Sum(q => q.OperationPoints.Count);
 }

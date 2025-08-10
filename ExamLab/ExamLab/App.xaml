@@ -30,6 +30,9 @@
             <converters:ParameterCountFormatConverter x:Key="ParameterCountFormatConverter" />
             <converters:ParameterCountDetailFormatConverter x:Key="ParameterCountDetailFormatConverter" />
             <converters:ScoreDisplayConverter x:Key="ScoreDisplayConverter" />
+            <converters:ModuleTotalScoreConverter x:Key="ModuleTotalScoreConverter" />
+            <converters:ModuleOperationPointCountConverter x:Key="ModuleOperationPointCountConverter" />
+            <converters:ModuleQuestionCountConverter x:Key="ModuleQuestionCountConverter" />
 
         </ResourceDictionary>
     </Application.Resources>
