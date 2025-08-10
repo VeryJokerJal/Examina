@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Window x:Class="ExamLab.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="using:ExamLab.Converters" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="using:ExamLab" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" Title="试卷制作系统" mc:Ignorable="d">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="mainGrid">
+        <Grid.Resources>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:OperationPointCountFormatConverter x:Key="OperationPointCountFormatConverter" />
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  顶部工具栏  -->
+        <Border Grid.Row="0" Padding="16,8" Background="{ThemeResource CardBackgroundFillColorDefault}">
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock VerticalAlignment="Center" FontSize="14" Text="试卷制作" />
+                <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●" ToolTipService.ToolTip="有未保存的更改" Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
+                <Button Command="{Binding SaveExamCommand}" Content="保存" />
+                <Button Command="{Binding ImportExamCommand}" Content="导入" />
+                <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" />
+            </StackPanel>
+        </Border>
+
+        <!--  主内容区域  -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--  左侧导航面板  -->
+            <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="260" />
+                    </Grid.RowDefinitions>
+
+                    <!--  试卷列表标题  -->
+                    <TextBlock Grid.Row="0" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="试卷" />
+
+                    <!--  试卷列表  -->
+                    <ListView Grid.Row="1" Margin="8,0" ItemsSource="{Binding Exams}" SelectedItem="{Binding SelectedExam, Mode=TwoWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="8,4" Padding="0,5">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" FontWeight="SemiBold" Text="{Binding Name}" />
+                                    <TextBlock Grid.Row="1" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!--  模块列表标题  -->
+                    <TextBlock Grid.Row="2" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="模块" />
+
+                    <!--  模块列表  -->
+                    <ListView Grid.Row="3" Margin="8,0" ItemsSource="{Binding SelectedExam.Modules}" SelectedItem="{Binding SelectedModule, Mode=TwoWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="8,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Name}" />
+                                    <InfoBadge Grid.Column="1" Value="{Binding Score}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+
+            <!--  右侧内容区域  -->
+            <Grid Grid.Column="1">
+                <!--  默认显示  -->
+                <Border Margin="16" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
+                    <StackPanel VerticalAlignment="Center" Spacing="16">
+                        <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="SemiBold" Text="欢迎使用试卷制作系统" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请选择左侧的试卷和模块开始配置" />
+                    </StackPanel>
+                </Border>
+
+                <!--  模块内容显示  -->
+                <ContentPresenter Content="{Binding CurrentContentView}" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
