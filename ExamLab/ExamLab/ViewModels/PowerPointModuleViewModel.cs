@@ -119,59 +119,168 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
             // 选中该操作点，让用户可以在右侧面板查看
             SelectedOperationPoint = operationPoint;
 
+            // 显示操作点信息
+            string operationInfo = $"操作点：{operationPoint.Name}\n描述：{operationPoint.Description}\n\n";
+
+            // 构建参数信息
+            string parameterInfo = "当前参数配置：\n";
+            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+            {
+                string requiredMark = parameter.IsRequired ? " *" : "";
+                string currentValue = string.IsNullOrWhiteSpace(parameter.Value) ? "(未设置)" : parameter.Value;
+                parameterInfo += $"• {parameter.DisplayName}{requiredMark}: {currentValue}\n";
+                if (!string.IsNullOrWhiteSpace(parameter.Description))
+                {
+                    parameterInfo += $"  说明：{parameter.Description}\n";
+                }
+            }
+
+            // 显示确认对话框
+            bool confirmed = await NotificationService.ShowConfirmationAsync(
+                "编辑操作点参数",
+                $"{operationInfo}{parameterInfo}\n是否要编辑这些参数？");
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            // 创建参数副本用于编辑
+            Dictionary<string, string> originalValues = new();
+            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+            {
+                originalValues[parameter.Name] = parameter.Value ?? "";
+            }
+
+            bool hasChanges = false;
+
             // 为每个参数显示编辑对话框
             foreach (ConfigurationParameter parameter in operationPoint.Parameters)
             {
                 string title = $"编辑参数: {parameter.DisplayName}";
-                string message = string.IsNullOrWhiteSpace(parameter.Description) ?
-                    $"请输入 {parameter.DisplayName} 的值:" :
-                    $"{parameter.Description}\n\n请输入 {parameter.DisplayName} 的值:";
+                string message = $"操作点：{operationPoint.Name}\n\n";
 
-                string? newValue = await ExamLab.Services.NotificationService.ShowInputDialogAsync(
+                if (!string.IsNullOrWhiteSpace(parameter.Description))
+                {
+                    message += $"参数说明：{parameter.Description}\n\n";
+                }
+
+                if (parameter.Type == ParameterType.Number)
+                {
+                    if (parameter.MinValue.HasValue || parameter.MaxValue.HasValue)
+                    {
+                        string range = "";
+                        if (parameter.MinValue.HasValue && parameter.MaxValue.HasValue)
+                        {
+                            range = $"（范围：{parameter.MinValue.Value} - {parameter.MaxValue.Value}）";
+                        }
+                        else if (parameter.MinValue.HasValue)
+                        {
+                            range = $"（最小值：{parameter.MinValue.Value}）";
+                        }
+                        else if (parameter.MaxValue.HasValue)
+                        {
+                            range = $"（最大值：{parameter.MaxValue.Value}）";
+                        }
+                        message += $"数字类型参数 {range}\n\n";
+                    }
+                }
+                else if (parameter.Type == ParameterType.Enum && parameter.EnumOptionsList.Count > 0)
+                {
+                    message += $"可选值：{string.Join(", ", parameter.EnumOptionsList)}\n\n";
+                }
+
+                message += $"请输入 {parameter.DisplayName} 的值：";
+                if (parameter.IsRequired)
+                {
+                    message += "\n（此参数为必填项）";
+                }
+
+                string? newValue = await NotificationService.ShowInputDialogAsync(
                     title,
                     message,
                     parameter.Value ?? parameter.DefaultValue ?? "");
 
-                if (newValue != null) // 用户点击了确定
+                if (newValue == null) // 用户取消了
                 {
-                    // 验证输入值
-                    if (parameter.IsRequired && string.IsNullOrWhiteSpace(newValue))
+                    // 询问是否要保存已修改的参数
+                    if (hasChanges)
                     {
-                        await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 是必填项");
-                        return;
-                    }
+                        bool savePartial = await NotificationService.ShowConfirmationAsync(
+                            "保存更改",
+                            "您已经修改了一些参数，是否要保存这些更改？");
 
-                    // 验证数字类型参数
-                    if (parameter.Type == ParameterType.Number && !string.IsNullOrWhiteSpace(newValue))
-                    {
-                        if (!int.TryParse(newValue, out int numValue))
+                        if (!savePartial)
                         {
-                            await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 必须是有效的数字");
-                            return;
-                        }
-
-                        if (parameter.MinValue.HasValue && numValue < parameter.MinValue.Value)
-                        {
-                            await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}");
-                            return;
-                        }
-
-                        if (parameter.MaxValue.HasValue && numValue > parameter.MaxValue.Value)
-                        {
-                            await ExamLab.Services.NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 不能大于 {parameter.MaxValue.Value}");
-                            return;
+                            // 恢复所有参数的原始值
+                            foreach (ConfigurationParameter param in operationPoint.Parameters)
+                            {
+                                param.Value = originalValues[param.Name];
+                            }
                         }
                     }
+                    break;
+                }
 
+                // 验证输入值
+                if (parameter.IsRequired && string.IsNullOrWhiteSpace(newValue))
+                {
+                    await NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 是必填项，请重新输入。");
+                    continue; // 重新输入这个参数
+                }
+
+                // 验证数字类型参数
+                if (parameter.Type == ParameterType.Number && !string.IsNullOrWhiteSpace(newValue))
+                {
+                    if (!int.TryParse(newValue, out int numValue))
+                    {
+                        await NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 必须是有效的数字，请重新输入。");
+                        continue; // 重新输入这个参数
+                    }
+
+                    if (parameter.MinValue.HasValue && numValue < parameter.MinValue.Value)
+                    {
+                        await NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}，请重新输入。");
+                        continue; // 重新输入这个参数
+                    }
+
+                    if (parameter.MaxValue.HasValue && numValue > parameter.MaxValue.Value)
+                    {
+                        await NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 不能大于 {parameter.MaxValue.Value}，请重新输入。");
+                        continue; // 重新输入这个参数
+                    }
+                }
+
+                // 验证枚举类型参数
+                if (parameter.Type == ParameterType.Enum && parameter.EnumOptionsList.Count > 0)
+                {
+                    if (!parameter.EnumOptionsList.Contains(newValue))
+                    {
+                        await NotificationService.ShowErrorAsync("验证错误", $"参数 '{parameter.DisplayName}' 的值必须是以下选项之一：{string.Join(", ", parameter.EnumOptionsList)}");
+                        continue; // 重新输入这个参数
+                    }
+                }
+
+                // 更新参数值
+                if (parameter.Value != newValue)
+                {
                     parameter.Value = newValue;
+                    hasChanges = true;
                 }
             }
 
-            // 刷新界面显示
-            if (SelectedQuestion != null)
+            // 显示编辑结果
+            if (hasChanges)
             {
-                this.RaisePropertyChanged(nameof(SelectedQuestion));
+                await NotificationService.ShowSuccessAsync("编辑完成", "操作点参数已成功更新！");
+
+                // 刷新界面显示
+                if (SelectedQuestion != null)
+                {
+                    this.RaisePropertyChanged(nameof(SelectedQuestion));
+                }
             }
+
             ClearError();
         }
         catch (Exception ex)
