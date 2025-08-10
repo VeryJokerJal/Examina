@@ -116,14 +116,19 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
 
         try
         {
+            // 检查XamlRoot是否可用
+            Microsoft.UI.Xaml.XamlRoot? xamlRoot = XamlRootService.GetXamlRoot();
+            if (xamlRoot == null)
+            {
+                SetError("无法显示编辑对话框：XamlRoot未设置");
+                return;
+            }
+
             // 创建编辑对话框
             Views.OperationPointEditDialog dialog = new(operationPoint);
 
             // 设置XamlRoot
-            if (XamlRootService.GetXamlRoot() is { } xamlRoot)
-            {
-                dialog.XamlRoot = xamlRoot;
-            }
+            dialog.XamlRoot = xamlRoot;
 
             // 显示对话框
             Microsoft.UI.Xaml.Controls.ContentDialogResult result = await dialog.ShowAsync();
