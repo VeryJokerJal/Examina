@@ -1,39 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using ExamLab.Models;
-using ExamLab.ViewModels;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ExamLab.Models;
+using System.Collections.Generic;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
 namespace ExamLab.Views;
 
 /// <summary>
-/// 操作点编辑对话框
+/// 操作点编辑页面
 /// </summary>
-public sealed partial class OperationPointEditDialog : ContentDialog
+public sealed partial class OperationPointEditPage : Page
 {
-    /// <summary>
-    /// ViewModel
-    /// </summary>
-    public OperationPointEditDialogViewModel? ViewModel { get; set; }
-
     /// <summary>
     /// 参数编辑控件字典
     /// </summary>
-    private readonly Dictionary<string, FrameworkElement> _parameterControls = [];
+    private readonly Dictionary<string, FrameworkElement> _parameterControls = new();
 
-    public OperationPointEditDialog()
+    /// <summary>
+    /// 当前编辑的操作点
+    /// </summary>
+    public OperationPoint? OperationPoint { get; private set; }
+
+    public OperationPointEditPage()
     {
         InitializeComponent();
-        PrimaryButtonClick += OnPrimaryButtonClick;
-        CloseButtonClick += OnCloseButtonClick;
     }
 
-    public OperationPointEditDialog(OperationPoint operationPoint) : this()
+    /// <summary>
+    /// 初始化页面内容
+    /// </summary>
+    /// <param name="operationPoint">操作点</param>
+    public void Initialize(OperationPoint operationPoint)
     {
-        ViewModel = new OperationPointEditDialogViewModel(operationPoint);
-        DataContext = ViewModel;
+        OperationPoint = operationPoint;
         InitializeControls(operationPoint);
     }
 
@@ -61,20 +60,20 @@ public sealed partial class OperationPointEditDialog : ContentDialog
     private void CreateParameterControl(ConfigurationParameter parameter)
     {
         // 创建参数容器
-        Grid parameterGrid = new()
-        {
+        Grid parameterGrid = new() 
+        { 
             Margin = new Thickness(0, 0, 0, 16)
         };
-
+        
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         // 创建参数标签
         StackPanel labelPanel = new() { Orientation = Orientation.Horizontal };
-
-        TextBlock labelText = new()
-        {
-            Text = parameter.DisplayName,
+        
+        TextBlock labelText = new() 
+        { 
+            Text = parameter.DisplayName, 
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -82,9 +81,9 @@ public sealed partial class OperationPointEditDialog : ContentDialog
 
         if (parameter.IsRequired)
         {
-            TextBlock requiredMark = new()
-            {
-                Text = " *",
+            TextBlock requiredMark = new() 
+            { 
+                Text = " *", 
                 Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red),
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -105,9 +104,9 @@ public sealed partial class OperationPointEditDialog : ContentDialog
         // 添加参数描述
         if (!string.IsNullOrWhiteSpace(parameter.Description))
         {
-            TextBlock descriptionText = new()
-            {
-                Text = parameter.Description,
+            TextBlock descriptionText = new() 
+            { 
+                Text = parameter.Description, 
                 FontSize = 11,
                 Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
                 TextWrapping = TextWrapping.Wrap
@@ -119,9 +118,9 @@ public sealed partial class OperationPointEditDialog : ContentDialog
         string constraintInfo = GetConstraintInfo(parameter);
         if (!string.IsNullOrEmpty(constraintInfo))
         {
-            TextBlock constraintText = new()
-            {
-                Text = constraintInfo,
+            TextBlock constraintText = new() 
+            { 
+                Text = constraintInfo, 
                 FontSize = 10,
                 Foreground = new SolidColorBrush(Microsoft.UI.Colors.DarkGray),
                 TextWrapping = TextWrapping.Wrap
@@ -143,7 +142,7 @@ public sealed partial class OperationPointEditDialog : ContentDialog
     /// <returns>约束信息</returns>
     private static string GetConstraintInfo(ConfigurationParameter parameter)
     {
-        List<string> constraints = [];
+        List<string> constraints = new();
 
         // 添加类型信息
         string typeInfo = parameter.Type switch
@@ -316,63 +315,38 @@ public sealed partial class OperationPointEditDialog : ContentDialog
     /// </summary>
     /// <param name="parameter">参数</param>
     /// <returns>参数值</returns>
-    private string GetParameterValue(ConfigurationParameter parameter)
+    public string GetParameterValue(ConfigurationParameter parameter)
     {
-        return !_parameterControls.TryGetValue(parameter.Name, out FrameworkElement? control)
-            ? parameter.Value ?? ""
-            : control switch
-            {
-                NumberBox numberBox => numberBox.Value.ToString(),
-                ComboBox comboBox => comboBox.SelectedItem?.ToString() ?? "",
-                CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
-                TextBox textBox => textBox.Text,
-                _ => parameter.Value ?? ""
-            };
+        if (!_parameterControls.TryGetValue(parameter.Name, out FrameworkElement? control))
+        {
+            return parameter.Value ?? "";
+        }
+
+        return control switch
+        {
+            NumberBox numberBox => numberBox.Value.ToString(),
+            ComboBox comboBox => comboBox.SelectedItem?.ToString() ?? "",
+            CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
+            TextBox textBox => textBox.Text,
+            _ => parameter.Value ?? ""
+        };
     }
 
     /// <summary>
-    /// 保存按钮点击事件
+    /// 显示错误信息
     /// </summary>
-    private void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    /// <param name="message">错误信息</param>
+    public void ShowError(string message)
     {
-        try
-        {
-            // 更新参数值
-            if (ViewModel?.OperationPoint != null)
-            {
-                foreach (ConfigurationParameter parameter in ViewModel.OperationPoint.Parameters)
-                {
-                    parameter.Value = GetParameterValue(parameter);
-                }
-            }
-
-            // 验证参数
-            if (ViewModel?.ValidateParameters() == true)
-            {
-                _ = ViewModel.SaveCommand.Execute().Subscribe();
-                ErrorTextBlock.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                // 显示验证错误
-                ErrorTextBlock.Text = ViewModel?.ErrorMessage ?? "参数验证失败";
-                ErrorTextBlock.Visibility = Visibility.Visible;
-                args.Cancel = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorTextBlock.Text = $"保存失败：{ex.Message}";
-            ErrorTextBlock.Visibility = Visibility.Visible;
-            args.Cancel = true;
-        }
+        ErrorTextBlock.Text = message;
+        ErrorTextBlock.Visibility = Visibility.Visible;
     }
 
     /// <summary>
-    /// 取消按钮点击事件
+    /// 隐藏错误信息
     /// </summary>
-    private void OnCloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    public void HideError()
     {
-        _ = (ViewModel?.CancelCommand.Execute().Subscribe());
+        ErrorTextBlock.Visibility = Visibility.Collapsed;
     }
 }
