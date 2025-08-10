@@ -108,45 +108,45 @@
                                     <!--  幻灯片操作类  -->
                                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Header="幻灯片操作" IsExpanded="True">
                                         <StackPanel Spacing="8">
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SetSlideLayout" Content="设置幻灯片版式" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="DeleteSlide" Content="删除幻灯片" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="InsertSlide" Content="插入幻灯片" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SetSlideFont" Content="设置幻灯片字体" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SlideTransitionEffect" Content="幻灯片切换效果" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SlideTransitionMode" Content="幻灯片切换方式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSlideLayout" Content="设置幻灯片版式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="DeleteSlide" Content="删除幻灯片" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertSlide" Content="插入幻灯片" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSlideFont" Content="设置幻灯片字体" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionEffect" Content="幻灯片切换效果" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionMode" Content="幻灯片切换方式" />
                                         </StackPanel>
                                     </Expander>
 
                                     <!--  文字与字体设置类  -->
                                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Header="文字与字体设置">
                                         <StackPanel Spacing="8">
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="InsertTextContent" Content="插入文本内容" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SetTextFontSize" Content="设置文本字号" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SetTextColor" Content="设置文本颜色" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SetTextStyle" Content="设置文本字形" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SetElementPosition" Content="设置元素位置" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddKnowledgePointCommand}" CommandParameter="SetElementSize" Content="设置元素尺寸" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertTextContent" Content="插入文本内容" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTextFontSize" Content="设置文本字号" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTextColor" Content="设置文本颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTextStyle" Content="设置文本字形" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetElementPosition" Content="设置元素位置" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetElementSize" Content="设置元素尺寸" />
                                         </StackPanel>
                                     </Expander>
 
                                     <!--  背景样式与设计类  -->
                                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Header="背景样式与设计">
                                         <StackPanel Spacing="8">
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="ApplyTheme" Content="应用主题" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetSlideBackground" Content="设置幻灯片背景" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ApplyTheme" Content="应用主题" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSlideBackground" Content="设置幻灯片背景" />
                                         </StackPanel>
                                     </Expander>
 
                                     <!--  其他设置类  -->
                                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Header="其他设置">
                                         <StackPanel Spacing="8">
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetTableContent" Content="设置表格内容" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetTableStyle" Content="设置表格样式" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetSmartArtStyle" Content="SmartArt样式" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetSmartArtContent" Content="SmartArt内容" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetAnimationTiming" Content="动画计时设置" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetParagraphSpacing" Content="段落行距" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding AddKnowledgePointCommand}" CommandParameter="SetBackgroundStyle" Content="设置背景样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTableContent" Content="设置表格内容" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTableStyle" Content="设置表格样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSmartArtStyle" Content="SmartArt样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSmartArtContent" Content="SmartArt内容" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationTiming" Content="动画计时设置" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetParagraphSpacing" Content="段落行距" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetBackgroundStyle" Content="设置背景样式" />
                                         </StackPanel>
                                     </Expander>
                                 </StackPanel>
