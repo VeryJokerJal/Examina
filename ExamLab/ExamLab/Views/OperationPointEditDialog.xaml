@@ -1,0 +1,24 @@
+&lt;ContentDialog x:Class="ExamLab.Views.OperationPointEditDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               Title="编辑操作点"
+               PrimaryButtonText="保存"
+               CloseButtonText="取消"&gt;
+
+    &lt;StackPanel Width="600" Height="500" Margin="24"&gt;
+        &lt;TextBlock Text="编辑操作点参数" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16" /&gt;
+
+        &lt;TextBlock Text="操作点名称:" FontWeight="SemiBold" Margin="0,0,0,4" /&gt;
+        &lt;TextBox x:Name="NameTextBox" IsReadOnly="True" Margin="0,0,0,16" /&gt;
+
+        &lt;TextBlock Text="操作点描述:" FontWeight="SemiBold" Margin="0,0,0,4" /&gt;
+        &lt;TextBox x:Name="DescriptionTextBox" IsReadOnly="True" TextWrapping="Wrap" Height="60" Margin="0,0,0,16" /&gt;
+
+        &lt;TextBlock Text="参数配置:" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" /&gt;
+        &lt;ScrollViewer Height="250" VerticalScrollBarVisibility="Auto"&gt;
+            &lt;StackPanel x:Name="ParametersPanel" /&gt;
+        &lt;/ScrollViewer&gt;
+
+        &lt;TextBlock x:Name="ErrorTextBlock" Foreground="Red" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,16,0,0" /&gt;
+    &lt;/StackPanel&gt;
+&lt;/ContentDialog&gt;

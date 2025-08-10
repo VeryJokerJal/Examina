@@ -116,205 +116,36 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
 
         try
         {
-            // 选中该操作点，让用户可以在右侧面板查看
-            SelectedOperationPoint = operationPoint;
+            // 创建编辑对话框
+            Views.OperationPointEditDialog dialog = new(operationPoint);
 
-            // 显示操作点信息和参数概览
-            string operationInfo = $"操作点：{operationPoint.Name}\n描述：{operationPoint.Description}\n\n";
-
-            // 构建参数信息
-            string parameterInfo = "当前参数配置：\n";
-            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+            // 设置XamlRoot
+            if (XamlRootService.GetXamlRoot() is { } xamlRoot)
             {
-                string requiredMark = parameter.IsRequired ? " *" : "";
-                string currentValue = string.IsNullOrWhiteSpace(parameter.Value) ? "(未设置)" : parameter.Value;
-                parameterInfo += $"• {parameter.DisplayName}{requiredMark}: {currentValue}\n";
-                if (!string.IsNullOrWhiteSpace(parameter.Description))
-                {
-                    parameterInfo += $"  说明：{parameter.Description}\n";
-                }
+                dialog.XamlRoot = xamlRoot;
             }
 
-            // 显示参数概览，让用户了解要编辑的内容
-            await NotificationService.ShowSuccessAsync("参数编辑", $"{operationInfo}{parameterInfo}\n接下来将逐个编辑这些参数。");
+            // 显示对话框
+            Microsoft.UI.Xaml.Controls.ContentDialogResult result = await dialog.ShowAsync();
 
-            // 创建参数副本用于编辑
-            Dictionary<string, string> originalValues = new();
-            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+            // 如果用户点击了保存并且保存成功，则更新界面
+            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary && dialog.ViewModel?.IsSaved == true)
             {
-                originalValues[parameter.Name] = parameter.Value ?? "";
-            }
+                // 选中该操作点，让用户可以在右侧面板查看更新后的内容
+                SelectedOperationPoint = operationPoint;
 
-            bool hasChanges = false;
-            int currentParameterIndex = 0;
-            int totalParameters = operationPoint.Parameters.Count;
-
-            // 为每个参数显示编辑对话框
-            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
-            {
-                currentParameterIndex++;
-
-                string title = $"编辑参数 ({currentParameterIndex}/{totalParameters}): {parameter.DisplayName}";
-                string message = $"操作点：{operationPoint.Name}\n\n";
-
-                if (!string.IsNullOrWhiteSpace(parameter.Description))
-                {
-                    message += $"参数说明：{parameter.Description}\n\n";
-                }
-
-                // 根据参数类型添加特定信息
-                if (parameter.Type == ParameterType.Number)
-                {
-                    message += "类型：数字\n";
-                    if (parameter.MinValue.HasValue || parameter.MaxValue.HasValue)
-                    {
-                        string range = "";
-                        if (parameter.MinValue.HasValue && parameter.MaxValue.HasValue)
-                        {
-                            range = $"范围：{parameter.MinValue.Value} - {parameter.MaxValue.Value}";
-                        }
-                        else if (parameter.MinValue.HasValue)
-                        {
-                            range = $"最小值：{parameter.MinValue.Value}";
-                        }
-                        else if (parameter.MaxValue.HasValue)
-                        {
-                            range = $"最大值：{parameter.MaxValue.Value}";
-                        }
-                        message += $"{range}\n";
-                    }
-                }
-                else if (parameter.Type == ParameterType.Enum && parameter.EnumOptionsList.Count > 0)
-                {
-                    message += "类型：选择项\n";
-                    message += $"可选值：{string.Join(", ", parameter.EnumOptionsList)}\n";
-                }
-                else if (parameter.Type == ParameterType.Boolean)
-                {
-                    message += "类型：布尔值（true/false）\n";
-                }
-                else
-                {
-                    message += "类型：文本\n";
-                }
-
-                message += $"\n当前值：{(string.IsNullOrWhiteSpace(parameter.Value) ? "(未设置)" : parameter.Value)}\n";
-                message += $"请输入新的值：";
-
-                if (parameter.IsRequired)
-                {
-                    message += "\n（此参数为必填项）";
-                }
-
-                // 显示编辑对话框
-                string? newValue = await NotificationService.ShowInputDialogAsync(
-                    title,
-                    message,
-                    parameter.Value ?? parameter.DefaultValue ?? "");
-
-                if (newValue == null) // 用户取消了
-                {
-                    // 询问是否要保存已修改的参数
-                    if (hasChanges)
-                    {
-                        bool savePartial = await NotificationService.ShowConfirmationAsync(
-                            "保存更改",
-                            "您已经修改了一些参数，是否要保存这些更改？");
-
-                        if (!savePartial)
-                        {
-                            // 恢复所有参数的原始值
-                            foreach (ConfigurationParameter param in operationPoint.Parameters)
-                            {
-                                param.Value = originalValues[param.Name];
-                            }
-                            hasChanges = false;
-                        }
-                    }
-                    break;
-                }
-
-                // 验证输入值
-                string? validationError = ValidateParameterValue(parameter, newValue);
-                if (!string.IsNullOrEmpty(validationError))
-                {
-                    await NotificationService.ShowErrorAsync("验证错误", validationError);
-                    // 重新编辑这个参数
-                    currentParameterIndex--;
-                    continue;
-                }
-
-                // 更新参数值
-                if (parameter.Value != newValue)
-                {
-                    parameter.Value = newValue;
-                    hasChanges = true;
-                }
-            }
-
-            // 显示编辑结果
-            if (hasChanges)
-            {
-                await NotificationService.ShowSuccessAsync("编辑完成", "操作点参数已成功更新！");
-
-                // 刷新界面显示
+                // 刷新操作点列表显示
                 if (SelectedQuestion != null)
                 {
                     this.RaisePropertyChanged(nameof(SelectedQuestion));
                 }
+                ClearError();
             }
-
-            ClearError();
         }
         catch (Exception ex)
         {
             SetError($"编辑操作点失败：{ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// 验证参数值
-    /// </summary>
-    /// <param name="parameter">参数</param>
-    /// <param name="value">值</param>
-    /// <returns>验证错误信息，如果验证通过则返回null</returns>
-    private static string? ValidateParameterValue(ConfigurationParameter parameter, string value)
-    {
-        // 验证必填项
-        if (parameter.IsRequired && string.IsNullOrWhiteSpace(value))
-        {
-            return $"参数 '{parameter.DisplayName}' 是必填项，不能为空。";
-        }
-
-        // 验证数字类型参数
-        if (parameter.Type == ParameterType.Number && !string.IsNullOrWhiteSpace(value))
-        {
-            if (!int.TryParse(value, out int numValue))
-            {
-                return $"参数 '{parameter.DisplayName}' 必须是有效的数字。";
-            }
-
-            if (parameter.MinValue.HasValue && numValue < parameter.MinValue.Value)
-            {
-                return $"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}。";
-            }
-
-            if (parameter.MaxValue.HasValue && numValue > parameter.MaxValue.Value)
-            {
-                return $"参数 '{parameter.DisplayName}' 不能大于 {parameter.MaxValue.Value}。";
-            }
-        }
-
-        // 验证枚举类型参数
-        if (parameter.Type == ParameterType.Enum && parameter.EnumOptionsList.Count > 0)
-        {
-            if (!string.IsNullOrWhiteSpace(value) && !parameter.EnumOptionsList.Contains(value))
-            {
-                return $"参数 '{parameter.DisplayName}' 的值必须是以下选项之一：{string.Join(", ", parameter.EnumOptionsList)}";
-            }
-        }
-
-        return null; // 验证通过
     }
 
     /// <summary>
