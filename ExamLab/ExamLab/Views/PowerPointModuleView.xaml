@@ -114,6 +114,16 @@
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSlideFont" Content="设置幻灯片字体" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionEffect" Content="幻灯片切换效果" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionMode" Content="幻灯片切换方式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideshowMode" Content="幻灯片放映方式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideshowOptions" Content="幻灯片放映选项" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertHyperlink" Content="插入超链接" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionSound" Content="切换播放声音" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideNumber" Content="幻灯片编号" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="FooterText" Content="页脚文字" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertImage" Content="插入图片" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertTable" Content="插入表格" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertSmartArt" Content="插入SmartArt图形" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertNote" Content="插入备注" />
                                         </StackPanel>
                                     </Expander>
 
@@ -126,6 +136,14 @@
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTextStyle" Content="设置文本字形" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetElementPosition" Content="设置元素位置" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetElementSize" Content="设置元素尺寸" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetWordArtStyle" Content="艺术字字样" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetWordArtEffect" Content="艺术字文本效果" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSmartArtColor" Content="SmartArt颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationDirection" Content="动画方向" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationStyle" Content="动画样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationDuration" Content="动画持续时间" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTextAlignment" Content="文本对齐方式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationOrder" Content="动画顺序" />
                                         </StackPanel>
                                     </Expander>
 
