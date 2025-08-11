@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using ExamLab.Models;
 
@@ -282,13 +282,13 @@ configs[PowerPointKnowledgeType.{type}] = new PowerPointKnowledgeConfig
     {
         Console.WriteLine("=== 开发调试工作流程演示 ===\n");
 
-        Console.WriteLine("1. 首先进行快速检查，了解整体状况：");
+        Console.WriteLine("1. 首先进行快速检查，了解整体状况");
         Example1_QuickCheck();
 
-        Console.WriteLine("2. 针对特定模块进行详细测试：");
+        Console.WriteLine("2. 针对特定模块进行详细测试");
         RunDetailedModuleTest(ModuleType.Excel);
 
-        Console.WriteLine("3. 根据测试结果，生成缺失配置的代码模板：");
+        Console.WriteLine("3. 根据测试结果，生成缺失配置的代码模板");
         try
         {
             string templates = TestRunner.GenerateMissingConfigTemplates(ModuleType.Excel);
@@ -308,7 +308,7 @@ configs[PowerPointKnowledgeType.{type}] = new PowerPointKnowledgeConfig
             Console.WriteLine($"生成模板失败: {ex.Message}");
         }
 
-        Console.WriteLine("\n4. 添加配置后，再次测试验证：");
+        Console.WriteLine("\n4. 添加配置后，再次测试验证");
         Console.WriteLine("   (在实际开发中，这里会重新运行测试)");
 
         Console.WriteLine("\n=== 工作流程演示完成 ===");

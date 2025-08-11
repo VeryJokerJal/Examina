@@ -91,7 +91,7 @@ public static class ExportService
 
                 if (question.OperationPoints.Count > 0)
                 {
-                    _ = text.AppendLine("操作点配置：");
+                    _ = text.AppendLine("操作点配置");
                     foreach (OperationPoint op in question.OperationPoints)
                     {
                         _ = text.AppendLine($"  - {op.Name}");
@@ -100,7 +100,7 @@ public static class ExportService
 
                         if (op.Parameters.Count > 0)
                         {
-                            _ = text.AppendLine("    参数：");
+                            _ = text.AppendLine("    参数");
                             foreach (ConfigurationParameter param in op.Parameters)
                             {
                                 _ = text.AppendLine($"      {param.DisplayName}: {param.Value ?? param.DefaultValue ?? "未设置"}");
@@ -174,7 +174,7 @@ public static class ExportService
 
                 if (op.Parameters.Count > 0)
                 {
-                    _ = doc.AppendLine("配置参数：");
+                    _ = doc.AppendLine("配置参数");
                     foreach (ConfigurationParameter param in op.Parameters)
                     {
                         _ = doc.AppendLine($"  - {param.DisplayName}: {param.Value ?? param.DefaultValue ?? "未设置"}");
@@ -209,7 +209,7 @@ public static class ExportService
         _ = stats.AppendLine($"考试时长：{exam.Duration}分钟");
         _ = stats.AppendLine();
 
-        _ = stats.AppendLine("模块统计：");
+        _ = stats.AppendLine("模块统计");
         _ = stats.AppendLine($"模块总数：{exam.Modules.Count}");
 
         int totalQuestions = exam.Modules.Sum(m => m.Questions.Count);
@@ -221,7 +221,7 @@ public static class ExportService
         _ = stats.AppendLine($"总分：{totalScore}");
         _ = stats.AppendLine();
 
-        _ = stats.AppendLine("各模块详情：");
+        _ = stats.AppendLine("各模块详情");
         foreach (ExamModule module in exam.Modules)
         {
             _ = stats.AppendLine($"  {module.Name}:");

@@ -68,20 +68,6 @@
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Padding="10">
-                                            <Grid.ContextFlyout>
-                                                <MenuFlyout>
-                                                    <MenuFlyoutItem Text="克隆题目" Command="{Binding DataContext.CurrentContentViewModel.CopyQuestionCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}">
-                                                        <MenuFlyoutItem.Icon>
-                                                            <SymbolIcon Symbol="Copy" />
-                                                        </MenuFlyoutItem.Icon>
-                                                    </MenuFlyoutItem>
-                                                    <MenuFlyoutItem Text="删除题目" Command="{Binding DataContext.CurrentContentViewModel.DeleteQuestionCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}">
-                                                        <MenuFlyoutItem.Icon>
-                                                            <SymbolIcon Symbol="Delete" />
-                                                        </MenuFlyoutItem.Icon>
-                                                    </MenuFlyoutItem>
-                                                </MenuFlyout>
-                                            </Grid.ContextFlyout>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
@@ -121,13 +107,13 @@
 
                                     <!--  程序参数输入  -->
                                     <StackPanel Spacing="8">
-                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序参数输入：" />
+                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序参数输入" />
                                         <TextBox PlaceholderText="输入程序运行时的参数（可选）" Text="{Binding CurrentContentViewModel.SelectedQuestion.ProgramInput, Mode=TwoWay}" TextWrapping="Wrap" />
                                     </StackPanel>
 
                                     <!--  程序控制台输出  -->
                                     <StackPanel Spacing="8">
-                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序控制台输出：" />
+                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序控制台输出" />
                                         <TextBox Height="120" AcceptsReturn="True" PlaceholderText="输入程序预期的控制台输出结果" Text="{Binding CurrentContentViewModel.SelectedQuestion.ExpectedOutput, Mode=TwoWay}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </StackPanel>
@@ -141,7 +127,7 @@
                             <TextBlock HorizontalAlignment="Center" FontSize="18" Text="请选择一个题目" />
                             <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="在左侧选择题目来配置C#程序" />
                             <StackPanel Spacing="8">
-                                <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="C#模块功能：" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="C#模块功能" />
                                 <TextBlock HorizontalAlignment="Center" FontSize="12" Text="• 配置题目描述" />
                                 <TextBlock HorizontalAlignment="Center" FontSize="12" Text="• 设置程序参数输入" />
                                 <TextBlock HorizontalAlignment="Center" FontSize="12" Text="• 定义程序控制台输出" />

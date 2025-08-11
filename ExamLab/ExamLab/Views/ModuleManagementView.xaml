@@ -201,7 +201,7 @@
                     <TextBlock Text="在左侧选择模块来查看和编辑模块配置" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" HorizontalAlignment="Center"/>
                     
                     <StackPanel Spacing="8" Margin="0,16,0,0">
-                        <TextBlock Text="支持的模块类型：" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="支持的模块类型" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         <TextBlock Text="Windows • C# • PowerPoint • Excel • Word" FontSize="12" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </StackPanel>
