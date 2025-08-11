@@ -18,6 +18,7 @@
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
             <converters:ParameterTypeToVisibilityConverter x:Key="ParameterTypeToVisibilityConverter" />
             <converters:StringFormatConverter x:Key="StringFormatConverter" />
             <converters:ScoreFormatConverter x:Key="ScoreFormatConverter" />

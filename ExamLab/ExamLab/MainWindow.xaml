@@ -22,10 +22,10 @@
                 <TextBlock VerticalAlignment="Center" FontSize="14" Text="试卷制作" />
                 <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●" ToolTipService.ToolTip="有未保存的更改" Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
-                <Button Command="{Binding SaveExamCommand}" Content="保存" />
+                <Button Command="{Binding SaveExamCommand}" Content="保存" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
                 <Button Command="{Binding OpenProjectCommand}" Content="打开项目" />
                 <Button Command="{Binding ImportExamCommand}" Content="导入" />
-                <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" />
+                <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
             </StackPanel>
         </Border>
 
