@@ -100,15 +100,82 @@
                                 <NumberBox Header="题目分值" Value="{Binding CurrentContentViewModel.SelectedQuestion.Score, Mode=TwoWay}" />
                             </StackPanel>
 
-                            <!--  Excel操作配置  -->
+                            <!--  知识点选择  -->
                             <ScrollViewer Grid.Row="1" Margin="0,16,0,0">
                                 <StackPanel Spacing="16">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Excel操作配置" />
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Excel知识点" />
 
-                                    <Button HorizontalAlignment="Stretch" Command="{Binding AddOperationPointCommand}" Content="添加Excel操作配置" ToolTipService.ToolTip="添加新的Excel操作配置项" />
+                                    <!--  Excel基础操作类  -->
+                                    <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Header="Excel基础操作" IsExpanded="True">
+                                        <StackPanel Spacing="8">
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="FillOrCopyCellContent" Content="填充或复制单元格内容" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="MergeCells" Content="合并单元格" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetCellFont" Content="设置指定单元格字体" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetInnerBorderStyle" Content="内边框样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetInnerBorderColor" Content="内边框颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetHorizontalAlignment" Content="设置单元格区域水平对齐方式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetNumberFormat" Content="设置目标区域单元格数字分类格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="UseFunction" Content="使用函数" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetRowHeight" Content="设置行高" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetColumnWidth" Content="设置列宽" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetCellFillColor" Content="设置单元格填充颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetOuterBorderStyle" Content="设置外边框样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetOuterBorderColor" Content="设置外边框颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetVerticalAlignment" Content="设置垂直对齐方式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ModifySheetName" Content="修改sheet表名称" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="AddUnderline" Content="添加下划线" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetFontStyle" Content="设置字型" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetFontSize" Content="设置字号" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetFontColor" Content="字体颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetPatternFillStyle" Content="设置图案填充样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetPatternFillColor" Content="设置填充图案颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ConditionalFormat" Content="条件格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetCellStyleData" Content="设置单元格样式——数据" />
+                                        </StackPanel>
+                                    </Expander>
+
+                                    <!--  数据清单操作类  -->
+                                    <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Header="数据清单操作">
+                                        <StackPanel Spacing="8">
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="Filter" Content="筛选" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="Sort" Content="排序" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="Subtotal" Content="分类汇总" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="AdvancedFilterCondition" Content="高级筛选-条件" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="AdvancedFilterData" Content="高级筛选-数据" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="PivotTable" Content="数据透视表" />
+                                        </StackPanel>
+                                    </Expander>
+
+                                    <!--  图表操作类  -->
+                                    <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Header="图表操作">
+                                        <StackPanel Spacing="8">
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartType" Content="图表类型" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartStyle" Content="图表样式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartMove" Content="图表移动" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="CategoryAxisDataRange" Content="分类轴数据区域" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ValueAxisDataRange" Content="数值轴数据区域" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartTitle" Content="图表标题" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartTitleFormat" Content="图表标题格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="HorizontalAxisTitle" Content="主要横坐标轴标题" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="HorizontalAxisTitleFormat" Content="主要横坐标轴标题格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="LegendPosition" Content="设置图例位置" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="LegendFormat" Content="设置图例格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="VerticalAxisOptions" Content="设置主要纵坐标轴选项" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="MajorHorizontalGridlines" Content="设置网格线——主要横网格线" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="MinorHorizontalGridlines" Content="设置网格线——次要横网格线" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="MajorVerticalGridlines" Content="主要纵网格线" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="MinorVerticalGridlines" Content="次要纵网格线" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="DataSeriesFormat" Content="设置数据系列格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="AddDataLabels" Content="添加数据标签" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="DataLabelsFormat" Content="设置数据标签格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartAreaFormat" Content="设置图表区域格式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartFloorColor" Content="显示图表基底颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="ChartBorder" Content="设置图表边框线" />
+                                        </StackPanel>
+                                    </Expander>
 
                                     <!--  操作说明  -->
-                                    <InfoBar Title="操作说明" IsClosable="False" IsOpen="True" Message="配置Excel相关操作，用于Microsoft Office Interop判断。&#x0a;可用操作类型：创建工作簿、格式化单元格、插入图表、创建公式、数据筛选等。" Severity="Informational" />
+                                    <InfoBar Title="操作说明" IsClosable="False" IsOpen="True" Message="选择Excel知识点来添加操作配置。&#x0a;支持51个Excel知识点，包括基础操作、数据清单操作、图表操作等。" Severity="Informational" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -130,7 +197,7 @@
                                                     <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
                                                     <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
                                                 </StackPanel>
-                                                <Button Grid.Column="1" Margin="0,0,8,0" Content="编辑" ToolTipService.ToolTip="编辑操作点" />
+                                                <Button Grid.Column="1" Margin="0,0,8,0" Command="{Binding DataContext.CurrentContentViewModel.EditOperationPointCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="编辑" ToolTipService.ToolTip="编辑操作点" />
                                                 <Button Grid.Column="2" Command="{Binding DataContext.CurrentContentViewModel.DeleteOperationPointCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" />
                                             </Grid>
                                         </DataTemplate>

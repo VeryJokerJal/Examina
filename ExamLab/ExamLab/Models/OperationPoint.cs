@@ -190,6 +190,69 @@ public enum WordKnowledgeType
 }
 
 /// <summary>
+/// Excel知识点类型枚举
+/// </summary>
+public enum ExcelKnowledgeType
+{
+    // 第一类：Excel基础操作（操作点1-23）
+    FillOrCopyCellContent = 1,           // 操作点1：填充或复制单元格内容
+    MergeCells = 4,                      // 操作点4：合并单元格
+    SetCellFont = 6,                     // 操作点6：设置指定单元格字体
+    SetInnerBorderStyle = 10,            // 操作点10：内边框样式
+    SetInnerBorderColor = 11,            // 操作点11：内边框颜色
+    SetHorizontalAlignment = 13,         // 操作点13：设置单元格区域水平对齐方式
+    SetNumberFormat = 14,                // 操作点14：设置目标区域单元格数字分类格式
+    UseFunction = 15,                    // 操作点15：使用函数
+    SetRowHeight = 16,                   // 操作点16：设置行高
+    SetColumnWidth = 17,                 // 操作点17：设置列宽
+    SetCellFillColor = 20,               // 操作点20：设置单元格填充颜色
+    SetOuterBorderStyle = 24,            // 操作点24：设置外边框样式
+    SetOuterBorderColor = 25,            // 操作点25：设置外边框颜色
+    SetVerticalAlignment = 26,           // 操作点26：设置垂直对齐方式
+    ModifySheetName = 28,                // 操作点28：修改sheet表名称
+    AddUnderline = 29,                   // 操作点29：添加下划线
+    SetFontStyle = 7,                    // 操作点7：设置字型
+    SetFontSize = 8,                     // 操作点8：设置字号
+    SetFontColor = 9,                    // 操作点9：字体颜色
+    SetPatternFillStyle = 21,            // 操作点21：设置图案填充样式
+    SetPatternFillColor = 22,            // 操作点22：设置填充图案颜色
+    ConditionalFormat = 33,              // 操作点33：条件格式
+    SetCellStyleData = 83,               // 操作点83：设置单元格样式——数据
+
+    // 第二类：数据清单操作（操作点24-29）
+    Filter = 31,                         // 操作点31：筛选
+    Sort = 32,                           // 操作点32：排序
+    Subtotal = 35,                       // 操作点35：分类汇总
+    AdvancedFilterCondition = 36,        // 操作点36：高级筛选-条件
+    AdvancedFilterData = 63,             // 操作点63：高级筛选-数据
+    PivotTable = 71,                     // 操作点71：数据透视表
+
+    // 第三类：图表操作（操作点30-51）
+    ChartType = 101,                     // 操作点101：图表类型
+    ChartStyle = 102,                    // 操作点102：图表样式
+    ChartMove = 103,                     // 操作点103：图表移动
+    CategoryAxisDataRange = 104,         // 操作点104：分类轴数据区域
+    ValueAxisDataRange = 105,            // 操作点105：数值轴数据区域
+    ChartTitle = 107,                    // 操作点107：图表标题
+    ChartTitleFormat = 108,              // 操作点108：图表标题格式
+    HorizontalAxisTitle = 112,           // 操作点112：主要横坐标轴标题
+    HorizontalAxisTitleFormat = 113,     // 操作点113：主要横坐标轴标题格式
+    LegendPosition = 122,                // 操作点122：设置图例位置
+    LegendFormat = 123,                  // 操作点123：设置图例格式
+    VerticalAxisOptions = 139,           // 操作点139：设置主要纵坐标轴选项
+    MajorHorizontalGridlines = 140,      // 操作点140：设置网格线——主要横网格线
+    MinorHorizontalGridlines = 141,      // 操作点141：设置网格线——次要横网格线
+    MajorVerticalGridlines = 142,        // 操作点142：主要纵网格线
+    MinorVerticalGridlines = 143,        // 操作点143：次要纵网格线
+    DataSeriesFormat = 145,              // 操作点145：设置数据系列格式
+    AddDataLabels = 154,                 // 操作点154：添加数据标签
+    DataLabelsFormat = 155,              // 操作点155：设置数据标签格式
+    ChartAreaFormat = 156,               // 操作点156：设置图表区域格式
+    ChartFloorColor = 159,               // 操作点159：显示图表基底颜色
+    ChartBorder = 160                    // 操作点160：设置图表边框线
+}
+
+/// <summary>
 /// 操作点模型
 /// </summary>
 public class OperationPoint : ReactiveObject
@@ -228,6 +291,11 @@ public class OperationPoint : ReactiveObject
     /// Word知识点类型（当ModuleType为Word时使用）
     /// </summary>
     [Reactive] public WordKnowledgeType? WordKnowledgeType { get; set; }
+
+    /// <summary>
+    /// Excel知识点类型（当ModuleType为Excel时使用）
+    /// </summary>
+    [Reactive] public ExcelKnowledgeType? ExcelKnowledgeType { get; set; }
 
     /// <summary>
     /// 操作点分值
