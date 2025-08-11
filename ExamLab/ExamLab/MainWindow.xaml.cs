@@ -42,7 +42,7 @@ public sealed partial class MainWindow : Window
     {
         if (sender is MenuFlyoutItem menuItem && menuItem.Tag is Exam exam)
         {
-            ViewModel.CloneExamCommand.Execute(exam).Subscribe(_ => { });
+            _ = ViewModel.CloneExamCommand.Execute(exam).Subscribe(_ => { });
         }
     }
 
@@ -50,7 +50,7 @@ public sealed partial class MainWindow : Window
     {
         if (sender is MenuFlyoutItem menuItem && menuItem.Tag is Exam exam)
         {
-            ViewModel.DeleteExamCommand.Execute(exam).Subscribe(_ => { });
+            _ = ViewModel.DeleteExamCommand.Execute(exam).Subscribe(_ => { });
         }
     }
 }

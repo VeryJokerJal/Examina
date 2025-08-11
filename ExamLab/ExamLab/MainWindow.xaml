@@ -23,6 +23,7 @@
                 <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●" ToolTipService.ToolTip="有未保存的更改" Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
                 <Button Command="{Binding SaveExamCommand}" Content="保存" />
+                <Button Command="{Binding OpenProjectCommand}" Content="打开项目" />
                 <Button Command="{Binding ImportExamCommand}" Content="导入" />
                 <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" />
             </StackPanel>
@@ -55,12 +56,12 @@
                                 <Grid Margin="8,4" Padding="0,5">
                                     <Grid.ContextFlyout>
                                         <MenuFlyout>
-                                            <MenuFlyoutItem Text="克隆试卷" Click="CloneExam_Click" Tag="{Binding}">
+                                            <MenuFlyoutItem Click="CloneExam_Click" Tag="{Binding}" Text="克隆试卷">
                                                 <MenuFlyoutItem.Icon>
                                                     <SymbolIcon Symbol="Copy" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
-                                            <MenuFlyoutItem Text="删除试卷" Click="DeleteExam_Click" Tag="{Binding}">
+                                            <MenuFlyoutItem Click="DeleteExam_Click" Tag="{Binding}" Text="删除试卷">
                                                 <MenuFlyoutItem.Icon>
                                                     <SymbolIcon Symbol="Delete" />
                                                 </MenuFlyoutItem.Icon>
@@ -79,7 +80,7 @@
                     </ListView>
 
                     <!--  试卷列表空状态提示  -->
-                    <Border Grid.Row="1" Margin="8,20" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                    <Border Grid.Row="1" Margin="10" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                             <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8A5;" />
                             <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无试卷" />
@@ -127,7 +128,7 @@
                     </ListView>
 
                     <!--  模块列表空状态提示  -->
-                    <Border Grid.Row="2" Grid.RowSpan="2" Margin="8,20" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                    <Border Grid.Row="2" Grid.RowSpan="2" Margin="10,0,10,10" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                             <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8FD;" />
                             <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无模块" />

@@ -94,6 +94,11 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SaveExamCommand { get; }
 
     /// <summary>
+    /// 打开项目命令 - 从ExamLab项目文件打开试卷
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenProjectCommand { get; }
+
+    /// <summary>
     /// 导入试卷命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> ImportExamCommand { get; }
@@ -141,6 +146,7 @@ public class MainWindowViewModel : ViewModelBase
         DeleteExamCommand = ReactiveCommand.CreateFromTask<Exam>(DeleteExamAsync);
         CloneExamCommand = ReactiveCommand.CreateFromTask<Exam>(CloneExamAsync);
         SaveExamCommand = ReactiveCommand.CreateFromTask(SaveExamAsync);
+        OpenProjectCommand = ReactiveCommand.CreateFromTask(OpenProjectAsync);
         ImportExamCommand = ReactiveCommand.CreateFromTask(ImportExamAsync);
         ExportExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportExamAsync);
 
@@ -390,7 +396,7 @@ public class MainWindowViewModel : ViewModelBase
             var exportDto = ExamMappingService.ToExportDto(SelectedExam, ExportLevel.Complete);
 
             // 4. JSON序列化
-            var jsonOptions = new System.Text.Json.JsonSerializerOptions
+            System.Text.Json.JsonSerializerOptions jsonOptions = new System.Text.Json.JsonSerializerOptions
             {
                 WriteIndented = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -411,12 +417,99 @@ public class MainWindowViewModel : ViewModelBase
             await NotificationService.ShowSuccessAsync(
                 "项目保存成功",
                 $"ExamLab项目已保存到：{file.Path}\n文件大小：{fileSize}");
+
         }
         catch (Exception ex)
         {
             await NotificationService.ShowErrorAsync("项目保存失败", $"保存ExamLab项目时发生错误：{ex.Message}");
         }
     }
+
+
+
+    private async Task OpenProjectAsync()
+    {
+        try
+        {
+            // 1. 选择项目文件
+            Windows.Storage.StorageFile? file = await FilePickerService.PickProjectFileForImportAsync();
+            if (file == null)
+            {
+                return;
+            }
+
+            // 2. 验证文件类型
+            List<string> supportedExtensions = new List<string> { ".examproj" };
+            if (!FilePickerService.IsValidFileType(file, supportedExtensions))
+            {
+                await NotificationService.ShowErrorAsync("文件类型错误", "请选择ExamLab项目文件(.examproj)");
+                return;
+            }
+
+            // 3. 读取文件内容
+            string fileContent = await Windows.Storage.FileIO.ReadTextAsync(file);
+            if (string.IsNullOrWhiteSpace(fileContent))
+            {
+                await NotificationService.ShowErrorAsync("文件内容错误", "选择的项目文件为空或无法读取");
+                return;
+            }
+
+            // 4. 解析项目文件（按保存逻辑对应的导出DTO）
+            System.Text.Json.JsonSerializerOptions jsonOptions = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true
+            };
+
+            Models.ImportExport.ExamExportDto? projectDto = null;
+            try
+            {
+                projectDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+            }
+            catch (System.Text.Json.JsonException jsonEx)
+            {
+                await NotificationService.ShowErrorAsync("JSON解析错误", $"项目文件格式不正确：{jsonEx.Message}");
+                return;
+            }
+
+            if (projectDto?.Exam == null)
+            {
+                await NotificationService.ShowErrorAsync("数据格式错误", "项目文件中没有找到有效的试卷数据");
+                return;
+            }
+
+            // 5. 转换为ExamLab模型
+            Exam openedExam = ExamMappingService.FromExportDto(projectDto);
+
+            // 6. 处理重名
+            string originalName = openedExam.Name;
+            int counter = 1;
+            while (Exams.Any(e => e.Name == openedExam.Name))
+            {
+                openedExam.Name = $"{originalName} (打开{counter})";
+                counter++;
+            }
+
+            // 7. 添加到列表并选中
+            Exams.Add(openedExam);
+            SelectedExam = openedExam;
+
+            // 8. 保存到本地存储并标记状态
+            await DataStorageService.Instance.SaveExamAsync(openedExam);
+            AutoSaveService.Instance.MarkAsSaved();
+
+            // 9. 提示成功
+            string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
+            string info = $"试卷名称：{openedExam.Name}\n模块数量：{openedExam.Modules.Count}\n题目总数：{openedExam.Modules.Sum(m => m.Questions.Count)}\n来源：{file.Path}\n文件大小：{fileSize}";
+            await NotificationService.ShowSuccessAsync("打开项目成功", info);
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("打开项目失败", $"打开ExamLab项目时发生错误：{ex.Message}");
+        }
+    }
+
+
 
     private async Task ImportExamAsync()
     {
@@ -454,7 +547,7 @@ public class MainWindowViewModel : ViewModelBase
             if (file.FileType.ToLowerInvariant() == ".json")
             {
                 // JSON格式解析
-                var jsonOptions = new System.Text.Json.JsonSerializerOptions
+                System.Text.Json.JsonSerializerOptions jsonOptions = new System.Text.Json.JsonSerializerOptions
                 {
                     PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
                     PropertyNameCaseInsensitive = true
@@ -589,7 +682,7 @@ public class MainWindowViewModel : ViewModelBase
             if (file.FileType.ToLowerInvariant() == ".json")
             {
                 // JSON序列化
-                var jsonOptions = new System.Text.Json.JsonSerializerOptions
+                System.Text.Json.JsonSerializerOptions jsonOptions = new System.Text.Json.JsonSerializerOptions
                 {
                     WriteIndented = true,
                     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
