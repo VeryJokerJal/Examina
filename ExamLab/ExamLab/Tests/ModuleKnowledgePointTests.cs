@@ -204,16 +204,16 @@ public static class ModuleKnowledgePointTests
         // 创建测试用的ExamModule和题目
         ExamModule testModule = new()
         {
-            Id = Guid.NewGuid(),
+            Id = "test-windows-module",
             Name = "测试Windows模块",
-            ModuleType = ModuleType.Windows
+            Type = ModuleType.Windows
         };
 
-        ScoringQuestion testQuestion = new()
+        Question testQuestion = new()
         {
-            Id = Guid.NewGuid(),
+            Id = "test-question-1",
             Title = "测试题目",
-            Description = "用于测试的题目"
+            Content = "用于测试的题目"
         };
 
         testModule.Questions.Add(testQuestion);

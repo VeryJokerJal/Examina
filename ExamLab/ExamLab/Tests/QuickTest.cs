@@ -89,13 +89,13 @@ public static class QuickTest
     private static void TestWordKnowledgePoints()
     {
         // 测试几个Word知识点
-        WordKnowledgeType[] testTypes = 
+        WordKnowledgeType[] testTypes =
         [
             WordKnowledgeType.SetParagraphAlignment,
             WordKnowledgeType.SetParagraphIndentation,
-            WordKnowledgeType.SetParagraphSpacing,
-            WordKnowledgeType.SetFontName,
-            WordKnowledgeType.SetFontSize
+            WordKnowledgeType.SetParagraphLineSpacing,
+            WordKnowledgeType.SetParagraphFont,
+            WordKnowledgeType.SetParagraphFontSize
         ];
 
         int successCount = 0;
@@ -122,13 +122,13 @@ public static class QuickTest
     private static void TestPowerPointKnowledgePoints()
     {
         // 测试几个PowerPoint知识点
-        PowerPointKnowledgeType[] testTypes = 
+        PowerPointKnowledgeType[] testTypes =
         [
             PowerPointKnowledgeType.SetSlideLayout,
             PowerPointKnowledgeType.InsertSlide,
             PowerPointKnowledgeType.DeleteSlide,
             PowerPointKnowledgeType.InsertTextContent,
-            PowerPointKnowledgeType.SetFontName
+            PowerPointKnowledgeType.SetSlideFont
         ];
 
         int successCount = 0;
