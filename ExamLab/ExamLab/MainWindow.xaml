@@ -9,6 +9,7 @@
         <Grid.Resources>
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -24,7 +25,6 @@
                 <Button Command="{Binding SaveExamCommand}" Content="保存" />
                 <Button Command="{Binding ImportExamCommand}" Content="导入" />
                 <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" />
-
             </StackPanel>
         </Border>
 
@@ -49,7 +49,7 @@
                     <TextBlock Grid.Row="0" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="试卷" />
 
                     <!--  试卷列表  -->
-                    <ListView Grid.Row="1" Margin="8,0" ItemsSource="{Binding Exams}" SelectedItem="{Binding SelectedExam, Mode=TwoWay}">
+                    <ListView Grid.Row="1" Margin="8,0" ItemsSource="{Binding Exams}" SelectedItem="{Binding SelectedExam, Mode=TwoWay}" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="8,4" Padding="0,5">
@@ -77,6 +77,15 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
+
+                    <!--  试卷列表空状态提示  -->
+                    <Border Grid.Row="1" Margin="8,20" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                            <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8A5;" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无试卷" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击上方按钮创建您的第一个试卷" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
 
                     <!--  模块列表标题  -->
                     <TextBlock Grid.Row="2" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="模块" />

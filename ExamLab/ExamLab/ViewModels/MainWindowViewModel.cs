@@ -29,6 +29,11 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<Exam> Exams { get; set; } = [];
 
     /// <summary>
+    /// 试卷数量（用于绑定）
+    /// </summary>
+    [Reactive] public int ExamCount { get; set; }
+
+    /// <summary>
     /// 当前选中的模块
     /// </summary>
     [Reactive] public ExamModule? SelectedModule { get; set; }
@@ -146,6 +151,12 @@ public class MainWindowViewModel : ViewModelBase
 
         // 初始化数据持久化
         InitializeDataPersistence();
+
+        // 监听Exams集合变化，更新ExamCount
+        Exams.CollectionChanged += (sender, e) =>
+        {
+            ExamCount = Exams.Count;
+        };
 
         // 监听SelectedModule变化，通知Module属性变化
         _ = this.WhenAnyValue(x => x.SelectedModule)
@@ -359,20 +370,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (SelectedExam == null)
         {
-            // 提供更友好的提示和指导
-            bool createNew = await NotificationService.ShowConfirmationAsync(
-                "没有可保存的项目",
-                "当前没有试卷项目可以保存。\n\n您可以：\n• 点击"确定"创建一个新的试卷项目\n• 点击"取消"并先导入现有的试卷项目\n\n是否要创建新的试卷项目？");
-
-            if (createNew)
-            {
-                // 调用创建试卷命令
-                CreateExam();
-                // 创建后提示用户可以开始编辑
-                await NotificationService.ShowSuccessAsync(
-                    "项目创建成功",
-                    "新的试卷项目已创建！您现在可以添加模块和题目，然后保存项目。");
-            }
+            await NotificationService.ShowErrorAsync("错误", "没有可保存的项目");
             return;
         }
 
@@ -550,20 +548,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (exam == null)
         {
-            // 提供更友好的提示和指导
-            bool createNew = await NotificationService.ShowConfirmationAsync(
-                "没有可导出的试卷",
-                "当前没有选择要导出的试卷。\n\n您可以：\n• 点击"确定"创建一个新的试卷\n• 点击"取消"并先选择或导入现有试卷\n\n是否要创建新的试卷？");
-
-            if (createNew)
-            {
-                // 调用创建试卷命令
-                CreateExam();
-                // 创建后提示用户
-                await NotificationService.ShowSuccessAsync(
-                    "试卷创建成功",
-                    "新的试卷已创建！请添加内容后再进行导出。");
-            }
+            await NotificationService.ShowErrorAsync("错误", "没有选择要导出的试卷");
             return;
         }
 
@@ -679,12 +664,18 @@ public class MainWindowViewModel : ViewModelBase
             // 启动自动保存
             AutoSaveService.Instance.StartAutoSave(Exams);
             AutoSaveService.Instance.UnsavedChangesChanged += OnUnsavedChangesChanged;
+
+            // 初始化试卷数量
+            ExamCount = Exams.Count;
         }
         catch (Exception ex)
         {
             // 如果加载失败，创建示例数据
             CreateSampleData();
             await NotificationService.ShowErrorAsync("数据加载失败", $"无法加载保存的数据：{ex.Message}");
+
+            // 初始化试卷数量
+            ExamCount = Exams.Count;
         }
     }
 
