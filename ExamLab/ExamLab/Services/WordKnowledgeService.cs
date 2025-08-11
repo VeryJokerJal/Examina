@@ -256,6 +256,68 @@ public class WordKnowledgeService
                 new() { Name = "SpaceAfter", DisplayName = "段后间距", Description = "段后间距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 100 }
             ]
         };
+
+        // 知识点11：设置段落边框颜色
+        configs[WordKnowledgeType.SetParagraphBorderColor] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetParagraphBorderColor,
+            Name = "设置段落边框颜色",
+            Description = "设置指定段落的边框颜色",
+            Category = "段落操作",
+            ParameterTemplates =
+            [
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "边框颜色", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "黑色,红色,蓝色,绿色,黄色,紫色,橙色,灰色,自动" }
+            ]
+        };
+
+        // 知识点12：设置段落边框样式
+        configs[WordKnowledgeType.SetParagraphBorderStyle] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetParagraphBorderStyle,
+            Name = "设置段落边框样式",
+            Description = "设置指定段落的边框样式",
+            Category = "段落操作",
+            ParameterTemplates =
+            [
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "BorderStyle", DisplayName = "边框样式", Description = "边框线型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "无,单实线,双线,点线,虚线,粗线,细线,波浪线" }
+            ]
+        };
+
+        // 知识点13：设置段落边框宽度
+        configs[WordKnowledgeType.SetParagraphBorderWidth] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetParagraphBorderWidth,
+            Name = "设置段落边框宽度",
+            Description = "设置指定段落的边框宽度",
+            Category = "段落操作",
+            ParameterTemplates =
+            [
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "BorderWidth", DisplayName = "边框宽度", Description = "边框线宽", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "0.25磅,0.5磅,0.75磅,1磅,1.5磅,2.25磅,3磅,4.5磅,6磅" }
+            ]
+        };
+
+        // 知识点14：设置段落底纹
+        configs[WordKnowledgeType.SetParagraphShading] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetParagraphShading,
+            Name = "设置段落底纹",
+            Description = "设置指定段落的底纹填充",
+            Category = "段落操作",
+            ParameterTemplates =
+            [
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ShadingColor", DisplayName = "底纹颜色", Description = "底纹填充颜色", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "无填充,白色,浅灰色,灰色,深灰色,黑色,红色,蓝色,绿色,黄色,紫色,橙色" },
+                new() { Name = "ShadingPattern", DisplayName = "底纹图案", Description = "底纹图案样式", Type = ParameterType.Enum, IsRequired = false, Order = 3,
+                    EnumOptions = "实心,5%,10%,12.5%,15%,20%,25%,30%,37.5%,40%,50%,60%,62.5%,70%,75%,80%,85%,87.5%,90%,95%" }
+            ]
+        };
     }
 
     private void InitializePageSettings(Dictionary<WordKnowledgeType, WordKnowledgeConfig> configs)
@@ -341,6 +403,132 @@ public class WordKnowledgeService
             [
                 new() { Name = "HeaderAlignment", DisplayName = "对齐方式", Description = "选择对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
                     EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" }
+            ]
+        };
+
+        // 知识点21：设置页脚中的文字
+        configs[WordKnowledgeType.SetFooterText] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetFooterText,
+            Name = "设置页脚中的文字",
+            Description = "设置页脚的文字内容",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "FooterText", DisplayName = "页脚文字", Description = "页脚文字内容", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+            ]
+        };
+
+        // 知识点22：设置页脚中文字的字体
+        configs[WordKnowledgeType.SetFooterFont] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetFooterFont,
+            Name = "设置页脚中文字的字体",
+            Description = "设置页脚文字的字体",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "FooterFont", DisplayName = "字体类型", Description = "页脚字体", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri" }
+            ]
+        };
+
+        // 知识点23：设置页脚中文字的字号
+        configs[WordKnowledgeType.SetFooterFontSize] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetFooterFontSize,
+            Name = "设置页脚中文字的字号",
+            Description = "设置页脚文字的字号",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "FooterFontSize", DisplayName = "字号数值", Description = "页脚字体大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72 }
+            ]
+        };
+
+        // 知识点24：设置页脚中文字的对齐方式
+        configs[WordKnowledgeType.SetFooterAlignment] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetFooterAlignment,
+            Name = "设置页脚中文字的对齐方式",
+            Description = "设置页脚文字的对齐方式",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "FooterAlignment", DisplayName = "对齐方式", Description = "选择对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" }
+            ]
+        };
+
+        // 知识点25：设置页码
+        configs[WordKnowledgeType.SetPageNumber] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetPageNumber,
+            Name = "设置页码",
+            Description = "设置文档的页码格式和位置",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "PageNumberPosition", DisplayName = "页码位置", Description = "页码显示位置", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "页面顶端居中,页面顶端左侧,页面顶端右侧,页面底端居中,页面底端左侧,页面底端右侧" },
+                new() { Name = "PageNumberFormat", DisplayName = "页码格式", Description = "页码数字格式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "1,2,3...,a,b,c...,A,B,C...,i,ii,iii...,I,II,III..." }
+            ]
+        };
+
+        // 知识点26：设置页面背景
+        configs[WordKnowledgeType.SetPageBackground] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetPageBackground,
+            Name = "设置页面背景",
+            Description = "设置文档的页面背景颜色",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "BackgroundColor", DisplayName = "背景颜色", Description = "页面背景颜色", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "无填充,白色,浅灰色,灰色,深灰色,黑色,红色,蓝色,绿色,黄色,紫色,橙色" }
+            ]
+        };
+
+        // 知识点27：设置页面边框颜色
+        configs[WordKnowledgeType.SetPageBorderColor] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetPageBorderColor,
+            Name = "设置页面边框颜色",
+            Description = "设置页面边框的颜色",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "页面边框颜色", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "黑色,红色,蓝色,绿色,黄色,紫色,橙色,灰色,自动" }
+            ]
+        };
+
+        // 知识点28：设置页面边框样式
+        configs[WordKnowledgeType.SetPageBorderStyle] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetPageBorderStyle,
+            Name = "设置页面边框样式",
+            Description = "设置页面边框的样式",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "BorderStyle", DisplayName = "边框样式", Description = "页面边框线型", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "无,单实线,双线,点线,虚线,粗线,细线,波浪线,艺术型边框" }
+            ]
+        };
+
+        // 知识点29：设置页面边框宽度
+        configs[WordKnowledgeType.SetPageBorderWidth] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetPageBorderWidth,
+            Name = "设置页面边框宽度",
+            Description = "设置页面边框的宽度",
+            Category = "页面设置",
+            ParameterTemplates =
+            [
+                new() { Name = "BorderWidth", DisplayName = "边框宽度", Description = "页面边框线宽", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "0.25磅,0.5磅,0.75磅,1磅,1.5磅,2.25磅,3磅,4.5磅,6磅" }
             ]
         };
     }
