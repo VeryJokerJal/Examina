@@ -180,6 +180,92 @@ public class ExcelKnowledgeService
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
             ]
         };
+
+        // 操作点16：设置行高
+        configs[ExcelKnowledgeType.SetRowHeight] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.SetRowHeight,
+            Name = "设置行高",
+            Description = "设置指定行的高度",
+            Category = "Excel基础操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "RowNumbers", DisplayName = "行数", Description = "可配置多个行号", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "RowHeight", DisplayName = "行高值", Description = "行高（磅为单位）", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 10, MaxValue = 200 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点17：设置列宽
+        configs[ExcelKnowledgeType.SetColumnWidth] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.SetColumnWidth,
+            Name = "设置列宽",
+            Description = "设置指定列的宽度",
+            Category = "Excel基础操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "ColumnLetters", DisplayName = "列宽", Description = "可配置多个列字母", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "ColumnWidth", DisplayName = "列宽值", Description = "列宽值", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 5, MaxValue = 100 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点20：设置单元格填充颜色
+        configs[ExcelKnowledgeType.SetCellFillColor] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.SetCellFillColor,
+            Name = "设置单元格填充颜色",
+            Description = "设置单元格的背景填充颜色",
+            Category = "Excel基础操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "CellRange", DisplayName = "单元格区域", Description = "起始值", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "FillColor", DisplayName = "颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点26：设置垂直对齐方式
+        configs[ExcelKnowledgeType.SetVerticalAlignment] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.SetVerticalAlignment,
+            Name = "设置垂直对齐方式",
+            Description = "设置单元格的垂直对齐方式",
+            Category = "Excel基础操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "CellRange", DisplayName = "单元格区域", Description = "起始值", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "选择垂直对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                    EnumOptions = "顶端对齐,垂直居中对齐,底端对齐,两端对齐,分散对齐" },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点28：修改sheet表名称
+        configs[ExcelKnowledgeType.ModifySheetName] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.ModifySheetName,
+            Name = "修改sheet表名称",
+            Description = "修改工作表的名称",
+            Category = "Excel基础操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "OriginalSheetName", DisplayName = "sheet表起始值", Description = "原始工作表名称", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "NewSheetName", DisplayName = "修改后的目标值", Description = "新的工作表名称", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
     }
 
     private void InitializeDataListOperations(Dictionary<ExcelKnowledgeType, ExcelKnowledgeConfig> configs)
@@ -197,6 +283,25 @@ public class ExcelKnowledgeService
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "FilterConditions", DisplayName = "筛选条件", Description = "键值对方式，哪一列：筛选的值", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 4 }
+            ]
+        };
+
+        // 操作点32：排序
+        configs[ExcelKnowledgeType.Sort] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.Sort,
+            Name = "排序",
+            Description = "对数据进行排序操作",
+            Category = "数据清单操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "SortColumn", DisplayName = "哪一列", Description = "排序的列", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "SortOrder", DisplayName = "升序还是降序", Description = "排序顺序", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                    EnumOptions = "升序,降序" },
+                new() { Name = "HasHeader", DisplayName = "是否包含标题", Description = "数据是否包含标题行", Type = ParameterType.Boolean, IsRequired = true, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
             ]
         };
 
@@ -241,6 +346,22 @@ public class ExcelKnowledgeService
             ]
         };
 
+        // 操作点102：图表样式
+        configs[ExcelKnowledgeType.ChartStyle] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.ChartStyle,
+            Name = "图表样式",
+            Description = "设置图表的样式",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "StyleNumber", DisplayName = "样式编号", Description = "图表样式编号（1-48）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 48 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 4 }
+            ]
+        };
+
         // 操作点107：图表标题
         configs[ExcelKnowledgeType.ChartTitle] = new ExcelKnowledgeConfig
         {
@@ -254,6 +375,24 @@ public class ExcelKnowledgeService
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "ChartTitle", DisplayName = "图表标题", Description = "图表标题文本值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点122：设置图例位置
+        configs[ExcelKnowledgeType.LegendPosition] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.LegendPosition,
+            Name = "设置图例位置",
+            Description = "设置图表图例的位置",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "LegendPosition", DisplayName = "位置", Description = "图例位置", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                    EnumOptions = "无图例,图表右侧,图表顶部,图表底部,图表左侧,顶端右侧重叠,图表区域中浮动" },
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
             ]
         };
