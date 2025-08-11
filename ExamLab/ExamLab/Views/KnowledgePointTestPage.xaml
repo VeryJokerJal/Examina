@@ -1,10 +1,5 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<Page x:Class="ExamLab.Views.KnowledgePointTestPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      mc:Ignorable="d">
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page x:Class="ExamLab.Views.KnowledgePointTestPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -14,56 +9,33 @@
         </Grid.RowDefinitions>
 
         <!--  标题  -->
-        <TextBlock Grid.Row="0"
-                   Margin="0,0,0,20"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   Text="知识点配置测试工具" />
+        <TextBlock Grid.Row="0" Margin="0,0,0,20" FontSize="24" FontWeight="Bold" Text="知识点配置测试工具" />
 
         <!--  操作按钮  -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,20" Orientation="Horizontal" Spacing="10">
-            <Button x:Name="TestAllButton"
-                    Click="TestAllButton_Click"
-                    Content="测试所有模块" />
-            
-            <Button x:Name="QuickCheckButton"
-                    Click="QuickCheckButton_Click"
-                    Content="快速检查" />
+        <StackPanel Grid.Row="1" Margin="0,0,0,20" Spacing="10">
+            <Button x:Name="TestAllButton" Click="TestAllButton_Click" Content="测试所有模块" />
 
-            <ComboBox x:Name="ModuleComboBox"
-                      MinWidth="120"
-                      PlaceholderText="选择模块">
+            <Button x:Name="QuickCheckButton" Click="QuickCheckButton_Click" Content="快速检查" />
+
+            <ComboBox x:Name="ModuleComboBox" MinWidth="120" PlaceholderText="选择模块">
                 <ComboBoxItem Content="Excel" Tag="Excel" />
                 <ComboBoxItem Content="Word" Tag="Word" />
                 <ComboBoxItem Content="PowerPoint" Tag="PowerPoint" />
                 <ComboBoxItem Content="Windows" Tag="Windows" />
             </ComboBox>
 
-            <Button x:Name="TestSpecificButton"
-                    Click="TestSpecificButton_Click"
-                    Content="测试选中模块" />
+            <Button x:Name="TestSpecificButton" Click="TestSpecificButton_Click" Content="测试选中模块" />
 
-            <Button x:Name="GetMissingButton"
-                    Click="GetMissingButton_Click"
-                    Content="获取缺失列表" />
+            <Button x:Name="GetMissingButton" Click="GetMissingButton_Click" Content="获取缺失列表" />
 
-            <Button x:Name="GenerateTemplateButton"
-                    Click="GenerateTemplateButton_Click"
-                    Content="生成配置模板" />
+            <Button x:Name="GenerateTemplateButton" Click="GenerateTemplateButton_Click" Content="生成配置模板" />
 
-            <Button x:Name="ClearButton"
-                    Click="ClearButton_Click"
-                    Content="清空结果" />
+            <Button x:Name="ClearButton" Click="ClearButton_Click" Content="清空结果" />
         </StackPanel>
 
         <!--  结果显示  -->
         <ScrollViewer Grid.Row="2">
-            <TextBlock x:Name="ResultTextBlock"
-                       FontFamily="Consolas"
-                       FontSize="12"
-                       IsTextSelectionEnabled="True"
-                       Text="点击上方按钮开始测试..."
-                       TextWrapping="Wrap" />
+            <TextBlock x:Name="ResultTextBlock" FontFamily="Consolas" FontSize="12" IsTextSelectionEnabled="True" Text="点击上方按钮开始测试..." TextWrapping="Wrap" />
         </ScrollViewer>
     </Grid>
 </Page>
