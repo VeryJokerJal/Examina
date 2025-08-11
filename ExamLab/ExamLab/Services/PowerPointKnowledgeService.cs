@@ -113,7 +113,7 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "Layout", DisplayName = "幻灯片版式", Description = "选择幻灯片版式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "标题幻灯片（含标题和副标题）,标题和双栏文本,两栏文本,表格,文本和图表,图表和文本,组织结构图,图表,文本和剪贴画,剪贴画和文本,仅标题,空白幻灯片,文本和对象,对象和文本,大对象（常用于图像或图表）,单个对象,文本和媒体剪辑,媒体剪辑和文本,对象在文本之上,文本在对象之上,文本和两个对象,两个对象和文本,两个对象在文本之上,四个对象,垂直文本,垂直标题和文本,垂直标题和图表,标题母版,文本母版,居中标题,居中标题（等同）,图示和标题,仅标题,对比布局（两个内容区域）,内容加标题" }
+                    EnumOptions = "标题幻灯片（含标题和副标题）,标题和双栏文本,两栏文本,表格,文本和图表,图表和文本,组织结构图,图表,文本和剪贴画,剪贴画和文本,仅标题,空白幻灯片,文本和对象,对象和文本,大对象（常用于图像或图表）,单个对象,文本和媒体剪辑,媒体剪辑和文本,对象在文本之上,文本在对象之上,文本和两个对象,两个对象和文本,两个对象在文本之上,四个对象,垂直文本,垂直标题和文本,垂直标题和图表,标题母版,文本母版,居中标题,居中标题（等同）,图示和标题,对比布局（两个内容区域）,内容加标题" }
             ]
         };
 
@@ -141,7 +141,7 @@ public class PowerPointKnowledgeService
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "Position", DisplayName = "在第几张幻灯片之后/之前插入图片", Description = "插入位置", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "Position", DisplayName = "在第几张幻灯片之后/之前插入幻灯片", Description = "插入位置", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "InsertMode", DisplayName = "插入方式", Description = "选择插入方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "之前,之后" },
                 new() { Name = "NewSlideLayout", DisplayName = "新插入幻灯片的版式", Description = "新幻灯片的版式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
