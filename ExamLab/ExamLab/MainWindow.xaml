@@ -88,10 +88,10 @@
                     </Border>
 
                     <!--  模块列表标题  -->
-                    <TextBlock Grid.Row="2" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="模块" />
+                    <TextBlock Grid.Row="2" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="模块" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}" />
 
                     <!--  模块列表  -->
-                    <ListView Grid.Row="3" Margin="8,0" ItemsSource="{Binding SelectedExam.Modules}" SelectedItem="{Binding SelectedModule, Mode=TwoWay}">
+                    <ListView Grid.Row="3" Margin="8,0" ItemsSource="{Binding SelectedExam.Modules}" SelectedItem="{Binding SelectedModule, Mode=TwoWay}" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="10">
@@ -125,6 +125,15 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
+
+                    <!--  模块列表空状态提示  -->
+                    <Border Grid.Row="2" Grid.RowSpan="2" Margin="8,20" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                            <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8FD;" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无模块" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请先创建试卷以查看模块列表" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 
