@@ -156,9 +156,9 @@ public static class FilePickerService
     /// <returns>选择的保存文件</returns>
     public static async Task<StorageFile?> PickProjectFileForSaveAsync(string suggestedFileName)
     {
-        var fileTypeChoices = new Dictionary<string, IList<string>>
+        Dictionary<string, IList<string>> fileTypeChoices = new Dictionary<string, IList<string>>
         {
-            ["ExamLab项目文件"] = new List<string> { ".examproj" }
+            ["ExamLab项目文件"] = new List<string> { ".xml" }
         };
 
         return await PickSaveFileAsync(suggestedFileName, fileTypeChoices);
@@ -180,7 +180,7 @@ public static class FilePickerService
     /// <returns>选择的项目文件</returns>
     public static async Task<StorageFile?> PickProjectFileForImportAsync()
     {
-        var fileTypes = new List<string> { ".examproj" };
+        List<string> fileTypes = new List<string> { ".xml" };
         return await PickSingleFileAsync(fileTypes);
     }
 

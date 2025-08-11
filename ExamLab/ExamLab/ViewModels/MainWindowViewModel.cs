@@ -395,24 +395,20 @@ public class MainWindowViewModel : ViewModelBase
             // 3. 转换为导出格式
             var exportDto = ExamMappingService.ToExportDto(SelectedExam, ExportLevel.Complete);
 
-            // 4. JSON序列化
-            System.Text.Json.JsonSerializerOptions jsonOptions = new System.Text.Json.JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-            };
-
-            string jsonContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
+            // 4. XML序列化
+            string xmlContent = Services.XmlSerializationService.SerializeToXml(exportDto);
 
             // 5. 写入文件
-            await Windows.Storage.FileIO.WriteTextAsync(file, jsonContent);
+            await Windows.Storage.FileIO.WriteTextAsync(file, xmlContent);
 
-            // 6. 同时保存到本地存储（用于应用内管理）
+            // 6. 记录最后保存的项目路径（用于自动恢复）
+            Services.AppSettingsService.SetLastProjectPath(file.Path);
+
+            // 7. 同时保存到本地存储（用于应用内管理）
             await DataStorageService.Instance.SaveExamAsync(SelectedExam);
             AutoSaveService.Instance.MarkAsSaved();
 
-            // 6. 显示成功消息
+            // 8. 显示成功消息
             string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
             await NotificationService.ShowSuccessAsync(
                 "项目保存成功",
@@ -439,10 +435,10 @@ public class MainWindowViewModel : ViewModelBase
             }
 
             // 2. 验证文件类型
-            List<string> supportedExtensions = new List<string> { ".examproj" };
+            List<string> supportedExtensions = new List<string> { ".xml" };
             if (!FilePickerService.IsValidFileType(file, supportedExtensions))
             {
-                await NotificationService.ShowErrorAsync("文件类型错误", "请选择ExamLab项目文件(.examproj)");
+                await NotificationService.ShowErrorAsync("文件类型错误", "请选择ExamLab项目文件(.xml)");
                 return;
             }
 
@@ -454,21 +450,15 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            // 4. 解析项目文件（按保存逻辑对应的导出DTO）
-            System.Text.Json.JsonSerializerOptions jsonOptions = new System.Text.Json.JsonSerializerOptions
-            {
-                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
-                PropertyNameCaseInsensitive = true
-            };
-
+            // 4. 解析项目文件（XML格式）
             Models.ImportExport.ExamExportDto? projectDto = null;
             try
             {
-                projectDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+                projectDto = Services.XmlSerializationService.DeserializeFromXml(fileContent);
             }
-            catch (System.Text.Json.JsonException jsonEx)
+            catch (Exception xmlEx)
             {
-                await NotificationService.ShowErrorAsync("JSON解析错误", $"项目文件格式不正确：{jsonEx.Message}");
+                await NotificationService.ShowErrorAsync("XML解析错误", $"项目文件格式不正确：{xmlEx.Message}");
                 return;
             }
 
@@ -754,6 +744,9 @@ public class MainWindowViewModel : ViewModelBase
                 SelectedExam = Exams.FirstOrDefault();
             }
 
+            // 尝试自动恢复上次项目
+            await TryAutoRecoverLastProjectAsync();
+
             // 启动自动保存
             AutoSaveService.Instance.StartAutoSave(Exams);
             AutoSaveService.Instance.UnsavedChangesChanged += OnUnsavedChangesChanged;
@@ -990,5 +983,99 @@ public class MainWindowViewModel : ViewModelBase
         var supportedVersions = new[] { "1.0" };
 
         return supportedVersions.Contains(exportVersion);
+    }
+
+    /// <summary>
+    /// 尝试自动恢复上次保存的项目
+    /// </summary>
+    private async Task TryAutoRecoverLastProjectAsync()
+    {
+        try
+        {
+            // 检查是否启用自动恢复
+            if (!Services.AppSettingsService.IsAutoRecoveryEnabled())
+            {
+                return;
+            }
+
+            // 获取上次保存的项目路径
+            string? lastProjectPath = Services.AppSettingsService.GetLastProjectPath();
+            if (string.IsNullOrWhiteSpace(lastProjectPath))
+            {
+                return;
+            }
+
+            // 检查文件是否存在且可访问
+            if (!await Services.AppSettingsService.IsFileAccessibleAsync(lastProjectPath))
+            {
+                // 文件不存在或无法访问，清除记录
+                Services.AppSettingsService.SetLastProjectPath(null);
+                return;
+            }
+
+            // 尝试自动加载项目
+            await AutoRecoverProjectAsync(lastProjectPath);
+        }
+        catch (Exception ex)
+        {
+            // 自动恢复失败，显示友好提示但不阻止应用启动
+            await NotificationService.ShowWarningAsync(
+                "自动恢复失败",
+                $"无法自动恢复上次项目，请手动打开项目文件。\n错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 自动恢复指定路径的项目
+    /// </summary>
+    /// <param name="projectPath">项目文件路径</param>
+    private async Task AutoRecoverProjectAsync(string projectPath)
+    {
+        try
+        {
+            // 读取文件内容
+            Windows.Storage.StorageFile file = await Windows.Storage.StorageFile.GetFileFromPathAsync(projectPath);
+            string fileContent = await Windows.Storage.FileIO.ReadTextAsync(file);
+
+            if (string.IsNullOrWhiteSpace(fileContent))
+            {
+                return;
+            }
+
+            // 解析项目文件
+            Models.ImportExport.ExamExportDto projectDto = Services.XmlSerializationService.DeserializeFromXml(fileContent);
+            if (projectDto?.Exam == null)
+            {
+                return;
+            }
+
+            // 转换为ExamLab模型
+            Exam recoveredExam = ExamMappingService.FromExportDto(projectDto);
+
+            // 检查是否已存在同名试卷
+            if (Exams.Any(e => e.Name == recoveredExam.Name))
+            {
+                // 如果已存在，添加恢复标识
+                recoveredExam.Name = $"{recoveredExam.Name} (自动恢复)";
+            }
+
+            // 添加到列表并选中
+            Exams.Add(recoveredExam);
+            SelectedExam = recoveredExam;
+
+            // 保存到本地存储
+            await DataStorageService.Instance.SaveExamAsync(recoveredExam);
+
+            // 显示恢复成功提示
+            await NotificationService.ShowSuccessAsync(
+                "自动恢复成功",
+                $"已自动恢复上次项目：{recoveredExam.Name}\n来源：{projectPath}");
+        }
+        catch (Exception ex)
+        {
+            // 恢复失败，清除记录
+            Services.AppSettingsService.SetLastProjectPath(null);
+            throw new Exception($"自动恢复项目失败：{ex.Message}", ex);
+        }
     }
 }

@@ -1,24 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using System.Xml.Serialization;
 
 namespace ExamLab.Models.ImportExport;
 
 /// <summary>
-/// 试卷导出数据传输对象 - 基于Exam模型文档定义的JSON格式
+/// 试卷导出数据传输对象 - 支持JSON和XML格式
 /// </summary>
+[XmlRoot("ExamProject")]
 public class ExamExportDto
 {
     /// <summary>
     /// 试卷信息
     /// </summary>
     [JsonPropertyName("exam")]
+    [XmlElement("Exam")]
     public ExamDto Exam { get; set; } = new();
 
     /// <summary>
     /// 导出元数据
     /// </summary>
     [JsonPropertyName("metadata")]
+    [XmlElement("Metadata")]
     public ExportMetadataDto Metadata { get; set; } = new();
 }
 
@@ -31,150 +35,177 @@ public class ExamDto
     /// 试卷ID
     /// </summary>
     [JsonPropertyName("id")]
+    [XmlElement("Id")]
     public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// 试卷名称
     /// </summary>
     [JsonPropertyName("name")]
+    [XmlElement("Name")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 试卷描述
     /// </summary>
     [JsonPropertyName("description")]
+    [XmlElement("Description")]
     public string? Description { get; set; }
 
     /// <summary>
     /// 试卷类型
     /// </summary>
     [JsonPropertyName("examType")]
+    [XmlElement("ExamType")]
     public string ExamType { get; set; } = "UnifiedExam";
 
     /// <summary>
     /// 试卷状态
     /// </summary>
     [JsonPropertyName("status")]
+    [XmlElement("Status")]
     public string Status { get; set; } = "Draft";
 
     /// <summary>
     /// 总分
     /// </summary>
     [JsonPropertyName("totalScore")]
+    [XmlElement("TotalScore")]
     public decimal TotalScore { get; set; } = 100.0m;
 
     /// <summary>
     /// 考试时长（分钟）
     /// </summary>
     [JsonPropertyName("durationMinutes")]
+    [XmlElement("DurationMinutes")]
     public int DurationMinutes { get; set; } = 120;
 
     /// <summary>
     /// 考试开始时间
     /// </summary>
     [JsonPropertyName("startTime")]
+    [XmlElement("StartTime")]
     public DateTime? StartTime { get; set; }
 
     /// <summary>
     /// 考试结束时间
     /// </summary>
     [JsonPropertyName("endTime")]
+    [XmlElement("EndTime")]
     public DateTime? EndTime { get; set; }
 
     /// <summary>
     /// 是否允许重考
     /// </summary>
     [JsonPropertyName("allowRetake")]
+    [XmlElement("AllowRetake")]
     public bool AllowRetake { get; set; } = false;
 
     /// <summary>
     /// 最大重考次数
     /// </summary>
     [JsonPropertyName("maxRetakeCount")]
+    [XmlElement("MaxRetakeCount")]
     public int MaxRetakeCount { get; set; } = 0;
 
     /// <summary>
     /// 及格分数
     /// </summary>
     [JsonPropertyName("passingScore")]
+    [XmlElement("PassingScore")]
     public decimal PassingScore { get; set; } = 60.0m;
 
     /// <summary>
     /// 是否随机题目顺序
     /// </summary>
     [JsonPropertyName("randomizeQuestions")]
+    [XmlElement("RandomizeQuestions")]
     public bool RandomizeQuestions { get; set; } = false;
 
     /// <summary>
     /// 是否显示分数
     /// </summary>
     [JsonPropertyName("showScore")]
+    [XmlElement("ShowScore")]
     public bool ShowScore { get; set; } = true;
 
     /// <summary>
     /// 是否显示答案
     /// </summary>
     [JsonPropertyName("showAnswers")]
+    [XmlElement("ShowAnswers")]
     public bool ShowAnswers { get; set; } = false;
 
     /// <summary>
     /// 创建者ID
     /// </summary>
     [JsonPropertyName("createdBy")]
+    [XmlElement("CreatedBy")]
     public int CreatedBy { get; set; } = 1;
 
     /// <summary>
     /// 创建时间
     /// </summary>
     [JsonPropertyName("createdAt")]
+    [XmlElement("CreatedAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// 更新时间
     /// </summary>
     [JsonPropertyName("updatedAt")]
+    [XmlElement("UpdatedAt")]
     public DateTime? UpdatedAt { get; set; }
 
     /// <summary>
     /// 发布时间
     /// </summary>
     [JsonPropertyName("publishedAt")]
+    [XmlElement("PublishedAt")]
     public DateTime? PublishedAt { get; set; }
 
     /// <summary>
     /// 发布者ID
     /// </summary>
     [JsonPropertyName("publishedBy")]
+    [XmlElement("PublishedBy")]
     public int? PublishedBy { get; set; }
 
     /// <summary>
     /// 是否启用
     /// </summary>
     [JsonPropertyName("isEnabled")]
+    [XmlElement("IsEnabled")]
     public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// 试卷标签
     /// </summary>
     [JsonPropertyName("tags")]
+    [XmlElement("Tags")]
     public string? Tags { get; set; }
 
     /// <summary>
     /// 扩展配置
     /// </summary>
     [JsonPropertyName("extendedConfig")]
+    [XmlElement("ExtendedConfig")]
     public object? ExtendedConfig { get; set; }
 
     /// <summary>
     /// 科目列表
     /// </summary>
     [JsonPropertyName("subjects")]
+    [XmlArray("Subjects")]
+    [XmlArrayItem("Subject")]
     public List<SubjectDto> Subjects { get; set; } = new();
 
     /// <summary>
     /// 模块列表（ExamLab特有）
     /// </summary>
     [JsonPropertyName("modules")]
+    [XmlArray("Modules")]
+    [XmlArrayItem("Module")]
     public List<ModuleDto> Modules { get; set; } = new();
 }
 
@@ -187,6 +218,7 @@ public class SubjectDto
     /// 科目ID
     /// </summary>
     [JsonPropertyName("id")]
+    [XmlElement("Id")]
     public int Id { get; set; }
 
     /// <summary>
@@ -283,48 +315,57 @@ public class ModuleDto
     /// 模块ID
     /// </summary>
     [JsonPropertyName("id")]
+    [XmlElement("Id")]
     public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块名称
     /// </summary>
     [JsonPropertyName("name")]
+    [XmlElement("Name")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块类型
     /// </summary>
     [JsonPropertyName("type")]
+    [XmlElement("Type")]
     public string Type { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块描述
     /// </summary>
     [JsonPropertyName("description")]
+    [XmlElement("Description")]
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块分值
     /// </summary>
     [JsonPropertyName("score")]
+    [XmlElement("Score")]
     public int Score { get; set; }
 
     /// <summary>
     /// 模块排序
     /// </summary>
     [JsonPropertyName("order")]
+    [XmlElement("Order")]
     public int Order { get; set; }
 
     /// <summary>
     /// 是否启用
     /// </summary>
     [JsonPropertyName("isEnabled")]
+    [XmlElement("IsEnabled")]
     public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// 题目列表
     /// </summary>
     [JsonPropertyName("questions")]
+    [XmlArray("Questions")]
+    [XmlArrayItem("Question")]
     public List<QuestionDto> Questions { get; set; } = new();
 }
 
@@ -619,41 +660,55 @@ public class ExportMetadataDto
     /// 导出版本
     /// </summary>
     [JsonPropertyName("exportVersion")]
+    [XmlElement("ExportVersion")]
     public string ExportVersion { get; set; } = "1.0";
 
     /// <summary>
     /// 导出日期
     /// </summary>
     [JsonPropertyName("exportDate")]
+    [XmlElement("ExportDate")]
     public DateTime ExportDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// 导出者
     /// </summary>
     [JsonPropertyName("exportedBy")]
+    [XmlElement("ExportedBy")]
     public string ExportedBy { get; set; } = "ExamLab";
 
     /// <summary>
     /// 总科目数
     /// </summary>
     [JsonPropertyName("totalSubjects")]
+    [XmlElement("TotalSubjects")]
     public int TotalSubjects { get; set; }
 
     /// <summary>
     /// 总题目数
     /// </summary>
     [JsonPropertyName("totalQuestions")]
+    [XmlElement("TotalQuestions")]
     public int TotalQuestions { get; set; }
 
     /// <summary>
     /// 总操作点数
     /// </summary>
     [JsonPropertyName("totalOperationPoints")]
+    [XmlElement("TotalOperationPoints")]
     public int TotalOperationPoints { get; set; }
 
     /// <summary>
     /// 导出级别
     /// </summary>
     [JsonPropertyName("exportLevel")]
+    [XmlElement("ExportLevel")]
     public string ExportLevel { get; set; } = "Complete";
+
+    /// <summary>
+    /// 导出格式
+    /// </summary>
+    [JsonPropertyName("exportFormat")]
+    [XmlElement("ExportFormat")]
+    public string ExportFormat { get; set; } = "XML";
 }
