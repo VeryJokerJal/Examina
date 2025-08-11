@@ -111,9 +111,9 @@ public class PowerPointKnowledgeService
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "Layout", DisplayName = "幻灯片版式", Description = "选择幻灯片版式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "标题幻灯片,标题和双栏文本,两栏文本,表格,文本和图表,图表和文本,组织结构图,图表,文本和剪贴画,剪贴画和文本,仅标题,空白幻灯片,文本和对象,对象和文本,大对象,单个对象,文本和媒体剪辑,媒体剪辑和文本,对象在文本之上,文本在对象之上,文本和两个对象,两个对象和文本,两个对象在文本之上,四个对象,垂直文本,垂直标题和文本,垂直标题和图表,标题母版,文本母版,居中标题,图示和标题,对比布局,内容加标题" }
+                    EnumOptions = "标题幻灯片（含标题和副标题）,标题和双栏文本,两栏文本,表格,文本和图表,图表和文本,组织结构图,图表,文本和剪贴画,剪贴画和文本,仅标题,空白幻灯片,文本和对象,对象和文本,大对象（常用于图像或图表）,单个对象,文本和媒体剪辑,媒体剪辑和文本,对象在文本之上,文本在对象之上,文本和两个对象,两个对象和文本,两个对象在文本之上,四个对象,垂直文本,垂直标题和文本,垂直标题和图表,标题母版,文本母版,居中标题,居中标题（等同）,图示和标题,仅标题,对比布局（两个内容区域）,内容加标题" }
             ]
         };
 
@@ -126,9 +126,9 @@ public class PowerPointKnowledgeService
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "SlideIdentifier", DisplayName = "幻灯片标识符", Description = "幻灯片类型标识", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "普通幻灯片,标题幻灯片或布局为标题的类型" }
+                new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "SlideIdentifier", DisplayName = "幻灯片标识符", Description = "幻灯片类型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "普通幻灯片（ppt类型）,标题幻灯片或布局为标题的类型" }
             ]
         };
 
@@ -141,11 +141,11 @@ public class PowerPointKnowledgeService
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "Position", DisplayName = "插入位置", Description = "在第几张幻灯片之后/之前插入", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "Position", DisplayName = "在第几张幻灯片之后/之前插入图片", Description = "插入位置", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "InsertMode", DisplayName = "插入方式", Description = "选择插入方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "之前,之后" },
                 new() { Name = "NewSlideLayout", DisplayName = "新插入幻灯片的版式", Description = "新幻灯片的版式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "空白版式,单对象版式" }
+                    EnumOptions = "空白版式（无标题无内容）,单对象版式（可放图表、图像等）" }
             ]
         };
 
@@ -159,7 +159,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "第几张幻灯片", Description = "目标幻灯片编号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextBoxNumber", DisplayName = "第几个文本框", Description = "1代表标题文本框，2代表第二个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TextBoxNumber", DisplayName = "第几个文本框", Description = "1，代表标题文本框，2代表第二个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
                 new() { Name = "FontName", DisplayName = "字体", Description = "选择字体", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "仿宋,华文隶书,华文细黑,黑体,华文行楷,隶书,华文彩云,华文楷体" }
             ]
@@ -174,7 +174,7 @@ public class PowerPointKnowledgeService
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "SlideNumbers", DisplayName = "幻灯片张数", Description = "以逗号分隔，如：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "SlideNumbers", DisplayName = "幻灯片张数（可配置多个）", Description = "以逗号分隔，举例：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "TransitionEffect", DisplayName = "切换方式", Description = "选择切换效果", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "无切换效果,剪切,黑色剪切,平滑淡出,淡出,推动向左,推动向右,推动向上,推动向下,覆盖向左,覆盖向右,覆盖向上,覆盖向下,揭开向左,揭开向右,揭开向上,揭开向下,擦除向左,擦除向右,擦除向上,擦除向下,水平中间向外展开,水平两边向中间合拢,垂直中间向外展开,垂直两边向中间合拢,条纹左上角弹出,条纹右上角弹出,条纹左下角弹出,条纹右下角弹出,水平随机条纹,垂直随机条纹,棋盘交错横向,棋盘交错纵向,闪光灯效果,摩天轮向右旋转,轮状反向1辐射,平移向左,平移向右" }
             ]
@@ -189,11 +189,164 @@ public class PowerPointKnowledgeService
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "SlideNumbers", DisplayName = "幻灯片张数", Description = "以逗号分隔，如：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "SlideNumbers", DisplayName = "幻灯片张数（可配置多个）", Description = "以逗号分隔，举例：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "TransitionScheme", DisplayName = "幻灯片切换方案", Description = "选择切换方案", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "无效果,推入,淡出,覆盖,随机条纹,棋盘格,摩天轮,闪光灯,平移" },
                 new() { Name = "TransitionDirection", DisplayName = "幻灯片切换效果", Description = "选择切换方向", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "推入向左,推入向右,推入向上,推入向下,淡出,平滑淡出,覆盖向左,覆盖向右,覆盖向上,覆盖向下,棋盘交错纵向,棋盘交错横向,水平随机条纹,垂直随机条纹,摩天轮向右,闪光灯,平移向左,平移向右,轮状反向1辐射" }
+            ]
+        };
+
+        // 知识点7：幻灯片放映方式
+        configs[PowerPointKnowledgeType.SlideshowMode] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SlideshowMode,
+            Name = "幻灯片放映方式",
+            Description = "设置幻灯片的放映方式",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideshowMode", DisplayName = "幻灯片放映方式", Description = "选择放映方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "演讲者放映（全屏）,窗口中放映,展示台放映（信息亭模式）,第二窗口放映" }
+            ]
+        };
+
+        // 知识点8：幻灯片放映选项
+        configs[PowerPointKnowledgeType.SlideshowOptions] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SlideshowOptions,
+            Name = "幻灯片放映选项",
+            Description = "设置幻灯片的放映选项",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "LoopUntilStopped", DisplayName = "是否循环播放", Description = "是否循环播放", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "是,否" },
+                new() { Name = "ShowWithNarration", DisplayName = "是否使用旁白", Description = "是否使用旁白", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "是,否" },
+                new() { Name = "ShowWithAnimation", DisplayName = "是否使用动画", Description = "是否使用动画", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "是,否" }
+            ]
+        };
+
+        // 知识点9：幻灯片插入超链接
+        configs[PowerPointKnowledgeType.InsertHyperlink] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.InsertHyperlink,
+            Name = "幻灯片插入超链接",
+            Description = "为文本或对象插入超链接",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "TextBoxNumber", DisplayName = "文本框编号", Description = "插入第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "HyperlinkType", DisplayName = "超链接类型", Description = "超链接类型", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "超链接到外部网页,超链接到本演示文稿中的某张幻灯片" },
+                new() { Name = "LinkText", DisplayName = "中文文本值", Description = "显示的链接文字", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "TargetSlideNumber", DisplayName = "超链接目标幻灯片编号", Description = "目标幻灯片编号（仅当类型为本演示文稿时）", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = 1 }
+            ]
+        };
+
+        // 知识点10：幻灯片切换播放声音
+        configs[PowerPointKnowledgeType.SlideTransitionSound] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SlideTransitionSound,
+            Name = "幻灯片切换播放声音",
+            Description = "设置幻灯片切换时的声音效果",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumbers", DisplayName = "操作目标幻灯片序号（可配置多个）", Description = "以逗号分隔，举例：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "SoundEffect", DisplayName = "声音", Description = "切换声音", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "风铃声,叮一声,激光音效,推动声,爆炸声,快门声,鼓声,爆炸,飞驰声,掌声,风声,打字机,无声音" }
+            ]
+        };
+
+        // 知识点11：幻灯片编号
+        configs[PowerPointKnowledgeType.SlideNumber] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SlideNumber,
+            Name = "幻灯片编号",
+            Description = "设置幻灯片编号的显示",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "ShowSlideNumber", DisplayName = "显示幻灯片编号", Description = "是否显示编号", Type = ParameterType.Boolean, IsRequired = true, Order = 1 }
+            ]
+        };
+
+        // 知识点12：页脚文字
+        configs[PowerPointKnowledgeType.FooterText] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.FooterText,
+            Name = "页脚文字",
+            Description = "设置幻灯片的页脚文字",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "FooterText", DisplayName = "设置页脚文字", Description = "页脚文字内容", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FooterTextValue", DisplayName = "中文文本值", Description = "页脚文字的具体内容", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+            ]
+        };
+
+        // 知识点13：幻灯片插入图片
+        configs[PowerPointKnowledgeType.InsertImage] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.InsertImage,
+            Name = "幻灯片插入图片",
+            Description = "在幻灯片中插入图片",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "目标幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 }
+            ]
+        };
+
+        // 知识点14：幻灯片插入表格
+        configs[PowerPointKnowledgeType.InsertTable] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.InsertTable,
+            Name = "幻灯片插入表格",
+            Description = "在幻灯片中插入表格",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TableRows", DisplayName = "表格行数", Description = "表格行数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 20 },
+                new() { Name = "TableColumns", DisplayName = "表格列数", Description = "表格列数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1, MaxValue = 20 }
+            ]
+        };
+
+        // 知识点15：幻灯片插入SmartArt图形
+        configs[PowerPointKnowledgeType.InsertSmartArt] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.InsertSmartArt,
+            Name = "幻灯片插入SmartArt图形",
+            Description = "在幻灯片中插入SmartArt图形",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "InsertArea", DisplayName = "SmartArt图形插入区域编号", Description = "插入区域", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "主内容区或左内容框,副区域或右侧内容框" },
+                new() { Name = "SmartArtLayout", DisplayName = "SmartArt图形的具体布局样式", Description = "具体布局样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "垂直框列表,循环矩阵,射线循环,分离射线,层次结构,组织结构图" }
+            ]
+        };
+
+        // 知识点16：插入备注
+        configs[PowerPointKnowledgeType.InsertNote] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.InsertNote,
+            Name = "插入备注",
+            Description = "为幻灯片添加备注",
+            Category = "幻灯片操作",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "NoteContent", DisplayName = "备注文本值", Description = "备注文字内容", Type = ParameterType.Text, IsRequired = true, Order = 2 }
             ]
         };
     }
@@ -257,7 +410,7 @@ public class PowerPointKnowledgeService
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
                 new() { Name = "TextStyle", DisplayName = "字形", Description = "选择文本样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "加粗,斜体,下划线,删除线" }
+                    EnumOptions = "加粗（Bold）,斜体（Italic）,下划线（Underline）,删除线（Strikethrough）" }
             ]
         };
 
@@ -272,8 +425,8 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "HorizontalPosition", DisplayName = "水平值", Description = "自左上角的水平位置", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0 },
-                new() { Name = "VerticalPosition", DisplayName = "垂直值", Description = "自左上角的垂直位置", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 }
+                new() { Name = "HorizontalPosition", DisplayName = "水平值（自左上角）", Description = "自左上角的水平位置", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0 },
+                new() { Name = "VerticalPosition", DisplayName = "垂直值（自左上角）", Description = "自左上角的垂直位置", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 }
             ]
         };
 
@@ -290,6 +443,132 @@ public class PowerPointKnowledgeService
                 new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
                 new() { Name = "ElementHeight", DisplayName = "元素高度", Description = "元素的高度", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "ElementWidth", DisplayName = "元素宽度", Description = "元素的宽度", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 }
+            ]
+        };
+
+        // 知识点23：艺术字字样
+        configs[PowerPointKnowledgeType.SetWordArtStyle] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetWordArtStyle,
+            Name = "艺术字字样",
+            Description = "设置艺术字的样式",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "WordArtStyle", DisplayName = "艺术字样式", Description = "选择艺术字样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "简单阴影文字（默认样式）,粗体立体阴影文字,内发光浮雕,渐变填充边框,镂空轮廓文字,圆角描边文字,发光空心文字,黑底白字,金属光泽渐变,多层阴影,扭曲变形样式,波浪形文字,厚重边框文字,镜面效果,发光文字+内阴影,渐变填充—靛蓝+白色轮廓,渐变填充—橙色调,闪电风格描边,镭射色填充风格,曲线立体文字,弯曲旋转,下沉阴影样式,内凹样式字体,斜体轮廓文字,滚动特效样式,字符发光+内嵌边框,粗描边立体浮雕,彩虹样式字体,镜面浮雕边框,烟雾状透明文字" }
+            ]
+        };
+
+        // 知识点24：艺术字文本效果
+        configs[PowerPointKnowledgeType.SetWordArtEffect] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetWordArtEffect,
+            Name = "艺术字文本效果",
+            Description = "设置艺术字的特殊效果",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TextEffect", DisplayName = "艺术字文本效果", Description = "选择文本变形效果", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "普通文本（无变形）,停止标志样式（方块包围）,正三角形向上,正三角形向下,尖角向上,尖角向下,内环,外环,向上弧形（曲线）,向下弧形（曲线）,完整圆形,圆角矩形曲线,向上弧形（灌注）,向下弧形（灌注）,圆形灌注,圆角矩形灌注,向上轻微弯曲,向下轻微弯曲,阶梯向上,阶梯向下,波浪样式1,波浪样式2,双波浪样式1,双波浪样式2,向外鼓起,向内收缩,底部向外鼓起,底部向内凹陷" }
+            ]
+        };
+
+        // 知识点25：SmartArt颜色
+        configs[PowerPointKnowledgeType.SetSmartArtColor] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetSmartArtColor,
+            Name = "SmartArt颜色",
+            Description = "设置SmartArt图形的颜色",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "SmartArtColor", DisplayName = "Smart颜色", Description = "选择SmartArt颜色方案", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "彩色范围-强调文字颜色1,彩色范围-强调文字颜色2,彩色范围-强调文字颜色3至4,彩色范围-强调文字颜色5到6,单色填充-灰色,渐变范围-强调文字颜色2,浅色填充-强调文字颜色3,强填充-强调文字颜色4,强边框-强调文字颜色5,彩色线框-强调文字颜色6,渐变线框-强调文字颜色4" }
+            ]
+        };
+
+        // 知识点26：动画效果-方向
+        configs[PowerPointKnowledgeType.SetAnimationDirection] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetAnimationDirection,
+            Name = "动画效果-方向",
+            Description = "设置动画效果的方向",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ElementOrder", DisplayName = "元素顺序", Description = "第几个元素", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "AnimationDirection", DisplayName = "动画效果", Description = "选择动画方向", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "无方向（默认）,向上,向下,向左,向右,左上角方向,右上角方向,左下角方向,右下角方向,水平方向（不指定左右）,水平向内,水平向外,垂直方向,垂直向内,垂直向外,顺时针,逆时针,从外向内,从内向外,从底部,从顶部,从中心,横穿,从左侧开始,从右侧开始" }
+            ]
+        };
+
+        // 知识点27：动画样式
+        configs[PowerPointKnowledgeType.SetAnimationStyle] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetAnimationStyle,
+            Name = "动画样式",
+            Description = "设置动画的样式效果",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ElementOrder", DisplayName = "元素顺序", Description = "第几个元素", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "AnimationStyle", DisplayName = "动画样式", Description = "选择动画效果样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "直接出现,飞入,擦除,拆分,随机条纹,向下浮现,旋转淡出,淡出,缩放,旋转,放大/缩小,弹跳,沿圆路径移动,向左移动" }
+            ]
+        };
+
+        // 知识点28：动画持续时间
+        configs[PowerPointKnowledgeType.SetAnimationDuration] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetAnimationDuration,
+            Name = "动画持续时间",
+            Description = "设置动画效果的持续时间",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "Duration", DisplayName = "动画持续时间（秒为单位）", Description = "动画持续时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0.1, MaxValue = 10 },
+                new() { Name = "DelayTime", DisplayName = "动画延迟时间（秒为单位）", Description = "动画延迟时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 10 }
+            ]
+        };
+
+        // 知识点29：文本对齐方式
+        configs[PowerPointKnowledgeType.SetTextAlignment] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetTextAlignment,
+            Name = "文本对齐方式",
+            Description = "设置文本的对齐方式",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TextAlignment", DisplayName = "对齐方式", Description = "文本对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐（自动调节空格）,均匀分布对齐（常用于中文）" }
+            ]
+        };
+
+        // 知识点30：动画顺序
+        configs[PowerPointKnowledgeType.SetAnimationOrder] = new PowerPointKnowledgeConfig
+        {
+            KnowledgeType = PowerPointKnowledgeType.SetAnimationOrder,
+            Name = "动画顺序",
+            Description = "设置动画播放的顺序",
+            Category = "文字与字体设置",
+            ParameterTemplates =
+            [
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ElementOrder", DisplayName = "元素顺序", Description = "第几个元素", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "AnimationOrder", DisplayName = "动画顺序", Description = "动画播放顺序，序号：1、2", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 2 }
             ]
         };
     }
@@ -326,7 +605,7 @@ public class PowerPointKnowledgeService
                 new() { Name = "FillType", DisplayName = "填充类型", Description = "选择填充类型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "实心颜色填充,图案填充,纹理填充,渐变填充,背景自动填充" },
                 new() { Name = "TextureType", DisplayName = "预设纹理类型", Description = "选择纹理类型", Type = ParameterType.Enum, IsRequired = false, Order = 3,
-                    EnumOptions = "混合,莎草纸,画布,牛仔布,编织垫,水珠,纸袋纹理,鱼化石,沙粒,绿色大理石,白色大理石,棕色大理石,花岗岩,报纸纹理,再生纸,羊皮纸,信纸纹理,蓝色薄纸,粉色薄纸,紫色网格,花束纹理,软木纹理,白色花岗岩,胡桃木纹理" },
+                    EnumOptions = "混合（不唯一/多个）,莎草纸,画布,牛仔布,编织垫,水珠,纸袋纹理,鱼化石,沙粒,绿色大理石,白色大理石,棕色大理石,花岗岩,报纸纹理,再生纸,羊皮纸,信纸纹理,蓝色薄纸,粉色薄纸,紫色网格,花束纹理,软木纹理,白色花岗岩,胡桃木纹理" },
                 new() { Name = "ApplyToMaster", DisplayName = "是否应用于母版", Description = "是否应用于母版", Type = ParameterType.Boolean, IsRequired = false, Order = 4 }
             ]
         };
@@ -345,7 +624,7 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "Rows", DisplayName = "行数", Description = "表格行数", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "Columns", DisplayName = "列数", Description = "表格列数", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "Content", DisplayName = "内容", Description = "单元格内容，用逗号分隔", Type = ParameterType.Text, IsRequired = true, Order = 3 }
+                new() { Name = "Content", DisplayName = "内容", Description = "单元格内容，用逗号分隔。举例：一共六行、二列，内容从1.1 1.2 2.1 2.2 3.1 3.2这个顺序插入", Type = ParameterType.Text, IsRequired = true, Order = 3 }
             ]
         };
 
@@ -360,7 +639,7 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "Rows", DisplayName = "行数", Description = "表格行数", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "Columns", DisplayName = "列数", Description = "表格列数", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "TableStyle", DisplayName = "表格样式", Description = "选择表格样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                new() { Name = "TableStyle", DisplayName = "样式名称", Description = "选择表格样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "轻度样式1,轻度样式2,轻度样式3,轻度样式4,轻度样式5,轻度样式6,轻度样式7,中度样式1-强调1,中度样式1-强调2,中度样式1-强调3,中度样式2-强调1,中度样式2-强调2,中度样式2-强调3,中度样式3-强调1,中度样式3-强调2,中度样式3-强调3,深度样式1-强调1,深度样式1-强调2,深度样式1-强调3,深度样式2-强调1,深度样式2-强调2,深度样式2-强调3" }
             ]
         };
@@ -376,7 +655,7 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "ElementOrder", DisplayName = "元素顺序", Description = "第几个元素", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "SmartArtStyle", DisplayName = "SmartArt样式", Description = "选择SmartArt样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                new() { Name = "SmartArtStyle", DisplayName = "SmartArt样式枚举值（中文）", Description = "选择SmartArt样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "无样式,粗边框,微弱边框,细微效果,强调边框,强调效果,三维边框,三维平面,三维强调边框,三维强调效果,卡通,渐变边框,光亮边框,金属边框" }
             ]
         };
@@ -405,11 +684,11 @@ public class PowerPointKnowledgeService
             Category = "其他",
             ParameterTemplates =
             [
-                new() { Name = "TriggerMode", DisplayName = "动画触发方式", Description = "动画开始方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                new() { Name = "TriggerMode", DisplayName = "动画触发方式（开始方式）", Description = "控制动画是如何触发的", Type = ParameterType.Enum, IsRequired = true, Order = 1,
                     EnumOptions = "单击时,与上一动画同时,在上一动画之后,自动" },
-                new() { Name = "DelayTime", DisplayName = "延迟时间", Description = "动画开始前的延迟时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0 },
-                new() { Name = "Duration", DisplayName = "动画持续时间", Description = "动画执行的时长（秒）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0.1 },
-                new() { Name = "RepeatCount", DisplayName = "重复次数", Description = "动画播放的循环次数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 }
+                new() { Name = "DelayTime", DisplayName = "延迟时间（单位：秒）", Description = "动画开始前的延迟时间", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0 },
+                new() { Name = "Duration", DisplayName = "动画持续时间（单位：秒）", Description = "动画本身执行的时长", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0.1 },
+                new() { Name = "RepeatCount", DisplayName = "重复次数/播放次数", Description = "设置动画播放的循环次数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 }
             ]
         };
 
@@ -438,282 +717,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "BackgroundStyle", DisplayName = "背景样式", Description = "选择预设背景样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "混合样式,非预设样式,预设背景样式1,预设背景样式2,预设背景样式3,预设背景样式4,预设背景样式5,预设背景样式6,预设背景样式7,预设背景样式8,预设背景样式9,预设背景样式10,预设背景样式11,预设背景样式12" }
-            ]
-        };
-
-        // 知识点40：幻灯片放映模式
-        configs[PowerPointKnowledgeType.SlideshowMode] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SlideshowMode,
-            Name = "幻灯片放映模式",
-            Description = "设置幻灯片的放映模式",
-            Category = "放映设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "SlideshowMode", DisplayName = "放映模式", Description = "选择放映模式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "演讲者放映,观众自行浏览,在展台浏览" }
-            ]
-        };
-
-        // 知识点41：幻灯片放映选项
-        configs[PowerPointKnowledgeType.SlideshowOptions] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SlideshowOptions,
-            Name = "幻灯片放映选项",
-            Description = "设置幻灯片的放映选项",
-            Category = "放映设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "LoopContinuously", DisplayName = "循环放映", Description = "是否循环放映", Type = ParameterType.Boolean, IsRequired = true, Order = 2 },
-                new() { Name = "ShowWithoutNarration", DisplayName = "放映时不加旁白", Description = "是否不加旁白", Type = ParameterType.Boolean, IsRequired = false, Order = 3 },
-                new() { Name = "ShowWithoutAnimation", DisplayName = "放映时不加动画", Description = "是否不加动画", Type = ParameterType.Boolean, IsRequired = false, Order = 4 }
-            ]
-        };
-
-        // 知识点42：插入超链接
-        configs[PowerPointKnowledgeType.InsertHyperlink] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.InsertHyperlink,
-            Name = "插入超链接",
-            Description = "为文本或对象插入超链接",
-            Category = "内容插入",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "LinkText", DisplayName = "链接文本", Description = "显示的链接文字", Type = ParameterType.Text, IsRequired = true, Order = 2 },
-                new() { Name = "LinkAddress", DisplayName = "链接地址", Description = "超链接地址", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "LinkType", DisplayName = "链接类型", Description = "超链接类型", Type = ParameterType.Enum, IsRequired = true, Order = 4,
-                    EnumOptions = "网页地址,电子邮件地址,本文档中的位置,新建文档" }
-            ]
-        };
-
-        // 知识点43：幻灯片切换声音
-        configs[PowerPointKnowledgeType.SlideTransitionSound] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SlideTransitionSound,
-            Name = "幻灯片切换声音",
-            Description = "设置幻灯片切换时的声音效果",
-            Category = "切换效果",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "SoundEffect", DisplayName = "声音效果", Description = "切换声音", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "无声音,鼓掌,爆炸,激光,打字机,推拉,风铃,相机" }
-            ]
-        };
-
-        // 知识点44：幻灯片编号
-        configs[PowerPointKnowledgeType.SlideNumber] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SlideNumber,
-            Name = "幻灯片编号",
-            Description = "设置幻灯片编号的显示",
-            Category = "页眉页脚",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "ShowSlideNumber", DisplayName = "显示幻灯片编号", Description = "是否显示编号", Type = ParameterType.Boolean, IsRequired = true, Order = 2 },
-                new() { Name = "StartNumber", DisplayName = "起始编号", Description = "编号起始值", Type = ParameterType.Number, IsRequired = false, Order = 3, MinValue = 1 }
-            ]
-        };
-
-        // 知识点45：页脚文字
-        configs[PowerPointKnowledgeType.FooterText] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.FooterText,
-            Name = "页脚文字",
-            Description = "设置幻灯片的页脚文字",
-            Category = "页眉页脚",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "FooterText", DisplayName = "页脚文字", Description = "页脚文字内容", Type = ParameterType.Text, IsRequired = true, Order = 2 },
-                new() { Name = "ShowOnTitleSlide", DisplayName = "标题幻灯片显示", Description = "是否在标题幻灯片显示", Type = ParameterType.Boolean, IsRequired = false, Order = 3 }
-            ]
-        };
-
-        // 知识点46：插入图片
-        configs[PowerPointKnowledgeType.InsertImage] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.InsertImage,
-            Name = "插入图片",
-            Description = "在幻灯片中插入图片",
-            Category = "内容插入",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "ImagePath", DisplayName = "图片路径", Description = "图片文件路径", Type = ParameterType.Text, IsRequired = true, Order = 2 },
-                new() { Name = "ImageWidth", DisplayName = "图片宽度", Description = "图片宽度（磅）", Type = ParameterType.Number, IsRequired = false, Order = 3, MinValue = 10, MaxValue = 1000 },
-                new() { Name = "ImageHeight", DisplayName = "图片高度", Description = "图片高度（磅）", Type = ParameterType.Number, IsRequired = false, Order = 4, MinValue = 10, MaxValue = 1000 }
-            ]
-        };
-
-        // 知识点47：插入表格
-        configs[PowerPointKnowledgeType.InsertTable] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.InsertTable,
-            Name = "插入表格",
-            Description = "在幻灯片中插入表格",
-            Category = "内容插入",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TableRows", DisplayName = "表格行数", Description = "表格行数", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, MaxValue = 20 },
-                new() { Name = "TableColumns", DisplayName = "表格列数", Description = "表格列数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 20 }
-            ]
-        };
-
-        // 知识点48：插入SmartArt
-        configs[PowerPointKnowledgeType.InsertSmartArt] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.InsertSmartArt,
-            Name = "插入SmartArt",
-            Description = "在幻灯片中插入SmartArt图形",
-            Category = "内容插入",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "SmartArtType", DisplayName = "SmartArt类型", Description = "SmartArt图形类型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "列表,流程,循环,层次结构,关系,矩阵,棱锥图" },
-                new() { Name = "SmartArtLayout", DisplayName = "SmartArt布局", Description = "具体布局样式", Type = ParameterType.Text, IsRequired = true, Order = 3 }
-            ]
-        };
-
-        // 知识点49：插入备注
-        configs[PowerPointKnowledgeType.InsertNote] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.InsertNote,
-            Name = "插入备注",
-            Description = "为幻灯片添加备注",
-            Category = "内容插入",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "NoteContent", DisplayName = "备注内容", Description = "备注文字内容", Type = ParameterType.Text, IsRequired = true, Order = 2 }
-            ]
-        };
-
-        // 知识点50：设置艺术字样式
-        configs[PowerPointKnowledgeType.SetWordArtStyle] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetWordArtStyle,
-            Name = "设置艺术字样式",
-            Description = "设置艺术字的样式",
-            Category = "文字效果",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "WordArtText", DisplayName = "艺术字文本", Description = "艺术字内容", Type = ParameterType.Text, IsRequired = true, Order = 2 },
-                new() { Name = "WordArtStyle", DisplayName = "艺术字样式", Description = "预设样式编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 30 }
-            ]
-        };
-
-        // 知识点51：设置艺术字效果
-        configs[PowerPointKnowledgeType.SetWordArtEffect] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetWordArtEffect,
-            Name = "设置艺术字效果",
-            Description = "设置艺术字的特殊效果",
-            Category = "文字效果",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "EffectType", DisplayName = "效果类型", Description = "艺术字效果", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "阴影,反射,发光,柔化边缘,三维格式,三维旋转" },
-                new() { Name = "EffectIntensity", DisplayName = "效果强度", Description = "效果强度（1-10）", Type = ParameterType.Number, IsRequired = false, Order = 3, MinValue = 1, MaxValue = 10 }
-            ]
-        };
-
-        // 知识点52：设置SmartArt颜色
-        configs[PowerPointKnowledgeType.SetSmartArtColor] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetSmartArtColor,
-            Name = "设置SmartArt颜色",
-            Description = "设置SmartArt图形的颜色",
-            Category = "SmartArt设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "ColorScheme", DisplayName = "颜色方案", Description = "SmartArt颜色方案", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "主色调1,主色调2,主色调3,主色调4,主色调5,主色调6,彩色填充,彩色轮廓,彩色范围" }
-            ]
-        };
-
-        // 知识点53：设置动画方向
-        configs[PowerPointKnowledgeType.SetAnimationDirection] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetAnimationDirection,
-            Name = "设置动画方向",
-            Description = "设置动画效果的方向",
-            Category = "动画设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "AnimationDirection", DisplayName = "动画方向", Description = "动画进入方向", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "从左侧,从右侧,从顶部,从底部,从左上角,从右上角,从左下角,从右下角,从中心" }
-            ]
-        };
-
-        // 知识点54：设置动画样式
-        configs[PowerPointKnowledgeType.SetAnimationStyle] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetAnimationStyle,
-            Name = "设置动画样式",
-            Description = "设置动画的样式效果",
-            Category = "动画设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "AnimationStyle", DisplayName = "动画样式", Description = "动画效果样式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "淡入,飞入,浮入,劈裂,擦除,随机线条,盒状,棋盘,圆形扩展,菱形,向上插入,向下插入,阶梯状,轮子,随机" }
-            ]
-        };
-
-        // 知识点55：设置动画持续时间
-        configs[PowerPointKnowledgeType.SetAnimationDuration] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetAnimationDuration,
-            Name = "设置动画持续时间",
-            Description = "设置动画效果的持续时间",
-            Category = "动画设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "Duration", DisplayName = "持续时间", Description = "动画持续时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0.1, MaxValue = 10 }
-            ]
-        };
-
-        // 知识点56：设置文本对齐方式
-        configs[PowerPointKnowledgeType.SetTextAlignment] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetTextAlignment,
-            Name = "设置文本对齐方式",
-            Description = "设置文本的对齐方式",
-            Category = "文字格式",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextAlignment", DisplayName = "对齐方式", Description = "文本对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" }
-            ]
-        };
-
-        // 知识点57：设置动画顺序
-        configs[PowerPointKnowledgeType.SetAnimationOrder] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetAnimationOrder,
-            Name = "设置动画顺序",
-            Description = "设置动画播放的顺序",
-            Category = "动画设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "AnimationOrder", DisplayName = "动画顺序", Description = "动画播放顺序", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "TriggerType", DisplayName = "触发方式", Description = "动画触发方式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "单击时,与上一动画同时,在上一动画之后" }
+                    EnumOptions = "混合样式（多个对象时的默认值，程序中常用）,非预设样式（无样式或自定义背景）,预设背景样式1（通常为纯白）,预设背景样式2,预设背景样式3,预设背景样式4,预设背景样式5,预设背景样式6,预设背景样式7,预设背景样式8,预设背景样式9,预设背景样式10,预设背景样式11,预设背景样式12（深色底图+浅色字，常用于封面）" }
             ]
         };
     }

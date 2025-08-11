@@ -26,53 +26,53 @@ public enum WindowsOperationType
 public enum PowerPointKnowledgeType
 {
     // 第一类：幻灯片操作
-    SetSlideLayout = 1,           // 设置幻灯片版式
-    DeleteSlide = 2,              // 删除幻灯片
-    InsertSlide = 3,              // 插入幻灯片
-    SetSlideFont = 4,             // 设置幻灯片的字体
-    SlideTransitionEffect = 5,    // 幻灯片切换效果
-    SlideTransitionMode = 6,      // 设置幻灯片切换方式
-    SlideshowMode = 7,            // 幻灯片放映方式
-    SlideshowOptions = 8,         // 幻灯片放映选项
-    InsertHyperlink = 9,          // 幻灯片插入超链接
-    SlideTransitionSound = 10,    // 幻灯片切换播放声音
-    SlideNumber = 11,             // 幻灯片编号
-    FooterText = 12,              // 页脚文字
-    InsertImage = 13,             // 幻灯片插入图片
-    InsertTable = 14,             // 幻灯片插入表格
-    InsertSmartArt = 15,          // 幻灯片插入SmartArt图形
-    InsertNote = 16,              // 插入备注
+    SetSlideLayout = 1,           // 知识点1：设置幻灯片版式
+    DeleteSlide = 2,              // 知识点2：删除幻灯片
+    InsertSlide = 3,              // 知识点3：插入幻灯片
+    SetSlideFont = 4,             // 知识点4：设置幻灯片的字体
+    SlideTransitionEffect = 5,    // 知识点5：幻灯片切换效果
+    SlideTransitionMode = 6,      // 知识点6：设置幻灯片切换方式
+    SlideshowMode = 7,            // 知识点7：幻灯片放映方式
+    SlideshowOptions = 8,         // 知识点8：幻灯片放映选项
+    InsertHyperlink = 9,          // 知识点9：幻灯片插入超链接
+    SlideTransitionSound = 10,    // 知识点10：幻灯片切换播放声音
+    SlideNumber = 11,             // 知识点11：幻灯片编号
+    FooterText = 12,              // 知识点12：页脚文字
+    InsertImage = 13,             // 知识点13：幻灯片插入图片
+    InsertTable = 14,             // 知识点14：幻灯片插入表格
+    InsertSmartArt = 15,          // 知识点15：幻灯片插入SmartArt图形
+    InsertNote = 16,              // 知识点16：插入备注
 
     // 第二类：文字与字体设置
-    InsertTextContent = 17,       // 幻灯片插入文本内容
-    SetTextFontSize = 18,         // 幻灯片插入文本字号
-    SetTextColor = 19,            // 幻灯片插入文本颜色
-    SetTextStyle = 20,            // 幻灯片插入文本字形
-    SetElementPosition = 21,      // 元素位置
-    SetElementSize = 22,          // 元素高度和宽度设置
-    SetWordArtStyle = 23,         // 艺术字字样
-    SetWordArtEffect = 24,        // 艺术字文本效果
-    SetSmartArtColor = 25,        // SmartArt颜色
-    SetAnimationDirection = 26,   // 动画效果-方向
-    SetAnimationStyle = 27,       // 动画样式
-    SetAnimationDuration = 28,    // 动画持续时间
-    SetTextAlignment = 29,        // 文本对齐方式
-    SetAnimationOrder = 30,       // 动画顺序
+    InsertTextContent = 17,       // 知识点17：幻灯片插入文本内容
+    SetTextFontSize = 18,         // 知识点18：幻灯片插入文本字号
+    SetTextColor = 19,            // 知识点19：幻灯片插入文本颜色
+    SetTextStyle = 20,            // 知识点20：幻灯片插入文本字形
+    SetElementPosition = 21,      // 知识点21：元素位置
+    SetElementSize = 22,          // 知识点22：元素高度和宽度设置
+    SetWordArtStyle = 23,         // 知识点23：艺术字字样
+    SetWordArtEffect = 24,        // 知识点24：艺术字文本效果
+    SetSmartArtColor = 25,        // 知识点25：SmartArt颜色
+    SetAnimationDirection = 26,   // 知识点26：动画效果-方向
+    SetAnimationStyle = 27,       // 知识点27：动画样式
+    SetAnimationDuration = 28,    // 知识点28：动画持续时间
+    SetTextAlignment = 29,        // 知识点29：文本对齐方式
+    SetAnimationOrder = 30,       // 知识点30：动画顺序
 
     // 第三类：背景样式与设计
-    ApplyTheme = 31,              // 设置文稿应用主题
+    ApplyTheme = 31,              // 知识点31：设置文稿应用主题
 
     // 第四类：母版与主题设置
-    SetSlideBackground = 32,      // 设置幻灯片背景
+    SetSlideBackground = 32,      // 知识点32：设置幻灯片背景
 
     // 第五类：其他
-    SetTableContent = 33,         // 单元格内容
-    SetTableStyle = 34,           // 表格样式
-    SetSmartArtStyle = 35,        // SmartArt样式
-    SetSmartArtContent = 36,      // SmartArt内容
-    SetAnimationTiming = 37,      // 动画计时与延时设置
-    SetParagraphSpacing = 38,     // 段落行距
-    SetBackgroundStyle = 39       // 设置背景样式
+    SetTableContent = 33,         // 知识点33：单元格内容
+    SetTableStyle = 34,           // 知识点34：表格样式
+    SetSmartArtStyle = 35,        // 知识点35：SmartArt样式
+    SetSmartArtContent = 36,      // 知识点36：SmartArt内容
+    SetAnimationTiming = 37,      // 知识点37：动画计时与延时设置
+    SetParagraphSpacing = 38,     // 知识点38：段落行距
+    SetBackgroundStyle = 39       // 知识点39：设置背景样式
 }
 
 /// <summary>
