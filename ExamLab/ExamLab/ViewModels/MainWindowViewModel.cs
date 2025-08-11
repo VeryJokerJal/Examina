@@ -359,7 +359,20 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (SelectedExam == null)
         {
-            await NotificationService.ShowErrorAsync("错误", "没有可保存的项目");
+            // 提供更友好的提示和指导
+            bool createNew = await NotificationService.ShowConfirmationAsync(
+                "没有可保存的项目",
+                "当前没有试卷项目可以保存。\n\n您可以：\n• 点击"确定"创建一个新的试卷项目\n• 点击"取消"并先导入现有的试卷项目\n\n是否要创建新的试卷项目？");
+
+            if (createNew)
+            {
+                // 调用创建试卷命令
+                CreateExam();
+                // 创建后提示用户可以开始编辑
+                await NotificationService.ShowSuccessAsync(
+                    "项目创建成功",
+                    "新的试卷项目已创建！您现在可以添加模块和题目，然后保存项目。");
+            }
             return;
         }
 
@@ -537,7 +550,20 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (exam == null)
         {
-            await NotificationService.ShowErrorAsync("错误", "没有选择要导出的试卷");
+            // 提供更友好的提示和指导
+            bool createNew = await NotificationService.ShowConfirmationAsync(
+                "没有可导出的试卷",
+                "当前没有选择要导出的试卷。\n\n您可以：\n• 点击"确定"创建一个新的试卷\n• 点击"取消"并先选择或导入现有试卷\n\n是否要创建新的试卷？");
+
+            if (createNew)
+            {
+                // 调用创建试卷命令
+                CreateExam();
+                // 创建后提示用户
+                await NotificationService.ShowSuccessAsync(
+                    "试卷创建成功",
+                    "新的试卷已创建！请添加内容后再进行导出。");
+            }
             return;
         }
 
