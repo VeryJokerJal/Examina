@@ -163,6 +163,41 @@ public class ExcelKnowledgeService
             ]
         };
 
+        // 操作点10：内边框样式
+        configs[ExcelKnowledgeType.SetInnerBorderStyle] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.SetInnerBorderStyle,
+            Name = "内边框样式",
+            Description = "设置单元格区域的内边框样式",
+            Category = "Excel基础操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "CellRange", DisplayName = "单元格区域", Description = "包含起始值", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "BorderStyle", DisplayName = "边框线样式", Description = "选择边框样式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                    EnumOptions = "无边框,单实线,双线,点线,短划线,长划线,划线+点,划线+两个点,三线" },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点11：内边框颜色
+        configs[ExcelKnowledgeType.SetInnerBorderColor] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.SetInnerBorderColor,
+            Name = "内边框颜色",
+            Description = "设置单元格区域的内边框颜色",
+            Category = "Excel基础操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
+                new() { Name = "CellRange", DisplayName = "单元格区域", Description = "包含起始值", Type = ParameterType.Text, IsRequired = true, Order = 3 },
+                new() { Name = "BorderColor", DisplayName = "边框线颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
         // 操作点15：使用函数
         configs[ExcelKnowledgeType.UseFunction] = new ExcelKnowledgeConfig
         {
