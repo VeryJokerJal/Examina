@@ -24,6 +24,7 @@
                 <Button Command="{Binding SaveExamCommand}" Content="保存" />
                 <Button Command="{Binding ImportExamCommand}" Content="导入" />
                 <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" />
+                <Button Command="{Binding OpenKnowledgePointTestCommand}" Content="知识点测试" ToolTipService.ToolTip="测试各模块知识点配置" />
             </StackPanel>
         </Border>
 

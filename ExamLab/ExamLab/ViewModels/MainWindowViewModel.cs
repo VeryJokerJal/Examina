@@ -93,6 +93,11 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Exam, Unit> ExportExamCommand { get; }
 
     /// <summary>
+    /// 打开知识点测试页面命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenKnowledgePointTestCommand { get; }
+
+    /// <summary>
     /// 是否有未保存的更改
     /// </summary>
     [Reactive] public bool HasUnsavedChanges { get; set; }
@@ -129,6 +134,7 @@ public class MainWindowViewModel : ViewModelBase
         SaveExamCommand = ReactiveCommand.CreateFromTask(SaveExamAsync);
         ImportExamCommand = ReactiveCommand.CreateFromTask(ImportExamAsync);
         ExportExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportExamAsync);
+        OpenKnowledgePointTestCommand = ReactiveCommand.CreateFromTask(OpenKnowledgePointTestAsync);
         AddQuestionCommand = ReactiveCommand.CreateFromTask(AddQuestionAsync);
         AddOperationPointCommand = ReactiveCommand.CreateFromTask(AddOperationPointAsync);
         SaveModuleDescriptionCommand = ReactiveCommand.CreateFromTask(SaveModuleDescriptionAsync);
@@ -493,5 +499,46 @@ public class MainWindowViewModel : ViewModelBase
             ModuleType.Word => "Word文档编辑模块，包含文档格式化和排版功能",
             _ => "模块描述"
         };
+    }
+
+    /// <summary>
+    /// 打开知识点测试页面
+    /// </summary>
+    private async Task OpenKnowledgePointTestAsync()
+    {
+        try
+        {
+            // 检查XamlRoot是否可用
+            Microsoft.UI.Xaml.XamlRoot? xamlRoot = App.MainWindow?.Content.XamlRoot;
+            if (xamlRoot == null)
+            {
+                return;
+            }
+
+            // 创建测试页面
+            Views.KnowledgePointTestPage testPage = new();
+
+            // 创建ContentDialog并设置内容
+            Microsoft.UI.Xaml.Controls.ContentDialog dialog = new()
+            {
+                Title = "知识点配置测试工具",
+                CloseButtonText = "关闭",
+                Content = testPage,
+                XamlRoot = xamlRoot,
+                DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Close
+            };
+
+            // 设置对话框大小
+            dialog.MinWidth = 800;
+            dialog.MinHeight = 600;
+
+            // 显示对话框
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            // 这里可以添加错误处理，比如显示错误消息
+            System.Diagnostics.Debug.WriteLine($"打开知识点测试页面失败: {ex.Message}");
+        }
     }
 }
