@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ExamLab.Models;
+using ExamLab.Models.ImportExport;
 using ExamLab.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -364,6 +365,7 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
+            // 1. 数据验证
             ValidationResult result = ValidationService.ValidateExam(SelectedExam);
             if (!result.IsValid)
             {
@@ -371,12 +373,45 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
 
+            // 2. 选择保存位置
+            string suggestedFileName = $"{SelectedExam.Name}_{DateTime.Now:yyyyMMdd_HHmmss}";
+            Windows.Storage.StorageFile? file = await FilePickerService.PickJsonFileForSaveAsync(suggestedFileName);
+
+            if (file == null)
+            {
+                // 用户取消了保存操作
+                return;
+            }
+
+            // 3. 转换为导出格式
+            var exportDto = ExamMappingService.ToExportDto(SelectedExam, ExportLevel.Complete);
+
+            // 4. JSON序列化
+            var jsonOptions = new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            };
+
+            string jsonContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
+
+            // 5. 写入文件
+            await Windows.Storage.FileIO.WriteTextAsync(file, jsonContent);
+
+            // 6. 同时保存到本地存储（用于应用内管理）
             await DataStorageService.Instance.SaveExamAsync(SelectedExam);
             AutoSaveService.Instance.MarkAsSaved();
+
+            // 7. 显示成功消息
+            string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
+            await NotificationService.ShowSuccessAsync(
+                "保存成功",
+                $"试卷已保存到：{file.Path}\n文件大小：{fileSize}");
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("保存失败", ex.Message);
+            await NotificationService.ShowErrorAsync("保存失败", $"保存试卷时发生错误：{ex.Message}");
         }
     }
 
@@ -384,35 +419,211 @@ public class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            // 这里应该打开文件选择器，暂时使用示例
-            // var picker = new Windows.Storage.Pickers.FileOpenPicker();
-            // picker.FileTypeFilter.Add(".json");
-            // var file = await picker.PickSingleFileAsync();
+            // 1. 选择要导入的文件
+            Windows.Storage.StorageFile? file = await FilePickerService.PickExamFileForImportAsync();
 
-            // 暂时显示提示
-            await NotificationService.ShowSuccessAsync("导入功能", "导入功能将在后续版本中实现");
+            if (file == null)
+            {
+                // 用户取消了导入操作
+                return;
+            }
+
+            // 2. 验证文件类型
+            var supportedExtensions = new List<string> { ".json", ".xml" };
+            if (!FilePickerService.IsValidFileType(file, supportedExtensions))
+            {
+                await NotificationService.ShowErrorAsync("文件类型错误", "请选择JSON或XML格式的试卷文件");
+                return;
+            }
+
+            // 3. 读取文件内容
+            string fileContent = await Windows.Storage.FileIO.ReadTextAsync(file);
+
+            if (string.IsNullOrWhiteSpace(fileContent))
+            {
+                await NotificationService.ShowErrorAsync("文件内容错误", "选择的文件为空或无法读取");
+                return;
+            }
+
+            // 4. 解析文件内容
+            Models.ImportExport.ExamExportDto? importDto = null;
+
+            if (file.FileType.ToLowerInvariant() == ".json")
+            {
+                // JSON格式解析
+                var jsonOptions = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                    PropertyNameCaseInsensitive = true
+                };
+
+                try
+                {
+                    importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+                }
+                catch (System.Text.Json.JsonException jsonEx)
+                {
+                    await NotificationService.ShowErrorAsync("JSON解析错误", $"文件格式不正确：{jsonEx.Message}");
+                    return;
+                }
+            }
+            else if (file.FileType.ToLowerInvariant() == ".xml")
+            {
+                // XML格式解析（暂时不支持，显示提示）
+                await NotificationService.ShowErrorAsync("格式不支持", "XML格式导入功能将在后续版本中实现，请使用JSON格式");
+                return;
+            }
+
+            if (importDto?.Exam == null)
+            {
+                await NotificationService.ShowErrorAsync("数据格式错误", "文件中没有找到有效的试卷数据");
+                return;
+            }
+
+            // 5. 版本兼容性检查
+            if (!IsCompatibleVersion(importDto.Metadata?.ExportVersion))
+            {
+                bool continueImport = await NotificationService.ShowConfirmationAsync(
+                    "版本兼容性警告",
+                    $"导入的试卷版本（{importDto.Metadata?.ExportVersion}）可能与当前版本不完全兼容，是否继续导入？");
+
+                if (!continueImport)
+                {
+                    return;
+                }
+            }
+
+            // 6. 转换为ExamLab模型
+            Exam importedExam = ExamMappingService.FromExportDto(importDto);
+
+            // 7. 数据验证
+            ValidationResult validationResult = ValidationService.ValidateExam(importedExam);
+            if (!validationResult.IsValid)
+            {
+                bool continueWithErrors = await NotificationService.ShowConfirmationAsync(
+                    "数据验证警告",
+                    $"导入的试卷数据存在以下问题：\n{validationResult.GetErrorMessage()}\n\n是否继续导入？");
+
+                if (!continueWithErrors)
+                {
+                    return;
+                }
+            }
+
+            // 8. 检查重名并处理
+            string originalName = importedExam.Name;
+            int counter = 1;
+            while (Exams.Any(e => e.Name == importedExam.Name))
+            {
+                importedExam.Name = $"{originalName} (导入{counter})";
+                counter++;
+            }
+
+            // 9. 添加到试卷列表
+            Exams.Add(importedExam);
+            SelectedExam = importedExam;
+
+            // 10. 保存到本地存储
+            await DataStorageService.Instance.SaveExamAsync(importedExam);
+
+            // 11. 显示成功消息
+            string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
+            string summaryInfo = $"试卷名称：{importedExam.Name}\n" +
+                               $"模块数量：{importedExam.Modules.Count}\n" +
+                               $"题目总数：{importedExam.Modules.Sum(m => m.Questions.Count)}\n" +
+                               $"文件大小：{fileSize}";
+
+            await NotificationService.ShowSuccessAsync("导入成功", summaryInfo);
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("导入失败", ex.Message);
+            await NotificationService.ShowErrorAsync("导入失败", $"导入试卷时发生错误：{ex.Message}");
         }
     }
 
     private async Task ExportExamAsync(Exam exam)
     {
+        if (exam == null)
+        {
+            await NotificationService.ShowErrorAsync("错误", "没有选择要导出的试卷");
+            return;
+        }
+
         try
         {
-            // 这里应该打开文件保存器，暂时使用示例
-            // var picker = new Windows.Storage.Pickers.FileSavePicker();
-            // picker.FileTypeChoices.Add("JSON文件", new List<string>() { ".json" });
-            // var file = await picker.PickSaveFileAsync();
+            // 1. 选择导出级别
+            ExportLevel exportLevel = await ShowExportLevelSelectionAsync();
 
-            // 暂时显示提示
-            await NotificationService.ShowSuccessAsync("导出功能", $"试卷 {exam.Name} 导出功能将在后续版本中实现");
+            // 2. 数据验证
+            ValidationResult validationResult = ValidationService.ValidateExam(exam);
+            if (!validationResult.IsValid)
+            {
+                bool continueWithErrors = await NotificationService.ShowConfirmationAsync(
+                    "数据验证警告",
+                    $"试卷数据存在以下问题：\n{validationResult.GetErrorMessage()}\n\n是否继续导出？");
+
+                if (!continueWithErrors)
+                {
+                    return;
+                }
+            }
+
+            // 3. 选择保存位置
+            Windows.Storage.StorageFile? file = await FilePickerService.PickExamFileForExportAsync(exam.Name);
+
+            if (file == null)
+            {
+                // 用户取消了导出操作
+                return;
+            }
+
+            // 4. 转换为导出格式
+            var exportDto = ExamMappingService.ToExportDto(exam, exportLevel);
+
+            // 5. 根据文件扩展名选择序列化格式
+            string fileContent;
+
+            if (file.FileType.ToLowerInvariant() == ".json")
+            {
+                // JSON序列化
+                var jsonOptions = new System.Text.Json.JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                };
+
+                fileContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
+            }
+            else if (file.FileType.ToLowerInvariant() == ".xml")
+            {
+                // XML序列化（暂时不支持，显示提示）
+                await NotificationService.ShowErrorAsync("格式不支持", "XML格式导出功能将在后续版本中实现，请选择JSON格式");
+                return;
+            }
+            else
+            {
+                await NotificationService.ShowErrorAsync("文件类型错误", "不支持的文件类型，请选择JSON格式");
+                return;
+            }
+
+            // 6. 写入文件
+            await Windows.Storage.FileIO.WriteTextAsync(file, fileContent);
+
+            // 7. 显示成功消息
+            string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
+            string exportInfo = $"试卷名称：{exam.Name}\n" +
+                              $"导出级别：{GetExportLevelDisplayName(exportLevel)}\n" +
+                              $"模块数量：{exam.Modules.Count}\n" +
+                              $"题目总数：{exam.Modules.Sum(m => m.Questions.Count)}\n" +
+                              $"保存位置：{file.Path}\n" +
+                              $"文件大小：{fileSize}";
+
+            await NotificationService.ShowSuccessAsync("导出成功", exportInfo);
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("导出失败", ex.Message);
+            await NotificationService.ShowErrorAsync("导出失败", $"导出试卷时发生错误：{ex.Message}");
         }
     }
 
@@ -625,5 +836,57 @@ public class MainWindowViewModel : ViewModelBase
         };
     }
 
+    /// <summary>
+    /// 显示导出级别选择对话框
+    /// </summary>
+    /// <returns>选择的导出级别</returns>
+    private async Task<ExportLevel> ShowExportLevelSelectionAsync()
+    {
+        // 使用NotificationService显示选择对话框
+        string? selectedLevel = await NotificationService.ShowSelectionDialogAsync(
+            "选择导出级别",
+            new[] { "基本信息", "完整内容（不含答案）", "完整内容（含答案）" });
 
+        return selectedLevel switch
+        {
+            "基本信息" => ExportLevel.Basic,
+            "完整内容（不含答案）" => ExportLevel.WithoutAnswers,
+            "完整内容（含答案）" => ExportLevel.Complete,
+            _ => ExportLevel.WithoutAnswers // 默认不含答案
+        };
+    }
+
+    /// <summary>
+    /// 获取导出级别的显示名称
+    /// </summary>
+    /// <param name="exportLevel">导出级别</param>
+    /// <returns>显示名称</returns>
+    private static string GetExportLevelDisplayName(ExportLevel exportLevel)
+    {
+        return exportLevel switch
+        {
+            ExportLevel.Basic => "基本信息",
+            ExportLevel.WithoutAnswers => "完整内容（不含答案）",
+            ExportLevel.Complete => "完整内容（含答案）",
+            _ => "未知级别"
+        };
+    }
+
+    /// <summary>
+    /// 检查版本兼容性
+    /// </summary>
+    /// <param name="exportVersion">导出版本</param>
+    /// <returns>是否兼容</returns>
+    private static bool IsCompatibleVersion(string? exportVersion)
+    {
+        if (string.IsNullOrWhiteSpace(exportVersion))
+        {
+            return false;
+        }
+
+        // 支持的版本列表
+        var supportedVersions = new[] { "1.0" };
+
+        return supportedVersions.Contains(exportVersion);
+    }
 }

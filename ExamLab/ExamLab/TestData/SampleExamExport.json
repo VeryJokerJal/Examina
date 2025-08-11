@@ -1,0 +1,291 @@
+{
+  "exam": {
+    "id": "exam-test-001",
+    "name": "计算机应用基础测试试卷",
+    "description": "包含Windows、Excel、Word等模块的综合测试试卷",
+    "examType": "UnifiedExam",
+    "status": "Draft",
+    "totalScore": 100,
+    "durationMinutes": 120,
+    "startTime": null,
+    "endTime": null,
+    "allowRetake": false,
+    "maxRetakeCount": 0,
+    "passingScore": 60.0,
+    "randomizeQuestions": false,
+    "showScore": true,
+    "showAnswers": false,
+    "createdBy": 1,
+    "createdAt": "2025-08-11T10:00:00Z",
+    "updatedAt": null,
+    "publishedAt": null,
+    "publishedBy": null,
+    "isEnabled": true,
+    "tags": "测试,综合考试,计算机应用",
+    "extendedConfig": null,
+    "subjects": [],
+    "modules": [
+      {
+        "id": "module-windows-001",
+        "name": "Windows操作",
+        "type": "Windows",
+        "description": "Windows文件和文件夹操作模块，包含9种操作类型",
+        "score": 30,
+        "order": 1,
+        "isEnabled": true,
+        "questions": [
+          {
+            "id": "question-windows-001",
+            "title": "创建文件夹",
+            "content": "在桌面上创建一个名为'测试文件夹'的文件夹",
+            "questionType": "WindowsOperation",
+            "score": 10,
+            "difficultyLevel": 1,
+            "estimatedMinutes": 3,
+            "sortOrder": 1,
+            "isRequired": true,
+            "questionConfig": null,
+            "answerValidationRules": null,
+            "standardAnswer": null,
+            "scoringRules": null,
+            "tags": "文件夹,创建",
+            "remarks": "",
+            "isEnabled": true,
+            "createdAt": "2025-08-11T10:00:00Z",
+            "updatedAt": null,
+            "programInput": null,
+            "expectedOutput": null,
+            "operationPoints": [
+              {
+                "id": "op-windows-001",
+                "name": "创建文件夹操作",
+                "description": "在指定位置创建文件夹",
+                "moduleType": "Windows",
+                "score": 10,
+                "order": 1,
+                "isEnabled": true,
+                "createdTime": "2025-08-11",
+                "parameters": [
+                  {
+                    "name": "folderName",
+                    "displayName": "文件夹名称",
+                    "description": "要创建的文件夹名称",
+                    "type": "Text",
+                    "value": "测试文件夹",
+                    "defaultValue": "新建文件夹",
+                    "isRequired": true,
+                    "order": 1,
+                    "enumOptions": null,
+                    "validationRule": null,
+                    "validationErrorMessage": null,
+                    "minValue": null,
+                    "maxValue": null,
+                    "isEnabled": true
+                  },
+                  {
+                    "name": "location",
+                    "displayName": "创建位置",
+                    "description": "文件夹创建的位置",
+                    "type": "Text",
+                    "value": "桌面",
+                    "defaultValue": "桌面",
+                    "isRequired": true,
+                    "order": 2,
+                    "enumOptions": null,
+                    "validationRule": null,
+                    "validationErrorMessage": null,
+                    "minValue": null,
+                    "maxValue": null,
+                    "isEnabled": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "module-excel-001",
+        "name": "Excel操作",
+        "type": "Excel",
+        "description": "Excel电子表格操作模块，包含数据处理和图表功能",
+        "score": 40,
+        "order": 2,
+        "isEnabled": true,
+        "questions": [
+          {
+            "id": "question-excel-001",
+            "title": "数据输入与格式化",
+            "content": "在Excel中输入学生成绩数据并进行格式化",
+            "questionType": "ExcelOperation",
+            "score": 20,
+            "difficultyLevel": 2,
+            "estimatedMinutes": 10,
+            "sortOrder": 1,
+            "isRequired": true,
+            "questionConfig": {
+              "operationNumber": 1,
+              "parameters": {
+                "dataRange": "A1:D10",
+                "formatType": "Table"
+              }
+            },
+            "answerValidationRules": {
+              "dataExists": true,
+              "formatApplied": true
+            },
+            "standardAnswer": {
+              "dataRange": "A1:D10",
+              "headers": ["姓名", "语文", "数学", "英语"],
+              "formatType": "Table"
+            },
+            "scoringRules": {
+              "fullScore": 20,
+              "partialScoring": {
+                "dataInput": 10,
+                "formatting": 10
+              }
+            },
+            "tags": "数据输入,格式化,表格",
+            "remarks": "注意数据的准确性和格式的美观性",
+            "isEnabled": true,
+            "createdAt": "2025-08-11T10:00:00Z",
+            "updatedAt": null,
+            "programInput": null,
+            "expectedOutput": null,
+            "operationPoints": [
+              {
+                "id": "op-excel-001",
+                "name": "数据输入操作",
+                "description": "在Excel中输入数据",
+                "moduleType": "Excel",
+                "score": 10,
+                "order": 1,
+                "isEnabled": true,
+                "createdTime": "2025-08-11",
+                "parameters": [
+                  {
+                    "name": "dataRange",
+                    "displayName": "数据范围",
+                    "description": "数据输入的单元格范围",
+                    "type": "Text",
+                    "value": "A1:D10",
+                    "defaultValue": "A1:A1",
+                    "isRequired": true,
+                    "order": 1,
+                    "enumOptions": null,
+                    "validationRule": "^[A-Z]+[0-9]+:[A-Z]+[0-9]+$",
+                    "validationErrorMessage": "请输入有效的单元格范围格式，如A1:D10",
+                    "minValue": null,
+                    "maxValue": null,
+                    "isEnabled": true
+                  }
+                ]
+              },
+              {
+                "id": "op-excel-002",
+                "name": "格式化操作",
+                "description": "对数据进行格式化",
+                "moduleType": "Excel",
+                "score": 10,
+                "order": 2,
+                "isEnabled": true,
+                "createdTime": "2025-08-11",
+                "parameters": [
+                  {
+                    "name": "formatType",
+                    "displayName": "格式类型",
+                    "description": "应用的格式类型",
+                    "type": "Enum",
+                    "value": "Table",
+                    "defaultValue": "Normal",
+                    "isRequired": true,
+                    "order": 1,
+                    "enumOptions": "Normal,Table,Bold,Italic",
+                    "validationRule": null,
+                    "validationErrorMessage": null,
+                    "minValue": null,
+                    "maxValue": null,
+                    "isEnabled": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "module-word-001",
+        "name": "Word操作",
+        "type": "Word",
+        "description": "Word文档编辑模块，包含文档格式化和排版功能",
+        "score": 30,
+        "order": 3,
+        "isEnabled": true,
+        "questions": [
+          {
+            "id": "question-word-001",
+            "title": "文档排版",
+            "content": "创建一份包含标题、正文和表格的Word文档",
+            "questionType": "WordOperation",
+            "score": 15,
+            "difficultyLevel": 2,
+            "estimatedMinutes": 8,
+            "sortOrder": 1,
+            "isRequired": true,
+            "questionConfig": null,
+            "answerValidationRules": null,
+            "standardAnswer": null,
+            "scoringRules": null,
+            "tags": "文档,排版,表格",
+            "remarks": "",
+            "isEnabled": true,
+            "createdAt": "2025-08-11T10:00:00Z",
+            "updatedAt": null,
+            "programInput": null,
+            "expectedOutput": null,
+            "operationPoints": [
+              {
+                "id": "op-word-001",
+                "name": "文档创建操作",
+                "description": "创建新的Word文档",
+                "moduleType": "Word",
+                "score": 15,
+                "order": 1,
+                "isEnabled": true,
+                "createdTime": "2025-08-11",
+                "parameters": [
+                  {
+                    "name": "documentTitle",
+                    "displayName": "文档标题",
+                    "description": "文档的主标题",
+                    "type": "Text",
+                    "value": "测试文档",
+                    "defaultValue": "新建文档",
+                    "isRequired": true,
+                    "order": 1,
+                    "enumOptions": null,
+                    "validationRule": null,
+                    "validationErrorMessage": null,
+                    "minValue": null,
+                    "maxValue": null,
+                    "isEnabled": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "exportVersion": "1.0",
+    "exportDate": "2025-08-11T10:00:00Z",
+    "exportedBy": "ExamLab",
+    "totalSubjects": 0,
+    "totalQuestions": 3,
+    "totalOperationPoints": 4,
+    "exportLevel": "Complete"
+  }
+}
