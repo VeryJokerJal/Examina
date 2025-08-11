@@ -126,12 +126,6 @@
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
                             <TextBlock HorizontalAlignment="Center" FontSize="18" Text="请选择一个题目" />
                             <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="在左侧选择题目来配置C#程序" />
-                            <StackPanel Spacing="8">
-                                <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="C#模块功能" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="12" Text="• 配置题目描述" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="12" Text="• 设置程序参数输入" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="12" Text="• 定义程序控制台输出" />
-                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </Grid>

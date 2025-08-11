@@ -27,9 +27,6 @@ namespace ExamLab
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            // 运行PPT知识点验证测试
-            PPTKnowledgeTest.ValidateKnowledgePoints();
-
             ElementSoundPlayer.State = ElementSoundPlayerState.On;
             MainWindow = new MainWindow();
             MainWindow.Activate();
