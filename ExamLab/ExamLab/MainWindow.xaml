@@ -55,12 +55,12 @@
                                 <Grid Margin="8,4" Padding="0,5">
                                     <Grid.ContextFlyout>
                                         <MenuFlyout>
-                                            <MenuFlyoutItem Text="克隆试卷" Command="{Binding DataContext.CloneExamCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}">
+                                            <MenuFlyoutItem Text="克隆试卷" Click="CloneExam_Click" Tag="{Binding}">
                                                 <MenuFlyoutItem.Icon>
                                                     <SymbolIcon Symbol="Copy" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
-                                            <MenuFlyoutItem Text="删除试卷" Command="{Binding DataContext.DeleteExamCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}">
+                                            <MenuFlyoutItem Text="删除试卷" Click="DeleteExam_Click" Tag="{Binding}">
                                                 <MenuFlyoutItem.Icon>
                                                     <SymbolIcon Symbol="Delete" />
                                                 </MenuFlyoutItem.Icon>

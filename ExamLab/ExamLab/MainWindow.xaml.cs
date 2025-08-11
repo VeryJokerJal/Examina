@@ -1,7 +1,11 @@
-﻿using ExamLab.Services;
+﻿using System;
+using System.Reactive.Linq;
+using ExamLab.Models;
+using ExamLab.Services;
 using ExamLab.ViewModels;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace ExamLab;
 
@@ -32,5 +36,21 @@ public sealed partial class MainWindow : Window
     {
         // 清除XamlRoot
         XamlRootService.ClearXamlRoot();
+    }
+
+    private void CloneExam_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem menuItem && menuItem.Tag is Exam exam)
+        {
+            ViewModel.CloneExamCommand.Execute(exam).Subscribe(_ => { });
+        }
+    }
+
+    private void DeleteExam_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem menuItem && menuItem.Tag is Exam exam)
+        {
+            ViewModel.DeleteExamCommand.Execute(exam).Subscribe(_ => { });
+        }
     }
 }
