@@ -48,4 +48,14 @@ public class Question : ReactiveObject
     /// 创建时间
     /// </summary>
     [Reactive] public string CreatedTime { get; set; } = "2025-08-10";
+
+    /// <summary>
+    /// C#程序参数输入（仅C#模块使用）
+    /// </summary>
+    [Reactive] public string? ProgramInput { get; set; }
+
+    /// <summary>
+    /// C#程序预期控制台输出（仅C#模块使用）
+    /// </summary>
+    [Reactive] public string? ExpectedOutput { get; set; }
 }

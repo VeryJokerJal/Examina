@@ -87,8 +87,6 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
                             <!--  题目详情  -->
@@ -104,64 +102,22 @@
                                 <StackPanel Spacing="16">
                                     <TextBlock FontSize="16" FontWeight="SemiBold" Text="C#程序配置" />
 
-                                    <Button HorizontalAlignment="Stretch" Command="{Binding AddOperationPointCommand}" Content="添加C#程序配置" ToolTipService.ToolTip="添加新的C#程序配置项" />
-
                                     <!--  配置说明  -->
                                     <InfoBar Title="配置说明" IsClosable="False" IsOpen="True" Message="C#程序配置用于设置程序的输入参数和预期输出结果。&#x0a;• 程序参数：程序运行时的命令行参数&#x0a;• 控制台输出：程序预期的输出结果" Severity="Informational" />
+
+                                    <!--  程序参数输入  -->
+                                    <StackPanel Spacing="8">
+                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序参数输入：" />
+                                        <TextBox PlaceholderText="输入程序运行时的参数（可选）" Text="{Binding CurrentContentViewModel.SelectedQuestion.ProgramInput, Mode=TwoWay}" TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <!--  程序控制台输出  -->
+                                    <StackPanel Spacing="8">
+                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序控制台输出：" />
+                                        <TextBox Height="120" AcceptsReturn="True" PlaceholderText="输入程序预期的控制台输出结果" Text="{Binding CurrentContentViewModel.SelectedQuestion.ExpectedOutput, Mode=TwoWay}" TextWrapping="Wrap" />
+                                    </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>
-
-                            <!--  程序配置列表标题  -->
-                            <TextBlock Grid.Row="2" Margin="0,16,0,8" FontSize="16" FontWeight="SemiBold" Text="程序配置列表" />
-
-                            <Grid Grid.Row="3">
-                                <!--  程序配置列表  -->
-                                <ListView ItemsSource="{Binding CurrentContentViewModel.SelectedQuestion.OperationPoints}" SelectedItem="{Binding CurrentContentViewModel.SelectedOperationPoint, Mode=TwoWay}">
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Margin="0,0,0,8" Padding="12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8">
-                                                <Grid>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="Auto" />
-                                                    </Grid.RowDefinitions>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="SemiBold" Text="{Binding Name}" />
-                                                    <Button Grid.Row="0" Grid.Column="1" Margin="0,0,8,0" Content="编辑" ToolTipService.ToolTip="编辑程序配置" />
-                                                    <Button Grid.Row="0" Grid.Column="2" Command="{Binding DataContext.DeleteOperationPointCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" />
-
-                                                    <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Margin="0,4,0,8" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
-
-                                                    <!--  程序参数输入  -->
-                                                    <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,0,0,8" Spacing="8">
-                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="程序参数输入：" />
-                                                        <TextBox PlaceholderText="输入程序运行时的参数（可选）" Text="{Binding Parameters[0].Value, Mode=TwoWay}" TextWrapping="Wrap" />
-                                                    </StackPanel>
-
-                                                    <!--  程序控制台输出  -->
-                                                    <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Spacing="8">
-                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="程序控制台输出：" />
-                                                        <TextBox Height="80" AcceptsReturn="True" PlaceholderText="输入程序预期的控制台输出结果" Text="{Binding Parameters[1].Value, Mode=TwoWay}" TextWrapping="Wrap" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-
-                                <!--  空操作点列表提示  -->
-                                <StackPanel Padding="10" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="1" CornerRadius="5" Spacing="12" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.OperationPoints.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无操作点" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请在上方选择操作类型来添加操作点" />
-                                </StackPanel>
-                            </Grid>
                         </Grid>
                     </Border>
 
