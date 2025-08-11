@@ -84,7 +84,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Exam, Unit> CloneExamCommand { get; }
 
     /// <summary>
-    /// 保存试卷命令
+    /// 保存项目命令 - 将当前试卷保存为ExamLab项目文件
     /// </summary>
     public ReactiveCommand<Unit, Unit> SaveExamCommand { get; }
 
@@ -101,7 +101,7 @@ public class MainWindowViewModel : ViewModelBase
 
 
     /// <summary>
-    /// 是否有未保存的更改
+    /// 是否有未保存的项目更改
     /// </summary>
     [Reactive] public bool HasUnsavedChanges { get; set; }
 
@@ -359,23 +359,15 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (SelectedExam == null)
         {
-            await NotificationService.ShowErrorAsync("错误", "没有可保存的试卷");
+            await NotificationService.ShowErrorAsync("错误", "没有可保存的项目");
             return;
         }
 
         try
         {
-            // 1. 数据验证
-            ValidationResult result = ValidationService.ValidateExam(SelectedExam);
-            if (!result.IsValid)
-            {
-                await NotificationService.ShowValidationErrorsAsync(result);
-                return;
-            }
-
-            // 2. 选择保存位置
+            // 1. 选择保存位置（移除数据验证，允许保存未完成的项目）
             string suggestedFileName = $"{SelectedExam.Name}_{DateTime.Now:yyyyMMdd_HHmmss}";
-            Windows.Storage.StorageFile? file = await FilePickerService.PickJsonFileForSaveAsync(suggestedFileName);
+            Windows.Storage.StorageFile? file = await FilePickerService.PickProjectFileForSaveAsync(suggestedFileName);
 
             if (file == null)
             {
@@ -403,15 +395,15 @@ public class MainWindowViewModel : ViewModelBase
             await DataStorageService.Instance.SaveExamAsync(SelectedExam);
             AutoSaveService.Instance.MarkAsSaved();
 
-            // 7. 显示成功消息
+            // 6. 显示成功消息
             string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
             await NotificationService.ShowSuccessAsync(
-                "保存成功",
-                $"试卷已保存到：{file.Path}\n文件大小：{fileSize}");
+                "项目保存成功",
+                $"ExamLab项目已保存到：{file.Path}\n文件大小：{fileSize}");
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("保存失败", $"保存试卷时发生错误：{ex.Message}");
+            await NotificationService.ShowErrorAsync("项目保存失败", $"保存ExamLab项目时发生错误：{ex.Message}");
         }
     }
 

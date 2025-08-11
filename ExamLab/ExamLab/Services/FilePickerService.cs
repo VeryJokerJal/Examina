@@ -150,12 +150,37 @@ public static class FilePickerService
     }
 
     /// <summary>
+    /// 选择ExamLab项目文件保存位置
+    /// </summary>
+    /// <param name="suggestedFileName">建议的文件名</param>
+    /// <returns>选择的保存文件</returns>
+    public static async Task<StorageFile?> PickProjectFileForSaveAsync(string suggestedFileName)
+    {
+        var fileTypeChoices = new Dictionary<string, IList<string>>
+        {
+            ["ExamLab项目文件"] = new List<string> { ".examproj" }
+        };
+
+        return await PickSaveFileAsync(suggestedFileName, fileTypeChoices);
+    }
+
+    /// <summary>
     /// 选择试卷文件进行导入
     /// </summary>
     /// <returns>选择的试卷文件</returns>
     public static async Task<StorageFile?> PickExamFileForImportAsync()
     {
         var fileTypes = new List<string> { ".json", ".xml" };
+        return await PickSingleFileAsync(fileTypes);
+    }
+
+    /// <summary>
+    /// 选择ExamLab项目文件进行导入
+    /// </summary>
+    /// <returns>选择的项目文件</returns>
+    public static async Task<StorageFile?> PickProjectFileForImportAsync()
+    {
+        var fileTypes = new List<string> { ".examproj" };
         return await PickSingleFileAsync(fileTypes);
     }
 
