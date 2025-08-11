@@ -78,6 +78,11 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Exam, Unit> DeleteExamCommand { get; }
 
     /// <summary>
+    /// 克隆试卷命令
+    /// </summary>
+    public ReactiveCommand<Exam, Unit> CloneExamCommand { get; }
+
+    /// <summary>
     /// 保存试卷命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> SaveExamCommand { get; }
@@ -131,6 +136,7 @@ public class MainWindowViewModel : ViewModelBase
         SelectExamCommand = ReactiveCommand.Create<Exam>(SelectExam);
         SelectModuleCommand = ReactiveCommand.Create<ExamModule>(SelectModule);
         DeleteExamCommand = ReactiveCommand.CreateFromTask<Exam>(DeleteExamAsync);
+        CloneExamCommand = ReactiveCommand.CreateFromTask<Exam>(CloneExamAsync);
         SaveExamCommand = ReactiveCommand.CreateFromTask(SaveExamAsync);
         ImportExamCommand = ReactiveCommand.CreateFromTask(ImportExamAsync);
         ExportExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportExamAsync);
@@ -227,6 +233,127 @@ public class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             await NotificationService.ShowErrorAsync("删除失败", ex.Message);
+        }
+    }
+
+    private async Task CloneExamAsync(Exam exam)
+    {
+        if (exam == null)
+        {
+            return;
+        }
+
+        string? newName = await NotificationService.ShowInputDialogAsync(
+            "克隆试卷",
+            "请输入新试卷名称",
+            $"{exam.Name} - 副本");
+
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+
+        try
+        {
+            // 创建试卷的深度副本
+            Exam clonedExam = new()
+            {
+                Name = newName,
+                Description = exam.Description,
+                TotalScore = exam.TotalScore,
+                Duration = exam.Duration
+            };
+
+            // 克隆所有模块
+            foreach (ExamModule module in exam.Modules)
+            {
+                ExamModule clonedModule = new()
+                {
+                    Name = module.Name,
+                    Type = module.Type,
+                    Description = module.Description,
+                    Score = module.Score,
+                    Order = module.Order,
+                    IsEnabled = module.IsEnabled
+                };
+
+                // 克隆所有题目
+                foreach (Question question in module.Questions)
+                {
+                    Question clonedQuestion = new()
+                    {
+                        Title = question.Title,
+                        Content = question.Content,
+                        Score = question.Score,
+                        Order = question.Order,
+                        IsEnabled = question.IsEnabled,
+                        CreatedTime = question.CreatedTime,
+                        ProgramInput = question.ProgramInput,
+                        ExpectedOutput = question.ExpectedOutput
+                    };
+
+                    // 克隆所有操作点
+                    foreach (OperationPoint operationPoint in question.OperationPoints)
+                    {
+                        OperationPoint clonedOperationPoint = new()
+                        {
+                            Name = operationPoint.Name,
+                            Description = operationPoint.Description,
+                            ModuleType = operationPoint.ModuleType,
+                            WindowsOperationType = operationPoint.WindowsOperationType,
+                            PowerPointKnowledgeType = operationPoint.PowerPointKnowledgeType,
+                            WordKnowledgeType = operationPoint.WordKnowledgeType,
+                            ExcelKnowledgeType = operationPoint.ExcelKnowledgeType,
+                            Score = operationPoint.Score,
+                            ScoringQuestionId = operationPoint.ScoringQuestionId,
+                            IsEnabled = operationPoint.IsEnabled,
+                            Order = operationPoint.Order,
+                            CreatedTime = operationPoint.CreatedTime
+                        };
+
+                        // 克隆所有配置参数
+                        foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+                        {
+                            ConfigurationParameter clonedParameter = new()
+                            {
+                                Name = parameter.Name,
+                                DisplayName = parameter.DisplayName,
+                                Description = parameter.Description,
+                                Type = parameter.Type,
+                                Value = parameter.Value,
+                                DefaultValue = parameter.DefaultValue,
+                                IsRequired = parameter.IsRequired,
+                                Order = parameter.Order,
+                                EnumOptions = parameter.EnumOptions,
+                                ValidationRule = parameter.ValidationRule,
+                                ValidationErrorMessage = parameter.ValidationErrorMessage,
+                                MinValue = parameter.MinValue,
+                                MaxValue = parameter.MaxValue,
+                                IsEnabled = parameter.IsEnabled
+                            };
+
+                            clonedOperationPoint.Parameters.Add(clonedParameter);
+                        }
+
+                        clonedQuestion.OperationPoints.Add(clonedOperationPoint);
+                    }
+
+                    clonedModule.Questions.Add(clonedQuestion);
+                }
+
+                clonedExam.Modules.Add(clonedModule);
+            }
+
+            // 保存克隆的试卷
+            await DataStorageService.Instance.SaveExamAsync(clonedExam);
+            Exams.Add(clonedExam);
+            SelectedExam = clonedExam;
+
+            await NotificationService.ShowSuccessAsync("克隆成功", $"试卷 '{newName}' 已创建");
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("克隆失败", ex.Message);
         }
     }
 

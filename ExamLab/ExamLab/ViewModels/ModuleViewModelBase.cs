@@ -37,6 +37,11 @@ public abstract class ModuleViewModelBase : ViewModelBase
     public ReactiveCommand<Question, Unit> DeleteQuestionCommand { get; }
 
     /// <summary>
+    /// 复制题目命令
+    /// </summary>
+    public ReactiveCommand<Question, Unit> CopyQuestionCommand { get; }
+
+    /// <summary>
     /// 添加操作点命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> AddOperationPointCommand { get; }
@@ -54,6 +59,7 @@ public abstract class ModuleViewModelBase : ViewModelBase
         // 初始化命令
         AddQuestionCommand = ReactiveCommand.Create(AddQuestion);
         DeleteQuestionCommand = ReactiveCommand.Create<Question>(DeleteQuestion);
+        CopyQuestionCommand = ReactiveCommand.Create<Question>(CopyQuestion);
         AddOperationPointCommand = ReactiveCommand.Create(AddOperationPoint);
         DeleteOperationPointCommand = ReactiveCommand.Create<OperationPoint>(DeleteOperationPoint);
     }
@@ -78,6 +84,72 @@ public abstract class ModuleViewModelBase : ViewModelBase
         {
             SelectedQuestion = Module.Questions.Count > 0 ? Module.Questions[0] : null;
         }
+    }
+
+    protected virtual void CopyQuestion(Question question)
+    {
+        if (question == null) return;
+
+        Question copiedQuestion = new()
+        {
+            Title = $"{question.Title} - 副本",
+            Content = question.Content,
+            Score = question.Score,
+            Order = Module.Questions.Count + 1,
+            IsEnabled = question.IsEnabled,
+            CreatedTime = question.CreatedTime,
+            ProgramInput = question.ProgramInput,
+            ExpectedOutput = question.ExpectedOutput
+        };
+
+        // 复制所有操作点
+        foreach (OperationPoint operationPoint in question.OperationPoints)
+        {
+            OperationPoint copiedOperationPoint = new()
+            {
+                Name = operationPoint.Name,
+                Description = operationPoint.Description,
+                ModuleType = operationPoint.ModuleType,
+                WindowsOperationType = operationPoint.WindowsOperationType,
+                PowerPointKnowledgeType = operationPoint.PowerPointKnowledgeType,
+                WordKnowledgeType = operationPoint.WordKnowledgeType,
+                ExcelKnowledgeType = operationPoint.ExcelKnowledgeType,
+                Score = operationPoint.Score,
+                ScoringQuestionId = operationPoint.ScoringQuestionId,
+                IsEnabled = operationPoint.IsEnabled,
+                Order = operationPoint.Order,
+                CreatedTime = operationPoint.CreatedTime
+            };
+
+            // 复制所有配置参数
+            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+            {
+                ConfigurationParameter copiedParameter = new()
+                {
+                    Name = parameter.Name,
+                    DisplayName = parameter.DisplayName,
+                    Description = parameter.Description,
+                    Type = parameter.Type,
+                    Value = parameter.Value,
+                    DefaultValue = parameter.DefaultValue,
+                    IsRequired = parameter.IsRequired,
+                    Order = parameter.Order,
+                    EnumOptions = parameter.EnumOptions,
+                    ValidationRule = parameter.ValidationRule,
+                    ValidationErrorMessage = parameter.ValidationErrorMessage,
+                    MinValue = parameter.MinValue,
+                    MaxValue = parameter.MaxValue,
+                    IsEnabled = parameter.IsEnabled
+                };
+
+                copiedOperationPoint.Parameters.Add(copiedParameter);
+            }
+
+            copiedQuestion.OperationPoints.Add(copiedOperationPoint);
+        }
+
+        Module.Questions.Add(copiedQuestion);
+        SelectedQuestion = copiedQuestion;
     }
 
     protected abstract void AddOperationPoint();

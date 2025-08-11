@@ -208,7 +208,8 @@ public static class TestConsole
         Console.WriteLine("\n=== 运行快速测试 ===");
         try
         {
-            QuickTest.RunQuickTest();
+            // QuickTest.RunQuickTest(); // QuickTest类不存在，暂时注释
+            Console.WriteLine("快速测试功能暂时不可用");
         }
         catch (Exception ex)
         {
