@@ -754,5 +754,260 @@ public class ExcelKnowledgeService
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 7 }
             ]
         };
+
+        // 操作点109：主要横坐标轴标题
+        configs[ExcelKnowledgeType.HorizontalAxisTitle] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.HorizontalAxisTitle,
+            Name = "主要横坐标轴标题",
+            Description = "设置图表主要横坐标轴的标题",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "AxisTitle", DisplayName = "轴标题", Description = "横坐标轴标题文本", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点110：主要横坐标轴标题格式
+        configs[ExcelKnowledgeType.HorizontalAxisTitleFormat] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.HorizontalAxisTitleFormat,
+            Name = "主要横坐标轴标题格式",
+            Description = "设置图表主要横坐标轴标题的格式",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "FontName", DisplayName = "字体", Description = "轴标题字体", Type = ParameterType.Text, IsRequired = false, Order = 4 },
+                new() { Name = "FontSize", DisplayName = "字号", Description = "轴标题字号", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = 8, MaxValue = 72 },
+                new() { Name = "FontColor", DisplayName = "字体颜色", Description = "轴标题字体颜色", Type = ParameterType.Text, IsRequired = false, Order = 6 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 7 }
+            ]
+        };
+
+        // 操作点123：设置图例格式
+        configs[ExcelKnowledgeType.LegendFormat] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.LegendFormat,
+            Name = "设置图例格式",
+            Description = "设置图表图例的格式",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "FontName", DisplayName = "字体", Description = "图例字体", Type = ParameterType.Text, IsRequired = false, Order = 4 },
+                new() { Name = "FontSize", DisplayName = "字号", Description = "图例字号", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = 8, MaxValue = 72 },
+                new() { Name = "FontColor", DisplayName = "字体颜色", Description = "图例字体颜色", Type = ParameterType.Text, IsRequired = false, Order = 6 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 7 }
+            ]
+        };
+
+        // 操作点124：设置主要纵坐标轴选项
+        configs[ExcelKnowledgeType.VerticalAxisOptions] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.VerticalAxisOptions,
+            Name = "设置主要纵坐标轴选项",
+            Description = "设置图表主要纵坐标轴的选项",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "MinValue", DisplayName = "最小值", Description = "纵轴最小值", Type = ParameterType.Number, IsRequired = false, Order = 4 },
+                new() { Name = "MaxValue", DisplayName = "最大值", Description = "纵轴最大值", Type = ParameterType.Number, IsRequired = false, Order = 5 },
+                new() { Name = "MajorUnit", DisplayName = "主要刻度单位", Description = "主要刻度间隔", Type = ParameterType.Number, IsRequired = false, Order = 6 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 7 }
+            ]
+        };
+
+        // 操作点125：设置网格线——主要横网格线
+        configs[ExcelKnowledgeType.MajorHorizontalGridlines] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.MajorHorizontalGridlines,
+            Name = "设置网格线——主要横网格线",
+            Description = "设置图表的主要横网格线",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示主要横网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
+                new() { Name = "GridlineColor", DisplayName = "网格线颜色", Description = "网格线颜色", Type = ParameterType.Text, IsRequired = false, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
+            ]
+        };
+
+        // 操作点126：设置网格线——次要横网格线
+        configs[ExcelKnowledgeType.MinorHorizontalGridlines] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.MinorHorizontalGridlines,
+            Name = "设置网格线——次要横网格线",
+            Description = "设置图表的次要横网格线",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示次要横网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
+                new() { Name = "GridlineColor", DisplayName = "网格线颜色", Description = "网格线颜色", Type = ParameterType.Text, IsRequired = false, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
+            ]
+        };
+
+        // 操作点127：主要纵网格线
+        configs[ExcelKnowledgeType.MajorVerticalGridlines] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.MajorVerticalGridlines,
+            Name = "主要纵网格线",
+            Description = "设置图表的主要纵网格线",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示主要纵网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
+                new() { Name = "GridlineColor", DisplayName = "网格线颜色", Description = "网格线颜色", Type = ParameterType.Text, IsRequired = false, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
+            ]
+        };
+
+        // 操作点128：次要纵网格线
+        configs[ExcelKnowledgeType.MinorVerticalGridlines] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.MinorVerticalGridlines,
+            Name = "次要纵网格线",
+            Description = "设置图表的次要纵网格线",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示次要纵网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
+                new() { Name = "GridlineColor", DisplayName = "网格线颜色", Description = "网格线颜色", Type = ParameterType.Text, IsRequired = false, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
+            ]
+        };
+
+        // 操作点129：设置数据系列格式
+        configs[ExcelKnowledgeType.DataSeriesFormat] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.DataSeriesFormat,
+            Name = "设置数据系列格式",
+            Description = "设置图表数据系列的格式",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "SeriesIndex", DisplayName = "系列索引", Description = "数据系列索引", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 },
+                new() { Name = "SeriesColor", DisplayName = "系列颜色", Description = "数据系列颜色", Type = ParameterType.Text, IsRequired = false, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
+            ]
+        };
+
+        // 操作点130：添加数据标签
+        configs[ExcelKnowledgeType.AddDataLabels] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.AddDataLabels,
+            Name = "添加数据标签",
+            Description = "为图表添加数据标签",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "LabelPosition", DisplayName = "标签位置", Description = "数据标签位置", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                    EnumOptions = "居中,内侧结尾,内侧基底,外侧结尾,数据标注引导线" },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点131：设置数据标签格式
+        configs[ExcelKnowledgeType.DataLabelsFormat] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.DataLabelsFormat,
+            Name = "设置数据标签格式",
+            Description = "设置图表数据标签的格式",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "FontName", DisplayName = "字体", Description = "数据标签字体", Type = ParameterType.Text, IsRequired = false, Order = 4 },
+                new() { Name = "FontSize", DisplayName = "字号", Description = "数据标签字号", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = 8, MaxValue = 72 },
+                new() { Name = "FontColor", DisplayName = "字体颜色", Description = "数据标签字体颜色", Type = ParameterType.Text, IsRequired = false, Order = 6 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 7 }
+            ]
+        };
+
+        // 操作点132：设置图表区域格式
+        configs[ExcelKnowledgeType.ChartAreaFormat] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.ChartAreaFormat,
+            Name = "设置图表区域格式",
+            Description = "设置图表区域的格式",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "FillColor", DisplayName = "填充颜色", Description = "图表区域填充颜色", Type = ParameterType.Text, IsRequired = false, Order = 4 },
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "图表区域边框颜色", Type = ParameterType.Text, IsRequired = false, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
+            ]
+        };
+
+        // 操作点133：显示图表基底颜色
+        configs[ExcelKnowledgeType.ChartFloorColor] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.ChartFloorColor,
+            Name = "显示图表基底颜色",
+            Description = "设置3D图表的基底颜色",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "FloorColor", DisplayName = "基底颜色", Description = "图表基底颜色", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+            ]
+        };
+
+        // 操作点134：设置图表边框线
+        configs[ExcelKnowledgeType.ChartBorder] = new ExcelKnowledgeConfig
+        {
+            KnowledgeType = ExcelKnowledgeType.ChartBorder,
+            Name = "设置图表边框线",
+            Description = "设置图表的边框线",
+            Category = "图表操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
+                new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "BorderStyle", DisplayName = "边框样式", Description = "边框线样式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                    EnumOptions = "无边框,单实线,双线,点线,虚线,粗线" },
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "边框线颜色", Type = ParameterType.Text, IsRequired = false, Order = 5 },
+                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 6 }
+            ]
+        };
     }
 }

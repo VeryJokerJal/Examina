@@ -674,6 +674,101 @@ public class WordKnowledgeService
                     EnumOptions = "自动,磅单位,百分比" }
             ]
         };
+
+        // 知识点39：设置表格单元格内容
+        configs[WordKnowledgeType.SetTableCellContent] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetTableCellContent,
+            Name = "设置表格单元格内容",
+            Description = "设置表格指定单元格的内容",
+            Category = "表格操作",
+            ParameterTemplates =
+            [
+                new() { Name = "RowNumber", DisplayName = "行号", Description = "单元格所在行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "单元格所在列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "CellContent", DisplayName = "单元格内容", Description = "要设置的文字内容", Type = ParameterType.Text, IsRequired = true, Order = 3 }
+            ]
+        };
+
+        // 知识点40：设置表格单元格对齐方式
+        configs[WordKnowledgeType.SetTableCellAlignment] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetTableCellAlignment,
+            Name = "设置表格单元格对齐方式",
+            Description = "设置表格单元格的对齐方式",
+            Category = "表格操作",
+            ParameterTemplates =
+            [
+                new() { Name = "RowNumber", DisplayName = "行号", Description = "单元格所在行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "单元格所在列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐" },
+                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐" }
+            ]
+        };
+
+        // 知识点41：设置表格对齐方式
+        configs[WordKnowledgeType.SetTableAlignment] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetTableAlignment,
+            Name = "设置表格对齐方式",
+            Description = "设置整个表格的对齐方式",
+            Category = "表格操作",
+            ParameterTemplates =
+            [
+                new() { Name = "TableAlignment", DisplayName = "表格对齐", Description = "表格对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "左对齐,居中对齐,右对齐" },
+                new() { Name = "LeftIndent", DisplayName = "左缩进", Description = "表格左缩进（磅）", Type = ParameterType.Number, IsRequired = false, Order = 2, MinValue = 0, MaxValue = 100 }
+            ]
+        };
+
+        // 知识点42：合并表格单元格
+        configs[WordKnowledgeType.MergeTableCells] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.MergeTableCells,
+            Name = "合并表格单元格",
+            Description = "合并表格中的单元格",
+            Category = "表格操作",
+            ParameterTemplates =
+            [
+                new() { Name = "StartRow", DisplayName = "起始行", Description = "合并区域起始行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "StartColumn", DisplayName = "起始列", Description = "合并区域起始列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "EndRow", DisplayName = "结束行", Description = "合并区域结束行", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
+                new() { Name = "EndColumn", DisplayName = "结束列", Description = "合并区域结束列", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 }
+            ]
+        };
+
+        // 知识点43：设置表格标题内容
+        configs[WordKnowledgeType.SetTableHeaderContent] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetTableHeaderContent,
+            Name = "设置表格标题内容",
+            Description = "设置表格标题行的内容",
+            Category = "表格操作",
+            ParameterTemplates =
+            [
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "标题所在列", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "HeaderContent", DisplayName = "标题内容", Description = "标题文字内容", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+            ]
+        };
+
+        // 知识点44：设置表格标题对齐方式
+        configs[WordKnowledgeType.SetTableHeaderAlignment] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetTableHeaderAlignment,
+            Name = "设置表格标题对齐方式",
+            Description = "设置表格标题行的对齐方式",
+            Category = "表格操作",
+            ParameterTemplates =
+            [
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "标题所在列", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐" },
+                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐" }
+            ]
+        };
     }
 
     private void InitializeGraphicsAndImages(Dictionary<WordKnowledgeType, WordKnowledgeConfig> configs)
@@ -703,6 +798,196 @@ public class WordKnowledgeService
             [
                 new() { Name = "ImageHeight", DisplayName = "高度", Description = "图片高度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 10, MaxValue = 1000 },
                 new() { Name = "ImageWidth", DisplayName = "宽度", Description = "图片宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 10, MaxValue = 1000 }
+            ]
+        };
+
+        // 知识点45：设置自选图形大小
+        configs[WordKnowledgeType.SetAutoShapeSize] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetAutoShapeSize,
+            Name = "设置自选图形大小",
+            Description = "设置自选图形的高度和宽度",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "ShapeHeight", DisplayName = "高度", Description = "图形高度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 10, MaxValue = 1000 },
+                new() { Name = "ShapeWidth", DisplayName = "宽度", Description = "图形宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 10, MaxValue = 1000 }
+            ]
+        };
+
+        // 知识点46：设置自选图形线条颜色
+        configs[WordKnowledgeType.SetAutoShapeLineColor] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetAutoShapeLineColor,
+            Name = "设置自选图形线条颜色",
+            Description = "设置自选图形的线条颜色",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "LineColor", DisplayName = "线条颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+            ]
+        };
+
+        // 知识点47：设置自选图形填充颜色
+        configs[WordKnowledgeType.SetAutoShapeFillColor] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetAutoShapeFillColor,
+            Name = "设置自选图形填充颜色",
+            Description = "设置自选图形的填充颜色",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "FillColor", DisplayName = "填充颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+            ]
+        };
+
+        // 知识点48：设置自选图形文字大小
+        configs[WordKnowledgeType.SetAutoShapeTextSize] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetAutoShapeTextSize,
+            Name = "设置自选图形文字大小",
+            Description = "设置自选图形中文字的大小",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "FontSize", DisplayName = "字号", Description = "文字字号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72 }
+            ]
+        };
+
+        // 知识点49：设置自选图形文字颜色
+        configs[WordKnowledgeType.SetAutoShapeTextColor] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetAutoShapeTextColor,
+            Name = "设置自选图形文字颜色",
+            Description = "设置自选图形中文字的颜色",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "TextColor", DisplayName = "文字颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+            ]
+        };
+
+        // 知识点50：设置自选图形文字内容
+        configs[WordKnowledgeType.SetAutoShapeTextContent] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetAutoShapeTextContent,
+            Name = "设置自选图形文字内容",
+            Description = "设置自选图形中的文字内容",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "TextContent", DisplayName = "文字内容", Description = "要设置的文字", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+            ]
+        };
+
+        // 知识点51：设置自选图形位置
+        configs[WordKnowledgeType.SetAutoShapePosition] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetAutoShapePosition,
+            Name = "设置自选图形位置",
+            Description = "设置自选图形的位置",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "PositionX", DisplayName = "水平位置", Description = "水平位置（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1 },
+                new() { Name = "PositionY", DisplayName = "垂直位置", Description = "垂直位置（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2 }
+            ]
+        };
+
+        // 知识点52：设置图片边框复合类型
+        configs[WordKnowledgeType.SetImageBorderCompoundType] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetImageBorderCompoundType,
+            Name = "设置图片边框复合类型",
+            Description = "设置图片边框的复合线型",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "CompoundType", DisplayName = "复合类型", Description = "边框复合线型", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "单线,双线,粗细线,细粗线,三线" }
+            ]
+        };
+
+        // 知识点53：设置图片边框虚线类型
+        configs[WordKnowledgeType.SetImageBorderDashType] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetImageBorderDashType,
+            Name = "设置图片边框虚线类型",
+            Description = "设置图片边框的虚线样式",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "DashType", DisplayName = "虚线类型", Description = "边框虚线样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "实线,圆点,方点,短划线,长划线,短划线点,长划线点,长划线点点" }
+            ]
+        };
+
+        // 知识点54：设置图片边框宽度
+        configs[WordKnowledgeType.SetImageBorderWidth] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetImageBorderWidth,
+            Name = "设置图片边框宽度",
+            Description = "设置图片边框的宽度",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "BorderWidth", DisplayName = "边框宽度", Description = "边框宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 0.25, MaxValue = 6 }
+            ]
+        };
+
+        // 知识点55：设置图片边框颜色
+        configs[WordKnowledgeType.SetImageBorderColor] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetImageBorderColor,
+            Name = "设置图片边框颜色",
+            Description = "设置图片边框的颜色",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+            ]
+        };
+
+        // 知识点56：设置图片阴影
+        configs[WordKnowledgeType.SetImageShadow] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetImageShadow,
+            Name = "设置图片阴影",
+            Description = "设置图片的阴影效果",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "ShadowType", DisplayName = "阴影类型", Description = "阴影样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "无阴影,偏移对角右下,偏移对角右上,偏移对角左下,偏移对角左上,偏移右,偏移下,偏移左,偏移上" },
+                new() { Name = "ShadowColor", DisplayName = "阴影颜色", Description = "阴影颜色", Type = ParameterType.Text, IsRequired = false, Order = 2 }
+            ]
+        };
+
+        // 知识点57：设置图片环绕方式
+        configs[WordKnowledgeType.SetImageWrapStyle] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetImageWrapStyle,
+            Name = "设置图片环绕方式",
+            Description = "设置图片的文字环绕方式",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "WrapStyle", DisplayName = "环绕方式", Description = "文字环绕样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "嵌入型,四周型,紧密型,穿越型,上下型,衬于文字下方,浮于文字上方" }
+            ]
+        };
+
+        // 知识点58：设置图片位置
+        configs[WordKnowledgeType.SetImagePosition] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetImagePosition,
+            Name = "设置图片位置",
+            Description = "设置图片的位置",
+            Category = "图形和图片设置",
+            ParameterTemplates =
+            [
+                new() { Name = "PositionX", DisplayName = "水平位置", Description = "水平位置（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1 },
+                new() { Name = "PositionY", DisplayName = "垂直位置", Description = "垂直位置（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2 }
             ]
         };
     }
@@ -745,6 +1030,34 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "TextSize", DisplayName = "字号值", Description = "文字大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72 }
+            ]
+        };
+
+        // 知识点64：设置文本框位置
+        configs[WordKnowledgeType.SetTextBoxPosition] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetTextBoxPosition,
+            Name = "设置文本框位置",
+            Description = "设置文本框的位置",
+            Category = "文本框设置",
+            ParameterTemplates =
+            [
+                new() { Name = "PositionX", DisplayName = "水平位置", Description = "水平位置（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1 },
+                new() { Name = "PositionY", DisplayName = "垂直位置", Description = "垂直位置（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2 }
+            ]
+        };
+
+        // 知识点65：设置文本框环绕方式
+        configs[WordKnowledgeType.SetTextBoxWrapStyle] = new WordKnowledgeConfig
+        {
+            KnowledgeType = WordKnowledgeType.SetTextBoxWrapStyle,
+            Name = "设置文本框环绕方式",
+            Description = "设置文本框的文字环绕方式",
+            Category = "文本框设置",
+            ParameterTemplates =
+            [
+                new() { Name = "WrapStyle", DisplayName = "环绕方式", Description = "文字环绕样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "嵌入型,四周型,紧密型,穿越型,上下型,衬于文字下方,浮于文字上方" }
             ]
         };
     }
