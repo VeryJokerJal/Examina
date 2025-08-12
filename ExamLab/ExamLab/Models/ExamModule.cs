@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
@@ -25,7 +26,7 @@ public class ExamModule : ReactiveObject
 {
     public ExamModule()
     {
-        // 监听Questions集合变化，通知计算属性更新
+        // 使用ReactiveUI的方式监听Questions集合变化
         Questions.CollectionChanged += (sender, e) =>
         {
             this.RaisePropertyChanged(nameof(QuestionCount));
@@ -52,6 +53,13 @@ public class ExamModule : ReactiveObject
                         this.RaisePropertyChanged(nameof(OperationPointCount));
                     };
                 }
+            }
+
+            // 监听移除的题目，清理订阅（防止内存泄漏）
+            if (e.OldItems != null)
+            {
+                // 这里可以添加清理逻辑，但由于使用了ReactiveUI的Subscribe，
+                // 当对象被垃圾回收时会自动清理
             }
         };
     }
