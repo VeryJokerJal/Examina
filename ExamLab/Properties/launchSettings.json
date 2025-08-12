@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ExamLab (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ExamLab (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
