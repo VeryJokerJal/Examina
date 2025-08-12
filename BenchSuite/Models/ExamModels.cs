@@ -1,4 +1,4 @@
-namespace BenchSuite.Models;
+﻿namespace BenchSuite.Models;
 
 /// <summary>
 /// 试卷模型 - 简化版本，基于ExamLab.Models.Exam
@@ -23,7 +23,7 @@ public class ExamModel
     /// <summary>
     /// 试卷包含的模块
     /// </summary>
-    public List<ExamModuleModel> Modules { get; set; } = new();
+    public List<ExamModuleModel> Modules { get; set; } = [];
 }
 
 /// <summary>
@@ -59,7 +59,7 @@ public class ExamModuleModel
     /// <summary>
     /// 模块包含的题目
     /// </summary>
-    public List<QuestionModel> Questions { get; set; } = new();
+    public List<QuestionModel> Questions { get; set; } = [];
 
     /// <summary>
     /// 是否启用该模块
@@ -105,7 +105,7 @@ public class QuestionModel
     /// <summary>
     /// 关联的操作点
     /// </summary>
-    public List<OperationPointModel> OperationPoints { get; set; } = new();
+    public List<OperationPointModel> OperationPoints { get; set; } = [];
 
     /// <summary>
     /// 是否启用该题目
@@ -161,7 +161,7 @@ public class OperationPointModel
     /// <summary>
     /// 配置参数
     /// </summary>
-    public List<ConfigurationParameterModel> Parameters { get; set; } = new();
+    public List<ConfigurationParameterModel> Parameters { get; set; } = [];
 
     /// <summary>
     /// 是否启用该操作点
@@ -212,7 +212,9 @@ public enum ModuleType
 {
     Excel = 1,
     Word = 2,
-    PowerPoint = 3
+    PowerPoint = 3,
+    CSharp = 4,
+    Windows = 5
 }
 
 /// <summary>

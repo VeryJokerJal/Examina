@@ -24,6 +24,9 @@ public static class ExportService
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
+        // 添加自定义转换器
+        options.Converters.Add(new Converters.ModuleTypeJsonConverter());
+
         return Task.FromResult(JsonSerializer.Serialize(exam, options));
     }
 
@@ -34,7 +37,15 @@ public static class ExportService
     {
         try
         {
-            return Task.FromResult(JsonSerializer.Deserialize<Exam>(json));
+            JsonSerializerOptions options = new()
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            // 添加自定义转换器
+            options.Converters.Add(new Converters.ModuleTypeJsonConverter());
+
+            return Task.FromResult(JsonSerializer.Deserialize<Exam>(json, options));
         }
         catch (Exception)
         {

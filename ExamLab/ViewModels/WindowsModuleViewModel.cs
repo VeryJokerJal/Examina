@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using ExamLab.Models;
 using ReactiveUI;
@@ -550,7 +551,9 @@ public class WindowsModuleViewModel : ModuleViewModelBase
     private static bool IsIndexParameter(string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterName))
+        {
             return false;
+        }
 
         string[] indexPatterns =
         {

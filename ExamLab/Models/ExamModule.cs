@@ -10,11 +10,11 @@ namespace ExamLab.Models;
 /// </summary>
 public enum ModuleType
 {
-    Windows,
-    CSharp,
-    PowerPoint,
-    Excel,
-    Word
+    Excel = 1,
+    Word = 2,
+    PowerPoint = 3,
+    CSharp = 4,
+    Windows = 5
 }
 
 /// <summary>

@@ -1,3 +1,5 @@
+﻿using System;
+using System.Linq;
 using System.Reactive;
 using ExamLab.Models;
 using ReactiveUI;
@@ -111,7 +113,9 @@ public class OperationPointEditDialogViewModel : ViewModelBase
     private static bool IsIndexParameter(string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterName))
+        {
             return false;
+        }
 
         string[] indexPatterns =
         {

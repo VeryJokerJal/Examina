@@ -35,6 +35,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         // 设置最大深度以防止无限递归
         options.JsonSerializerOptions.MaxDepth = 32;
+
+        // 添加自定义转换器
+        options.JsonSerializerOptions.Converters.Add(new BenchSuite.Converters.ModuleTypeJsonConverter());
     });
 
 // 配置MySQL数据库

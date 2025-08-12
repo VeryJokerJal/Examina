@@ -31,6 +31,9 @@ public class DataStorageService
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
+
+        // 添加自定义转换器
+        _jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
     }
 
     /// <summary>

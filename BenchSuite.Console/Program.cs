@@ -13,7 +13,7 @@ internal class Program
     /// 程序入口点
     /// </summary>
     /// <param name="args">命令行参数：[PPT文件路径] [ExamModel JSON文件路径]</param>
-    static async Task<int> Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         try
         {
@@ -91,7 +91,7 @@ internal class Program
         }
 
         string pptExtension = Path.GetExtension(pptFilePath).ToLowerInvariant();
-        if (pptExtension != ".ppt" && pptExtension != ".pptx")
+        if (pptExtension is not ".ppt" and not ".pptx")
         {
             System.Console.WriteLine($"错误: 不支持的PPT文件格式: {pptExtension}");
             System.Console.WriteLine("支持的格式: .ppt, .pptx");
@@ -138,6 +138,9 @@ internal class Program
                 AllowTrailingCommas = true,
                 ReadCommentHandling = JsonCommentHandling.Skip
             };
+
+            // 添加自定义转换器
+            options.Converters.Add(new BenchSuite.Converters.ModuleTypeJsonConverter());
 
             ExamModel? examModel = JsonSerializer.Deserialize<ExamModel>(jsonContent, options);
 

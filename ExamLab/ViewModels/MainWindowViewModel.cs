@@ -542,6 +542,9 @@ public class MainWindowViewModel : ViewModelBase
                     PropertyNameCaseInsensitive = true
                 };
 
+                // 添加自定义转换器
+                jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
+
                 try
                 {
                     importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
@@ -677,6 +680,9 @@ public class MainWindowViewModel : ViewModelBase
                     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
                     PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
                 };
+
+                // 添加自定义转换器
+                jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
 
                 fileContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
             }

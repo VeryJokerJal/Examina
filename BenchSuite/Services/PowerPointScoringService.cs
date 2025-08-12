@@ -2,6 +2,7 @@
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using BenchSuite.Services;
+using Microsoft.Office.Core;
 using Microsoft.Office.Interop.PowerPoint;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 
