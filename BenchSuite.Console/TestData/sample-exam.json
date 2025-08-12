@@ -1,0 +1,172 @@
+{
+  "id": "sample-exam-1",
+  "name": "PowerPoint综合操作考试",
+  "description": "测试PowerPoint多种操作技能的示例试卷",
+  "modules": [
+    {
+      "id": "ppt-module-1",
+      "name": "PowerPoint操作",
+      "type": 3,
+      "description": "PowerPoint综合操作测试",
+      "score": 100,
+      "questions": [
+        {
+          "id": "question-1",
+          "title": "设置幻灯片版式",
+          "content": "将第1张幻灯片的版式设置为标题版式",
+          "score": 15,
+          "operationPoints": [
+            {
+              "id": "op-1",
+              "name": "设置标题版式",
+              "description": "检测第1张幻灯片是否使用了标题版式",
+              "powerPointKnowledgeType": "SlideLayout",
+              "score": 15,
+              "parameters": [
+                {
+                  "name": "SlideIndex",
+                  "displayName": "幻灯片索引",
+                  "value": "1",
+                  "type": 2,
+                  "isRequired": true
+                },
+                {
+                  "name": "ExpectedLayout",
+                  "displayName": "期望版式",
+                  "value": "Title",
+                  "type": 1,
+                  "isRequired": true
+                }
+              ],
+              "isEnabled": true,
+              "order": 1
+            }
+          ],
+          "isEnabled": true,
+          "order": 1
+        },
+        {
+          "id": "question-2",
+          "title": "插入文本框",
+          "content": "在第2张幻灯片中插入一个文本框，内容为'测试文本'",
+          "score": 20,
+          "operationPoints": [
+            {
+              "id": "op-2",
+              "name": "插入文本框",
+              "description": "检测第2张幻灯片是否包含指定内容的文本框",
+              "powerPointKnowledgeType": "TextBox",
+              "score": 20,
+              "parameters": [
+                {
+                  "name": "SlideIndex",
+                  "displayName": "幻灯片索引",
+                  "value": "2",
+                  "type": 2,
+                  "isRequired": true
+                },
+                {
+                  "name": "ExpectedText",
+                  "displayName": "期望文本",
+                  "value": "测试文本",
+                  "type": 1,
+                  "isRequired": true
+                }
+              ],
+              "isEnabled": true,
+              "order": 1
+            }
+          ],
+          "isEnabled": true,
+          "order": 2
+        },
+        {
+          "id": "question-3",
+          "title": "设置幻灯片切换效果",
+          "content": "为所有幻灯片设置淡入淡出切换效果",
+          "score": 25,
+          "operationPoints": [
+            {
+              "id": "op-3",
+              "name": "设置切换效果",
+              "description": "检测幻灯片是否设置了淡入淡出切换效果",
+              "powerPointKnowledgeType": "SlideTransition",
+              "score": 25,
+              "parameters": [
+                {
+                  "name": "ExpectedTransition",
+                  "displayName": "期望切换效果",
+                  "value": "Fade",
+                  "type": 1,
+                  "isRequired": true
+                }
+              ],
+              "isEnabled": true,
+              "order": 1
+            }
+          ],
+          "isEnabled": true,
+          "order": 3
+        },
+        {
+          "id": "question-4",
+          "title": "删除幻灯片",
+          "content": "删除第3张幻灯片，最终保留2张幻灯片",
+          "score": 20,
+          "operationPoints": [
+            {
+              "id": "op-4",
+              "name": "删除幻灯片",
+              "description": "检测幻灯片总数是否为2张",
+              "powerPointKnowledgeType": "DeleteSlide",
+              "score": 20,
+              "parameters": [
+                {
+                  "name": "ExpectedSlideCount",
+                  "displayName": "期望幻灯片数量",
+                  "value": "2",
+                  "type": 2,
+                  "isRequired": true
+                }
+              ],
+              "isEnabled": true,
+              "order": 1
+            }
+          ],
+          "isEnabled": true,
+          "order": 4
+        },
+        {
+          "id": "question-5",
+          "title": "插入图片",
+          "content": "在第1张幻灯片中插入一张图片",
+          "score": 20,
+          "operationPoints": [
+            {
+              "id": "op-5",
+              "name": "插入图片",
+              "description": "检测第1张幻灯片是否包含图片",
+              "powerPointKnowledgeType": "InsertImage",
+              "score": 20,
+              "parameters": [
+                {
+                  "name": "SlideIndex",
+                  "displayName": "幻灯片索引",
+                  "value": "1",
+                  "type": 2,
+                  "isRequired": true
+                }
+              ],
+              "isEnabled": true,
+              "order": 1
+            }
+          ],
+          "isEnabled": true,
+          "order": 5
+        }
+      ],
+      "isEnabled": true,
+      "order": 1
+    }
+  ]
+}

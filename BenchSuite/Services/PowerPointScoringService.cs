@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
-using Microsoft.Office.Core;
+using BenchSuite.Services;
 using Microsoft.Office.Interop.PowerPoint;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 
@@ -157,13 +157,30 @@ public class PowerPointScoringService : IPowerPointScoringService
                 // 打开演示文稿
                 presentation = pptApp.Presentations.Open(filePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
 
+                // 创建参数解析上下文
+                ParameterResolutionContext context = new();
+
+                // 预先解析所有-1参数
+                if (presentation != null)
+                {
+                    foreach (OperationPointModel operationPoint in knowledgePoints)
+                    {
+                        Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
+                        ResolveParametersForPresentation(parameters, presentation, context);
+                    }
+                }
+
                 // 逐个检测知识点
                 foreach (OperationPointModel operationPoint in knowledgePoints)
                 {
                     try
                     {
                         Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
-                        KnowledgePointResult result = DetectSpecificKnowledgePoint(presentation, operationPoint.PowerPointKnowledgeType ?? string.Empty, parameters);
+
+                        // 使用解析后的参数
+                        Dictionary<string, string> resolvedParameters = GetResolvedParameters(parameters, context);
+
+                        KnowledgePointResult result = DetectSpecificKnowledgePoint(presentation, operationPoint.PowerPointKnowledgeType ?? string.Empty, resolvedParameters);
 
                         result.KnowledgePointId = operationPoint.Id;
                         result.KnowledgePointName = operationPoint.Name;
@@ -1009,7 +1026,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+            TextRange2 textRange = shape.TextFrame2.TextRange;
             bool hasStyle = false;
             string styleName = "";
 
@@ -1024,11 +1041,11 @@ public class PowerPointScoringService : IPowerPointScoringService
                     styleName = "斜体";
                     break;
                 case 3: // 下划线
-                    hasStyle = textRange.Font.Underline == MsoTriState.msoTrue;
+                    hasStyle = textRange.Font.UnderlineStyle != MsoTextUnderlineType.msoNoUnderline;
                     styleName = "下划线";
                     break;
                 case 4: // 删除线
-                    hasStyle = textRange.Font.Strikethrough == MsoTriState.msoTrue;
+                    hasStyle = textRange.Font.StrikeThrough == MsoTriState.msoTrue;
                     styleName = "删除线";
                     break;
                 default:
@@ -1227,7 +1244,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
             int actualAlignment = (int)textRange.ParagraphFormat.Alignment;
 
-            string GetAlignmentName(int alignment)
+            static string GetAlignmentName(int alignment)
             {
                 return alignment switch
                 {
@@ -1277,7 +1294,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             string[] slideIndexStrings = slideIndexesStr.Split(',');
-            List<int> slideIndexes = new();
+            List<int> slideIndexes = [];
 
             foreach (string indexStr in slideIndexStrings)
             {
@@ -1294,7 +1311,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             int correctCount = 0;
-            List<string> details = new();
+            List<string> details = [];
 
             foreach (int slideIndex in slideIndexes)
             {
@@ -1735,8 +1752,8 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             // 检查表格内容
             string[] expectedCells = expectedContent.Split(',');
-            List<string> actualCells = new();
-            List<string> mismatches = new();
+            List<string> actualCells = [];
+            List<string> mismatches = [];
 
             for (int row = 1; row <= actualRows; row++)
             {
@@ -1747,7 +1764,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                         string cellText = tableShape.Table.Cell(row, col).Shape.TextFrame.TextRange.Text?.Trim() ?? "";
                         actualCells.Add(cellText);
 
-                        int cellIndex = (row - 1) * actualColumns + (col - 1);
+                        int cellIndex = ((row - 1) * actualColumns) + (col - 1);
                         if (cellIndex < expectedCells.Length)
                         {
                             string expectedCellText = expectedCells[cellIndex].Trim();
@@ -1877,5 +1894,91 @@ public class PowerPointScoringService : IPowerPointScoringService
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
+    }
+
+    /// <summary>
+    /// 为演示文稿解析参数中的-1值
+    /// </summary>
+    private static void ResolveParametersForPresentation(Dictionary<string, string> parameters, PowerPoint.Presentation presentation, ParameterResolutionContext context)
+    {
+        foreach (KeyValuePair<string, string> parameter in parameters)
+        {
+            if (ParameterResolver.IsIndexParameter(parameter.Key))
+            {
+                try
+                {
+                    int maxValue = GetMaxValueForParameter(parameter.Key, presentation, parameters);
+                    if (parameter.Key.Contains("Indexes", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // 处理多个编号参数（逗号分隔）
+                        ParameterResolver.ResolveMultipleParameters(parameter.Key, parameter.Value, maxValue, context);
+                    }
+                    else
+                    {
+                        // 处理单个编号参数
+                        ParameterResolver.ResolveParameter(parameter.Key, parameter.Value, maxValue, context);
+                    }
+                }
+                catch (Exception)
+                {
+                    // 如果解析失败，保持原值
+                    context.SetResolvedParameter(parameter.Key, parameter.Value);
+                }
+            }
+            else
+            {
+                // 非编号参数，直接保存
+                context.SetResolvedParameter(parameter.Key, parameter.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 获取参数的最大值
+    /// </summary>
+    private static int GetMaxValueForParameter(string parameterName, PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        string lowerName = parameterName.ToLowerInvariant();
+
+        if (lowerName.Contains("slide"))
+        {
+            return presentation.Slides.Count;
+        }
+
+        if (lowerName.Contains("textbox") || lowerName.Contains("element") || lowerName.Contains("shape"))
+        {
+            // 对于文本框/元素/形状，需要根据具体幻灯片计算
+            if (parameters.TryGetValue("SlideIndex", out string? slideIndexStr) &&
+                int.TryParse(slideIndexStr, out int slideIndex) &&
+                slideIndex >= 1 && slideIndex <= presentation.Slides.Count)
+            {
+                return presentation.Slides[slideIndex].Shapes.Count;
+            }
+
+            // 如果没有指定幻灯片或幻灯片无效，返回第一张幻灯片的形状数量作为估计
+            if (presentation.Slides.Count > 0)
+            {
+                return presentation.Slides[1].Shapes.Count;
+            }
+        }
+
+        // 默认返回幻灯片数量
+        return presentation.Slides.Count;
+    }
+
+    /// <summary>
+    /// 获取解析后的参数字典
+    /// </summary>
+    private static Dictionary<string, string> GetResolvedParameters(Dictionary<string, string> originalParameters, ParameterResolutionContext context)
+    {
+        Dictionary<string, string> resolvedParameters = new();
+
+        foreach (KeyValuePair<string, string> parameter in originalParameters)
+        {
+            string resolvedValue = context.GetResolvedParameter(parameter.Key);
+            resolvedParameters[parameter.Key] = string.IsNullOrEmpty(resolvedValue) ? parameter.Value : resolvedValue;
+        }
+
+        return resolvedParameters;
     }
 }

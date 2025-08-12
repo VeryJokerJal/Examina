@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>false</UseWPF>
+    <EnableComHosting>true</EnableComHosting>
+    <EnableGeneratedComInterfaceComImportInterop>true</EnableGeneratedComInterfaceComImportInterop>
   </PropertyGroup>
 
   <ItemGroup>

@@ -74,8 +74,13 @@ public class OperationPointEditDialogViewModel : ViewModelBase
 
                 if (parameter.MinValue.HasValue && numValue < parameter.MinValue.Value)
                 {
-                    SetError($"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}");
-                    return false;
+                    // 如果是编号参数且值为-1，则允许（-1代表任意一个）
+                    bool isIndexParameter = IsIndexParameter(parameter.Name);
+                    if (!(isIndexParameter && numValue == -1))
+                    {
+                        SetError($"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}");
+                        return false;
+                    }
                 }
 
                 if (parameter.MaxValue.HasValue && numValue > parameter.MaxValue.Value)
@@ -98,6 +103,34 @@ public class OperationPointEditDialogViewModel : ViewModelBase
 
         ClearError();
         return true;
+    }
+
+    /// <summary>
+    /// 检查参数是否为编号类型
+    /// </summary>
+    private static bool IsIndexParameter(string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(parameterName))
+            return false;
+
+        string[] indexPatterns =
+        {
+            "SlideIndex", "SlideNumber", "SlideIndexes",
+            "TextBoxIndex", "TextBoxOrder", "TextBoxNumber",
+            "ElementIndex", "ElementNumber", "ElementOrder",
+            "ShapeIndex", "ShapeNumber", "ShapeOrder",
+            "TableIndex", "TableNumber", "TableOrder",
+            "ImageIndex", "ImageNumber", "ImageOrder",
+            "ChartIndex", "ChartNumber", "ChartOrder",
+            "RowIndex", "RowNumber", "ColumnIndex", "ColumnNumber",
+            "CellIndex", "CellNumber", "ParagraphNumbers"
+        };
+
+        return indexPatterns.Any(pattern =>
+            parameterName.Equals(pattern, StringComparison.OrdinalIgnoreCase) ||
+            parameterName.Contains("Index", StringComparison.OrdinalIgnoreCase) ||
+            parameterName.Contains("Number", StringComparison.OrdinalIgnoreCase) ||
+            parameterName.Contains("Order", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
