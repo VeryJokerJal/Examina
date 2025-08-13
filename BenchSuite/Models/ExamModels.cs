@@ -215,6 +215,11 @@ public class OperationPointModel
     [JsonPropertyName("excelKnowledgeType")] public string? ExcelKnowledgeType { get; set; }
 
     /// <summary>
+    /// Windows操作类型（当ModuleType为Windows时使用）
+    /// </summary>
+    [JsonPropertyName("windowsOperationType")] public string? WindowsOperationType { get; set; }
+
+    /// <summary>
     /// 操作点分值
     /// </summary>
     [JsonPropertyName("score")] public decimal Score { get; set; }
