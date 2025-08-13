@@ -3169,10 +3169,9 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             float spaceBefore = shape.TextFrame.TextRange.ParagraphFormat.SpaceBefore;
             float spaceAfter = shape.TextFrame.TextRange.ParagraphFormat.SpaceAfter;
-            // PowerPoint Interop中使用LineSpaceRule和LineSpacing属性
-            PowerPoint.PpParagraphAlignment alignment = shape.TextFrame.TextRange.ParagraphFormat.Alignment;
+            float lineSpacing = shape.TextFrame.TextRange.ParagraphFormat.SpaceWithin;
 
-            string actualSpacing = $"段前:{spaceBefore}pt, 段后:{spaceAfter}pt, 对齐:{alignment}";
+            string actualSpacing = $"段前:{spaceBefore}pt, 段后:{spaceAfter}pt, 行距:{lineSpacing}";
 
             if (parameters.TryGetValue("ExpectedSpaceBefore", out string? expectedSpaceBeforeStr) &&
                 float.TryParse(expectedSpaceBeforeStr, out float expectedSpaceBefore))
@@ -3185,7 +3184,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             {
                 result.ExpectedValue = "有段落间距设置";
                 result.ActualValue = actualSpacing;
-                result.IsCorrect = spaceBefore > 0 || spaceAfter > 0;
+                result.IsCorrect = spaceBefore > 0 || spaceAfter > 0 || lineSpacing != 1.0f;
             }
 
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;

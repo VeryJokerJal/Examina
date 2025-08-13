@@ -1,5 +1,6 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System;
 using System.Collections.ObjectModel;
 
 namespace ExamLab.Models;
@@ -12,7 +13,7 @@ public class Question : ReactiveObject
     /// <summary>
     /// 题目ID
     /// </summary>
-    [Reactive] public string Id { get; set; } = "question-1";
+    [Reactive] public string Id { get; set; } = GenerateQuestionId();
 
     /// <summary>
     /// 题目标题
@@ -58,4 +59,12 @@ public class Question : ReactiveObject
     /// C#程序预期控制台输出（仅C#模块使用）
     /// </summary>
     [Reactive] public string? ExpectedOutput { get; set; }
+
+    /// <summary>
+    /// 生成新的题目ID
+    /// </summary>
+    private static string GenerateQuestionId()
+    {
+        return $"question-{DateTime.Now.Ticks}-{Guid.NewGuid().ToString("N")[..8]}";
+    }
 }
