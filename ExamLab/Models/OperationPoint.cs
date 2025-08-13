@@ -275,7 +275,7 @@ public class OperationPoint : ReactiveObject
     /// <summary>
     /// 模块类型
     /// </summary>
-    [Reactive] public ModuleType ModuleType { get; set; }
+    [Reactive] public ModuleType ModuleType { get; set; } = ModuleType.Windows;
 
     /// <summary>
     /// Windows操作类型（当ModuleType为Windows时使用）

@@ -38,7 +38,13 @@ public class ModuleTypeJsonConverter : JsonConverter<ModuleType>
             case JsonTokenType.Number:
                 {
                     int intValue = reader.GetInt32();
-                    
+
+                    // 特殊处理：将0值映射到默认的Windows类型
+                    if (intValue == 0)
+                    {
+                        return ModuleType.Windows;
+                    }
+
                     // 检查是否为有效的枚举值
                     if (Enum.IsDefined(typeof(ModuleType), intValue))
                     {

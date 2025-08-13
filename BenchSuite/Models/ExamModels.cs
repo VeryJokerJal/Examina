@@ -136,7 +136,7 @@ public class OperationPointModel
     /// <summary>
     /// 模块类型
     /// </summary>
-    public ModuleType ModuleType { get; set; }
+    public ModuleType ModuleType { get; set; } = ModuleType.Windows;
 
     /// <summary>
     /// PPT知识点类型（当ModuleType为PowerPoint时使用）

@@ -74,7 +74,7 @@ public class ExamModule : ReactiveObject
     /// <summary>
     /// 模块类型
     /// </summary>
-    [Reactive] public ModuleType Type { get; set; }
+    [Reactive] public ModuleType Type { get; set; } = ModuleType.Windows;
 
     /// <summary>
     /// 模块描述

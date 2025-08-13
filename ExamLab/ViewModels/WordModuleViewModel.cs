@@ -1,8 +1,8 @@
-using System;
-using System.Reactive;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using ExamLab.Models;
 using ExamLab.Services;
 using ReactiveUI;
@@ -136,7 +136,8 @@ public class WordModuleViewModel : ModuleViewModelBase
                 CloseButtonText = "取消",
                 DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
                 Content = editPage,
-                XamlRoot = xamlRoot
+                XamlRoot = xamlRoot,
+                MinWidth = 650
             };
 
             // 显示对话框
@@ -244,7 +245,9 @@ public class WordModuleViewModel : ModuleViewModelBase
     private static bool IsIndexParameter(string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterName))
+        {
             return false;
+        }
 
         string[] indexPatterns =
         {

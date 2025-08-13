@@ -451,7 +451,8 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                 CloseButtonText = "取消",
                 DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
                 Content = editPage,
-                XamlRoot = xamlRoot
+                XamlRoot = xamlRoot,
+                MinWidth = 650
             };
 
             // 显示对话框
