@@ -108,6 +108,22 @@ namespace BenchSuite.Services
                 // 幻灯片数量相关参数映射
                 if (key.Equals("SlideCount", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
                 if (key.Equals("TotalSlides", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+                if (key.Equals("TotalSlideCount", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+                if (key.Equals("SlideTotal", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+                if (key.Equals("FinalSlideCount", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+
+                // 特定知识点的参数映射
+                if (knowledgeType.Equals("InsertSlide", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (key.Equals("插入后期望的幻灯片总数", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+                    if (key.Equals("ExpectedTotalSlides", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+                }
+
+                if (knowledgeType.Equals("DeleteSlide", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (key.Equals("删除后期望的幻灯片总数", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+                    if (key.Equals("ExpectedTotalSlides", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
+                }
 
                 // 颜色：ColorValue -> Color
                 if (key.Equals("ColorValue", StringComparison.OrdinalIgnoreCase)) key = "Color";
