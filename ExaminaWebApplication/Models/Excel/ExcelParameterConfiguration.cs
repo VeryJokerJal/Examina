@@ -110,7 +110,11 @@ public class IntegerParameterConfiguration : ExcelParameterConfigurationBase
                 return false;
 
             if (MinValue.HasValue && intValue < MinValue.Value)
-                return false;
+            {
+                // 如果值为-1，则允许（-1代表通配符，匹配任意值）
+                if (intValue != -1)
+                    return false;
+            }
 
             if (MaxValue.HasValue && intValue > MaxValue.Value)
                 return false;
@@ -151,7 +155,11 @@ public class DecimalParameterConfiguration : ExcelParameterConfigurationBase
                 return false;
 
             if (MinValue.HasValue && decimalValue < MinValue.Value)
-                return false;
+            {
+                // 如果值为-1，则允许（-1代表通配符，匹配任意值）
+                if (Math.Abs(decimalValue - (-1)) >= 0.001m)
+                    return false;
+            }
 
             if (MaxValue.HasValue && decimalValue > MaxValue.Value)
                 return false;

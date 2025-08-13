@@ -100,7 +100,7 @@ namespace BenchSuite.Services
         }
 
         /// <summary>
-        /// 解析参数值，将-1转换为随机编号
+        /// 解析参数值，将-1转换为随机值（适用于所有数值参数）
         /// </summary>
         /// <param name="parameterName">参数名称</param>
         /// <param name="parameterValue">参数值</param>
@@ -109,11 +109,7 @@ namespace BenchSuite.Services
         /// <returns>解析后的参数值</returns>
         public static string ResolveParameter(string parameterName, string parameterValue, int maxValue, ParameterResolutionContext context)
         {
-            // 如果不是编号类型参数，直接返回原值
-            if (!IsIndexParameter(parameterName))
-            {
-                return parameterValue;
-            }
+            // 对于所有数值参数，如果值为-1，则进行通配符处理
 
             // 如果已经解析过，返回缓存的值
             if (context.IsParameterResolved(parameterName))
@@ -129,12 +125,12 @@ namespace BenchSuite.Services
                 return parameterValue;
             }
 
-            // 如果是-1，生成随机编号
+            // 如果是-1（通配符），生成随机值
             if (intValue == -1)
             {
                 if (maxValue <= 0)
                 {
-                    throw new ArgumentException($"无法为参数 '{parameterName}' 生成随机编号，最大值为 {maxValue}");
+                    throw new ArgumentException($"无法为参数 '{parameterName}' 生成随机值，最大值为 {maxValue}");
                 }
 
                 int randomValue = context.GenerateRandomNumber(1, maxValue);

@@ -200,11 +200,10 @@ public class WordModuleViewModel : ModuleViewModelBase
 
                 if (parameter.MinValue.HasValue && numValue < parameter.MinValue.Value)
                 {
-                    // 如果是编号参数且值为-1，则允许（-1代表任意一个）
-                    bool isIndexParameter = IsIndexParameter(parameter.Name);
-                    if (!(isIndexParameter && Math.Abs(numValue - (-1)) < 0.001))
+                    // 如果值为-1，则允许（-1代表通配符，匹配任意值）
+                    if (Math.Abs(numValue - (-1)) >= 0.001)
                     {
-                        SetError($"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}");
+                        SetError($"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}（输入-1表示匹配任意值）");
                         return false;
                     }
                 }
@@ -239,31 +238,5 @@ public class WordModuleViewModel : ModuleViewModelBase
         return AvailableKnowledgePoints.GroupBy(k => k.Category);
     }
 
-    /// <summary>
-    /// 检查参数是否为编号类型
-    /// </summary>
-    private static bool IsIndexParameter(string parameterName)
-    {
-        if (string.IsNullOrWhiteSpace(parameterName))
-        {
-            return false;
-        }
 
-        string[] indexPatterns =
-        {
-            "ParagraphNumbers", "ParagraphIndex", "ParagraphNumber",
-            "PageIndex", "PageNumber", "PageOrder",
-            "SectionIndex", "SectionNumber", "SectionOrder",
-            "TableIndex", "TableNumber", "TableOrder",
-            "ImageIndex", "ImageNumber", "ImageOrder",
-            "HeaderIndex", "HeaderNumber", "HeaderOrder",
-            "FooterIndex", "FooterNumber", "FooterOrder"
-        };
-
-        return indexPatterns.Any(pattern =>
-            parameterName.Equals(pattern, StringComparison.OrdinalIgnoreCase) ||
-            parameterName.Contains("Index", StringComparison.OrdinalIgnoreCase) ||
-            parameterName.Contains("Number", StringComparison.OrdinalIgnoreCase) ||
-            parameterName.Contains("Order", StringComparison.OrdinalIgnoreCase));
-    }
 }

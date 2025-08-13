@@ -56,11 +56,11 @@
                                              PlaceholderText="{Binding DefaultValue}"/>
                                     
                                     <!-- 数字输入 -->
-                                    <NumberBox Value="{Binding Value, Mode=TwoWay}" 
+                                    <NumberBox Value="{Binding Value, Mode=TwoWay}"
                                                Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Number}"
-                                               Minimum="{Binding MinValue}"
+                                               Minimum="-1"
                                                Maximum="{Binding MaxValue}"
-                                               PlaceholderText="{Binding DefaultValue}"/>
+                                               PlaceholderText="输入数值（-1表示匹配任意值）"/>
                                     
                                     <!-- 布尔值输入 -->
                                     <CheckBox IsChecked="{Binding Value, Mode=TwoWay}" 

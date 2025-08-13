@@ -170,16 +170,15 @@ public static class ValidationService
                     }
                     else
                     {
-                        // 检查是否为编号类型参数，如果是-1则跳过最小值检查
-                        bool isIndexParameter = IsIndexParameter(parameter.Name);
+                        // 检查是否为-1（通配符值），如果是则跳过最小值检查
                         bool isMinusOne = Math.Abs(numberValue - (-1)) < 0.001;
 
                         if (parameter.MinValue.HasValue && numberValue < parameter.MinValue.Value)
                         {
-                            // 如果是编号参数且值为-1，则允许（-1代表任意一个）
-                            if (!(isIndexParameter && isMinusOne))
+                            // 如果值为-1，则允许（-1代表通配符，匹配任意值）
+                            if (!isMinusOne)
                             {
-                                errors.Add($"数值不能小于 {parameter.MinValue.Value}");
+                                errors.Add($"数值不能小于 {parameter.MinValue.Value}（输入-1表示匹配任意值）");
                             }
                         }
                         if (parameter.MaxValue.HasValue && numberValue > parameter.MaxValue.Value)
@@ -250,31 +249,7 @@ public static class ValidationService
         return Regex.IsMatch(color, @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
     }
 
-    /// <summary>
-    /// 检查参数是否为编号类型
-    /// </summary>
-    private static bool IsIndexParameter(string parameterName)
-    {
-        if (string.IsNullOrWhiteSpace(parameterName))
-            return false;
 
-        string[] indexPatterns =
-        {
-            "SlideIndex", "SlideNumber", "SlideIndexes",
-            "TextBoxIndex", "TextBoxOrder", "TextBoxNumber",
-            "ElementIndex", "ElementNumber", "ElementOrder",
-            "ShapeIndex", "ShapeNumber", "ShapeOrder",
-            "TableIndex", "TableNumber", "TableOrder",
-            "ImageIndex", "ImageNumber", "ImageOrder",
-            "ChartIndex", "ChartNumber", "ChartOrder"
-        };
-
-        return indexPatterns.Any(pattern =>
-            parameterName.Equals(pattern, StringComparison.OrdinalIgnoreCase) ||
-            parameterName.Contains("Index", StringComparison.OrdinalIgnoreCase) ||
-            parameterName.Contains("Number", StringComparison.OrdinalIgnoreCase) ||
-            parameterName.Contains("Order", StringComparison.OrdinalIgnoreCase));
-    }
 }
 
 /// <summary>

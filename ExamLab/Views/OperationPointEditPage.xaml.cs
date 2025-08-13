@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ExamLab.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -215,7 +216,7 @@ public sealed partial class OperationPointEditPage : Page
     {
         NumberBox numberBox = new()
         {
-            PlaceholderText = parameter.DefaultValue,
+            PlaceholderText = string.IsNullOrEmpty(parameter.DefaultValue) ? "输入数值（-1表示匹配任意值）" : $"{parameter.DefaultValue}（-1表示匹配任意值）",
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
@@ -230,7 +231,13 @@ public sealed partial class OperationPointEditPage : Page
 
         if (parameter.MinValue.HasValue)
         {
-            numberBox.Minimum = parameter.MinValue.Value;
+            // 允许-1作为通配符值，所以最小值设为-1
+            numberBox.Minimum = Math.Min(-1, parameter.MinValue.Value);
+        }
+        else
+        {
+            // 如果没有设置最小值，默认允许-1
+            numberBox.Minimum = -1;
         }
 
         if (parameter.MaxValue.HasValue)
