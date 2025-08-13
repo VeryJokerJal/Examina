@@ -222,9 +222,11 @@ public enum ModuleType
 /// </summary>
 public enum ParameterType
 {
-    Text = 1,
-    Number = 2,
-    Boolean = 3,
-    Enum = 4,
-    Date = 5
+    Text,           // 文本
+    Number,         // 数字
+    Boolean,        // 布尔值
+    Enum,           // 枚举
+    Color,          // 颜色
+    File,           // 文件路径
+    MultipleChoice  // 多选
 }
