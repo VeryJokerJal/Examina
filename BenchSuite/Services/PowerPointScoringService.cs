@@ -75,16 +75,11 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            // 批量检测知识点（按操作点维度产出检测结果）
-            result.KnowledgePointResults = DetectKnowledgePointsAsync(filePath, allOperationPoints).Result;
-
-            // 按题目计分：
-            // 1) 总分 = 所有启用题目的分值之和（Question.Score）
-            // 2) 每题得分 = 该题操作点完成比例 × 题目分值
-            //    - 操作点完成比例 = 题内已得操作点权重之和 / 题内操作点权重总和
-            //    - 操作点权重 = 操作点Score（<=0时按1计）
+            // 不再一次性收集并按比例计分；改为逐题检测并“全对得分，否则0分”。
             decimal totalScore = 0M;
             decimal achievedScore = 0M;
+            result.KnowledgePointResults.Clear(); // 可选：如需保留调试信息，可在题内检测时填充
+            result.QuestionResults.Clear();
 
             foreach (QuestionModel question in pptModule.Questions)
             {
@@ -98,35 +93,47 @@ public class PowerPointScoringService : IPowerPointScoringService
                 List<OperationPointModel> questionOps = question.OperationPoints;
                 if (questionOps == null || questionOps.Count == 0)
                 {
-                    continue;
-                }
-
-                decimal opTotalWeight = questionOps.Sum(op => op.Score > 0 ? op.Score : 1M);
-                if (opTotalWeight <= 0)
-                {
-                    continue;
-                }
-
-                HashSet<string> opIds = new HashSet<string>(questionOps.Select(op => op.Id));
-                decimal opAchievedWeight = 0M;
-                foreach (KnowledgePointResult kpr in result.KnowledgePointResults)
-                {
-                    if (opIds.Contains(kpr.KnowledgePointId))
+                    // 无操作点则该题无法判定完成，按0分处理
+                    result.QuestionResults.Add(new QuestionScoreResult
                     {
-                        // 在 DetectKnowledgePointsAsync 中，kpr.AchievedScore == 该操作点的权重（若正确）；否则为 0
-                        opAchievedWeight += kpr.AchievedScore;
+                        QuestionId = question.Id,
+                        QuestionTitle = question.Title,
+                        TotalScore = question.Score,
+                        AchievedScore = 0M,
+                        IsCorrect = false
+                    });
+                    continue;
+                }
+
+                // 逐操作点检测：任一失败则该题记0分
+                bool allCorrect = true;
+
+                // 这里按题内操作点列表调用检测以获得即时结果，避免跨题汇总
+                List<KnowledgePointResult> kpResults = DetectKnowledgePointsAsync(filePath, questionOps).Result;
+
+                // 如需保留操作点的调试结果，可追加到总列表
+                result.KnowledgePointResults.AddRange(kpResults);
+
+                foreach (KnowledgePointResult kp in kpResults)
+                {
+                    if (!kp.IsCorrect)
+                    {
+                        allCorrect = false;
+                        break;
                     }
                 }
 
-                decimal ratio = opAchievedWeight > 0 ? opAchievedWeight / opTotalWeight : 0M;
-                achievedScore += question.Score * ratio;
-            }
+                decimal qAchieved = allCorrect ? question.Score : 0M;
+                achievedScore += qAchieved;
 
-            // 若题目集合为空，则回退为按操作点汇总（兼容性处理）
-            if (pptModule.Questions == null || pptModule.Questions.Count == 0)
-            {
-                totalScore = allOperationPoints.Sum(op => op.Score > 0 ? op.Score : 1M);
-                achievedScore = result.KnowledgePointResults.Sum(kpr => kpr.AchievedScore);
+                result.QuestionResults.Add(new QuestionScoreResult
+                {
+                    QuestionId = question.Id,
+                    QuestionTitle = question.Title,
+                    TotalScore = question.Score,
+                    AchievedScore = qAchieved,
+                    IsCorrect = allCorrect
+                });
             }
 
             result.TotalScore = totalScore;
