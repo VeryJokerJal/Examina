@@ -331,23 +331,28 @@ public sealed partial class OperationPointEditPage : Page
     {
         StackPanel colorPanel = new()
         {
-            Orientation = Orientation.Horizontal,
+            Orientation = Orientation.Vertical,
             Spacing = 8,
-            HorizontalAlignment = HorizontalAlignment.Stretch
+            HorizontalAlignment = HorizontalAlignment.Stretch,
         };
 
         // 创建ColorPicker
         ColorPicker colorPicker = new()
         {
-            Width = 60,
-            Height = 40
+            ColorSpectrumShape = ColorSpectrumShape.Box,
+            IsMoreButtonVisible = false,
+            IsColorSliderVisible = true,
+            IsColorChannelTextInputVisible = true,
+            IsHexInputVisible = true,
+            IsAlphaEnabled = false,
+            IsAlphaSliderVisible = false,
+            IsAlphaTextInputVisible = false
         };
 
         // 创建十六进制文本输入框
         TextBox hexTextBox = new()
         {
             PlaceholderText = "#B4F4FF",
-            Width = 120,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
@@ -401,7 +406,9 @@ public sealed partial class OperationPointEditPage : Page
         color = Windows.UI.Color.FromArgb(255, 0, 0, 0); // 黑色
 
         if (string.IsNullOrWhiteSpace(hexColor))
+        {
             return false;
+        }
 
         string hex = hexColor.TrimStart('#');
 

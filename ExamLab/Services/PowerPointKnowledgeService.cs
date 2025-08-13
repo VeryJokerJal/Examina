@@ -458,7 +458,7 @@ public class PowerPointKnowledgeService
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
                 new() { Name = "WordArtStyle", DisplayName = "艺术字样式", Description = "选择艺术字样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "简单阴影文字（默认样式）,粗体立体阴影文字,内发光浮雕,渐变填充边框,镂空轮廓文字,圆角描边文字,发光空心文字,黑底白字,金属光泽渐变,多层阴影,扭曲变形样式,波浪形文字,厚重边框文字,镜面效果,发光文字+内阴影,渐变填充—靛蓝+白色轮廓,渐变填充—橙色调,闪电风格描边,镭射色填充风格,曲线立体文字,弯曲旋转,下沉阴影样式,内凹样式字体,斜体轮廓文字,滚动特效样式,字符发光+内嵌边框,粗描边立体浮雕,彩虹样式字体,镜面浮雕边框,烟雾状透明文字" }
+                    EnumOptions = "样式1,样式2,样式3,样式4,样式5,样式6,样式7,样式8,样式9,样式10,样式11,样式12,样式13,样式14,样式15,样式16,样式17,样式18,样式19,样式20" }
             ]
         };
 

@@ -1,148 +1,104 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<UserControl
-    x:Class="ExamLab.Views.OperationPointConfigView"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:ExamLab.Views"
-    xmlns:converters="using:ExamLab.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="ExamLab.Views.OperationPointConfigView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="using:ExamLab.Converters" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="using:ExamLab.Views" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d">
 
     <UserControl.Resources>
-        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
-        <converters:ParameterTypeToVisibilityConverter x:Key="ParameterTypeToVisibilityConverter"/>
-        <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:ParameterTypeToVisibilityConverter x:Key="ParameterTypeToVisibilityConverter" />
+        <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 操作点信息 -->
-        <Border Grid.Row="0" Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}" Padding="16,12">
+        <!--  操作点信息  -->
+        <Border Grid.Row="0" Padding="16,12" Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}">
             <StackPanel Spacing="8">
-                <TextBlock Text="{Binding SelectedOperationPoint.Name}" FontSize="18" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding SelectedOperationPoint.Description}" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"/>
+                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding SelectedOperationPoint.Name}" />
+                <TextBlock FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding SelectedOperationPoint.Description}" />
             </StackPanel>
         </Border>
 
-        <!-- 参数配置区域 -->
+        <!--  参数配置区域  -->
         <ScrollViewer Grid.Row="1" Padding="16">
             <StackPanel Spacing="16" Visibility="{Binding SelectedOperationPoint, Converter={StaticResource NullToVisibilityConverter}}">
-                <TextBlock Text="参数配置" FontSize="16" FontWeight="SemiBold"/>
-                
-                <!-- 动态参数列表 -->
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="参数配置" />
+
+                <!--  动态参数列表  -->
                 <ItemsControl ItemsSource="{Binding SelectedOperationPoint.Parameters}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
-                                    CornerRadius="8" 
-                                    Padding="16" 
-                                    Margin="0,0,0,12">
+                            <Border Margin="0,0,0,12" Padding="16" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"/>
-                                    
-                                    <!-- 根据参数类型显示不同的输入控件 -->
-                                    
-                                    <!-- 文本输入 -->
-                                    <TextBox Text="{Binding Value, Mode=TwoWay}" 
-                                             Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Text}"
-                                             PlaceholderText="{Binding DefaultValue}"/>
-                                    
-                                    <!-- 数字输入 -->
-                                    <NumberBox Value="{Binding Value, Mode=TwoWay}"
-                                               Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Number}"
-                                               Minimum="-1"
-                                               Maximum="{Binding MaxValue}"
-                                               PlaceholderText="输入数值（-1表示匹配任意值）"/>
-                                    
-                                    <!-- 布尔值输入 -->
-                                    <CheckBox IsChecked="{Binding Value, Mode=TwoWay}" 
-                                              Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Boolean}"
-                                              Content="{Binding DisplayName}"/>
-                                    
-                                    <!-- 枚举选择 -->
-                                    <ComboBox SelectedItem="{Binding Value, Mode=TwoWay}"
-                                              Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Enum}"
-                                              ItemsSource="{Binding EnumOptionsList}"
-                                              PlaceholderText="请选择..."/>
-                                    
-                                    <!-- 颜色选择 -->
-                                    <StackPanel Orientation="Horizontal"
-                                                Spacing="8"
-                                                Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Color}">
-                                        <ColorPicker x:Name="ColorPickerControl"
-                                                     Width="60"
-                                                     Height="40"/>
-                                        <TextBox Text="{Binding Value, Mode=TwoWay}"
-                                                 PlaceholderText="#B4F4FF"
-                                                 Width="120"/>
+                                    <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
+
+                                    <!--  根据参数类型显示不同的输入控件  -->
+
+                                    <!--  文本输入  -->
+                                    <TextBox PlaceholderText="{Binding DefaultValue}" Text="{Binding Value, Mode=TwoWay}" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Text}" />
+
+                                    <!--  数字输入  -->
+                                    <NumberBox Maximum="{Binding MaxValue}" Minimum="-1" PlaceholderText="输入数值（-1表示匹配任意值）" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Number}" Value="{Binding Value, Mode=TwoWay}" />
+
+                                    <!--  布尔值输入  -->
+                                    <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding Value, Mode=TwoWay}" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Boolean}" />
+
+                                    <!--  枚举选择  -->
+                                    <ComboBox ItemsSource="{Binding EnumOptionsList}" PlaceholderText="请选择..." SelectedItem="{Binding Value, Mode=TwoWay}" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Enum}" />
+
+                                    <!--  颜色选择  -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Color}">
+                                        <ColorPicker x:Name="ColorPickerControl" Width="60" Height="40" ColorSpectrumShape="Box" IsAlphaEnabled="False" IsAlphaSliderVisible="True" IsAlphaTextInputVisible="True" IsColorChannelTextInputVisible="True" IsColorSliderVisible="True" IsHexInputVisible="True" IsMoreButtonVisible="False" />
+                                        <TextBox Width="120" PlaceholderText="#B4F4FF" Text="{Binding Value, Mode=TwoWay}" />
                                     </StackPanel>
-                                    
-                                    <!-- 文件路径 -->
-                                    <StackPanel Orientation="Horizontal" 
-                                                Spacing="8"
-                                                Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=File}">
-                                        <TextBox Text="{Binding Value, Mode=TwoWay}" 
-                                                 PlaceholderText="选择文件路径"
-                                                 Width="300"/>
+
+                                    <!--  文件路径  -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=File}">
+                                        <TextBox Width="300" PlaceholderText="选择文件路径" Text="{Binding Value, Mode=TwoWay}" />
                                         <Button Content="浏览..." />
                                     </StackPanel>
-                                    
-                                    <!-- 多选 -->
-                                    <ListView ItemsSource="{Binding EnumOptionsList}"
-                                              Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=MultipleChoice}"
-                                              SelectionMode="Multiple"
-                                              Height="120">
+
+                                    <!--  多选  -->
+                                    <ListView Height="120" ItemsSource="{Binding EnumOptionsList}" SelectionMode="Multiple" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=MultipleChoice}">
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
                                                 <CheckBox Content="{Binding}" />
                                             </DataTemplate>
                                         </ListView.ItemTemplate>
                                     </ListView>
-                                    
-                                    <!-- 必填标识 -->
-                                    <TextBlock Text="* 必填项" 
-                                               FontSize="12" 
-                                               Foreground="Red" 
-                                               Visibility="{Binding IsRequired, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                                    <!--  必填标识  -->
+                                    <TextBlock FontSize="12" Foreground="Red" Text="* 必填项" Visibility="{Binding IsRequired, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                
-                <!-- 无参数提示 -->
-                <TextBlock Text="此操作点无需配置参数" 
-                           FontSize="14" 
-                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                           HorizontalAlignment="Center"
-                           Visibility="{Binding SelectedOperationPoint.Parameters.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}"/>
+
+                <!--  无参数提示  -->
+                <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="此操作点无需配置参数" Visibility="{Binding SelectedOperationPoint.Parameters.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}" />
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 操作按钮 -->
-        <Border Grid.Row="2" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Padding="16">
-            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                <Button Content="保存配置" Style="{ThemeResource AccentButtonStyle}"/>
+        <!--  操作按钮  -->
+        <Border Grid.Row="2" Padding="16" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}">
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="12">
+                <Button Content="保存配置" Style="{ThemeResource AccentButtonStyle}" />
                 <Button Content="重置" />
                 <Button Content="删除操作点" />
             </StackPanel>
         </Border>
-        
-        <!-- 无选中操作点时的提示 -->
-        <Border Grid.RowSpan="3" 
-                Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
-                Visibility="{Binding SelectedOperationPoint, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
-            <StackPanel Spacing="16" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="请选择一个操作点进行配置" FontSize="18" HorizontalAlignment="Center"/>
-                <TextBlock Text="在左侧选择题目，然后添加或选择操作点" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" HorizontalAlignment="Center"/>
+
+        <!--  无选中操作点时的提示  -->
+        <Border Grid.RowSpan="3" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Visibility="{Binding SelectedOperationPoint, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
+                <TextBlock HorizontalAlignment="Center" FontSize="18" Text="请选择一个操作点进行配置" />
+                <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="在左侧选择题目，然后添加或选择操作点" />
             </StackPanel>
         </Border>
     </Grid>
