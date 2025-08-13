@@ -1064,7 +1064,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 _ = int.TryParse(slideIndexStr, out slideIndex);
             }
 
-            Func<Slide, bool> isCorrectBackground = slide =>
+            bool isCorrectBackground(Slide slide)
             {
                 string backgroundType = slide.Background.Type.ToString();
                 if (parameters.TryGetValue("BackgroundType", out string? expectedType))
@@ -1079,7 +1079,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     result.ActualValue = backgroundType;
                     return !backgroundType.Contains("Default", StringComparison.OrdinalIgnoreCase);
                 }
-            };
+            }
 
             bool anyMatched = false;
             if (slideIndex >= 1 && slideIndex <= presentation.Slides.Count)
@@ -2596,7 +2596,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 }
 
                 PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
-                PowerPoint.Effect targetEffect = null;
+                PowerPoint.Effect? targetEffect = null;
 
                 // 查找指定元素的动画效果
                 for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
@@ -2697,7 +2697,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 }
 
                 PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
-                PowerPoint.Effect targetEffect = null;
+                PowerPoint.Effect? targetEffect = null;
 
                 // 查找指定元素的动画效果
                 for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
@@ -2805,7 +2805,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 }
 
                 PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
-                PowerPoint.Effect targetEffect = null;
+                PowerPoint.Effect? targetEffect = null;
 
                 // 查找指定元素的动画效果
                 for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
@@ -3032,7 +3032,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
-            PowerPoint.Effect targetEffect = null;
+            PowerPoint.Effect? targetEffect = null;
 
             // 查找指定元素的动画效果
             for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
@@ -3169,9 +3169,10 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             float spaceBefore = shape.TextFrame.TextRange.ParagraphFormat.SpaceBefore;
             float spaceAfter = shape.TextFrame.TextRange.ParagraphFormat.SpaceAfter;
-            float lineSpacing = shape.TextFrame.TextRange.ParagraphFormat.LineSpacing;
+            // PowerPoint Interop中使用LineSpaceRule和LineSpacing属性
+            PowerPoint.PpParagraphAlignment alignment = shape.TextFrame.TextRange.ParagraphFormat.Alignment;
 
-            string actualSpacing = $"段前:{spaceBefore}pt, 段后:{spaceAfter}pt, 行距:{lineSpacing}";
+            string actualSpacing = $"段前:{spaceBefore}pt, 段后:{spaceAfter}pt, 对齐:{alignment}";
 
             if (parameters.TryGetValue("ExpectedSpaceBefore", out string? expectedSpaceBeforeStr) &&
                 float.TryParse(expectedSpaceBeforeStr, out float expectedSpaceBefore))
@@ -3184,7 +3185,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             {
                 result.ExpectedValue = "有段落间距设置";
                 result.ActualValue = actualSpacing;
-                result.IsCorrect = spaceBefore > 0 || spaceAfter > 0 || lineSpacing != 1.0f;
+                result.IsCorrect = spaceBefore > 0 || spaceAfter > 0;
             }
 
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
