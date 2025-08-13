@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:ExamLab.Views"
     xmlns:converters="using:ExamLab.Converters"
+    xmlns:models="using:ExamLab.Models"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -117,11 +118,11 @@
                                 <TextBox Header="模块名称" Text="{Binding SelectedModule.Name, Mode=TwoWay}" Style="{StaticResource FormTextBoxStyle}"/>
                                 
                                 <ComboBox Header="模块类型" SelectedItem="{Binding SelectedModule.Type, Mode=TwoWay}" Style="{StaticResource FormComboBoxStyle}">
-                                    <x:String>Windows</x:String>
-                                    <x:String>CSharp</x:String>
-                                    <x:String>PowerPoint</x:String>
-                                    <x:String>Excel</x:String>
-                                    <x:String>Word</x:String>
+                                    <models:ModuleType>Excel</models:ModuleType>
+                                    <models:ModuleType>Word</models:ModuleType>
+                                    <models:ModuleType>PowerPoint</models:ModuleType>
+                                    <models:ModuleType>CSharp</models:ModuleType>
+                                    <models:ModuleType>Windows</models:ModuleType>
                                 </ComboBox>
                                 
                                 <TextBox Header="模块描述" Text="{Binding SelectedModule.Description, Mode=TwoWay}" TextWrapping="Wrap" AcceptsReturn="True" Height="80" Style="{StaticResource FormTextBoxStyle}"/>

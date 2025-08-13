@@ -106,7 +106,7 @@ public class ModuleManagementViewModel : ViewModelBase
 
         string? moduleType = await NotificationService.ShowSelectionDialogAsync(
             "选择模块类型",
-            new[] { "Windows", "CSharp", "PowerPoint", "Excel", "Word" });
+            Enum.GetNames<ModuleType>());
 
         if (moduleType == null)
         {
