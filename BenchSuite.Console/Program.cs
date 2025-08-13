@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Text.Json;
+﻿using System.Text.Json;
 using BenchSuite.Models;
 using BenchSuite.Services;
 
@@ -334,7 +333,7 @@ internal class Program
 
                 foreach (KnowledgePointResult kpResult in questionKnowledgePoints)
                 {
-                    string kpStatus = kpResult.IsCorrect ? "✓" : "✗";
+                    string kpStatus = kpResult.IsCorrect ? "正确" : "-";
                     string kpName = !string.IsNullOrEmpty(kpResult.KnowledgePointName)
                         ? kpResult.KnowledgePointName
                         : kpResult.KnowledgePointType;
