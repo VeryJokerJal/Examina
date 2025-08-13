@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
-using BenchSuite.Services;
 using Microsoft.Office.Core;
 using Microsoft.Office.Interop.PowerPoint;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
@@ -56,7 +55,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             // 获取PowerPoint模块
-            ExamModuleModel? pptModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
+            ExamModuleModel? pptModule = examModel.Exam.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
             if (pptModule == null)
             {
                 result.ErrorMessage = "试卷中未找到PowerPoint模块";
@@ -76,12 +75,69 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            // 批量检测知识点
-            result.KnowledgePointResults = DetectKnowledgePointsAsync(filePath, allOperationPoints).Result;
+            // 不再一次性收集并按比例计分；改为逐题检测并“全对得分，否则0分”。
+            decimal totalScore = 0M;
+            decimal achievedScore = 0M;
+            result.KnowledgePointResults.Clear(); // 可选：如需保留调试信息，可在题内检测时填充
+            result.QuestionResults.Clear();
 
-            // 计算总分和获得分数
-            result.TotalScore = allOperationPoints.Sum(op => op.Score);
-            result.AchievedScore = result.KnowledgePointResults.Sum(kpr => kpr.AchievedScore);
+            foreach (QuestionModel question in pptModule.Questions)
+            {
+                if (!question.IsEnabled)
+                {
+                    continue;
+                }
+
+                totalScore += question.Score;
+
+                List<OperationPointModel> questionOps = question.OperationPoints;
+                if (questionOps == null || questionOps.Count == 0)
+                {
+                    // 无操作点则该题无法判定完成，按0分处理
+                    result.QuestionResults.Add(new QuestionScoreResult
+                    {
+                        QuestionId = question.Id,
+                        QuestionTitle = question.Title,
+                        TotalScore = question.Score,
+                        AchievedScore = 0M,
+                        IsCorrect = false
+                    });
+                    continue;
+                }
+
+                // 逐操作点检测：任一失败则该题记0分
+                bool allCorrect = true;
+
+                // 这里按题内操作点列表调用检测以获得即时结果，避免跨题汇总
+                List<KnowledgePointResult> kpResults = DetectKnowledgePointsAsync(filePath, questionOps).Result;
+
+                // 如需保留操作点的调试结果，可追加到总列表
+                result.KnowledgePointResults.AddRange(kpResults);
+
+                foreach (KnowledgePointResult kp in kpResults)
+                {
+                    if (!kp.IsCorrect)
+                    {
+                        allCorrect = false;
+                        break;
+                    }
+                }
+
+                decimal qAchieved = allCorrect ? question.Score : 0M;
+                achievedScore += qAchieved;
+
+                result.QuestionResults.Add(new QuestionScoreResult
+                {
+                    QuestionId = question.Id,
+                    QuestionTitle = question.Title,
+                    TotalScore = question.Score,
+                    AchievedScore = qAchieved,
+                    IsCorrect = allCorrect
+                });
+            }
+
+            result.TotalScore = totalScore;
+            result.AchievedScore = achievedScore;
 
             result.IsSuccess = true;
         }
@@ -166,41 +222,56 @@ public class PowerPointScoringService : IPowerPointScoringService
                 {
                     foreach (OperationPointModel operationPoint in knowledgePoints)
                     {
-                        Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
-                        ResolveParametersForPresentation(parameters, presentation, context);
+                        Dictionary<string, string> rawParams = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
+                        // 先做键名规范化（根据ExamLab配置）
+                        Dictionary<string, string> normalizedParams = PowerPointKnowledgeMapping.NormalizeParameterKeys(operationPoint.PowerPointKnowledgeType ?? operationPoint.Name, rawParams);
+                        // 用规范化后的参数进行-1预解析
+                        ResolveParametersForPresentation(normalizedParams, presentation, context);
                     }
-                }
 
-                // 逐个检测知识点
-                foreach (OperationPointModel operationPoint in knowledgePoints)
-                {
-                    try
+                    // 逐个检测知识点
+                    foreach (OperationPointModel operationPoint in knowledgePoints)
                     {
-                        Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
-
-                        // 使用解析后的参数
-                        Dictionary<string, string> resolvedParameters = GetResolvedParameters(parameters, context);
-
-                        KnowledgePointResult result = DetectSpecificKnowledgePoint(presentation, operationPoint.PowerPointKnowledgeType ?? string.Empty, resolvedParameters);
-
-                        result.KnowledgePointId = operationPoint.Id;
-                        result.KnowledgePointName = operationPoint.Name;
-                        result.TotalScore = operationPoint.Score;
-
-                        results.Add(result);
-                    }
-                    catch (Exception ex)
-                    {
-                        results.Add(new KnowledgePointResult
+                        try
                         {
-                            KnowledgePointId = operationPoint.Id,
-                            KnowledgePointName = operationPoint.Name,
-                            KnowledgePointType = operationPoint.PowerPointKnowledgeType ?? string.Empty,
-                            TotalScore = operationPoint.Score,
-                            AchievedScore = 0,
-                            IsCorrect = false,
-                            ErrorMessage = $"检测失败: {ex.Message}"
-                        });
+                            Dictionary<string, string> rawParams = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
+                            // 先做键名规范化（根据ExamLab配置）
+                            Dictionary<string, string> normalizedParams = PowerPointKnowledgeMapping.NormalizeParameterKeys(operationPoint.PowerPointKnowledgeType ?? operationPoint.Name, rawParams);
+
+                            // 使用解析后的参数
+                            Dictionary<string, string> resolvedParameters = GetResolvedParameters(normalizedParams, context);
+
+                            // 如果没填PowerPointKnowledgeType，则由中文名称映射到内部类型键
+                            string? knowledgeType = operationPoint.PowerPointKnowledgeType;
+                            if (string.IsNullOrWhiteSpace(knowledgeType))
+                            {
+                                if (!PowerPointKnowledgeMapping.TryMapNameToType(operationPoint.Name, out knowledgeType))
+                                {
+                                    knowledgeType = string.Empty;
+                                }
+                            }
+
+                            KnowledgePointResult result = DetectSpecificKnowledgePoint(presentation, knowledgeType, resolvedParameters);
+
+                            result.KnowledgePointId = operationPoint.Id;
+                            result.KnowledgePointName = operationPoint.Name;
+                            result.TotalScore = operationPoint.Score > 0 ? operationPoint.Score : 1M;
+
+                            results.Add(result);
+                        }
+                        catch (Exception ex)
+                        {
+                            results.Add(new KnowledgePointResult
+                            {
+                                KnowledgePointId = operationPoint.Id,
+                                KnowledgePointName = operationPoint.Name,
+                                KnowledgePointType = operationPoint.PowerPointKnowledgeType ?? string.Empty,
+                                TotalScore = operationPoint.Score,
+                                AchievedScore = 0,
+                                IsCorrect = false,
+                                ErrorMessage = $"检测失败: {ex.Message}"
+                            });
+                        }
                     }
                 }
             }
@@ -328,6 +399,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     result = DetectAppliedTheme(presentation, parameters);
                     break;
                 case "SetSlideBackground":
+                case "SetBackgroundStyle": // 将“设置背景样式”映射为相同检测
                     result = DetectSlideBackground(presentation, parameters);
                     break;
                 case "SetTableContent":
@@ -335,6 +407,23 @@ public class PowerPointScoringService : IPowerPointScoringService
                     break;
                 case "SetTableStyle":
                     result = DetectTableStyle(presentation, parameters);
+                    break;
+                // 其余类型先返回明确的占位提示，便于逐步补齐实现
+                case "SlideshowMode":
+                case "SlideshowOptions":
+                case "SlideTransitionSound":
+                case "SetWordArtStyle":
+                case "SetWordArtEffect":
+                case "SetSmartArtColor":
+                case "SetAnimationDirection":
+                case "SetAnimationStyle":
+                case "SetAnimationDuration":
+                case "SetAnimationOrder":
+                case "SetSmartArtContent":
+                case "SetAnimationTiming":
+                case "SetParagraphSpacing":
+                    result.ErrorMessage = $"知识点类型暂未实现: {knowledgePointType}";
+                    result.IsCorrect = false;
                     break;
                 default:
                     result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
@@ -940,38 +1029,58 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
-                !int.TryParse(slideIndexStr, out int slideIndex))
+            // 背景检测不强制要求 SlideIndex，未提供或为-1时遍历所有幻灯片
+            int slideIndex = -1;
+            if (parameters.TryGetValue("SlideIndex", out string? slideIndexStr))
             {
-                result.ErrorMessage = "缺少必要参数: SlideIndex";
-                return result;
+                _ = int.TryParse(slideIndexStr, out slideIndex);
             }
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            Func<Slide, bool> isCorrectBackground = slide =>
             {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
+                string backgroundType = slide.Background.Type.ToString();
+                if (parameters.TryGetValue("BackgroundType", out string? expectedType))
+                {
+                    result.ExpectedValue = expectedType;
+                    result.ActualValue = backgroundType;
+                    return string.Equals(backgroundType, expectedType, StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    result.ExpectedValue = "非默认背景";
+                    result.ActualValue = backgroundType;
+                    return !backgroundType.Contains("Default", StringComparison.OrdinalIgnoreCase);
+                }
+            };
 
-            Slide slide = presentation.Slides[slideIndex];
-            string backgroundType = slide.Background.Type.ToString();
-
-            if (parameters.TryGetValue("BackgroundType", out string? expectedType))
+            bool anyMatched = false;
+            if (slideIndex >= 1 && slideIndex <= presentation.Slides.Count)
             {
-                result.ExpectedValue = expectedType;
-                result.ActualValue = backgroundType;
-                result.IsCorrect = string.Equals(backgroundType, expectedType, StringComparison.OrdinalIgnoreCase);
+                Slide slide = presentation.Slides[slideIndex];
+                anyMatched = isCorrectBackground(slide);
+                result.Details = $"幻灯片 {slideIndex} 背景检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
             }
             else
             {
-                // 如果没有指定类型，只要不是默认背景就算正确
-                result.ExpectedValue = "非默认背景";
-                result.ActualValue = backgroundType;
-                result.IsCorrect = !backgroundType.Contains("Default", StringComparison.OrdinalIgnoreCase);
+                for (int i = 1; i <= presentation.Slides.Count; i++)
+                {
+                    Slide slide = presentation.Slides[i];
+                    if (isCorrectBackground(slide))
+                    {
+                        anyMatched = true;
+                        result.Details = $"幻灯片 {i} 背景检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+                        break;
+                    }
+                }
+
+                if (!anyMatched)
+                {
+                    result.Details = "未找到满足条件的幻灯片背景";
+                }
             }
 
+            result.IsCorrect = anyMatched;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 背景检测: 期望 {result.ExpectedValue}, 实际 {backgroundType}";
         }
         catch (Exception ex)
         {
@@ -1912,12 +2021,12 @@ public class PowerPointScoringService : IPowerPointScoringService
                     if (parameter.Key.Contains("Indexes", StringComparison.OrdinalIgnoreCase))
                     {
                         // 处理多个编号参数（逗号分隔）
-                        ParameterResolver.ResolveMultipleParameters(parameter.Key, parameter.Value, maxValue, context);
+                        _ = ParameterResolver.ResolveMultipleParameters(parameter.Key, parameter.Value, maxValue, context);
                     }
                     else
                     {
                         // 处理单个编号参数
-                        ParameterResolver.ResolveParameter(parameter.Key, parameter.Value, maxValue, context);
+                        _ = ParameterResolver.ResolveParameter(parameter.Key, parameter.Value, maxValue, context);
                     }
                 }
                 catch (Exception)
@@ -1972,7 +2081,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     private static Dictionary<string, string> GetResolvedParameters(Dictionary<string, string> originalParameters, ParameterResolutionContext context)
     {
-        Dictionary<string, string> resolvedParameters = new();
+        Dictionary<string, string> resolvedParameters = [];
 
         foreach (KeyValuePair<string, string> parameter in originalParameters)
         {
