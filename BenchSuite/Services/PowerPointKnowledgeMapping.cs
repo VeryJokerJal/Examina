@@ -91,6 +91,20 @@ namespace BenchSuite.Services
                 if (key.Equals("TextBoxNumber", StringComparison.OrdinalIgnoreCase) || key.Equals("TextBoxOrder", StringComparison.OrdinalIgnoreCase)) key = "TextBoxIndex";
                 if (key.Equals("ElementNumber", StringComparison.OrdinalIgnoreCase) || key.Equals("ElementOrder", StringComparison.OrdinalIgnoreCase)) key = "ElementIndex";
 
+                // 通用参数名映射
+                if (key.Equals("Layout", StringComparison.OrdinalIgnoreCase)) key = "LayoutType";
+                if (key.Equals("ColorValue", StringComparison.OrdinalIgnoreCase)) key = "Color";
+                if (key.Equals("HorizontalPosition", StringComparison.OrdinalIgnoreCase)) key = "Left";
+                if (key.Equals("VerticalPosition", StringComparison.OrdinalIgnoreCase)) key = "Top";
+                if (key.Equals("ElementHeight", StringComparison.OrdinalIgnoreCase)) key = "Height";
+                if (key.Equals("ElementWidth", StringComparison.OrdinalIgnoreCase)) key = "Width";
+                if (key.Equals("NoteContent", StringComparison.OrdinalIgnoreCase)) key = "NoteText";
+                if (key.Equals("SlideshowMode", StringComparison.OrdinalIgnoreCase)) key = "SlideshowType";
+                if (key.Equals("TableRows", StringComparison.OrdinalIgnoreCase)) key = "ExpectedRows";
+                if (key.Equals("TableColumns", StringComparison.OrdinalIgnoreCase)) key = "ExpectedColumns";
+                if (key.Equals("SoundEffect", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSound";
+                if (key.Equals("StyleName", StringComparison.OrdinalIgnoreCase)) key = "StyleName";
+
                 // 颜色：ColorValue -> Color
                 if (key.Equals("ColorValue", StringComparison.OrdinalIgnoreCase)) key = "Color";
 

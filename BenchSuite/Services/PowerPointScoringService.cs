@@ -1596,8 +1596,10 @@ public class PowerPointScoringService : IPowerPointScoringService
         if (string.IsNullOrWhiteSpace(knowledgeType))
             return false;
 
-        // 对于文本内容检测，保留-1参数以便在检测方法中遍历所有幻灯片
-        return knowledgeType.Equals("InsertTextContent", StringComparison.OrdinalIgnoreCase);
+        // 对于文本内容检测和其他需要遍历所有幻灯片的知识点，保留-1参数
+        return knowledgeType.Equals("InsertTextContent", StringComparison.OrdinalIgnoreCase) ||
+               knowledgeType.Equals("SetSlideFont", StringComparison.OrdinalIgnoreCase) ||
+               knowledgeType.Equals("SetSlideBackground", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
