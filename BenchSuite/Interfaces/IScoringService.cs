@@ -98,3 +98,45 @@ public interface IWindowsScoringService : IScoringService
     /// <returns>属性信息字典</returns>
     Dictionary<string, object> GetPathAttributes(string path);
 }
+
+/// <summary>
+/// C#代码评分服务接口
+/// </summary>
+public interface ICSharpScoringService : IScoringService
+{
+    /// <summary>
+    /// 对C#代码进行综合评分
+    /// </summary>
+    /// <param name="sourceCode">源代码</param>
+    /// <param name="programInput">程序输入</param>
+    /// <param name="expectedOutput">期望输出</param>
+    /// <param name="configuration">评分配置</param>
+    /// <returns>C#代码评分结果</returns>
+    Task<CSharpScoringResult> ScoreCSharpCodeAsync(string sourceCode, string programInput, string expectedOutput, CSharpScoringConfiguration? configuration = null);
+
+    /// <summary>
+    /// 编译C#代码
+    /// </summary>
+    /// <param name="sourceCode">源代码</param>
+    /// <returns>编译结果</returns>
+    Task<CompilationResult> CompileCodeAsync(string sourceCode);
+
+    /// <summary>
+    /// 执行编译后的程序
+    /// </summary>
+    /// <param name="executablePath">可执行文件路径</param>
+    /// <param name="input">程序输入</param>
+    /// <param name="timeoutSeconds">超时时间（秒）</param>
+    /// <returns>执行结果</returns>
+    Task<ExecutionResult> ExecuteCodeAsync(string executablePath, string input, int timeoutSeconds = 10);
+
+    /// <summary>
+    /// 使用AI对代码质量进行评分
+    /// </summary>
+    /// <param name="sourceCode">源代码</param>
+    /// <param name="actualOutput">实际输出</param>
+    /// <param name="expectedOutput">期望输出</param>
+    /// <param name="configuration">评分配置</param>
+    /// <returns>AI评分结果</returns>
+    Task<AIScoringResult> ScoreCodeQualityAsync(string sourceCode, string actualOutput, string expectedOutput, CSharpScoringConfiguration configuration);
+}

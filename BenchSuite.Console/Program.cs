@@ -12,11 +12,18 @@ internal class Program
     /// <summary>
     /// 程序入口点
     /// </summary>
-    /// <param name="args">命令行参数：[PPT文件路径] [ExamModel JSON文件路径]</param>
+    /// <param name="args">命令行参数：[PPT文件路径] [ExamModel JSON文件路径] 或 [--test-csharp]</param>
     private static async Task<int> Main(string[] args)
     {
         try
         {
+            // 检查是否是C#评分测试
+            if (args.Length == 1 && args[0] == "--test-csharp")
+            {
+                await CSharpScoringTest.RunTestAsync();
+                return 0;
+            }
+
             //args = args.Length == 0 ? new string[] { "C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx", "D:\\Users\\Jal\\source\\repos\\Examina\\BenchSuite.Console\\TestData\\sample-exam.json" } : args;
 
 #if DEBUG
@@ -75,13 +82,16 @@ internal class Program
     {
         System.Console.WriteLine("使用方法:");
         System.Console.WriteLine("  BenchSuite.Console.exe <PPT文件路径> <ExamModel JSON文件路径>");
+        System.Console.WriteLine("  BenchSuite.Console.exe --test-csharp");
         System.Console.WriteLine();
         System.Console.WriteLine("参数说明:");
         System.Console.WriteLine("  PPT文件路径        - 要评分的PowerPoint文件路径 (.ppt 或 .pptx)");
         System.Console.WriteLine("  ExamModel JSON文件路径 - 包含试卷模型的JSON文件路径");
+        System.Console.WriteLine("  --test-csharp      - 运行C#代码评分系统测试");
         System.Console.WriteLine();
         System.Console.WriteLine("示例:");
         System.Console.WriteLine("  BenchSuite.Console.exe \"C:\\test\\sample.pptx\" \"C:\\test\\exam.json\"");
+        System.Console.WriteLine("  BenchSuite.Console.exe --test-csharp");
     }
 
     /// <summary>
