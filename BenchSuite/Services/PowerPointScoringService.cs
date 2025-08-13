@@ -25,6 +25,9 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     public async Task<ScoringResult> ScoreFileAsync(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
     {
+        // 在开始处理前，检查并修复重复的题目ID
+        EnsureUniqueQuestionIds(examModel);
+
         return await Task.Run(() => ScoreFile(filePath, examModel, configuration));
     }
 
@@ -3197,5 +3200,53 @@ public class PowerPointScoringService : IPowerPointScoringService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 确保试卷中所有题目都有唯一的ID
+    /// </summary>
+    /// <param name="examModel">试卷模型</param>
+    private static void EnsureUniqueQuestionIds(ExamModel examModel)
+    {
+        HashSet<string> usedIds = new();
+        List<QuestionModel> allQuestions = new();
+
+        // 收集所有模块中的题目
+        foreach (ExamModuleModel module in examModel.Exam.Modules)
+        {
+            allQuestions.AddRange(module.Questions);
+        }
+
+        // 检查并修复重复的ID
+        foreach (QuestionModel question in allQuestions)
+        {
+            // 如果ID为空、是默认值或已被使用，则重新生成
+            if (string.IsNullOrEmpty(question.Id) ||
+                question.Id == "question-1" ||
+                !usedIds.Add(question.Id))
+            {
+                string newId = GenerateUniqueQuestionId(usedIds);
+                question.Id = newId;
+                usedIds.Add(newId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 生成唯一的题目ID
+    /// </summary>
+    /// <param name="usedIds">已使用的ID集合</param>
+    /// <returns>唯一的题目ID</returns>
+    private static string GenerateUniqueQuestionId(HashSet<string> usedIds)
+    {
+        string newId;
+        do
+        {
+            // 使用与ExamLab项目中Question.cs相同的格式
+            newId = $"question-{DateTime.Now.Ticks}-{Guid.NewGuid().ToString("N")[..8]}";
+        }
+        while (usedIds.Contains(newId));
+
+        return newId;
     }
 }

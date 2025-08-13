@@ -1,7 +1,7 @@
+﻿using System;
+using System.Collections.ObjectModel;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System;
-using System.Collections.ObjectModel;
 
 namespace ExamLab.Models;
 
@@ -38,7 +38,7 @@ public class Question : ReactiveObject
     /// <summary>
     /// 关联的操作点
     /// </summary>
-    public ObservableCollection<OperationPoint> OperationPoints { get; set; } = new();
+    public ObservableCollection<OperationPoint> OperationPoints { get; set; } = [];
 
     /// <summary>
     /// 是否启用该题目

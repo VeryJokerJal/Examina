@@ -18,7 +18,7 @@ internal class Program
         try
         {
             //args = args.Length == 0 ? new string[] { "C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx", "D:\\Users\\Jal\\source\\repos\\Examina\\BenchSuite.Console\\TestData\\sample-exam.json" } : args;
-            args = args.Length == 0 ? new string[] { "C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx", "C:\\Users\\Jal\\xwechat_files\\wxid_i7zuqi6yhnjn22_b6ff\\msg\\file\\2025-08\\计算机应用基础考试_20250813_194452.json" } : args;
+            args = args.Length == 0 ? new string[] { "C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx", "C:\\Users\\Jal\\xwechat_files\\wxid_i7zuqi6yhnjn22_b6ff\\msg\\file\\2025-08\\计算机应用基础考试_20250813_220218.json" } : args;
 
             // 显示程序信息
             System.Console.WriteLine("=== PowerPoint评分系统 ===");
