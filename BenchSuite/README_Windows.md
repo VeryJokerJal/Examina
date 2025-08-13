@@ -8,6 +8,7 @@ Windows打分服务 (`WindowsScoringService`) 是BenchSuite项目中专门用于
 
 ### 支持的操作类型
 
+<<<<<<< HEAD
 1. **快速创建操作** (`QuickCreate`)
    - 在指定路径快速创建文件或文件夹
    - 需要明确的创建路径和项目名称
@@ -19,25 +20,46 @@ Windows打分服务 (`WindowsScoringService`) 是BenchSuite项目中专门用于
    - 支持创建类型指定（文件/文件夹）
 
 3. **删除操作** (`DeleteOperation`)
+=======
+1. **创建操作** (`QuickCreate`, `CreateOperation`)
+   - 检测文件或文件夹的创建
+   - 支持内容验证
+   - 支持创建类型指定（文件/文件夹）
+
+2. **删除操作** (`DeleteOperation`)
+>>>>>>> 61bb74e26d4a8aae0aca44519431e705b7340a62
    - 检测文件或文件夹的删除
    - 支持回收站检查
    - 验证目标是否已被移除
 
+<<<<<<< HEAD
 4. **复制操作** (`CopyOperation`)
+=======
+3. **复制操作** (`CopyOperation`)
+>>>>>>> 61bb74e26d4a8aae0aca44519431e705b7340a62
    - 检测文件或文件夹的复制
    - 验证源文件和目标文件的存在性
    - 支持文件大小一致性检查
 
+<<<<<<< HEAD
 5. **移动操作** (`MoveOperation`)
+=======
+4. **移动操作** (`MoveOperation`)
+>>>>>>> 61bb74e26d4a8aae0aca44519431e705b7340a62
    - 检测文件或文件夹的移动
    - 验证源文件不存在且目标文件存在
    - 区分移动和复制操作
 
+<<<<<<< HEAD
 6. **重命名操作** (`RenameOperation`)
+=======
+5. **重命名操作** (`RenameOperation`)
+>>>>>>> 61bb74e26d4a8aae0aca44519431e705b7340a62
    - 检测文件或文件夹的重命名
    - 验证原名不存在且新名存在
    - 支持同目录重命名检测
 
+<<<<<<< HEAD
 7. **快捷方式操作** (`ShortcutOperation`)
    - 检测Windows快捷方式文件（.lnk）的创建
    - 自动添加.lnk扩展名
@@ -50,6 +72,19 @@ Windows打分服务 (`WindowsScoringService`) 是BenchSuite项目中专门用于
    - 支持布尔值属性设置
 
 9. **复制重命名操作** (`CopyRenameOperation`)
+=======
+6. **快捷方式操作** (`ShortcutOperation`)
+   - 检测快捷方式文件的创建
+   - 自动添加.lnk扩展名
+   - 支持目标路径验证
+
+7. **属性修改操作** (`FilePropertyModification`)
+   - 检测文件或文件夹属性的修改
+   - 支持只读属性检查
+   - 支持隐藏属性检查
+
+8. **复制重命名操作** (`CopyRenameOperation`)
+>>>>>>> 61bb74e26d4a8aae0aca44519431e705b7340a62
    - 检测复制并重命名的组合操作
    - 验证源文件和目标文件都存在
    - 确保文件名不同且内容一致
@@ -144,6 +179,7 @@ foreach (var result in results)
 
 ### 创建操作参数
 
+<<<<<<< HEAD
 **CreateOperation（创建操作）**：
 - **FileType**: 文件类型（枚举：文件,文件夹）
 - **ItemName**: 项目名称（文本，必填）
@@ -192,6 +228,37 @@ foreach (var result in results)
 - **FileType**: 文件类型（枚举：文件,文件夹）
 - **SourcePath**: 原文件路径
 - **DestinationPath**: 目标文件路径
+=======
+- **TargetPath**: 要创建的文件或文件夹路径
+- **CreateType**: 创建类型（File/Folder）
+- **ExpectedContent**: 期望的文件内容（仅文件）
+
+### 删除操作参数
+
+- **TargetPath**: 要删除的文件或文件夹路径
+- **CheckRecycleBin**: 是否检查回收站（true/false）
+
+### 复制/移动操作参数
+
+- **SourcePath**: 源文件或文件夹路径
+- **TargetPath**: 目标文件或文件夹路径
+
+### 重命名操作参数
+
+- **OriginalName**: 原始文件或文件夹名称
+- **NewName**: 新的文件或文件夹名称
+
+### 快捷方式操作参数
+
+- **ShortcutPath**: 快捷方式文件路径
+- **TargetPath**: 快捷方式指向的目标路径（可选）
+
+### 属性修改操作参数
+
+- **TargetPath**: 目标文件或文件夹路径
+- **ReadOnly**: 只读属性设置（true/false）
+- **Hidden**: 隐藏属性设置（true/false）
+>>>>>>> 61bb74e26d4a8aae0aca44519431e705b7340a62
 
 ## 错误处理
 
@@ -218,6 +285,7 @@ foreach (var result in results)
 4. **类型安全**: 使用强类型参数和返回值
 5. **资源管理**: 自动处理文件系统资源
 
+<<<<<<< HEAD
 ## ⚠️ 重要说明：快捷相关操作的区别
 
 ### **QuickCreate（快速创建）vs ShortcutOperation（快捷方式操作）**
@@ -246,6 +314,8 @@ foreach (var result in results)
 - **QuickCreate**：创建的是实际的文件或文件夹
 - **ShortcutOperation**：创建的是指向其他文件的快捷方式（.lnk文件）
 
+=======
+>>>>>>> 61bb74e26d4a8aae0aca44519431e705b7340a62
 ## 注意事项
 
 1. **权限要求**: 服务需要足够的文件系统访问权限
