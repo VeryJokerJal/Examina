@@ -260,7 +260,7 @@ public class OperationPoint : ReactiveObject
     /// <summary>
     /// 操作点ID
     /// </summary>
-    [Reactive] public string Id { get; set; } = "operation-1";
+    [Reactive] public string Id { get; set; } = GenerateOperationPointId();
 
     /// <summary>
     /// 操作点名称
@@ -326,4 +326,12 @@ public class OperationPoint : ReactiveObject
     /// 创建时间
     /// </summary>
     [Reactive] public string CreatedTime { get; set; } = "2025-08-10";
+
+    /// <summary>
+    /// 生成新的操作点ID
+    /// </summary>
+    private static string GenerateOperationPointId()
+    {
+        return $"operation-{DateTime.Now.Ticks}-{Guid.NewGuid().ToString("N")[..8]}";
+    }
 }

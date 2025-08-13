@@ -260,9 +260,16 @@ public static class ExamMappingService
     /// </summary>
     private static OperationPointDto ToOperationPointDto(OperationPoint operationPoint)
     {
+        // 确保操作点有唯一ID，如果是默认值则生成新ID
+        string operationPointId = operationPoint.Id;
+        if (string.IsNullOrEmpty(operationPointId) || operationPointId == "operation-1")
+        {
+            operationPointId = GenerateOperationPointId();
+        }
+
         return new OperationPointDto
         {
-            Id = operationPoint.Id,
+            Id = operationPointId,
             Name = operationPoint.Name,
             Description = operationPoint.Description,
             ModuleType = operationPoint.ModuleType.ToString(),
@@ -394,6 +401,14 @@ public static class ExamMappingService
     private static string GenerateExamId()
     {
         return $"exam-{DateTime.Now.Ticks}";
+    }
+
+    /// <summary>
+    /// 生成新的操作点ID
+    /// </summary>
+    private static string GenerateOperationPointId()
+    {
+        return $"operation-{DateTime.Now.Ticks}-{Guid.NewGuid().ToString("N")[..8]}";
     }
 }
 
