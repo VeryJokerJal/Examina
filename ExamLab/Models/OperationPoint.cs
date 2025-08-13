@@ -1,6 +1,7 @@
+﻿using System;
+using System.Collections.ObjectModel;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System.Collections.ObjectModel;
 
 namespace ExamLab.Models;
 
@@ -310,7 +311,7 @@ public class OperationPoint : ReactiveObject
     /// <summary>
     /// 配置参数
     /// </summary>
-    public ObservableCollection<ConfigurationParameter> Parameters { get; set; } = new();
+    public ObservableCollection<ConfigurationParameter> Parameters { get; set; } = [];
 
     /// <summary>
     /// 是否启用该操作点

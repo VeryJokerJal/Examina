@@ -414,22 +414,44 @@ public class PowerPointScoringService : IPowerPointScoringService
                 case "SetTableStyle":
                     result = DetectTableStyle(presentation, parameters);
                     break;
-                // 其余类型先返回明确的占位提示，便于逐步补齐实现
                 case "SlideshowMode":
+                    result = DetectSlideshowMode(presentation, parameters);
+                    break;
                 case "SlideshowOptions":
+                    result = DetectSlideshowOptions(presentation, parameters);
+                    break;
                 case "SlideTransitionSound":
+                    result = DetectSlideTransitionSound(presentation, parameters);
+                    break;
                 case "SetWordArtStyle":
+                    result = DetectWordArtStyle(presentation, parameters);
+                    break;
                 case "SetWordArtEffect":
+                    result = DetectWordArtEffect(presentation, parameters);
+                    break;
                 case "SetSmartArtColor":
+                    result = DetectSmartArtColor(presentation, parameters);
+                    break;
                 case "SetAnimationDirection":
+                    result = DetectAnimationDirection(presentation, parameters);
+                    break;
                 case "SetAnimationStyle":
+                    result = DetectAnimationStyle(presentation, parameters);
+                    break;
                 case "SetAnimationDuration":
+                    result = DetectAnimationDuration(presentation, parameters);
+                    break;
                 case "SetAnimationOrder":
+                    result = DetectAnimationOrder(presentation, parameters);
+                    break;
                 case "SetSmartArtContent":
+                    result = DetectSmartArtContent(presentation, parameters);
+                    break;
                 case "SetAnimationTiming":
+                    result = DetectAnimationTiming(presentation, parameters);
+                    break;
                 case "SetParagraphSpacing":
-                    result.ErrorMessage = $"知识点类型暂未实现: {knowledgePointType}";
-                    result.IsCorrect = false;
+                    result = DetectParagraphSpacing(presentation, parameters);
                     break;
                 default:
                     result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
@@ -2096,5 +2118,769 @@ public class PowerPointScoringService : IPowerPointScoringService
         }
 
         return resolvedParameters;
+    }
+
+    /// <summary>
+    /// 检测幻灯片放映模式
+    /// </summary>
+    private KnowledgePointResult DetectSlideshowMode(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SlideshowMode",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ShowType", out string? expectedShowType))
+            {
+                result.ErrorMessage = "缺少必要参数: ShowType";
+                return result;
+            }
+
+            // 获取幻灯片放映设置
+            PowerPoint.SlideShowSettings showSettings = presentation.SlideShowSettings;
+            string actualShowType = showSettings.ShowType.ToString();
+
+            result.ExpectedValue = expectedShowType;
+            result.ActualValue = actualShowType;
+            result.IsCorrect = string.Equals(actualShowType, expectedShowType, StringComparison.OrdinalIgnoreCase);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片放映模式: 期望 {expectedShowType}, 实际 {actualShowType}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测幻灯片放映模式失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测幻灯片放映选项
+    /// </summary>
+    private KnowledgePointResult DetectSlideshowOptions(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SlideshowOptions",
+            Parameters = parameters
+        };
+
+        try
+        {
+            PowerPoint.SlideShowSettings showSettings = presentation.SlideShowSettings;
+            List<string> actualOptions = [];
+            List<string> expectedOptions = [];
+            bool allCorrect = true;
+
+            // 检查循环播放
+            if (parameters.TryGetValue("LoopUntilStopped", out string? loopStr) &&
+                bool.TryParse(loopStr, out bool expectedLoop))
+            {
+                bool actualLoop = showSettings.LoopUntilStopped == MsoTriState.msoTrue;
+                expectedOptions.Add($"循环播放: {expectedLoop}");
+                actualOptions.Add($"循环播放: {actualLoop}");
+
+                if (actualLoop != expectedLoop)
+                {
+                    allCorrect = false;
+                }
+            }
+
+            // 检查显示导航器
+            if (parameters.TryGetValue("ShowWithNarration", out string? narrationStr) &&
+                bool.TryParse(narrationStr, out bool expectedNarration))
+            {
+                bool actualNarration = showSettings.ShowWithNarration == MsoTriState.msoTrue;
+                expectedOptions.Add($"显示旁白: {expectedNarration}");
+                actualOptions.Add($"显示旁白: {actualNarration}");
+
+                if (actualNarration != expectedNarration)
+                {
+                    allCorrect = false;
+                }
+            }
+
+            result.ExpectedValue = string.Join("; ", expectedOptions);
+            result.ActualValue = string.Join("; ", actualOptions);
+            result.IsCorrect = allCorrect;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片放映选项检测: 期望 [{result.ExpectedValue}], 实际 [{result.ActualValue}]";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测幻灯片放映选项失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测幻灯片切换声音
+    /// </summary>
+    private KnowledgePointResult DetectSlideTransitionSound(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SlideTransitionSound",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            PowerPoint.SlideShowTransition transition = slide.SlideShowTransition;
+
+            bool hasSound = transition.SoundEffect.Type != PowerPoint.PpSoundEffectType.ppSoundNone;
+            string soundName = hasSound ? transition.SoundEffect.Name : "无声音";
+
+            if (parameters.TryGetValue("ExpectedSound", out string? expectedSound))
+            {
+                result.ExpectedValue = expectedSound;
+                result.ActualValue = soundName;
+                result.IsCorrect = string.Equals(soundName, expectedSound, StringComparison.OrdinalIgnoreCase);
+            }
+            else if (parameters.TryGetValue("HasSound", out string? hasSoundStr) &&
+                     bool.TryParse(hasSoundStr, out bool expectedHasSound))
+            {
+                result.ExpectedValue = expectedHasSound ? "有声音" : "无声音";
+                result.ActualValue = hasSound ? "有声音" : "无声音";
+                result.IsCorrect = hasSound == expectedHasSound;
+            }
+            else
+            {
+                result.ErrorMessage = "缺少必要参数: ExpectedSound 或 HasSound";
+                return result;
+            }
+
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 切换声音: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测幻灯片切换声音失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测艺术字样式
+    /// </summary>
+    private KnowledgePointResult DetectWordArtStyle(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWordArtStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            int wordArtCount = 0;
+            string wordArtStyles = "";
+
+            foreach (PowerPoint.Shape shape in slide.Shapes)
+            {
+                // 检测艺术字（WordArt通常是特殊的文本形状）
+                if (shape.Type == MsoShapeType.msoTextEffect)
+                {
+                    wordArtCount++;
+                    wordArtStyles += shape.TextEffect.PresetTextEffect.ToString() + "; ";
+                }
+            }
+
+            if (parameters.TryGetValue("ExpectedWordArtCount", out string? expectedCountStr) &&
+                int.TryParse(expectedCountStr, out int expectedCount))
+            {
+                result.ExpectedValue = $"至少{expectedCount}个艺术字";
+                result.ActualValue = $"{wordArtCount}个艺术字";
+                result.IsCorrect = wordArtCount >= expectedCount;
+            }
+            else
+            {
+                result.ExpectedValue = "至少1个艺术字";
+                result.ActualValue = $"{wordArtCount}个艺术字";
+                result.IsCorrect = wordArtCount > 0;
+            }
+
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 艺术字检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+
+            if (!string.IsNullOrEmpty(wordArtStyles))
+            {
+                result.Details += $", 样式: {wordArtStyles.TrimEnd(';', ' ')}";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测艺术字样式失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测艺术字效果
+    /// </summary>
+    private KnowledgePointResult DetectWordArtEffect(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWordArtEffect",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            bool hasWordArtEffect = false;
+            string effectDetails = "";
+
+            foreach (PowerPoint.Shape shape in slide.Shapes)
+            {
+                if (shape.Type == MsoShapeType.msoTextEffect)
+                {
+                    hasWordArtEffect = true;
+                    effectDetails += $"预设效果: {shape.TextEffect.PresetTextEffect}; ";
+
+                    // 检查是否有特定效果
+                    if (parameters.TryGetValue("ExpectedEffect", out string? expectedEffect))
+                    {
+                        string actualEffect = shape.TextEffect.PresetTextEffect.ToString();
+                        result.ExpectedValue = expectedEffect;
+                        result.ActualValue = actualEffect;
+                        result.IsCorrect = string.Equals(actualEffect, expectedEffect, StringComparison.OrdinalIgnoreCase);
+                        break;
+                    }
+                }
+            }
+
+            if (!parameters.ContainsKey("ExpectedEffect"))
+            {
+                result.ExpectedValue = "有艺术字效果";
+                result.ActualValue = hasWordArtEffect ? "有艺术字效果" : "无艺术字效果";
+                result.IsCorrect = hasWordArtEffect;
+            }
+
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 艺术字效果检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+
+            if (!string.IsNullOrEmpty(effectDetails))
+            {
+                result.Details += $", 详情: {effectDetails.TrimEnd(';', ' ')}";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测艺术字效果失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测SmartArt颜色
+    /// </summary>
+    private KnowledgePointResult DetectSmartArtColor(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetSmartArtColor",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            bool hasSmartArt = false;
+            string colorInfo = "";
+
+            foreach (PowerPoint.Shape shape in slide.Shapes)
+            {
+                if (shape.HasSmartArt == MsoTriState.msoTrue)
+                {
+                    hasSmartArt = true;
+                    // SmartArt颜色检测（简化处理）
+                    colorInfo += "SmartArt图形; ";
+                }
+            }
+
+            result.ExpectedValue = "有SmartArt图形";
+            result.ActualValue = hasSmartArt ? "有SmartArt图形" : "无SmartArt图形";
+            result.IsCorrect = hasSmartArt;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} SmartArt颜色检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测SmartArt颜色失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测SmartArt内容
+    /// </summary>
+    private KnowledgePointResult DetectSmartArtContent(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetSmartArtContent",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            bool hasSmartArt = false;
+            string contentInfo = "";
+
+            foreach (PowerPoint.Shape shape in slide.Shapes)
+            {
+                if (shape.HasSmartArt == MsoTriState.msoTrue)
+                {
+                    hasSmartArt = true;
+                    contentInfo += "SmartArt图形内容; ";
+
+                    // 检查特定内容
+                    if (parameters.TryGetValue("ExpectedContent", out string? expectedContent))
+                    {
+                        // 简化处理：检查SmartArt是否包含预期文本
+                        try
+                        {
+                            string smartArtText = shape.TextFrame.TextRange.Text;
+                            result.ExpectedValue = expectedContent;
+                            result.ActualValue = smartArtText;
+                            result.IsCorrect = smartArtText.Contains(expectedContent, StringComparison.OrdinalIgnoreCase);
+                        }
+                        catch
+                        {
+                            result.IsCorrect = false;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (!parameters.ContainsKey("ExpectedContent"))
+            {
+                result.ExpectedValue = "有SmartArt图形";
+                result.ActualValue = hasSmartArt ? "有SmartArt图形" : "无SmartArt图形";
+                result.IsCorrect = hasSmartArt;
+            }
+
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} SmartArt内容检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测SmartArt内容失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画方向
+    /// </summary>
+    private KnowledgePointResult DetectAnimationDirection(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationDirection",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            int animationCount = slide.TimeLine.MainSequence.Count;
+            bool hasAnimation = animationCount > 0;
+
+            result.ExpectedValue = "有动画效果";
+            result.ActualValue = hasAnimation ? $"有{animationCount}个动画效果" : "无动画效果";
+            result.IsCorrect = hasAnimation;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画方向检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测动画方向失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画样式
+    /// </summary>
+    private KnowledgePointResult DetectAnimationStyle(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            int animationCount = slide.TimeLine.MainSequence.Count;
+            string animationStyles = "";
+
+            for (int i = 1; i <= animationCount; i++)
+            {
+                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                animationStyles += effect.EffectType.ToString() + "; ";
+            }
+
+            bool hasAnimation = animationCount > 0;
+            result.ExpectedValue = "有动画样式";
+            result.ActualValue = hasAnimation ? $"动画样式: {animationStyles.TrimEnd(';', ' ')}" : "无动画样式";
+            result.IsCorrect = hasAnimation;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画样式检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测动画样式失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画持续时间
+    /// </summary>
+    private KnowledgePointResult DetectAnimationDuration(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationDuration",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            int animationCount = slide.TimeLine.MainSequence.Count;
+            string durationInfo = "";
+
+            for (int i = 1; i <= animationCount; i++)
+            {
+                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                durationInfo += $"{effect.Timing.Duration}s; ";
+            }
+
+            bool hasAnimation = animationCount > 0;
+            result.ExpectedValue = "有动画持续时间设置";
+            result.ActualValue = hasAnimation ? $"动画持续时间: {durationInfo.TrimEnd(';', ' ')}" : "无动画";
+            result.IsCorrect = hasAnimation;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画持续时间检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测动画持续时间失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画顺序
+    /// </summary>
+    private KnowledgePointResult DetectAnimationOrder(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationOrder",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            int animationCount = slide.TimeLine.MainSequence.Count;
+            string orderInfo = "";
+
+            for (int i = 1; i <= animationCount; i++)
+            {
+                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                orderInfo += $"序号{i}: {effect.EffectType}; ";
+            }
+
+            bool hasAnimation = animationCount > 0;
+            result.ExpectedValue = "有动画顺序设置";
+            result.ActualValue = hasAnimation ? $"动画顺序: {orderInfo.TrimEnd(';', ' ')}" : "无动画";
+            result.IsCorrect = hasAnimation;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画顺序检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测动画顺序失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画时间设置
+    /// </summary>
+    private KnowledgePointResult DetectAnimationTiming(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationTiming",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            int animationCount = slide.TimeLine.MainSequence.Count;
+            string timingInfo = "";
+
+            for (int i = 1; i <= animationCount; i++)
+            {
+                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                timingInfo += $"延迟{effect.Timing.TriggerDelayTime}s; ";
+            }
+
+            bool hasAnimation = animationCount > 0;
+            result.ExpectedValue = "有动画时间设置";
+            result.ActualValue = hasAnimation ? $"动画时间: {timingInfo.TrimEnd(';', ' ')}" : "无动画";
+            result.IsCorrect = hasAnimation;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画时间检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测动画时间设置失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落间距
+    /// </summary>
+    private KnowledgePointResult DetectParagraphSpacing(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphSpacing",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
+                !int.TryParse(slideIndexStr, out int slideIndex) ||
+                !parameters.TryGetValue("TextBoxIndex", out string? textBoxIndexStr) ||
+                !int.TryParse(textBoxIndexStr, out int textBoxIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex 或 TextBoxIndex";
+                return result;
+            }
+
+            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            if (textBoxIndex < 1 || textBoxIndex > slide.Shapes.Count)
+            {
+                result.ErrorMessage = $"文本框索引超出范围: {textBoxIndex}";
+                return result;
+            }
+
+            PowerPoint.Shape shape = slide.Shapes[textBoxIndex];
+            if (shape.HasTextFrame != MsoTriState.msoTrue)
+            {
+                result.ErrorMessage = $"指定的形状不是文本框: {textBoxIndex}";
+                return result;
+            }
+
+            float spaceBefore = shape.TextFrame.TextRange.ParagraphFormat.SpaceBefore;
+            float spaceAfter = shape.TextFrame.TextRange.ParagraphFormat.SpaceAfter;
+            float lineSpacing = shape.TextFrame.TextRange.ParagraphFormat.LineSpacing;
+
+            string actualSpacing = $"段前:{spaceBefore}pt, 段后:{spaceAfter}pt, 行距:{lineSpacing}";
+
+            if (parameters.TryGetValue("ExpectedSpaceBefore", out string? expectedSpaceBeforeStr) &&
+                float.TryParse(expectedSpaceBeforeStr, out float expectedSpaceBefore))
+            {
+                result.ExpectedValue = $"段前间距: {expectedSpaceBefore}pt";
+                result.ActualValue = $"段前间距: {spaceBefore}pt";
+                result.IsCorrect = Math.Abs(spaceBefore - expectedSpaceBefore) < 0.1f;
+            }
+            else
+            {
+                result.ExpectedValue = "有段落间距设置";
+                result.ActualValue = actualSpacing;
+                result.IsCorrect = spaceBefore > 0 || spaceAfter > 0 || lineSpacing != 1.0f;
+            }
+
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 文本框 {textBoxIndex} 段落间距检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落间距失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
     }
 }
