@@ -62,18 +62,6 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            // 收集所有操作点
-            List<OperationPointModel> allOperationPoints = [];
-            foreach (QuestionModel question in pptModule.Questions)
-            {
-                allOperationPoints.AddRange(question.OperationPoints);
-            }
-
-            if (allOperationPoints.Count == 0)
-            {
-                result.ErrorMessage = "PowerPoint模块中未找到操作点";
-                return result;
-            }
 
             // 不再一次性收集并按比例计分；改为逐题检测并“全对得分，否则0分”。
             decimal totalScore = 0M;
@@ -108,10 +96,10 @@ public class PowerPointScoringService : IPowerPointScoringService
                 // 逐操作点检测：任一失败则该题记0分
                 bool allCorrect = true;
 
-                // 这里按题内操作点列表调用检测以获得即时结果，避免跨题汇总
+                // 这里按题内操作点列表调用检测以获得即时结果
                 List<KnowledgePointResult> kpResults = DetectKnowledgePointsAsync(filePath, questionOps).Result;
 
-                // 如需保留操作点的调试结果，可追加到总列表
+                // 保留操作点的调试结果：追加到总列表（如果不需要可以移除此行）
                 result.KnowledgePointResults.AddRange(kpResults);
 
                 foreach (KnowledgePointResult kp in kpResults)
