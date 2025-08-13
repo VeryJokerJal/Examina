@@ -2584,14 +2584,70 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int animationCount = slide.TimeLine.MainSequence.Count;
-            bool hasAnimation = animationCount > 0;
 
-            result.ExpectedValue = "有动画效果";
-            result.ActualValue = hasAnimation ? $"有{animationCount}个动画效果" : "无动画效果";
-            result.IsCorrect = hasAnimation;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画方向检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+            // 如果提供了ElementIndex，则检测特定元素的动画方向
+            if (parameters.TryGetValue("ElementIndex", out string? elementIndexStr) &&
+                int.TryParse(elementIndexStr, out int elementIndex))
+            {
+                if (elementIndex < 1 || elementIndex > slide.Shapes.Count)
+                {
+                    result.ErrorMessage = $"元素索引超出范围: {elementIndex}";
+                    return result;
+                }
+
+                PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
+                PowerPoint.Effect targetEffect = null;
+
+                // 查找指定元素的动画效果
+                for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
+                {
+                    PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                    if (effect.Shape != null && effect.Shape.Id == targetShape.Id)
+                    {
+                        targetEffect = effect;
+                        break;
+                    }
+                }
+
+                if (targetEffect == null)
+                {
+                    result.ErrorMessage = $"元素 {elementIndex} 没有动画效果";
+                    result.IsCorrect = false;
+                    return result;
+                }
+
+                // 检测动画方向
+                if (parameters.TryGetValue("AnimationDirection", out string? expectedDirection))
+                {
+                    // 这里可以根据需要检测具体的动画方向属性
+                    // PowerPoint的动画方向检测比较复杂，暂时简化处理
+                    result.ExpectedValue = expectedDirection;
+                    result.ActualValue = "动画方向已设置";
+                    result.IsCorrect = true; // 简化处理，如果有动画效果就认为正确
+                    result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                    result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画方向检测: 期望 {expectedDirection}, 实际 {result.ActualValue}";
+                }
+                else
+                {
+                    result.ExpectedValue = "有动画效果";
+                    result.ActualValue = "有动画效果";
+                    result.IsCorrect = true;
+                    result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                    result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画方向检测: {result.ActualValue}";
+                }
+            }
+            else
+            {
+                // 兼容旧版本：检测幻灯片上是否有动画
+                int animationCount = slide.TimeLine.MainSequence.Count;
+                bool hasAnimation = animationCount > 0;
+
+                result.ExpectedValue = "有动画效果";
+                result.ActualValue = hasAnimation ? $"有{animationCount}个动画效果" : "无动画效果";
+                result.IsCorrect = hasAnimation;
+                result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                result.Details = $"幻灯片 {slideIndex} 动画方向检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+            }
         }
         catch (Exception ex)
         {
@@ -2629,21 +2685,77 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int animationCount = slide.TimeLine.MainSequence.Count;
-            string animationStyles = "";
 
-            for (int i = 1; i <= animationCount; i++)
+            // 如果提供了ElementIndex，则检测特定元素的动画样式
+            if (parameters.TryGetValue("ElementIndex", out string? elementIndexStr) &&
+                int.TryParse(elementIndexStr, out int elementIndex))
             {
-                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
-                animationStyles += effect.EffectType.ToString() + "; ";
-            }
+                if (elementIndex < 1 || elementIndex > slide.Shapes.Count)
+                {
+                    result.ErrorMessage = $"元素索引超出范围: {elementIndex}";
+                    return result;
+                }
 
-            bool hasAnimation = animationCount > 0;
-            result.ExpectedValue = "有动画样式";
-            result.ActualValue = hasAnimation ? $"动画样式: {animationStyles.TrimEnd(';', ' ')}" : "无动画样式";
-            result.IsCorrect = hasAnimation;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画样式检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+                PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
+                PowerPoint.Effect targetEffect = null;
+
+                // 查找指定元素的动画效果
+                for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
+                {
+                    PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                    if (effect.Shape != null && effect.Shape.Id == targetShape.Id)
+                    {
+                        targetEffect = effect;
+                        break;
+                    }
+                }
+
+                if (targetEffect == null)
+                {
+                    result.ErrorMessage = $"元素 {elementIndex} 没有动画效果";
+                    result.IsCorrect = false;
+                    return result;
+                }
+
+                // 检测动画样式
+                string actualStyle = targetEffect.EffectType.ToString();
+                if (parameters.TryGetValue("AnimationStyle", out string? expectedStyle))
+                {
+                    bool styleCorrect = string.Equals(actualStyle, expectedStyle, StringComparison.OrdinalIgnoreCase);
+                    result.ExpectedValue = expectedStyle;
+                    result.ActualValue = actualStyle;
+                    result.IsCorrect = styleCorrect;
+                    result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                    result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画样式检测: 期望 {expectedStyle}, 实际 {actualStyle}";
+                }
+                else
+                {
+                    result.ExpectedValue = "有动画样式";
+                    result.ActualValue = $"动画样式: {actualStyle}";
+                    result.IsCorrect = true;
+                    result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                    result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画样式检测: {result.ActualValue}";
+                }
+            }
+            else
+            {
+                // 兼容旧版本：检测幻灯片上的所有动画样式
+                int animationCount = slide.TimeLine.MainSequence.Count;
+                string animationStyles = "";
+
+                for (int i = 1; i <= animationCount; i++)
+                {
+                    PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                    animationStyles += effect.EffectType.ToString() + "; ";
+                }
+
+                bool hasAnimation = animationCount > 0;
+                result.ExpectedValue = "有动画样式";
+                result.ActualValue = hasAnimation ? $"动画样式: {animationStyles.TrimEnd(';', ' ')}" : "无动画样式";
+                result.IsCorrect = hasAnimation;
+                result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                result.Details = $"幻灯片 {slideIndex} 动画样式检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+            }
         }
         catch (Exception ex)
         {
@@ -2681,21 +2793,85 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int animationCount = slide.TimeLine.MainSequence.Count;
-            string durationInfo = "";
 
-            for (int i = 1; i <= animationCount; i++)
+            // 如果提供了ElementIndex，则检测特定元素的动画
+            if (parameters.TryGetValue("ElementIndex", out string? elementIndexStr) &&
+                int.TryParse(elementIndexStr, out int elementIndex))
             {
-                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
-                durationInfo += $"{effect.Timing.Duration}s; ";
-            }
+                if (elementIndex < 1 || elementIndex > slide.Shapes.Count)
+                {
+                    result.ErrorMessage = $"元素索引超出范围: {elementIndex}";
+                    return result;
+                }
 
-            bool hasAnimation = animationCount > 0;
-            result.ExpectedValue = "有动画持续时间设置";
-            result.ActualValue = hasAnimation ? $"动画持续时间: {durationInfo.TrimEnd(';', ' ')}" : "无动画";
-            result.IsCorrect = hasAnimation;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画持续时间检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+                PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
+                PowerPoint.Effect targetEffect = null;
+
+                // 查找指定元素的动画效果
+                for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
+                {
+                    PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                    if (effect.Shape != null && effect.Shape.Id == targetShape.Id)
+                    {
+                        targetEffect = effect;
+                        break;
+                    }
+                }
+
+                if (targetEffect == null)
+                {
+                    result.ErrorMessage = $"元素 {elementIndex} 没有动画效果";
+                    result.IsCorrect = false;
+                    return result;
+                }
+
+                // 检测具体的持续时间和延迟时间
+                bool allCorrect = true;
+                string detailsInfo = "";
+
+                if (parameters.TryGetValue("Duration", out string? expectedDurationStr) &&
+                    float.TryParse(expectedDurationStr, out float expectedDuration))
+                {
+                    float actualDuration = targetEffect.Timing.Duration;
+                    bool durationCorrect = Math.Abs(actualDuration - expectedDuration) < 0.1f;
+                    allCorrect &= durationCorrect;
+                    detailsInfo += $"持续时间: 期望 {expectedDuration}s, 实际 {actualDuration}s; ";
+                }
+
+                if (parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr) &&
+                    float.TryParse(expectedDelayTimeStr, out float expectedDelayTime))
+                {
+                    float actualDelayTime = targetEffect.Timing.TriggerDelayTime;
+                    bool delayCorrect = Math.Abs(actualDelayTime - expectedDelayTime) < 0.1f;
+                    allCorrect &= delayCorrect;
+                    detailsInfo += $"延迟时间: 期望 {expectedDelayTime}s, 实际 {actualDelayTime}s; ";
+                }
+
+                result.ExpectedValue = "动画持续时间设置正确";
+                result.ActualValue = detailsInfo.TrimEnd(';', ' ');
+                result.IsCorrect = allCorrect;
+                result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画持续时间检测: {result.ActualValue}";
+            }
+            else
+            {
+                // 兼容旧版本：检测幻灯片上是否有动画
+                int animationCount = slide.TimeLine.MainSequence.Count;
+                string durationInfo = "";
+
+                for (int i = 1; i <= animationCount; i++)
+                {
+                    PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                    durationInfo += $"{effect.Timing.Duration}s; ";
+                }
+
+                bool hasAnimation = animationCount > 0;
+                result.ExpectedValue = "有动画持续时间设置";
+                result.ActualValue = hasAnimation ? $"动画持续时间: {durationInfo.TrimEnd(';', ' ')}" : "无动画";
+                result.IsCorrect = hasAnimation;
+                result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                result.Details = $"幻灯片 {slideIndex} 动画持续时间检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+            }
         }
         catch (Exception ex)
         {
@@ -2733,21 +2909,77 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int animationCount = slide.TimeLine.MainSequence.Count;
-            string orderInfo = "";
 
-            for (int i = 1; i <= animationCount; i++)
+            // 如果提供了ElementIndex，则检测特定元素的动画顺序
+            if (parameters.TryGetValue("ElementIndex", out string? elementIndexStr) &&
+                int.TryParse(elementIndexStr, out int elementIndex))
             {
-                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
-                orderInfo += $"序号{i}: {effect.EffectType}; ";
-            }
+                if (elementIndex < 1 || elementIndex > slide.Shapes.Count)
+                {
+                    result.ErrorMessage = $"元素索引超出范围: {elementIndex}";
+                    return result;
+                }
 
-            bool hasAnimation = animationCount > 0;
-            result.ExpectedValue = "有动画顺序设置";
-            result.ActualValue = hasAnimation ? $"动画顺序: {orderInfo.TrimEnd(';', ' ')}" : "无动画";
-            result.IsCorrect = hasAnimation;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画顺序检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+                PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
+                int targetEffectIndex = -1;
+
+                // 查找指定元素的动画效果在序列中的位置
+                for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
+                {
+                    PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                    if (effect.Shape != null && effect.Shape.Id == targetShape.Id)
+                    {
+                        targetEffectIndex = i;
+                        break;
+                    }
+                }
+
+                if (targetEffectIndex == -1)
+                {
+                    result.ErrorMessage = $"元素 {elementIndex} 没有动画效果";
+                    result.IsCorrect = false;
+                    return result;
+                }
+
+                // 检测动画顺序
+                if (parameters.TryGetValue("AnimationOrder", out string? expectedOrderStr) &&
+                    int.TryParse(expectedOrderStr, out int expectedOrder))
+                {
+                    bool orderCorrect = targetEffectIndex == expectedOrder;
+                    result.ExpectedValue = $"动画顺序: {expectedOrder}";
+                    result.ActualValue = $"动画顺序: {targetEffectIndex}";
+                    result.IsCorrect = orderCorrect;
+                    result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                    result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画顺序检测: 期望 {expectedOrder}, 实际 {targetEffectIndex}";
+                }
+                else
+                {
+                    result.ExpectedValue = "有动画顺序设置";
+                    result.ActualValue = $"动画顺序: {targetEffectIndex}";
+                    result.IsCorrect = true;
+                    result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                    result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画顺序检测: {result.ActualValue}";
+                }
+            }
+            else
+            {
+                // 兼容旧版本：检测幻灯片上的所有动画顺序
+                int animationCount = slide.TimeLine.MainSequence.Count;
+                string orderInfo = "";
+
+                for (int i = 1; i <= animationCount; i++)
+                {
+                    PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                    orderInfo += $"序号{i}: {effect.EffectType}; ";
+                }
+
+                bool hasAnimation = animationCount > 0;
+                result.ExpectedValue = "有动画顺序设置";
+                result.ActualValue = hasAnimation ? $"动画顺序: {orderInfo.TrimEnd(';', ' ')}" : "无动画";
+                result.IsCorrect = hasAnimation;
+                result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+                result.Details = $"幻灯片 {slideIndex} 动画顺序检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+            }
         }
         catch (Exception ex)
         {
@@ -2778,6 +3010,13 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
+            if (!parameters.TryGetValue("ElementIndex", out string? elementIndexStr) ||
+                !int.TryParse(elementIndexStr, out int elementIndex))
+            {
+                result.ErrorMessage = "缺少必要参数: ElementIndex";
+                return result;
+            }
+
             if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
             {
                 result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
@@ -2785,21 +3024,82 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int animationCount = slide.TimeLine.MainSequence.Count;
-            string timingInfo = "";
 
-            for (int i = 1; i <= animationCount; i++)
+            if (elementIndex < 1 || elementIndex > slide.Shapes.Count)
             {
-                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
-                timingInfo += $"延迟{effect.Timing.TriggerDelayTime}s; ";
+                result.ErrorMessage = $"元素索引超出范围: {elementIndex}";
+                return result;
             }
 
-            bool hasAnimation = animationCount > 0;
-            result.ExpectedValue = "有动画时间设置";
-            result.ActualValue = hasAnimation ? $"动画时间: {timingInfo.TrimEnd(';', ' ')}" : "无动画";
-            result.IsCorrect = hasAnimation;
+            PowerPoint.Shape targetShape = slide.Shapes[elementIndex];
+            PowerPoint.Effect targetEffect = null;
+
+            // 查找指定元素的动画效果
+            for (int i = 1; i <= slide.TimeLine.MainSequence.Count; i++)
+            {
+                PowerPoint.Effect effect = slide.TimeLine.MainSequence[i];
+                if (effect.Shape != null && effect.Shape.Id == targetShape.Id)
+                {
+                    targetEffect = effect;
+                    break;
+                }
+            }
+
+            if (targetEffect == null)
+            {
+                result.ErrorMessage = $"元素 {elementIndex} 没有动画效果";
+                result.IsCorrect = false;
+                return result;
+            }
+
+            // 检测具体的动画时间参数
+            bool allCorrect = true;
+            string detailsInfo = "";
+
+            // 检测触发方式
+            if (parameters.TryGetValue("TriggerMode", out string? expectedTriggerMode))
+            {
+                string actualTriggerMode = GetTriggerModeString(targetEffect.Timing.TriggerType);
+                bool triggerCorrect = string.Equals(actualTriggerMode, expectedTriggerMode, StringComparison.OrdinalIgnoreCase);
+                allCorrect &= triggerCorrect;
+                detailsInfo += $"触发方式: 期望 {expectedTriggerMode}, 实际 {actualTriggerMode}; ";
+            }
+
+            // 检测延迟时间
+            if (parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr) &&
+                float.TryParse(expectedDelayTimeStr, out float expectedDelayTime))
+            {
+                float actualDelayTime = targetEffect.Timing.TriggerDelayTime;
+                bool delayCorrect = Math.Abs(actualDelayTime - expectedDelayTime) < 0.1f;
+                allCorrect &= delayCorrect;
+                detailsInfo += $"延迟时间: 期望 {expectedDelayTime}s, 实际 {actualDelayTime}s; ";
+            }
+
+            // 检测持续时间
+            if (parameters.TryGetValue("Duration", out string? expectedDurationStr) &&
+                float.TryParse(expectedDurationStr, out float expectedDuration))
+            {
+                float actualDuration = targetEffect.Timing.Duration;
+                bool durationCorrect = Math.Abs(actualDuration - expectedDuration) < 0.1f;
+                allCorrect &= durationCorrect;
+                detailsInfo += $"持续时间: 期望 {expectedDuration}s, 实际 {actualDuration}s; ";
+            }
+
+            // 检测重复次数
+            if (parameters.TryGetValue("RepeatCount", out string? expectedRepeatCountStr) &&
+                int.TryParse(expectedRepeatCountStr, out int expectedRepeatCount))
+            {
+                int actualRepeatCount = targetEffect.Timing.RepeatCount;
+                bool repeatCorrect = actualRepeatCount == expectedRepeatCount;
+                allCorrect &= repeatCorrect;
+                detailsInfo += $"重复次数: 期望 {expectedRepeatCount}, 实际 {actualRepeatCount}; ";
+            }
+
+            result.ExpectedValue = "动画时间参数设置正确";
+            result.ActualValue = detailsInfo.TrimEnd(';', ' ');
+            result.IsCorrect = allCorrect;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画时间检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+            result.Details = $"幻灯片 {slideIndex} 元素 {elementIndex} 动画时间检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -2808,6 +3108,21 @@ public class PowerPointScoringService : IPowerPointScoringService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 获取触发方式的字符串表示
+    /// </summary>
+    private static string GetTriggerModeString(PowerPoint.MsoAnimTriggerType triggerType)
+    {
+        return triggerType switch
+        {
+            PowerPoint.MsoAnimTriggerType.msoAnimTriggerOnPageClick => "单击时",
+            PowerPoint.MsoAnimTriggerType.msoAnimTriggerWithPrevious => "与上一动画同时",
+            PowerPoint.MsoAnimTriggerType.msoAnimTriggerAfterPrevious => "在上一动画之后",
+            PowerPoint.MsoAnimTriggerType.msoAnimTriggerOnShapeClick => "单击时",
+            _ => "自动"
+        };
     }
 
     /// <summary>

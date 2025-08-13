@@ -692,11 +692,13 @@ public class PowerPointKnowledgeService
             Category = "其他",
             ParameterTemplates =
             [
-                new() { Name = "TriggerMode", DisplayName = "动画触发方式（开始方式）", Description = "控制动画是如何触发的", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ElementOrder", DisplayName = "元素顺序", Description = "第几个元素", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TriggerMode", DisplayName = "动画触发方式（开始方式）", Description = "控制动画是如何触发的", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "单击时,与上一动画同时,在上一动画之后,自动" },
-                new() { Name = "DelayTime", DisplayName = "延迟时间（单位：秒）", Description = "动画开始前的延迟时间", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0 },
-                new() { Name = "Duration", DisplayName = "动画持续时间（单位：秒）", Description = "动画本身执行的时长", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0.1 },
-                new() { Name = "RepeatCount", DisplayName = "重复次数/播放次数", Description = "设置动画播放的循环次数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 }
+                new() { Name = "DelayTime", DisplayName = "延迟时间（单位：秒）", Description = "动画开始前的延迟时间", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 },
+                new() { Name = "Duration", DisplayName = "动画持续时间（单位：秒）", Description = "动画本身执行的时长", Type = ParameterType.Number, IsRequired = true, Order = 5, MinValue = 0.1 },
+                new() { Name = "RepeatCount", DisplayName = "重复次数/播放次数", Description = "设置动画播放的循环次数", Type = ParameterType.Number, IsRequired = true, Order = 6, MinValue = 0 }
             ]
         };
 
