@@ -167,6 +167,16 @@ public class QuestionModel
     [JsonPropertyName("operationPoints")] public List<OperationPointModel> OperationPoints { get; set; } = [];
 
     /// <summary>
+    /// C#程序参数输入（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("programInput")] public string? ProgramInput { get; set; }
+
+    /// <summary>
+    /// C#程序预期控制台输出（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("expectedOutput")] public string? ExpectedOutput { get; set; }
+
+    /// <summary>
     /// 是否启用该题目
     /// </summary>
     [JsonPropertyName("isEnabled")] public bool IsEnabled { get; set; } = true;

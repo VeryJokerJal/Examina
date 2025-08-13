@@ -243,9 +243,16 @@ public class CSharpScoringService : ICSharpScoringService
             }
 
             // 等待进程完成或超时
-            bool finished = await process.WaitForExitAsync(TimeSpan.FromSeconds(timeoutSeconds));
-
-            if (!finished)
+            using CancellationTokenSource cts = new(TimeSpan.FromSeconds(timeoutSeconds));
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+                result.ExitCode = process.ExitCode;
+                result.Output = await process.StandardOutput.ReadToEndAsync();
+                result.ErrorOutput = await process.StandardError.ReadToEndAsync();
+                result.IsSuccess = process.ExitCode == 0;
+            }
+            catch (OperationCanceledException)
             {
                 result.IsTimeout = true;
                 result.IsSuccess = false;
@@ -254,13 +261,6 @@ public class CSharpScoringService : ICSharpScoringService
                     process.Kill(true);
                 }
                 catch { }
-            }
-            else
-            {
-                result.ExitCode = process.ExitCode;
-                result.Output = await process.StandardOutput.ReadToEndAsync();
-                result.ErrorOutput = await process.StandardError.ReadToEndAsync();
-                result.IsSuccess = process.ExitCode == 0;
             }
         }
         catch (Exception ex)
@@ -315,15 +315,19 @@ public class CSharpScoringService : ICSharpScoringService
 
             string prompt = CreateAIScoringPrompt(sourceCode, actualOutput, expectedOutput);
 
+            List<ChatMessage> messages = new()
+            {
+                new UserChatMessage(prompt)
+            };
+
             ChatCompletionOptions options = new()
             {
-                MaxTokens = 1000,
                 Temperature = 0.1f,
                 ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat()
             };
 
             ChatCompletion completion = await client.GetChatClient(configuration.OpenAIModel)
-                .CompleteChatAsync(prompt, options);
+                .CompleteChatAsync(messages, options);
 
             string responseContent = completion.Content[0].Text;
             AIScoringResponse? aiResponse = JsonSerializer.Deserialize<AIScoringResponse>(responseContent);
@@ -519,6 +523,28 @@ public class CSharpScoringService : ICSharpScoringService
     public ScoringResult ScoreFile(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
     {
         return ScoreFileAsync(filePath, examModel, configuration).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// 检查是否可以处理指定文件
+    /// </summary>
+    public bool CanProcessFile(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return false;
+        }
+
+        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+        return extension == ".cs" || extension == ".txt";
+    }
+
+    /// <summary>
+    /// 获取支持的文件扩展名
+    /// </summary>
+    public IEnumerable<string> GetSupportedExtensions()
+    {
+        return new[] { ".cs", ".txt" };
     }
 
     #endregion
