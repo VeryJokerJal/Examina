@@ -8,42 +8,48 @@ Windows打分服务 (`WindowsScoringService`) 是BenchSuite项目中专门用于
 
 ### 支持的操作类型
 
-1. **创建操作** (`QuickCreate`, `CreateOperation`)
-   - 检测文件或文件夹的创建
+1. **快速创建操作** (`QuickCreate`)
+   - 在指定路径快速创建文件或文件夹
+   - 需要明确的创建路径和项目名称
    - 支持内容验证
+
+2. **创建操作** (`CreateOperation`)
+   - 在基础路径下创建文件或文件夹
+   - 支持相对路径创建
    - 支持创建类型指定（文件/文件夹）
 
-2. **删除操作** (`DeleteOperation`)
+3. **删除操作** (`DeleteOperation`)
    - 检测文件或文件夹的删除
    - 支持回收站检查
    - 验证目标是否已被移除
 
-3. **复制操作** (`CopyOperation`)
+4. **复制操作** (`CopyOperation`)
    - 检测文件或文件夹的复制
    - 验证源文件和目标文件的存在性
    - 支持文件大小一致性检查
 
-4. **移动操作** (`MoveOperation`)
+5. **移动操作** (`MoveOperation`)
    - 检测文件或文件夹的移动
    - 验证源文件不存在且目标文件存在
    - 区分移动和复制操作
 
-5. **重命名操作** (`RenameOperation`)
+6. **重命名操作** (`RenameOperation`)
    - 检测文件或文件夹的重命名
    - 验证原名不存在且新名存在
    - 支持同目录重命名检测
 
-6. **快捷方式操作** (`ShortcutOperation`)
-   - 检测快捷方式文件的创建
+7. **快捷方式操作** (`ShortcutOperation`)
+   - 检测Windows快捷方式文件（.lnk）的创建
    - 自动添加.lnk扩展名
    - 支持目标路径验证
+   - **注意**：这与QuickCreate（快速创建）是不同的操作
 
-7. **属性修改操作** (`FilePropertyModification`)
+8. **属性修改操作** (`FilePropertyModification`)
    - 检测文件或文件夹属性的修改
-   - 支持只读属性检查
-   - 支持隐藏属性检查
+   - 支持4种属性类型（只读、隐藏、系统、存档）
+   - 支持布尔值属性设置
 
-8. **复制重命名操作** (`CopyRenameOperation`)
+9. **复制重命名操作** (`CopyRenameOperation`)
    - 检测复制并重命名的组合操作
    - 验证源文件和目标文件都存在
    - 确保文件名不同且内容一致
@@ -211,6 +217,34 @@ foreach (var result in results)
 3. **可扩展性**: 易于添加新的操作类型
 4. **类型安全**: 使用强类型参数和返回值
 5. **资源管理**: 自动处理文件系统资源
+
+## ⚠️ 重要说明：快捷相关操作的区别
+
+### **QuickCreate（快速创建）vs ShortcutOperation（快捷方式操作）**
+
+这两个操作在中文名称上容易混淆，但功能完全不同：
+
+#### **QuickCreate（快速创建）**
+- **功能**：在指定路径快速创建普通的文件或文件夹
+- **参数**：
+  - `FileType`: 文件类型（文件/文件夹）
+  - `ItemName`: 要创建的项目名称
+  - `CreatePath`: 创建的目标路径
+- **结果**：创建普通的文件或文件夹
+- **示例**：在"C:\Users\Desktop"路径下创建名为"新建文件.txt"的文件
+
+#### **ShortcutOperation（快捷方式操作）**
+- **功能**：创建Windows快捷方式文件（.lnk文件）
+- **参数**：
+  - `FileType`: 文件类型（文件/文件夹）
+  - `TargetPath`: 快捷方式指向的目标文件路径
+  - `ShortcutPath`: 快捷方式文件的保存路径
+- **结果**：创建.lnk快捷方式文件
+- **示例**：为"C:\Program Files\App.exe"在桌面创建快捷方式
+
+### **如何区分**
+- **QuickCreate**：创建的是实际的文件或文件夹
+- **ShortcutOperation**：创建的是指向其他文件的快捷方式（.lnk文件）
 
 ## 注意事项
 

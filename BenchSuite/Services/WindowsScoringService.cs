@@ -492,6 +492,9 @@ public class WindowsScoringService : IWindowsScoringService
             switch (operationType)
             {
                 case "QuickCreate":
+                    // QuickCreate是快速创建文件/文件夹，与CreateOperation略有不同
+                    result = DetectQuickCreateOperation(basePath, parameters);
+                    break;
                 case "CreateOperation":
                     result = DetectCreateOperation(basePath, parameters);
                     break;
@@ -621,6 +624,88 @@ public class WindowsScoringService : IWindowsScoringService
         catch (Exception ex)
         {
             result.ErrorMessage = $"检测创建操作时发生错误: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测快速创建操作（QuickCreate）
+    /// </summary>
+    private KnowledgePointResult DetectQuickCreateOperation(string basePath, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "QuickCreate",
+            Parameters = parameters,
+            IsCorrect = false
+        };
+
+        try
+        {
+            // QuickCreate必须有ItemName和CreatePath参数
+            if (!parameters.TryGetValue("ItemName", out string? itemName) || string.IsNullOrEmpty(itemName))
+            {
+                result.ErrorMessage = "快速创建操作缺少必需参数: ItemName";
+                return result;
+            }
+
+            if (!parameters.TryGetValue("CreatePath", out string? createPath) || string.IsNullOrEmpty(createPath))
+            {
+                result.ErrorMessage = "快速创建操作缺少必需参数: CreatePath";
+                return result;
+            }
+
+            // 获取文件类型参数
+            string fileType = GetParameterValue(parameters, "FileType", "文件");
+
+            // 构建完整路径：CreatePath + ItemName
+            string fullPath = Path.Combine(createPath, itemName);
+            if (!Path.IsPathRooted(fullPath))
+            {
+                fullPath = Path.Combine(basePath, fullPath);
+            }
+
+            bool exists = false;
+            string details = string.Empty;
+
+            // 根据FileType参数决定检测文件还是文件夹
+            if (string.Equals(fileType, "文件夹", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fileType, "Folder", StringComparison.OrdinalIgnoreCase))
+            {
+                exists = Directory.Exists(fullPath);
+                details = exists ? $"文件夹已快速创建: {fullPath}" : $"文件夹不存在: {fullPath}";
+            }
+            else
+            {
+                exists = File.Exists(fullPath);
+                details = exists ? $"文件已快速创建: {fullPath}" : $"文件不存在: {fullPath}";
+            }
+
+            result.IsCorrect = exists;
+            result.Details = details;
+
+            // 如果是文件且指定了期望内容，检查文件内容
+            if (exists && File.Exists(fullPath) && parameters.TryGetValue("ExpectedContent", out string? expectedContent) && !string.IsNullOrEmpty(expectedContent))
+            {
+                try
+                {
+                    string actualContent = File.ReadAllText(fullPath);
+                    bool contentMatches = string.Equals(actualContent.Trim(), expectedContent.Trim(), StringComparison.OrdinalIgnoreCase);
+                    result.IsCorrect = contentMatches;
+                    result.Details += contentMatches ? " (内容匹配)" : " (内容不匹配)";
+                }
+                catch (Exception ex)
+                {
+                    result.Details += $" (无法读取内容: {ex.Message})";
+                    result.IsCorrect = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测快速创建操作时发生错误: {ex.Message}";
             result.IsCorrect = false;
         }
 
