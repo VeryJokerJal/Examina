@@ -207,10 +207,10 @@ public static class ValidationService
                     break;
 
                 case ParameterType.Color:
-                    // 简单的颜色格式验证
+                    // 十六进制颜色格式验证
                     if (!IsValidColorFormat(parameter.Value))
                     {
-                        errors.Add("颜色格式不正确，请使用 #RRGGBB 格式");
+                        errors.Add("颜色格式不正确，请使用 #RRGGBB 或 #RGB 格式（如：#B4F4FF）");
                     }
                     break;
             }

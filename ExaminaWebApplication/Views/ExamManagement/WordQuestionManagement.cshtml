@@ -1876,17 +1876,52 @@ function generateColorInput(param, isRequired, requiredMark) {
             <div class="input-group">
                 <input type="color" class="glass-input"
                        id="param_${param.parameterKey}" name="${param.parameterKey}"
-                       value="${param.defaultValue || '#000000'}" ${isRequired}
-                       style="width: 60px; padding: 0.375rem 0.5rem;">
+                       value="${param.defaultValue || '#B4F4FF'}" ${isRequired}
+                       style="width: 60px; padding: 0.375rem 0.5rem;"
+                       onchange="document.getElementById('param_${param.parameterKey}_text').value = this.value">
                 <input type="text" class="glass-input"
                        id="param_${param.parameterKey}_text"
-                       value="${param.defaultValue || '#000000'}"
-                       placeholder="#000000"
-                       onchange="document.getElementById('param_${param.parameterKey}').value = this.value">
+                       value="${param.defaultValue || '#B4F4FF'}"
+                       placeholder="#B4F4FF"
+                       pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                       title="请输入有效的十六进制颜色值，如 #B4F4FF"
+                       onchange="updateColorPicker('${param.parameterKey}', this.value)"
+                       oninput="validateHexColor(this)">
             </div>
             ${param.description ? `<small class="text-muted">${param.description}</small>` : ''}
         </div>
     `;
+}
+
+// 更新颜色选择器
+function updateColorPicker(parameterKey, hexValue) {
+    const colorPicker = document.getElementById(`param_${parameterKey}`);
+    if (colorPicker && isValidHexColor(hexValue)) {
+        colorPicker.value = hexValue;
+    }
+}
+
+// 验证十六进制颜色格式
+function validateHexColor(input) {
+    const value = input.value;
+    const isValid = isValidHexColor(value);
+
+    if (isValid) {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+    } else if (value.length > 0) {
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+    } else {
+        input.classList.remove('is-valid', 'is-invalid');
+    }
+}
+
+// 检查是否为有效的十六进制颜色值
+function isValidHexColor(color) {
+    if (!color) return false;
+    const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    return hexPattern.test(color);
 }
 
 // 生成布尔输入

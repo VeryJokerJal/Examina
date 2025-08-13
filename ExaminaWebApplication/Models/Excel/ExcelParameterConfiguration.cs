@@ -267,9 +267,9 @@ public class CellRangeParameterConfiguration : ExcelParameterConfigurationBase
 public class ColorParameterConfiguration : ExcelParameterConfigurationBase
 {
     /// <summary>
-    /// 颜色格式（RGB、HEX等）
+    /// 颜色格式（默认为HEX十六进制格式）
     /// </summary>
-    public string ColorFormat { get; set; } = "RGB";
+    public string ColorFormat { get; set; } = "HEX";
 
     public override bool IsValid()
     {
@@ -279,19 +279,26 @@ public class ColorParameterConfiguration : ExcelParameterConfigurationBase
         if (Value != null)
         {
             string stringValue = Value.ToString()!;
-            
-            switch (ColorFormat.ToUpper())
-            {
-                case "RGB":
-                    return int.TryParse(stringValue, out int rgbValue) && rgbValue >= 0 && rgbValue <= 16777215;
-                case "HEX":
-                    return System.Text.RegularExpressions.Regex.IsMatch(stringValue, @"^#?[0-9A-Fa-f]{6}$");
-                default:
-                    return true;
-            }
+
+            // 统一使用十六进制格式验证 #RRGGBB 或 #RGB
+            return IsValidHexColor(stringValue);
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 验证十六进制颜色格式
+    /// </summary>
+    /// <param name="color">颜色值</param>
+    /// <returns>是否有效</returns>
+    private static bool IsValidHexColor(string color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+            return false;
+
+        // 支持 #RRGGBB 和 #RGB 格式
+        return System.Text.RegularExpressions.Regex.IsMatch(color, @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
     }
 }
 

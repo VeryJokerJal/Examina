@@ -203,6 +203,7 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Number => CreateNumberControl(parameter),
             ParameterType.Enum => CreateEnumControl(parameter),
             ParameterType.Boolean => CreateBooleanControl(parameter),
+            ParameterType.Color => CreateColorControl(parameter),
             _ => CreateTextControl(parameter)
         };
     }
@@ -322,6 +323,113 @@ public sealed partial class OperationPointEditPage : Page
     }
 
     /// <summary>
+    /// 创建颜色编辑控件
+    /// </summary>
+    /// <param name="parameter">参数</param>
+    /// <returns>颜色控件组合</returns>
+    private StackPanel CreateColorControl(ConfigurationParameter parameter)
+    {
+        StackPanel colorPanel = new()
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        // 创建ColorPicker
+        ColorPicker colorPicker = new()
+        {
+            Width = 60,
+            Height = 40
+        };
+
+        // 创建十六进制文本输入框
+        TextBox hexTextBox = new()
+        {
+            PlaceholderText = "#B4F4FF",
+            Width = 120,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        // 设置初始值
+        string initialValue = parameter.Value ?? parameter.DefaultValue ?? "#000000";
+        if (TryParseHexColor(initialValue, out Windows.UI.Color color))
+        {
+            colorPicker.Color = color;
+            hexTextBox.Text = initialValue;
+        }
+        else
+        {
+            colorPicker.Color = Windows.UI.Color.FromArgb(255, 0, 0, 0); // 黑色
+            hexTextBox.Text = "#000000";
+        }
+
+        // ColorPicker变化时更新文本框
+        colorPicker.ColorChanged += (sender, args) =>
+        {
+            Windows.UI.Color selectedColor = args.NewColor;
+            string hexValue = $"#{selectedColor.R:X2}{selectedColor.G:X2}{selectedColor.B:X2}";
+            hexTextBox.Text = hexValue;
+        };
+
+        // 文本框变化时更新ColorPicker
+        hexTextBox.TextChanged += (sender, args) =>
+        {
+            if (TryParseHexColor(hexTextBox.Text, out Windows.UI.Color parsedColor))
+            {
+                colorPicker.Color = parsedColor;
+            }
+        };
+
+        colorPanel.Children.Add(colorPicker);
+        colorPanel.Children.Add(hexTextBox);
+
+        // 将文本框注册为主控件，用于获取值
+        _parameterControls[parameter.Name] = hexTextBox;
+
+        return colorPanel;
+    }
+
+    /// <summary>
+    /// 尝试解析十六进制颜色值
+    /// </summary>
+    /// <param name="hexColor">十六进制颜色字符串</param>
+    /// <param name="color">解析出的颜色</param>
+    /// <returns>是否解析成功</returns>
+    private static bool TryParseHexColor(string hexColor, out Windows.UI.Color color)
+    {
+        color = Windows.UI.Color.FromArgb(255, 0, 0, 0); // 黑色
+
+        if (string.IsNullOrWhiteSpace(hexColor))
+            return false;
+
+        string hex = hexColor.TrimStart('#');
+
+        if (hex.Length == 6 && int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out int hexValue))
+        {
+            color = Windows.UI.Color.FromArgb(255,
+                (byte)((hexValue >> 16) & 0xFF),
+                (byte)((hexValue >> 8) & 0xFF),
+                (byte)(hexValue & 0xFF));
+            return true;
+        }
+        else if (hex.Length == 3)
+        {
+            // 支持 #RGB 格式，转换为 #RRGGBB
+            if (int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out int shortHexValue))
+            {
+                byte r = (byte)(((shortHexValue >> 8) & 0xF) * 17);
+                byte g = (byte)(((shortHexValue >> 4) & 0xF) * 17);
+                byte b = (byte)((shortHexValue & 0xF) * 17);
+                color = Windows.UI.Color.FromArgb(255, r, g, b);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// 获取参数值
     /// </summary>
     /// <param name="parameter">参数</param>
@@ -336,6 +444,7 @@ public sealed partial class OperationPointEditPage : Page
                 ComboBox comboBox => comboBox.SelectedItem?.ToString() ?? "",
                 CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
                 TextBox textBox => textBox.Text,
+                ColorPicker colorPicker => $"#{colorPicker.Color.R:X2}{colorPicker.Color.G:X2}{colorPicker.Color.B:X2}",
                 _ => parameter.Value ?? ""
             };
     }
