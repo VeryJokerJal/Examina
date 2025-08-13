@@ -1,8 +1,5 @@
-using System.IO;
-using System.Text.Json;
-using BenchSuite.Interfaces;
+﻿using BenchSuite.Interfaces;
 using BenchSuite.Models;
-using Microsoft.Extensions.Logging;
 
 namespace BenchSuite.Services;
 
@@ -12,12 +9,10 @@ namespace BenchSuite.Services;
 public class WindowsScoringService : IWindowsScoringService
 {
     private readonly ScoringConfiguration _defaultConfiguration;
-    private readonly ILogger<WindowsScoringService>? _logger;
 
-    public WindowsScoringService(ILogger<WindowsScoringService>? logger = null)
+    public WindowsScoringService()
     {
         _defaultConfiguration = new ScoringConfiguration();
-        _logger = logger;
     }
 
     /// <summary>
@@ -45,13 +40,10 @@ public class WindowsScoringService : IWindowsScoringService
 
         try
         {
-            _logger?.LogInformation("开始Windows文件系统打分，基础路径: {BasePath}", basePath);
-
             // 验证基础路径是否存在
             if (!Directory.Exists(basePath))
             {
                 string errorMsg = $"指定的基础路径不存在: {basePath}";
-                _logger?.LogError(errorMsg);
                 result.ErrorMessage = errorMsg;
                 return result;
             }
@@ -63,12 +55,9 @@ public class WindowsScoringService : IWindowsScoringService
             if (windowsModule == null)
             {
                 string errorMsg = "试卷中未找到Windows模块";
-                _logger?.LogWarning(errorMsg);
                 result.ErrorMessage = errorMsg;
                 return result;
             }
-
-            _logger?.LogInformation("找到Windows模块，包含 {QuestionCount} 个题目", windowsModule.Questions.Count);
 
             decimal totalScore = 0M;
             decimal achievedScore = 0M;
@@ -137,14 +126,10 @@ public class WindowsScoringService : IWindowsScoringService
             result.TotalScore = totalScore;
             result.AchievedScore = achievedScore;
             result.IsSuccess = true;
-
-            _logger?.LogInformation("Windows打分完成，总分: {TotalScore}, 得分: {AchievedScore}, 得分率: {ScoreRate:P2}",
-                totalScore, achievedScore, totalScore > 0 ? achievedScore / totalScore : 0);
         }
         catch (Exception ex)
         {
             string errorMsg = $"打分过程中发生错误: {ex.Message}";
-            _logger?.LogError(ex, "Windows打分过程中发生异常，基础路径: {BasePath}", basePath);
             result.ErrorMessage = errorMsg;
         }
         finally
@@ -231,7 +216,7 @@ public class WindowsScoringService : IWindowsScoringService
                         Dictionary<string, string> parameters = ExtractParameters(operationPoint);
 
                         KnowledgePointResult opResult = DetectSpecificWindowsOperation(basePath, operationType, parameters);
-                        
+
                         // 设置操作点基本信息
                         opResult.KnowledgePointId = operationPoint.Id;
                         opResult.KnowledgePointName = operationPoint.Name;
@@ -322,7 +307,7 @@ public class WindowsScoringService : IWindowsScoringService
                 attributes["CreationTime"] = dirInfo.CreationTime;
                 attributes["LastWriteTime"] = dirInfo.LastWriteTime;
                 attributes["Attributes"] = dirInfo.Attributes.ToString();
-                
+
                 // 获取子项数量
                 try
                 {
@@ -372,11 +357,17 @@ public class WindowsScoringService : IWindowsScoringService
     /// </summary>
     private static void EnsureUniqueQuestionIds(ExamModel examModel)
     {
-        if (examModel.Exam.Modules == null) return;
+        if (examModel.Exam.Modules == null)
+        {
+            return;
+        }
 
         foreach (ExamModuleModel module in examModel.Exam.Modules)
         {
-            if (module.Questions == null) continue;
+            if (module.Questions == null)
+            {
+                continue;
+            }
 
             HashSet<string> seenIds = [];
             int counter = 1;
@@ -392,7 +383,7 @@ public class WindowsScoringService : IWindowsScoringService
                 }
 
                 question.Id = newId;
-                seenIds.Add(newId);
+                _ = seenIds.Add(newId);
             }
         }
     }
@@ -416,6 +407,9 @@ public class WindowsScoringService : IWindowsScoringService
                     }
                 }
             }
+
+            // 转换ExamLab参数名称到WindowsScoringService标准参数名称
+            parameters = ConvertParameterNames(parameters);
         }
         catch (Exception ex)
         {
@@ -424,6 +418,52 @@ public class WindowsScoringService : IWindowsScoringService
         }
 
         return parameters;
+    }
+
+    /// <summary>
+    /// 转换ExamLab参数名称到WindowsScoringService标准参数名称
+    /// </summary>
+    private static Dictionary<string, string> ConvertParameterNames(Dictionary<string, string> originalParameters)
+    {
+        Dictionary<string, string> convertedParameters = [];
+
+        // 参数名称映射表
+        Dictionary<string, string> parameterMapping = new()
+        {
+            // 通用参数
+            ["FileType"] = "FileType",
+            ["ItemType"] = "CreateType",
+            ["ItemName"] = "ItemName",
+            ["CreatePath"] = "CreatePath",
+
+            // 重命名操作参数
+            ["OriginalFileName"] = "OriginalName",
+            ["NewFileName"] = "NewName",
+
+            // 复制/移动操作参数
+            ["SourcePath"] = "SourcePath",
+            ["DestinationPath"] = "TargetPath",
+
+            // 删除操作参数
+            ["TargetPath"] = "TargetPath",
+
+            // 快捷方式操作参数
+            ["ShortcutPath"] = "ShortcutPath",
+
+            // 属性修改操作参数
+            ["FilePath"] = "TargetPath",
+            ["PropertyType"] = "PropertyType",
+            ["PropertyValue"] = "PropertyValue"
+        };
+
+        // 转换参数名称
+        foreach (KeyValuePair<string, string> param in originalParameters)
+        {
+            string convertedName = parameterMapping.TryGetValue(param.Key, out string? mappedName) ? mappedName : param.Key;
+            convertedParameters[convertedName] = param.Value;
+        }
+
+        return convertedParameters;
     }
 
     /// <summary>
@@ -440,6 +480,14 @@ public class WindowsScoringService : IWindowsScoringService
 
         try
         {
+            // 验证参数
+            if (!ValidateOperationParameters(operationType, parameters, out string validationError))
+            {
+                result.ErrorMessage = validationError;
+                result.IsCorrect = false;
+                return result;
+            }
+
             // 根据操作类型进行具体检测
             switch (operationType)
             {
@@ -497,25 +545,49 @@ public class WindowsScoringService : IWindowsScoringService
 
         try
         {
-            if (!parameters.TryGetValue("TargetPath", out string? targetPath) || string.IsNullOrEmpty(targetPath))
+            // 获取文件类型参数
+            string fileType = GetParameterValue(parameters, "FileType", "文件");
+
+            // 获取项目名称或路径
+            string? itemName = null;
+            string? createPath = null;
+            string? targetPath = null;
+
+            // 支持多种参数组合
+            if (parameters.TryGetValue("ItemName", out itemName) && !string.IsNullOrEmpty(itemName))
             {
-                result.ErrorMessage = "缺少必需参数: TargetPath";
+                // CreateOperation 或 QuickCreate 模式
+                if (parameters.TryGetValue("CreatePath", out createPath) && !string.IsNullOrEmpty(createPath))
+                {
+                    // QuickCreate 模式：有明确的创建路径
+                    targetPath = Path.Combine(createPath, itemName);
+                }
+                else
+                {
+                    // CreateOperation 模式：在基础路径下创建
+                    targetPath = itemName;
+                }
+            }
+            else if (parameters.TryGetValue("TargetPath", out targetPath) && !string.IsNullOrEmpty(targetPath))
+            {
+                // 兼容旧的参数格式
+            }
+            else
+            {
+                result.ErrorMessage = "缺少必需参数: ItemName 或 TargetPath";
                 return result;
             }
 
             // 构建完整路径
             string fullPath = Path.IsPathRooted(targetPath) ? targetPath : Path.Combine(basePath, targetPath);
 
-            if (!parameters.TryGetValue("CreateType", out string? createType))
-            {
-                createType = "File"; // 默认创建文件
-            }
-
             bool exists = false;
             string details = string.Empty;
 
-            if (string.Equals(createType, "Folder", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(createType, "Directory", StringComparison.OrdinalIgnoreCase))
+            // 根据FileType参数决定检测文件还是文件夹
+            if (string.Equals(fileType, "文件夹", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fileType, "Folder", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fileType, "Directory", StringComparison.OrdinalIgnoreCase))
             {
                 exists = Directory.Exists(fullPath);
                 details = exists ? $"文件夹已创建: {fullPath}" : $"文件夹不存在: {fullPath}";
@@ -529,23 +601,20 @@ public class WindowsScoringService : IWindowsScoringService
             result.IsCorrect = exists;
             result.Details = details;
 
-            if (exists && parameters.TryGetValue("ExpectedContent", out string? expectedContent) && !string.IsNullOrEmpty(expectedContent))
+            // 如果是文件且指定了期望内容，检查文件内容
+            if (exists && File.Exists(fullPath) && parameters.TryGetValue("ExpectedContent", out string? expectedContent) && !string.IsNullOrEmpty(expectedContent))
             {
-                // 如果指定了期望内容，检查文件内容
-                if (File.Exists(fullPath))
+                try
                 {
-                    try
-                    {
-                        string actualContent = File.ReadAllText(fullPath);
-                        bool contentMatches = string.Equals(actualContent.Trim(), expectedContent.Trim(), StringComparison.OrdinalIgnoreCase);
-                        result.IsCorrect = contentMatches;
-                        result.Details += contentMatches ? " (内容匹配)" : " (内容不匹配)";
-                    }
-                    catch (Exception ex)
-                    {
-                        result.Details += $" (无法读取内容: {ex.Message})";
-                        result.IsCorrect = false;
-                    }
+                    string actualContent = File.ReadAllText(fullPath);
+                    bool contentMatches = string.Equals(actualContent.Trim(), expectedContent.Trim(), StringComparison.OrdinalIgnoreCase);
+                    result.IsCorrect = contentMatches;
+                    result.Details += contentMatches ? " (内容匹配)" : " (内容不匹配)";
+                }
+                catch (Exception ex)
+                {
+                    result.Details += $" (无法读取内容: {ex.Message})";
+                    result.IsCorrect = false;
                 }
             }
         }
@@ -727,13 +796,9 @@ public class WindowsScoringService : IWindowsScoringService
             {
                 result.Details = $"可能是复制操作而非移动: 源和目标都存在";
             }
-            else if (sourceExists && !targetExists)
-            {
-                result.Details = $"移动未完成: 源仍存在，目标不存在";
-            }
             else
             {
-                result.Details = $"源和目标都不存在: {fullSourcePath}, {fullTargetPath}";
+                result.Details = sourceExists && !targetExists ? $"移动未完成: 源仍存在，目标不存在" : $"源和目标都不存在: {fullSourcePath}, {fullTargetPath}";
             }
         }
         catch (Exception ex)
@@ -771,31 +836,43 @@ public class WindowsScoringService : IWindowsScoringService
                 return result;
             }
 
+            // 获取文件类型参数
+            string fileType = GetParameterValue(parameters, "FileType", "文件");
+
             // 构建完整路径
             string originalPath = Path.IsPathRooted(originalName) ? originalName : Path.Combine(basePath, originalName);
             string newPath = Path.IsPathRooted(newName) ? newName : Path.Combine(basePath, newName);
 
-            bool originalExists = File.Exists(originalPath) || Directory.Exists(originalPath);
-            bool newExists = File.Exists(newPath) || Directory.Exists(newPath);
+            bool originalExists = false;
+            bool newExists = false;
+
+            // 根据FileType参数决定检测文件还是文件夹
+            if (string.Equals(fileType, "文件夹", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fileType, "Folder", StringComparison.OrdinalIgnoreCase))
+            {
+                originalExists = Directory.Exists(originalPath);
+                newExists = Directory.Exists(newPath);
+            }
+            else
+            {
+                originalExists = File.Exists(originalPath);
+                newExists = File.Exists(newPath);
+            }
 
             // 重命名操作的特点：原名不存在，新名存在
             result.IsCorrect = !originalExists && newExists;
 
             if (result.IsCorrect)
             {
-                result.Details = $"重命名成功: {originalName} -> {newName}";
+                result.Details = $"重命名成功: {originalName} -> {newName} ({fileType})";
             }
             else if (originalExists && newExists)
             {
                 result.Details = $"可能是复制操作而非重命名: 原名和新名都存在";
             }
-            else if (originalExists && !newExists)
-            {
-                result.Details = $"重命名未完成: 原名仍存在，新名不存在";
-            }
             else
             {
-                result.Details = $"原名和新名都不存在: {originalName}, {newName}";
+                result.Details = originalExists && !newExists ? $"重命名未完成: 原名仍存在，新名不存在" : $"原名和新名都不存在: {originalName}, {newName}";
             }
         }
         catch (Exception ex)
@@ -896,61 +973,74 @@ public class WindowsScoringService : IWindowsScoringService
                 return result;
             }
 
-            bool allAttributesMatch = true;
-            List<string> details = [];
+            // 获取属性类型和期望值
+            string propertyType = GetParameterValue(parameters, "PropertyType", "只读");
+            bool expectedValue = ParseBooleanParameter(parameters, "PropertyValue", false);
 
-            // 检查只读属性
-            if (parameters.TryGetValue("ReadOnly", out string? readOnlyStr) && bool.TryParse(readOnlyStr, out bool expectedReadOnly))
+            bool attributeMatches = false;
+            string details = string.Empty;
+
+            try
             {
-                try
-                {
-                    FileAttributes attributes = File.GetAttributes(fullPath);
-                    bool isReadOnly = (attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+                FileAttributes attributes = File.GetAttributes(fullPath);
 
-                    if (isReadOnly == expectedReadOnly)
-                    {
-                        details.Add($"只读属性正确: {isReadOnly}");
-                    }
-                    else
-                    {
-                        details.Add($"只读属性不匹配: 期望{expectedReadOnly}, 实际{isReadOnly}");
-                        allAttributesMatch = false;
-                    }
-                }
-                catch (Exception ex)
+                switch (propertyType)
                 {
-                    details.Add($"无法检查只读属性: {ex.Message}");
-                    allAttributesMatch = false;
+                    case "只读":
+                        bool isReadOnly = (attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+                        attributeMatches = isReadOnly == expectedValue;
+                        details = $"只读属性: 期望{expectedValue}, 实际{isReadOnly}";
+                        break;
+
+                    case "隐藏":
+                        bool isHidden = (attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
+                        attributeMatches = isHidden == expectedValue;
+                        details = $"隐藏属性: 期望{expectedValue}, 实际{isHidden}";
+                        break;
+
+                    case "系统":
+                        bool isSystem = (attributes & FileAttributes.System) == FileAttributes.System;
+                        attributeMatches = isSystem == expectedValue;
+                        details = $"系统属性: 期望{expectedValue}, 实际{isSystem}";
+                        break;
+
+                    case "存档":
+                        bool isArchive = (attributes & FileAttributes.Archive) == FileAttributes.Archive;
+                        attributeMatches = isArchive == expectedValue;
+                        details = $"存档属性: 期望{expectedValue}, 实际{isArchive}";
+                        break;
+
+                    default:
+                        // 兼容旧的参数格式
+                        if (parameters.TryGetValue("ReadOnly", out string? readOnlyStr) && bool.TryParse(readOnlyStr, out bool expectedReadOnly))
+                        {
+                            bool readOnlyValue = (attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+                            attributeMatches = readOnlyValue == expectedReadOnly;
+                            details = $"只读属性: 期望{expectedReadOnly}, 实际{readOnlyValue}";
+                        }
+                        else if (parameters.TryGetValue("Hidden", out string? hiddenStr) && bool.TryParse(hiddenStr, out bool expectedHidden))
+                        {
+                            bool hiddenValue = (attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
+                            attributeMatches = hiddenValue == expectedHidden;
+                            details = $"隐藏属性: 期望{expectedHidden}, 实际{hiddenValue}";
+                        }
+                        else
+                        {
+                            result.ErrorMessage = $"不支持的属性类型: {propertyType}";
+                            return result;
+                        }
+                        break;
                 }
             }
-
-            // 检查隐藏属性
-            if (parameters.TryGetValue("Hidden", out string? hiddenStr) && bool.TryParse(hiddenStr, out bool expectedHidden))
+            catch (Exception ex)
             {
-                try
-                {
-                    FileAttributes attributes = File.GetAttributes(fullPath);
-                    bool isHidden = (attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
-
-                    if (isHidden == expectedHidden)
-                    {
-                        details.Add($"隐藏属性正确: {isHidden}");
-                    }
-                    else
-                    {
-                        details.Add($"隐藏属性不匹配: 期望{expectedHidden}, 实际{isHidden}");
-                        allAttributesMatch = false;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    details.Add($"无法检查隐藏属性: {ex.Message}");
-                    allAttributesMatch = false;
-                }
+                result.ErrorMessage = $"无法检查文件属性: {ex.Message}";
+                result.IsCorrect = false;
+                return result;
             }
 
-            result.IsCorrect = allAttributesMatch;
-            result.Details = string.Join("; ", details);
+            result.IsCorrect = attributeMatches;
+            result.Details = details;
         }
         catch (Exception ex)
         {
@@ -1059,11 +1149,29 @@ public class WindowsScoringService : IWindowsScoringService
             switch (operationType)
             {
                 case "QuickCreate":
-                case "CreateOperation":
-                    if (!parameters.ContainsKey("TargetPath") || string.IsNullOrEmpty(parameters["TargetPath"]))
+                    // QuickCreate需要ItemName和CreatePath
+                    if (!parameters.ContainsKey("ItemName") || string.IsNullOrEmpty(parameters["ItemName"]))
                     {
-                        errorMessage = "创建操作缺少必需参数: TargetPath";
+                        errorMessage = "快捷创建操作缺少必需参数: ItemName";
                         return false;
+                    }
+                    if (!parameters.ContainsKey("CreatePath") || string.IsNullOrEmpty(parameters["CreatePath"]))
+                    {
+                        errorMessage = "快捷创建操作缺少必需参数: CreatePath";
+                        return false;
+                    }
+                    break;
+
+                case "CreateOperation":
+                    // CreateOperation需要ItemName
+                    if (!parameters.ContainsKey("ItemName") || string.IsNullOrEmpty(parameters["ItemName"]))
+                    {
+                        // 兼容旧格式
+                        if (!parameters.ContainsKey("TargetPath") || string.IsNullOrEmpty(parameters["TargetPath"]))
+                        {
+                            errorMessage = "创建操作缺少必需参数: ItemName 或 TargetPath";
+                            return false;
+                        }
                     }
                     break;
 
@@ -1083,9 +1191,10 @@ public class WindowsScoringService : IWindowsScoringService
                         errorMessage = $"{operationType}缺少必需参数: SourcePath";
                         return false;
                     }
-                    if (!parameters.ContainsKey("TargetPath") || string.IsNullOrEmpty(parameters["TargetPath"]))
+                    // 支持DestinationPath和TargetPath两种参数名
+                    if (!parameters.ContainsKey("DestinationPath") && !parameters.ContainsKey("TargetPath"))
                     {
-                        errorMessage = $"{operationType}缺少必需参数: TargetPath";
+                        errorMessage = $"{operationType}缺少必需参数: DestinationPath 或 TargetPath";
                         return false;
                     }
                     break;
@@ -1112,16 +1221,46 @@ public class WindowsScoringService : IWindowsScoringService
                     break;
 
                 case "FilePropertyModification":
-                    if (!parameters.ContainsKey("TargetPath") || string.IsNullOrEmpty(parameters["TargetPath"]))
+                    // 支持FilePath和TargetPath两种参数名
+                    if (!parameters.ContainsKey("FilePath") && !parameters.ContainsKey("TargetPath"))
                     {
-                        errorMessage = "属性修改操作缺少必需参数: TargetPath";
+                        errorMessage = "属性修改操作缺少必需参数: FilePath 或 TargetPath";
                         return false;
+                    }
+                    if (!parameters.ContainsKey("PropertyType") || string.IsNullOrEmpty(parameters["PropertyType"]))
+                    {
+                        // 兼容旧格式，检查是否有ReadOnly或Hidden参数
+                        if (!parameters.ContainsKey("ReadOnly") && !parameters.ContainsKey("Hidden"))
+                        {
+                            errorMessage = "属性修改操作缺少必需参数: PropertyType 或 ReadOnly/Hidden";
+                            return false;
+                        }
                     }
                     break;
 
                 default:
                     errorMessage = $"不支持的操作类型: {operationType}";
                     return false;
+            }
+
+            // 验证FileType枚举值
+            if (parameters.TryGetValue("FileType", out string? fileType) && !string.IsNullOrEmpty(fileType))
+            {
+                if (!IsValidFileType(fileType))
+                {
+                    errorMessage = $"无效的文件类型: {fileType}，支持的类型: 文件, 文件夹";
+                    return false;
+                }
+            }
+
+            // 验证PropertyType枚举值
+            if (parameters.TryGetValue("PropertyType", out string? propertyType) && !string.IsNullOrEmpty(propertyType))
+            {
+                if (!IsValidPropertyType(propertyType))
+                {
+                    errorMessage = $"无效的属性类型: {propertyType}，支持的类型: 只读, 隐藏, 系统, 存档";
+                    return false;
+                }
             }
 
             return true;
@@ -1139,7 +1278,9 @@ public class WindowsScoringService : IWindowsScoringService
     private static string NormalizePath(string path)
     {
         if (string.IsNullOrEmpty(path))
+        {
             return string.Empty;
+        }
 
         try
         {
@@ -1208,5 +1349,23 @@ public class WindowsScoringService : IWindowsScoringService
     private static string GetParameterValue(Dictionary<string, string> parameters, string parameterName, string defaultValue = "")
     {
         return parameters.TryGetValue(parameterName, out string? value) && !string.IsNullOrEmpty(value) ? value : defaultValue;
+    }
+
+    /// <summary>
+    /// 验证文件类型是否有效
+    /// </summary>
+    private static bool IsValidFileType(string fileType)
+    {
+        string[] validTypes = { "文件", "文件夹", "File", "Folder", "Directory" };
+        return validTypes.Contains(fileType, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 验证属性类型是否有效
+    /// </summary>
+    private static bool IsValidPropertyType(string propertyType)
+    {
+        string[] validTypes = { "只读", "隐藏", "系统", "存档", "ReadOnly", "Hidden", "System", "Archive" };
+        return validTypes.Contains(propertyType, StringComparer.OrdinalIgnoreCase);
     }
 }

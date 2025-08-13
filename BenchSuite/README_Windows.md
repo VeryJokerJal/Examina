@@ -138,35 +138,54 @@ foreach (var result in results)
 
 ### 创建操作参数
 
-- **TargetPath**: 要创建的文件或文件夹路径
-- **CreateType**: 创建类型（File/Folder）
-- **ExpectedContent**: 期望的文件内容（仅文件）
+**CreateOperation（创建操作）**：
+- **FileType**: 文件类型（枚举：文件,文件夹）
+- **ItemName**: 项目名称（文本，必填）
+- **ExpectedContent**: 期望的文件内容（仅文件，可选）
+
+**QuickCreate（快捷创建）**：
+- **FileType**: 文件类型（枚举：文件,文件夹）
+- **ItemName**: 项目名称（文本，必填）
+- **CreatePath**: 创建路径（文本，必填）
 
 ### 删除操作参数
 
+- **FileType**: 文件类型（枚举：文件,文件夹）
 - **TargetPath**: 要删除的文件或文件夹路径
-- **CheckRecycleBin**: 是否检查回收站（true/false）
+- **CheckRecycleBin**: 是否检查回收站（true/false，可选）
 
 ### 复制/移动操作参数
 
+- **FileType**: 文件类型（枚举：文件,文件夹）
 - **SourcePath**: 源文件或文件夹路径
-- **TargetPath**: 目标文件或文件夹路径
+- **DestinationPath**: 目标文件或文件夹路径（推荐）
+- **TargetPath**: 目标文件或文件夹路径（兼容旧格式）
 
 ### 重命名操作参数
 
-- **OriginalName**: 原始文件或文件夹名称
-- **NewName**: 新的文件或文件夹名称
+- **FileType**: 文件类型（枚举：文件,文件夹）
+- **OriginalFileName**: 原始文件或文件夹名称
+- **NewFileName**: 新的文件或文件夹名称
 
 ### 快捷方式操作参数
 
-- **ShortcutPath**: 快捷方式文件路径
-- **TargetPath**: 快捷方式指向的目标路径（可选）
+- **FileType**: 文件类型（枚举：文件,文件夹）
+- **TargetPath**: 目标文件路径
+- **ShortcutPath**: 快捷方式路径
 
 ### 属性修改操作参数
 
-- **TargetPath**: 目标文件或文件夹路径
-- **ReadOnly**: 只读属性设置（true/false）
-- **Hidden**: 隐藏属性设置（true/false）
+- **FileType**: 文件类型（枚举：文件,文件夹）
+- **FilePath**: 文件路径（推荐）
+- **TargetPath**: 目标文件或文件夹路径（兼容旧格式）
+- **PropertyType**: 属性类型（枚举：只读,隐藏,系统,存档）
+- **PropertyValue**: 属性值（布尔，必填）
+
+### 复制重命名操作参数
+
+- **FileType**: 文件类型（枚举：文件,文件夹）
+- **SourcePath**: 原文件路径
+- **DestinationPath**: 目标文件路径
 
 ## 错误处理
 
