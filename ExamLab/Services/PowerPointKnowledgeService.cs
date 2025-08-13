@@ -137,7 +137,7 @@ public class PowerPointKnowledgeService
                 new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张（-1代表任意一张）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = -1 },
                 new() { Name = "SlideIdentifier", DisplayName = "幻灯片标识符", Description = "幻灯片类型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "普通幻灯片（ppt类型）,标题幻灯片或布局为标题的类型" },
-                new() { Name = "ExpectedSlideCount", DisplayName = "删除后期望的幻灯片总数", Description = "删除操作完成后期望的幻灯片总数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0 }
+                new() { Name = "ExpectedSlideCount", DisplayName = "删除后期望的幻灯片总数", Description = "删除操作完成后期望的幻灯片总数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, DefaultValue = "1" }
             ]
         };
 
@@ -155,7 +155,7 @@ public class PowerPointKnowledgeService
                     EnumOptions = "之前,之后" },
                 new() { Name = "NewSlideLayout", DisplayName = "新插入幻灯片的版式", Description = "新幻灯片的版式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "空白版式（无标题无内容）,单对象版式（可放图表、图像等）" },
-                new() { Name = "ExpectedSlideCount", DisplayName = "插入后期望的幻灯片总数", Description = "插入操作完成后期望的幻灯片总数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 }
+                new() { Name = "ExpectedSlideCount", DisplayName = "插入后期望的幻灯片总数", Description = "插入操作完成后期望的幻灯片总数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1, DefaultValue = "2" }
             ]
         };
 

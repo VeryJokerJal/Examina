@@ -243,7 +243,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     {
                         try
                         {
-                            Dictionary<string, string> rawParams = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
+                            Dictionary<string, string> rawParams = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value ?? "");
                             // 先做键名规范化（根据ExamLab配置）
                             Dictionary<string, string> normalizedParams = PowerPointKnowledgeMapping.NormalizeParameterKeys(operationPoint.PowerPointKnowledgeType ?? operationPoint.Name, rawParams);
 
@@ -553,13 +553,19 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             foreach (string key in possibleKeys)
             {
-                if (parameters.TryGetValue(key, out expectedCountStr))
+                if (parameters.TryGetValue(key, out expectedCountStr) && !string.IsNullOrWhiteSpace(expectedCountStr))
                 {
                     break;
                 }
             }
 
-            if (expectedCountStr == null || !int.TryParse(expectedCountStr, out int expectedCount))
+            // 如果没有找到有效值，使用默认值（删除操作后通常期望剩余1张幻灯片）
+            if (string.IsNullOrWhiteSpace(expectedCountStr))
+            {
+                expectedCountStr = "1";
+            }
+
+            if (!int.TryParse(expectedCountStr, out int expectedCount))
             {
                 result.ErrorMessage = $"缺少必要参数: ExpectedSlideCount（或其变体）。实际参数: {debugParams}";
                 return result;
@@ -604,13 +610,19 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             foreach (string key in possibleKeys)
             {
-                if (parameters.TryGetValue(key, out expectedCountStr))
+                if (parameters.TryGetValue(key, out expectedCountStr) && !string.IsNullOrWhiteSpace(expectedCountStr))
                 {
                     break;
                 }
             }
 
-            if (expectedCountStr == null || !int.TryParse(expectedCountStr, out int expectedCount))
+            // 如果没有找到有效值，使用默认值（插入操作后通常期望有2张幻灯片）
+            if (string.IsNullOrWhiteSpace(expectedCountStr))
+            {
+                expectedCountStr = "2";
+            }
+
+            if (!int.TryParse(expectedCountStr, out int expectedCount))
             {
                 result.ErrorMessage = $"缺少必要参数: ExpectedSlideCount（或其变体）。实际参数: {debugParams}";
                 return result;
