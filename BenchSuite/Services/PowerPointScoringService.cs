@@ -626,36 +626,78 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
-            {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
-
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
             bool fontFound = false;
             string actualFonts = "";
+            int foundSlideIndex = -1;
+            bool checkAllSlides = slideIndex == -1;
 
-            foreach (PowerPoint.Shape shape in slide.Shapes)
+            if (checkAllSlides)
             {
-                if (shape.HasTextFrame == MsoTriState.msoTrue)
+                // 遍历所有幻灯片查找字体
+                for (int i = 1; i <= presentation.Slides.Count; i++)
                 {
-                    PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
-                    string fontName = textRange.Font.Name;
-                    actualFonts += fontName + "; ";
-
-                    if (string.Equals(fontName, expectedFont, StringComparison.OrdinalIgnoreCase))
+                    PowerPoint.Slide slide = presentation.Slides[i];
+                    foreach (PowerPoint.Shape shape in slide.Shapes)
                     {
-                        fontFound = true;
+                        if (shape.HasTextFrame == MsoTriState.msoTrue)
+                        {
+                            PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+                            string fontName = textRange.Font.Name;
+                            actualFonts += $"[幻灯片{i}]{fontName}; ";
+
+                            if (string.Equals(fontName, expectedFont, StringComparison.OrdinalIgnoreCase))
+                            {
+                                fontFound = true;
+                                foundSlideIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    if (fontFound) break;
+                }
+            }
+            else
+            {
+                // 检查指定幻灯片
+                if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+                {
+                    result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                    return result;
+                }
+
+                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                foreach (PowerPoint.Shape shape in slide.Shapes)
+                {
+                    if (shape.HasTextFrame == MsoTriState.msoTrue)
+                    {
+                        PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+                        string fontName = textRange.Font.Name;
+                        actualFonts += fontName + "; ";
+
+                        if (string.Equals(fontName, expectedFont, StringComparison.OrdinalIgnoreCase))
+                        {
+                            fontFound = true;
+                        }
                     }
                 }
+                foundSlideIndex = slideIndex;
             }
 
             result.ExpectedValue = expectedFont;
             result.ActualValue = actualFonts.TrimEnd(';', ' ');
             result.IsCorrect = fontFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 字体检测: 期望 {expectedFont}, 找到的字体 {result.ActualValue}";
+
+            if (checkAllSlides)
+            {
+                result.Details = fontFound
+                    ? $"在幻灯片 {foundSlideIndex} 中找到字体 '{expectedFont}'"
+                    : $"在所有幻灯片中未找到字体 '{expectedFont}'";
+            }
+            else
+            {
+                result.Details = $"幻灯片 {slideIndex} 字体检测: 期望 {expectedFont}, 找到的字体 {result.ActualValue}";
+            }
         }
         catch (Exception ex)
         {
@@ -990,7 +1032,38 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             foreach (PowerPoint.Shape shape in slide.Shapes)
             {
-                if (shape.Type == MsoShapeType.msoPicture)
+                // 检测多种可能的图片类型
+                if (shape.Type == MsoShapeType.msoPicture ||
+                    shape.Type == MsoShapeType.msoLinkedPicture ||
+                    shape.Type == MsoShapeType.msoEmbeddedOLEObject ||
+                    shape.Type == MsoShapeType.msoOLEControlObject)
+                {
+                    imageCount++;
+                }
+                // 检查组合形状中的图片
+                else if (shape.Type == MsoShapeType.msoGroup)
+                {
+                    try
+                    {
+                        foreach (PowerPoint.Shape groupShape in shape.GroupItems)
+                        {
+                            if (groupShape.Type == MsoShapeType.msoPicture ||
+                                groupShape.Type == MsoShapeType.msoLinkedPicture)
+                            {
+                                imageCount++;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // 忽略组合形状访问错误
+                    }
+                }
+                // 通过名称模式检测可能的图片
+                else if (shape.Name.Contains("Picture") ||
+                         shape.Name.Contains("Image") ||
+                         shape.Name.Contains("图片") ||
+                         shape.Name.Contains("图像"))
                 {
                     imageCount++;
                 }
@@ -2615,7 +2688,9 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             foreach (PowerPoint.Shape shape in slide.Shapes)
             {
-                if (shape.HasSmartArt == MsoTriState.msoTrue)
+                // 在旧版本API中，通过形状类型检测SmartArt
+                if (shape.Type == MsoShapeType.msoSmartArt ||
+                    (shape.Type == MsoShapeType.msoGroup && shape.Name.Contains("SmartArt")))
                 {
                     hasSmartArt = true;
                     // SmartArt颜色检测（简化处理）
@@ -2670,7 +2745,9 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             foreach (PowerPoint.Shape shape in slide.Shapes)
             {
-                if (shape.HasSmartArt == MsoTriState.msoTrue)
+                // 在旧版本API中，通过形状类型检测SmartArt
+                if (shape.Type == MsoShapeType.msoSmartArt ||
+                    (shape.Type == MsoShapeType.msoGroup && shape.Name.Contains("SmartArt")))
                 {
                     hasSmartArt = true;
                     contentInfo += "SmartArt图形内容; ";
