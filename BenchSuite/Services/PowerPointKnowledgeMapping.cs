@@ -108,12 +108,6 @@ namespace BenchSuite.Services
                 // 幻灯片数量相关参数映射
                 if (key.Equals("SlideCount", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
                 if (key.Equals("TotalSlides", StringComparison.OrdinalIgnoreCase)) key = "ExpectedSlideCount";
-                if (key.Equals("SlideNumber", StringComparison.OrdinalIgnoreCase) &&
-                    (knowledgeType.Equals("InsertSlide", StringComparison.OrdinalIgnoreCase) ||
-                     knowledgeType.Equals("DeleteSlide", StringComparison.OrdinalIgnoreCase)))
-                {
-                    key = "ExpectedSlideCount";
-                }
 
                 // 颜色：ColorValue -> Color
                 if (key.Equals("ColorValue", StringComparison.OrdinalIgnoreCase)) key = "Color";

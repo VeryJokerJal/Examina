@@ -544,10 +544,13 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
+            // 调试信息：输出所有参数
+            string debugParams = string.Join(", ", parameters.Select(p => $"{p.Key}={p.Value}"));
+
             if (!parameters.TryGetValue("ExpectedSlideCount", out string? expectedCountStr) ||
                 !int.TryParse(expectedCountStr, out int expectedCount))
             {
-                result.ErrorMessage = "缺少必要参数: ExpectedSlideCount";
+                result.ErrorMessage = $"缺少必要参数: ExpectedSlideCount。实际参数: {debugParams}";
                 return result;
             }
 
@@ -581,10 +584,13 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
+            // 调试信息：输出所有参数
+            string debugParams = string.Join(", ", parameters.Select(p => $"{p.Key}={p.Value}"));
+
             if (!parameters.TryGetValue("ExpectedSlideCount", out string? expectedCountStr) ||
                 !int.TryParse(expectedCountStr, out int expectedCount))
             {
-                result.ErrorMessage = "缺少必要参数: ExpectedSlideCount";
+                result.ErrorMessage = $"缺少必要参数: ExpectedSlideCount。实际参数: {debugParams}";
                 return result;
             }
 
