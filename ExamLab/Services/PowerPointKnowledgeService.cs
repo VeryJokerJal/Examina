@@ -53,24 +53,32 @@ public class PowerPointKnowledgeService
             PowerPointKnowledgeType = type
         };
 
-        // 根据模板创建参数
+        // 根据模板创建参数（统一支持 SlideIndex，默认 -1 代表任意）
         foreach (ConfigurationParameterTemplate template in config.ParameterTemplates)
         {
-            ConfigurationParameter parameter = new()
+            string parameterName = template.Name;
+            bool isSlideNumber = string.Equals(parameterName, "SlideNumber", StringComparison.OrdinalIgnoreCase);
+            string finalName = isSlideNumber ? "SlideIndex" : parameterName;
+            string? defaultValue = isSlideNumber ? "-1" : template.DefaultValue;
+            double? minValue = isSlideNumber
+                ? (template.MinValue.HasValue ? Math.Min(-1, template.MinValue.Value) : -1)
+                : template.MinValue;
+
+            ConfigurationParameter parameter = new ConfigurationParameter
             {
-                Name = template.Name,
+                Name = finalName,
                 DisplayName = template.DisplayName,
                 Description = template.Description,
                 Type = template.Type,
-                DefaultValue = template.DefaultValue,
+                DefaultValue = defaultValue,
                 IsRequired = template.IsRequired,
                 Order = template.Order,
                 EnumOptions = template.EnumOptions,
                 ValidationRule = template.ValidationRule,
                 ValidationErrorMessage = template.ValidationErrorMessage,
-                MinValue = template.MinValue,
+                MinValue = minValue,
                 MaxValue = template.MaxValue,
-                Value = template.DefaultValue
+                Value = defaultValue
             };
             operationPoint.Parameters.Add(parameter);
         }
@@ -394,7 +402,7 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "ColorValue", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 3 }
+                new() { Name = "ColorValue", DisplayName = "颜色值", Description = "HEX颜色值", Type = ParameterType.Color, IsRequired = true, Order = 3 }
             ]
         };
 

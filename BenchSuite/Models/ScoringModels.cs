@@ -75,6 +75,11 @@ public class KnowledgePointResult
     public string KnowledgePointName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 关联的题目ID
+    /// </summary>
+    public string QuestionId { get; set; } = string.Empty;
+
+    /// <summary>
     /// 知识点类型
     /// </summary>
     public string KnowledgePointType { get; set; } = string.Empty;

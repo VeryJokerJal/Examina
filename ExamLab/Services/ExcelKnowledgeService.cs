@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ExamLab.Models;
 
 namespace ExamLab.Services;
@@ -193,7 +192,7 @@ public class ExcelKnowledgeService
                 new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "包含起始值", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "BorderColor", DisplayName = "边框线颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "BorderColor", DisplayName = "边框线颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
             ]
         };
@@ -262,7 +261,7 @@ public class ExcelKnowledgeService
                 new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "起始值", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "FillColor", DisplayName = "颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "FillColor", DisplayName = "颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
             ]
         };
@@ -349,7 +348,7 @@ public class ExcelKnowledgeService
                 new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "FontColor", DisplayName = "字体颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "FontColor", DisplayName = "字体颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
             ]
         };
@@ -402,7 +401,7 @@ public class ExcelKnowledgeService
                 new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "PatternColor", DisplayName = "图案颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "PatternColor", DisplayName = "图案颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
             ]
         };
@@ -437,7 +436,7 @@ public class ExcelKnowledgeService
                 new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 4 },
                 new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 5 }
             ]
         };

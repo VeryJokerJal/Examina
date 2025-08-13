@@ -7,14 +7,14 @@ using BenchSuite.Models;
 namespace BenchSuite.Converters;
 
 /// <summary>
-/// ParameterType枚举的JSON转换器
-/// 支持字符串、数字与常见同义词（含中英文）格式的序列化和反序列化
+/// ParameterType 枚举的 JSON 转换器
+/// 支持：
+/// - 直接的枚举名称（不区分大小写），如：Text/Number/Boolean/Enum/Date
+/// - 常见同义词（中英文、技术别名），如：string/整数/bool/枚举/日期 等
+/// - 数字与数字字符串（如 1 或 "1"）
 /// </summary>
 public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
 {
-    /// <summary>
-    /// 从JSON读取ParameterType值
-    /// </summary>
     public override ParameterType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch (reader.TokenType)
@@ -24,15 +24,15 @@ public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
                     string? stringValue = reader.GetString();
                     if (string.IsNullOrWhiteSpace(stringValue))
                     {
-                        throw new JsonException("ParameterType字符串值不能为空");
+                        throw new JsonException("ParameterType 字符串值不能为空");
                     }
 
                     string normalized = stringValue.Trim();
 
-                    // 1) 直接按名称解析（大小写不敏感），例如：Text/Number/Boolean/Enum/Date
-                    if (Enum.TryParse<ParameterType>(normalized, ignoreCase: true, out ParameterType directResult))
+                    // 1) 直接按名称解析（大小写不敏感）
+                    if (Enum.TryParse<ParameterType>(normalized, ignoreCase: true, out ParameterType direct))
                     {
-                        return directResult;
+                        return direct;
                     }
 
                     // 2) 常见同义词映射（中英文、技术别名）
@@ -72,7 +72,12 @@ public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
                         ["datetime"] = ParameterType.Date,
                         ["日期"] = ParameterType.Date,
                         ["时间"] = ParameterType.Date,
-                        ["time"] = ParameterType.Date
+                        ["time"] = ParameterType.Date,
+
+                        // Color
+                        ["color"] = ParameterType.Color,
+                        ["colour"] = ParameterType.Color,
+                        ["颜色"] = ParameterType.Color
                     };
 
                     if (synonyms.TryGetValue(normalized, out ParameterType mapped))
@@ -95,8 +100,6 @@ public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
             case JsonTokenType.Number:
                 {
                     int intValue = reader.GetInt32();
-
-                    // 检查是否为有效的枚举值
                     if (Enum.IsDefined(typeof(ParameterType), intValue))
                     {
                         return (ParameterType)intValue;
@@ -110,12 +113,8 @@ public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
         }
     }
 
-    /// <summary>
-    /// 将ParameterType值写入JSON
-    /// </summary>
     public override void Write(Utf8JsonWriter writer, ParameterType value, JsonSerializerOptions options)
     {
-        // 序列化为字符串格式
         writer.WriteStringValue(value.ToString());
     }
 }

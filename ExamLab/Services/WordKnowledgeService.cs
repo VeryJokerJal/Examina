@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using ExamLab.Models;
@@ -178,7 +178,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "TextColor", DisplayName = "颜色值", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 2 }
             ]
         };
 
@@ -637,7 +637,7 @@ public class WordKnowledgeService
                 new() { Name = "AreaNumber", DisplayName = "第几行和第几列", Description = "按照参数一来判定", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
                 new() { Name = "StartPosition", DisplayName = "起始列或起始行", Description = "起始位置", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "EndPosition", DisplayName = "终止列或终止行", Description = "终止位置", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 },
-                new() { Name = "ShadingColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+                new() { Name = "ShadingColor", DisplayName = "颜色值", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 5 }
             ]
         };
 
@@ -824,7 +824,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "LineColor", DisplayName = "线条颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "LineColor", DisplayName = "线条颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -837,7 +837,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "FillColor", DisplayName = "填充颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "FillColor", DisplayName = "填充颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -863,7 +863,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "TextColor", DisplayName = "文字颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "TextColor", DisplayName = "文字颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -944,7 +944,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -1003,7 +1003,7 @@ public class WordKnowledgeService
             Category = "文本框设置",
             ParameterTemplates =
             [
-                new() { Name = "BorderColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "BorderColor", DisplayName = "颜色值", Description = "HEX颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
             ]
         };
 

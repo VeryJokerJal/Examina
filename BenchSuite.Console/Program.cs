@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Linq;
+using System.Text.Json;
 using BenchSuite.Models;
 using BenchSuite.Services;
 
@@ -17,6 +18,8 @@ internal class Program
     {
         try
         {
+            args = args.Length == 0 ? new string[] { "C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx", "D:\\Users\\Jal\\source\\repos\\Examina\\BenchSuite.Console\\TestData\\sample-exam.json" } : args;
+
             // 显示程序信息
             System.Console.WriteLine("=== PowerPoint评分系统 ===");
             System.Console.WriteLine("版本: 1.0.0");
@@ -141,23 +144,23 @@ internal class Program
 
             // 添加自定义转换器
             options.Converters.Add(new BenchSuite.Converters.ModuleTypeJsonConverter());
+            options.Converters.Add(new BenchSuite.Converters.ParameterTypeJsonConverter());
 
+            // 直接反序列化为新的 ExamModel（结构对齐 ExamExportDto：包含 exam 与 metadata）
             ExamModel? examModel = JsonSerializer.Deserialize<ExamModel>(jsonContent, options);
-
             if (examModel == null)
             {
                 System.Console.WriteLine("错误: 无法解析ExamModel JSON文件");
                 return null;
             }
 
-            // 验证ExamModel
             if (!ValidateExamModel(examModel))
             {
                 return null;
             }
 
-            System.Console.WriteLine($"成功加载ExamModel: {examModel.Name}");
-            System.Console.WriteLine($"包含模块数量: {examModel.Modules.Count}");
+            System.Console.WriteLine($"成功加载ExamModel: {examModel.Exam.Name}");
+            System.Console.WriteLine($"包含模块数量: {examModel.Exam.Modules.Count}");
 
             return examModel;
         }
@@ -178,26 +181,32 @@ internal class Program
     /// </summary>
     private static bool ValidateExamModel(ExamModel examModel)
     {
-        if (string.IsNullOrWhiteSpace(examModel.Id))
+        if (examModel.Exam == null)
+        {
+            System.Console.WriteLine("错误: ExamModel缺少 exam 节点");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(examModel.Exam.Id))
         {
             System.Console.WriteLine("错误: ExamModel缺少ID");
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(examModel.Name))
+        if (string.IsNullOrWhiteSpace(examModel.Exam.Name))
         {
             System.Console.WriteLine("错误: ExamModel缺少名称");
             return false;
         }
 
-        if (examModel.Modules == null || examModel.Modules.Count == 0)
+        if (examModel.Exam.Modules == null || examModel.Exam.Modules.Count == 0)
         {
             System.Console.WriteLine("错误: ExamModel没有包含任何模块");
             return false;
         }
 
         // 查找PowerPoint模块
-        ExamModuleModel? pptModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
+        ExamModuleModel? pptModule = examModel.Exam.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
         if (pptModule == null)
         {
             System.Console.WriteLine("错误: ExamModel中未找到PowerPoint模块");
@@ -235,7 +244,7 @@ internal class Program
             System.Console.WriteLine();
             System.Console.WriteLine("=== 开始评分 ===");
             System.Console.WriteLine($"PPT文件: {pptFilePath}");
-            System.Console.WriteLine($"试卷: {examModel.Name}");
+            System.Console.WriteLine($"试卷: {examModel.Exam.Name}");
             System.Console.WriteLine();
 
             PowerPointScoringService scoringService = new();
@@ -280,7 +289,7 @@ internal class Program
 
         if (!result.IsSuccess)
         {
-            System.Console.WriteLine("❌ 评分失败");
+            System.Console.WriteLine("评分失败");
             if (!string.IsNullOrEmpty(result.ErrorMessage))
             {
                 System.Console.WriteLine($"错误信息: {result.ErrorMessage}");
@@ -288,53 +297,68 @@ internal class Program
             return;
         }
 
-        System.Console.WriteLine("✅ 评分成功");
+        System.Console.WriteLine("评分成功");
         System.Console.WriteLine();
 
         // 基本信息
-        System.Console.WriteLine("📊 总体结果:");
+        System.Console.WriteLine("总体结果:");
         System.Console.WriteLine($"   总分: {result.TotalScore:F1}");
         System.Console.WriteLine($"   得分: {result.AchievedScore:F1}");
         System.Console.WriteLine($"   得分率: {result.ScoreRate:P2}");
         System.Console.WriteLine($"   耗时: {result.ElapsedMilliseconds}ms");
         System.Console.WriteLine();
 
-        // 详细的知识点结果
-        if (result.KnowledgePointResults != null && result.KnowledgePointResults.Count > 0)
+        // 详细的题目结果
+        if (result.QuestionResults != null && result.QuestionResults.Count > 0)
         {
-            System.Console.WriteLine("📋 详细检测结果:");
+            System.Console.WriteLine("详细检测结果:");
             System.Console.WriteLine();
 
             int correctCount = 0;
-            int totalCount = result.KnowledgePointResults.Count;
+            int totalCount = result.QuestionResults.Count;
 
-            foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
+            foreach (QuestionScoreResult questionResult in result.QuestionResults)
             {
-                string status = kpResult.IsCorrect ? "✅" : "❌";
-                string name = !string.IsNullOrEmpty(kpResult.KnowledgePointName)
-                    ? kpResult.KnowledgePointName
-                    : kpResult.KnowledgePointType;
+                string status = questionResult.IsCorrect ? "正确" : "-";
+                string name = !string.IsNullOrEmpty(questionResult.QuestionTitle)
+                    ? questionResult.QuestionTitle
+                    : $"题目 {questionResult.QuestionId}";
 
                 System.Console.WriteLine($"   {status} {name}");
-                System.Console.WriteLine($"      分数: {kpResult.AchievedScore:F1}/{kpResult.TotalScore:F1}");
+                System.Console.WriteLine($"      分数: {questionResult.AchievedScore:F1}/{questionResult.TotalScore:F1}");
 
-                if (!string.IsNullOrEmpty(kpResult.Details))
+                // 显示该题目下的操作点详情
+                List<KnowledgePointResult> questionKnowledgePoints = result.KnowledgePointResults
+                    .Where(kp => kp.QuestionId == questionResult.QuestionId)
+                    .ToList();
+
+                foreach (KnowledgePointResult kpResult in questionKnowledgePoints)
                 {
-                    System.Console.WriteLine($"      详情: {kpResult.Details}");
+                    string kpStatus = kpResult.IsCorrect ? "✓" : "✗";
+                    string kpName = !string.IsNullOrEmpty(kpResult.KnowledgePointName)
+                        ? kpResult.KnowledgePointName
+                        : kpResult.KnowledgePointType;
+
+                    System.Console.WriteLine($"        {kpStatus} {kpName}");
+
+                    if (!string.IsNullOrEmpty(kpResult.Details))
+                    {
+                        System.Console.WriteLine($"          详情: {kpResult.Details}");
+                    }
+
+                    if (!string.IsNullOrEmpty(kpResult.ExpectedValue) && !string.IsNullOrEmpty(kpResult.ActualValue))
+                    {
+                        System.Console.WriteLine($"          期望值: {kpResult.ExpectedValue}");
+                        System.Console.WriteLine($"          实际值: {kpResult.ActualValue}");
+                    }
+
+                    if (!string.IsNullOrEmpty(kpResult.ErrorMessage))
+                    {
+                        System.Console.WriteLine($"          错误: {kpResult.ErrorMessage}");
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(kpResult.ExpectedValue) && !string.IsNullOrEmpty(kpResult.ActualValue))
-                {
-                    System.Console.WriteLine($"      期望值: {kpResult.ExpectedValue}");
-                    System.Console.WriteLine($"      实际值: {kpResult.ActualValue}");
-                }
-
-                if (!string.IsNullOrEmpty(kpResult.ErrorMessage))
-                {
-                    System.Console.WriteLine($"      错误: {kpResult.ErrorMessage}");
-                }
-
-                if (kpResult.IsCorrect)
+                if (questionResult.IsCorrect)
                 {
                     correctCount++;
                 }
@@ -342,8 +366,8 @@ internal class Program
                 System.Console.WriteLine();
             }
 
-            System.Console.WriteLine($"📈 检测统计:");
-            System.Console.WriteLine($"   正确项目: {correctCount}/{totalCount}");
+            System.Console.WriteLine($"检测统计:");
+            System.Console.WriteLine($"   正确题目: {correctCount}/{totalCount}");
             System.Console.WriteLine($"   正确率: {(double)correctCount / totalCount:P2}");
         }
 

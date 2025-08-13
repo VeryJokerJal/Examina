@@ -1,29 +1,88 @@
-﻿namespace BenchSuite.Models;
+﻿using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
+
+
+namespace BenchSuite.Models;
 
 /// <summary>
-/// 试卷模型 - 简化版本，基于ExamLab.Models.Exam
+/// 试卷模型（结构与 ExamLab.Models.ImportExport.ExamExportDto 对齐）
 /// </summary>
 public class ExamModel
 {
-    /// <summary>
-    /// 试卷ID
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("exam")] public ExamInfoModel Exam { get; set; } = new();
+    [JsonPropertyName("metadata")] public ExportMetadataModel Metadata { get; set; } = new();
+}
 
-    /// <summary>
-    /// 试卷名称
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
+/// <summary>
+/// exam 节点结构（对齐 ExamDto）
+/// </summary>
+public class ExamInfoModel
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("description")] public string? Description { get; set; }
+    [JsonPropertyName("examType")] public string ExamType { get; set; } = "UnifiedExam";
+    [JsonPropertyName("status")] public string Status { get; set; } = "Draft";
+    [JsonPropertyName("totalScore")] public decimal TotalScore { get; set; } = 100.0m;
+    [JsonPropertyName("durationMinutes")] public int DurationMinutes { get; set; } = 120;
+    [JsonPropertyName("startTime")] public DateTime? StartTime { get; set; }
+    [JsonPropertyName("endTime")] public DateTime? EndTime { get; set; }
+    [JsonPropertyName("allowRetake")] public bool AllowRetake { get; set; } = false;
+    [JsonPropertyName("maxRetakeCount")] public int MaxRetakeCount { get; set; } = 0;
+    [JsonPropertyName("passingScore")] public decimal PassingScore { get; set; } = 60.0m;
+    [JsonPropertyName("randomizeQuestions")] public bool RandomizeQuestions { get; set; } = false;
+    [JsonPropertyName("showScore")] public bool ShowScore { get; set; } = true;
+    [JsonPropertyName("showAnswers")] public bool ShowAnswers { get; set; } = false;
+    [JsonPropertyName("createdBy")] public int CreatedBy { get; set; } = 1;
+    [JsonPropertyName("createdAt")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("updatedAt")] public DateTime? UpdatedAt { get; set; }
+    [JsonPropertyName("publishedAt")] public DateTime? PublishedAt { get; set; }
+    [JsonPropertyName("publishedBy")] public int? PublishedBy { get; set; }
+    [JsonPropertyName("isEnabled")] public bool IsEnabled { get; set; } = true;
+    [JsonPropertyName("tags")] public string? Tags { get; set; }
+    [JsonPropertyName("extendedConfig")] public object? ExtendedConfig { get; set; }
 
-    /// <summary>
-    /// 试卷描述
-    /// </summary>
-    public string Description { get; set; } = string.Empty;
+    [JsonPropertyName("subjects")] public List<SubjectModel> Subjects { get; set; } = new();
 
-    /// <summary>
-    /// 试卷包含的模块
-    /// </summary>
-    public List<ExamModuleModel> Modules { get; set; } = [];
+    // 复用内部模块模型，对应 ExamExportDto.modules
+    [JsonPropertyName("modules")] public ObservableCollection<ExamModuleModel> Modules { get; set; } = new();
+}
+
+/// <summary>
+/// 科目（对齐 SubjectDto）
+/// </summary>
+public class SubjectModel
+{
+    [JsonPropertyName("id")] public int Id { get; set; }
+    [JsonPropertyName("examId")] public int ExamId { get; set; }
+    [JsonPropertyName("subjectType")] public string SubjectType { get; set; } = string.Empty;
+    [JsonPropertyName("subjectName")] public string SubjectName { get; set; } = string.Empty;
+    [JsonPropertyName("description")] public string? Description { get; set; }
+    [JsonPropertyName("score")] public decimal Score { get; set; } = 20.0m;
+    [JsonPropertyName("durationMinutes")] public int DurationMinutes { get; set; } = 30;
+    [JsonPropertyName("sortOrder")] public int SortOrder { get; set; } = 1;
+    [JsonPropertyName("isRequired")] public bool IsRequired { get; set; } = true;
+    [JsonPropertyName("isEnabled")] public bool IsEnabled { get; set; } = true;
+    [JsonPropertyName("minScore")] public decimal? MinScore { get; set; }
+    [JsonPropertyName("weight")] public decimal Weight { get; set; } = 1.0m;
+    [JsonPropertyName("subjectConfig")] public object? SubjectConfig { get; set; }
+    [JsonPropertyName("questions")] public List<QuestionModel> Questions { get; set; } = new();
+    [JsonPropertyName("questionCount")] public int QuestionCount { get; set; }
+}
+
+/// <summary>
+/// 导出元数据（对齐 ExportMetadataDto）
+/// </summary>
+public class ExportMetadataModel
+{
+    [JsonPropertyName("exportVersion")] public string ExportVersion { get; set; } = "1.0";
+    [JsonPropertyName("exportDate")] public DateTime ExportDate { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("exportedBy")] public string ExportedBy { get; set; } = "ExamLab";
+    [JsonPropertyName("totalSubjects")] public int TotalSubjects { get; set; }
+    [JsonPropertyName("totalQuestions")] public int TotalQuestions { get; set; }
+    [JsonPropertyName("totalOperationPoints")] public int TotalOperationPoints { get; set; }
+    [JsonPropertyName("exportLevel")] public string ExportLevel { get; set; } = "Complete";
+    [JsonPropertyName("exportFormat")] public string ExportFormat { get; set; } = "XML";
 }
 
 /// <summary>
@@ -34,42 +93,42 @@ public class ExamModuleModel
     /// <summary>
     /// 模块ID
     /// </summary>
-    public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块名称
     /// </summary>
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块类型
     /// </summary>
-    public ModuleType Type { get; set; }
+    [JsonPropertyName("type")] public ModuleType Type { get; set; }
 
     /// <summary>
     /// 模块描述
     /// </summary>
-    public string Description { get; set; } = string.Empty;
+    [JsonPropertyName("description")] public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块分值
     /// </summary>
-    public decimal Score { get; set; }
+    [JsonPropertyName("score")] public decimal Score { get; set; }
 
     /// <summary>
     /// 模块包含的题目
     /// </summary>
-    public List<QuestionModel> Questions { get; set; } = [];
+    [JsonPropertyName("questions")] public ObservableCollection<QuestionModel> Questions { get; set; } = new();
 
     /// <summary>
     /// 是否启用该模块
     /// </summary>
-    public bool IsEnabled { get; set; } = true;
+    [JsonPropertyName("isEnabled")] public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// 模块排序
     /// </summary>
-    public int Order { get; set; }
+    [JsonPropertyName("order")] public int Order { get; set; }
 }
 
 /// <summary>
@@ -80,37 +139,39 @@ public class QuestionModel
     /// <summary>
     /// 题目ID
     /// </summary>
-    public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// 题目标题
     /// </summary>
-    public string Title { get; set; } = string.Empty;
+    [JsonPropertyName("title")] public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// 题目内容
     /// </summary>
-    public string Content { get; set; } = string.Empty;
+    [JsonPropertyName("content")] public string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// 题目分值
     /// </summary>
-    public decimal Score { get; set; }
+    [JsonPropertyName("score")] public decimal Score { get; set; }
 
     /// <summary>
     /// 题目排序
     /// </summary>
-    public int Order { get; set; }
+    [JsonPropertyName("order")] public int Order { get; set; }
 
     /// <summary>
     /// 关联的操作点
     /// </summary>
-    public List<OperationPointModel> OperationPoints { get; set; } = [];
+    [JsonPropertyName("operationPoints")] public List<OperationPointModel> OperationPoints { get; set; } = [];
 
     /// <summary>
     /// 是否启用该题目
     /// </summary>
-    public bool IsEnabled { get; set; } = true;
+    [JsonPropertyName("isEnabled")] public bool IsEnabled { get; set; } = true;
+
+    // ExamLab.Question 无CreatedAt/UpdatedAt等字段，保持精简一致
 }
 
 /// <summary>
@@ -121,57 +182,57 @@ public class OperationPointModel
     /// <summary>
     /// 操作点ID
     /// </summary>
-    public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// 操作点名称
     /// </summary>
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 操作点描述
     /// </summary>
-    public string Description { get; set; } = string.Empty;
+    [JsonPropertyName("description")] public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// 模块类型
     /// </summary>
-    public ModuleType ModuleType { get; set; } = ModuleType.Windows;
+    [JsonPropertyName("moduleType")] public ModuleType ModuleType { get; set; } = ModuleType.Windows;
 
     /// <summary>
     /// PPT知识点类型（当ModuleType为PowerPoint时使用）
     /// </summary>
-    public string? PowerPointKnowledgeType { get; set; }
+    [JsonPropertyName("powerPointKnowledgeType")] public string? PowerPointKnowledgeType { get; set; }
 
     /// <summary>
     /// Word知识点类型（当ModuleType为Word时使用）
     /// </summary>
-    public string? WordKnowledgeType { get; set; }
+    [JsonPropertyName("wordKnowledgeType")] public string? WordKnowledgeType { get; set; }
 
     /// <summary>
     /// Excel知识点类型（当ModuleType为Excel时使用）
     /// </summary>
-    public string? ExcelKnowledgeType { get; set; }
+    [JsonPropertyName("excelKnowledgeType")] public string? ExcelKnowledgeType { get; set; }
 
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public decimal Score { get; set; }
+    [JsonPropertyName("score")] public decimal Score { get; set; }
 
     /// <summary>
     /// 配置参数
     /// </summary>
-    public List<ConfigurationParameterModel> Parameters { get; set; } = [];
+    [JsonPropertyName("parameters")] public List<ConfigurationParameterModel> Parameters { get; set; } = [];
 
     /// <summary>
     /// 是否启用该操作点
     /// </summary>
-    public bool IsEnabled { get; set; } = true;
+    [JsonPropertyName("isEnabled")] public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// 操作点排序
     /// </summary>
-    public int Order { get; set; }
+    [JsonPropertyName("order")] public int Order { get; set; }
 }
 
 /// <summary>
@@ -182,27 +243,27 @@ public class ConfigurationParameterModel
     /// <summary>
     /// 参数名称
     /// </summary>
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 显示名称
     /// </summary>
-    public string DisplayName { get; set; } = string.Empty;
+    [JsonPropertyName("displayName")] public string DisplayName { get; set; } = string.Empty;
 
     /// <summary>
     /// 参数值
     /// </summary>
-    public string Value { get; set; } = string.Empty;
+    [JsonPropertyName("value")] public string Value { get; set; } = string.Empty;
 
     /// <summary>
     /// 参数类型
     /// </summary>
-    public ParameterType Type { get; set; }
+    [JsonPropertyName("type")] public ParameterType Type { get; set; }
 
     /// <summary>
     /// 是否必填
     /// </summary>
-    public bool IsRequired { get; set; }
+    [JsonPropertyName("isRequired")] public bool IsRequired { get; set; }
 }
 
 /// <summary>
@@ -222,11 +283,13 @@ public enum ModuleType
 /// </summary>
 public enum ParameterType
 {
-    Text,           // 文本
-    Number,         // 数字
-    Boolean,        // 布尔值
-    Enum,           // 枚举
-    Color,          // 颜色
-    File,           // 文件路径
-    MultipleChoice  // 多选
+    Text = 1,
+    Number = 2,
+    Boolean = 3,
+    Enum = 4,
+    Date = 5,
+    Color = 6
+
+
+
 }
