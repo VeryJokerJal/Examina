@@ -247,11 +247,26 @@ public class PowerPointScoringService : IPowerPointScoringService
                             // 先做键名规范化（根据ExamLab配置）
                             Dictionary<string, string> normalizedParams = PowerPointKnowledgeMapping.NormalizeParameterKeys(operationPoint.PowerPointKnowledgeType ?? operationPoint.Name, rawParams);
 
-                            // 使用解析后的参数
-                            Dictionary<string, string> resolvedParameters = GetResolvedParameters(normalizedParams, context);
+                            // 对于某些知识点，保留原始的-1参数值，不进行解析
+                            Dictionary<string, string> resolvedParameters;
+                            string? knowledgeType = operationPoint.PowerPointKnowledgeType;
+                            if (string.IsNullOrWhiteSpace(knowledgeType))
+                            {
+                                PowerPointKnowledgeMapping.TryMapNameToType(operationPoint.Name, out knowledgeType);
+                            }
+
+                            if (ShouldPreserveMinusOneParameters(knowledgeType))
+                            {
+                                // 对于需要保留-1参数的知识点，使用规范化后的参数但不解析-1
+                                resolvedParameters = normalizedParams;
+                            }
+                            else
+                            {
+                                // 使用解析后的参数
+                                resolvedParameters = GetResolvedParameters(normalizedParams, context);
+                            }
 
                             // 如果没填PowerPointKnowledgeType，则由中文名称映射到内部类型键
-                            string? knowledgeType = operationPoint.PowerPointKnowledgeType;
                             if (string.IsNullOrWhiteSpace(knowledgeType))
                             {
                                 if (!PowerPointKnowledgeMapping.TryMapNameToType(operationPoint.Name, out knowledgeType))
@@ -709,43 +724,109 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
-                !int.TryParse(slideIndexStr, out int slideIndex) ||
-                !parameters.TryGetValue("TextContent", out string? expectedText))
+            if (!parameters.TryGetValue("TextContent", out string? expectedText))
             {
-                result.ErrorMessage = "缺少必要参数: SlideIndex 或 TextContent";
+                result.ErrorMessage = "缺少必要参数: TextContent";
                 return result;
             }
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
-            {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
+            // 检查是否指定了特定幻灯片
+            bool checkAllSlides = false;
+            int targetSlideIndex = -1;
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            bool textFound = false;
-            string allText = "";
-
-            foreach (PowerPoint.Shape shape in slide.Shapes)
+            if (parameters.TryGetValue("SlideIndex", out string? slideIndexStr))
             {
-                if (shape.HasTextFrame == MsoTriState.msoTrue)
+                if (int.TryParse(slideIndexStr, out int slideIndex))
                 {
-                    string shapeText = shape.TextFrame.TextRange.Text;
-                    allText += shapeText + " ";
-
-                    if (shapeText.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
+                    if (slideIndex == -1)
                     {
-                        textFound = true;
+                        checkAllSlides = true;
+                    }
+                    else if (slideIndex >= 1 && slideIndex <= presentation.Slides.Count)
+                    {
+                        targetSlideIndex = slideIndex;
+                    }
+                    else
+                    {
+                        result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                        return result;
                     }
                 }
+                else
+                {
+                    result.ErrorMessage = "SlideIndex 参数格式错误";
+                    return result;
+                }
+            }
+            else
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndex";
+                return result;
+            }
+
+            bool textFound = false;
+            string allText = "";
+            int foundSlideIndex = -1;
+
+            if (checkAllSlides)
+            {
+                // 遍历所有幻灯片查找文本
+                for (int i = 1; i <= presentation.Slides.Count; i++)
+                {
+                    PowerPoint.Slide slide = presentation.Slides[i];
+                    foreach (PowerPoint.Shape shape in slide.Shapes)
+                    {
+                        if (shape.HasTextFrame == MsoTriState.msoTrue)
+                        {
+                            string shapeText = shape.TextFrame.TextRange.Text;
+                            allText += $"[幻灯片{i}]{shapeText} ";
+
+                            if (shapeText.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
+                            {
+                                textFound = true;
+                                foundSlideIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    if (textFound) break;
+                }
+            }
+            else
+            {
+                // 检查指定幻灯片
+                PowerPoint.Slide slide = presentation.Slides[targetSlideIndex];
+                foreach (PowerPoint.Shape shape in slide.Shapes)
+                {
+                    if (shape.HasTextFrame == MsoTriState.msoTrue)
+                    {
+                        string shapeText = shape.TextFrame.TextRange.Text;
+                        allText += shapeText + " ";
+
+                        if (shapeText.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
+                        {
+                            textFound = true;
+                        }
+                    }
+                }
+                foundSlideIndex = targetSlideIndex;
             }
 
             result.ExpectedValue = expectedText;
             result.ActualValue = allText.Trim();
             result.IsCorrect = textFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 文本检测: 期望包含 '{expectedText}', 实际文本 '{result.ActualValue}'";
+
+            if (checkAllSlides)
+            {
+                result.Details = textFound
+                    ? $"在幻灯片 {foundSlideIndex} 中找到文本 '{expectedText}'"
+                    : $"在所有幻灯片中未找到文本 '{expectedText}'";
+            }
+            else
+            {
+                result.Details = $"幻灯片 {foundSlideIndex} 文本检测: 期望包含 '{expectedText}', 实际文本 '{result.ActualValue}'";
+            }
         }
         catch (Exception ex)
         {
@@ -1426,12 +1507,26 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndexes", out string? slideIndexesStr) ||
-                !parameters.TryGetValue("TransitionMode", out string? expectedModeStr) ||
-                !int.TryParse(expectedModeStr, out int expectedMode))
+            if (!parameters.TryGetValue("SlideIndexes", out string? slideIndexesStr))
             {
-                result.ErrorMessage = "缺少必要参数: SlideIndexes 或 TransitionMode";
+                result.ErrorMessage = "缺少必要参数: SlideIndexes";
                 return result;
+            }
+
+            // 尝试获取TransitionMode，如果没有则从TransitionScheme和TransitionDirection生成
+            int expectedMode = 1; // 默认值
+            if (parameters.TryGetValue("TransitionMode", out string? expectedModeStr) &&
+                int.TryParse(expectedModeStr, out int parsedMode))
+            {
+                expectedMode = parsedMode;
+            }
+            else if (parameters.TryGetValue("TransitionScheme", out string? scheme))
+            {
+                expectedMode = GenerateTransitionModeFromSchemeAndDirection(scheme, null);
+            }
+            else if (parameters.TryGetValue("TransitionDirection", out string? direction))
+            {
+                expectedMode = GenerateTransitionModeFromSchemeAndDirection(null, direction);
             }
 
             string[] slideIndexStrings = slideIndexesStr.Split(',');
@@ -1491,6 +1586,63 @@ public class PowerPointScoringService : IPowerPointScoringService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 判断是否应该保留-1参数值而不进行解析
+    /// </summary>
+    private static bool ShouldPreserveMinusOneParameters(string? knowledgeType)
+    {
+        if (string.IsNullOrWhiteSpace(knowledgeType))
+            return false;
+
+        // 对于文本内容检测，保留-1参数以便在检测方法中遍历所有幻灯片
+        return knowledgeType.Equals("InsertTextContent", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 根据切换方案和方向生成TransitionMode值
+    /// </summary>
+    private static int GenerateTransitionModeFromSchemeAndDirection(string? scheme, string? direction)
+    {
+        // 根据切换方案和方向的组合返回对应的模式值
+        // 这里简化处理，实际应用中可以根据具体需求调整映射关系
+        if (!string.IsNullOrEmpty(scheme))
+        {
+            return scheme.ToLowerInvariant() switch
+            {
+                "无效果" => 1,
+                "推入" => 2,
+                "淡出" => 3,
+                "覆盖" => 4,
+                "随机条纹" => 5,
+                "棋盘格" => 6,
+                "摩天轮" => 7,
+                "闪光灯" => 8,
+                "平移" => 9,
+                _ => 1
+            };
+        }
+
+        if (!string.IsNullOrEmpty(direction))
+        {
+            return direction.ToLowerInvariant() switch
+            {
+                "推入向左" => 2,
+                "推入向右" => 2,
+                "推入向上" => 2,
+                "推入向下" => 2,
+                "淡出" => 3,
+                "平滑淡出" => 3,
+                "覆盖向左" => 4,
+                "覆盖向右" => 4,
+                "覆盖向上" => 4,
+                "覆盖向下" => 4,
+                _ => 1
+            };
+        }
+
+        return 1; // 默认值
     }
 
     /// <summary>
@@ -3208,8 +3360,8 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <param name="examModel">试卷模型</param>
     private static void EnsureUniqueQuestionIds(ExamModel examModel)
     {
-        HashSet<string> usedIds = new();
-        List<QuestionModel> allQuestions = new();
+        HashSet<string> usedIds = [];
+        List<QuestionModel> allQuestions = [];
 
         // 收集所有模块中的题目
         foreach (ExamModuleModel module in examModel.Exam.Modules)
@@ -3227,7 +3379,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             {
                 string newId = GenerateUniqueQuestionId(usedIds);
                 question.Id = newId;
-                usedIds.Add(newId);
+                _ = usedIds.Add(newId);
             }
         }
     }

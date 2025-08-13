@@ -104,6 +104,17 @@ namespace BenchSuite.Services
                     if (key.Equals("TransitionEffect", StringComparison.OrdinalIgnoreCase)) key = "TransitionType";
                 }
 
+                // 幻灯片切换方式的参数映射
+                if (knowledgeType.Equals("SlideTransitionMode", StringComparison.OrdinalIgnoreCase))
+                {
+                    // 将TransitionScheme和TransitionDirection组合映射为TransitionMode
+                    if (key.Equals("TransitionScheme", StringComparison.OrdinalIgnoreCase) || key.Equals("TransitionDirection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // 这里可以根据具体的切换方案和方向组合计算TransitionMode值
+                        // 暂时保持原键名，在后续处理中进行组合
+                    }
+                }
+
                 normalized[key] = value;
             }
 

@@ -136,7 +136,8 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张（-1代表任意一张）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = -1 },
                 new() { Name = "SlideIdentifier", DisplayName = "幻灯片标识符", Description = "幻灯片类型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "普通幻灯片（ppt类型）,标题幻灯片或布局为标题的类型" }
+                    EnumOptions = "普通幻灯片（ppt类型）,标题幻灯片或布局为标题的类型" },
+                new() { Name = "ExpectedSlideCount", DisplayName = "删除后期望的幻灯片总数", Description = "删除操作完成后期望的幻灯片总数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0 }
             ]
         };
 
@@ -153,7 +154,8 @@ public class PowerPointKnowledgeService
                 new() { Name = "InsertMode", DisplayName = "插入方式", Description = "选择插入方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "之前,之后" },
                 new() { Name = "NewSlideLayout", DisplayName = "新插入幻灯片的版式", Description = "新幻灯片的版式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "空白版式（无标题无内容）,单对象版式（可放图表、图像等）" }
+                    EnumOptions = "空白版式（无标题无内容）,单对象版式（可放图表、图像等）" },
+                new() { Name = "ExpectedSlideCount", DisplayName = "插入后期望的幻灯片总数", Description = "插入操作完成后期望的幻灯片总数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 }
             ]
         };
 
@@ -201,7 +203,8 @@ public class PowerPointKnowledgeService
                 new() { Name = "TransitionScheme", DisplayName = "幻灯片切换方案", Description = "选择切换方案", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "无效果,推入,淡出,覆盖,随机条纹,棋盘格,摩天轮,闪光灯,平移" },
                 new() { Name = "TransitionDirection", DisplayName = "幻灯片切换效果", Description = "选择切换方向", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "推入向左,推入向右,推入向上,推入向下,淡出,平滑淡出,覆盖向左,覆盖向右,覆盖向上,覆盖向下,棋盘交错纵向,棋盘交错横向,水平随机条纹,垂直随机条纹,摩天轮向右,闪光灯,平移向左,平移向右,轮状反向1辐射" }
+                    EnumOptions = "推入向左,推入向右,推入向上,推入向下,淡出,平滑淡出,覆盖向左,覆盖向右,覆盖向上,覆盖向下,棋盘交错纵向,棋盘交错横向,水平随机条纹,垂直随机条纹,摩天轮向右,闪光灯,平移向左,平移向右,轮状反向1辐射" },
+                new() { Name = "TransitionMode", DisplayName = "切换方式模式", Description = "切换方式的数值模式（1-9对应不同切换方式）", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1, MaxValue = 9 }
             ]
         };
 
