@@ -145,6 +145,12 @@ public class ScoringConfiguration
     /// </summary>
     public int TimeoutSeconds { get; set; } = 30;
 
+    /// <summary>
+    /// 是否详细记录检测过程
+    /// </summary>
+    public bool EnableDetailedLogging { get; set; } = false;
+}
+
 /// <summary>
 /// 题目评分结果
 /// </summary>
@@ -174,11 +180,4 @@ public class QuestionScoreResult
     /// 题内是否全部操作点正确
     /// </summary>
     public bool IsCorrect { get; set; }
-}
-
-
-    /// <summary>
-    /// 是否详细记录检测过程
-    /// </summary>
-    public bool EnableDetailedLogging { get; set; } = false;
 }
