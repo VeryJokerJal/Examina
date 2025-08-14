@@ -38,7 +38,6 @@ public class WindowsModuleViewModel : ModuleViewModelBase
         WindowsOperationType[] operationTypes =
         [
             WindowsOperationType.QuickCreate,
-            WindowsOperationType.CreateOperation,
             WindowsOperationType.DeleteOperation,
             WindowsOperationType.CopyOperation,
             WindowsOperationType.MoveOperation,
@@ -108,7 +107,6 @@ public class WindowsModuleViewModel : ModuleViewModelBase
         return operationType switch
         {
             WindowsOperationType.QuickCreate => "快捷创建",
-            WindowsOperationType.CreateOperation => "创建操作",
             WindowsOperationType.DeleteOperation => "删除操作",
             WindowsOperationType.CopyOperation => "复制操作",
             WindowsOperationType.MoveOperation => "移动操作",
@@ -125,7 +123,6 @@ public class WindowsModuleViewModel : ModuleViewModelBase
         return operationType switch
         {
             WindowsOperationType.QuickCreate => "快速创建文件或文件夹",
-            WindowsOperationType.CreateOperation => "创建新的文件或文件夹",
             WindowsOperationType.DeleteOperation => "删除指定的文件或文件夹",
             WindowsOperationType.CopyOperation => "复制文件或文件夹",
             WindowsOperationType.MoveOperation => "移动文件或文件夹",
@@ -169,28 +166,6 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 3
-                });
-                break;
-
-            case WindowsOperationType.CreateOperation:
-                operationPoint.Parameters.Add(new ConfigurationParameter
-                {
-                    Name = "ItemType",
-                    DisplayName = "创建类型",
-                    Description = "选择要创建的项目类型",
-                    Type = ParameterType.Enum,
-                    IsRequired = true,
-                    Order = 1,
-                    EnumOptions = "文件,文件夹"
-                });
-                operationPoint.Parameters.Add(new ConfigurationParameter
-                {
-                    Name = "ItemName",
-                    DisplayName = "项目名称",
-                    Description = "要创建的文件或文件夹名称",
-                    Type = ParameterType.Text,
-                    IsRequired = true,
-                    Order = 2
                 });
                 break;
 
