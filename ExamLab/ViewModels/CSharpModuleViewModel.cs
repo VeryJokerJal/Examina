@@ -76,8 +76,8 @@ public class CSharpModuleViewModel : ModuleViewModelBase
 
         CodeBlank newCodeBlank = new()
         {
-            Description = "新填空处",
-            DetailedDescription = "请输入填空处的详细说明",
+            Description = "// 请输入需要学生填写的代码",
+            DetailedDescription = string.Empty,
             Order = SelectedQuestion.CodeBlanks.Count + 1
         };
 
