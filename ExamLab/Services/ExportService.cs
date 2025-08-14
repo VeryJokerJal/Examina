@@ -67,7 +67,7 @@ public static class ExportService
         {
             foreach (Question question in module.Questions)
             {
-                string line = $"\"{module.Name}\",\"{question.Title}\",\"{question.Content.Replace("\"", "\"\"")}\",{question.Score},{question.OperationPoints.Count}";
+                string line = $"\"{module.Name}\",\"{question.Title}\",\"{question.Content.Replace("\"", "\"\"")}\",{question.TotalScore},{question.OperationPoints.Count}";
                 _ = csv.AppendLine(line);
             }
         }
@@ -97,7 +97,7 @@ public static class ExportService
             {
                 _ = text.AppendLine($"题目：{question.Title}");
                 _ = text.AppendLine($"内容：{question.Content}");
-                _ = text.AppendLine($"分值：{question.Score}");
+                _ = text.AppendLine($"分值：{question.TotalScore}");
                 _ = text.AppendLine();
 
                 if (question.OperationPoints.Count > 0)

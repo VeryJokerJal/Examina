@@ -94,7 +94,10 @@
                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="题目详情" />
                                 <TextBox Header="题目标题" Text="{Binding CurrentContentViewModel.SelectedQuestion.Title, Mode=TwoWay}" />
                                 <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay}" TextWrapping="Wrap" />
-                                <NumberBox Header="题目分值" Value="{Binding CurrentContentViewModel.SelectedQuestion.Score, Mode=TwoWay}" />
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="题目总分" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" FontSize="16" Foreground="{ThemeResource SystemAccentColor}" />
+                                </StackPanel>
                             </StackPanel>
 
                             <!--  C#程序配置  -->

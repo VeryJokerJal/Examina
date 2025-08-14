@@ -93,9 +93,23 @@ public class QuestionModel
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
-    /// 题目分值
+    /// 题目分值（已弃用，使用TotalScore）
     /// </summary>
+    [Obsolete("使用TotalScore属性代替")]
     public decimal Score { get; set; }
+
+    /// <summary>
+    /// 题目总分值（基于所有操作点分数的总和）
+    /// </summary>
+    public decimal TotalScore
+    {
+        get
+        {
+            if (OperationPoints == null || OperationPoints.Count == 0)
+                return 0;
+            return OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+        }
+    }
 
     /// <summary>
     /// 题目排序
@@ -228,5 +242,6 @@ public enum ParameterType
     Enum,           // 枚举
     Color,          // 颜色
     File,           // 文件路径
-    MultipleChoice  // 多选
+    MultipleChoice,  // 多选
+    Date
 }

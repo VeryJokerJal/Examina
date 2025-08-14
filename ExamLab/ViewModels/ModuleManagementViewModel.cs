@@ -231,7 +231,6 @@ public class ModuleManagementViewModel : ViewModelBase
             {
                 Title = question.Title,
                 Content = question.Content,
-                Score = question.Score,
                 Order = question.Order,
                 IsEnabled = question.IsEnabled
             };

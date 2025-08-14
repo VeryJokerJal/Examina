@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using BenchSuite.Models;
 
@@ -36,7 +34,7 @@ public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
                     }
 
                     // 2) 常见同义词映射（中英文、技术别名）
-                    Dictionary<string, ParameterType> synonyms = new Dictionary<string, ParameterType>(StringComparer.OrdinalIgnoreCase)
+                    Dictionary<string, ParameterType> synonyms = new(StringComparer.OrdinalIgnoreCase)
                     {
                         // Text
                         ["text"] = ParameterType.Text,
@@ -97,12 +95,9 @@ public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
                     int intValue = reader.GetInt32();
 
                     // 检查是否为有效的枚举值
-                    if (Enum.IsDefined(typeof(ParameterType), intValue))
-                    {
-                        return (ParameterType)intValue;
-                    }
-
-                    throw new JsonException($"数值 {intValue} 不是有效的 ParameterType 枚举值");
+                    return Enum.IsDefined(typeof(ParameterType), intValue)
+                        ? (ParameterType)intValue
+                        : throw new JsonException($"数值 {intValue} 不是有效的 ParameterType 枚举值");
                 }
 
             default:

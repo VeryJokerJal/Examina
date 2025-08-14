@@ -198,7 +198,6 @@ public class QuestionManagementViewModel : ViewModelBase
         {
             Title = questionTitle,
             Content = "请输入题目内容",
-            Score = 10,
             Order = SelectedModule.Questions.Count + 1,
             IsEnabled = true
         };
@@ -287,7 +286,6 @@ public class QuestionManagementViewModel : ViewModelBase
         {
             Title = newTitle,
             Content = question.Content,
-            Score = question.Score,
             Order = SelectedModule.Questions.Count + 1,
             IsEnabled = question.IsEnabled
         };
@@ -438,7 +436,6 @@ public class QuestionManagementViewModel : ViewModelBase
         }
 
         SelectedQuestion.Content = "请输入题目内容";
-        SelectedQuestion.Score = 10;
         SelectedQuestion.OperationPoints.Clear();
     }
 

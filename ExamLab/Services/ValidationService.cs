@@ -96,9 +96,9 @@ public static class ValidationService
             errors.Add("题目内容不能为空");
         }
 
-        if (question.Score < 0)
+        if (question.TotalScore < 0)
         {
-            errors.Add("题目分值不能为负数");
+            errors.Add("题目总分不能为负数");
         }
 
         if (question.OperationPoints.Count == 0)

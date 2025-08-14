@@ -46,6 +46,7 @@ public sealed partial class OperationPointEditPage : Page
         // 设置基本信息
         NameTextBox.Text = operationPoint.Name;
         DescriptionTextBox.Text = operationPoint.Description;
+        ScoreNumberBox.Value = operationPoint.Score;
 
         // 创建所有参数的编辑控件
         foreach (ConfigurationParameter parameter in operationPoint.Parameters)
@@ -472,5 +473,14 @@ public sealed partial class OperationPointEditPage : Page
     public void HideError()
     {
         ErrorTextBlock.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// 获取操作点分数
+    /// </summary>
+    /// <returns>操作点分数</returns>
+    public int GetScore()
+    {
+        return (int)ScoreNumberBox.Value;
     }
 }

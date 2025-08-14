@@ -151,7 +151,10 @@
                             
                             <TextBox Header="题目内容" Text="{Binding SelectedQuestion.Content, Mode=TwoWay}" TextWrapping="Wrap" AcceptsReturn="True" Height="120" Style="{StaticResource FormTextBoxStyle}"/>
                             
-                            <NumberBox Header="题目分值" Value="{Binding SelectedQuestion.Score, Mode=TwoWay}" Minimum="0" Style="{StaticResource FormNumberBoxStyle}"/>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="题目总分" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding SelectedQuestion.TotalScore}" FontSize="16" Foreground="{ThemeResource SystemAccentColor}" />
+                            </StackPanel>
                             
                             <NumberBox Header="显示顺序" Value="{Binding SelectedQuestion.Order, Mode=TwoWay}" Minimum="1" Style="{StaticResource FormNumberBoxStyle}"/>
                             
@@ -220,7 +223,7 @@
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="{Binding SelectedQuestion.Title}" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding SelectedQuestion.Content}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="{Binding SelectedQuestion.Score, Converter={StaticResource ScoreDisplayConverter}}" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"/>
+                                    <TextBlock Text="{Binding SelectedQuestion.TotalScore, Converter={StaticResource ScoreDisplayConverter}}" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

@@ -94,7 +94,7 @@ public abstract class ModuleViewModelBase : ViewModelBase
         {
             Title = $"{question.Title} - 副本",
             Content = question.Content,
-            Score = question.Score,
+
             Order = Module.Questions.Count + 1,
             IsEnabled = question.IsEnabled,
             CreatedTime = question.CreatedTime,

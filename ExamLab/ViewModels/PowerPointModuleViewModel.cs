@@ -152,6 +152,9 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
                     parameter.Value = editPage.GetParameterValue(parameter);
                 }
 
+                // 更新操作点分数
+                operationPoint.Score = editPage.GetScore();
+
                 // 验证参数
                 if (ValidateOperationPointParameters(operationPoint))
                 {

@@ -162,7 +162,7 @@ public class ModuleTotalScoreConverter : IValueConverter
     {
         if (value is ExamModule module)
         {
-            double totalScore = module.Questions.Sum(q => q.Score);
+            double totalScore = module.Questions.Sum(q => q.TotalScore);
             return totalScore;
         }
         return 0.0;

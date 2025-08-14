@@ -7,6 +7,9 @@
         <TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="操作点描述:" />
         <TextBox x:Name="DescriptionTextBox" Height="60" Margin="0,0,0,16" IsReadOnly="True" TextWrapping="Wrap" />
 
+        <TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="操作点分值:" />
+        <NumberBox x:Name="ScoreNumberBox" Margin="0,0,0,16" Minimum="0" Maximum="100" Value="5" />
+
         <TextBlock Margin="0,0,0,8" FontSize="16" FontWeight="SemiBold" Text="参数配置:" />
         <ScrollViewer Height="300" VerticalScrollBarVisibility="Auto">
             <StackPanel x:Name="ParametersPanel" />

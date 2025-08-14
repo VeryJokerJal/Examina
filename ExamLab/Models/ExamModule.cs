@@ -36,10 +36,10 @@ public class ExamModule : ReactiveObject
             {
                 foreach (Question question in e.NewItems.Cast<Question>())
                 {
-                    // 监听题目分值变化
+                    // 监听题目总分变化
                     question.PropertyChanged += (s, args) =>
                     {
-                        if (args.PropertyName == nameof(Question.Score))
+                        if (args.PropertyName == nameof(Question.TotalScore))
                         {
                             this.RaisePropertyChanged(nameof(TotalScore));
                         }
@@ -109,7 +109,7 @@ public class ExamModule : ReactiveObject
     /// <summary>
     /// 总分
     /// </summary>
-    public double TotalScore => Questions.Sum(q => q.Score);
+    public double TotalScore => Questions.Sum(q => q.TotalScore);
 
     /// <summary>
     /// 操作点数量

@@ -299,7 +299,6 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         Title = question.Title,
                         Content = question.Content,
-                        Score = question.Score,
                         Order = question.Order,
                         IsEnabled = question.IsEnabled,
                         CreatedTime = question.CreatedTime,
@@ -819,7 +818,6 @@ public class MainWindowViewModel : ViewModelBase
         {
             Title = questionTitle,
             Content = "请输入题目内容",
-            Score = 10,
             Order = SelectedModule.Questions.Count + 1,
             IsEnabled = true
         };
