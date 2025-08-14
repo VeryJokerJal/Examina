@@ -5,7 +5,7 @@ using BenchSuite.Services;
 namespace BenchSuite.Console;
 
 /// <summary>
-/// PowerPoint 演示文稿自动评分控制台应用程序
+/// BenchSuite 自动评分控制台应用程序
 /// </summary>
 internal class Program
 {
@@ -15,6 +15,15 @@ internal class Program
     /// <param name="args">命令行参数</param>
     private static async Task Main(string[] args)
     {
+        // 检查是否是Windows测试模式
+        if (args.Length > 0 && args[0].Equals("windows", StringComparison.OrdinalIgnoreCase))
+        {
+            // 移除第一个参数（"windows"），传递剩余参数给Windows测试程序
+            string[] windowsArgs = args.Skip(1).ToArray();
+            await WindowsTestProgram.RunWindowsTestAsync(windowsArgs);
+            return;
+        }
+
         System.Console.WriteLine("=== BenchSuite PowerPoint 自动评分系统 ===");
         System.Console.WriteLine();
 
@@ -579,7 +588,13 @@ internal class Program
     {
         System.Console.WriteLine();
         System.Console.WriteLine("使用说明:");
-        System.Console.WriteLine("BenchSuite.Console.exe [试卷文件路径] [PowerPoint文件路径]");
+        System.Console.WriteLine("BenchSuite.Console.exe [模式] [参数...]");
+        System.Console.WriteLine();
+        System.Console.WriteLine("支持的模式:");
+        System.Console.WriteLine("  1. PowerPoint模式 (默认):");
+        System.Console.WriteLine("     BenchSuite.Console.exe [试卷文件路径] [PowerPoint文件路径]");
+        System.Console.WriteLine("  2. Windows模式:");
+        System.Console.WriteLine("     BenchSuite.Console.exe windows [试卷文件路径]");
         System.Console.WriteLine();
         System.Console.WriteLine("参数说明:");
         System.Console.WriteLine("  试卷文件路径    - 试卷模型文件路径 (支持 JSON 格式)");
@@ -587,8 +602,9 @@ internal class Program
         System.Console.WriteLine();
         System.Console.WriteLine("示例:");
         System.Console.WriteLine("  BenchSuite.Console.exe TestData\\sample-exam.json C:\\MyPresentation.pptx");
+        System.Console.WriteLine("  BenchSuite.Console.exe windows TestData\\windows-test-exam.json");
         System.Console.WriteLine();
-        System.Console.WriteLine("如果不提供参数，程序将使用默认的测试数据并提示输入 PowerPoint 文件路径。");
+        System.Console.WriteLine("如果不提供参数，程序将使用默认的测试数据。");
         System.Console.WriteLine();
         System.Console.WriteLine("注意: 程序将自动执行30次评分以测试稳定性。");
     }
