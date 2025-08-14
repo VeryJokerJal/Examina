@@ -133,10 +133,43 @@
                                     </StackPanel>
 
                                     <!--  代码补全填空处（仅代码补全类型显示）  -->
-                                    <StackPanel Spacing="8" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=CodeCompletion}">
-                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="填空处内容" />
-                                        <TextBox Height="120" AcceptsReturn="True" PlaceholderText="输入代码补全的填空处内容，支持多行输入" Text="{Binding CurrentContentViewModel.SelectedQuestion.CodeBlanks, Mode=TwoWay}" TextWrapping="Wrap" />
-                                        <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="提示：在此输入需要学生填写的代码片段，可以包含多个填空位置" TextWrapping="Wrap" />
+                                    <StackPanel Spacing="12" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=CodeCompletion}">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <TextBlock FontSize="14" FontWeight="SemiBold" Text="填空处列表" VerticalAlignment="Center" />
+                                            <Button Command="{Binding CurrentContentViewModel.AddCodeBlankCommand}" Content="添加填空处" Style="{ThemeResource AccentButtonStyle}" />
+                                        </StackPanel>
+
+                                        <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="提示：为代码补全题目添加多个填空处，每个填空处可以有独立的描述和要求" TextWrapping="Wrap" />
+
+                                        <!--  填空处列表  -->
+                                        <ScrollViewer MaxHeight="300">
+                                            <ItemsControl ItemsSource="{Binding CurrentContentViewModel.SelectedQuestion.CodeBlanks}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,0,0,8" Padding="12" Background="{ThemeResource CardBackgroundFillColorSecondary}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="1" CornerRadius="6">
+                                                            <StackPanel Spacing="8">
+                                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                    <TextBlock FontSize="13" FontWeight="SemiBold" Text="{Binding Order, StringFormat='填空处 {0}'}" VerticalAlignment="Center" />
+                                                                    <Button Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Content="删除" FontSize="12" Padding="8,4" Style="{ThemeResource DefaultButtonStyle}" />
+                                                                </StackPanel>
+
+                                                                <TextBox Header="填空处描述" PlaceholderText="输入填空处的简短描述" Text="{Binding Description, Mode=TwoWay}" />
+
+                                                                <TextBox Height="80" AcceptsReturn="True" Header="详细说明" PlaceholderText="输入填空处的详细说明和要求（支持多行）" Text="{Binding DetailedDescription, Mode=TwoWay}" TextWrapping="Wrap" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+
+                                        <!--  无填空处时的提示  -->
+                                        <Border Padding="16" Background="{ThemeResource SystemFillColorAttentionBackground}" BorderBrush="{ThemeResource SystemFillColorAttention}" BorderThickness="1" CornerRadius="6" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CodeBlanks.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                                            <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                                <TextBlock HorizontalAlignment="Center" FontSize="14" Text="暂无填空处" />
+                                                <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击"添加填空处"按钮开始创建" />
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>

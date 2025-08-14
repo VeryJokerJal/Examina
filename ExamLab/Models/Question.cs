@@ -133,7 +133,7 @@ public class Question : ReactiveObject
     [Reactive] public CSharpQuestionType CSharpQuestionType { get; set; } = CSharpQuestionType.CodeCompletion;
 
     /// <summary>
-    /// 代码补全填空处内容（仅C#模块代码补全类型使用）
+    /// 代码补全填空处集合（仅C#模块代码补全类型使用）
     /// </summary>
-    [Reactive] public string? CodeBlanks { get; set; }
+    public ObservableCollection<CodeBlank> CodeBlanks { get; set; } = new();
 }

@@ -100,8 +100,7 @@ public abstract class ModuleViewModelBase : ViewModelBase
             CreatedTime = question.CreatedTime,
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
-            CSharpQuestionType = question.CSharpQuestionType,
-            CodeBlanks = question.CodeBlanks
+            CSharpQuestionType = question.CSharpQuestionType
         };
 
         // 复制所有操作点
@@ -148,6 +147,21 @@ public abstract class ModuleViewModelBase : ViewModelBase
             }
 
             copiedQuestion.OperationPoints.Add(copiedOperationPoint);
+        }
+
+        // 复制所有填空处
+        foreach (CodeBlank codeBlank in question.CodeBlanks)
+        {
+            CodeBlank copiedCodeBlank = new()
+            {
+                Description = codeBlank.Description,
+                DetailedDescription = codeBlank.DetailedDescription,
+                Order = codeBlank.Order,
+                IsEnabled = codeBlank.IsEnabled,
+                CreatedTime = codeBlank.CreatedTime
+            };
+
+            copiedQuestion.CodeBlanks.Add(copiedCodeBlank);
         }
 
         Module.Questions.Add(copiedQuestion);

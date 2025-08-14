@@ -1,6 +1,7 @@
+﻿using System;
+using ExamLab.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-using ExamLab.Models;
 
 namespace ExamLab.Converters;
 
@@ -11,17 +12,15 @@ public class CSharpQuestionTypeToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is CSharpQuestionType questionType && parameter is string targetType)
-        {
-            return targetType switch
+        return value is CSharpQuestionType questionType && parameter is string target
+            ? target switch
             {
                 "CodeCompletion" => questionType == CSharpQuestionType.CodeCompletion ? Visibility.Visible : Visibility.Collapsed,
                 "Debugging" => questionType == CSharpQuestionType.Debugging ? Visibility.Visible : Visibility.Collapsed,
                 "Implementation" => questionType == CSharpQuestionType.Implementation ? Visibility.Visible : Visibility.Collapsed,
                 _ => Visibility.Collapsed
-            };
-        }
-        return Visibility.Collapsed;
+            }
+            : Visibility.Collapsed;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)

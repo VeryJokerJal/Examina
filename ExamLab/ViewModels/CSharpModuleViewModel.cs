@@ -20,6 +20,16 @@ public class CSharpModuleViewModel : ModuleViewModelBase
     /// </summary>
     public ReactiveCommand<OperationPoint, Unit> EditOperationPointCommand { get; }
 
+    /// <summary>
+    /// 添加填空处命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> AddCodeBlankCommand { get; }
+
+    /// <summary>
+    /// 删除填空处命令
+    /// </summary>
+    public ReactiveCommand<CodeBlank, Unit> DeleteCodeBlankCommand { get; }
+
     public CSharpModuleViewModel(ExamModule module) : base(module)
     {
         // C#模块不需要操作点管理，直接使用Question的ProgramInput和ExpectedOutput属性
@@ -27,6 +37,10 @@ public class CSharpModuleViewModel : ModuleViewModelBase
         // 初始化命令（为了UI兼容性，但不执行任何操作）
         AddOperationPointByTypeCommand = ReactiveCommand.Create<string>(AddOperationPointByType);
         EditOperationPointCommand = ReactiveCommand.Create<OperationPoint>(EditOperationPoint);
+
+        // 初始化填空处管理命令
+        AddCodeBlankCommand = ReactiveCommand.Create(AddCodeBlank);
+        DeleteCodeBlankCommand = ReactiveCommand.Create<CodeBlank>(DeleteCodeBlank);
     }
 
     protected override void AddOperationPoint()
@@ -51,5 +65,39 @@ public class CSharpModuleViewModel : ModuleViewModelBase
     private void EditOperationPoint(OperationPoint operationPoint)
     {
         // C#模块不使用操作点，空实现
+    }
+
+    /// <summary>
+    /// 添加填空处
+    /// </summary>
+    private void AddCodeBlank()
+    {
+        if (SelectedQuestion == null) return;
+
+        CodeBlank newCodeBlank = new()
+        {
+            Description = "新填空处",
+            DetailedDescription = "请输入填空处的详细说明",
+            Order = SelectedQuestion.CodeBlanks.Count + 1
+        };
+
+        SelectedQuestion.CodeBlanks.Add(newCodeBlank);
+    }
+
+    /// <summary>
+    /// 删除填空处
+    /// </summary>
+    /// <param name="codeBlank">要删除的填空处</param>
+    private void DeleteCodeBlank(CodeBlank codeBlank)
+    {
+        if (SelectedQuestion == null || codeBlank == null) return;
+
+        SelectedQuestion.CodeBlanks.Remove(codeBlank);
+
+        // 重新排序剩余的填空处
+        for (int i = 0; i < SelectedQuestion.CodeBlanks.Count; i++)
+        {
+            SelectedQuestion.CodeBlanks[i].Order = i + 1;
+        }
     }
 }
