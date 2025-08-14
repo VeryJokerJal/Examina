@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive;
 using ExamLab.Models;
 using ReactiveUI;
@@ -36,8 +35,8 @@ public class WindowsModuleViewModel : ModuleViewModelBase
     public WindowsModuleViewModel(ExamModule module) : base(module)
     {
         // 初始化可用操作类型
-        WindowsOperationType[] operationTypes = new[]
-        {
+        WindowsOperationType[] operationTypes =
+        [
             WindowsOperationType.QuickCreate,
             WindowsOperationType.CreateOperation,
             WindowsOperationType.DeleteOperation,
@@ -47,7 +46,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
             WindowsOperationType.ShortcutOperation,
             WindowsOperationType.FilePropertyModification,
             WindowsOperationType.CopyRenameOperation
-        };
+        ];
 
         foreach (WindowsOperationType operationType in operationTypes)
         {

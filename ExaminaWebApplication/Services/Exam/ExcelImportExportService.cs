@@ -187,12 +187,12 @@ public class ExcelImportExportService
     /// </summary>
     private bool ValidateHeaders(ExcelWorksheet worksheet, ImportResult result)
     {
-        string[] expectedHeaders = new[]
-        {
+        string[] expectedHeaders =
+        [
             "操作类型", "分值", "目标类型", "是否文件", "目标名称", "目标路径",
             "源路径", "源是否文件", "原名称", "新名称",
             "快捷方式位置", "属性类型", "保留原文件", "启用属性"
-        };
+        ];
 
         for (int col = 1; col <= expectedHeaders.Length; col++)
         {
@@ -354,10 +354,10 @@ public class ExcelImportExportService
     /// </summary>
     private void SetExportHeaders(ExcelWorksheet worksheet)
     {
-        string[] headers = new[]
-        {
+        string[] headers =
+        [
             "题目标题", "操作类型", "分值", "题目描述", "配置详情", "状态", "创建时间"
-        };
+        ];
 
         for (int i = 0; i < headers.Length; i++)
         {
@@ -393,12 +393,12 @@ public class ExcelImportExportService
     /// </summary>
     private void SetTemplateHeaders(ExcelWorksheet worksheet)
     {
-        string[] headers = new[]
-        {
+        string[] headers =
+        [
             "操作类型*", "分值*", "目标类型", "是否文件", "目标名称", "目标路径",
             "源路径", "源是否文件", "原名称", "新名称",
             "快捷方式位置", "属性类型", "保留原文件", "启用属性"
-        };
+        ];
 
         for (int i = 0; i < headers.Length; i++)
         {
@@ -455,8 +455,8 @@ public class ExcelImportExportService
         instructionSheet.Cells[1, 1].Style.Font.Bold = true;
         instructionSheet.Cells[1, 1].Style.Font.Size = 16;
 
-        string[] instructions = new[]
-        {
+        string[] instructions =
+        [
             "",
             "1. 必填字段标有*号，请确保填写完整",
             "2. 操作类型支持：Create、Delete、Copy、Move、Rename、CreateShortcut、ModifyProperties、CopyAndRename",
@@ -483,7 +483,7 @@ public class ExcelImportExportService
             "向后兼容性：",
             "- 旧的'archive'属性类型将自动转换为'noindex'",
             "- 旧的'system'属性类型将自动转换为'readonly'"
-        };
+        ];
 
         for (int i = 0; i < instructions.Length; i++)
         {

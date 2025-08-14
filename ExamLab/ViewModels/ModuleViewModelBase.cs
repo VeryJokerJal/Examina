@@ -99,7 +99,8 @@ public abstract class ModuleViewModelBase : ViewModelBase
             IsEnabled = question.IsEnabled,
             CreatedTime = question.CreatedTime,
             ProgramInput = question.ProgramInput,
-            ExpectedOutput = question.ExpectedOutput
+            ExpectedOutput = question.ExpectedOutput,
+            CSharpQuestionType = question.CSharpQuestionType
         };
 
         // 复制所有操作点

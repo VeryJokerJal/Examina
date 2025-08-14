@@ -14,7 +14,7 @@ namespace BenchSuite.Services;
 public class PowerPointScoringService : IPowerPointScoringService
 {
     private readonly ScoringConfiguration _defaultConfiguration;
-    private static readonly string[] SupportedExtensions = { ".ppt", ".pptx" };
+    private static readonly string[] SupportedExtensions = [".ppt", ".pptx"];
 
     public PowerPointScoringService()
     {

@@ -434,7 +434,7 @@ public class ExamService
         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("科目信息");
 
         // 设置表头
-        string[] headers = { "科目名称", "科目类型", "分值", "考试时长(分钟)", "排序", "是否必考", "是否启用", "权重" };
+        string[] headers = ["科目名称", "科目类型", "分值", "考试时长(分钟)", "排序", "是否必考", "是否启用", "权重"];
         for (int i = 0; i < headers.Length; i++)
         {
             worksheet.Cells[1, i + 1].Value = headers[i];
@@ -470,7 +470,7 @@ public class ExamService
         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("题目信息");
 
         // 设置表头
-        string[] headers = { "题目标题", "科目", "分值", "难度等级", "预计时间(分钟)", "是否必答", "标签", "备注", "状态", "创建时间" };
+        string[] headers = ["题目标题", "科目", "分值", "难度等级", "预计时间(分钟)", "是否必答", "标签", "备注", "状态", "创建时间"];
         for (int i = 0; i < headers.Length; i++)
         {
             worksheet.Cells[1, i + 1].Value = headers[i];

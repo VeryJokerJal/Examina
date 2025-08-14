@@ -983,7 +983,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         // 支持的版本列表
-        string[] supportedVersions = new[] { "1.0" };
+        string[] supportedVersions = ["1.0"];
 
         return supportedVersions.Contains(exportVersion);
     }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -75,7 +75,7 @@ namespace BenchSuite.Services
         /// 编号类型参数名称模式
         /// </summary>
         private static readonly string[] IndexParameterPatterns = 
-        {
+        [
             "SlideIndex", "SlideNumber", "SlideIndexes",
             "TextBoxIndex", "TextBoxOrder", "TextBoxNumber",
             "ElementIndex", "ElementNumber", "ElementOrder",
@@ -83,7 +83,7 @@ namespace BenchSuite.Services
             "TableIndex", "TableNumber", "TableOrder",
             "ImageIndex", "ImageNumber", "ImageOrder",
             "ChartIndex", "ChartNumber", "ChartOrder"
-        };
+        ];
 
         /// <summary>
         /// 检查参数是否为编号类型

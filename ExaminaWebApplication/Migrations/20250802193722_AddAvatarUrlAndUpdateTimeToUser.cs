@@ -29,22 +29,22 @@ namespace ExaminaWebApplication.Migrations
                 table: "Users",
                 keyColumn: "Id",
                 keyValue: 1,
-                columns: new[] { "AvatarUrl", "UpdatedAt" },
-                values: new object[] { null, null });
+                columns: ["AvatarUrl", "UpdatedAt"],
+                values: [null, null]);
 
             migrationBuilder.UpdateData(
                 table: "Users",
                 keyColumn: "Id",
                 keyValue: 2,
-                columns: new[] { "AvatarUrl", "UpdatedAt" },
-                values: new object[] { null, null });
+                columns: ["AvatarUrl", "UpdatedAt"],
+                values: [null, null]);
 
             migrationBuilder.UpdateData(
                 table: "Users",
                 keyColumn: "Id",
                 keyValue: 3,
-                columns: new[] { "AvatarUrl", "UpdatedAt" },
-                values: new object[] { null, null });
+                columns: ["AvatarUrl", "UpdatedAt"],
+                values: [null, null]);
         }
 
         /// <inheritdoc />

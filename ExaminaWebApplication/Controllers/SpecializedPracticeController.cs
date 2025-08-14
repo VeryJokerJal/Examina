@@ -424,7 +424,7 @@ namespace ExaminaWebApplication.Controllers
             ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("题目信息");
 
             // 设置表头
-            string[] headers = { "题目标题", "分值", "难度等级", "预计时间(分钟)", "操作类型", "题目要求", "状态", "创建时间" };
+            string[] headers = ["题目标题", "分值", "难度等级", "预计时间(分钟)", "操作类型", "题目要求", "状态", "创建时间"];
             for (int i = 0; i < headers.Length; i++)
             {
                 worksheet.Cells[1, i + 1].Value = headers[i];

@@ -219,7 +219,7 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumTypes",
-                columns: new[] { "Id", "Category", "CreatedAt", "Description", "IsEnabled", "TypeName", "UpdatedAt" },
+                columns: ["Id", "Category", "CreatedAt", "Description", "IsEnabled", "TypeName", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 1, "对齐方式", new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "水平对齐方式", true, "HorizontalAlignment", null },
@@ -238,7 +238,7 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationPoints",
-                columns: new[] { "Id", "Category", "CreatedAt", "Description", "IsEnabled", "Name", "OperationNumber", "OperationType", "TargetType", "UpdatedAt" },
+                columns: ["Id", "Category", "CreatedAt", "Description", "IsEnabled", "Name", "OperationNumber", "OperationType", "TargetType", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 1, 1, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "通过判断单元格内的值，来鉴定是否完成操作", true, "填充或复制单元格内容", 1, "A", 1, null },
@@ -296,7 +296,7 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 1, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "数值右对齐，文本左对齐", "默认", "xlGeneral", 1, 1, null, true, 1, null },
@@ -313,12 +313,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 11, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "内容贴近单元格下边缘（默认）", "底端对齐", "xlBottom", 2, -4107, null, true, true, 3, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [11, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "内容贴近单元格下边缘（默认）", "底端对齐", "xlBottom", 2, -4107, null, true, true, 3, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 12, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "内容在上下方向也平均分布", "两端对齐", "xlJustify", 2, -4130, null, true, 4, null },
@@ -328,12 +328,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 15, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "实线", "xlContinuous", 3, 1, null, true, true, 2, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [15, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "实线", "xlContinuous", 3, 1, null, true, true, 2, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 16, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "虚线", "xlDash", 3, -4115, null, true, 3, null },
@@ -345,12 +345,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 21, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "默认字体样式", "常规", "Regular", 4, null, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [21, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "默认字体样式", "常规", "Regular", 4, null, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 22, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "加粗显示", "粗体", "Bold", 4, null, null, true, 2, null },
@@ -360,12 +360,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 25, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "默认，不添加任何下划线", "无下划线", "xlUnderlineStyleNone", 5, null, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [25, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "默认，不添加任何下划线", "无下划线", "xlUnderlineStyleNone", 5, null, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 26, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "添加一条常规下划线", "单下划线", "xlUnderlineStyleSingle", 5, null, null, true, 2, null },
@@ -376,12 +376,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 30, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "自动识别显示（默认格式）", "常规", "General", 6, 0, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [30, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "自动识别显示（默认格式）", "常规", "General", 6, 0, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 31, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "1234.56（可设置小数位数/千位分隔）", "数值", "Number", 6, 1, null, true, 2, null },
@@ -398,12 +398,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 41, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "不使用图案", "无填充", "xlPatternNone", 7, null, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [41, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "不使用图案", "无填充", "xlPatternNone", 7, null, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 42, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "纯色填充", "实心填充", "xlSolid", 7, null, null, true, 2, null },
@@ -420,12 +420,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 52, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "簇状柱形图", "xlColumnClustered", 8, 51, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [52, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "簇状柱形图", "xlColumnClustered", 8, 51, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 53, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "堆积柱形图", "xlColumnStacked", 8, 52, null, true, 2, null },
@@ -446,12 +446,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 67, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "图例显示在图表右侧（默认）", "图表右侧", "Right", 9, null, null, true, true, 2, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [67, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "图例显示在图表右侧（默认）", "图表右侧", "Right", 9, null, null, true, true, 2, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 68, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "图例显示在图表上方", "图表顶部", "Top", 9, null, null, true, 3, null },
@@ -461,12 +461,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 71, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "内部末端", "xlLabelPositionInsideEnd", 10, null, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [71, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "内部末端", "xlLabelPositionInsideEnd", 10, null, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 72, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "外部末端", "xlLabelPositionOutsideEnd", 10, null, null, true, 2, null },
@@ -477,12 +477,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 76, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "单一颜色填充", "实心填充", "msoFillSolid", 11, null, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [76, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "单一颜色填充", "实心填充", "msoFillSolid", 11, null, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 77, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "多种颜色渐变过渡填充", "渐变填充", "msoFillGradient", 11, null, null, true, 2, null },
@@ -494,12 +494,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt" },
-                values: new object[] { 82, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "默认样式，常规字体，无格式", "常规", "Normal", 12, null, null, true, true, 1, null });
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsDefault", "IsEnabled", "SortOrder", "UpdatedAt"],
+                values: [82, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "默认样式，常规字体，无格式", "常规", "Normal", 12, null, null, true, true, 1, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelEnumValues",
-                columns: new[] { "Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt" },
+                columns: ["Id", "CreatedAt", "Description", "DisplayName", "EnumKey", "EnumTypeId", "EnumValue", "ExtendedProperties", "IsEnabled", "SortOrder", "UpdatedAt"],
                 values: new object[,]
                 {
                     { 83, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "红色填充，用于表示错误值", "错误", "Bad", 12, null, null, true, 2, null },
@@ -531,7 +531,7 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
                 values: new object[,]
                 {
                     { 1, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 6, null, null, "E10", true, true, 1, "要填充内容的单元格位置", "目标单元格", 1, null, null },
@@ -553,32 +553,32 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 16, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "100", true, 8, "函数计算的期望结果", "期望值", 2, null, null });
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [16, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "100", true, 8, "函数计算的期望结果", "期望值", 2, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 17, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 8, null, null, "=SUM(A1:A10)", true, true, 8, "Excel函数公式", "公式内容", 3, null, "{\"allowedFunctions\":[\"VLOOKUP\",\"IF\",\"SUMIF\",\"ROUND\",\"TEXT\",\"AVERAGE\",\"COUNTIF\"]}" });
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [17, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 8, null, null, "=SUM(A1:A10)", true, true, 8, "Excel函数公式", "公式内容", 3, null, "{\"allowedFunctions\":[\"VLOOKUP\",\"IF\",\"SUMIF\",\"ROUND\",\"TEXT\",\"AVERAGE\",\"COUNTIF\"]}"]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 18, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "1,3,5", true, true, 9, "要设置行高的行号（可多个，用逗号分隔）", "行号", 1, null, null });
+                columns: ["Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [18, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "1,3,5", true, true, 9, "要设置行高的行号（可多个，用逗号分隔）", "行号", 1, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 19, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, null, null, "20.5", true, true, 9, "行高数值（磅）", "行高值", 2, null, "{\"minValue\":0,\"maxValue\":409.5}" });
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [19, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, null, null, "20.5", true, true, 9, "行高数值（磅）", "行高值", 2, null, "{\"minValue\":0,\"maxValue\":409.5}"]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 20, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "A,C,E", true, true, 10, "要设置列宽的列号（可多个，用逗号分隔）", "列号", 1, null, null });
+                columns: ["Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [20, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "A,C,E", true, true, 10, "要设置列宽的列号（可多个，用逗号分隔）", "列号", 1, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
                 values: new object[,]
                 {
                     { 21, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, null, null, "15.5", true, true, 10, "列宽数值", "列宽值", 2, null, "{\"minValue\":0,\"maxValue\":255}" },
@@ -617,7 +617,7 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
+                columns: ["Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
                 values: new object[,]
                 {
                     { 53, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "A,B,C", true, true, 25, "要排序的列（可多个，用逗号分隔）", "排序列", 1, null, null },
@@ -627,7 +627,7 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
                 values: new object[,]
                 {
                     { 56, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "SUBTOTAL(4,*)", true, true, 26, "SUBTOTAL函数配置", "汇总函数", 2, null, "{\"description\":\"识别函数编号为4的SUBTOTAL函数\"}" },
@@ -636,17 +636,17 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 58, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 6, null, null, "J10", true, 27, "筛选后复制结果的起始单元格区域", "复制目标区域", 2, null, null });
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [58, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 6, null, null, "J10", true, 27, "筛选后复制结果的起始单元格区域", "复制目标区域", 2, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 59, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "Subject,Class,Chinese", true, true, 27, "参与筛选的字段（列标题名称）", "筛选字段", 3, null, null });
+                columns: ["Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [59, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "Subject,Class,Chinese", true, true, 27, "参与筛选的字段（列标题名称）", "筛选字段", 3, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
                 values: new object[,]
                 {
                     { 60, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "计算机,1班,>80;工商管理,2班,>80", true, true, 27, "多组条件，分号分隔表示或关系", "筛选条件", 4, null, null },
@@ -655,27 +655,27 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 62, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 4, "False", null, null, true, 27, "是否只显示唯一值", "仅显示唯一值", 6, null, null });
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [62, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 4, "False", null, null, true, 27, "是否只显示唯一值", "仅显示唯一值", 6, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 63, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 6, null, null, "A1:F100", true, true, 28, "高级筛选的数据源区域", "数据源区域", 1, null, null });
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [63, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 6, null, null, "A1:F100", true, true, 28, "高级筛选的数据源区域", "数据源区域", 1, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 64, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "学历,职务", true, true, 29, "设置为透视表的行字段", "行字段", 1, null, null });
+                columns: ["Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [64, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "学历,职务", true, true, 29, "设置为透视表的行字段", "行字段", 1, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 65, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, null, true, 29, "设置为透视表的列字段（可空）", "列字段", 2, null, null });
+                columns: ["Id", "AllowMultipleValues", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [65, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, null, true, 29, "设置为透视表的列字段（可空）", "列字段", 2, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
                 values: new object[,]
                 {
                     { 66, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "年龄", true, true, 29, "用于聚合的字段名称", "数据字段", 3, null, null },
@@ -685,12 +685,12 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
-                values: new object[] { 69, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "学历职务年龄统计表", true, 29, "透视表名称（可选）", "透视表名称", 6, null, null });
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
+                values: [69, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, null, null, "学历职务年龄统计表", true, 29, "透视表名称（可选）", "透视表名称", 6, null, null]);
 
             migrationBuilder.InsertData(
                 table: "ExcelOperationParameters",
-                columns: new[] { "Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules" },
+                columns: ["Id", "CreatedAt", "DataType", "DefaultValue", "EnumTypeId", "ExampleValue", "IsEnabled", "IsRequired", "OperationPointId", "ParameterDescription", "ParameterName", "ParameterOrder", "UpdatedAt", "ValidationRules"],
                 values: new object[,]
                 {
                     { 70, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, null, null, "1", true, true, 30, "目标图表的编号", "图表编号", 1, null, null },
@@ -755,7 +755,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ExcelEnumValues_EnumTypeId_EnumKey",
                 table: "ExcelEnumValues",
-                columns: new[] { "EnumTypeId", "EnumKey" },
+                columns: ["EnumTypeId", "EnumKey"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -796,7 +796,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ExcelOperationParameters_OperationPointId_ParameterOrder",
                 table: "ExcelOperationParameters",
-                columns: new[] { "OperationPointId", "ParameterOrder" },
+                columns: ["OperationPointId", "ParameterOrder"],
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -17,6 +17,10 @@ internal class Program
     {
         try
         {
+#if DEBUG
+            args = args.Length == 0 ? ["C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx", "D:\\Users\\Jal\\source\\repos\\Examina\\BenchSuite.Console\\TestData\\sample-exam.json"] : args;
+#endif
+
             // 显示程序信息
             System.Console.WriteLine("=== PowerPoint评分系统 ===");
             System.Console.WriteLine("版本: 1.0.0");

@@ -3,6 +3,7 @@
 
     <UserControl.Resources>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:CSharpQuestionTypeConverter x:Key="CSharpQuestionTypeConverter" />
     </UserControl.Resources>
 
     <Grid>
@@ -94,6 +95,17 @@
                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="题目详情" />
                                 <TextBox Header="题目标题" Text="{Binding CurrentContentViewModel.SelectedQuestion.Title, Mode=TwoWay}" />
                                 <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay}" TextWrapping="Wrap" />
+
+                                <!--  C#题目类型选择  -->
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="题目类型" FontWeight="SemiBold" />
+                                    <ComboBox Header="选择C#题目类型" SelectedValue="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Mode=TwoWay, Converter={StaticResource CSharpQuestionTypeConverter}}" SelectedValuePath="Content">
+                                        <ComboBoxItem Content="代码补全" />
+                                        <ComboBoxItem Content="调试纠错" />
+                                        <ComboBoxItem Content="编写实现" />
+                                    </ComboBox>
+                                </StackPanel>
+
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="题目总分" FontWeight="SemiBold" />
                                     <TextBlock Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" FontSize="16" Foreground="{ThemeResource SystemAccentColor}" />

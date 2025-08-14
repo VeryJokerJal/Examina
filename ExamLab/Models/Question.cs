@@ -126,4 +126,9 @@ public class Question : ReactiveObject
     /// C#程序预期控制台输出（仅C#模块使用）
     /// </summary>
     [Reactive] public string? ExpectedOutput { get; set; }
+
+    /// <summary>
+    /// C#题目类型（仅C#模块使用）
+    /// </summary>
+    [Reactive] public CSharpQuestionType CSharpQuestionType { get; set; } = CSharpQuestionType.CodeCompletion;
 }

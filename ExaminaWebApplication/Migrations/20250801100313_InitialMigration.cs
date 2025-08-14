@@ -133,18 +133,18 @@ namespace ExaminaWebApplication.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "AllowMultipleDevices", "CreatedAt", "Email", "IsActive", "LastLoginAt", "MaxDeviceCount", "PasswordHash", "PhoneNumber", "RealName", "Role", "StudentId", "Username", "WeChatOpenId" },
-                values: new object[] { 1, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@examina.com", true, null, 5, "$2a$11$8K1p/a0dL2LkqvQOuiOX2uy7YIr1w1yuBVMxVVehboYg7iYfZb4W2", "13800138000", "系统管理员", 3, "ADMIN001", "admin", null });
+                columns: ["Id", "AllowMultipleDevices", "CreatedAt", "Email", "IsActive", "LastLoginAt", "MaxDeviceCount", "PasswordHash", "PhoneNumber", "RealName", "Role", "StudentId", "Username", "WeChatOpenId"],
+                values: [1, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@examina.com", true, null, 5, "$2a$11$8K1p/a0dL2LkqvQOuiOX2uy7YIr1w1yuBVMxVVehboYg7iYfZb4W2", "13800138000", "系统管理员", 3, "ADMIN001", "admin", null]);
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "CreatedAt", "Email", "IsActive", "IsFirstLogin", "LastLoginAt", "MaxDeviceCount", "PasswordHash", "PhoneNumber", "RealName", "Role", "StudentId", "Username", "WeChatOpenId" },
-                values: new object[] { 2, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "student001@examina.com", true, true, null, 1, "$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", "13800138001", "张三", 1, "2024001", "student001", null });
+                columns: ["Id", "CreatedAt", "Email", "IsActive", "IsFirstLogin", "LastLoginAt", "MaxDeviceCount", "PasswordHash", "PhoneNumber", "RealName", "Role", "StudentId", "Username", "WeChatOpenId"],
+                values: [2, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "student001@examina.com", true, true, null, 1, "$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", "13800138001", "张三", 1, "2024001", "student001", null]);
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "AllowMultipleDevices", "CreatedAt", "Email", "IsActive", "LastLoginAt", "MaxDeviceCount", "PasswordHash", "PhoneNumber", "RealName", "Role", "StudentId", "Username", "WeChatOpenId" },
-                values: new object[] { 3, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "teacher001@examina.com", true, null, 3, "$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", "13800138002", "李老师", 2, "TEACHER001", "teacher001", null });
+                columns: ["Id", "AllowMultipleDevices", "CreatedAt", "Email", "IsActive", "LastLoginAt", "MaxDeviceCount", "PasswordHash", "PhoneNumber", "RealName", "Role", "StudentId", "Username", "WeChatOpenId"],
+                values: [3, true, new DateTime(2024, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc), "teacher001@examina.com", true, null, 3, "$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", "13800138002", "李老师", 2, "TEACHER001", "teacher001", null]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserDevices_CreatedAt",
@@ -185,7 +185,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserDevices_UserId_DeviceFingerprint",
                 table: "UserDevices",
-                columns: new[] { "UserId", "DeviceFingerprint" },
+                columns: ["UserId", "DeviceFingerprint"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
