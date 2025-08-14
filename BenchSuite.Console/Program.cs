@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using BenchSuite.Models;
 using BenchSuite.Services;
 
@@ -128,7 +129,7 @@ internal class Program
         {
             System.Console.WriteLine($"正在读取ExamModel文件: {jsonFilePath}");
 
-            string jsonContent = await File.ReadAllTextAsync(jsonFilePath);
+            string jsonContent = await File.ReadAllTextAsync(jsonFilePath, Encoding.UTF8);
 
             if (string.IsNullOrWhiteSpace(jsonContent))
             {
@@ -145,6 +146,7 @@ internal class Program
 
             // 添加自定义转换器
             options.Converters.Add(new BenchSuite.Converters.ModuleTypeJsonConverter());
+            options.Converters.Add(new BenchSuite.Converters.ParameterTypeJsonConverter());
 
             ExamModel? examModel = JsonSerializer.Deserialize<ExamModel>(jsonContent, options);
 
