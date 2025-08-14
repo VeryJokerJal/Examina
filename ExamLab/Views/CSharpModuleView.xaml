@@ -150,11 +150,10 @@
                                                             <StackPanel Spacing="8">
                                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                                     <TextBlock FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center">
-                                                                        <TextBlock.Text>
-                                                                            <Binding Path="Order" StringFormat="填空处 {0}" />
-                                                                        </TextBlock.Text>
+                                                                        <Run Text="填空处 " />
+                                                                        <Run Text="{Binding Order}" />
                                                                     </TextBlock>
-                                                                    <Button Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding}" Content="删除" FontSize="12" Padding="8,4" Style="{ThemeResource DefaultButtonStyle}" />
+                                                                    <Button Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" FontSize="12" Padding="8,4" Style="{ThemeResource DefaultButtonStyle}" />
                                                                 </StackPanel>
 
                                                                 <TextBox Header="填空处描述" PlaceholderText="输入填空处的简短描述" Text="{Binding Description, Mode=TwoWay}" />
