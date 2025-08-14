@@ -401,7 +401,7 @@ public class WordScoringService : IWordScoringService
             // 根据知识点类型进行具体检测
             switch (knowledgePointType)
             {
-                // 段落操作类
+                // 段落操作类 (1-14)
                 case "SetParagraphFont":
                     result = DetectParagraphFont(document, parameters);
                     break;
@@ -411,14 +411,41 @@ public class WordScoringService : IWordScoringService
                 case "SetParagraphFontStyle":
                     result = DetectParagraphFontStyle(document, parameters);
                     break;
-                case "SetParagraphAlignment":
-                    result = DetectParagraphAlignment(document, parameters);
+                case "SetParagraphCharacterSpacing":
+                    result = DetectParagraphCharacterSpacing(document, parameters);
                     break;
                 case "SetParagraphTextColor":
                     result = DetectParagraphTextColor(document, parameters);
                     break;
+                case "SetParagraphAlignment":
+                    result = DetectParagraphAlignment(document, parameters);
+                    break;
+                case "SetParagraphIndentation":
+                    result = DetectParagraphIndentation(document, parameters);
+                    break;
+                case "SetParagraphLineSpacing":
+                    result = DetectParagraphLineSpacing(document, parameters);
+                    break;
+                case "SetParagraphDropCap":
+                    result = DetectParagraphDropCap(document, parameters);
+                    break;
+                case "SetParagraphSpacing":
+                    result = DetectParagraphSpacing(document, parameters);
+                    break;
+                case "SetParagraphBorderColor":
+                    result = DetectParagraphBorderColor(document, parameters);
+                    break;
+                case "SetParagraphBorderStyle":
+                    result = DetectParagraphBorderStyle(document, parameters);
+                    break;
+                case "SetParagraphBorderWidth":
+                    result = DetectParagraphBorderWidth(document, parameters);
+                    break;
+                case "SetParagraphShading":
+                    result = DetectParagraphShading(document, parameters);
+                    break;
 
-                // 页面设置类
+                // 页面设置类 (15-29)
                 case "SetPaperSize":
                     result = DetectPaperSize(document, parameters);
                     break;
@@ -428,21 +455,167 @@ public class WordScoringService : IWordScoringService
                 case "SetHeaderText":
                     result = DetectHeaderText(document, parameters);
                     break;
+                case "SetHeaderFont":
+                    result = DetectHeaderFont(document, parameters);
+                    break;
+                case "SetHeaderFontSize":
+                    result = DetectHeaderFontSize(document, parameters);
+                    break;
+                case "SetHeaderAlignment":
+                    result = DetectHeaderAlignment(document, parameters);
+                    break;
                 case "SetFooterText":
                     result = DetectFooterText(document, parameters);
                     break;
+                case "SetFooterFont":
+                    result = DetectFooterFont(document, parameters);
+                    break;
+                case "SetFooterFontSize":
+                    result = DetectFooterFontSize(document, parameters);
+                    break;
+                case "SetFooterAlignment":
+                    result = DetectFooterAlignment(document, parameters);
+                    break;
+                case "SetPageNumber":
+                    result = DetectPageNumber(document, parameters);
+                    break;
+                case "SetPageBackground":
+                    result = DetectPageBackground(document, parameters);
+                    break;
+                case "SetPageBorderColor":
+                    result = DetectPageBorderColor(document, parameters);
+                    break;
+                case "SetPageBorderStyle":
+                    result = DetectPageBorderStyle(document, parameters);
+                    break;
+                case "SetPageBorderWidth":
+                    result = DetectPageBorderWidth(document, parameters);
+                    break;
 
-                // 表格操作类
+                // 水印设置类 (30-33)
+                case "SetWatermarkText":
+                    result = DetectWatermarkText(document, parameters);
+                    break;
+                case "SetWatermarkFont":
+                    result = DetectWatermarkFont(document, parameters);
+                    break;
+                case "SetWatermarkFontSize":
+                    result = DetectWatermarkFontSize(document, parameters);
+                    break;
+                case "SetWatermarkOrientation":
+                    result = DetectWatermarkOrientation(document, parameters);
+                    break;
+
+                // 项目编号类 (34)
+                case "SetBulletNumbering":
+                    result = DetectBulletNumbering(document, parameters);
+                    break;
+
+                // 表格操作类 (35-44)
                 case "SetTableRowsColumns":
                     result = DetectTableRowsColumns(document, parameters);
+                    break;
+                case "SetTableShading":
+                    result = DetectTableShading(document, parameters);
+                    break;
+                case "SetTableRowHeight":
+                    result = DetectTableRowHeight(document, parameters);
+                    break;
+                case "SetTableColumnWidth":
+                    result = DetectTableColumnWidth(document, parameters);
                     break;
                 case "SetTableCellContent":
                     result = DetectTableCellContent(document, parameters);
                     break;
+                case "SetTableCellAlignment":
+                    result = DetectTableCellAlignment(document, parameters);
+                    break;
+                case "SetTableAlignment":
+                    result = DetectTableAlignment(document, parameters);
+                    break;
+                case "MergeTableCells":
+                    result = DetectMergeTableCells(document, parameters);
+                    break;
+                case "SetTableHeaderContent":
+                    result = DetectTableHeaderContent(document, parameters);
+                    break;
+                case "SetTableHeaderAlignment":
+                    result = DetectTableHeaderAlignment(document, parameters);
+                    break;
 
-                // 其他操作类
+                // 图形图片类 (45-60)
+                case "InsertAutoShape":
+                    result = DetectInsertAutoShape(document, parameters);
+                    break;
+                case "SetAutoShapeSize":
+                    result = DetectAutoShapeSize(document, parameters);
+                    break;
+                case "SetAutoShapeLineColor":
+                    result = DetectAutoShapeLineColor(document, parameters);
+                    break;
+                case "SetAutoShapeFillColor":
+                    result = DetectAutoShapeFillColor(document, parameters);
+                    break;
+                case "SetAutoShapeTextSize":
+                    result = DetectAutoShapeTextSize(document, parameters);
+                    break;
+                case "SetAutoShapeTextColor":
+                    result = DetectAutoShapeTextColor(document, parameters);
+                    break;
+                case "SetAutoShapeTextContent":
+                    result = DetectAutoShapeTextContent(document, parameters);
+                    break;
+                case "SetAutoShapePosition":
+                    result = DetectAutoShapePosition(document, parameters);
+                    break;
+                case "SetImageBorderCompoundType":
+                    result = DetectImageBorderCompoundType(document, parameters);
+                    break;
+                case "SetImageBorderDashType":
+                    result = DetectImageBorderDashType(document, parameters);
+                    break;
+                case "SetImageBorderWidth":
+                    result = DetectImageBorderWidth(document, parameters);
+                    break;
+                case "SetImageBorderColor":
+                    result = DetectImageBorderColor(document, parameters);
+                    break;
+                case "SetImageShadow":
+                    result = DetectImageShadow(document, parameters);
+                    break;
+                case "SetImageWrapStyle":
+                    result = DetectImageWrapStyle(document, parameters);
+                    break;
+                case "SetImagePosition":
+                    result = DetectImagePosition(document, parameters);
+                    break;
+                case "SetImageSize":
+                    result = DetectImageSize(document, parameters);
+                    break;
+
+                // 文本框类 (61-65)
+                case "SetTextBoxBorderColor":
+                    result = DetectTextBoxBorderColor(document, parameters);
+                    break;
+                case "SetTextBoxContent":
+                    result = DetectTextBoxContent(document, parameters);
+                    break;
+                case "SetTextBoxTextSize":
+                    result = DetectTextBoxTextSize(document, parameters);
+                    break;
+                case "SetTextBoxPosition":
+                    result = DetectTextBoxPosition(document, parameters);
+                    break;
+                case "SetTextBoxWrapStyle":
+                    result = DetectTextBoxWrapStyle(document, parameters);
+                    break;
+
+                // 其他操作类 (66-67)
                 case "FindAndReplace":
                     result = DetectFindAndReplace(document, parameters);
+                    break;
+                case "SetSpecificTextFontSize":
+                    result = DetectSpecificTextFontSize(document, parameters);
                     break;
 
                 default:
@@ -995,6 +1168,465 @@ public class WordScoringService : IWordScoringService
     }
 
     /// <summary>
+    /// 检测段落字符间距
+    /// </summary>
+    private KnowledgePointResult DetectParagraphCharacterSpacing(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphCharacterSpacing",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber) ||
+                !parameters.TryGetValue("CharacterSpacing", out string? expectedSpacingStr) ||
+                !float.TryParse(expectedSpacingStr, out float expectedSpacing))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber 或 CharacterSpacing";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            float actualSpacing = (float)paragraph.Range.Font.Spacing;
+
+            result.ExpectedValue = expectedSpacing.ToString();
+            result.ActualValue = actualSpacing.ToString();
+            result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 的字符间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落字符间距失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落缩进
+    /// </summary>
+    private KnowledgePointResult DetectParagraphIndentation(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphIndentation",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            Word.ParagraphFormat format = paragraph.Format;
+
+            bool allIndentationsCorrect = true;
+            string details = "段落缩进检测: ";
+
+            // 检查左缩进
+            if (parameters.TryGetValue("LeftIndent", out string? leftIndentStr) &&
+                float.TryParse(leftIndentStr, out float expectedLeftIndent))
+            {
+                float actualLeftIndent = (float)format.LeftIndent;
+                bool leftCorrect = Math.Abs(actualLeftIndent - expectedLeftIndent) < 1.0f;
+                allIndentationsCorrect &= leftCorrect;
+                details += $"左缩进 期望{expectedLeftIndent} 实际{actualLeftIndent:F1} ";
+            }
+
+            // 检查右缩进
+            if (parameters.TryGetValue("RightIndent", out string? rightIndentStr) &&
+                float.TryParse(rightIndentStr, out float expectedRightIndent))
+            {
+                float actualRightIndent = (float)format.RightIndent;
+                bool rightCorrect = Math.Abs(actualRightIndent - expectedRightIndent) < 1.0f;
+                allIndentationsCorrect &= rightCorrect;
+                details += $"右缩进 期望{expectedRightIndent} 实际{actualRightIndent:F1} ";
+            }
+
+            // 检查首行缩进
+            if (parameters.TryGetValue("FirstLineIndent", out string? firstLineIndentStr) &&
+                float.TryParse(firstLineIndentStr, out float expectedFirstLineIndent))
+            {
+                float actualFirstLineIndent = (float)format.FirstLineIndent;
+                bool firstLineCorrect = Math.Abs(actualFirstLineIndent - expectedFirstLineIndent) < 1.0f;
+                allIndentationsCorrect &= firstLineCorrect;
+                details += $"首行缩进 期望{expectedFirstLineIndent} 实际{actualFirstLineIndent:F1} ";
+            }
+
+            result.IsCorrect = allIndentationsCorrect;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = details;
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落缩进失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落行距
+    /// </summary>
+    private KnowledgePointResult DetectParagraphLineSpacing(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphLineSpacing",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber) ||
+                !parameters.TryGetValue("LineSpacing", out string? expectedSpacingStr) ||
+                !float.TryParse(expectedSpacingStr, out float expectedSpacing))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber 或 LineSpacing";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            float actualSpacing = (float)paragraph.Format.LineSpacing;
+
+            result.ExpectedValue = expectedSpacing.ToString();
+            result.ActualValue = actualSpacing.ToString();
+            result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 的行距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落行距失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落首字下沉
+    /// </summary>
+    private KnowledgePointResult DetectParagraphDropCap(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphDropCap",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber) ||
+                !parameters.TryGetValue("DropCapEnabled", out string? expectedEnabledStr) ||
+                !bool.TryParse(expectedEnabledStr, out bool expectedEnabled))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber 或 DropCapEnabled";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            bool actualEnabled = paragraph.DropCap.Position != Word.WdDropPosition.wdDropNone;
+
+            result.ExpectedValue = expectedEnabled.ToString();
+            result.ActualValue = actualEnabled.ToString();
+            result.IsCorrect = actualEnabled == expectedEnabled;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 的首字下沉: 期望 {expectedEnabled}, 实际 {actualEnabled}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落首字下沉失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落间距
+    /// </summary>
+    private KnowledgePointResult DetectParagraphSpacing(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphSpacing",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            Word.ParagraphFormat format = paragraph.Format;
+
+            bool allSpacingCorrect = true;
+            string details = "段落间距检测: ";
+
+            // 检查段前间距
+            if (parameters.TryGetValue("SpaceBefore", out string? spaceBeforeStr) &&
+                float.TryParse(spaceBeforeStr, out float expectedSpaceBefore))
+            {
+                float actualSpaceBefore = (float)format.SpaceBefore;
+                bool beforeCorrect = Math.Abs(actualSpaceBefore - expectedSpaceBefore) < 1.0f;
+                allSpacingCorrect &= beforeCorrect;
+                details += $"段前间距 期望{expectedSpaceBefore} 实际{actualSpaceBefore:F1} ";
+            }
+
+            // 检查段后间距
+            if (parameters.TryGetValue("SpaceAfter", out string? spaceAfterStr) &&
+                float.TryParse(spaceAfterStr, out float expectedSpaceAfter))
+            {
+                float actualSpaceAfter = (float)format.SpaceAfter;
+                bool afterCorrect = Math.Abs(actualSpaceAfter - expectedSpaceAfter) < 1.0f;
+                allSpacingCorrect &= afterCorrect;
+                details += $"段后间距 期望{expectedSpaceAfter} 实际{actualSpaceAfter:F1} ";
+            }
+
+            result.IsCorrect = allSpacingCorrect;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = details;
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落间距失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落边框颜色
+    /// </summary>
+    private KnowledgePointResult DetectParagraphBorderColor(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphBorderColor",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber) ||
+                !parameters.TryGetValue("BorderColor", out string? expectedColor))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber 或 BorderColor";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            string actualColor = GetColorDescription(paragraph.Borders.OutsideColor);
+
+            result.ExpectedValue = expectedColor;
+            result.ActualValue = actualColor;
+            result.IsCorrect = string.Equals(actualColor, expectedColor, StringComparison.OrdinalIgnoreCase);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 的边框颜色: 期望 {expectedColor}, 实际 {actualColor}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落边框颜色失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落边框样式
+    /// </summary>
+    private KnowledgePointResult DetectParagraphBorderStyle(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphBorderStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber) ||
+                !parameters.TryGetValue("BorderStyle", out string? expectedStyle))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber 或 BorderStyle";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            string actualStyle = GetBorderStyleDescription(paragraph.Borders.OutsideLineStyle);
+
+            result.ExpectedValue = expectedStyle;
+            result.ActualValue = actualStyle;
+            result.IsCorrect = string.Equals(actualStyle, expectedStyle, StringComparison.OrdinalIgnoreCase);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 的边框样式: 期望 {expectedStyle}, 实际 {actualStyle}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落边框样式失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落边框宽度
+    /// </summary>
+    private KnowledgePointResult DetectParagraphBorderWidth(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphBorderWidth",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber) ||
+                !parameters.TryGetValue("BorderWidth", out string? expectedWidthStr) ||
+                !float.TryParse(expectedWidthStr, out float expectedWidth))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber 或 BorderWidth";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            float actualWidth = (float)paragraph.Borders.OutsideLineWidth;
+
+            result.ExpectedValue = expectedWidth.ToString();
+            result.ActualValue = actualWidth.ToString();
+            result.IsCorrect = Math.Abs(actualWidth - expectedWidth) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 的边框宽度: 期望 {expectedWidth}, 实际 {actualWidth}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落边框宽度失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落底纹
+    /// </summary>
+    private KnowledgePointResult DetectParagraphShading(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphShading",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("ParagraphNumber", out string? paragraphNumberStr) ||
+                !int.TryParse(paragraphNumberStr, out int paragraphNumber) ||
+                !parameters.TryGetValue("ShadingColor", out string? expectedColor))
+            {
+                result.ErrorMessage = "缺少必要参数: ParagraphNumber 或 ShadingColor";
+                return result;
+            }
+
+            if (paragraphNumber < 1 || paragraphNumber > document.Paragraphs.Count)
+            {
+                result.ErrorMessage = $"段落索引超出范围: {paragraphNumber}";
+                return result;
+            }
+
+            Word.Paragraph paragraph = document.Paragraphs[paragraphNumber];
+            string actualColor = GetColorDescription(paragraph.Shading.BackgroundPatternColor);
+
+            result.ExpectedValue = expectedColor;
+            result.ActualValue = actualColor;
+            result.IsCorrect = string.Equals(actualColor, expectedColor, StringComparison.OrdinalIgnoreCase);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 的底纹颜色: 期望 {expectedColor}, 实际 {actualColor}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测段落底纹失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 获取字体样式描述
     /// </summary>
     private string GetFontStyleDescription(Word.Font font)
@@ -1071,6 +1703,100 @@ public class WordScoringService : IWordScoringService
     }
 
     /// <summary>
+    /// 获取边框样式描述
+    /// </summary>
+    private string GetBorderStyleDescription(Word.WdLineStyle lineStyle)
+    {
+        return lineStyle switch
+        {
+            Word.WdLineStyle.wdLineStyleNone => "无边框",
+            Word.WdLineStyle.wdLineStyleSingle => "单线",
+            Word.WdLineStyle.wdLineStyleDouble => "双线",
+            Word.WdLineStyle.wdLineStyleDot => "点线",
+            Word.WdLineStyle.wdLineStyleDash => "虚线",
+            Word.WdLineStyle.wdLineStyleDashDot => "点划线",
+            Word.WdLineStyle.wdLineStyleDashDotDot => "双点划线",
+            Word.WdLineStyle.wdLineStyleTriple => "三线",
+            _ => "其他样式"
+        };
+    }
+
+    /// <summary>
+    /// 检测页眉字体
+    /// </summary>
+    private KnowledgePointResult DetectHeaderFont(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetHeaderFont",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("FontFamily", out string? expectedFont))
+            {
+                result.ErrorMessage = "缺少必要参数: FontFamily";
+                return result;
+            }
+
+            Word.HeaderFooter header = document.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary];
+            string actualFont = header.Range.Font.Name;
+
+            result.ExpectedValue = expectedFont;
+            result.ActualValue = actualFont;
+            result.IsCorrect = string.Equals(actualFont, expectedFont, StringComparison.OrdinalIgnoreCase);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页眉字体: 期望 {expectedFont}, 实际 {actualFont}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测页眉字体失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页眉字号
+    /// </summary>
+    private KnowledgePointResult DetectHeaderFontSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetHeaderFontSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("FontSize", out string? expectedSizeStr) ||
+                !float.TryParse(expectedSizeStr, out float expectedSize))
+            {
+                result.ErrorMessage = "缺少必要参数: FontSize";
+                return result;
+            }
+
+            Word.HeaderFooter header = document.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary];
+            float actualSize = (float)header.Range.Font.Size;
+
+            result.ExpectedValue = expectedSize.ToString();
+            result.ActualValue = actualSize.ToString();
+            result.IsCorrect = Math.Abs(actualSize - expectedSize) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页眉字号: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测页眉字号失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 操作点名称映射到知识点类型
     /// </summary>
     private string MapOperationPointNameToKnowledgeType(string operationPointName)
@@ -1078,6 +1804,67 @@ public class WordScoringService : IWordScoringService
         // 这里可以根据实际的操作点名称进行映射
         // 暂时返回操作点名称本身
         return operationPointName;
+    }
+
+    // 占位符方法 - 待实现的检测方法
+    private KnowledgePointResult DetectHeaderAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetHeaderAlignment", parameters);
+    private KnowledgePointResult DetectFooterFont(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetFooterFont", parameters);
+    private KnowledgePointResult DetectFooterFontSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetFooterFontSize", parameters);
+    private KnowledgePointResult DetectFooterAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetFooterAlignment", parameters);
+    private KnowledgePointResult DetectPageNumber(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageNumber", parameters);
+    private KnowledgePointResult DetectPageBackground(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBackground", parameters);
+    private KnowledgePointResult DetectPageBorderColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBorderColor", parameters);
+    private KnowledgePointResult DetectPageBorderStyle(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBorderStyle", parameters);
+    private KnowledgePointResult DetectPageBorderWidth(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBorderWidth", parameters);
+    private KnowledgePointResult DetectWatermarkText(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkText", parameters);
+    private KnowledgePointResult DetectWatermarkFont(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkFont", parameters);
+    private KnowledgePointResult DetectWatermarkFontSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkFontSize", parameters);
+    private KnowledgePointResult DetectWatermarkOrientation(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkOrientation", parameters);
+    private KnowledgePointResult DetectBulletNumbering(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetBulletNumbering", parameters);
+    private KnowledgePointResult DetectTableShading(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableShading", parameters);
+    private KnowledgePointResult DetectTableRowHeight(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableRowHeight", parameters);
+    private KnowledgePointResult DetectTableColumnWidth(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableColumnWidth", parameters);
+    private KnowledgePointResult DetectTableCellAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableCellAlignment", parameters);
+    private KnowledgePointResult DetectTableAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableAlignment", parameters);
+    private KnowledgePointResult DetectMergeTableCells(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("MergeTableCells", parameters);
+    private KnowledgePointResult DetectTableHeaderContent(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableHeaderContent", parameters);
+    private KnowledgePointResult DetectTableHeaderAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableHeaderAlignment", parameters);
+    private KnowledgePointResult DetectInsertAutoShape(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("InsertAutoShape", parameters);
+    private KnowledgePointResult DetectAutoShapeSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeSize", parameters);
+    private KnowledgePointResult DetectAutoShapeLineColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeLineColor", parameters);
+    private KnowledgePointResult DetectAutoShapeFillColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeFillColor", parameters);
+    private KnowledgePointResult DetectAutoShapeTextSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeTextSize", parameters);
+    private KnowledgePointResult DetectAutoShapeTextColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeTextColor", parameters);
+    private KnowledgePointResult DetectAutoShapeTextContent(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeTextContent", parameters);
+    private KnowledgePointResult DetectAutoShapePosition(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapePosition", parameters);
+    private KnowledgePointResult DetectImageBorderCompoundType(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderCompoundType", parameters);
+    private KnowledgePointResult DetectImageBorderDashType(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderDashType", parameters);
+    private KnowledgePointResult DetectImageBorderWidth(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderWidth", parameters);
+    private KnowledgePointResult DetectImageBorderColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderColor", parameters);
+    private KnowledgePointResult DetectImageShadow(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageShadow", parameters);
+    private KnowledgePointResult DetectImageWrapStyle(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageWrapStyle", parameters);
+    private KnowledgePointResult DetectImagePosition(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImagePosition", parameters);
+    private KnowledgePointResult DetectImageSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageSize", parameters);
+    private KnowledgePointResult DetectTextBoxBorderColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxBorderColor", parameters);
+    private KnowledgePointResult DetectTextBoxContent(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxContent", parameters);
+    private KnowledgePointResult DetectTextBoxTextSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxTextSize", parameters);
+    private KnowledgePointResult DetectTextBoxPosition(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxPosition", parameters);
+    private KnowledgePointResult DetectTextBoxWrapStyle(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxWrapStyle", parameters);
+    private KnowledgePointResult DetectSpecificTextFontSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetSpecificTextFontSize", parameters);
+
+    /// <summary>
+    /// 创建未实现功能的结果
+    /// </summary>
+    private KnowledgePointResult CreateNotImplementedResult(string knowledgePointType, Dictionary<string, string> parameters)
+    {
+        return new KnowledgePointResult
+        {
+            KnowledgePointType = knowledgePointType,
+            Parameters = parameters,
+            IsCorrect = false,
+            ErrorMessage = $"知识点 {knowledgePointType} 的检测功能尚未实现",
+            Details = "此功能正在开发中，将在后续版本中提供"
+        };
     }
 
     /// <summary>
