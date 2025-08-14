@@ -32,32 +32,42 @@ public class Question : ReactiveObject
     /// <summary>
     /// 题目总分值（自动计算，根据题目类型使用不同的计算方式）
     /// </summary>
-    public decimal TotalScore
-    {
-        get
-        {
-            // C#模块：根据题目类型计算分数
-            if (CSharpQuestionType == CSharpQuestionType.CodeCompletion)
-            {
-                // 代码补全类型：使用填空处分数总和
-                if (CodeBlanks != null && CodeBlanks.Count > 0)
-                {
-                    return CodeBlanks.Where(cb => cb.IsEnabled).Sum(cb => cb.Score);
-                }
-                return 0;
-            }
-            else if (CSharpQuestionType == CSharpQuestionType.Debugging ||
-                     CSharpQuestionType == CSharpQuestionType.Implementation)
-            {
-                // 调试纠错和编写实现类型：使用直接分数
-                return CSharpDirectScore;
-            }
+    public decimal TotalScore => CalculateTotalScore();
 
-            // 其他模块：使用操作点分数总和
-            if (OperationPoints == null || OperationPoints.Count == 0)
-                return 0;
-            return OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+    /// <summary>
+    /// 计算题目总分值
+    /// </summary>
+    private decimal CalculateTotalScore()
+    {
+        // C#模块：根据题目类型计算分数
+        if (CSharpQuestionType == CSharpQuestionType.CodeCompletion)
+        {
+            // 代码补全类型：使用填空处分数总和
+            if (CodeBlanks != null && CodeBlanks.Count > 0)
+            {
+                return CodeBlanks.Where(cb => cb.IsEnabled).Sum(cb => cb.Score);
+            }
+            return 0;
         }
+        else if (CSharpQuestionType == CSharpQuestionType.Debugging ||
+                 CSharpQuestionType == CSharpQuestionType.Implementation)
+        {
+            // 调试纠错和编写实现类型：使用直接分数
+            return CSharpDirectScore;
+        }
+
+        // 其他模块：使用操作点分数总和
+        if (OperationPoints == null || OperationPoints.Count == 0)
+            return 0;
+        return OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+    }
+
+    /// <summary>
+    /// 触发总分更新通知
+    /// </summary>
+    private void NotifyTotalScoreChanged()
+    {
+        this.RaisePropertyChanged(nameof(TotalScore));
     }
 
     /// <summary>
@@ -110,7 +120,7 @@ public class Question : ReactiveObject
     private void OnOperationPointsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         // 通知总分变化
-        this.RaisePropertyChanged(nameof(TotalScore));
+        NotifyTotalScoreChanged();
 
         // 为新添加的操作点添加属性变化监听
         if (e.NewItems != null)
@@ -140,7 +150,7 @@ public class Question : ReactiveObject
     {
         if (e.PropertyName == nameof(OperationPoint.Score) || e.PropertyName == nameof(OperationPoint.IsEnabled))
         {
-            this.RaisePropertyChanged(nameof(TotalScore));
+            NotifyTotalScoreChanged();
         }
     }
 
@@ -152,7 +162,7 @@ public class Question : ReactiveObject
     private void OnCodeBlanksCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         // 通知总分变化
-        this.RaisePropertyChanged(nameof(TotalScore));
+        NotifyTotalScoreChanged();
 
         // 为新添加的代码填空处添加属性变化监听
         if (e.NewItems != null)
@@ -182,7 +192,7 @@ public class Question : ReactiveObject
     {
         if (e.PropertyName == nameof(CodeBlank.Score) || e.PropertyName == nameof(CodeBlank.IsEnabled))
         {
-            this.RaisePropertyChanged(nameof(TotalScore));
+            NotifyTotalScoreChanged();
         }
     }
 
@@ -195,7 +205,7 @@ public class Question : ReactiveObject
     {
         if (e.PropertyName == nameof(CSharpQuestionType) || e.PropertyName == nameof(CSharpDirectScore))
         {
-            this.RaisePropertyChanged(nameof(TotalScore));
+            NotifyTotalScoreChanged();
         }
     }
 
