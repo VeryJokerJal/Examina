@@ -248,6 +248,11 @@ public class PowerPointScoringService : IPowerPointScoringService
             PowerPoint.Application? pptApp = null;
             PowerPoint.Presentation? presentation = null;
 
+            // 创建基于文件路径的确定性参数解析上下文
+            // 使用文件路径确保同一文件的-1参数始终解析为相同值
+            string contextId = Path.GetFileName(filePath) + "_" + new FileInfo(filePath).Length;
+            ParameterResolutionContext context = new(contextId);
+
             try
             {
                 // 启动PowerPoint应用程序
@@ -255,11 +260,6 @@ public class PowerPointScoringService : IPowerPointScoringService
 
                 // 打开演示文稿
                 presentation = pptApp.Presentations.Open(filePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-
-                // 创建基于文件路径的确定性参数解析上下文
-                // 使用文件路径确保同一文件的-1参数始终解析为相同值
-                string contextId = Path.GetFileName(filePath) + "_" + new FileInfo(filePath).Length;
-                ParameterResolutionContext context = new(contextId);
 
                 // 预先解析所有-1参数
                 foreach (OperationPointModel operationPoint in knowledgePoints)
