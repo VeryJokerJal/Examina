@@ -284,6 +284,11 @@ public class OperationPoint : ReactiveObject
     [Reactive] public WindowsOperationType? WindowsOperationType { get; set; }
 
     /// <summary>
+    /// Windows知识点类型（当ModuleType为Windows时使用）
+    /// </summary>
+    [Reactive] public WindowsKnowledgeType? WindowsKnowledgeType { get; set; }
+
+    /// <summary>
     /// PPT知识点类型（当ModuleType为PowerPoint时使用）
     /// </summary>
     [Reactive] public PowerPointKnowledgeType? PowerPointKnowledgeType { get; set; }
