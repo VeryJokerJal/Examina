@@ -26,6 +26,7 @@
             <converters:ScoreDisplayConverter x:Key="ScoreDisplayConverter" />
             <converters:ModuleTotalScoreConverter x:Key="ModuleTotalScoreConverter" />
             <converters:ModuleOperationPointCountConverter x:Key="ModuleOperationPointCountConverter" />
+            <converters:ViewModelTypeToVisibilityConverter x:Key="ViewModelTypeToVisibilityConverter" />
             <converters:ModuleQuestionCountConverter x:Key="ModuleQuestionCountConverter" />
         </ResourceDictionary>
     </Application.Resources>

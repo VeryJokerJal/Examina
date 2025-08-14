@@ -5,6 +5,7 @@
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         <converters:CSharpQuestionTypeConverter x:Key="CSharpQuestionTypeConverter" />
         <converters:CSharpQuestionTypeToVisibilityConverter x:Key="CSharpQuestionTypeToVisibilityConverter" />
+        <converters:ViewModelTypeToVisibilityConverter x:Key="ViewModelTypeToVisibilityConverter" />
     </UserControl.Resources>
 
     <Grid>
@@ -150,7 +151,7 @@
                                     </StackPanel>
 
                                     <!--  C#代码文件路径  -->
-                                    <StackPanel Spacing="8">
+                                    <StackPanel Spacing="8" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}">
                                         <TextBlock FontSize="14" FontWeight="SemiBold" Text="C#代码文件路径" />
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -167,7 +168,7 @@
 
                                     <!--  代码补全填空处（仅代码补全类型显示）  -->
                                     <StackPanel Spacing="12" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=CodeCompletion}">
-                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}">
                                             <TextBlock VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="代码填空列表" />
                                             <Button Command="{Binding CurrentContentViewModel.AddCodeBlankCommand}" Content="添加代码填空" Style="{ThemeResource AccentButtonStyle}" />
                                         </StackPanel>
@@ -186,7 +187,7 @@
                                                                         <Run Text="代码填空 " />
                                                                         <Run Text="{Binding Order}" />
                                                                     </TextBlock>
-                                                                    <Button Padding="8,4" Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" FontSize="12" Style="{ThemeResource DefaultButtonStyle}" />
+                                                                    <Button Padding="8,4" Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" FontSize="12" Style="{ThemeResource DefaultButtonStyle}" Visibility="{Binding DataContext.CurrentContentViewModel, ElementName=LayoutRoot, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}" />
                                                                 </StackPanel>
 
                                                                 <Grid>
