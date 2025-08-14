@@ -823,35 +823,92 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
-                !int.TryParse(slideIndexStr, out int slideIndex) ||
-                !parameters.TryGetValue("TextContent", out string? expectedText))
+            if (!parameters.TryGetValue("TextContent", out string? expectedText))
             {
-                result.ErrorMessage = "缺少必要参数: SlideIndex 或 TextContent";
+                result.ErrorMessage = "缺少必要参数: TextContent";
                 return result;
             }
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
-            {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
-
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            // 智能搜索：优先检测指定幻灯片，如果没有找到则搜索所有幻灯片
             bool textFound = false;
             string allText = "";
+            string searchDetails = "";
 
-            foreach (PowerPoint.Shape shape in slide.Shapes)
+            // 尝试获取指定的幻灯片索引
+            int slideIndex = 0;
+            bool hasSpecificSlide = parameters.TryGetValue("SlideIndex", out string? slideIndexStr) &&
+                                   int.TryParse(slideIndexStr, out slideIndex) &&
+                                   slideIndex >= 1 && slideIndex <= presentation.Slides.Count;
+
+            if (hasSpecificSlide)
             {
-                if (shape.HasTextFrame == MsoTriState.msoTrue)
+                // 检测指定幻灯片
+                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
-                    string shapeText = shape.TextFrame.TextRange.Text;
-                    allText += shapeText + " ";
-
-                    if (shapeText.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
+                    try
                     {
-                        textFound = true;
+                        if (shape.HasTextFrame.ToString().Contains("True"))
+                        {
+                            string shapeText = shape.TextFrame.TextRange.Text;
+                            allText += shapeText + " ";
+
+                            if (shapeText.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
+                            {
+                                textFound = true;
+                            }
+                        }
                     }
+                    catch
+                    {
+                        // 忽略无法访问的形状
+                    }
+                }
+                searchDetails = $"幻灯片 {slideIndex}";
+            }
+
+            // 如果在指定幻灯片没找到文本，或者没有指定幻灯片，则搜索所有幻灯片
+            if (!textFound)
+            {
+                allText = ""; // 重置
+                for (int i = 1; i <= presentation.Slides.Count; i++)
+                {
+                    PowerPoint.Slide slide = presentation.Slides[i];
+                    string slideText = "";
+
+                    foreach (PowerPoint.Shape shape in slide.Shapes)
+                    {
+                        try
+                        {
+                            if (shape.HasTextFrame.ToString().Contains("True"))
+                            {
+                                string shapeText = shape.TextFrame.TextRange.Text;
+                                slideText += shapeText + " ";
+
+                                if (shapeText.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    textFound = true;
+                                    searchDetails = $"在幻灯片 {i} 中找到";
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // 忽略无法访问的形状
+                        }
+                    }
+                    allText += slideText;
+
+                    // 如果找到了就停止搜索
+                    if (textFound)
+                    {
+                        break;
+                    }
+                }
+
+                if (!textFound)
+                {
+                    searchDetails = $"搜索了所有 {presentation.Slides.Count} 张幻灯片";
                 }
             }
 
@@ -859,7 +916,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             result.ActualValue = allText.Trim();
             result.IsCorrect = textFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 文本检测: 期望包含 '{expectedText}', 实际文本 '{result.ActualValue}'";
+            result.Details = $"文本检测: 期望包含 '{expectedText}', {searchDetails}, 实际文本 '{result.ActualValue.Substring(0, Math.Min(100, result.ActualValue.Length))}...'";
         }
         catch (Exception ex)
         {
