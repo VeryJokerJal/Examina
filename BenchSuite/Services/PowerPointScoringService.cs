@@ -668,36 +668,85 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
-                !int.TryParse(slideIndexStr, out int slideIndex) ||
-                !parameters.TryGetValue("FontName", out string? expectedFont))
+            if (!parameters.TryGetValue("FontName", out string? expectedFont))
             {
-                result.ErrorMessage = "缺少必要参数: SlideIndex 或 FontName";
+                result.ErrorMessage = "缺少必要参数: FontName";
                 return result;
             }
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
-            {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
-
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            // 智能搜索：优先检测指定幻灯片，如果没有找到则搜索所有幻灯片
             bool fontFound = false;
             string actualFonts = "";
+            string searchDetails = "";
 
-            foreach (PowerPoint.Shape shape in slide.Shapes)
+            // 尝试获取指定的幻灯片索引
+            int slideIndex = 0;
+            bool hasSpecificSlide = parameters.TryGetValue("SlideIndex", out string? slideIndexStr) &&
+                                   int.TryParse(slideIndexStr, out slideIndex) &&
+                                   slideIndex >= 1 && slideIndex <= presentation.Slides.Count;
+
+            if (hasSpecificSlide)
             {
-                if (shape.HasTextFrame == MsoTriState.msoTrue)
+                // 检测指定幻灯片
+                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
-                    PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
-                    string fontName = textRange.Font.Name;
-                    actualFonts += fontName + "; ";
-
-                    if (string.Equals(fontName, expectedFont, StringComparison.OrdinalIgnoreCase))
+                    try
                     {
-                        fontFound = true;
+                        if (shape.HasTextFrame == Microsoft.Office.Core.MsoTriState.msoTrue)
+                        {
+                            PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+                            string fontName = textRange.Font.Name;
+                            actualFonts += fontName + "; ";
+
+                            if (string.Equals(fontName, expectedFont, StringComparison.OrdinalIgnoreCase))
+                            {
+                                fontFound = true;
+                            }
+                        }
                     }
+                    catch
+                    {
+                        // 忽略无法访问的形状
+                    }
+                }
+                searchDetails = $"幻灯片 {slideIndex}";
+            }
+
+            // 如果在指定幻灯片没找到，或者没有指定幻灯片，则搜索所有幻灯片
+            if (!fontFound)
+            {
+                actualFonts = ""; // 重置
+                for (int i = 1; i <= presentation.Slides.Count; i++)
+                {
+                    PowerPoint.Slide slide = presentation.Slides[i];
+                    foreach (PowerPoint.Shape shape in slide.Shapes)
+                    {
+                        try
+                        {
+                            if (shape.HasTextFrame == Microsoft.Office.Core.MsoTriState.msoTrue)
+                            {
+                                PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+                                string fontName = textRange.Font.Name;
+                                actualFonts += fontName + "; ";
+
+                                if (string.Equals(fontName, expectedFont, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    fontFound = true;
+                                    searchDetails = $"在幻灯片 {i} 中找到";
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // 忽略无法访问的形状
+                        }
+                    }
+                }
+
+                if (!fontFound)
+                {
+                    searchDetails = $"搜索了所有 {presentation.Slides.Count} 张幻灯片";
                 }
             }
 
@@ -705,7 +754,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             result.ActualValue = actualFonts.TrimEnd(';', ' ');
             result.IsCorrect = fontFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 字体检测: 期望 {expectedFont}, 找到的字体 {result.ActualValue}";
+            result.Details = $"字体检测: 期望 {expectedFont}, {searchDetails}, 找到的字体 {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -956,52 +1005,85 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
-                !int.TryParse(slideIndexStr, out int slideIndex))
-            {
-                result.ErrorMessage = "缺少必要参数: SlideIndex";
-                return result;
-            }
+            // 智能搜索：优先检测指定幻灯片，如果没有找到则搜索所有幻灯片
+            int totalImageCount = 0;
+            string searchDetails = "";
+            List<string> allShapeTypes = new();
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
-            {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
+            // 尝试获取指定的幻灯片索引
+            int slideIndex = 0;
+            bool hasSpecificSlide = parameters.TryGetValue("SlideIndex", out string? slideIndexStr) &&
+                                   int.TryParse(slideIndexStr, out slideIndex) &&
+                                   slideIndex >= 1 && slideIndex <= presentation.Slides.Count;
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int imageCount = 0;
-            List<string> shapeTypes = new();
-
-            foreach (PowerPoint.Shape shape in slide.Shapes)
+            if (hasSpecificSlide)
             {
-                shapeTypes.Add(shape.Type.ToString());
-                if (shape.Type == MsoShapeType.msoPicture)
+                // 检测指定幻灯片
+                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
-                    imageCount++;
+                    allShapeTypes.Add(shape.Type.ToString());
+                    if (shape.Type.ToString().Contains("Picture") || shape.Type.ToString().Contains("msoPicture"))
+                    {
+                        totalImageCount++;
+                    }
+                }
+                searchDetails = $"幻灯片 {slideIndex}";
+            }
+
+            // 如果在指定幻灯片没找到图片，或者没有指定幻灯片，则搜索所有幻灯片
+            if (totalImageCount == 0)
+            {
+                allShapeTypes.Clear(); // 重置
+                for (int i = 1; i <= presentation.Slides.Count; i++)
+                {
+                    PowerPoint.Slide slide = presentation.Slides[i];
+                    int slideImageCount = 0;
+
+                    foreach (PowerPoint.Shape shape in slide.Shapes)
+                    {
+                        allShapeTypes.Add(shape.Type.ToString());
+                        if (shape.Type.ToString().Contains("Picture") || shape.Type.ToString().Contains("msoPicture"))
+                        {
+                            slideImageCount++;
+                            totalImageCount++;
+                        }
+                    }
+
+                    if (slideImageCount > 0)
+                    {
+                        searchDetails = $"在幻灯片 {i} 中找到 {slideImageCount} 张图片";
+                        break; // 找到第一个有图片的幻灯片就停止
+                    }
+                }
+
+                if (totalImageCount == 0)
+                {
+                    searchDetails = $"搜索了所有 {presentation.Slides.Count} 张幻灯片";
                 }
             }
 
+            // 检查期望的图片数量
             bool hasExpectedCount = true;
             if (parameters.TryGetValue("ExpectedImageCount", out string? expectedCountStr) &&
                 int.TryParse(expectedCountStr, out int expectedCount))
             {
-                hasExpectedCount = imageCount >= expectedCount;
+                hasExpectedCount = totalImageCount >= expectedCount;
                 result.ExpectedValue = $"至少{expectedCount}张图片";
             }
             else
             {
-                hasExpectedCount = imageCount > 0;
+                hasExpectedCount = totalImageCount > 0;
                 result.ExpectedValue = "至少1张图片";
             }
 
-            result.ActualValue = $"{imageCount}张图片";
+            result.ActualValue = $"{totalImageCount}张图片";
             result.IsCorrect = hasExpectedCount;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
 
             // 增强诊断信息
-            string shapeInfo = shapeTypes.Count > 0 ? $"形状类型: [{string.Join(", ", shapeTypes)}]" : "无形状";
-            result.Details = $"幻灯片 {slideIndex} 图片检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}. {shapeInfo}";
+            string shapeInfo = allShapeTypes.Count > 0 ? $"形状类型: [{string.Join(", ", allShapeTypes.Take(10))}]" : "无形状";
+            result.Details = $"图片检测: 期望 {result.ExpectedValue}, {searchDetails}, 实际 {result.ActualValue}. {shapeInfo}";
         }
         catch (Exception ex)
         {
@@ -1025,35 +1107,99 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
-                !int.TryParse(slideIndexStr, out int slideIndex))
-            {
-                result.ErrorMessage = "缺少必要参数: SlideIndex";
-                return result;
-            }
-
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
-            {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
-
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int tableCount = 0;
+            // 智能搜索：优先检测指定幻灯片，如果没有找到则搜索所有幻灯片
+            int totalTableCount = 0;
             string tableInfo = "";
+            string searchDetails = "";
 
-            foreach (PowerPoint.Shape shape in slide.Shapes)
+            // 尝试获取指定的幻灯片索引
+            int slideIndex = 0;
+            bool hasSpecificSlide = parameters.TryGetValue("SlideIndex", out string? slideIndexStr) &&
+                                   int.TryParse(slideIndexStr, out slideIndex) &&
+                                   slideIndex >= 1 && slideIndex <= presentation.Slides.Count;
+
+            if (hasSpecificSlide)
             {
-                if (shape.HasTable == MsoTriState.msoTrue)
+                // 检测指定幻灯片
+                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
-                    tableCount++;
-                    int rows = shape.Table.Rows.Count;
-                    int columns = shape.Table.Columns.Count;
-                    tableInfo += $"{rows}x{columns}; ";
+                    try
+                    {
+                        if (shape.HasTable.ToString().Contains("True") || shape.Type.ToString().Contains("Table"))
+                        {
+                            totalTableCount++;
+                            // 尝试获取表格信息，但不强制要求成功
+                            try
+                            {
+                                int rows = shape.Table.Rows.Count;
+                                int columns = shape.Table.Columns.Count;
+                                tableInfo += $"{rows}x{columns}; ";
+                            }
+                            catch
+                            {
+                                tableInfo += "表格; ";
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // 忽略无法访问的形状
+                    }
+                }
+                searchDetails = $"幻灯片 {slideIndex}";
+            }
+
+            // 如果在指定幻灯片没找到表格，或者没有指定幻灯片，则搜索所有幻灯片
+            if (totalTableCount == 0)
+            {
+                tableInfo = ""; // 重置
+                for (int i = 1; i <= presentation.Slides.Count; i++)
+                {
+                    PowerPoint.Slide slide = presentation.Slides[i];
+                    int slideTableCount = 0;
+
+                    foreach (PowerPoint.Shape shape in slide.Shapes)
+                    {
+                        try
+                        {
+                            if (shape.HasTable.ToString().Contains("True") || shape.Type.ToString().Contains("Table"))
+                            {
+                                slideTableCount++;
+                                totalTableCount++;
+                                try
+                                {
+                                    int rows = shape.Table.Rows.Count;
+                                    int columns = shape.Table.Columns.Count;
+                                    tableInfo += $"{rows}x{columns}; ";
+                                }
+                                catch
+                                {
+                                    tableInfo += "表格; ";
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // 忽略无法访问的形状
+                        }
+                    }
+
+                    if (slideTableCount > 0)
+                    {
+                        searchDetails = $"在幻灯片 {i} 中找到 {slideTableCount} 个表格";
+                        break; // 找到第一个有表格的幻灯片就停止
+                    }
+                }
+
+                if (totalTableCount == 0)
+                {
+                    searchDetails = $"搜索了所有 {presentation.Slides.Count} 张幻灯片";
                 }
             }
 
-            bool hasExpectedTable = tableCount > 0;
+            // 检查期望的表格
+            bool hasExpectedTable = totalTableCount > 0;
             if (parameters.TryGetValue("ExpectedRows", out string? expectedRowsStr) &&
                 parameters.TryGetValue("ExpectedColumns", out string? expectedColumnsStr) &&
                 int.TryParse(expectedRowsStr, out int expectedRows) &&
@@ -1067,7 +1213,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 result.ExpectedValue = "至少1个表格";
             }
 
-            result.ActualValue = tableCount > 0 ? tableInfo.TrimEnd(';', ' ') : "无表格";
+            result.ActualValue = totalTableCount > 0 ? tableInfo.TrimEnd(';', ' ') : "无表格";
             result.IsCorrect = hasExpectedTable;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
 
@@ -1774,35 +1920,66 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr) ||
-                !int.TryParse(slideIndexStr, out int slideIndex))
-            {
-                result.ErrorMessage = "缺少必要参数: SlideIndex";
-                return result;
-            }
+            // 智能搜索：优先检测指定幻灯片，如果没有找到则搜索所有幻灯片
+            int totalSmartArtCount = 0;
+            string searchDetails = "";
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
-            {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
-                return result;
-            }
+            // 尝试获取指定的幻灯片索引
+            int slideIndex = 0;
+            bool hasSpecificSlide = parameters.TryGetValue("SlideIndex", out string? slideIndexStr) &&
+                                   int.TryParse(slideIndexStr, out slideIndex) &&
+                                   slideIndex >= 1 && slideIndex <= presentation.Slides.Count;
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            int smartArtCount = 0;
-
-            foreach (PowerPoint.Shape shape in slide.Shapes)
+            if (hasSpecificSlide)
             {
-                if (shape.Type == MsoShapeType.msoSmartArt)
+                // 检测指定幻灯片
+                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
-                    smartArtCount++;
+                    if (shape.Type.ToString().Contains("SmartArt") || shape.Type.ToString().Contains("msoSmartArt"))
+                    {
+                        totalSmartArtCount++;
+                    }
+                }
+                searchDetails = $"幻灯片 {slideIndex}";
+            }
+
+            // 如果在指定幻灯片没找到SmartArt，或者没有指定幻灯片，则搜索所有幻灯片
+            if (totalSmartArtCount == 0)
+            {
+                for (int i = 1; i <= presentation.Slides.Count; i++)
+                {
+                    PowerPoint.Slide slide = presentation.Slides[i];
+                    int slideSmartArtCount = 0;
+
+                    foreach (PowerPoint.Shape shape in slide.Shapes)
+                    {
+                        if (shape.Type.ToString().Contains("SmartArt") || shape.Type.ToString().Contains("msoSmartArt"))
+                        {
+                            slideSmartArtCount++;
+                            totalSmartArtCount++;
+                        }
+                    }
+
+                    if (slideSmartArtCount > 0)
+                    {
+                        searchDetails = $"在幻灯片 {i} 中找到 {slideSmartArtCount} 个SmartArt";
+                        break; // 找到第一个有SmartArt的幻灯片就停止
+                    }
+                }
+
+                if (totalSmartArtCount == 0)
+                {
+                    searchDetails = $"搜索了所有 {presentation.Slides.Count} 张幻灯片";
                 }
             }
 
-            bool hasExpectedSmartArt = smartArtCount > 0;
+            // 检查期望的SmartArt数量
+            bool hasExpectedSmartArt = totalSmartArtCount > 0;
             if (parameters.TryGetValue("ExpectedSmartArtCount", out string? expectedCountStr) &&
                 int.TryParse(expectedCountStr, out int expectedCount))
             {
-                hasExpectedSmartArt = smartArtCount >= expectedCount;
+                hasExpectedSmartArt = totalSmartArtCount >= expectedCount;
                 result.ExpectedValue = $"至少{expectedCount}个SmartArt图形";
             }
             else
@@ -1810,10 +1987,10 @@ public class PowerPointScoringService : IPowerPointScoringService
                 result.ExpectedValue = "至少1个SmartArt图形";
             }
 
-            result.ActualValue = $"{smartArtCount}个SmartArt图形";
+            result.ActualValue = $"{totalSmartArtCount}个SmartArt图形";
             result.IsCorrect = hasExpectedSmartArt;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} SmartArt检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+            result.Details = $"SmartArt检测: 期望 {result.ExpectedValue}, {searchDetails}, 实际 {result.ActualValue}";
         }
         catch (Exception ex)
         {
