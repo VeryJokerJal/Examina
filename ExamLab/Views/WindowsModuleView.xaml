@@ -113,8 +113,6 @@
                                     <StackPanel Spacing="8">
                                         <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="QuickCreate" Content="快捷创建" ToolTipService.ToolTip="快速创建文件或文件夹" />
 
-                                        <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="CreateOperation" Content="创建操作" ToolTipService.ToolTip="创建新的文件或文件夹" />
-
                                         <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="DeleteOperation" Content="删除操作" ToolTipService.ToolTip="删除指定的文件或文件夹" />
 
                                         <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="CopyOperation" Content="复制操作" ToolTipService.ToolTip="复制文件或文件夹" />

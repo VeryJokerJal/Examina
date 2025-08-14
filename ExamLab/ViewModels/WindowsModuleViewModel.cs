@@ -35,6 +35,8 @@ public class WindowsModuleViewModel : ModuleViewModelBase
     public WindowsModuleViewModel(ExamModule module) : base(module)
     {
         // 初始化可用操作类型
+        // 注意：已删除CreateOperation，因为它与QuickCreate功能重复
+        // QuickCreate提供更完整的功能（包含创建路径参数）
         WindowsOperationType[] operationTypes =
         [
             WindowsOperationType.QuickCreate,

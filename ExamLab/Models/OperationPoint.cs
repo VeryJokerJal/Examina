@@ -7,11 +7,11 @@ namespace ExamLab.Models;
 
 /// <summary>
 /// Windows操作类型枚举
+/// 注意：已删除CreateOperation，因为它与QuickCreate功能重复
 /// </summary>
 public enum WindowsOperationType
 {
-    QuickCreate,        // 快捷创建
-    CreateOperation,    // 创建操作
+    QuickCreate,        // 快捷创建（包含完整的创建路径参数）
     DeleteOperation,    // 删除操作
     CopyOperation,      // 复制操作
     MoveOperation,      // 移动操作
