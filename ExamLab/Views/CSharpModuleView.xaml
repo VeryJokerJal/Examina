@@ -5,7 +5,6 @@
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         <converters:CSharpQuestionTypeConverter x:Key="CSharpQuestionTypeConverter" />
         <converters:CSharpQuestionTypeToVisibilityConverter x:Key="CSharpQuestionTypeToVisibilityConverter" />
-        <converters:ViewModelTypeToVisibilityConverter x:Key="ViewModelTypeToVisibilityConverter" />
     </UserControl.Resources>
 
     <Grid>
@@ -16,7 +15,7 @@
         <!--  模块标题  -->
         <Border Grid.Row="0" Padding="16,12" Background="{ThemeResource CardBackgroundFillColorDefault}">
             <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="White" Text="{Binding CurrentContentViewModel.Title}" />
+                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="White" Text="{Binding Title}" />
                 <Button Command="{Binding AddQuestionCommand}" Content="添加题目" Style="{ThemeResource AccentButtonStyle}" />
             </StackPanel>
         </Border>
@@ -67,7 +66,7 @@
 
                             <TextBlock Grid.Row="0" FontSize="16" FontWeight="SemiBold" Text="题目列表" />
 
-                            <ListView Grid.Row="1" ItemsSource="{Binding CurrentContentViewModel.Module.Questions}" SelectedItem="{Binding CurrentContentViewModel.SelectedQuestion, Mode=TwoWay}">
+                            <ListView Grid.Row="1" ItemsSource="{Binding Module.Questions}" SelectedItem="{Binding SelectedQuestion, Mode=TwoWay}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Padding="10">
@@ -84,7 +83,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="0,1,1,1" CornerRadius="0 8 8 0" Visibility="{Binding CurrentContentViewModel.SelectedQuestion, Converter={StaticResource NullToVisibilityConverter}}">
+                    <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="0,1,1,1" CornerRadius="0 8 8 0" Visibility="{Binding SelectedQuestion, Converter={StaticResource NullToVisibilityConverter}}">
                         <!--  右侧内容区域  -->
                         <Grid Padding="10">
                             <Grid.RowDefinitions>
@@ -95,12 +94,12 @@
                             <!--  题目详情  -->
                             <StackPanel Grid.Row="0" Spacing="8">
                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="题目详情" />
-                                <TextBox Header="题目标题" Text="{Binding CurrentContentViewModel.SelectedQuestion.Title, Mode=TwoWay}" />
-                                <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay}" TextWrapping="Wrap" />
+                                <TextBox Header="题目标题" Text="{Binding SelectedQuestion.Title, Mode=TwoWay}" />
+                                <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding SelectedQuestion.Content, Mode=TwoWay}" TextWrapping="Wrap" />
 
                                 <!--  C#题目类型选择  -->
                                 <StackPanel Spacing="4">
-                                    <ComboBox Header="题目类型" SelectedValue="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Mode=TwoWay, Converter={StaticResource CSharpQuestionTypeConverter}}" SelectedValuePath="Content">
+                                    <ComboBox Header="题目类型" SelectedValue="{Binding SelectedQuestion.CSharpQuestionType, Mode=TwoWay, Converter={StaticResource CSharpQuestionTypeConverter}}" SelectedValuePath="Content">
                                         <ComboBoxItem Content="代码补全" />
                                         <ComboBoxItem Content="调试纠错" />
                                         <ComboBoxItem Content="编写实现" />
@@ -112,20 +111,20 @@
                                     <TextBlock FontWeight="SemiBold" Text="分数设置" />
 
                                     <!--  调试纠错和编写实现类型的直接分数设置  -->
-                                    <StackPanel Spacing="4" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=Debugging}">
+                                    <StackPanel Spacing="4" Visibility="{Binding SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=Debugging}">
                                         <TextBlock FontSize="14" Text="题目分数" />
-                                        <NumberBox Header="分数" Minimum="0" Maximum="1000" SpinButtonPlacementMode="Inline" Value="{Binding CurrentContentViewModel.SelectedQuestion.CSharpDirectScore, Mode=TwoWay}" />
+                                        <NumberBox Header="分数" Minimum="0" Maximum="1000" SpinButtonPlacementMode="Inline" Value="{Binding SelectedQuestion.CSharpDirectScore, Mode=TwoWay}" />
                                     </StackPanel>
 
-                                    <StackPanel Spacing="4" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=Implementation}">
+                                    <StackPanel Spacing="4" Visibility="{Binding SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=Implementation}">
                                         <TextBlock FontSize="14" Text="题目分数" />
-                                        <NumberBox Header="分数" Minimum="0" Maximum="1000" SpinButtonPlacementMode="Inline" Value="{Binding CurrentContentViewModel.SelectedQuestion.CSharpDirectScore, Mode=TwoWay}" />
+                                        <NumberBox Header="分数" Minimum="0" Maximum="1000" SpinButtonPlacementMode="Inline" Value="{Binding SelectedQuestion.CSharpDirectScore, Mode=TwoWay}" />
                                     </StackPanel>
 
                                     <!--  题目总分显示  -->
                                     <StackPanel Spacing="4">
                                         <TextBlock FontWeight="SemiBold" Text="题目总分" />
-                                        <TextBlock FontSize="16" Foreground="{ThemeResource SystemAccentColor}" Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" />
+                                        <TextBlock FontSize="16" Foreground="{ThemeResource SystemAccentColor}" Text="{Binding SelectedQuestion.TotalScore}" />
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>
@@ -141,17 +140,17 @@
                                     <!--  程序参数输入  -->
                                     <StackPanel Spacing="8">
                                         <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序参数输入" />
-                                        <TextBox PlaceholderText="输入程序运行时的参数（可选）" Text="{Binding CurrentContentViewModel.SelectedQuestion.ProgramInput, Mode=TwoWay}" TextWrapping="Wrap" />
+                                        <TextBox PlaceholderText="输入程序运行时的参数（可选）" Text="{Binding SelectedQuestion.ProgramInput, Mode=TwoWay}" TextWrapping="Wrap" />
                                     </StackPanel>
 
                                     <!--  程序控制台输出  -->
                                     <StackPanel Spacing="8">
                                         <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序控制台输出" />
-                                        <TextBox Height="120" AcceptsReturn="True" PlaceholderText="输入程序预期的控制台输出结果" Text="{Binding CurrentContentViewModel.SelectedQuestion.ExpectedOutput, Mode=TwoWay}" TextWrapping="Wrap" />
+                                        <TextBox Height="120" AcceptsReturn="True" PlaceholderText="输入程序预期的控制台输出结果" Text="{Binding SelectedQuestion.ExpectedOutput, Mode=TwoWay}" TextWrapping="Wrap" />
                                     </StackPanel>
 
                                     <!--  C#代码文件路径  -->
-                                    <StackPanel Spacing="8" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}">
+                                    <StackPanel Spacing="8">
                                         <TextBlock FontSize="14" FontWeight="SemiBold" Text="C#代码文件路径" />
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -159,25 +158,25 @@
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBox Grid.Column="0" Margin="0,0,8,0" PlaceholderText="选择或输入C#代码文件路径（可选）" Text="{Binding CurrentContentViewModel.SelectedQuestion.CodeFilePath, Mode=TwoWay}" TextWrapping="NoWrap" />
-                                            <Button Grid.Column="1" Margin="0,0,4,0" Command="{Binding CurrentContentViewModel.SelectCodeFileCommand}" Content="浏览..." Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="选择C#代码文件" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}" />
-                                            <Button Grid.Column="2" Command="{Binding CurrentContentViewModel.ClearCodeFilePathCommand}" Content="清除" Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="清除文件路径" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}" />
+                                            <TextBox Grid.Column="0" Margin="0,0,8,0" PlaceholderText="选择或输入C#代码文件路径（可选）" Text="{Binding SelectedQuestion.CodeFilePath, Mode=TwoWay}" TextWrapping="NoWrap" />
+                                            <Button Grid.Column="1" Margin="0,0,4,0" Command="{Binding SelectCodeFileCommand}" Content="浏览..." Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="选择C#代码文件" />
+                                            <Button Grid.Column="2" Command="{Binding ClearCodeFilePathCommand}" Content="清除" Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="清除文件路径" />
                                         </Grid>
                                         <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="提示：可以选择一个C#代码文件作为题目的参考代码或模板文件" TextWrapping="Wrap" />
                                     </StackPanel>
 
                                     <!--  代码补全填空处（仅代码补全类型显示）  -->
-                                    <StackPanel Spacing="12" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=CodeCompletion}">
-                                        <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}">
+                                    <StackPanel Spacing="12" Visibility="{Binding SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=CodeCompletion}">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
                                             <TextBlock VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="代码填空列表" />
-                                            <Button Command="{Binding CurrentContentViewModel.AddCodeBlankCommand}" Content="添加代码填空" Style="{ThemeResource AccentButtonStyle}" />
+                                            <Button Command="{Binding AddCodeBlankCommand}" Content="添加代码填空" Style="{ThemeResource AccentButtonStyle}" />
                                         </StackPanel>
 
                                         <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="提示：为代码补全题目添加多个代码填空，每个填空输入需要学生填写的代码内容" TextWrapping="Wrap" />
 
                                         <!--  填空处列表  -->
                                         <ScrollViewer>
-                                            <ItemsControl ItemsSource="{Binding CurrentContentViewModel.SelectedQuestion.CodeBlanks}">
+                                            <ItemsControl ItemsSource="{Binding SelectedQuestion.CodeBlanks}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Margin="0,0,0,8" Padding="12" Background="{ThemeResource CardBackgroundFillColorSecondary}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="1" CornerRadius="6">
@@ -187,7 +186,7 @@
                                                                         <Run Text="代码填空 " />
                                                                         <Run Text="{Binding Order}" />
                                                                     </TextBlock>
-                                                                    <Button Padding="8,4" Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" FontSize="12" Style="{ThemeResource DefaultButtonStyle}" Visibility="{Binding DataContext.CurrentContentViewModel, ElementName=LayoutRoot, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}" />
+                                                                    <Button Padding="8,4" Command="{Binding DataContext.DeleteCodeBlankCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" FontSize="12" Style="{ThemeResource DefaultButtonStyle}" />
                                                                 </StackPanel>
 
                                                                 <Grid>
@@ -208,7 +207,7 @@
                                         </ScrollViewer>
 
                                         <!--  无填空处时的提示  -->
-                                        <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="1" CornerRadius="6" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CodeBlanks.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                                        <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="1" CornerRadius="6" Visibility="{Binding SelectedQuestion.CodeBlanks.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
                                             <StackPanel HorizontalAlignment="Center" Spacing="8">
                                                 <TextBlock HorizontalAlignment="Center" FontSize="14" Text="暂无代码填空" />
                                                 <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击&quot;添加代码填空&quot;按钮开始创建" />
@@ -221,7 +220,7 @@
                     </Border>
 
                     <!--  无选中题目时的提示  -->
-                    <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="0,1,1,1" CornerRadius="0 8 8 0" Visibility="{Binding CurrentContentViewModel.SelectedQuestion, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
+                    <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="0,1,1,1" CornerRadius="0 8 8 0" Visibility="{Binding SelectedQuestion, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
                             <TextBlock HorizontalAlignment="Center" FontSize="18" Text="请选择一个题目" />
                             <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="在左侧选择题目来配置C#程序" />

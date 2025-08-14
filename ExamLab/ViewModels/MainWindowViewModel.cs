@@ -215,11 +215,11 @@ public class MainWindowViewModel : ViewModelBase
             _ => null
         };
 
-        // 创建对应的View，将MainWindowViewModel设置为DataContext以便访问通用功能
+        // 创建对应的View，设置适当的DataContext
         CurrentContentView = CurrentContentViewModel switch
         {
             WindowsModuleViewModel => new Views.WindowsModuleView { DataContext = this },
-            CSharpModuleViewModel => new Views.CSharpModuleView { DataContext = this },
+            CSharpModuleViewModel csharpVM => new Views.CSharpModuleView(csharpVM) { MainWindowViewModel = this },
             PowerPointModuleViewModel => new Views.PowerPointModuleView { DataContext = this },
             ExcelModuleViewModel => new Views.ExcelModuleView { DataContext = this },
             WordModuleViewModel => new Views.WordModuleView { DataContext = this },

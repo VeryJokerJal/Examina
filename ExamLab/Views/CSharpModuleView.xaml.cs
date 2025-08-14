@@ -13,6 +13,11 @@ public sealed partial class CSharpModuleView : UserControl
     /// </summary>
     public CSharpModuleViewModel? ViewModel { get; set; }
 
+    /// <summary>
+    /// MainWindowViewModel - 用于访问通用命令
+    /// </summary>
+    public MainWindowViewModel? MainWindowViewModel { get; set; }
+
     public CSharpModuleView()
     {
         InitializeComponent();
