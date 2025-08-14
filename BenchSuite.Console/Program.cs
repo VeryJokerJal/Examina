@@ -315,7 +315,7 @@ internal class Program
         System.Console.WriteLine($"正在执行 PowerPoint 稳定性测试（{testRuns}次评分）...");
         System.Console.WriteLine();
 
-        List<ScoringResult> allResults = new();
+        List<ScoringResult> allResults = [];
 
         // 使用真实的PowerPoint评分服务
         PowerPointScoringService scoringService = new();
@@ -359,17 +359,49 @@ internal class Program
                     ErrorMessage = ex.Message,
                     StartTime = DateTime.Now,
                     EndTime = DateTime.Now,
-                    KnowledgePointResults = new List<KnowledgePointResult>()
+                    KnowledgePointResults = []
                 };
                 allResults.Add(failedResult);
             }
-
-            // 短暂延迟避免资源冲突
-            await Task.Delay(500);
         }
 
         System.Console.WriteLine();
         System.Console.WriteLine("=== 稳定性测试结果分析 ===");
+
+        // 显示第一次评分的详细信息用于诊断
+        if (allResults.Count > 0 && allResults[0].IsSuccess)
+        {
+            System.Console.WriteLine();
+            System.Console.WriteLine("第一次评分详细信息（用于诊断）:");
+            System.Console.WriteLine(new string('-', 80));
+
+            foreach (KnowledgePointResult kpResult in allResults[0].KnowledgePointResults.Take(5)) // 只显示前5个
+            {
+                System.Console.WriteLine($"知识点: {kpResult.KnowledgePointName}");
+                System.Console.WriteLine($"  得分: {kpResult.AchievedScore}/{kpResult.TotalScore}");
+                System.Console.WriteLine($"  是否正确: {kpResult.IsCorrect}");
+
+                if (!string.IsNullOrEmpty(kpResult.ErrorMessage))
+                {
+                    System.Console.WriteLine($"  错误: {kpResult.ErrorMessage}");
+                }
+
+                if (!string.IsNullOrEmpty(kpResult.Details))
+                {
+                    string shortDetails = kpResult.Details.Length > 150 ? kpResult.Details[..150] + "..." : kpResult.Details;
+                    System.Console.WriteLine($"  详情: {shortDetails}");
+                }
+
+                System.Console.WriteLine();
+            }
+
+            if (allResults[0].KnowledgePointResults.Count > 5)
+            {
+                System.Console.WriteLine($"... 还有 {allResults[0].KnowledgePointResults.Count - 5} 个知识点");
+            }
+
+            System.Console.WriteLine(new string('-', 80));
+        }
 
         // 分析结果
         AnalyzeStabilityResults(allResults);
@@ -381,7 +413,7 @@ internal class Program
     /// <param name="allResults">所有评分结果</param>
     private static void AnalyzeStabilityResults(List<ScoringResult> allResults)
     {
-        var successfulResults = allResults.Where(r => r.IsSuccess).ToList();
+        List<ScoringResult> successfulResults = allResults.Where(r => r.IsSuccess).ToList();
 
         System.Console.WriteLine($"成功评分次数: {successfulResults.Count}/{allResults.Count}");
 
@@ -392,8 +424,8 @@ internal class Program
         }
 
         // 分析总分稳定性
-        var totalScores = successfulResults.Select(r => r.TotalScore).ToList();
-        var achievedScores = successfulResults.Select(r => r.AchievedScore).ToList();
+        List<decimal> totalScores = successfulResults.Select(r => r.TotalScore).ToList();
+        List<decimal> achievedScores = successfulResults.Select(r => r.AchievedScore).ToList();
 
         bool totalScoreStable = totalScores.All(s => Math.Abs(s - totalScores[0]) < 0.01m);
         bool achievedScoreStable = achievedScores.All(s => Math.Abs(s - achievedScores[0]) < 0.01m);
@@ -426,34 +458,37 @@ internal class Program
         System.Console.WriteLine(new string('-', 100));
 
         // 收集所有知识点的结果
-        Dictionary<string, List<KnowledgePointResult>> knowledgePointResults = new();
+        Dictionary<string, List<KnowledgePointResult>> knowledgePointResults = [];
 
-        foreach (var result in successfulResults)
+        foreach (ScoringResult result in successfulResults)
         {
-            foreach (var kpResult in result.KnowledgePointResults)
+            foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
             {
                 string key = $"{kpResult.KnowledgePointName}";
                 if (!knowledgePointResults.ContainsKey(key))
                 {
-                    knowledgePointResults[key] = new List<KnowledgePointResult>();
+                    knowledgePointResults[key] = [];
                 }
                 knowledgePointResults[key].Add(kpResult);
             }
         }
 
         // 分析每个知识点的稳定性
-        var unstableKnowledgePoints = new List<(string name, int correctCount, int totalCount, List<decimal> scores)>();
+        List<(string name, int correctCount, int totalCount, List<decimal> scores)> unstableKnowledgePoints = [];
 
-        foreach (var kvp in knowledgePointResults)
+        foreach (KeyValuePair<string, List<KnowledgePointResult>> kvp in knowledgePointResults)
         {
             string knowledgePointName = kvp.Key;
-            var results = kvp.Value;
+            List<KnowledgePointResult> results = kvp.Value;
 
-            if (results.Count == 0) continue;
+            if (results.Count == 0)
+            {
+                continue;
+            }
 
             int correctCount = results.Count(r => r.IsCorrect);
             int totalCount = results.Count;
-            var scores = results.Select(r => r.AchievedScore).ToList();
+            List<decimal> scores = results.Select(r => r.AchievedScore).ToList();
 
             bool isStable = scores.All(s => Math.Abs(s - scores[0]) < 0.01m);
             bool hasVariation = correctCount > 0 && correctCount < totalCount; // 既有正确也有错误
@@ -476,21 +511,37 @@ internal class Program
 
             System.Console.WriteLine($"{knowledgePointName,-40} {status,-12} {correctCount,2}/{totalCount,2} 正确  得分范围: {minScore:F1}-{maxScore:F1} (平均: {avgScore:F1})");
 
-            // 如果有变化，显示详细信息
-            if (hasVariation)
+            // 显示详细信息（包括全错的情况）
+            if (hasVariation || correctCount == 0)
             {
-                var scoreGroups = results.GroupBy(r => r.AchievedScore).OrderBy(g => g.Key);
-                var scoreDistribution = string.Join(", ", scoreGroups.Select(g => $"{g.Key:F1}分×{g.Count()}次"));
+                IOrderedEnumerable<IGrouping<decimal, KnowledgePointResult>> scoreGroups = results.GroupBy(r => r.AchievedScore).OrderBy(g => g.Key);
+                string scoreDistribution = string.Join(", ", scoreGroups.Select(g => $"{g.Key:F1}分×{g.Count()}次"));
                 System.Console.WriteLine($"{"",42} 得分分布: {scoreDistribution}");
 
                 // 显示错误信息（如果有）
-                var errorMessages = results.Where(r => !string.IsNullOrEmpty(r.ErrorMessage))
+                List<string?> errorMessages = results.Where(r => !string.IsNullOrEmpty(r.ErrorMessage))
                                           .Select(r => r.ErrorMessage)
                                           .Distinct()
                                           .ToList();
                 if (errorMessages.Count > 0)
                 {
                     System.Console.WriteLine($"{"",42} 错误信息: {string.Join("; ", errorMessages)}");
+                }
+
+                // 显示详细信息（如果有）
+                List<string> detailMessages = results.Where(r => !string.IsNullOrEmpty(r.Details))
+                                           .Select(r => r.Details!)
+                                           .Distinct()
+                                           .Take(2) // 只显示前2个不同的详情
+                                           .ToList();
+                if (detailMessages.Count > 0)
+                {
+                    foreach (string detail in detailMessages)
+                    {
+                        // 截断过长的详情信息
+                        string shortDetail = detail.Length > 100 ? detail[..100] + "..." : detail;
+                        System.Console.WriteLine($"{"",42} 详情: {shortDetail}");
+                    }
                 }
             }
         }
@@ -503,7 +554,7 @@ internal class Program
             System.Console.WriteLine();
             System.Console.WriteLine($"发现 {unstableKnowledgePoints.Count} 个不稳定的知识点:");
 
-            foreach (var (name, correctCount, totalCount, scores) in unstableKnowledgePoints.OrderBy(x => (double)x.correctCount / x.totalCount))
+            foreach ((string name, int correctCount, int totalCount, List<decimal> scores) in unstableKnowledgePoints.OrderBy(x => (double)x.correctCount / x.totalCount))
             {
                 decimal successRate = (decimal)correctCount / totalCount;
                 decimal variance = scores.Select(s => (decimal)Math.Pow((double)(s - scores.Average()), 2)).Average();
