@@ -149,8 +149,12 @@
                                                         <Border Margin="0,0,0,8" Padding="12" Background="{ThemeResource CardBackgroundFillColorSecondary}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="1" CornerRadius="6">
                                                             <StackPanel Spacing="8">
                                                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                                                    <TextBlock FontSize="13" FontWeight="SemiBold" Text="{Binding Order, StringFormat='填空处 {0}'}" VerticalAlignment="Center" />
-                                                                    <Button Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Content="删除" FontSize="12" Padding="8,4" Style="{ThemeResource DefaultButtonStyle}" />
+                                                                    <TextBlock FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center">
+                                                                        <TextBlock.Text>
+                                                                            <Binding Path="Order" StringFormat="填空处 {0}" />
+                                                                        </TextBlock.Text>
+                                                                    </TextBlock>
+                                                                    <Button Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding}" Content="删除" FontSize="12" Padding="8,4" Style="{ThemeResource DefaultButtonStyle}" />
                                                                 </StackPanel>
 
                                                                 <TextBox Header="填空处描述" PlaceholderText="输入填空处的简短描述" Text="{Binding Description, Mode=TwoWay}" />
@@ -167,7 +171,7 @@
                                         <Border Padding="16" Background="{ThemeResource SystemFillColorAttentionBackground}" BorderBrush="{ThemeResource SystemFillColorAttention}" BorderThickness="1" CornerRadius="6" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CodeBlanks.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
                                             <StackPanel HorizontalAlignment="Center" Spacing="8">
                                                 <TextBlock HorizontalAlignment="Center" FontSize="14" Text="暂无填空处" />
-                                                <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击"添加填空处"按钮开始创建" />
+                                                <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击&quot;添加填空处&quot;按钮开始创建" />
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
