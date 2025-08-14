@@ -292,19 +292,18 @@ public class ExcelImportExportService
     /// </summary>
     private string? NormalizePropertyType(string? propertyType)
     {
-        if (string.IsNullOrEmpty(propertyType))
-            return null;
-
-        return propertyType.ToLower() switch
-        {
-            "readonly" or "只读" or "只读属性" => "readonly",
-            "hidden" or "隐藏" or "隐藏属性" => "hidden",
-            "noindex" or "无内容索引" or "无内容索引属性" => "noindex",
-            // 向后兼容：旧的属性类型
-            "archive" or "存档" or "存档属性" => "noindex", // 将旧的存档属性映射为无内容索引
-            "system" or "系统" or "系统属性" => "readonly", // 将旧的系统属性映射为只读
-            _ => propertyType.ToLower()
-        };
+        return string.IsNullOrEmpty(propertyType)
+            ? null
+            : propertyType.ToLower() switch
+            {
+                "readonly" or "只读" or "只读属性" => "readonly",
+                "hidden" or "隐藏" or "隐藏属性" => "hidden",
+                "noindex" or "无内容索引" or "无内容索引属性" => "noindex",
+                // 向后兼容：旧的属性类型
+                "archive" or "存档" or "存档属性" => "noindex", // 将旧的存档属性映射为无内容索引
+                "system" or "系统" or "系统属性" => "readonly", // 将旧的系统属性映射为只读
+                _ => propertyType.ToLower()
+            };
     }
 
     /// <summary>
@@ -498,77 +497,136 @@ public class ExcelImportExportService
     /// </summary>
     private List<string> ValidateOperationConfigUpdated(string operationType, WindowsOperationConfig config, int row)
     {
-        List<string> errors = new();
+        List<string> errors = [];
 
         switch (operationType.ToUpper())
         {
             case "CREATE":
                 if (string.IsNullOrEmpty(config.TargetType))
+                {
                     errors.Add($"第{row}行：创建操作缺少目标类型");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetName))
+                {
                     errors.Add($"第{row}行：创建操作缺少目标名称");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：创建操作缺少目标路径");
+                }
+
                 break;
 
             case "DELETE":
                 if (string.IsNullOrEmpty(config.TargetType))
+                {
                     errors.Add($"第{row}行：删除操作缺少目标类型");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetName))
+                {
                     errors.Add($"第{row}行：删除操作缺少目标名称");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：删除操作缺少目标路径");
+                }
                 // 注意：不再验证确认删除字段
                 break;
 
             case "COPY":
                 if (string.IsNullOrEmpty(config.SourcePath))
+                {
                     errors.Add($"第{row}行：复制操作缺少源路径");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：复制操作缺少目标路径");
+                }
+
                 break;
 
             case "MOVE":
                 if (string.IsNullOrEmpty(config.SourcePath))
+                {
                     errors.Add($"第{row}行：移动操作缺少源路径");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：移动操作缺少目标路径");
+                }
+
                 break;
 
             case "RENAME":
                 if (string.IsNullOrEmpty(config.OriginalName))
+                {
                     errors.Add($"第{row}行：重命名操作缺少原名称");
+                }
+
                 if (string.IsNullOrEmpty(config.NewName))
+                {
                     errors.Add($"第{row}行：重命名操作缺少新名称");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：重命名操作缺少目标路径");
+                }
+
                 break;
 
             case "CREATESHORTCUT":
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：创建快捷方式操作缺少目标路径");
+                }
+
                 if (string.IsNullOrEmpty(config.ShortcutLocation))
+                {
                     errors.Add($"第{row}行：创建快捷方式操作缺少快捷方式位置");
+                }
                 // 注意：不再验证快捷方式名称字段
                 break;
 
             case "MODIFYPROPERTIES":
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：修改属性操作缺少目标路径");
+                }
+
                 if (string.IsNullOrEmpty(config.PropertyType))
+                {
                     errors.Add($"第{row}行：修改属性操作缺少属性类型");
+                }
                 else if (!IsValidPropertyType(config.PropertyType))
+                {
                     errors.Add($"第{row}行：无效的属性类型'{config.PropertyType}'，支持的类型：readonly、hidden、noindex");
+                }
                 // 注意：不再验证操作类型字段（添加/移除/切换）
                 break;
 
             case "COPYANDRENAME":
                 if (string.IsNullOrEmpty(config.SourcePath))
+                {
                     errors.Add($"第{row}行：复制重命名操作缺少源路径");
+                }
+
                 if (string.IsNullOrEmpty(config.TargetPath))
+                {
                     errors.Add($"第{row}行：复制重命名操作缺少目标路径");
+                }
+
                 if (string.IsNullOrEmpty(config.NewName))
+                {
                     errors.Add($"第{row}行：复制重命名操作缺少新名称");
+                }
+
                 break;
 
             default:
@@ -585,7 +643,9 @@ public class ExcelImportExportService
     private bool IsValidPropertyType(string? propertyType)
     {
         if (string.IsNullOrEmpty(propertyType))
+        {
             return false;
+        }
 
         string normalizedType = propertyType.ToLower();
         return normalizedType is "readonly" or "hidden" or "noindex";
@@ -596,7 +656,7 @@ public class ExcelImportExportService
     /// </summary>
     private List<string> ValidateRowData(ExcelWorksheet worksheet, int row)
     {
-        List<string> errors = new();
+        List<string> errors = [];
 
         // 验证操作类型
         string? operationType = worksheet.Cells[row, 1].Value?.ToString();
