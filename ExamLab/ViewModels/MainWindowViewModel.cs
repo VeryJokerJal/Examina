@@ -184,7 +184,7 @@ public class MainWindowViewModel : ViewModelBase
             LastModifiedTime = "2025-08-10"
         };
 
-        // 添加默认模块
+        // 添加默认模块（每个模块都会自动生成唯一ID）
         newExam.Modules.Add(new ExamModule { Name = "Windows操作", Type = ModuleType.Windows, Order = 1 });
         newExam.Modules.Add(new ExamModule { Name = "C#编程", Type = ModuleType.CSharp, Order = 2 });
         newExam.Modules.Add(new ExamModule { Name = "PowerPoint操作", Type = ModuleType.PowerPoint, Order = 3 });
@@ -270,7 +270,7 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            // 创建试卷的深度副本
+            // 创建试卷的深度副本（自动生成新的唯一ID）
             Exam clonedExam = new()
             {
                 Name = newName,
@@ -279,7 +279,7 @@ public class MainWindowViewModel : ViewModelBase
                 Duration = exam.Duration
             };
 
-            // 克隆所有模块
+            // 克隆所有模块（每个模块自动生成新的唯一ID）
             foreach (ExamModule module in exam.Modules)
             {
                 ExamModule clonedModule = new()

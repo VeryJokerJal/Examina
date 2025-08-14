@@ -156,6 +156,21 @@ internal class Program
                 return null;
             }
 
+            // 检测和修复ID冲突
+            int conflictCount = BenchSuite.Services.IdConflictResolver.ResolveConflicts(examModel);
+            if (conflictCount > 0)
+            {
+                System.Console.WriteLine($"检测到 {conflictCount} 个ID冲突，已自动修复");
+            }
+
+            // 验证ID唯一性
+            var validationResult = BenchSuite.Services.IdConflictResolver.ValidateIds(examModel);
+            if (!validationResult.IsValid)
+            {
+                System.Console.WriteLine($"ID验证失败: {validationResult.GetSummary()}");
+                return null;
+            }
+
             // 验证ExamModel
             if (!ValidateExamModel(examModel))
             {

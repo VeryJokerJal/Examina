@@ -1,6 +1,7 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
+using ExamLab.Services;
 
 namespace ExamLab.Models;
 
@@ -12,7 +13,7 @@ public class Exam : ReactiveObject
     /// <summary>
     /// 试卷ID
     /// </summary>
-    [Reactive] public string Id { get; set; } = "exam-1";
+    [Reactive] public string Id { get; set; } = IdGeneratorService.GenerateExamId();
 
     /// <summary>
     /// 试卷名称

@@ -2,6 +2,7 @@
 using System.Linq;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using ExamLab.Services;
 
 namespace ExamLab.Models;
 
@@ -64,7 +65,7 @@ public class ExamModule : ReactiveObject
     /// <summary>
     /// 模块ID
     /// </summary>
-    [Reactive] public string Id { get; set; } = "module-1";
+    [Reactive] public string Id { get; set; } = IdGeneratorService.GenerateModuleId();
 
     /// <summary>
     /// 模块名称

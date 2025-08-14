@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using ExamLab.Services;
 
 namespace ExamLab.Models;
 
@@ -15,7 +16,7 @@ public class Question : ReactiveObject
     /// <summary>
     /// 题目ID
     /// </summary>
-    [Reactive] public string Id { get; set; } = "question-1";
+    [Reactive] public string Id { get; set; } = IdGeneratorService.GenerateQuestionId();
 
     /// <summary>
     /// 题目标题

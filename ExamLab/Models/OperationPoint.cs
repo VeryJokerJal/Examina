@@ -1,6 +1,7 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
+using ExamLab.Services;
 
 namespace ExamLab.Models;
 
@@ -260,7 +261,7 @@ public class OperationPoint : ReactiveObject
     /// <summary>
     /// 操作点ID
     /// </summary>
-    [Reactive] public string Id { get; set; } = "operation-1";
+    [Reactive] public string Id { get; set; } = IdGeneratorService.GenerateOperationId();
 
     /// <summary>
     /// 操作点名称
