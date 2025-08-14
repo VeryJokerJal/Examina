@@ -160,8 +160,8 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <TextBox Grid.Column="0" Margin="0,0,8,0" PlaceholderText="选择或输入C#代码文件路径（可选）" Text="{Binding CurrentContentViewModel.SelectedQuestion.CodeFilePath, Mode=TwoWay}" TextWrapping="NoWrap" />
-                                            <Button Grid.Column="1" Margin="0,0,4,0" Command="{Binding CurrentContentViewModel.SelectCodeFileCommand}" Content="浏览..." Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="选择C#代码文件" />
-                                            <Button Grid.Column="2" Command="{Binding CurrentContentViewModel.ClearCodeFilePathCommand}" Content="清除" Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="清除文件路径" />
+                                            <Button Grid.Column="1" Margin="0,0,4,0" Command="{Binding CurrentContentViewModel.SelectCodeFileCommand}" Content="浏览..." Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="选择C#代码文件" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}" />
+                                            <Button Grid.Column="2" Command="{Binding CurrentContentViewModel.ClearCodeFilePathCommand}" Content="清除" Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="清除文件路径" Visibility="{Binding CurrentContentViewModel, Converter={StaticResource ViewModelTypeToVisibilityConverter}, ConverterParameter=CSharpModuleViewModel}" />
                                         </Grid>
                                         <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="提示：可以选择一个C#代码文件作为题目的参考代码或模板文件" TextWrapping="Wrap" />
                                     </StackPanel>
