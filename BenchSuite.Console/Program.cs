@@ -29,19 +29,6 @@ internal class Program
 
         try
         {
-            // 检查是否为测试模式
-            if (args.Length > 0 && args[0] == "--test-json")
-            {
-                if (args.Length < 2)
-                {
-                    System.Console.WriteLine("请提供要测试的 JSON 文件路径");
-                    return;
-                }
-
-                await TestJsonParsing.TestParseJsonAsync(args[1]);
-                return;
-            }
-
             // 解析命令行参数
             (string examFilePath, string pptFilePath) = ParseCommandLineArguments(args);
 
