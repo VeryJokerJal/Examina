@@ -35,8 +35,8 @@ internal class Program
             // 加载试卷模型
             ExamModel examModel = await LoadExamModelAsync(examFilePath);
 
-            // 执行 PowerPoint 评分
-            await ScorePowerPointFileAsync(pptFilePath, examModel);
+            // 执行 PowerPoint 稳定性测试（30次评分）
+            await RunStabilityTestAsync(pptFilePath, examModel);
         }
         catch (FileNotFoundException ex)
         {
@@ -174,8 +174,8 @@ internal class Program
 
         try
         {
-            // 创建 PowerPoint 评分服务（使用模拟版本进行演示）
-            MockPowerPointScoringService scoringService = new();
+            // 创建 PowerPoint 评分服务
+            PowerPointScoringService scoringService = new();
 
             // 配置评分选项
             ScoringConfiguration configuration = new()
@@ -305,6 +305,223 @@ internal class Program
     }
 
     /// <summary>
+    /// 运行稳定性测试（30次评分）
+    /// </summary>
+    /// <param name="pptFilePath">PowerPoint 文件路径</param>
+    /// <param name="examModel">试卷模型</param>
+    private static async Task RunStabilityTestAsync(string pptFilePath, ExamModel examModel)
+    {
+        const int testRuns = 30;
+        System.Console.WriteLine($"正在执行 PowerPoint 稳定性测试（{testRuns}次评分）...");
+        System.Console.WriteLine();
+
+        List<ScoringResult> allResults = new();
+
+        // 使用真实的PowerPoint评分服务
+        PowerPointScoringService scoringService = new();
+
+        // 配置评分选项
+        ScoringConfiguration configuration = new()
+        {
+            EnablePartialScoring = true,
+            ErrorTolerance = 0.1m,
+            TimeoutSeconds = 60,
+            EnableDetailedLogging = true
+        };
+
+        // 执行30次评分
+        for (int i = 1; i <= testRuns; i++)
+        {
+            System.Console.Write($"第 {i:D2} 次评分... ");
+
+            try
+            {
+                ScoringResult result = await scoringService.ScoreFileAsync(pptFilePath, examModel, configuration);
+                allResults.Add(result);
+
+                if (result.IsSuccess)
+                {
+                    System.Console.WriteLine($"完成 - 得分: {result.AchievedScore:F1}/{result.TotalScore:F1} ({result.ScoreRate:P1})");
+                }
+                else
+                {
+                    System.Console.WriteLine($"失败 - {result.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"异常 - {ex.Message}");
+
+                // 创建失败结果记录
+                ScoringResult failedResult = new()
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message,
+                    StartTime = DateTime.Now,
+                    EndTime = DateTime.Now,
+                    KnowledgePointResults = new List<KnowledgePointResult>()
+                };
+                allResults.Add(failedResult);
+            }
+
+            // 短暂延迟避免资源冲突
+            await Task.Delay(500);
+        }
+
+        System.Console.WriteLine();
+        System.Console.WriteLine("=== 稳定性测试结果分析 ===");
+
+        // 分析结果
+        AnalyzeStabilityResults(allResults);
+    }
+
+    /// <summary>
+    /// 分析稳定性测试结果
+    /// </summary>
+    /// <param name="allResults">所有评分结果</param>
+    private static void AnalyzeStabilityResults(List<ScoringResult> allResults)
+    {
+        var successfulResults = allResults.Where(r => r.IsSuccess).ToList();
+
+        System.Console.WriteLine($"成功评分次数: {successfulResults.Count}/{allResults.Count}");
+
+        if (successfulResults.Count == 0)
+        {
+            System.Console.WriteLine("没有成功的评分结果，无法进行稳定性分析。");
+            return;
+        }
+
+        // 分析总分稳定性
+        var totalScores = successfulResults.Select(r => r.TotalScore).ToList();
+        var achievedScores = successfulResults.Select(r => r.AchievedScore).ToList();
+
+        bool totalScoreStable = totalScores.All(s => Math.Abs(s - totalScores[0]) < 0.01m);
+        bool achievedScoreStable = achievedScores.All(s => Math.Abs(s - achievedScores[0]) < 0.01m);
+
+        System.Console.WriteLine($"总分稳定性: {(totalScoreStable ? "✓ 稳定" : "✗ 不稳定")} (范围: {totalScores.Min():F1} - {totalScores.Max():F1})");
+        System.Console.WriteLine($"得分稳定性: {(achievedScoreStable ? "✓ 稳定" : "✗ 不稳定")} (范围: {achievedScores.Min():F1} - {achievedScores.Max():F1})");
+
+        if (!achievedScoreStable)
+        {
+            decimal avgScore = achievedScores.Average();
+            decimal variance = achievedScores.Select(s => (decimal)Math.Pow((double)(s - avgScore), 2)).Average();
+            decimal stdDev = (decimal)Math.Sqrt((double)variance);
+
+            System.Console.WriteLine($"得分统计: 平均={avgScore:F2}, 标准差={stdDev:F2}");
+        }
+
+        System.Console.WriteLine();
+
+        // 分析知识点稳定性
+        AnalyzeKnowledgePointStability(successfulResults);
+    }
+
+    /// <summary>
+    /// 分析知识点稳定性
+    /// </summary>
+    /// <param name="successfulResults">成功的评分结果</param>
+    private static void AnalyzeKnowledgePointStability(List<ScoringResult> successfulResults)
+    {
+        System.Console.WriteLine("知识点稳定性分析:");
+        System.Console.WriteLine(new string('-', 100));
+
+        // 收集所有知识点的结果
+        Dictionary<string, List<KnowledgePointResult>> knowledgePointResults = new();
+
+        foreach (var result in successfulResults)
+        {
+            foreach (var kpResult in result.KnowledgePointResults)
+            {
+                string key = $"{kpResult.KnowledgePointName}";
+                if (!knowledgePointResults.ContainsKey(key))
+                {
+                    knowledgePointResults[key] = new List<KnowledgePointResult>();
+                }
+                knowledgePointResults[key].Add(kpResult);
+            }
+        }
+
+        // 分析每个知识点的稳定性
+        var unstableKnowledgePoints = new List<(string name, int correctCount, int totalCount, List<decimal> scores)>();
+
+        foreach (var kvp in knowledgePointResults)
+        {
+            string knowledgePointName = kvp.Key;
+            var results = kvp.Value;
+
+            if (results.Count == 0) continue;
+
+            int correctCount = results.Count(r => r.IsCorrect);
+            int totalCount = results.Count;
+            var scores = results.Select(r => r.AchievedScore).ToList();
+
+            bool isStable = scores.All(s => Math.Abs(s - scores[0]) < 0.01m);
+            bool hasVariation = correctCount > 0 && correctCount < totalCount; // 既有正确也有错误
+
+            string status;
+            if (isStable)
+            {
+                status = correctCount == totalCount ? "✓ 稳定(全对)" :
+                        correctCount == 0 ? "✓ 稳定(全错)" : "✓ 稳定";
+            }
+            else
+            {
+                status = "✗ 不稳定";
+                unstableKnowledgePoints.Add((knowledgePointName, correctCount, totalCount, scores));
+            }
+
+            decimal avgScore = scores.Average();
+            decimal minScore = scores.Min();
+            decimal maxScore = scores.Max();
+
+            System.Console.WriteLine($"{knowledgePointName,-40} {status,-12} {correctCount,2}/{totalCount,2} 正确  得分范围: {minScore:F1}-{maxScore:F1} (平均: {avgScore:F1})");
+
+            // 如果有变化，显示详细信息
+            if (hasVariation)
+            {
+                var scoreGroups = results.GroupBy(r => r.AchievedScore).OrderBy(g => g.Key);
+                var scoreDistribution = string.Join(", ", scoreGroups.Select(g => $"{g.Key:F1}分×{g.Count()}次"));
+                System.Console.WriteLine($"{"",42} 得分分布: {scoreDistribution}");
+
+                // 显示错误信息（如果有）
+                var errorMessages = results.Where(r => !string.IsNullOrEmpty(r.ErrorMessage))
+                                          .Select(r => r.ErrorMessage)
+                                          .Distinct()
+                                          .ToList();
+                if (errorMessages.Count > 0)
+                {
+                    System.Console.WriteLine($"{"",42} 错误信息: {string.Join("; ", errorMessages)}");
+                }
+            }
+        }
+
+        System.Console.WriteLine(new string('-', 100));
+
+        // 总结不稳定的知识点
+        if (unstableKnowledgePoints.Count > 0)
+        {
+            System.Console.WriteLine();
+            System.Console.WriteLine($"发现 {unstableKnowledgePoints.Count} 个不稳定的知识点:");
+
+            foreach (var (name, correctCount, totalCount, scores) in unstableKnowledgePoints.OrderBy(x => (double)x.correctCount / x.totalCount))
+            {
+                decimal successRate = (decimal)correctCount / totalCount;
+                decimal variance = scores.Select(s => (decimal)Math.Pow((double)(s - scores.Average()), 2)).Average();
+                decimal stdDev = (decimal)Math.Sqrt((double)variance);
+
+                System.Console.WriteLine($"  • {name}");
+                System.Console.WriteLine($"    成功率: {successRate:P1} ({correctCount}/{totalCount})");
+                System.Console.WriteLine($"    得分标准差: {stdDev:F2}");
+            }
+        }
+        else
+        {
+            System.Console.WriteLine();
+            System.Console.WriteLine("✓ 所有知识点评分都很稳定！");
+        }
+    }
+
+    /// <summary>
     /// 显示程序使用说明
     /// </summary>
     private static void ShowUsage()
@@ -321,5 +538,7 @@ internal class Program
         System.Console.WriteLine("  BenchSuite.Console.exe TestData\\sample-exam.json C:\\MyPresentation.pptx");
         System.Console.WriteLine();
         System.Console.WriteLine("如果不提供参数，程序将使用默认的测试数据并提示输入 PowerPoint 文件路径。");
+        System.Console.WriteLine();
+        System.Console.WriteLine("注意: 程序将自动执行30次评分以测试稳定性。");
     }
 }
