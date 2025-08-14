@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using BenchSuite.Interfaces;
+﻿using BenchSuite.Interfaces;
 using BenchSuite.Models;
 
 namespace BenchSuite.Services;
@@ -42,7 +37,7 @@ public class MockPowerPointScoringService : IScoringService
     /// <returns>打分结果</returns>
     public ScoringResult ScoreFile(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
     {
-        ScoringResult result = new ScoringResult
+        ScoringResult result = new()
         {
             StartTime = DateTime.Now
         };
@@ -59,7 +54,7 @@ public class MockPowerPointScoringService : IScoringService
 
             // 验证文件扩展名
             string extension = Path.GetExtension(filePath).ToLowerInvariant();
-            if (extension != ".pptx" && extension != ".ppt")
+            if (extension is not ".pptx" and not ".ppt")
             {
                 result.ErrorMessage = $"不支持的文件格式: {extension}。支持的格式: .pptx, .ppt";
                 result.IsSuccess = false;
@@ -76,7 +71,7 @@ public class MockPowerPointScoringService : IScoringService
             }
 
             // 获取所有操作点
-            List<OperationPointModel> allOperationPoints = new List<OperationPointModel>();
+            List<OperationPointModel> allOperationPoints = [];
             foreach (QuestionModel question in pptModule.Questions)
             {
                 allOperationPoints.AddRange(question.OperationPoints);
@@ -186,10 +181,12 @@ public class MockPowerPointScoringService : IScoringService
     public bool CanProcessFile(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
+        {
             return false;
+        }
 
         string extension = Path.GetExtension(filePath).ToLowerInvariant();
-        return extension == ".pptx" || extension == ".ppt";
+        return extension is ".pptx" or ".ppt";
     }
 
     /// <summary>
@@ -209,12 +206,12 @@ public class MockPowerPointScoringService : IScoringService
     /// <returns>知识点检测结果</returns>
     private List<KnowledgePointResult> SimulateKnowledgePointDetection(List<OperationPointModel> operationPoints, string filePath)
     {
-        List<KnowledgePointResult> results = new List<KnowledgePointResult>();
-        Random random = new Random();
+        List<KnowledgePointResult> results = [];
+        Random random = new();
 
         foreach (OperationPointModel operationPoint in operationPoints)
         {
-            KnowledgePointResult result = new KnowledgePointResult
+            KnowledgePointResult result = new()
             {
                 KnowledgePointId = operationPoint.Id,
                 OperationPointId = operationPoint.Id,
@@ -226,13 +223,13 @@ public class MockPowerPointScoringService : IScoringService
 
             // 模拟检测逻辑 - 随机成功率为 80%
             bool isCorrect = random.NextDouble() > 0.2;
-            
+
             result.IsCorrect = isCorrect;
             result.AchievedScore = isCorrect ? result.TotalScore : 0;
-            
+
             // 根据操作点类型生成模拟的检测详情
             result.Details = GenerateSimulatedDetails(operationPoint, isCorrect);
-            
+
             if (!isCorrect)
             {
                 result.ErrorMessage = GenerateSimulatedErrorMessage(operationPoint);
@@ -253,41 +250,36 @@ public class MockPowerPointScoringService : IScoringService
     private string GenerateSimulatedDetails(OperationPointModel operationPoint, bool isCorrect)
     {
         string operationName = operationPoint.Name;
-        
-        if (isCorrect)
-        {
-            return operationName switch
+
+        return isCorrect
+            ? operationName switch
             {
-                "设置文稿应用主题" => "✅ 检测到演示文稿已应用指定主题",
-                "设置幻灯片的字体" => "✅ 检测到指定幻灯片的字体设置正确",
-                "插入幻灯片" => "✅ 检测到已在指定位置插入新幻灯片",
-                "幻灯片插入文本内容" => "✅ 检测到指定位置已插入正确的文本内容",
-                "设置幻灯片背景" => "✅ 检测到幻灯片背景设置正确",
-                "幻灯片插入图片" => "✅ 检测到已在指定位置插入图片",
-                "幻灯片插入SmartArt图形" => "✅ 检测到已插入指定类型的SmartArt图形",
-                "幻灯片插入表格" => "✅ 检测到已插入指定规格的表格",
-                "删除幻灯片" => "✅ 检测到指定幻灯片已被删除",
-                "设置幻灯片切换方式" => "✅ 检测到幻灯片切换效果设置正确",
-                _ => $"✅ {operationName} 检测通过"
-            };
-        }
-        else
-        {
-            return operationName switch
+                "设置文稿应用主题" => "检测到演示文稿已应用指定主题",
+                "设置幻灯片的字体" => "检测到指定幻灯片的字体设置正确",
+                "插入幻灯片" => "检测到已在指定位置插入新幻灯片",
+                "幻灯片插入文本内容" => "检测到指定位置已插入正确的文本内容",
+                "设置幻灯片背景" => "检测到幻灯片背景设置正确",
+                "幻灯片插入图片" => "检测到已在指定位置插入图片",
+                "幻灯片插入SmartArt图形" => "检测到已插入指定类型的SmartArt图形",
+                "幻灯片插入表格" => "检测到已插入指定规格的表格",
+                "删除幻灯片" => "检测到指定幻灯片已被删除",
+                "设置幻灯片切换方式" => "检测到幻灯片切换效果设置正确",
+                _ => $"{operationName} 检测通过"
+            }
+            : operationName switch
             {
-                "设置文稿应用主题" => "❌ 未检测到指定主题的应用",
-                "设置幻灯片的字体" => "❌ 字体设置不符合要求",
-                "插入幻灯片" => "❌ 未在指定位置找到新插入的幻灯片",
-                "幻灯片插入文本内容" => "❌ 未找到指定的文本内容",
-                "设置幻灯片背景" => "❌ 幻灯片背景设置不正确",
-                "幻灯片插入图片" => "❌ 未在指定位置找到图片",
-                "幻灯片插入SmartArt图形" => "❌ 未找到指定类型的SmartArt图形",
-                "幻灯片插入表格" => "❌ 表格规格不符合要求",
-                "删除幻灯片" => "❌ 指定幻灯片未被删除",
-                "设置幻灯片切换方式" => "❌ 幻灯片切换效果设置不正确",
-                _ => $"❌ {operationName} 检测失败"
+                "设置文稿应用主题" => "未检测到指定主题的应用",
+                "设置幻灯片的字体" => "字体设置不符合要求",
+                "插入幻灯片" => "未在指定位置找到新插入的幻灯片",
+                "幻灯片插入文本内容" => "未找到指定的文本内容",
+                "设置幻灯片背景" => "幻灯片背景设置不正确",
+                "幻灯片插入图片" => "未在指定位置找到图片",
+                "幻灯片插入SmartArt图形" => "未找到指定类型的SmartArt图形",
+                "幻灯片插入表格" => "表格规格不符合要求",
+                "删除幻灯片" => "指定幻灯片未被删除",
+                "设置幻灯片切换方式" => "幻灯片切换效果设置不正确",
+                _ => $"{operationName} 检测失败"
             };
-        }
     }
 
     /// <summary>

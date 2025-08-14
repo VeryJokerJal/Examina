@@ -10,7 +10,33 @@ namespace BenchSuite.Services
     public class ParameterResolutionContext
     {
         private readonly Dictionary<string, string> _resolvedParameters = new();
-        private readonly Random _random = new();
+        private readonly Random _random;
+        private readonly string _contextId;
+
+        /// <summary>
+        /// 使用默认随机种子初始化上下文
+        /// </summary>
+        public ParameterResolutionContext() : this(Environment.TickCount.ToString())
+        {
+        }
+
+        /// <summary>
+        /// 使用指定的上下文ID初始化，确保相同ID产生相同的随机序列
+        /// </summary>
+        /// <param name="contextId">上下文标识符，用于生成确定性随机种子</param>
+        public ParameterResolutionContext(string contextId)
+        {
+            _contextId = contextId ?? Environment.TickCount.ToString();
+
+            // 使用上下文ID的哈希值作为随机种子，确保相同ID产生相同的随机序列
+            int seed = _contextId.GetHashCode();
+            _random = new Random(seed);
+        }
+
+        /// <summary>
+        /// 获取上下文ID
+        /// </summary>
+        public string ContextId => _contextId;
 
         /// <summary>
         /// 获取解析后的参数值
@@ -52,7 +78,7 @@ namespace BenchSuite.Services
         {
             if (min > max)
                 throw new ArgumentException("最小值不能大于最大值");
-            
+
             return _random.Next(min, max + 1);
         }
 
@@ -63,6 +89,37 @@ namespace BenchSuite.Services
         public Dictionary<string, string> GetAllResolvedParameters()
         {
             return new Dictionary<string, string>(_resolvedParameters);
+        }
+
+        /// <summary>
+        /// 重置解析上下文，清除所有已解析的参数
+        /// </summary>
+        public void Reset()
+        {
+            _resolvedParameters.Clear();
+        }
+
+        /// <summary>
+        /// 获取解析日志信息，用于调试
+        /// </summary>
+        /// <returns>解析日志字符串</returns>
+        public string GetResolutionLog()
+        {
+            if (_resolvedParameters.Count == 0)
+            {
+                return "无参数解析记录";
+            }
+
+            List<string> logEntries = new();
+            logEntries.Add($"上下文ID: {_contextId}");
+            logEntries.Add($"随机种子: {_contextId.GetHashCode()}");
+
+            foreach (KeyValuePair<string, string> param in _resolvedParameters)
+            {
+                logEntries.Add($"  {param.Key}: {param.Value}");
+            }
+
+            return string.Join(Environment.NewLine, logEntries);
         }
     }
 
@@ -109,12 +166,29 @@ namespace BenchSuite.Services
         /// <returns>解析后的参数值</returns>
         public static string ResolveParameter(string parameterName, string parameterValue, int maxValue, ParameterResolutionContext context)
         {
-            // 对于所有数值参数，如果值为-1，则进行通配符处理
+            // 参数验证
+            if (string.IsNullOrEmpty(parameterName))
+            {
+                throw new ArgumentException("参数名称不能为空", nameof(parameterName));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context), "解析上下文不能为null");
+            }
 
             // 如果已经解析过，返回缓存的值
             if (context.IsParameterResolved(parameterName))
             {
-                return context.GetResolvedParameter(parameterName);
+                string cachedValue = context.GetResolvedParameter(parameterName);
+                return cachedValue;
+            }
+
+            // 处理空值或null
+            if (string.IsNullOrEmpty(parameterValue))
+            {
+                context.SetResolvedParameter(parameterName, string.Empty);
+                return string.Empty;
             }
 
             // 尝试解析为整数
@@ -130,13 +204,21 @@ namespace BenchSuite.Services
             {
                 if (maxValue <= 0)
                 {
-                    throw new ArgumentException($"无法为参数 '{parameterName}' 生成随机值，最大值为 {maxValue}");
+                    string errorMsg = $"无法为参数 '{parameterName}' 生成随机值，最大值为 {maxValue}。上下文ID: {context.ContextId}";
+                    throw new ArgumentException(errorMsg);
                 }
 
                 int randomValue = context.GenerateRandomNumber(1, maxValue);
                 string resolvedValue = randomValue.ToString();
                 context.SetResolvedParameter(parameterName, resolvedValue);
+
                 return resolvedValue;
+            }
+
+            // 验证数值范围
+            if (intValue < 0)
+            {
+                throw new ArgumentException($"参数 '{parameterName}' 的值 {intValue} 无效，不支持负数（除-1外）");
             }
 
             // 普通数字，直接返回
@@ -154,9 +236,21 @@ namespace BenchSuite.Services
         /// <returns>解析后的参数值</returns>
         public static string ResolveMultipleParameters(string parameterName, string parameterValue, int maxValue, ParameterResolutionContext context)
         {
+            // 参数验证
+            if (string.IsNullOrEmpty(parameterName))
+            {
+                throw new ArgumentException("参数名称不能为空", nameof(parameterName));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context), "解析上下文不能为null");
+            }
+
             if (string.IsNullOrWhiteSpace(parameterValue))
             {
-                return parameterValue;
+                context.SetResolvedParameter(parameterName, string.Empty);
+                return string.Empty;
             }
 
             // 如果已经解析过，返回缓存的值
@@ -167,24 +261,52 @@ namespace BenchSuite.Services
 
             string[] values = parameterValue.Split(',');
             List<string> resolvedValues = new();
+            List<string> errors = new();
 
             foreach (string value in values)
             {
                 string trimmedValue = value.Trim();
-                if (int.TryParse(trimmedValue, out int intValue) && intValue == -1)
+
+                if (string.IsNullOrEmpty(trimmedValue))
                 {
-                    if (maxValue <= 0)
+                    errors.Add("发现空值");
+                    continue;
+                }
+
+                if (int.TryParse(trimmedValue, out int intValue))
+                {
+                    if (intValue == -1)
                     {
-                        throw new ArgumentException($"无法为参数 '{parameterName}' 生成随机编号，最大值为 {maxValue}");
+                        if (maxValue <= 0)
+                        {
+                            errors.Add($"无法为值 '{trimmedValue}' 生成随机数，最大值为 {maxValue}");
+                            continue;
+                        }
+
+                        int randomValue = context.GenerateRandomNumber(1, maxValue);
+                        resolvedValues.Add(randomValue.ToString());
                     }
-                    
-                    int randomValue = context.GenerateRandomNumber(1, maxValue);
-                    resolvedValues.Add(randomValue.ToString());
+                    else if (intValue < 0)
+                    {
+                        errors.Add($"值 '{trimmedValue}' 无效，不支持负数（除-1外）");
+                        continue;
+                    }
+                    else
+                    {
+                        resolvedValues.Add(trimmedValue);
+                    }
                 }
                 else
                 {
+                    // 非数字值，直接保留
                     resolvedValues.Add(trimmedValue);
                 }
+            }
+
+            if (errors.Count > 0)
+            {
+                string errorMsg = $"解析参数 '{parameterName}' 时发生错误: {string.Join("; ", errors)}。上下文ID: {context.ContextId}";
+                throw new ArgumentException(errorMsg);
             }
 
             string resolvedValue = string.Join(",", resolvedValues);

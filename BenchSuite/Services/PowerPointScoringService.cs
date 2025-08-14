@@ -256,17 +256,16 @@ public class PowerPointScoringService : IPowerPointScoringService
                 // 打开演示文稿
                 presentation = pptApp.Presentations.Open(filePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
 
-                // 创建参数解析上下文
-                ParameterResolutionContext context = new();
+                // 创建基于文件路径的确定性参数解析上下文
+                // 使用文件路径确保同一文件的-1参数始终解析为相同值
+                string contextId = Path.GetFileName(filePath) + "_" + new FileInfo(filePath).Length;
+                ParameterResolutionContext context = new(contextId);
 
                 // 预先解析所有-1参数
-                if (presentation != null)
+                foreach (OperationPointModel operationPoint in knowledgePoints)
                 {
-                    foreach (OperationPointModel operationPoint in knowledgePoints)
-                    {
-                        Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
-                        ResolveParametersForPresentation(parameters, presentation, context);
-                    }
+                    Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
+                    ResolveParametersForPresentation(parameters, presentation, context);
                 }
 
                 // 逐个检测知识点
@@ -320,6 +319,24 @@ public class PowerPointScoringService : IPowerPointScoringService
                         IsCorrect = false,
                         ErrorMessage = $"无法打开PPT文件: {ex.Message}"
                     });
+                }
+
+                // 添加参数解析日志到第一个结果中（用于调试）
+                if (results.Count > 0)
+                {
+                    string resolutionLog = context.GetResolutionLog();
+                    if (!string.IsNullOrEmpty(resolutionLog))
+                    {
+                        // 将解析日志添加到第一个知识点结果的详情中
+                        if (string.IsNullOrEmpty(results[0].Details))
+                        {
+                            results[0].Details = $"参数解析: {resolutionLog}";
+                        }
+                        else
+                        {
+                            results[0].Details += $"\n参数解析: {resolutionLog}";
+                        }
+                    }
                 }
             }
             finally
@@ -894,9 +911,11 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             PowerPoint.Slide slide = presentation.Slides[slideIndex];
             int imageCount = 0;
+            List<string> shapeTypes = new();
 
             foreach (PowerPoint.Shape shape in slide.Shapes)
             {
+                shapeTypes.Add(shape.Type.ToString());
                 if (shape.Type == MsoShapeType.msoPicture)
                 {
                     imageCount++;
@@ -908,7 +927,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 int.TryParse(expectedCountStr, out int expectedCount))
             {
                 hasExpectedCount = imageCount >= expectedCount;
-                result.ExpectedValue = expectedCount.ToString();
+                result.ExpectedValue = $"至少{expectedCount}张图片";
             }
             else
             {
@@ -916,10 +935,13 @@ public class PowerPointScoringService : IPowerPointScoringService
                 result.ExpectedValue = "至少1张图片";
             }
 
-            result.ActualValue = imageCount.ToString();
+            result.ActualValue = $"{imageCount}张图片";
             result.IsCorrect = hasExpectedCount;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 图片检测: 期望 {result.ExpectedValue}, 实际 {imageCount} 张图片";
+
+            // 增强诊断信息
+            string shapeInfo = shapeTypes.Count > 0 ? $"形状类型: [{string.Join(", ", shapeTypes)}]" : "无形状";
+            result.Details = $"幻灯片 {slideIndex} 图片检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}. {shapeInfo}";
         }
         catch (Exception ex)
         {
@@ -988,7 +1010,15 @@ public class PowerPointScoringService : IPowerPointScoringService
             result.ActualValue = tableCount > 0 ? tableInfo.TrimEnd(';', ' ') : "无表格";
             result.IsCorrect = hasExpectedTable;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 表格检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+
+            // 增强诊断信息，包含解析后的参数
+            string paramInfo = "";
+            if (parameters.TryGetValue("ExpectedRows", out string? rowsParam) &&
+                parameters.TryGetValue("ExpectedColumns", out string? columnsParam))
+            {
+                paramInfo = $" (解析参数: 行={rowsParam}, 列={columnsParam})";
+            }
+            result.Details = $"幻灯片 {slideIndex} 表格检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}{paramInfo}";
         }
         catch (Exception ex)
         {
@@ -2008,7 +2038,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 为演示文稿解析参数中的-1值
     /// </summary>
-    private static void ResolveParametersForPresentation(Dictionary<string, string> parameters, PowerPoint.Presentation presentation, ParameterResolutionContext context)
+    private static void ResolveParametersForPresentation(Dictionary<string, string> parameters, PowerPoint.Presentation? presentation, ParameterResolutionContext context)
     {
         foreach (KeyValuePair<string, string> parameter in parameters)
         {
@@ -2045,8 +2075,14 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取参数的最大值
     /// </summary>
-    private static int GetMaxValueForParameter(string parameterName, PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private static int GetMaxValueForParameter(string parameterName, PowerPoint.Presentation? presentation, Dictionary<string, string> parameters)
     {
+        if (presentation is null)
+        {
+            // 如果presentation为null，返回默认值
+            return 1;
+        }
+
         string lowerName = parameterName.ToLowerInvariant();
 
         if (lowerName.Contains("slide"))

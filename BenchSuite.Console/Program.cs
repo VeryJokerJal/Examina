@@ -40,30 +40,30 @@ internal class Program
         }
         catch (FileNotFoundException ex)
         {
-            System.Console.WriteLine($"❌ 文件未找到: {ex.Message}");
+            System.Console.WriteLine($"文件未找到: {ex.Message}");
             System.Console.WriteLine("请检查文件路径是否正确。");
             Environment.Exit(1);
         }
         catch (ArgumentException ex)
         {
-            System.Console.WriteLine($"❌ 参数错误: {ex.Message}");
+            System.Console.WriteLine($"参数错误: {ex.Message}");
             ShowUsage();
             Environment.Exit(1);
         }
         catch (InvalidOperationException ex)
         {
-            System.Console.WriteLine($"❌ 操作失败: {ex.Message}");
+            System.Console.WriteLine($"操作失败: {ex.Message}");
             Environment.Exit(1);
         }
         catch (UnauthorizedAccessException ex)
         {
-            System.Console.WriteLine($"❌ 访问被拒绝: {ex.Message}");
+            System.Console.WriteLine($"访问被拒绝: {ex.Message}");
             System.Console.WriteLine("请检查文件权限或确保文件未被其他程序占用。");
             Environment.Exit(1);
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ 程序执行失败: {ex.Message}");
+            System.Console.WriteLine($"程序执行失败: {ex.Message}");
             if (ex.InnerException != null)
             {
                 System.Console.WriteLine($"内部错误: {ex.InnerException.Message}");
@@ -122,8 +122,8 @@ internal class Program
             throw new FileNotFoundException($"PowerPoint 文件不存在: {pptFilePath}");
         }
 
-        System.Console.WriteLine($"✅ 试卷文件: {examFilePath}");
-        System.Console.WriteLine($"✅ PowerPoint 文件: {pptFilePath}");
+        System.Console.WriteLine($"试卷文件: {examFilePath}");
+        System.Console.WriteLine($"PowerPoint 文件: {pptFilePath}");
         System.Console.WriteLine();
 
         return (examFilePath, pptFilePath);
@@ -136,7 +136,7 @@ internal class Program
     /// <returns>试卷模型</returns>
     private static async Task<ExamModel> LoadExamModelAsync(string examFilePath)
     {
-        System.Console.WriteLine("📋 正在加载试卷模型...");
+        System.Console.WriteLine("正在加载试卷模型...");
 
         ExamModelLoader.LoadResult loadResult = await ExamModelLoader.LoadAsync(examFilePath, verbose: true);
 
@@ -157,7 +157,7 @@ internal class Program
             throw new InvalidOperationException($"试卷模型验证失败: {errorMessage}");
         }
 
-        System.Console.WriteLine($"✅ 试卷模型加载成功: {loadResult.ExamModel.Name}");
+        System.Console.WriteLine($"试卷模型加载成功: {loadResult.ExamModel.Name}");
         System.Console.WriteLine();
 
         return loadResult.ExamModel;
@@ -170,7 +170,7 @@ internal class Program
     /// <param name="examModel">试卷模型</param>
     private static async Task ScorePowerPointFileAsync(string pptFilePath, ExamModel examModel)
     {
-        System.Console.WriteLine("🎯 正在执行 PowerPoint 评分...");
+        System.Console.WriteLine("正在执行 PowerPoint 评分...");
 
         try
         {
@@ -194,7 +194,7 @@ internal class Program
         }
         catch (System.Runtime.InteropServices.COMException ex)
         {
-            System.Console.WriteLine($"❌ PowerPoint COM 组件错误: {ex.Message}");
+            System.Console.WriteLine($"PowerPoint COM 组件错误: {ex.Message}");
             System.Console.WriteLine("可能的原因:");
             System.Console.WriteLine("- PowerPoint 未安装或版本不兼容");
             System.Console.WriteLine("- PowerPoint 文件已损坏");
@@ -203,7 +203,7 @@ internal class Program
         }
         catch (UnauthorizedAccessException ex)
         {
-            System.Console.WriteLine($"❌ 文件访问被拒绝: {ex.Message}");
+            System.Console.WriteLine($"文件访问被拒绝: {ex.Message}");
             System.Console.WriteLine("请确保:");
             System.Console.WriteLine("- PowerPoint 文件未被其他程序打开");
             System.Console.WriteLine("- 具有读取文件的权限");
@@ -211,12 +211,12 @@ internal class Program
         }
         catch (FileNotFoundException ex)
         {
-            System.Console.WriteLine($"❌ PowerPoint 文件未找到: {ex.Message}");
+            System.Console.WriteLine($"PowerPoint 文件未找到: {ex.Message}");
             throw;
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ PowerPoint 评分失败: {ex.Message}");
+            System.Console.WriteLine($"PowerPoint 评分失败: {ex.Message}");
             if (ex.InnerException != null)
             {
                 System.Console.WriteLine($"详细错误: {ex.InnerException.Message}");
@@ -232,24 +232,24 @@ internal class Program
     private static void DisplayScoringResult(ScoringResult result)
     {
         System.Console.WriteLine();
-        System.Console.WriteLine("📊 === 评分结果 ===");
+        System.Console.WriteLine("=== 评分结果 ===");
         System.Console.WriteLine();
 
         if (!result.IsSuccess)
         {
-            System.Console.WriteLine($"❌ 评分失败: {result.ErrorMessage}");
+            System.Console.WriteLine($"评分失败: {result.ErrorMessage}");
             return;
         }
 
         // 显示总体结果
-        System.Console.WriteLine($"📋 总分: {result.TotalScore:F1}");
-        System.Console.WriteLine($"🎯 得分: {result.AchievedScore:F1}");
-        System.Console.WriteLine($"📈 得分率: {result.ScoreRate:P2}");
-        System.Console.WriteLine($"⏱️ 评分耗时: {(result.EndTime - result.StartTime).TotalSeconds:F2} 秒");
+        System.Console.WriteLine($"总分: {result.TotalScore:F1}");
+        System.Console.WriteLine($"得分: {result.AchievedScore:F1}");
+        System.Console.WriteLine($"得分率: {result.ScoreRate:P2}");
+        System.Console.WriteLine($"评分耗时: {(result.EndTime - result.StartTime).TotalSeconds:F2} 秒");
         System.Console.WriteLine();
 
         // 显示知识点详细结果
-        System.Console.WriteLine("📝 知识点详细结果:");
+        System.Console.WriteLine("知识点详细结果:");
         System.Console.WriteLine(new string('-', 80));
 
         int correctCount = 0;
@@ -259,7 +259,7 @@ internal class Program
         {
             string scoreInfo = $"{kpResult.AchievedScore:F1}/{kpResult.TotalScore:F1}";
 
-            System.Console.WriteLine($"{kpResult} {kpResult.KnowledgePointName} ({scoreInfo})");
+            System.Console.WriteLine($"{kpResult.QuestionId} {kpResult.KnowledgePointName} ({scoreInfo})");
 
             if (!string.IsNullOrEmpty(kpResult.Details))
             {
@@ -280,11 +280,11 @@ internal class Program
         }
 
         System.Console.WriteLine(new string('-', 80));
-        System.Console.WriteLine($"📊 知识点统计: {correctCount}/{totalCount} 正确");
+        System.Console.WriteLine($"知识点统计: {correctCount}/{totalCount} 正确");
 
         // 显示评分等级
         string grade = GetGrade(result.ScoreRate);
-        System.Console.WriteLine($"🏆 评分等级: {grade}");
+        System.Console.WriteLine($"评分等级: {grade}");
     }
 
     /// <summary>
@@ -310,7 +310,7 @@ internal class Program
     private static void ShowUsage()
     {
         System.Console.WriteLine();
-        System.Console.WriteLine("📖 使用说明:");
+        System.Console.WriteLine("使用说明:");
         System.Console.WriteLine("BenchSuite.Console.exe [试卷文件路径] [PowerPoint文件路径]");
         System.Console.WriteLine();
         System.Console.WriteLine("参数说明:");
