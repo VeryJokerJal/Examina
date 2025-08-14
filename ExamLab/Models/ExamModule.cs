@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
+using ExamLab.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using ExamLab.Services;
 
 namespace ExamLab.Models;
 
@@ -110,7 +110,7 @@ public class ExamModule : ReactiveObject
     /// <summary>
     /// 总分
     /// </summary>
-    public double TotalScore => Questions.Sum(q => q.TotalScore);
+    public decimal TotalScore => Questions.Sum(q => q.TotalScore);
 
     /// <summary>
     /// 操作点数量

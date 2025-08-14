@@ -46,7 +46,7 @@ public sealed partial class OperationPointEditPage : Page
         // 设置基本信息
         NameTextBox.Text = operationPoint.Name;
         DescriptionTextBox.Text = operationPoint.Description;
-        ScoreNumberBox.Value = operationPoint.Score;
+        ScoreNumberBox.Value = (double)operationPoint.Score;
 
         // 创建所有参数的编辑控件
         foreach (ConfigurationParameter parameter in operationPoint.Parameters)
@@ -68,36 +68,32 @@ public sealed partial class OperationPointEditPage : Page
         };
 
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+        parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) });
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         // 创建参数标签
-        StackPanel labelPanel = new()
-        {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Top
-        };
-
         TextBlock labelText = new()
         {
             Text = parameter.DisplayName,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Top,
+            TextWrapping = TextWrapping.Wrap
         };
-        labelPanel.Children.Add(labelText);
 
         if (parameter.IsRequired)
         {
             TextBlock requiredMark = new()
             {
-                Text = " *",
+                Text = "*",
                 Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red),
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Top
             };
-            labelPanel.Children.Add(requiredMark);
+            Grid.SetColumn(requiredMark, 1);
+            parameterGrid.Children.Add(requiredMark);
         }
 
-        Grid.SetColumn(labelPanel, 0);
-        parameterGrid.Children.Add(labelPanel);
+        Grid.SetColumn(labelText, 0);
+        parameterGrid.Children.Add(labelText);
 
         // 创建右侧内容面板
         StackPanel contentPanel = new() { Spacing = 4 };
@@ -134,7 +130,7 @@ public sealed partial class OperationPointEditPage : Page
             contentPanel.Children.Add(constraintText);
         }
 
-        Grid.SetColumn(contentPanel, 1);
+        Grid.SetColumn(contentPanel, 2);
         parameterGrid.Children.Add(contentPanel);
 
         // 添加到参数面板

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.UI.Xaml.Data;
 using ExamLab.Models;
+using Microsoft.UI.Xaml.Data;
 
 namespace ExamLab.Converters;
 
@@ -40,11 +40,7 @@ public class ScoreFormatConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is int score)
-        {
-            return $"分值: {score}";
-        }
-        return value is double doubleScore ? $"分值: {doubleScore}" : "分值: 0";
+        return value is int score ? $"分值: {score}" : value is double doubleScore ? $"分值: {doubleScore}" : "分值: 0";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -140,11 +136,7 @@ public class ScoreDisplayConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is int score)
-        {
-            return $"分值：{score}分";
-        }
-        return value is double doubleScore ? $"分值：{doubleScore}分" : "分值：0分";
+        return value is int score ? $"分值：{score}分" : value is double doubleScore ? $"分值：{doubleScore}分" : "分值：0分";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -162,7 +154,7 @@ public class ModuleTotalScoreConverter : IValueConverter
     {
         if (value is ExamModule module)
         {
-            double totalScore = module.Questions.Sum(q => q.TotalScore);
+            decimal totalScore = module.Questions.Sum(q => q.TotalScore);
             return totalScore;
         }
         return 0.0;
@@ -202,11 +194,7 @@ public class ModuleQuestionCountConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is ExamModule module)
-        {
-            return module.Questions.Count;
-        }
-        return 0;
+        return value is ExamModule module ? module.Questions.Count : 0;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
