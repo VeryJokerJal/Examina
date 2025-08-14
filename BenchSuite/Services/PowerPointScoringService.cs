@@ -2094,11 +2094,11 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取版式的显示名称
     /// </summary>
-    private string GetLayoutDisplayName(PowerPoint.CustomLayout layout)
+    private string GetLayoutDisplayName(PowerPoint.PpSlideLayout layout)
     {
         try
         {
-            return layout.Name ?? layout.ToString();
+            return layout.ToString();
         }
         catch
         {
