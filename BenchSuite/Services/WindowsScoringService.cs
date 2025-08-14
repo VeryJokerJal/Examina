@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.ServiceProcess;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using BenchSuite.Interfaces;
@@ -323,19 +324,8 @@ public class WindowsScoringService : IWindowsScoringService
     {
         try
         {
-            // 使用PowerShell命令检查服务是否存在
-            using Process process = new();
-            process.StartInfo.FileName = "powershell.exe";
-            process.StartInfo.Arguments = $"-Command \"Get-Service -Name '{serviceName}' -ErrorAction SilentlyContinue | Select-Object -Property Name\"";
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.CreateNoWindow = true;
-
-            process.Start();
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-
-            return !string.IsNullOrWhiteSpace(output) && output.Contains(serviceName);
+            ServiceController[] services = ServiceController.GetServices();
+            return services.Any(s => s.ServiceName.Equals(serviceName, StringComparison.OrdinalIgnoreCase));
         }
         catch
         {
@@ -350,19 +340,8 @@ public class WindowsScoringService : IWindowsScoringService
     {
         try
         {
-            // 使用PowerShell命令获取服务状态
-            using Process process = new();
-            process.StartInfo.FileName = "powershell.exe";
-            process.StartInfo.Arguments = $"-Command \"Get-Service -Name '{serviceName}' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status\"";
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.CreateNoWindow = true;
-
-            process.Start();
-            string output = process.StandardOutput.ReadToEnd().Trim();
-            process.WaitForExit();
-
-            return string.IsNullOrWhiteSpace(output) ? null : output;
+            using ServiceController service = new(serviceName);
+            return service.Status.ToString();
         }
         catch
         {
