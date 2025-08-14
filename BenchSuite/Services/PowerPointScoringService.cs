@@ -278,7 +278,18 @@ public class PowerPointScoringService : IPowerPointScoringService
                         // 使用解析后的参数
                         Dictionary<string, string> resolvedParameters = GetResolvedParameters(parameters, context);
 
-                        KnowledgePointResult result = DetectSpecificKnowledgePoint(presentation, operationPoint.PowerPointKnowledgeType ?? string.Empty, resolvedParameters);
+                        // 根据操作点名称映射到知识点类型
+                        string knowledgePointType = MapOperationPointNameToKnowledgeType(operationPoint.Name);
+
+                        KnowledgePointResult result = presentation is not null
+                            ? DetectSpecificKnowledgePoint(presentation, knowledgePointType, resolvedParameters)
+                            : new KnowledgePointResult
+                            {
+                                ErrorMessage = "PowerPoint文件未能正确打开",
+                                IsCorrect = false,
+                                KnowledgePointType = knowledgePointType,
+                                Parameters = resolvedParameters
+                            };
 
                         result.KnowledgePointId = operationPoint.Id;
                         result.OperationPointId = operationPoint.Id;
@@ -2248,5 +2259,46 @@ public class PowerPointScoringService : IPowerPointScoringService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 根据操作点名称映射到知识点类型
+    /// </summary>
+    /// <param name="operationPointName">操作点名称</param>
+    /// <returns>知识点类型字符串</returns>
+    private static string MapOperationPointNameToKnowledgeType(string operationPointName)
+    {
+        // 创建操作点名称到知识点类型的映射
+        Dictionary<string, string> nameToTypeMapping = new()
+        {
+            { "设置文稿应用主题", "ApplyTheme" },
+            { "设置幻灯片的字体", "SetSlideFont" },
+            { "插入幻灯片", "InsertSlide" },
+            { "幻灯片插入文本内容", "InsertTextContent" },
+            { "设置幻灯片背景", "SetSlideBackground" },
+            { "幻灯片插入图片", "InsertImage" },
+            { "幻灯片插入SmartArt图形", "InsertSmartArt" },
+            { "幻灯片插入表格", "InsertTable" },
+            { "删除幻灯片", "DeleteSlide" },
+            { "设置幻灯片切换方式", "SetSlideTransition" }
+        };
+
+        // 尝试精确匹配
+        if (nameToTypeMapping.TryGetValue(operationPointName, out string? exactMatch))
+        {
+            return exactMatch;
+        }
+
+        // 尝试模糊匹配
+        foreach (KeyValuePair<string, string> kvp in nameToTypeMapping)
+        {
+            if (operationPointName.Contains(kvp.Key) || kvp.Key.Contains(operationPointName))
+            {
+                return kvp.Value;
+            }
+        }
+
+        // 如果没有找到匹配，返回操作点名称本身
+        return operationPointName;
     }
 }
