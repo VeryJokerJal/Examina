@@ -151,6 +151,15 @@ public class MockWindowsScoringService : IScoringService
     }
 
     /// <summary>
+    /// 获取支持的文件扩展名
+    /// </summary>
+    public IEnumerable<string> GetSupportedExtensions()
+    {
+        // Windows打分服务不依赖特定文件扩展名，返回空列表
+        return [];
+    }
+
+    /// <summary>
     /// 模拟知识点检测过程
     /// </summary>
     private static List<KnowledgePointResult> SimulateKnowledgePointDetection(List<OperationPointModel> operationPoints, string filePath)

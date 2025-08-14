@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
-using System.ServiceProcess;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using BenchSuite.Interfaces;
@@ -55,7 +54,7 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             // 查找Windows模块
-            ExamModuleModel? windowsModule = examModel.Modules.FirstOrDefault(m => m.ModuleType == ModuleType.Windows);
+            ExamModuleModel? windowsModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.Windows);
             if (windowsModule == null)
             {
                 result.ErrorMessage = "试卷中没有找到Windows模块";
@@ -324,8 +323,19 @@ public class WindowsScoringService : IWindowsScoringService
     {
         try
         {
-            ServiceController[] services = ServiceController.GetServices();
-            return services.Any(s => s.ServiceName.Equals(serviceName, StringComparison.OrdinalIgnoreCase));
+            // 使用PowerShell命令检查服务是否存在
+            using Process process = new();
+            process.StartInfo.FileName = "powershell.exe";
+            process.StartInfo.Arguments = $"-Command \"Get-Service -Name '{serviceName}' -ErrorAction SilentlyContinue | Select-Object -Property Name\"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.CreateNoWindow = true;
+
+            process.Start();
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            return !string.IsNullOrWhiteSpace(output) && output.Contains(serviceName);
         }
         catch
         {
@@ -340,8 +350,19 @@ public class WindowsScoringService : IWindowsScoringService
     {
         try
         {
-            using ServiceController service = new(serviceName);
-            return service.Status.ToString();
+            // 使用PowerShell命令获取服务状态
+            using Process process = new();
+            process.StartInfo.FileName = "powershell.exe";
+            process.StartInfo.Arguments = $"-Command \"Get-Service -Name '{serviceName}' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status\"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.CreateNoWindow = true;
+
+            process.Start();
+            string output = process.StandardOutput.ReadToEnd().Trim();
+            process.WaitForExit();
+
+            return string.IsNullOrWhiteSpace(output) ? null : output;
         }
         catch
         {
@@ -1245,7 +1266,9 @@ public class WindowsScoringService : IWindowsScoringService
 
         foreach (KeyValuePair<string, string> parameter in parameters)
         {
-            string resolvedValue = ParameterResolver.ResolveParameter(parameter.Value, context);
+            // 对于Windows操作，大多数参数不需要特殊解析，直接使用原值
+            // 如果需要特殊解析（如-1参数），可以在这里添加逻辑
+            string resolvedValue = parameter.Value;
             resolvedParameters[parameter.Key] = resolvedValue;
         }
 
@@ -1259,5 +1282,14 @@ public class WindowsScoringService : IWindowsScoringService
     {
         // Windows打分服务不依赖特定文件，可以处理任何路径
         return true;
+    }
+
+    /// <summary>
+    /// 获取支持的文件扩展名
+    /// </summary>
+    public IEnumerable<string> GetSupportedExtensions()
+    {
+        // Windows打分服务不依赖特定文件扩展名，返回空列表
+        return [];
     }
 }
