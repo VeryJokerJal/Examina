@@ -158,6 +158,7 @@ public abstract class ModuleViewModelBase : ViewModelBase
                 DetailedDescription = codeBlank.DetailedDescription,
                 Order = codeBlank.Order,
                 IsEnabled = codeBlank.IsEnabled,
+                Score = codeBlank.Score,
                 CreatedTime = codeBlank.CreatedTime
             };
 

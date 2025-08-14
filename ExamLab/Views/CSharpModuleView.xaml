@@ -106,9 +106,26 @@
                                     </ComboBox>
                                 </StackPanel>
 
-                                <StackPanel Spacing="4">
-                                    <TextBlock FontWeight="SemiBold" Text="题目总分" />
-                                    <TextBlock FontSize="16" Foreground="{ThemeResource SystemAccentColor}" Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" />
+                                <!--  分数设置区域  -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="SemiBold" Text="分数设置" />
+
+                                    <!--  调试纠错和编写实现类型的直接分数设置  -->
+                                    <StackPanel Spacing="4" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=Debugging}">
+                                        <TextBlock FontSize="14" Text="题目分数" />
+                                        <NumberBox Header="分数" Minimum="0" Maximum="1000" SpinButtonPlacementMode="Inline" Value="{Binding CurrentContentViewModel.SelectedQuestion.CSharpDirectScore, Mode=TwoWay}" />
+                                    </StackPanel>
+
+                                    <StackPanel Spacing="4" Visibility="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Converter={StaticResource CSharpQuestionTypeToVisibilityConverter}, ConverterParameter=Implementation}">
+                                        <TextBlock FontSize="14" Text="题目分数" />
+                                        <NumberBox Header="分数" Minimum="0" Maximum="1000" SpinButtonPlacementMode="Inline" Value="{Binding CurrentContentViewModel.SelectedQuestion.CSharpDirectScore, Mode=TwoWay}" />
+                                    </StackPanel>
+
+                                    <!--  题目总分显示  -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock FontWeight="SemiBold" Text="题目总分" />
+                                        <TextBlock FontSize="16" Foreground="{ThemeResource SystemAccentColor}" Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" />
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
 
@@ -172,7 +189,16 @@
                                                                     <Button Padding="8,4" Command="{Binding DataContext.CurrentContentViewModel.DeleteCodeBlankCommand, ElementName=LayoutRoot}" CommandParameter="{Binding}" Content="删除" FontSize="12" Style="{ThemeResource DefaultButtonStyle}" />
                                                                 </StackPanel>
 
-                                                                <TextBox MaxHeight="500" AcceptsReturn="True" Header="代码内容" PlaceholderText="输入需要学生填写的代码内容（支持多行）" ScrollViewer.VerticalScrollBarVisibility="Auto" Text="{Binding Description, Mode=TwoWay}" TextWrapping="Wrap" />
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="120" />
+                                                                    </Grid.ColumnDefinitions>
+
+                                                                    <TextBox Grid.Column="0" Margin="0,0,8,0" MaxHeight="500" AcceptsReturn="True" Header="代码内容" PlaceholderText="输入需要学生填写的代码内容（支持多行）" ScrollViewer.VerticalScrollBarVisibility="Auto" Text="{Binding Description, Mode=TwoWay}" TextWrapping="Wrap" />
+
+                                                                    <NumberBox Grid.Column="1" Header="分数" Minimum="0" Maximum="100" SpinButtonPlacementMode="Inline" Value="{Binding Score, Mode=TwoWay}" />
+                                                                </Grid>
                                                             </StackPanel>
                                                         </Border>
                                                     </DataTemplate>

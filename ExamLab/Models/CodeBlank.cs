@@ -35,6 +35,11 @@ public class CodeBlank : ReactiveObject
     [Reactive] public bool IsEnabled { get; set; } = true;
 
     /// <summary>
+    /// 填空处分数（仅代码补全类型使用）
+    /// </summary>
+    [Reactive] public decimal Score { get; set; } = 5.0m;
+
+    /// <summary>
     /// 创建时间
     /// </summary>
     [Reactive] public string CreatedTime { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
