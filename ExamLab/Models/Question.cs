@@ -134,6 +134,11 @@ public class Question : ReactiveObject
     [Reactive] public CSharpQuestionType CSharpQuestionType { get; set; } = CSharpQuestionType.CodeCompletion;
 
     /// <summary>
+    /// C#代码文件路径（仅C#模块使用）
+    /// </summary>
+    [Reactive] public string? CodeFilePath { get; set; }
+
+    /// <summary>
     /// 代码补全填空处集合（仅C#模块代码补全类型使用）
     /// </summary>
     public ObservableCollection<CodeBlank> CodeBlanks { get; set; } = new();
