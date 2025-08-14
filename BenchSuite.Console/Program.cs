@@ -1,266 +1,196 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using BenchSuite.Console.Services;
 using BenchSuite.Models;
 using BenchSuite.Services;
 
 namespace BenchSuite.Console;
 
 /// <summary>
-/// PowerPoint评分控制台应用程序
+/// PowerPoint 演示文稿自动评分控制台应用程序
 /// </summary>
 internal class Program
 {
     /// <summary>
     /// 程序入口点
     /// </summary>
-    /// <param name="args">命令行参数：[PPT文件路径] [ExamModel JSON文件路径]</param>
-    private static async Task<int> Main(string[] args)
+    /// <param name="args">命令行参数</param>
+    private static async Task Main(string[] args)
     {
+        System.Console.WriteLine("=== BenchSuite PowerPoint 自动评分系统 ===");
+        System.Console.WriteLine();
+
+        if (args.Length == 0)
+        {
+            args = new string[]
+            {
+                "C:\\Users\\Jal\\Downloads\\计算机应用基础考试 - 副本_20250813_035202.json",
+                "C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx"
+            };
+        }
+
         try
         {
-#if DEBUG
-            args = args.Length == 0 ? ["C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx", "D:\\Users\\Jal\\source\\repos\\Examina\\BenchSuite.Console\\TestData\\sample-exam.json"] : args;
-#endif
-
-            // 显示程序信息
-            System.Console.WriteLine("=== PowerPoint评分系统 ===");
-            System.Console.WriteLine("版本: 1.0.0");
-            System.Console.WriteLine("描述: 基于ExamModel对PowerPoint文件进行自动评分");
-            System.Console.WriteLine();
-
-            // 验证命令行参数
-            if (args.Length != 2)
+            // 检查是否为测试模式
+            if (args.Length > 0 && args[0] == "--test-json")
             {
-                ShowUsage();
-                return 1;
+                if (args.Length < 2)
+                {
+                    System.Console.WriteLine("请提供要测试的 JSON 文件路径");
+                    return;
+                }
+
+                await TestJsonParsing.TestParseJsonAsync(args[1]);
+                return;
             }
 
-            string pptFilePath = args[0];
-            string examModelJsonPath = args[1];
+            // 解析命令行参数
+            (string examFilePath, string pptFilePath) = ParseCommandLineArguments(args);
 
-            // 验证文件路径
-            if (!ValidateFilePaths(pptFilePath, examModelJsonPath))
-            {
-                return 1;
-            }
+            // 加载试卷模型
+            ExamModel examModel = await LoadExamModelAsync(examFilePath);
 
-            // 读取并解析ExamModel
-            ExamModel? examModel = await LoadExamModelAsync(examModelJsonPath);
-            if (examModel == null)
-            {
-                return 1;
-            }
-
-            // 执行评分
-            ScoringResult result = await PerformScoringAsync(pptFilePath, examModel);
-
-            // 输出结果
-            DisplayScoringResult(result);
-
-            return result.IsSuccess ? 0 : 1;
+            // 执行 PowerPoint 评分
+            await ScorePowerPointFileAsync(pptFilePath, examModel);
+        }
+        catch (FileNotFoundException ex)
+        {
+            System.Console.WriteLine($"❌ 文件未找到: {ex.Message}");
+            System.Console.WriteLine("请检查文件路径是否正确。");
+            Environment.Exit(1);
+        }
+        catch (ArgumentException ex)
+        {
+            System.Console.WriteLine($"❌ 参数错误: {ex.Message}");
+            ShowUsage();
+            Environment.Exit(1);
+        }
+        catch (InvalidOperationException ex)
+        {
+            System.Console.WriteLine($"❌ 操作失败: {ex.Message}");
+            Environment.Exit(1);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            System.Console.WriteLine($"❌ 访问被拒绝: {ex.Message}");
+            System.Console.WriteLine("请检查文件权限或确保文件未被其他程序占用。");
+            Environment.Exit(1);
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"程序执行过程中发生未处理的异常: {ex.Message}");
-            System.Console.WriteLine($"详细信息: {ex}");
-            return 1;
+            System.Console.WriteLine($"❌ 程序执行失败: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                System.Console.WriteLine($"内部错误: {ex.InnerException.Message}");
+            }
+            System.Console.WriteLine($"错误类型: {ex.GetType().Name}");
+            System.Console.WriteLine("如果问题持续存在，请联系技术支持。");
+            Environment.Exit(1);
         }
+
+        System.Console.WriteLine();
+        System.Console.WriteLine("按任意键退出...");
+        _ = System.Console.ReadKey();
     }
 
     /// <summary>
-    /// 显示程序使用说明
+    /// 解析命令行参数
     /// </summary>
-    private static void ShowUsage()
+    /// <param name="args">命令行参数</param>
+    /// <returns>试卷文件路径和PowerPoint文件路径</returns>
+    private static (string examFilePath, string pptFilePath) ParseCommandLineArguments(string[] args)
     {
-        System.Console.WriteLine("使用方法:");
-        System.Console.WriteLine("  BenchSuite.Console.exe <PPT文件路径> <ExamModel JSON文件路径>");
-        System.Console.WriteLine();
-        System.Console.WriteLine("参数说明:");
-        System.Console.WriteLine("  PPT文件路径        - 要评分的PowerPoint文件路径 (.ppt 或 .pptx)");
-        System.Console.WriteLine("  ExamModel JSON文件路径 - 包含试卷模型的JSON文件路径");
-        System.Console.WriteLine();
-        System.Console.WriteLine("示例:");
-        System.Console.WriteLine("  BenchSuite.Console.exe \"C:\\test\\sample.pptx\" \"C:\\test\\exam.json\"");
-    }
+        string examFilePath;
+        string pptFilePath;
 
-    /// <summary>
-    /// 验证文件路径
-    /// </summary>
-    private static bool ValidateFilePaths(string pptFilePath, string examModelJsonPath)
-    {
-        // 验证PPT文件
+        if (args.Length >= 2)
+        {
+            examFilePath = args[0];
+            pptFilePath = args[1];
+        }
+        else
+        {
+            // 使用默认的测试数据
+            examFilePath = Path.Combine("TestData", "sample-exam.json");
+
+            System.Console.WriteLine("未指定命令行参数，使用默认配置:");
+            System.Console.WriteLine($"试卷文件: {examFilePath}");
+            System.Console.Write("请输入 PowerPoint 文件路径: ");
+
+            string? inputPath = System.Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(inputPath))
+            {
+                throw new ArgumentException("必须指定 PowerPoint 文件路径");
+            }
+
+            pptFilePath = inputPath.Trim('"');
+        }
+
+        // 验证文件存在性
+        if (!File.Exists(examFilePath))
+        {
+            throw new FileNotFoundException($"试卷文件不存在: {examFilePath}");
+        }
+
         if (!File.Exists(pptFilePath))
         {
-            System.Console.WriteLine($"错误: PPT文件不存在: {pptFilePath}");
-            return false;
+            throw new FileNotFoundException($"PowerPoint 文件不存在: {pptFilePath}");
         }
 
-        string pptExtension = Path.GetExtension(pptFilePath).ToLowerInvariant();
-        if (pptExtension is not ".ppt" and not ".pptx")
-        {
-            System.Console.WriteLine($"错误: 不支持的PPT文件格式: {pptExtension}");
-            System.Console.WriteLine("支持的格式: .ppt, .pptx");
-            return false;
-        }
+        System.Console.WriteLine($"✅ 试卷文件: {examFilePath}");
+        System.Console.WriteLine($"✅ PowerPoint 文件: {pptFilePath}");
+        System.Console.WriteLine();
 
-        // 验证JSON文件
-        if (!File.Exists(examModelJsonPath))
-        {
-            System.Console.WriteLine($"错误: ExamModel JSON文件不存在: {examModelJsonPath}");
-            return false;
-        }
-
-        string jsonExtension = Path.GetExtension(examModelJsonPath).ToLowerInvariant();
-        if (jsonExtension != ".json")
-        {
-            System.Console.WriteLine($"错误: ExamModel文件必须是JSON格式: {jsonExtension}");
-            return false;
-        }
-
-        return true;
+        return (examFilePath, pptFilePath);
     }
 
     /// <summary>
-    /// 加载ExamModel从JSON文件
+    /// 加载试卷模型
     /// </summary>
-    private static async Task<ExamModel?> LoadExamModelAsync(string jsonFilePath)
+    /// <param name="examFilePath">试卷文件路径</param>
+    /// <returns>试卷模型</returns>
+    private static async Task<ExamModel> LoadExamModelAsync(string examFilePath)
     {
+        System.Console.WriteLine("📋 正在加载试卷模型...");
+
+        ExamModelLoader.LoadResult loadResult = await ExamModelLoader.LoadAsync(examFilePath, verbose: true);
+
+        if (!loadResult.IsSuccess)
+        {
+            throw new InvalidOperationException($"加载试卷模型失败: {loadResult.ErrorMessage}");
+        }
+
+        if (loadResult.ExamModel == null)
+        {
+            throw new InvalidOperationException("试卷模型为空");
+        }
+
+        // 验证试卷模型
+        (bool isValid, string errorMessage) = ExamModelLoader.ValidateExamModel(loadResult.ExamModel, verbose: true);
+        if (!isValid)
+        {
+            throw new InvalidOperationException($"试卷模型验证失败: {errorMessage}");
+        }
+
+        System.Console.WriteLine($"✅ 试卷模型加载成功: {loadResult.ExamModel.Name}");
+        System.Console.WriteLine();
+
+        return loadResult.ExamModel;
+    }
+
+    /// <summary>
+    /// 执行 PowerPoint 文件评分
+    /// </summary>
+    /// <param name="pptFilePath">PowerPoint 文件路径</param>
+    /// <param name="examModel">试卷模型</param>
+    private static async Task ScorePowerPointFileAsync(string pptFilePath, ExamModel examModel)
+    {
+        System.Console.WriteLine("🎯 正在执行 PowerPoint 评分...");
+
         try
         {
-            System.Console.WriteLine($"正在读取ExamModel文件: {jsonFilePath}");
+            // 创建 PowerPoint 评分服务（使用模拟版本进行演示）
+            MockPowerPointScoringService scoringService = new();
 
-            string jsonContent = await File.ReadAllTextAsync(jsonFilePath, Encoding.UTF8);
-
-            if (string.IsNullOrWhiteSpace(jsonContent))
-            {
-                System.Console.WriteLine("错误: ExamModel JSON文件为空");
-                return null;
-            }
-
-            JsonSerializerOptions options = new()
-            {
-                PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true,
-                ReadCommentHandling = JsonCommentHandling.Skip
-            };
-
-            // 添加自定义转换器
-            options.Converters.Add(new BenchSuite.Converters.ModuleTypeJsonConverter());
-            options.Converters.Add(new BenchSuite.Converters.ParameterTypeJsonConverter());
-
-            ExamModel? examModel = JsonSerializer.Deserialize<ExamModel>(jsonContent, options);
-
-            if (examModel == null)
-            {
-                System.Console.WriteLine("错误: 无法解析ExamModel JSON文件");
-                return null;
-            }
-
-            // 检测和修复ID冲突
-            int conflictCount = BenchSuite.Services.IdConflictResolver.ResolveConflicts(examModel);
-            if (conflictCount > 0)
-            {
-                System.Console.WriteLine($"检测到 {conflictCount} 个ID冲突，已自动修复");
-            }
-
-            // 验证ID唯一性
-            var validationResult = BenchSuite.Services.IdConflictResolver.ValidateIds(examModel);
-            if (!validationResult.IsValid)
-            {
-                System.Console.WriteLine($"ID验证失败: {validationResult.GetSummary()}");
-                return null;
-            }
-
-            // 验证ExamModel
-            if (!ValidateExamModel(examModel))
-            {
-                return null;
-            }
-
-            System.Console.WriteLine($"成功加载ExamModel: {examModel.Name}");
-            System.Console.WriteLine($"包含模块数量: {examModel.Modules.Count}");
-
-            return examModel;
-        }
-        catch (JsonException ex)
-        {
-            System.Console.WriteLine($"错误: JSON格式无效: {ex.Message}");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            System.Console.WriteLine($"错误: 读取ExamModel文件失败: {ex.Message}");
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// 验证ExamModel的有效性
-    /// </summary>
-    private static bool ValidateExamModel(ExamModel examModel)
-    {
-        if (string.IsNullOrWhiteSpace(examModel.Id))
-        {
-            System.Console.WriteLine("错误: ExamModel缺少ID");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(examModel.Name))
-        {
-            System.Console.WriteLine("错误: ExamModel缺少名称");
-            return false;
-        }
-
-        if (examModel.Modules == null || examModel.Modules.Count == 0)
-        {
-            System.Console.WriteLine("错误: ExamModel没有包含任何模块");
-            return false;
-        }
-
-        // 查找PowerPoint模块
-        ExamModuleModel? pptModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
-        if (pptModule == null)
-        {
-            System.Console.WriteLine("错误: ExamModel中未找到PowerPoint模块");
-            return false;
-        }
-
-        if (pptModule.Questions == null || pptModule.Questions.Count == 0)
-        {
-            System.Console.WriteLine("错误: PowerPoint模块没有包含任何题目");
-            return false;
-        }
-
-        // 验证是否有操作点
-        int totalOperationPoints = pptModule.Questions.Sum(q => q.OperationPoints?.Count ?? 0);
-        if (totalOperationPoints == 0)
-        {
-            System.Console.WriteLine("错误: PowerPoint模块没有包含任何操作点");
-            return false;
-        }
-
-        System.Console.WriteLine($"PowerPoint模块验证通过: {pptModule.Name}");
-        System.Console.WriteLine($"题目数量: {pptModule.Questions.Count}");
-        System.Console.WriteLine($"操作点数量: {totalOperationPoints}");
-
-        return true;
-    }
-
-    /// <summary>
-    /// 执行PowerPoint评分
-    /// </summary>
-    private static async Task<ScoringResult> PerformScoringAsync(string pptFilePath, ExamModel examModel)
-    {
-        try
-        {
-            System.Console.WriteLine();
-            System.Console.WriteLine("=== 开始评分 ===");
-            System.Console.WriteLine($"PPT文件: {pptFilePath}");
-            System.Console.WriteLine($"试卷: {examModel.Name}");
-            System.Console.WriteLine();
-
-            PowerPointScoringService scoringService = new();
-
+            // 配置评分选项
             ScoringConfiguration configuration = new()
             {
                 EnablePartialScoring = true,
@@ -269,106 +199,141 @@ internal class Program
                 EnableDetailedLogging = true
             };
 
-            System.Console.WriteLine("正在执行评分，请稍候...");
-
+            // 执行评分
             ScoringResult result = await scoringService.ScoreFileAsync(pptFilePath, examModel, configuration);
 
-            System.Console.WriteLine("评分完成!");
-            System.Console.WriteLine();
-
-            return result;
+            // 显示评分结果
+            DisplayScoringResult(result);
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            System.Console.WriteLine($"❌ PowerPoint COM 组件错误: {ex.Message}");
+            System.Console.WriteLine("可能的原因:");
+            System.Console.WriteLine("- PowerPoint 未安装或版本不兼容");
+            System.Console.WriteLine("- PowerPoint 文件已损坏");
+            System.Console.WriteLine("- 系统权限不足");
+            throw;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            System.Console.WriteLine($"❌ 文件访问被拒绝: {ex.Message}");
+            System.Console.WriteLine("请确保:");
+            System.Console.WriteLine("- PowerPoint 文件未被其他程序打开");
+            System.Console.WriteLine("- 具有读取文件的权限");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            System.Console.WriteLine($"❌ PowerPoint 文件未找到: {ex.Message}");
+            throw;
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"评分过程中发生错误: {ex.Message}");
-
-            return new ScoringResult
+            System.Console.WriteLine($"❌ PowerPoint 评分失败: {ex.Message}");
+            if (ex.InnerException != null)
             {
-                IsSuccess = false,
-                ErrorMessage = ex.Message,
-                StartTime = DateTime.Now,
-                EndTime = DateTime.Now
-            };
+                System.Console.WriteLine($"详细错误: {ex.InnerException.Message}");
+            }
+            throw;
         }
     }
 
     /// <summary>
     /// 显示评分结果
     /// </summary>
+    /// <param name="result">评分结果</param>
     private static void DisplayScoringResult(ScoringResult result)
     {
-        System.Console.WriteLine("=== 评分结果 ===");
+        System.Console.WriteLine();
+        System.Console.WriteLine("📊 === 评分结果 ===");
+        System.Console.WriteLine();
 
         if (!result.IsSuccess)
         {
-            System.Console.WriteLine("❌ 评分失败");
-            if (!string.IsNullOrEmpty(result.ErrorMessage))
-            {
-                System.Console.WriteLine($"错误信息: {result.ErrorMessage}");
-            }
+            System.Console.WriteLine($"❌ 评分失败: {result.ErrorMessage}");
             return;
         }
 
-        System.Console.WriteLine("✅ 评分成功");
+        // 显示总体结果
+        System.Console.WriteLine($"📋 总分: {result.TotalScore:F1}");
+        System.Console.WriteLine($"🎯 得分: {result.AchievedScore:F1}");
+        System.Console.WriteLine($"📈 得分率: {result.ScoreRate:P2}");
+        System.Console.WriteLine($"⏱️ 评分耗时: {(result.EndTime - result.StartTime).TotalSeconds:F2} 秒");
         System.Console.WriteLine();
 
-        // 基本信息
-        System.Console.WriteLine("📊 总体结果:");
-        System.Console.WriteLine($"   总分: {result.TotalScore:F1}");
-        System.Console.WriteLine($"   得分: {result.AchievedScore:F1}");
-        System.Console.WriteLine($"   得分率: {result.ScoreRate:P2}");
-        System.Console.WriteLine($"   耗时: {result.ElapsedMilliseconds}ms");
-        System.Console.WriteLine();
+        // 显示知识点详细结果
+        System.Console.WriteLine("📝 知识点详细结果:");
+        System.Console.WriteLine(new string('-', 80));
 
-        // 详细的知识点结果
-        if (result.KnowledgePointResults != null && result.KnowledgePointResults.Count > 0)
+        int correctCount = 0;
+        int totalCount = result.KnowledgePointResults.Count;
+
+        foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
         {
-            System.Console.WriteLine("📋 详细检测结果:");
-            System.Console.WriteLine();
+            string status = kpResult.IsCorrect ? "✅" : "❌";
+            string scoreInfo = $"{kpResult.AchievedScore:F1}/{kpResult.TotalScore:F1}";
 
-            int correctCount = 0;
-            int totalCount = result.KnowledgePointResults.Count;
+            System.Console.WriteLine($"{status} {kpResult.KnowledgePointName} ({scoreInfo})");
 
-            foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
+            if (!string.IsNullOrEmpty(kpResult.Details))
             {
-                string status = kpResult.IsCorrect ? "✅" : "❌";
-                string name = !string.IsNullOrEmpty(kpResult.KnowledgePointName)
-                    ? kpResult.KnowledgePointName
-                    : kpResult.KnowledgePointType;
-
-                System.Console.WriteLine($"   {status} {name}");
-                System.Console.WriteLine($"      分数: {kpResult.AchievedScore:F1}/{kpResult.TotalScore:F1}");
-
-                if (!string.IsNullOrEmpty(kpResult.Details))
-                {
-                    System.Console.WriteLine($"      详情: {kpResult.Details}");
-                }
-
-                if (!string.IsNullOrEmpty(kpResult.ExpectedValue) && !string.IsNullOrEmpty(kpResult.ActualValue))
-                {
-                    System.Console.WriteLine($"      期望值: {kpResult.ExpectedValue}");
-                    System.Console.WriteLine($"      实际值: {kpResult.ActualValue}");
-                }
-
-                if (!string.IsNullOrEmpty(kpResult.ErrorMessage))
-                {
-                    System.Console.WriteLine($"      错误: {kpResult.ErrorMessage}");
-                }
-
-                if (kpResult.IsCorrect)
-                {
-                    correctCount++;
-                }
-
-                System.Console.WriteLine();
+                System.Console.WriteLine($"   详情: {kpResult.Details}");
             }
 
-            System.Console.WriteLine($"📈 检测统计:");
-            System.Console.WriteLine($"   正确项目: {correctCount}/{totalCount}");
-            System.Console.WriteLine($"   正确率: {(double)correctCount / totalCount:P2}");
+            if (!string.IsNullOrEmpty(kpResult.ErrorMessage))
+            {
+                System.Console.WriteLine($"   错误: {kpResult.ErrorMessage}");
+            }
+
+            if (kpResult.IsCorrect)
+            {
+                correctCount++;
+            }
+
+            System.Console.WriteLine();
         }
 
+        System.Console.WriteLine(new string('-', 80));
+        System.Console.WriteLine($"📊 知识点统计: {correctCount}/{totalCount} 正确");
+
+        // 显示评分等级
+        string grade = GetGrade(result.ScoreRate);
+        System.Console.WriteLine($"🏆 评分等级: {grade}");
+    }
+
+    /// <summary>
+    /// 根据得分率获取评分等级
+    /// </summary>
+    /// <param name="scoreRate">得分率</param>
+    /// <returns>评分等级</returns>
+    private static string GetGrade(decimal scoreRate)
+    {
+        return scoreRate switch
+        {
+            >= 0.9m => "优秀 (A)",
+            >= 0.8m => "良好 (B)",
+            >= 0.7m => "中等 (C)",
+            >= 0.6m => "及格 (D)",
+            _ => "不及格 (F)"
+        };
+    }
+
+    /// <summary>
+    /// 显示程序使用说明
+    /// </summary>
+    private static void ShowUsage()
+    {
         System.Console.WriteLine();
-        System.Console.WriteLine("=== 评分完成 ===");
+        System.Console.WriteLine("📖 使用说明:");
+        System.Console.WriteLine("BenchSuite.Console.exe [试卷文件路径] [PowerPoint文件路径]");
+        System.Console.WriteLine();
+        System.Console.WriteLine("参数说明:");
+        System.Console.WriteLine("  试卷文件路径    - 试卷模型文件路径 (支持 JSON 格式)");
+        System.Console.WriteLine("  PowerPoint文件路径 - 要评分的 PowerPoint 文件路径 (.pptx)");
+        System.Console.WriteLine();
+        System.Console.WriteLine("示例:");
+        System.Console.WriteLine("  BenchSuite.Console.exe TestData\\sample-exam.json C:\\MyPresentation.pptx");
+        System.Console.WriteLine();
+        System.Console.WriteLine("如果不提供参数，程序将使用默认的测试数据并提示输入 PowerPoint 文件路径。");
     }
 }
