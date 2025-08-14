@@ -31,7 +31,7 @@ public class Question : ReactiveObject
     /// <summary>
     /// 题目总分值（自动计算，基于所有操作点分数的总和）
     /// </summary>
-    public int TotalScore
+    public decimal TotalScore
     {
         get
         {

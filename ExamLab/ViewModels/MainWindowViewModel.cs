@@ -852,7 +852,7 @@ public class MainWindowViewModel : ViewModelBase
             Name = operationName,
             Description = "请输入操作点描述",
             ModuleType = SelectedModule?.Type ?? ModuleType.Windows,
-            Score = 5,
+            Score = 5.0m,
             Order = SelectedQuestion.OperationPoints.Count + 1,
             IsEnabled = true
         };

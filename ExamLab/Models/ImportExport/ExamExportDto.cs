@@ -534,7 +534,7 @@ public class OperationPointDto
     /// 操作点分值
     /// </summary>
     [JsonPropertyName("score")]
-    public int Score { get; set; }
+    public decimal Score { get; set; }
 
     /// <summary>
     /// 操作点顺序

@@ -301,7 +301,7 @@ public class OperationPoint : ReactiveObject
     /// <summary>
     /// 操作点分值
     /// </summary>
-    [Reactive] public int Score { get; set; }
+    [Reactive] public decimal Score { get; set; }
 
     /// <summary>
     /// 关联的评分题目ID

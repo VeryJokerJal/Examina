@@ -113,7 +113,7 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张（-1代表任意一张）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = -1 },
                 new() { Name = "Layout", DisplayName = "幻灯片版式", Description = "选择幻灯片版式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "标题幻灯片（含标题和副标题）,标题和双栏文本,两栏文本,表格,文本和图表,图表和文本,组织结构图,图表,文本和剪贴画,剪贴画和文本,仅标题,空白幻灯片,文本和对象,对象和文本,大对象（常用于图像或图表）,单个对象,文本和媒体剪辑,媒体剪辑和文本,对象在文本之上,文本在对象之上,文本和两个对象,两个对象和文本,两个对象在文本之上,四个对象,垂直文本,垂直标题和文本,垂直标题和图表,标题母版,文本母版,居中标题,居中标题（等同）,图示和标题,对比布局（两个内容区域）,内容加标题" }
+                    EnumOptions = "标题幻灯片,标题和内容,节标题,两栏内容,比较,内容与标题,图片与标题,标题和竖排文字,垂直排列标题与文本,仅标题,空白" }
             ]
         };
 
@@ -284,8 +284,7 @@ public class PowerPointKnowledgeService
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "FooterText", DisplayName = "设置页脚文字", Description = "页脚文字内容", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "FooterTextValue", DisplayName = "中文文本值", Description = "页脚文字的具体内容", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "FooterText", DisplayName = "设置页脚文字", Description = "页脚文字内容", Type = ParameterType.Text, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -684,11 +683,13 @@ public class PowerPointKnowledgeService
             Category = "其他",
             ParameterTemplates =
             [
-                new() { Name = "TriggerMode", DisplayName = "动画触发方式（开始方式）", Description = "控制动画是如何触发的", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                new() { Name = "SlideNumber", DisplayName = "幻灯片序号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ObjectIndex", DisplayName = "对象序号", Description = "第几个对象（-1代表任意对象）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1 },
+                new() { Name = "TriggerMode", DisplayName = "动画触发方式（开始方式）", Description = "控制动画是如何触发的", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "单击时,与上一动画同时,在上一动画之后,自动" },
-                new() { Name = "DelayTime", DisplayName = "延迟时间（单位：秒）", Description = "动画开始前的延迟时间", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0 },
-                new() { Name = "Duration", DisplayName = "动画持续时间（单位：秒）", Description = "动画本身执行的时长", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0.1 },
-                new() { Name = "RepeatCount", DisplayName = "重复次数/播放次数", Description = "设置动画播放的循环次数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 }
+                new() { Name = "DelayTime", DisplayName = "延迟时间（单位：秒）", Description = "动画开始前的延迟时间", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0 },
+                new() { Name = "Duration", DisplayName = "动画持续时间（单位：秒）", Description = "动画本身执行的时长", Type = ParameterType.Number, IsRequired = true, Order = 5, MinValue = 0.1 },
+                new() { Name = "RepeatCount", DisplayName = "重复次数/播放次数", Description = "设置动画播放的循环次数", Type = ParameterType.Number, IsRequired = true, Order = 6, MinValue = 0 }
             ]
         };
 
