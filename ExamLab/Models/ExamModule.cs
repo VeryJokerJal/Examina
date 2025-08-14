@@ -110,7 +110,7 @@ public class ExamModule : ReactiveObject
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore => Questions.Sum(q => q.TotalScore);
+    public double TotalScore => Questions.Sum(q => q.TotalScore);
 
     /// <summary>
     /// 操作点数量

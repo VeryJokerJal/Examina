@@ -32,12 +32,12 @@ public class Question : ReactiveObject
     /// <summary>
     /// 题目总分值（自动计算，根据题目类型使用不同的计算方式）
     /// </summary>
-    public decimal TotalScore => CalculateTotalScore();
+    public double TotalScore => CalculateTotalScore();
 
     /// <summary>
     /// 计算题目总分值
     /// </summary>
-    private decimal CalculateTotalScore()
+    private double CalculateTotalScore()
     {
         // C#模块：根据题目类型计算分数
         if (CSharpQuestionType == CSharpQuestionType.CodeCompletion)
@@ -59,7 +59,7 @@ public class Question : ReactiveObject
         // 其他模块：使用操作点分数总和
         if (OperationPoints == null || OperationPoints.Count == 0)
             return 0;
-        return OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+        return (double)OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
     }
 
     /// <summary>
@@ -237,7 +237,7 @@ public class Question : ReactiveObject
     /// <summary>
     /// C#题目直接分数（仅调试纠错和编写实现类型使用）
     /// </summary>
-    [Reactive] public decimal CSharpDirectScore { get; set; } = 10.0m;
+    [Reactive] public double CSharpDirectScore { get; set; } = 10.0;
 
     /// <summary>
     /// 代码补全填空处集合（仅C#模块代码补全类型使用）

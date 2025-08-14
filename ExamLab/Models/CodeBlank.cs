@@ -37,7 +37,7 @@ public class CodeBlank : ReactiveObject
     /// <summary>
     /// 填空处分数（仅代码补全类型使用）
     /// </summary>
-    [Reactive] public decimal Score { get; set; } = 5.0m;
+    [Reactive] public double Score { get; set; } = 5.0;
 
     /// <summary>
     /// 创建时间

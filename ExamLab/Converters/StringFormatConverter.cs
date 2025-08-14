@@ -154,7 +154,7 @@ public class ModuleTotalScoreConverter : IValueConverter
     {
         if (value is ExamModule module)
         {
-            decimal totalScore = module.Questions.Sum(q => q.TotalScore);
+            double totalScore = module.Questions.Sum(q => q.TotalScore);
             return totalScore;
         }
         return 0.0;
