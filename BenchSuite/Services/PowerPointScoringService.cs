@@ -1022,8 +1022,14 @@ public class PowerPointScoringService : IPowerPointScoringService
                 PowerPoint.Slide slide = presentation.Slides[slideIndex];
                 foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
-                    allShapeTypes.Add(shape.Type.ToString());
-                    if (shape.Type.ToString().Contains("Picture") || shape.Type.ToString().Contains("msoPicture"))
+                    string shapeType = shape.Type.ToString();
+                    allShapeTypes.Add(shapeType);
+
+                    // 检测多种可能的图片类型
+                    if (shapeType.Contains("Picture") ||
+                        shapeType.Contains("msoPicture") ||
+                        shapeType.Contains("Image") ||
+                        IsShapeContainingImage(shape))
                     {
                         totalImageCount++;
                     }
@@ -1042,8 +1048,14 @@ public class PowerPointScoringService : IPowerPointScoringService
 
                     foreach (PowerPoint.Shape shape in slide.Shapes)
                     {
-                        allShapeTypes.Add(shape.Type.ToString());
-                        if (shape.Type.ToString().Contains("Picture") || shape.Type.ToString().Contains("msoPicture"))
+                        string shapeType = shape.Type.ToString();
+                        allShapeTypes.Add(shapeType);
+
+                        // 检测多种可能的图片类型
+                        if (shapeType.Contains("Picture") ||
+                            shapeType.Contains("msoPicture") ||
+                            shapeType.Contains("Image") ||
+                            IsShapeContainingImage(shape))
                         {
                             slideImageCount++;
                             totalImageCount++;
@@ -2540,5 +2552,76 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         // 如果没有找到匹配，返回操作点名称本身
         return operationPointName;
+    }
+
+    /// <summary>
+    /// 检查形状是否包含图片（包括占位符中的图片）
+    /// </summary>
+    /// <param name="shape">要检查的形状</param>
+    /// <returns>是否包含图片</returns>
+    private static bool IsShapeContainingImage(PowerPoint.Shape shape)
+    {
+        try
+        {
+            // 检查占位符类型的形状是否包含图片
+            string shapeType = shape.Type.ToString();
+
+            // 如果是占位符，检查是否有填充图片
+            if (shapeType.Contains("Placeholder"))
+            {
+                try
+                {
+                    // 检查填充类型
+                    string fillType = shape.Fill.Type.ToString();
+                    if (fillType.Contains("Picture") || fillType.Contains("UserPicture"))
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // 忽略填充检查失败
+                }
+
+                // 检查是否有图片内容
+                try
+                {
+                    if (shape.PictureFormat != null)
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // 忽略图片格式检查失败
+                }
+            }
+
+            // 检查组合形状中是否包含图片
+            if (shapeType.Contains("Group"))
+            {
+                try
+                {
+                    foreach (PowerPoint.Shape groupShape in shape.GroupItems)
+                    {
+                        if (IsShapeContainingImage(groupShape))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch
+                {
+                    // 忽略组合形状检查失败
+                }
+            }
+
+            return false;
+        }
+        catch
+        {
+            // 如果检查过程中出现任何异常，返回false
+            return false;
+        }
     }
 }
