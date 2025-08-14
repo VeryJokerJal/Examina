@@ -100,7 +100,8 @@ public abstract class ModuleViewModelBase : ViewModelBase
             CreatedTime = question.CreatedTime,
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
-            CSharpQuestionType = question.CSharpQuestionType
+            CSharpQuestionType = question.CSharpQuestionType,
+            AIPrompt = question.AIPrompt
         };
 
         // 复制所有操作点

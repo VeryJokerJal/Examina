@@ -131,4 +131,9 @@ public class Question : ReactiveObject
     /// C#题目类型（仅C#模块使用）
     /// </summary>
     [Reactive] public CSharpQuestionType CSharpQuestionType { get; set; } = CSharpQuestionType.CodeCompletion;
+
+    /// <summary>
+    /// AI提示信息（仅C#模块使用）
+    /// </summary>
+    [Reactive] public string? AIPrompt { get; set; }
 }

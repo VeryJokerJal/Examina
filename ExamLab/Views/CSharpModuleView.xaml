@@ -98,8 +98,7 @@
 
                                 <!--  C#题目类型选择  -->
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="题目类型" FontWeight="SemiBold" />
-                                    <ComboBox Header="选择C#题目类型" SelectedValue="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Mode=TwoWay, Converter={StaticResource CSharpQuestionTypeConverter}}" SelectedValuePath="Content">
+                                    <ComboBox Header="题目类型" SelectedValue="{Binding CurrentContentViewModel.SelectedQuestion.CSharpQuestionType, Mode=TwoWay, Converter={StaticResource CSharpQuestionTypeConverter}}" SelectedValuePath="Content">
                                         <ComboBoxItem Content="代码补全" />
                                         <ComboBoxItem Content="调试纠错" />
                                         <ComboBoxItem Content="编写实现" />
@@ -107,8 +106,8 @@
                                 </StackPanel>
 
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="题目总分" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" FontSize="16" Foreground="{ThemeResource SystemAccentColor}" />
+                                    <TextBlock FontWeight="SemiBold" Text="题目总分" />
+                                    <TextBlock FontSize="16" Foreground="{ThemeResource SystemAccentColor}" Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" />
                                 </StackPanel>
                             </StackPanel>
 
@@ -130,6 +129,12 @@
                                     <StackPanel Spacing="8">
                                         <TextBlock FontSize="14" FontWeight="SemiBold" Text="程序控制台输出" />
                                         <TextBox Height="120" AcceptsReturn="True" PlaceholderText="输入程序预期的控制台输出结果" Text="{Binding CurrentContentViewModel.SelectedQuestion.ExpectedOutput, Mode=TwoWay}" TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <!--  AI提示信息  -->
+                                    <StackPanel Spacing="8">
+                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="AI提示信息" />
+                                        <TextBox Height="100" AcceptsReturn="True" PlaceholderText="输入AI相关的提示信息（可选）" Text="{Binding CurrentContentViewModel.SelectedQuestion.AIPrompt, Mode=TwoWay}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>
