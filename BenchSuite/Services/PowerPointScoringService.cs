@@ -1484,11 +1484,23 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            if (!parameters.TryGetValue("SlideIndexes", out string? slideIndexesStr) ||
-                !parameters.TryGetValue("TransitionMode", out string? expectedModeStr) ||
-                !int.TryParse(expectedModeStr, out int expectedMode))
+            // 尝试获取幻灯片索引列表（支持多种参数名）
+            string? slideIndexesStr = null;
+            if (!parameters.TryGetValue("SlideIndexes", out slideIndexesStr))
             {
-                result.ErrorMessage = "缺少必要参数: SlideIndexes 或 TransitionMode";
+                parameters.TryGetValue("SlideNumbers", out slideIndexesStr);
+            }
+
+            // 尝试获取切换方案（支持多种参数名）
+            string? expectedModeStr = null;
+            if (!parameters.TryGetValue("TransitionMode", out expectedModeStr))
+            {
+                parameters.TryGetValue("TransitionScheme", out expectedModeStr);
+            }
+
+            if (string.IsNullOrEmpty(slideIndexesStr) || string.IsNullOrEmpty(expectedModeStr))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideIndexes/SlideNumbers 或 TransitionMode/TransitionScheme";
                 return result;
             }
 
@@ -1536,7 +1548,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 }
             }
 
-            result.ExpectedValue = $"切换方式 {expectedMode}";
+            result.ExpectedValue = $"切换方式 {expectedModeStr}";
             result.ActualValue = $"{correctCount}/{slideIndexes.Count} 张幻灯片正确";
             result.IsCorrect = correctCount == slideIndexes.Count;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : (result.TotalScore * correctCount / slideIndexes.Count);
@@ -2147,7 +2159,9 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         if (lowerName.Contains("slide"))
         {
-            return presentation.Slides.Count;
+            // 限制随机幻灯片索引的范围，避免超出合理范围
+            int slideCount = presentation.Slides.Count;
+            return Math.Min(slideCount, 3); // 最多随机到前3张幻灯片
         }
 
         if (lowerName.Contains("textbox") || lowerName.Contains("element") || lowerName.Contains("shape"))
