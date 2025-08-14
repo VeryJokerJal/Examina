@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
+using BenchSuite.Converters;
 using BenchSuite.Models;
 using BenchSuite.Services;
-using BenchSuite.Converters;
 
 namespace BenchSuite.Console.Services;
 
@@ -47,18 +43,22 @@ public static class ExamModelLoader
     /// <returns>加载结果</returns>
     public static async Task<LoadResult> LoadAsync(string filePath, bool verbose = false)
     {
-        var result = new LoadResult();
+        LoadResult result = new();
 
         try
         {
             if (verbose)
+            {
                 System.Console.WriteLine($"正在检测文件格式: {filePath}");
+            }
 
             // 检测文件格式
             result.DetectedFormat = DetectFileFormat(filePath);
-            
+
             if (verbose)
+            {
                 System.Console.WriteLine($"检测到文件格式: {result.DetectedFormat}");
+            }
 
             // 根据格式加载文件
             switch (result.DetectedFormat)
@@ -79,14 +79,18 @@ public static class ExamModelLoader
             }
 
             if (!result.IsSuccess)
+            {
                 return result;
+            }
 
             // 执行ID冲突检测和修复
             if (verbose)
+            {
                 System.Console.WriteLine("正在检测ID冲突...");
+            }
 
             result.IdConflictsFixed = IdConflictResolver.ResolveConflicts(result.ExamModel!);
-            
+
             if (result.IdConflictsFixed > 0)
             {
                 System.Console.WriteLine($"✅ 检测到 {result.IdConflictsFixed} 个ID冲突，已自动修复");
@@ -97,7 +101,7 @@ public static class ExamModelLoader
             }
 
             // 验证ID唯一性
-            var validationResult = IdConflictResolver.ValidateIds(result.ExamModel!);
+            IdValidationResult validationResult = IdConflictResolver.ValidateIds(result.ExamModel!);
             result.ValidationSummary = validationResult.GetSummary();
 
             if (!validationResult.IsValid)
@@ -108,7 +112,9 @@ public static class ExamModelLoader
             }
 
             if (verbose)
+            {
                 System.Console.WriteLine($"✅ ID验证通过: {result.ValidationSummary}");
+            }
 
             result.IsSuccess = true;
             return result;
@@ -129,7 +135,9 @@ public static class ExamModelLoader
     private static FileFormat DetectFileFormat(string filePath)
     {
         if (!File.Exists(filePath))
+        {
             return FileFormat.Unknown;
+        }
 
         string extension = Path.GetExtension(filePath).ToLowerInvariant();
 
@@ -143,11 +151,7 @@ public static class ExamModelLoader
                 try
                 {
                     string content = File.ReadAllText(filePath, Encoding.UTF8);
-                    if (content.Contains("<ExamExportDto") || content.Contains("ExamLab"))
-                    {
-                        return FileFormat.ExamLabProject;
-                    }
-                    return FileFormat.Xml;
+                    return content.Contains("<ExamExportDto") || content.Contains("ExamLab") ? FileFormat.ExamLabProject : FileFormat.Xml;
                 }
                 catch
                 {
@@ -164,12 +168,14 @@ public static class ExamModelLoader
     /// </summary>
     private static async Task<LoadResult> LoadJsonFormatAsync(string filePath, bool verbose)
     {
-        var result = new LoadResult { DetectedFormat = FileFormat.Json };
+        LoadResult result = new() { DetectedFormat = FileFormat.Json };
 
         try
         {
             if (verbose)
+            {
                 System.Console.WriteLine("正在读取JSON文件...");
+            }
 
             // 尝试多种编码方式读取文件
             string jsonContent = await ReadFileWithCorrectEncodingAsync(filePath);
@@ -193,7 +199,9 @@ public static class ExamModelLoader
             options.Converters.Add(new ParameterTypeJsonConverter());
 
             if (verbose)
+            {
                 System.Console.WriteLine("正在反序列化JSON...");
+            }
 
             // 检查是否为ExamLab导出格式
             JsonDocument jsonDocument = JsonDocument.Parse(jsonContent);
@@ -206,24 +214,28 @@ public static class ExamModelLoader
                 result.IsSuccess = true;
 
                 if (verbose)
+                {
                     System.Console.WriteLine($"✅ ExamLab JSON格式解析成功: {result.ExamModel.Name}");
+                }
             }
             else
             {
                 // 尝试直接反序列化为ExamModel
-                ExamModel? examModel = JsonSerializer.Deserialize<ExamModel>(jsonContent, options);
+                ExamExportModel? examExportModel = JsonSerializer.Deserialize<ExamExportModel>(jsonContent, options);
 
-                if (examModel == null)
+                if (examExportModel == null)
                 {
                     result.ErrorMessage = "无法解析JSON文件为ExamModel";
                     return result;
                 }
 
-                result.ExamModel = examModel;
+                result.ExamModel = examExportModel.Exam;
                 result.IsSuccess = true;
 
                 if (verbose)
-                    System.Console.WriteLine($"✅ BenchSuite JSON文件加载成功: {examModel.Name}");
+                {
+                    System.Console.WriteLine($"✅ BenchSuite JSON文件加载成功: {examExportModel.Exam.Name}");
+                }
             }
 
             return result;
@@ -232,7 +244,10 @@ public static class ExamModelLoader
         {
             result.ErrorMessage = $"JSON格式错误: {ex.Message}";
             if (ex.Path != null)
+            {
                 result.ErrorMessage += $" (路径: {ex.Path})";
+            }
+
             return result;
         }
         catch (Exception ex)
@@ -247,12 +262,14 @@ public static class ExamModelLoader
     /// </summary>
     private static async Task<LoadResult> LoadExamLabFormatAsync(string filePath, bool verbose)
     {
-        var result = new LoadResult { DetectedFormat = FileFormat.ExamLabProject };
+        LoadResult result = new() { DetectedFormat = FileFormat.ExamLabProject };
 
         try
         {
             if (verbose)
+            {
                 System.Console.WriteLine("正在读取ExamLab文件...");
+            }
 
             string content = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
 
@@ -289,16 +306,18 @@ public static class ExamModelLoader
     /// </summary>
     private static Task<LoadResult> LoadExamLabJsonAsync(string jsonContent, bool verbose)
     {
-        var result = new LoadResult { DetectedFormat = FileFormat.Json };
+        LoadResult result = new() { DetectedFormat = FileFormat.Json };
 
         try
         {
             if (verbose)
+            {
                 System.Console.WriteLine("正在解析ExamLab JSON格式...");
+            }
 
             // 解析JSON为动态对象
-            var jsonDocument = JsonDocument.Parse(jsonContent);
-            var rootElement = jsonDocument.RootElement;
+            JsonDocument jsonDocument = JsonDocument.Parse(jsonContent);
+            JsonElement rootElement = jsonDocument.RootElement;
 
             // 检查是否为ExamLab导出格式
             if (rootElement.TryGetProperty("exam", out _) && rootElement.TryGetProperty("metadata", out _))
@@ -308,7 +327,9 @@ public static class ExamModelLoader
                 result.IsSuccess = true;
 
                 if (verbose)
+                {
                     System.Console.WriteLine($"✅ ExamLab JSON格式解析成功: {result.ExamModel.Name}");
+                }
             }
             else
             {
@@ -334,12 +355,14 @@ public static class ExamModelLoader
     /// </summary>
     private static Task<LoadResult> LoadExamLabXmlAsync(string xmlContent, bool verbose)
     {
-        var result = new LoadResult { DetectedFormat = FileFormat.Xml };
+        LoadResult result = new() { DetectedFormat = FileFormat.Xml };
 
         try
         {
             if (verbose)
+            {
                 System.Console.WriteLine("正在解析ExamLab XML格式...");
+            }
 
             // 简单的XML到JSON转换 (用于演示，实际项目中可能需要更复杂的XML解析)
             // 这里可以使用System.Xml.Linq或其他XML解析库
@@ -367,7 +390,9 @@ public static class ExamModelLoader
     public static (bool IsValid, string ErrorMessage) ValidateExamModel(ExamModel examModel, bool verbose = false)
     {
         if (verbose)
+        {
             System.Console.WriteLine("正在验证试卷模型...");
+        }
 
         if (string.IsNullOrWhiteSpace(examModel.Id))
         {
@@ -426,10 +451,10 @@ public static class ExamModelLoader
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         // 尝试的编码列表
-        List<Encoding> encodings = new List<Encoding>
-        {
+        List<Encoding> encodings =
+        [
             Encoding.UTF8
-        };
+        ];
 
         // 安全地添加中文编码
         try

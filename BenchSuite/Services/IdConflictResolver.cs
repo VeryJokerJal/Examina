@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BenchSuite.Models;
+using Console = System.Console;
 
 namespace BenchSuite.Services;
 

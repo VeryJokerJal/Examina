@@ -257,10 +257,9 @@ internal class Program
 
         foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
         {
-            string status = kpResult.IsCorrect ? "✅" : "❌";
             string scoreInfo = $"{kpResult.AchievedScore:F1}/{kpResult.TotalScore:F1}";
 
-            System.Console.WriteLine($"{status} {kpResult.KnowledgePointName} ({scoreInfo})");
+            System.Console.WriteLine($"{kpResult} {kpResult.KnowledgePointName} ({scoreInfo})");
 
             if (!string.IsNullOrEmpty(kpResult.Details))
             {

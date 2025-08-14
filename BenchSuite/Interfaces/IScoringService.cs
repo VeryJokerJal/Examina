@@ -26,6 +26,15 @@ public interface IScoringService
     ScoringResult ScoreFile(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null);
 
     /// <summary>
+    /// 对单个题目进行评分
+    /// </summary>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="question">题目模型</param>
+    /// <param name="configuration">评分配置</param>
+    /// <returns>该题目的评分结果</returns>
+    Task<ScoringResult> ScoreQuestionAsync(string filePath, QuestionModel question, ScoringConfiguration? configuration = null);
+
+    /// <summary>
     /// 验证文件是否可以被处理
     /// </summary>
     /// <param name="filePath">文件路径</param>

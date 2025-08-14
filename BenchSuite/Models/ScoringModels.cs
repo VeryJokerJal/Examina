@@ -8,6 +8,16 @@ namespace BenchSuite.Models;
 public class ScoringResult
 {
     /// <summary>
+    /// 关联的题目ID
+    /// </summary>
+    public string? QuestionId { get; set; }
+
+    /// <summary>
+    /// 关联的题目标题（便于识别）
+    /// </summary>
+    public string? QuestionTitle { get; set; }
+
+    /// <summary>
     /// 总分
     /// </summary>
     public decimal TotalScore { get; set; }
@@ -23,7 +33,7 @@ public class ScoringResult
     public decimal ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
 
     /// <summary>
-    /// 知识点检测结果列表
+    /// 知识点检测结果列表（只包含与当前题目相关的知识点）
     /// </summary>
     public List<KnowledgePointResult> KnowledgePointResults { get; set; } = new();
 
@@ -58,6 +68,16 @@ public class ScoringResult
 /// </summary>
 public class KnowledgePointResult
 {
+    /// <summary>
+    /// 关联的题目ID
+    /// </summary>
+    public string? QuestionId { get; set; }
+
+    /// <summary>
+    /// 关联的操作点ID（更明确的关联）
+    /// </summary>
+    public string? OperationPointId { get; set; }
+
     /// <summary>
     /// 知识点ID
     /// </summary>

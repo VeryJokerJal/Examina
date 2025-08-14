@@ -26,6 +26,14 @@ public class MockPowerPointScoringService : IScoringService
     }
 
     /// <summary>
+    /// 对单个题目进行评分
+    /// </summary>
+    public async Task<ScoringResult> ScoreQuestionAsync(string filePath, QuestionModel question, ScoringConfiguration? configuration = null)
+    {
+        return await Task.Run(() => ScoreQuestion(filePath, question, configuration));
+    }
+
+    /// <summary>
     /// 对指定文件进行打分（同步版本）
     /// </summary>
     /// <param name="filePath">文件路径</param>
@@ -104,6 +112,73 @@ public class MockPowerPointScoringService : IScoringService
     }
 
     /// <summary>
+    /// 对单个题目进行评分（同步版本）
+    /// </summary>
+    private ScoringResult ScoreQuestion(string filePath, QuestionModel question, ScoringConfiguration? configuration = null)
+    {
+        ScoringResult result = new()
+        {
+            QuestionId = question.Id,
+            QuestionTitle = question.Title,
+            StartTime = DateTime.Now,
+            IsSuccess = false
+        };
+
+        try
+        {
+            // 验证文件是否存在
+            if (!File.Exists(filePath))
+            {
+                result.ErrorMessage = $"文件不存在: {filePath}";
+                return result;
+            }
+
+            // 验证文件扩展名
+            if (!CanProcessFile(filePath))
+            {
+                result.ErrorMessage = $"不支持的文件类型: {Path.GetExtension(filePath)}";
+                return result;
+            }
+
+            // 获取题目的操作点（只处理PowerPoint相关的操作点）
+            List<OperationPointModel> pptOperationPoints = question.OperationPoints
+                .Where(op => op.ModuleType == ModuleType.PowerPoint && op.IsEnabled)
+                .ToList();
+
+            if (pptOperationPoints.Count == 0)
+            {
+                result.ErrorMessage = "题目没有包含任何PowerPoint操作点";
+                return result;
+            }
+
+            // 模拟评分过程
+            result.KnowledgePointResults = SimulateKnowledgePointDetection(pptOperationPoints, filePath);
+
+            // 为每个知识点结果设置题目ID
+            foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
+            {
+                kpResult.QuestionId = question.Id;
+            }
+
+            // 计算总分和获得分数
+            result.TotalScore = pptOperationPoints.Sum(op => op.Score);
+            result.AchievedScore = result.KnowledgePointResults.Sum(kpr => kpr.AchievedScore);
+
+            result.IsSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"评分过程中发生错误: {ex.Message}";
+        }
+        finally
+        {
+            result.EndTime = DateTime.Now;
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 检查是否可以处理指定文件
     /// </summary>
     /// <param name="filePath">文件路径</param>
@@ -142,6 +217,7 @@ public class MockPowerPointScoringService : IScoringService
             KnowledgePointResult result = new KnowledgePointResult
             {
                 KnowledgePointId = operationPoint.Id,
+                OperationPointId = operationPoint.Id,
                 KnowledgePointName = operationPoint.Name,
                 KnowledgePointType = operationPoint.ModuleType.ToString(),
                 TotalScore = operationPoint.Score,

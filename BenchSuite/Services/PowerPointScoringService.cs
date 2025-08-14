@@ -30,6 +30,14 @@ public class PowerPointScoringService : IPowerPointScoringService
     }
 
     /// <summary>
+    /// 对单个题目进行评分
+    /// </summary>
+    public async Task<ScoringResult> ScoreQuestionAsync(string filePath, QuestionModel question, ScoringConfiguration? configuration = null)
+    {
+        return await Task.Run(() => ScoreQuestion(filePath, question, configuration));
+    }
+
+    /// <summary>
     /// 对PPT文件进行打分（同步版本）
     /// </summary>
     public ScoringResult ScoreFile(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
@@ -63,11 +71,17 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            // 收集所有操作点
+            // 收集所有操作点并记录题目关联关系
             List<OperationPointModel> allOperationPoints = [];
+            Dictionary<string, string> operationPointToQuestionMap = new();
+
             foreach (QuestionModel question in pptModule.Questions)
             {
-                allOperationPoints.AddRange(question.OperationPoints);
+                foreach (OperationPointModel operationPoint in question.OperationPoints)
+                {
+                    allOperationPoints.Add(operationPoint);
+                    operationPointToQuestionMap[operationPoint.Id] = question.Id;
+                }
             }
 
             if (allOperationPoints.Count == 0)
@@ -79,8 +93,92 @@ public class PowerPointScoringService : IPowerPointScoringService
             // 批量检测知识点
             result.KnowledgePointResults = DetectKnowledgePointsAsync(filePath, allOperationPoints).Result;
 
+            // 为每个知识点结果设置题目关联信息
+            foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
+            {
+                if (operationPointToQuestionMap.TryGetValue(kpResult.KnowledgePointId, out string? questionId))
+                {
+                    kpResult.QuestionId = questionId;
+                    // 查找题目标题
+                    QuestionModel? question = pptModule.Questions.FirstOrDefault(q => q.Id == questionId);
+                    if (question != null)
+                    {
+                        // 可以在这里添加更多题目信息，如果需要的话
+                    }
+                }
+            }
+
             // 计算总分和获得分数
             result.TotalScore = allOperationPoints.Sum(op => op.Score);
+            result.AchievedScore = result.KnowledgePointResults.Sum(kpr => kpr.AchievedScore);
+
+            result.IsSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"打分过程中发生错误: {ex.Message}";
+        }
+        finally
+        {
+            result.EndTime = DateTime.Now;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 对单个题目进行评分（同步版本）
+    /// </summary>
+    private ScoringResult ScoreQuestion(string filePath, QuestionModel question, ScoringConfiguration? configuration = null)
+    {
+        ScoringResult result = new()
+        {
+            QuestionId = question.Id,
+            QuestionTitle = question.Title,
+            StartTime = DateTime.Now
+        };
+
+        try
+        {
+            // 验证文件是否存在
+            if (!File.Exists(filePath))
+            {
+                result.ErrorMessage = $"文件不存在: {filePath}";
+                result.IsSuccess = false;
+                return result;
+            }
+
+            // 验证文件扩展名
+            if (!CanProcessFile(filePath))
+            {
+                result.ErrorMessage = $"不支持的文件类型: {Path.GetExtension(filePath)}";
+                result.IsSuccess = false;
+                return result;
+            }
+
+            // 获取题目的操作点（只处理PowerPoint相关的操作点）
+            List<OperationPointModel> pptOperationPoints = question.OperationPoints
+                .Where(op => op.ModuleType == ModuleType.PowerPoint && op.IsEnabled)
+                .ToList();
+
+            if (pptOperationPoints.Count == 0)
+            {
+                result.ErrorMessage = "题目没有包含任何PowerPoint操作点";
+                result.IsSuccess = false;
+                return result;
+            }
+
+            // 批量检测知识点
+            result.KnowledgePointResults = DetectKnowledgePointsAsync(filePath, pptOperationPoints).Result;
+
+            // 为每个知识点结果设置题目ID
+            foreach (KnowledgePointResult kpResult in result.KnowledgePointResults)
+            {
+                kpResult.QuestionId = question.Id;
+            }
+
+            // 计算总分和获得分数
+            result.TotalScore = pptOperationPoints.Sum(op => op.Score);
             result.AchievedScore = result.KnowledgePointResults.Sum(kpr => kpr.AchievedScore);
 
             result.IsSuccess = true;
@@ -184,6 +282,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                         KnowledgePointResult result = DetectSpecificKnowledgePoint(presentation, operationPoint.PowerPointKnowledgeType ?? string.Empty, resolvedParameters);
 
                         result.KnowledgePointId = operationPoint.Id;
+                        result.OperationPointId = operationPoint.Id;
                         result.KnowledgePointName = operationPoint.Name;
                         result.TotalScore = operationPoint.Score;
 
@@ -194,6 +293,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                         results.Add(new KnowledgePointResult
                         {
                             KnowledgePointId = operationPoint.Id,
+                            OperationPointId = operationPoint.Id,
                             KnowledgePointName = operationPoint.Name,
                             KnowledgePointType = operationPoint.PowerPointKnowledgeType ?? string.Empty,
                             TotalScore = operationPoint.Score,
@@ -212,6 +312,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     results.Add(new KnowledgePointResult
                     {
                         KnowledgePointId = operationPoint.Id,
+                        OperationPointId = operationPoint.Id,
                         KnowledgePointName = operationPoint.Name,
                         KnowledgePointType = operationPoint.PowerPointKnowledgeType ?? string.Empty,
                         TotalScore = operationPoint.Score,
