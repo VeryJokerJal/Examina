@@ -101,7 +101,7 @@ public abstract class ModuleViewModelBase : ViewModelBase
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
             CSharpQuestionType = question.CSharpQuestionType,
-            AIPrompt = question.AIPrompt
+            CodeBlanks = question.CodeBlanks
         };
 
         // 复制所有操作点
