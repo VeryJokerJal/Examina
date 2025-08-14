@@ -1,8 +1,7 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
-using Microsoft.Office.Core;
-using Microsoft.Office.Interop.Word;
+using Task = System.Threading.Tasks.Task;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace BenchSuite.Services;
@@ -72,7 +71,7 @@ public class WordScoringService : IWordScoringService
 
             // 收集所有操作点并记录题目关联关系
             List<OperationPointModel> allOperationPoints = [];
-            Dictionary<string, string> operationPointToQuestionMap = new();
+            Dictionary<string, string> operationPointToQuestionMap = [];
 
             foreach (QuestionModel question in wordModule.Questions)
             {
@@ -213,8 +212,10 @@ public class WordScoringService : IWordScoringService
             try
             {
                 // 启动Word应用程序
-                wordApp = new Word.Application();
-                wordApp.Visible = false;
+                wordApp = new Word.Application
+                {
+                    Visible = false
+                };
 
                 // 打开文档
                 document = wordApp.Documents.Open(filePath, ReadOnly: true);
@@ -255,8 +256,10 @@ public class WordScoringService : IWordScoringService
             try
             {
                 // 启动Word应用程序
-                wordApp = new Word.Application();
-                wordApp.Visible = false;
+                wordApp = new Word.Application
+                {
+                    Visible = false
+                };
 
                 // 打开文档
                 document = wordApp.Documents.Open(filePath, ReadOnly: true);
@@ -998,10 +1001,25 @@ public class WordScoringService : IWordScoringService
     {
         List<string> styles = [];
 
-        if ((int)font.Bold == 1) styles.Add("加粗");
-        if ((int)font.Italic == 1) styles.Add("斜体");
-        if (font.Underline != Word.WdUnderline.wdUnderlineNone) styles.Add("下划线");
-        if ((int)font.StrikeThrough == 1) styles.Add("删除线");
+        if (font.Bold == 1)
+        {
+            styles.Add("加粗");
+        }
+
+        if (font.Italic == 1)
+        {
+            styles.Add("斜体");
+        }
+
+        if (font.Underline != Word.WdUnderline.wdUnderlineNone)
+        {
+            styles.Add("下划线");
+        }
+
+        if (font.StrikeThrough == 1)
+        {
+            styles.Add("删除线");
+        }
 
         return styles.Count > 0 ? string.Join("+", styles) : "常规";
     }
@@ -1029,11 +1047,7 @@ public class WordScoringService : IWordScoringService
     {
         try
         {
-            if (color is int colorValue)
-            {
-                return $"#{colorValue:X6}";
-            }
-            return color.ToString() ?? "未知颜色";
+            return color is int colorValue ? $"#{colorValue:X6}" : color.ToString() ?? "未知颜色";
         }
         catch
         {
@@ -1107,7 +1121,7 @@ public class WordScoringService : IWordScoringService
 
         foreach (string key in originalParameters.Keys)
         {
-            if (context.HasResolvedParameter(key))
+            if (context.IsParameterResolved(key))
             {
                 resolvedParameters[key] = context.GetResolvedParameter(key);
             }
@@ -1126,13 +1140,13 @@ public class WordScoringService : IWordScoringService
             if (document != null)
             {
                 document.Close(SaveChanges: false);
-                Marshal.ReleaseComObject(document);
+                _ = Marshal.ReleaseComObject(document);
             }
 
             if (wordApp != null)
             {
                 wordApp.Quit(SaveChanges: false);
-                Marshal.ReleaseComObject(wordApp);
+                _ = Marshal.ReleaseComObject(wordApp);
             }
         }
         catch (Exception ex)
