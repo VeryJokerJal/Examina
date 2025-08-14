@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -421,13 +422,35 @@ public static class ExamModelLoader
     /// <returns>文件内容</returns>
     private static async Task<string> ReadFileWithCorrectEncodingAsync(string filePath)
     {
+        // 注册编码提供程序以支持 GB2312 和 GBK
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
         // 尝试的编码列表
-        Encoding[] encodings = {
-            Encoding.UTF8,
-            Encoding.GetEncoding("GB2312"),
-            Encoding.GetEncoding("GBK"),
-            Encoding.Default
+        List<Encoding> encodings = new List<Encoding>
+        {
+            Encoding.UTF8
         };
+
+        // 安全地添加中文编码
+        try
+        {
+            encodings.Add(Encoding.GetEncoding("GBK"));
+        }
+        catch
+        {
+            System.Console.WriteLine("[警告] GBK 编码不可用");
+        }
+
+        try
+        {
+            encodings.Add(Encoding.GetEncoding("GB2312"));
+        }
+        catch
+        {
+            System.Console.WriteLine("[警告] GB2312 编码不可用");
+        }
+
+        encodings.Add(Encoding.Default);
 
         foreach (Encoding encoding in encodings)
         {
@@ -436,15 +459,15 @@ public static class ExamModelLoader
                 string content = await File.ReadAllTextAsync(filePath, encoding);
 
                 // 检查是否包含乱码（简单检测）
-                if (!content.Contains("??") && !content.Contains("???"))
+                if (!content.Contains("??") && !content.Contains("???") && !content.Contains("�"))
                 {
                     System.Console.WriteLine($"[调试] 使用编码 {encoding.EncodingName} 成功读取文件");
                     return content;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // 继续尝试下一种编码
+                System.Console.WriteLine($"[调试] 编码 {encoding.EncodingName} 读取失败: {ex.Message}");
             }
         }
 
