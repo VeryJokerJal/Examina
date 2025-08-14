@@ -1713,7 +1713,7 @@ public class WordScoringService : IWordScoringService
             Word.WdLineStyle.wdLineStyleSingle => "单线",
             Word.WdLineStyle.wdLineStyleDouble => "双线",
             Word.WdLineStyle.wdLineStyleDot => "点线",
-            Word.WdLineStyle.wdLineStyleDash => "虚线",
+            Word.WdLineStyle.wdLineStyleDashSmallGap => "虚线",
             Word.WdLineStyle.wdLineStyleDashDot => "点划线",
             Word.WdLineStyle.wdLineStyleDashDotDot => "双点划线",
             Word.WdLineStyle.wdLineStyleTriple => "三线",
@@ -1807,50 +1807,225 @@ public class WordScoringService : IWordScoringService
     }
 
     // 占位符方法 - 待实现的检测方法
-    private KnowledgePointResult DetectHeaderAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetHeaderAlignment", parameters);
-    private KnowledgePointResult DetectFooterFont(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetFooterFont", parameters);
-    private KnowledgePointResult DetectFooterFontSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetFooterFontSize", parameters);
-    private KnowledgePointResult DetectFooterAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetFooterAlignment", parameters);
-    private KnowledgePointResult DetectPageNumber(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageNumber", parameters);
-    private KnowledgePointResult DetectPageBackground(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBackground", parameters);
-    private KnowledgePointResult DetectPageBorderColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBorderColor", parameters);
-    private KnowledgePointResult DetectPageBorderStyle(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBorderStyle", parameters);
-    private KnowledgePointResult DetectPageBorderWidth(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetPageBorderWidth", parameters);
-    private KnowledgePointResult DetectWatermarkText(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkText", parameters);
-    private KnowledgePointResult DetectWatermarkFont(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkFont", parameters);
-    private KnowledgePointResult DetectWatermarkFontSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkFontSize", parameters);
-    private KnowledgePointResult DetectWatermarkOrientation(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetWatermarkOrientation", parameters);
-    private KnowledgePointResult DetectBulletNumbering(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetBulletNumbering", parameters);
-    private KnowledgePointResult DetectTableShading(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableShading", parameters);
-    private KnowledgePointResult DetectTableRowHeight(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableRowHeight", parameters);
-    private KnowledgePointResult DetectTableColumnWidth(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableColumnWidth", parameters);
-    private KnowledgePointResult DetectTableCellAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableCellAlignment", parameters);
-    private KnowledgePointResult DetectTableAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableAlignment", parameters);
-    private KnowledgePointResult DetectMergeTableCells(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("MergeTableCells", parameters);
-    private KnowledgePointResult DetectTableHeaderContent(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableHeaderContent", parameters);
-    private KnowledgePointResult DetectTableHeaderAlignment(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTableHeaderAlignment", parameters);
-    private KnowledgePointResult DetectInsertAutoShape(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("InsertAutoShape", parameters);
-    private KnowledgePointResult DetectAutoShapeSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeSize", parameters);
-    private KnowledgePointResult DetectAutoShapeLineColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeLineColor", parameters);
-    private KnowledgePointResult DetectAutoShapeFillColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeFillColor", parameters);
-    private KnowledgePointResult DetectAutoShapeTextSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeTextSize", parameters);
-    private KnowledgePointResult DetectAutoShapeTextColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeTextColor", parameters);
-    private KnowledgePointResult DetectAutoShapeTextContent(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapeTextContent", parameters);
-    private KnowledgePointResult DetectAutoShapePosition(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetAutoShapePosition", parameters);
-    private KnowledgePointResult DetectImageBorderCompoundType(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderCompoundType", parameters);
-    private KnowledgePointResult DetectImageBorderDashType(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderDashType", parameters);
-    private KnowledgePointResult DetectImageBorderWidth(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderWidth", parameters);
-    private KnowledgePointResult DetectImageBorderColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageBorderColor", parameters);
-    private KnowledgePointResult DetectImageShadow(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageShadow", parameters);
-    private KnowledgePointResult DetectImageWrapStyle(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageWrapStyle", parameters);
-    private KnowledgePointResult DetectImagePosition(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImagePosition", parameters);
-    private KnowledgePointResult DetectImageSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetImageSize", parameters);
-    private KnowledgePointResult DetectTextBoxBorderColor(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxBorderColor", parameters);
-    private KnowledgePointResult DetectTextBoxContent(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxContent", parameters);
-    private KnowledgePointResult DetectTextBoxTextSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxTextSize", parameters);
-    private KnowledgePointResult DetectTextBoxPosition(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxPosition", parameters);
-    private KnowledgePointResult DetectTextBoxWrapStyle(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetTextBoxWrapStyle", parameters);
-    private KnowledgePointResult DetectSpecificTextFontSize(Word.Document document, Dictionary<string, string> parameters) => CreateNotImplementedResult("SetSpecificTextFontSize", parameters);
+    private KnowledgePointResult DetectHeaderAlignment(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetHeaderAlignment", parameters);
+    }
+
+    private KnowledgePointResult DetectFooterFont(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetFooterFont", parameters);
+    }
+
+    private KnowledgePointResult DetectFooterFontSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetFooterFontSize", parameters);
+    }
+
+    private KnowledgePointResult DetectFooterAlignment(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetFooterAlignment", parameters);
+    }
+
+    private KnowledgePointResult DetectPageNumber(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetPageNumber", parameters);
+    }
+
+    private KnowledgePointResult DetectPageBackground(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetPageBackground", parameters);
+    }
+
+    private KnowledgePointResult DetectPageBorderColor(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetPageBorderColor", parameters);
+    }
+
+    private KnowledgePointResult DetectPageBorderStyle(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetPageBorderStyle", parameters);
+    }
+
+    private KnowledgePointResult DetectPageBorderWidth(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetPageBorderWidth", parameters);
+    }
+
+    private KnowledgePointResult DetectWatermarkText(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetWatermarkText", parameters);
+    }
+
+    private KnowledgePointResult DetectWatermarkFont(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetWatermarkFont", parameters);
+    }
+
+    private KnowledgePointResult DetectWatermarkFontSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetWatermarkFontSize", parameters);
+    }
+
+    private KnowledgePointResult DetectWatermarkOrientation(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetWatermarkOrientation", parameters);
+    }
+
+    private KnowledgePointResult DetectBulletNumbering(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetBulletNumbering", parameters);
+    }
+
+    private KnowledgePointResult DetectTableShading(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTableShading", parameters);
+    }
+
+    private KnowledgePointResult DetectTableRowHeight(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTableRowHeight", parameters);
+    }
+
+    private KnowledgePointResult DetectTableColumnWidth(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTableColumnWidth", parameters);
+    }
+
+    private KnowledgePointResult DetectTableCellAlignment(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTableCellAlignment", parameters);
+    }
+
+    private KnowledgePointResult DetectTableAlignment(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTableAlignment", parameters);
+    }
+
+    private KnowledgePointResult DetectMergeTableCells(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("MergeTableCells", parameters);
+    }
+
+    private KnowledgePointResult DetectTableHeaderContent(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTableHeaderContent", parameters);
+    }
+
+    private KnowledgePointResult DetectTableHeaderAlignment(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTableHeaderAlignment", parameters);
+    }
+
+    private KnowledgePointResult DetectInsertAutoShape(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("InsertAutoShape", parameters);
+    }
+
+    private KnowledgePointResult DetectAutoShapeSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetAutoShapeSize", parameters);
+    }
+
+    private KnowledgePointResult DetectAutoShapeLineColor(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetAutoShapeLineColor", parameters);
+    }
+
+    private KnowledgePointResult DetectAutoShapeFillColor(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetAutoShapeFillColor", parameters);
+    }
+
+    private KnowledgePointResult DetectAutoShapeTextSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetAutoShapeTextSize", parameters);
+    }
+
+    private KnowledgePointResult DetectAutoShapeTextColor(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetAutoShapeTextColor", parameters);
+    }
+
+    private KnowledgePointResult DetectAutoShapeTextContent(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetAutoShapeTextContent", parameters);
+    }
+
+    private KnowledgePointResult DetectAutoShapePosition(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetAutoShapePosition", parameters);
+    }
+
+    private KnowledgePointResult DetectImageBorderCompoundType(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImageBorderCompoundType", parameters);
+    }
+
+    private KnowledgePointResult DetectImageBorderDashType(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImageBorderDashType", parameters);
+    }
+
+    private KnowledgePointResult DetectImageBorderWidth(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImageBorderWidth", parameters);
+    }
+
+    private KnowledgePointResult DetectImageBorderColor(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImageBorderColor", parameters);
+    }
+
+    private KnowledgePointResult DetectImageShadow(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImageShadow", parameters);
+    }
+
+    private KnowledgePointResult DetectImageWrapStyle(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImageWrapStyle", parameters);
+    }
+
+    private KnowledgePointResult DetectImagePosition(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImagePosition", parameters);
+    }
+
+    private KnowledgePointResult DetectImageSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetImageSize", parameters);
+    }
+
+    private KnowledgePointResult DetectTextBoxBorderColor(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTextBoxBorderColor", parameters);
+    }
+
+    private KnowledgePointResult DetectTextBoxContent(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTextBoxContent", parameters);
+    }
+
+    private KnowledgePointResult DetectTextBoxTextSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTextBoxTextSize", parameters);
+    }
+
+    private KnowledgePointResult DetectTextBoxPosition(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTextBoxPosition", parameters);
+    }
+
+    private KnowledgePointResult DetectTextBoxWrapStyle(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetTextBoxWrapStyle", parameters);
+    }
+
+    private KnowledgePointResult DetectSpecificTextFontSize(Word.Document document, Dictionary<string, string> parameters)
+    {
+        return CreateNotImplementedResult("SetSpecificTextFontSize", parameters);
+    }
 
     /// <summary>
     /// 创建未实现功能的结果
