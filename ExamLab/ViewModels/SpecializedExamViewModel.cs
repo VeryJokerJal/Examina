@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Services;
 using ExamLab.Views;
+using ExamLab.Views.Dialogs;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -140,6 +143,26 @@ public class SpecializedExamViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ExportQuestionCommand { get; }
 
     /// <summary>
+    /// 添加填空处命令（C#模块使用）
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> AddCodeBlankCommand { get; }
+
+    /// <summary>
+    /// 删除填空处命令（C#模块使用）
+    /// </summary>
+    public ReactiveCommand<CodeBlank, Unit> DeleteCodeBlankCommand { get; }
+
+    /// <summary>
+    /// 选择C#代码文件命令（C#模块使用）
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SelectCodeFileCommand { get; }
+
+    /// <summary>
+    /// 清除C#代码文件路径命令（C#模块使用）
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ClearCodeFilePathCommand { get; }
+
+    /// <summary>
     /// 主窗口ViewModel引用（用于共享模块编辑功能）
     /// </summary>
     private readonly MainWindowViewModel? _mainWindowViewModel;
@@ -169,6 +192,12 @@ public class SpecializedExamViewModel : ViewModelBase
         AddOperationPointCommand = ReactiveCommand.CreateFromTask(AddOperationPointAsync);
         DeleteOperationPointCommand = ReactiveCommand.CreateFromTask<OperationPoint>(DeleteOperationPointAsync);
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
+
+        // C#模块相关命令
+        AddCodeBlankCommand = ReactiveCommand.Create(AddCodeBlank);
+        DeleteCodeBlankCommand = ReactiveCommand.Create<CodeBlank>(DeleteCodeBlank);
+        SelectCodeFileCommand = ReactiveCommand.CreateFromTask(SelectCodeFileAsync);
+        ClearCodeFilePathCommand = ReactiveCommand.Create(ClearCodeFilePath);
 
         // 监听选中试卷变化
         this.WhenAnyValue(x => x.SelectedSpecializedExam)
@@ -735,4 +764,103 @@ public class SpecializedExamViewModel : ViewModelBase
             await NotificationService.ShowErrorAsync("导出失败", $"导出专项试卷时发生错误：{ex.Message}");
         }
     }
+
+    #region C#模块相关方法
+
+    /// <summary>
+    /// 添加填空处
+    /// </summary>
+    private void AddCodeBlank()
+    {
+        if (SelectedQuestion == null) return;
+
+        CodeBlank newCodeBlank = new()
+        {
+            Description = "// 请输入需要学生填写的代码",
+            DetailedDescription = string.Empty,
+            Order = SelectedQuestion.CodeBlanks.Count + 1
+        };
+
+        SelectedQuestion.CodeBlanks.Add(newCodeBlank);
+    }
+
+    /// <summary>
+    /// 删除填空处
+    /// </summary>
+    /// <param name="codeBlank">要删除的填空处</param>
+    private void DeleteCodeBlank(CodeBlank codeBlank)
+    {
+        if (SelectedQuestion == null || codeBlank == null) return;
+
+        SelectedQuestion.CodeBlanks.Remove(codeBlank);
+
+        // 重新排序剩余的填空处
+        for (int i = 0; i < SelectedQuestion.CodeBlanks.Count; i++)
+        {
+            SelectedQuestion.CodeBlanks[i].Order = i + 1;
+        }
+    }
+
+    /// <summary>
+    /// 选择C#代码文件
+    /// </summary>
+    private async Task SelectCodeFileAsync()
+    {
+        if (SelectedQuestion == null) return;
+
+        try
+        {
+            // 定义支持的C#文件类型
+            List<string> csharpFileTypes = new() { ".cs", ".csx" };
+
+            // 打开文件选择对话框
+            Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(
+                csharpFileTypes,
+                Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary);
+
+            if (selectedFile != null)
+            {
+                // 验证文件是否为有效的C#代码文件
+                if (IsValidCSharpFile(selectedFile))
+                {
+                    SelectedQuestion.CodeFilePath = selectedFile.Path;
+                    await NotificationService.ShowSuccessAsync("文件选择成功", $"已选择C#代码文件：{selectedFile.Name}");
+                }
+                else
+                {
+                    await NotificationService.ShowErrorAsync("文件类型错误", "请选择有效的C#代码文件（.cs 或 .csx）");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("文件选择失败", $"选择C#代码文件时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 清除C#代码文件路径
+    /// </summary>
+    private void ClearCodeFilePath()
+    {
+        if (SelectedQuestion != null)
+        {
+            SelectedQuestion.CodeFilePath = null;
+        }
+    }
+
+    /// <summary>
+    /// 验证是否为有效的C#代码文件
+    /// </summary>
+    /// <param name="file">要验证的文件</param>
+    /// <returns>是否为有效的C#代码文件</returns>
+    private static bool IsValidCSharpFile(Windows.Storage.StorageFile file)
+    {
+        if (file == null) return false;
+
+        string extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        return extension == ".cs" || extension == ".csx";
+    }
+
+    #endregion
 }
