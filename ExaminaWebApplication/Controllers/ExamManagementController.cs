@@ -125,12 +125,7 @@ public class ExamManagementController : Controller
             return View();
         }
 
-        // 验证文件大小（限制为10MB）
-        if (examFile.Length > 10 * 1024 * 1024)
-        {
-            TempData["ErrorMessage"] = "文件大小不能超过 10MB";
-            return View();
-        }
+        // 文件大小验证已移除，支持任意大小的考试文件
 
         try
         {
