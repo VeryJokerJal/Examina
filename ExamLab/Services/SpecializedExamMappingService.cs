@@ -473,7 +473,7 @@ public static class SpecializedExamMappingService
     {
         ConfigurationParameter parameter = new()
         {
-            Id = parameterDto.Id,
+            Id = IdGeneratorService.GenerateParameterId(), // ParameterDto没有Id，生成新的
             Name = parameterDto.Name,
             DisplayName = parameterDto.DisplayName,
             Description = parameterDto.Description,
@@ -481,7 +481,7 @@ public static class SpecializedExamMappingService
             DefaultValue = parameterDto.DefaultValue,
             IsRequired = parameterDto.IsRequired,
             Order = parameterDto.Order,
-            IsEnabled = parameterDto.IsEnabled
+            IsEnabled = true // ParameterDto没有IsEnabled属性，默认为true
         };
 
         // 解析参数类型
@@ -960,5 +960,118 @@ public static class SpecializedExamMappingService
         }
 
         return specializedExam;
+    }
+
+    /// <summary>
+    /// 将ExamModule转换为ModuleDto
+    /// </summary>
+    private static ModuleDto ToModuleDto(ExamModule module, ExportLevel exportLevel)
+    {
+        ModuleDto moduleDto = new()
+        {
+            Id = module.Id,
+            Name = module.Name,
+            Type = module.Type.ToString(),
+            Description = module.Description,
+            Score = module.Score,
+            Order = module.Order,
+            IsEnabled = module.IsEnabled
+        };
+
+        // 转换题目
+        foreach (Question question in module.Questions)
+        {
+            moduleDto.Questions.Add(ToQuestionDto(question, exportLevel));
+        }
+
+        return moduleDto;
+    }
+
+    /// <summary>
+    /// 将Question转换为QuestionDto
+    /// </summary>
+    private static QuestionDto ToQuestionDto(Question question, ExportLevel exportLevel)
+    {
+        QuestionDto questionDto = new()
+        {
+            Id = question.Id,
+            Title = question.Title,
+            Content = question.Content,
+            QuestionType = "Practice", // 专项试卷默认为练习类型
+            Score = (decimal)question.TotalScore,
+            DifficultyLevel = 1,
+            EstimatedMinutes = 5,
+            SortOrder = question.Order,
+            IsRequired = true,
+            Tags = string.Empty,
+            Remarks = string.Empty,
+            IsEnabled = question.IsEnabled,
+            CreatedAt = DateTime.TryParse(question.CreatedTime, out DateTime createdTime) ? createdTime : DateTime.UtcNow,
+            ProgramInput = question.ProgramInput,
+            ExpectedOutput = question.ExpectedOutput
+        };
+
+        // 根据导出级别决定是否包含操作点
+        if (exportLevel != ExportLevel.Basic)
+        {
+            foreach (OperationPoint operationPoint in question.OperationPoints)
+            {
+                questionDto.OperationPoints.Add(ToOperationPointDto(operationPoint, exportLevel));
+            }
+        }
+
+        return questionDto;
+    }
+
+    /// <summary>
+    /// 将OperationPoint转换为OperationPointDto
+    /// </summary>
+    private static OperationPointDto ToOperationPointDto(OperationPoint operationPoint, ExportLevel exportLevel)
+    {
+        OperationPointDto operationPointDto = new()
+        {
+            Id = operationPoint.Id,
+            Name = operationPoint.Name,
+            Description = operationPoint.Description,
+            ModuleType = operationPoint.ModuleType.ToString(),
+            Score = operationPoint.Score,
+            Order = operationPoint.Order,
+            IsEnabled = operationPoint.IsEnabled,
+            CreatedTime = operationPoint.CreatedTime
+        };
+
+        // 根据导出级别决定是否包含参数
+        if (exportLevel == ExportLevel.Complete)
+        {
+            foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+            {
+                operationPointDto.Parameters.Add(ToParameterDto(parameter));
+            }
+        }
+
+        return operationPointDto;
+    }
+
+    /// <summary>
+    /// 将ConfigurationParameter转换为ParameterDto
+    /// </summary>
+    private static ParameterDto ToParameterDto(ConfigurationParameter parameter)
+    {
+        return new ParameterDto
+        {
+            Name = parameter.Name,
+            DisplayName = parameter.DisplayName,
+            Description = parameter.Description,
+            Type = parameter.Type.ToString(),
+            Value = parameter.Value ?? string.Empty,
+            DefaultValue = parameter.DefaultValue ?? string.Empty,
+            IsRequired = parameter.IsRequired,
+            Order = parameter.Order,
+            EnumOptions = parameter.EnumOptions,
+            ValidationRule = parameter.ValidationRule,
+            ValidationErrorMessage = parameter.ValidationErrorMessage,
+            MinValue = parameter.MinValue,
+            MaxValue = parameter.MaxValue
+        };
     }
 }
