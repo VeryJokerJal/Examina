@@ -16,91 +16,39 @@
         </Grid.ColumnDefinitions>
 
         <!--  左侧专项试卷列表  -->
-        <Grid Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefault}">
+        <Grid Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <!--  专项试卷列表标题  -->
-            <TextBlock Grid.Row="0" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="专项试卷" />
+            <TextBlock Grid.Row="0" Margin="16,16,16,0" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="专项试卷" />
 
             <!--  专项试卷列表  -->
-            <Grid Grid.Row="1" Background="{ThemeResource LayerFillColorDefaultBrush}">
-                <!-- 空状态提示 -->
-                <Border Padding="16" Margin="16"
-                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                        CornerRadius="8">
-                    <StackPanel Spacing="12" HorizontalAlignment="Center">
-                        <FontIcon Glyph="&#xE8A5;" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                        <TextBlock Text="暂无专项试卷" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" />
-                        <TextBlock Text="点击上方工具栏的新建专项试卷开始创建"
-                                   FontSize="12"
-                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                   HorizontalAlignment="Center"
-                                   TextWrapping="Wrap" />
+            <Grid Grid.Row="1">
+                <!--  空状态提示  -->
+                <Border Margin="16" Padding="16" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="8" Visibility="{Binding SpecializedExams.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                    <StackPanel HorizontalAlignment="Center" Spacing="12">
+                        <FontIcon FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8A5;" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Text="暂无专项试卷" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击上方工具栏的新建专项试卷开始创建" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
-                <!-- 专项试卷ListView -->
-                <ListView ItemsSource="{Binding SpecializedExams}"
-                          SelectedItem="{Binding SelectedSpecializedExam, Mode=TwoWay}"
-                          SelectionMode="Single"
-                          Margin="8"
-                          Background="Transparent">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="0,4" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderThickness" Value="0" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
+                <!--  专项试卷ListView  -->
+                <ListView Margin="8" Background="Transparent" ItemsSource="{Binding SpecializedExams}" SelectedItem="{Binding SelectedSpecializedExam, Mode=TwoWay}" SelectionMode="Single">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Border Padding="12"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="8">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="4" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
+                            <Border Padding="12" CornerRadius="8">
+                                <!--  试卷内容  -->
+                                <StackPanel>
+                                    <!--  试卷名称  -->
+                                    <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
 
-                                    <!-- 选中状态指示条 -->
-                                    <Border Grid.Column="0"
-                                            Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                            CornerRadius="2" />
-
-                                    <!-- 试卷内容 -->
-                                    <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                                        <!-- 试卷名称 -->
-                                        <TextBlock Text="{Binding Name}"
-                                                   FontSize="14"
-                                                   FontWeight="SemiBold"
-                                                   TextTrimming="CharacterEllipsis" />
-
-                                        <!-- 试卷描述 -->
-                                        <TextBlock Text="{Binding Description}"
-                                                   FontSize="12"
-                                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Margin="0,4,0,0" />
-
-                                        <!-- 试卷信息 -->
-                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                                            <TextBlock FontSize="11"
-                                                       Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                                       Text="专项试卷" />
-                                            <TextBlock FontSize="11"
-                                                       Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                                       Text="{Binding LastModifiedTime}" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Grid>
+                                    <!--  试卷描述  -->
+                                    <TextBlock Margin="0,4,0,0" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -129,31 +77,138 @@
 
                 <!--  试卷信息头部  -->
                 <Border Grid.Row="0" Margin="16,16,16,8" Padding="20" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" BorderThickness="1" CornerRadius="8">
-                    <StackPanel Spacing="12">
-                        <!--  试卷标题  -->
-                        <TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding SelectedSpecializedExam.Name}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                        <!--  试卷描述  -->
-                        <TextBlock FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding SelectedSpecializedExam.Description}" TextWrapping="Wrap" />
+                        <StackPanel Grid.Column="0" Spacing="12">
+                            <!--  试卷标题  -->
+                            <TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding SelectedSpecializedExam.Name}" />
 
-                        <!--  试卷统计信息  -->
-                        <StackPanel Orientation="Horizontal" Spacing="24">
-                            <StackPanel Spacing="4">
-                                <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="创建时间" />
-                                <TextBlock FontSize="14" Text="{Binding SelectedSpecializedExam.CreatedTime}" />
-                            </StackPanel>
-                            <StackPanel Spacing="4">
-                                <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="最后修改" />
-                                <TextBlock FontSize="14" Text="{Binding SelectedSpecializedExam.LastModifiedTime}" />
+                            <!--  试卷描述  -->
+                            <TextBlock FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding SelectedSpecializedExam.Description}" TextWrapping="Wrap" />
+
+                            <!--  试卷统计信息  -->
+                            <StackPanel Orientation="Horizontal" Spacing="24">
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="模块数量" />
+                                    <TextBlock FontSize="14" Text="{Binding SelectedSpecializedExam.Modules.Count}" />
+                                </StackPanel>
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="创建时间" />
+                                    <TextBlock FontSize="14" Text="{Binding SelectedSpecializedExam.CreatedTime}" />
+                                </StackPanel>
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="最后修改" />
+                                    <TextBlock FontSize="14" Text="{Binding SelectedSpecializedExam.LastModifiedTime}" />
+                                </StackPanel>
                             </StackPanel>
                         </StackPanel>
-                    </StackPanel>
+
+                        <!-- 操作按钮 -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                            <Button Content="保存试卷" Command="{Binding SaveSpecializedExamCommand}" Style="{ThemeResource AccentButtonStyle}" />
+                            <Button Content="导出试卷" Command="{Binding ExportSpecializedExamCommand}" CommandParameter="{Binding SelectedSpecializedExam}" />
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
-                <!--  模块内容显示区域  -->
+                <!-- 模块内容显示区域 -->
                 <ScrollViewer Grid.Row="1" Margin="16,8,16,16">
-                    <ContentPresenter Content="{Binding CurrentContentView}" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}" />
+                    <StackPanel Spacing="16">
+                        <!-- 模块信息卡片 -->
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="20"
+                                Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="模块信息" FontSize="16" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding SelectedModule.Name}" FontSize="14" FontWeight="Medium" />
+                                <TextBlock Text="{Binding SelectedModule.Description}" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" TextWrapping="Wrap" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="24">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="题目数量" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                                        <TextBlock Text="{Binding SelectedModule.Questions.Count}" FontSize="16" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="总分值" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                                        <TextBlock Text="{Binding SelectedModule.TotalScore}" FontSize="16" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Content="添加题目" Command="{Binding AddQuestionCommand}" Style="{ThemeResource AccentButtonStyle}" HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 题目列表 -->
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="20"
+                                Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="题目列表" FontSize="16" FontWeight="SemiBold" />
+
+                                <!-- 题目列表内容 -->
+                                <ListView ItemsSource="{Binding SelectedModule.Questions}"
+                                          SelectedItem="{Binding SelectedQuestion, Mode=TwoWay}"
+                                          SelectionMode="Single"
+                                          Background="Transparent">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="6" Margin="0,0,0,8">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" />
+                                                    <TextBlock Text="{Binding Content}" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                                        <TextBlock FontSize="11" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
+                                                            <Run Text="分值: " />
+                                                            <Run Text="{Binding TotalScore}" />
+                                                        </TextBlock>
+                                                        <TextBlock FontSize="11" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
+                                                            <Run Text="操作点: " />
+                                                            <Run Text="{Binding OperationPoints.Count}" />
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 题目配置 -->
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="20"
+                                Visibility="{Binding SelectedQuestion, Converter={StaticResource NullToVisibilityConverter}}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="题目配置" FontSize="16" FontWeight="SemiBold" />
+
+                                <TextBox Header="题目标题" Text="{Binding SelectedQuestion.Title, Mode=TwoWay}" />
+                                <TextBox Header="题目内容" Text="{Binding SelectedQuestion.Content, Mode=TwoWay}" AcceptsReturn="True" Height="80" />
+                                <TextBox Header="题目分值" Text="{Binding SelectedQuestion.CSharpDirectScore, Mode=TwoWay}" PlaceholderText="10" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="添加操作点" Command="{Binding AddOperationPointCommand}" Style="{ThemeResource AccentButtonStyle}" />
+                                    <Button Content="保存题目" Command="{Binding SaveQuestionCommand}" />
+                                    <Button Content="删除题目" Command="{Binding DeleteQuestionCommand}" CommandParameter="{Binding SelectedQuestion}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </ScrollViewer>
+
+
             </Grid>
         </Grid>
     </Grid>

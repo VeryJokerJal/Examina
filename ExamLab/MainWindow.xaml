@@ -91,7 +91,7 @@
                         <ListView Grid.Row="1" Margin="8,0" ItemsSource="{Binding Exams}" SelectedItem="{Binding SelectedExam, Mode=TwoWay}" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="8,4" Padding="0,5">
+                                    <Grid Padding="12">
                                         <Grid.ContextFlyout>
                                             <MenuFlyout>
                                                 <MenuFlyoutItem Click="CloneExam_Click" Tag="{Binding}" Text="克隆试卷">
@@ -111,7 +111,7 @@
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" FontWeight="SemiBold" Text="{Binding Name}" />
-                                        <TextBlock Grid.Row="1" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
+                                        <TextBlock Grid.Row="1" Margin="0,4,0,0" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
