@@ -80,6 +80,11 @@ public class SpecializedExamViewModel : ViewModelBase
     public ReactiveCommand<Exam, Unit> ExportSpecializedExamCommand { get; }
 
     /// <summary>
+    /// 选择专项试卷命令
+    /// </summary>
+    public ReactiveCommand<Exam, Unit> SelectSpecializedExamCommand { get; }
+
+    /// <summary>
     /// 主窗口ViewModel引用（用于共享模块编辑功能）
     /// </summary>
     private readonly MainWindowViewModel? _mainWindowViewModel;
@@ -95,6 +100,7 @@ public class SpecializedExamViewModel : ViewModelBase
         CloneSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(CloneSpecializedExamAsync);
         SaveSpecializedExamCommand = ReactiveCommand.CreateFromTask(SaveSpecializedExamAsync);
         ExportSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportSpecializedExamAsync);
+        SelectSpecializedExamCommand = ReactiveCommand.Create<Exam>(SelectSpecializedExam);
 
         // 监听选中试卷变化
         this.WhenAnyValue(x => x.SelectedSpecializedExam)
@@ -216,6 +222,15 @@ public class SpecializedExamViewModel : ViewModelBase
             ModuleType.Word => "Word文档编辑模块，包含文档格式化和排版功能",
             _ => "模块描述"
         };
+    }
+
+    /// <summary>
+    /// 选择专项试卷
+    /// </summary>
+    /// <param name="exam">要选择的专项试卷</param>
+    private void SelectSpecializedExam(Exam exam)
+    {
+        SelectedSpecializedExam = exam;
     }
 
     /// <summary>

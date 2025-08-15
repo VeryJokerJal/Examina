@@ -1,4 +1,4 @@
-using ExamLab.Models;
+﻿using ExamLab.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -21,6 +21,8 @@ public sealed partial class ModuleSelectionDialog : ContentDialog
             ModuleTypeListView.SelectedIndex = 0;
         }
 
+        Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+
         PrimaryButtonClick += OnPrimaryButtonClick;
         SecondaryButtonClick += OnSecondaryButtonClick;
     }
@@ -33,17 +35,11 @@ public sealed partial class ModuleSelectionDialog : ContentDialog
         try
         {
             // 尝试从XamlRootService获取
-            Microsoft.UI.Xaml.XamlRoot? xamlRoot = Services.XamlRootService.GetXamlRoot();
+            XamlRoot? xamlRoot = App.MainWindow?.Content.XamlRoot;
             if (xamlRoot is not null)
             {
                 XamlRoot = xamlRoot;
                 return;
-            }
-
-            // 备用方案：从App.MainWindow获取
-            if (App.MainWindow?.Content?.XamlRoot is not null)
-            {
-                XamlRoot = App.MainWindow.Content.XamlRoot;
             }
         }
         catch

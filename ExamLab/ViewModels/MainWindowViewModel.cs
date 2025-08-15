@@ -1137,7 +1137,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         // 初始化专项试卷ViewModel和页面
         SpecializedExamViewModel = new SpecializedExamViewModel(this);
-        // SpecializedExamPage = new SpecializedExamPage(this); // 暂时注释掉，等XAML问题解决后再启用
+        SpecializedExamPage = new Views.SpecializedExamPage(SpecializedExamViewModel);
 
         // 设置初始状态
         SelectedTabIndex = 0;

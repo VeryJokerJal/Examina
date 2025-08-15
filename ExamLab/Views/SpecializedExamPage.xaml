@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="ExamLab.Views.SpecializedExamPage" 
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+             xmlns:converters="using:ExamLab.Converters" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="using:ExamLab.Views" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧专项试卷列表 -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- 专项试卷列表标题 -->
+            <Border Grid.Row="0" Padding="16,12" Background="{ThemeResource CardBackgroundFillColorDefault}">
+                <StackPanel Spacing="8">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="White" Text="专项试卷" />
+                    <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                               Text="专项试卷列表" />
+                </StackPanel>
+            </Border>
+
+            <!-- 专项试卷列表 -->
+            <ScrollViewer Grid.Row="1" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <StackPanel Spacing="8" Margin="8">
+                    <!-- 空状态提示 -->
+                    <Border Padding="16" Margin="8" 
+                            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" 
+                            CornerRadius="8">
+                        <StackPanel Spacing="12" HorizontalAlignment="Center">
+                            <SymbolIcon Symbol="Document" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                            <TextBlock Text="暂无专项试卷" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" />
+                            <TextBlock Text="点击上方工具栏的新建专项试卷开始创建" 
+                                       FontSize="12" 
+                                       Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                                       HorizontalAlignment="Center" 
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 专项试卷项目列表 -->
+                    <ItemsControl ItemsSource="{Binding SpecializedExams}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,4" 
+                                        Padding="12" 
+                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                                        BorderThickness="1" 
+                                        CornerRadius="8">
+                                    <StackPanel>
+                                        <!-- 试卷名称 -->
+                                        <TextBlock Text="{Binding Name}" 
+                                                   FontSize="14" 
+                                                   FontWeight="SemiBold" 
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <!-- 试卷描述 -->
+                                        <TextBlock Text="{Binding Description}" 
+                                                   FontSize="12" 
+                                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                                                   TextTrimming="CharacterEllipsis" 
+                                                   Margin="0,4,0,0" />
+
+                                        <!-- 试卷信息 -->
+                                        <TextBlock FontSize="11" 
+                                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                                                   Text="{Binding LastModifiedTime}" 
+                                                   Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- 右侧内容区域 -->
+        <Grid Grid.Column="1">
+            <!-- 默认显示 -->
+            <Border Margin="16" 
+                    Visibility="{Binding SelectedSpecializedExam, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
+                <StackPanel VerticalAlignment="Center" Spacing="16">
+                    <SymbolIcon Symbol="Document" FontSize="48" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                    <TextBlock HorizontalAlignment="Center" 
+                               FontSize="24" 
+                               FontWeight="SemiBold" 
+                               Text="专项试卷制作" />
+                    <TextBlock HorizontalAlignment="Center" 
+                               FontSize="16" 
+                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                               Text="请选择左侧的专项试卷开始编辑" />
+                    <TextBlock HorizontalAlignment="Center" 
+                               FontSize="14" 
+                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                               Text="或点击工具栏的新建专项试卷创建新的专项试卷" />
+                </StackPanel>
+            </Border>
+
+            <!-- 专项试卷内容显示 -->
+            <Grid Visibility="{Binding SelectedSpecializedExam, Converter={StaticResource NullToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 试卷信息头部 -->
+                <Border Grid.Row="0" 
+                        Margin="16,16,16,8" 
+                        Padding="20" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="8">
+                    <StackPanel Spacing="12">
+                        <!-- 试卷标题 -->
+                        <TextBlock Text="{Binding SelectedSpecializedExam.Name}" 
+                                   FontSize="20" 
+                                   FontWeight="SemiBold" />
+
+                        <!-- 试卷描述 -->
+                        <TextBlock Text="{Binding SelectedSpecializedExam.Description}" 
+                                   FontSize="14" 
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                                   TextWrapping="Wrap" />
+
+                        <!-- 试卷统计信息 -->
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="创建时间" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                                <TextBlock Text="{Binding SelectedSpecializedExam.CreatedTime}" FontSize="14" />
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="最后修改" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                                <TextBlock Text="{Binding SelectedSpecializedExam.LastModifiedTime}" FontSize="14" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 模块内容显示区域 -->
+                <ScrollViewer Grid.Row="1" Margin="16,8,16,16">
+                    <ContentPresenter Content="{Binding CurrentContentView}" 
+                                      Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}" />
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

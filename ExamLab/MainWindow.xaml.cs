@@ -39,15 +39,16 @@ public sealed partial class MainWindow : Window
     private void OnMainWindowActivated(object sender, WindowActivatedEventArgs e)
     {
         // 在窗口激活时设置XamlRoot（只设置一次）
-        if (Content?.XamlRoot != null && !Services.XamlRootService.IsXamlRootSet())
+        if (Content?.XamlRoot != null && !XamlRootService.IsXamlRootSet())
         {
-            Services.XamlRootService.SetXamlRoot(Content.XamlRoot);
+            XamlRootService.SetXamlRoot(Content.XamlRoot);
         }
     }
 
     private void OnMainWindowClosed(object sender, WindowEventArgs e)
     {
         // 清除XamlRoot
+        Activated -= OnMainWindowActivated;
         XamlRootService.ClearXamlRoot();
     }
 
