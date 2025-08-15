@@ -24,7 +24,26 @@ public static class XamlRootService
     /// <returns>XamlRoot实例，如果未设置则返回null</returns>
     public static XamlRoot? GetXamlRoot()
     {
-        return _xamlRoot;
+        // 如果直接设置的XamlRoot可用，优先使用
+        if (_xamlRoot != null)
+        {
+            return _xamlRoot;
+        }
+
+        // 尝试从App.MainWindow获取XamlRoot作为备用
+        try
+        {
+            if (App.MainWindow?.Content?.XamlRoot != null)
+            {
+                return App.MainWindow.Content.XamlRoot;
+            }
+        }
+        catch
+        {
+            // 忽略获取错误
+        }
+
+        return null;
     }
 
     /// <summary>

@@ -211,6 +211,15 @@ public class MainWindowViewModel : ViewModelBase
         // 监听选项卡变化
         _ = this.WhenAnyValue(x => x.SelectedTabIndex)
             .Subscribe(OnTabIndexChanged);
+
+        // 监听专项试卷ViewModel的HasUnsavedChanges变化
+        _ = this.WhenAnyValue(x => x.SpecializedExamViewModel)
+            .Where(vm => vm != null)
+            .Subscribe(vm =>
+            {
+                _ = vm!.WhenAnyValue(x => x.HasUnsavedChanges)
+                    .Subscribe(_ => UpdateHasUnsavedChanges());
+            });
     }
 
     private void CreateExam()

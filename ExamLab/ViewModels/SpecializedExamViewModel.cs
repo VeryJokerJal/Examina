@@ -112,10 +112,7 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 显示模块类型选择对话框
-            ModuleSelectionDialog dialog = new()
-            {
-                XamlRoot = XamlRootService.GetXamlRoot()
-            };
+            ModuleSelectionDialog dialog = new();
 
             ContentDialogResult result = await dialog.ShowAsync();
 
