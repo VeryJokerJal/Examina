@@ -44,10 +44,10 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     [Reactive] public OperationPoint? SelectedOperationPoint { get; set; }
 
-        /// <summary>
-        /// 当前选中的参数
-        /// </summary>
-        [Reactive] public ConfigurationParameter? SelectedParameter { get; set; }
+    /// <summary>
+    /// 当前选中的参数
+    /// </summary>
+    [Reactive] public ConfigurationParameter? SelectedParameter { get; set; }
 
 
     /// <summary>
@@ -61,43 +61,48 @@ public class SpecializedExamViewModel : ViewModelBase
     [Reactive] public UserControl? CurrentContentView { get; set; }
 
     /// <summary>
+    /// 缓存每个模块的视图实例，避免状态相互影响
+    /// </summary>
+    private readonly Dictionary<string, UserControl> _moduleViewsCache = new();
+
+    /// <summary>
     /// 专项试卷数量
     /// </summary>
     [Reactive] public int SpecializedExamCount { get; set; }
 
-        /// <summary>
-        /// 操作点参数类型枚举备选
-        /// </summary>
-        public IReadOnlyList<ParameterType> ParameterTypes { get; } = new List<ParameterType>
-        {
-            ParameterType.Text, ParameterType.Number, ParameterType.Boolean,
+    /// <summary>
+    /// 操作点参数类型枚举备选
+    /// </summary>
+    public IReadOnlyList<ParameterType> ParameterTypes { get; } =
+    [
+        ParameterType.Text, ParameterType.Number, ParameterType.Boolean,
             ParameterType.Enum, ParameterType.Color, ParameterType.File, ParameterType.MultipleChoice
-        };
+    ];
 
 
-        /// <summary>
-        /// Windows知识点枚举备选
-        /// </summary>
-        public IReadOnlyList<WindowsKnowledgeType> WindowsKnowledgeTypes { get; } =
-            Enum.GetValues(typeof(WindowsKnowledgeType)).Cast<WindowsKnowledgeType>().ToList();
+    /// <summary>
+    /// Windows知识点枚举备选
+    /// </summary>
+    public IReadOnlyList<WindowsKnowledgeType> WindowsKnowledgeTypes { get; } =
+        Enum.GetValues(typeof(WindowsKnowledgeType)).Cast<WindowsKnowledgeType>().ToList();
 
-        /// <summary>
-        /// PowerPoint知识点枚举备选
-        /// </summary>
-        public IReadOnlyList<PowerPointKnowledgeType> PowerPointKnowledgeTypes { get; } =
-            Enum.GetValues(typeof(PowerPointKnowledgeType)).Cast<PowerPointKnowledgeType>().ToList();
+    /// <summary>
+    /// PowerPoint知识点枚举备选
+    /// </summary>
+    public IReadOnlyList<PowerPointKnowledgeType> PowerPointKnowledgeTypes { get; } =
+        Enum.GetValues(typeof(PowerPointKnowledgeType)).Cast<PowerPointKnowledgeType>().ToList();
 
-        /// <summary>
-        /// Word知识点枚举备选
-        /// </summary>
-        public IReadOnlyList<WordKnowledgeType> WordKnowledgeTypes { get; } =
-            Enum.GetValues(typeof(WordKnowledgeType)).Cast<WordKnowledgeType>().ToList();
+    /// <summary>
+    /// Word知识点枚举备选
+    /// </summary>
+    public IReadOnlyList<WordKnowledgeType> WordKnowledgeTypes { get; } =
+        Enum.GetValues(typeof(WordKnowledgeType)).Cast<WordKnowledgeType>().ToList();
 
-        /// <summary>
-        /// Excel知识点枚举备选
-        /// </summary>
-        public IReadOnlyList<ExcelKnowledgeType> ExcelKnowledgeTypes { get; } =
-            Enum.GetValues(typeof(ExcelKnowledgeType)).Cast<ExcelKnowledgeType>().ToList();
+    /// <summary>
+    /// Excel知识点枚举备选
+    /// </summary>
+    public IReadOnlyList<ExcelKnowledgeType> ExcelKnowledgeTypes { get; } =
+        Enum.GetValues(typeof(ExcelKnowledgeType)).Cast<ExcelKnowledgeType>().ToList();
 
 
     /// <summary>
@@ -145,6 +150,17 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<Question, Unit> DeleteQuestionCommand { get; }
 
+        /// <summary>
+        /// 保存模块描述命令（供模块视图复用）
+        /// </summary>
+        public ReactiveCommand<Unit, Unit> SaveModuleDescriptionCommand { get; }
+
+        /// <summary>
+        /// 重置模块描述命令（供模块视图复用）
+        /// </summary>
+        public ReactiveCommand<Unit, Unit> ResetModuleDescriptionCommand { get; }
+
+
     /// <summary>
     /// 复制题目命令
     /// </summary>
@@ -155,25 +171,64 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> AddOperationPointCommand { get; }
 
+            // 监听选中模块变化，切换独立页面
+            _ = this.WhenAnyValue(x => x.SelectedModule).Subscribe(_ => OnSelectedModuleChanged());
+
     /// <summary>
     /// 删除操作点命令
     /// </summary>
 
-        /// <summary>
-        /// 为当前操作点添加参数命令
-        /// </summary>
-        public ReactiveCommand<Unit, Unit> AddParameterCommand { get; }
 
-        /// <summary>
-        /// 删除参数命令
-        /// </summary>
-        public ReactiveCommand<ConfigurationParameter, Unit> DeleteParameterCommand { get; }
+            // 模块描述命令（当前先空实现或后续接入存储服务）
+            SaveModuleDescriptionCommand = ReactiveCommand.CreateFromTask(async () => await Task.CompletedTask);
+            ResetModuleDescriptionCommand = ReactiveCommand.CreateFromTask(async () => await Task.CompletedTask);
+
+    /// <summary>
+    /// 为当前操作点添加参数命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> AddParameterCommand { get; }
+
+    /// <summary>
+    /// 删除参数命令
+    /// </summary>
+    public ReactiveCommand<ConfigurationParameter, Unit> DeleteParameterCommand { get; }
 
     public ReactiveCommand<OperationPoint, Unit> DeleteOperationPointCommand { get; }
 
     /// <summary>
     /// 配置操作点命令
     /// </summary>
+        private void OnSelectedModuleChanged()
+        {
+            if (SelectedModule == null)
+            {
+                CurrentContentView = null;
+                CurrentContentViewModel = null;
+                return;
+            }
+
+            string key = SelectedModule.Id;
+            if (_moduleViewsCache.TryGetValue(key, out UserControl cached))
+            {
+                CurrentContentView = cached;
+                return;
+            }
+
+            // 创建新视图实例（每个模块一个），DataContext为当前 SpecializedExamViewModel（复用命令与状态）
+            UserControl view = SelectedModule.Type switch
+            {
+                ModuleType.Windows => new Views.WindowsModuleView { DataContext = this },
+                ModuleType.PowerPoint => new Views.PowerPointModuleView { DataContext = this },
+                ModuleType.Excel => new Views.ExcelModuleView { DataContext = this },
+                ModuleType.Word => new Views.WordModuleView { DataContext = this },
+                ModuleType.CSharp => new Views.CSharpModuleView(new CSharpModuleViewModel(SelectedModule, null)),
+                _ => new Views.WindowsModuleView { DataContext = this }
+            };
+
+            _moduleViewsCache[key] = view;
+            CurrentContentView = view;
+        }
+
     public ReactiveCommand<OperationPoint, Unit> ConfigureOperationPointCommand { get; }
 
     /// <summary>
@@ -212,7 +267,7 @@ public class SpecializedExamViewModel : ViewModelBase
         // 题目管理命令
         AddQuestionCommand = ReactiveCommand.CreateFromTask(AddQuestionAsync);
         DeleteQuestionCommand = ReactiveCommand.CreateFromTask<Question>(DeleteQuestionAsync);
-        CopyQuestionCommand = ReactiveCommand.CreateFromTask<Question>(CopyQuestionAsync);
+        CopyQuestionCommand = ReactiveCommand.Create<Question>(CopyQuestion);
         SaveQuestionCommand = ReactiveCommand.CreateFromTask(SaveQuestionAsync);
         PreviewQuestionCommand = ReactiveCommand.CreateFromTask(PreviewQuestionAsync);
         ExportQuestionCommand = ReactiveCommand.CreateFromTask(ExportQuestionAsync);
@@ -225,11 +280,11 @@ public class SpecializedExamViewModel : ViewModelBase
         DeleteParameterCommand = ReactiveCommand.CreateFromTask<ConfigurationParameter>(DeleteParameterAsync);
 
         // 监听选中试卷变化
-        this.WhenAnyValue(x => x.SelectedSpecializedExam)
+        _ = this.WhenAnyValue(x => x.SelectedSpecializedExam)
             .Subscribe(OnSelectedSpecializedExamChanged);
 
         // 初始化数据
-        InitializeDataAsync();
+        _ = InitializeDataAsync();
     }
 
     /// <summary>
@@ -260,10 +315,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
                 // 更新计数
                 SpecializedExamCount = SpecializedExams.Count;
-
-                await NotificationService.ShowSuccessAsync(
-                    "创建成功",
-                    $"已创建{GetModuleTypeName(selectedType)}专项试卷：{specializedExam.Name}");
             }
         }
         catch (Exception ex)
@@ -360,14 +411,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     private void OnSelectedSpecializedExamChanged(Exam? exam)
     {
-        if (exam?.Modules.Count > 0)
-        {
-            SelectedModule = exam.Modules.First();
-        }
-        else
-        {
-            SelectedModule = null;
-        }
+        SelectedModule = exam?.Modules.Count > 0 ? exam.Modules.First() : null;
     }
 
     /// <summary>
@@ -378,7 +422,7 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 加载专项试卷数据
-            List<Exam> savedExams = await LoadSpecializedExamsFromStorageAsync();
+            List<Exam> savedExams = LoadSpecializedExamsFromStorage();
 
             foreach (Exam exam in savedExams)
             {
@@ -401,7 +445,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 从存储加载专项试卷
     /// </summary>
-    private async Task<List<Exam>> LoadSpecializedExamsFromStorageAsync()
+    private List<Exam> LoadSpecializedExamsFromStorage()
     {
         // 这里可以使用专门的存储键来区分专项试卷和普通试卷
         // 暂时返回空列表，后续可以扩展
@@ -441,8 +485,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
         SelectedModule.Questions.Add(newQuestion);
         SelectedQuestion = newQuestion;
-
-        await NotificationService.ShowSuccessAsync("成功", $"已添加题目：{questionTitle}");
     }
 
     /// <summary>
@@ -464,7 +506,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        SelectedModule.Questions.Remove(question);
+        _ = SelectedModule.Questions.Remove(question);
 
         if (SelectedQuestion == question)
         {
@@ -476,14 +518,12 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             SelectedModule.Questions[i].Order = i + 1;
         }
-
-        await NotificationService.ShowSuccessAsync("成功", "题目已删除");
     }
 
     /// <summary>
     /// 复制题目
     /// </summary>
-    private async Task CopyQuestionAsync(Question question)
+    private void CopyQuestion(Question question)
     {
         if (SelectedModule == null || question == null)
         {
@@ -515,8 +555,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
         SelectedModule.Questions.Add(copiedQuestion);
         SelectedQuestion = copiedQuestion;
-
-        await NotificationService.ShowSuccessAsync("成功", $"已复制题目：{question.Title}");
     }
 
     /// <summary>
@@ -602,8 +640,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
         SelectedQuestion.OperationPoints.Add(newOperationPoint);
         SelectedOperationPoint = newOperationPoint;
-
-        await NotificationService.ShowSuccessAsync("成功", $"已添加操作点：{operationPointTitle}");
     }
 
     /// <summary>
@@ -625,7 +661,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        SelectedQuestion.OperationPoints.Remove(operationPoint);
+        _ = SelectedQuestion.OperationPoints.Remove(operationPoint);
 
         if (SelectedOperationPoint == operationPoint)
         {
@@ -637,8 +673,6 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             SelectedQuestion.OperationPoints[i].Order = i + 1;
         }
-
-        await NotificationService.ShowSuccessAsync("成功", "操作点已删除");
     }
 
     /// <summary>
@@ -676,15 +710,13 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         try
         {
-            SpecializedExams.Remove(exam);
+            _ = SpecializedExams.Remove(exam);
             SpecializedExamCount = SpecializedExams.Count;
 
             if (SelectedSpecializedExam == exam)
             {
                 SelectedSpecializedExam = SpecializedExams.FirstOrDefault();
             }
-
-            await NotificationService.ShowSuccessAsync("删除成功", $"已删除专项试卷：{exam.Name}");
         }
         catch (Exception ex)
         {
@@ -704,8 +736,6 @@ public class SpecializedExamViewModel : ViewModelBase
             SpecializedExams.Add(clonedExam);
             SelectedSpecializedExam = clonedExam;
             SpecializedExamCount = SpecializedExams.Count;
-
-            await NotificationService.ShowSuccessAsync("克隆成功", $"已克隆专项试卷：{clonedExam.Name}");
         }
         catch (Exception ex)
         {
@@ -774,54 +804,53 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             await NotificationService.ShowErrorAsync("保存失败", $"保存专项试卷时发生错误：{ex.Message}");
         }
+    }
 
-        /// <summary>
-        /// 为当前选中的操作点添加一个示例参数
-        /// </summary>
-        private void AddParameter()
+    /// <summary>
+    /// 为当前选中的操作点添加一个示例参数
+    /// </summary>
+    private void AddParameter()
+    {
+        if (SelectedOperationPoint == null)
         {
-            if (SelectedOperationPoint == null)
-            {
-                return;
-            }
-
-            ConfigurationParameter param = new()
-            {
-                Id = IdGeneratorService.GenerateParameterId(),
-                Name = "Param",
-                DisplayName = "参数",
-                Description = "请输入参数",
-                Type = ParameterType.Text,
-                IsRequired = false,
-                Order = SelectedOperationPoint.Parameters.Count + 1
-            };
-            SelectedOperationPoint.Parameters.Add(param);
-            SelectedParameter = param;
+            return;
         }
 
-        /// <summary>
-        /// 删除指定参数
-        /// </summary>
-        private async Task DeleteParameterAsync(ConfigurationParameter parameter)
+        ConfigurationParameter param = new()
         {
-            if (SelectedOperationPoint == null || parameter == null)
-            {
-                return;
-            }
+            Id = IdGeneratorService.GenerateParameterId(),
+            Name = "Param",
+            DisplayName = "参数",
+            Description = "请输入参数",
+            Type = ParameterType.Text,
+            IsRequired = false,
+            Order = SelectedOperationPoint.Parameters.Count + 1
+        };
+        SelectedOperationPoint.Parameters.Add(param);
+        SelectedParameter = param;
+    }
 
-            bool confirmed = await NotificationService.ShowConfirmationAsync("确认删除", $"确定要删除参数\"{parameter.DisplayName}\"吗？");
-            if (!confirmed)
-            {
-                return;
-            }
-
-            SelectedOperationPoint.Parameters.Remove(parameter);
-            if (SelectedParameter == parameter)
-            {
-                SelectedParameter = null;
-            }
+    /// <summary>
+    /// 删除指定参数
+    /// </summary>
+    private async Task DeleteParameterAsync(ConfigurationParameter parameter)
+    {
+        if (SelectedOperationPoint == null || parameter == null)
+        {
+            return;
         }
 
+        bool confirmed = await NotificationService.ShowConfirmationAsync("确认删除", $"确定要删除参数\"{parameter.DisplayName}\"吗？");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        _ = SelectedOperationPoint.Parameters.Remove(parameter);
+        if (SelectedParameter == parameter)
+        {
+            SelectedParameter = null;
+        }
     }
 
     /// <summary>
