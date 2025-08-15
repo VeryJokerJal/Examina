@@ -9,6 +9,27 @@ using ExamLab.Services;
 namespace ExamLab.Services;
 
 /// <summary>
+/// 数据源类型枚举 - 用于识别ExamExportDto中的数据类型
+/// </summary>
+public enum DataSourceType
+{
+    /// <summary>
+    /// 未知类型 - 无法确定数据来源
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// 考试试卷 - 包含多个模块的综合试卷
+    /// </summary>
+    RegularExam,
+
+    /// <summary>
+    /// 专项试卷 - 单一模块类型的专项练习试卷
+    /// </summary>
+    SpecializedExam
+}
+
+/// <summary>
 /// 专项试卷映射服务 - 处理SpecializedExam与ExamExportDto之间的转换
 /// </summary>
 public static class SpecializedExamMappingService
@@ -65,17 +86,43 @@ public static class SpecializedExamMappingService
 
     /// <summary>
     /// 将ExamExportDto转换为SpecializedExam
+    /// 注意：此方法专门用于处理专项试卷格式的数据，会验证数据来源
     /// </summary>
-    /// <param name="exportDto">导出DTO</param>
+    /// <param name="exportDto">导出DTO（应包含专项试卷数据）</param>
     /// <returns>专项试卷</returns>
+    /// <exception cref="ArgumentNullException">当exportDto或其Exam属性为null时抛出</exception>
+    /// <exception cref="InvalidOperationException">当数据不是专项试卷格式时抛出</exception>
     public static SpecializedExam FromExportDto(ExamExportDto exportDto)
     {
         if (exportDto?.Exam == null)
         {
-            throw new ArgumentNullException(nameof(exportDto));
+            throw new ArgumentNullException(nameof(exportDto), "导入数据不能为空");
         }
 
         ExamDto examDto = exportDto.Exam;
+
+        // 1. 检查数据类型 - 验证是否为专项试卷数据
+        DataSourceType dataSourceType = DetectDataSourceType(examDto);
+
+        switch (dataSourceType)
+        {
+            case DataSourceType.SpecializedExam:
+                // 确认是专项试卷数据，继续转换
+                break;
+
+            case DataSourceType.RegularExam:
+                throw new InvalidOperationException(
+                    "检测到考试试卷格式的数据。请使用ExamMappingService.FromExportDto()方法导入考试试卷，" +
+                    "或者使用ConvertRegularExamToSpecialized()方法将考试试卷转换为专项试卷。");
+
+            case DataSourceType.Unknown:
+                // 数据类型未知，尝试作为通用格式处理，但给出警告
+                // 这种情况下我们假设用户知道自己在做什么，继续转换
+                break;
+
+            default:
+                throw new InvalidOperationException($"不支持的数据源类型：{dataSourceType}");
+        }
 
         // 直接创建SpecializedExam，避免中间转换
         SpecializedExam specializedExam = new()
@@ -105,11 +152,12 @@ public static class SpecializedExamMappingService
         }
 
         // 尝试从扩展配置中恢复专项试卷特有的信息
-        if (!string.IsNullOrEmpty((string?)exportDto.Exam.ExtendedConfig))
+        string? extendedConfigString = exportDto.Exam.ExtendedConfig?.ToString();
+        if (!string.IsNullOrEmpty(extendedConfigString))
         {
             try
             {
-                using System.Text.Json.JsonDocument doc = JsonDocument.Parse(exportDto.Exam.ExtendedConfig);
+                using System.Text.Json.JsonDocument doc = JsonDocument.Parse(extendedConfigString);
                 JsonElement root = doc.RootElement;
 
                 if (root.TryGetProperty("IsSpecializedExam", out JsonElement isSpecializedElement) &&
@@ -407,5 +455,198 @@ public static class SpecializedExamMappingService
         parameter.MaxValue = parameterDto.MaxValue;
 
         return parameter;
+    }
+
+    /// <summary>
+    /// 检测ExamExportDto中的数据源类型
+    /// </summary>
+    /// <param name="examDto">试卷DTO</param>
+    /// <returns>数据源类型</returns>
+    private static DataSourceType DetectDataSourceType(ExamDto examDto)
+    {
+        // 1. 首先检查ExtendedConfig中的明确标识
+        string? extendedConfigString = examDto.ExtendedConfig?.ToString();
+        if (!string.IsNullOrEmpty(extendedConfigString))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(extendedConfigString);
+                JsonElement root = doc.RootElement;
+
+                if (root.TryGetProperty("IsSpecializedExam", out JsonElement isSpecializedElement))
+                {
+                    if (isSpecializedElement.GetBoolean())
+                    {
+                        return DataSourceType.SpecializedExam;
+                    }
+                    else
+                    {
+                        return DataSourceType.RegularExam;
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                // ExtendedConfig解析失败，继续使用其他方法检测
+            }
+        }
+
+        // 2. 基于数据特征进行启发式检测
+        return DetectDataSourceByHeuristics(examDto);
+    }
+
+    /// <summary>
+    /// 基于数据特征启发式检测数据源类型
+    /// </summary>
+    /// <param name="examDto">试卷DTO</param>
+    /// <returns>数据源类型</returns>
+    private static DataSourceType DetectDataSourceByHeuristics(ExamDto examDto)
+    {
+        // 获取所有模块类型
+        List<string> moduleTypes = examDto.Modules.Select(m => m.Type).Distinct().ToList();
+
+        // 如果没有模块，检查科目
+        if (moduleTypes.Count == 0 && examDto.Subjects.Count > 0)
+        {
+            moduleTypes = examDto.Subjects.Select(s => s.SubjectType).Distinct().ToList();
+        }
+
+        // 专项试卷特征：
+        // 1. 只有一种模块类型
+        // 2. 名称通常包含"专项"、"练习"等关键词
+        // 3. 模块数量通常较少（1-2个）
+        if (moduleTypes.Count == 1)
+        {
+            string examName = examDto.Name.ToLower();
+            bool hasSpecializedKeywords = examName.Contains("专项") ||
+                                        examName.Contains("练习") ||
+                                        examName.Contains("专门") ||
+                                        examName.Contains("单项");
+
+            int totalModules = examDto.Modules.Count + examDto.Subjects.Count;
+            bool hasLimitedModules = totalModules <= 2;
+
+            if (hasSpecializedKeywords || hasLimitedModules)
+            {
+                return DataSourceType.SpecializedExam;
+            }
+        }
+
+        // 考试试卷特征：
+        // 1. 多种模块类型
+        // 2. 名称通常包含"试卷"、"考试"等关键词
+        // 3. 模块数量较多
+        if (moduleTypes.Count > 1)
+        {
+            return DataSourceType.RegularExam;
+        }
+
+        // 无法确定类型
+        return DataSourceType.Unknown;
+    }
+
+    /// <summary>
+    /// 将考试试卷格式转换为专项试卷格式
+    /// 此方法用于处理用户明确要求将考试试卷转换为专项试卷的情况
+    /// </summary>
+    /// <param name="exportDto">考试试卷格式的导出DTO</param>
+    /// <param name="targetModuleType">目标模块类型（如果为null，使用第一个模块的类型）</param>
+    /// <returns>专项试卷</returns>
+    public static SpecializedExam ConvertRegularExamToSpecialized(ExamExportDto exportDto, ModuleType? targetModuleType = null)
+    {
+        if (exportDto?.Exam == null)
+        {
+            throw new ArgumentNullException(nameof(exportDto), "导入数据不能为空");
+        }
+
+        ExamDto examDto = exportDto.Exam;
+
+        // 创建专项试卷
+        SpecializedExam specializedExam = new()
+        {
+            Id = string.IsNullOrEmpty(examDto.Id) ? IdGeneratorService.GenerateExamId() : examDto.Id,
+            Name = $"{examDto.Name} (转换为专项试卷)",
+            Description = examDto.Description ?? string.Empty,
+            TotalScore = (int)examDto.TotalScore,
+            Duration = Math.Min(examDto.DurationMinutes, 120), // 专项试卷时长通常较短
+            CreatedTime = examDto.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+            LastModifiedTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+            DifficultyLevel = 1, // 默认难度
+            RandomizeQuestions = false,
+            Tags = "从考试试卷转换"
+        };
+
+        // 确定目标模块类型
+        ModuleType selectedModuleType = targetModuleType ?? DetermineTargetModuleType(examDto);
+        specializedExam.ModuleType = selectedModuleType;
+
+        // 只转换匹配目标类型的模块
+        foreach (ModuleDto moduleDto in examDto.Modules)
+        {
+            if (Enum.TryParse<ModuleType>(moduleDto.Type, true, out ModuleType moduleType) &&
+                moduleType == selectedModuleType)
+            {
+                specializedExam.Modules.Add(FromModuleDtoToExamModule(moduleDto));
+            }
+        }
+
+        // 处理科目数据
+        foreach (SubjectDto subjectDto in examDto.Subjects)
+        {
+            ModuleType subjectModuleType = subjectDto.SubjectType.ToLower() switch
+            {
+                "excel" => ModuleType.Excel,
+                "word" => ModuleType.Word,
+                "powerpoint" => ModuleType.PowerPoint,
+                "windows" => ModuleType.Windows,
+                "csharp" => ModuleType.CSharp,
+                _ => ModuleType.Windows
+            };
+
+            if (subjectModuleType == selectedModuleType)
+            {
+                specializedExam.Modules.Add(FromSubjectDtoToExamModule(subjectDto));
+            }
+        }
+
+        // 如果没有找到匹配的模块，创建一个默认模块
+        if (specializedExam.Modules.Count == 0)
+        {
+            specializedExam.CreateDefaultModule();
+        }
+
+        return specializedExam;
+    }
+
+    /// <summary>
+    /// 确定目标模块类型（选择第一个可用的模块类型）
+    /// </summary>
+    private static ModuleType DetermineTargetModuleType(ExamDto examDto)
+    {
+        // 从模块中获取第一个类型
+        if (examDto.Modules.Count > 0)
+        {
+            if (Enum.TryParse<ModuleType>(examDto.Modules[0].Type, true, out ModuleType moduleType))
+            {
+                return moduleType;
+            }
+        }
+
+        // 从科目中获取第一个类型
+        if (examDto.Subjects.Count > 0)
+        {
+            return examDto.Subjects[0].SubjectType.ToLower() switch
+            {
+                "excel" => ModuleType.Excel,
+                "word" => ModuleType.Word,
+                "powerpoint" => ModuleType.PowerPoint,
+                "windows" => ModuleType.Windows,
+                "csharp" => ModuleType.CSharp,
+                _ => ModuleType.Windows
+            };
+        }
+
+        // 默认返回Windows类型
+        return ModuleType.Windows;
     }
 }
