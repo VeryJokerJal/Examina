@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections.ObjectModel;
 using ExamLab.Services;
 using ReactiveUI;
@@ -43,7 +44,7 @@ public class SpecializedExam : ReactiveObject
     /// <summary>
     /// 专项试卷包含的模块（通常只有一个）
     /// </summary>
-    public ObservableCollection<ExamModule> Modules { get; set; } = new();
+    public ObservableCollection<ExamModule> Modules { get; set; } = [];
 
     /// <summary>
     /// 试卷总分
@@ -150,16 +151,17 @@ public class SpecializedExam : ReactiveObject
     public bool IsValid()
     {
         if (string.IsNullOrWhiteSpace(Name))
+        {
             return false;
+        }
 
         if (Modules.Count == 0)
+        {
             return false;
+        }
 
         // 专项试卷应该只包含一种模块类型
-        if (Modules.Any(m => m.Type != ModuleType))
-            return false;
-
-        return true;
+        return !Modules.Any(m => m.Type != ModuleType);
     }
 
     /// <summary>
@@ -203,9 +205,7 @@ public class SpecializedExam : ReactiveObject
                 {
                     Id = IdGeneratorService.GenerateQuestionId(),
                     Title = question.Title,
-                    Description = question.Description,
-                    Type = question.Type,
-                    Score = question.Score,
+                    Content = question.Content,
                     Order = question.Order,
                     IsEnabled = question.IsEnabled
                 };
@@ -215,19 +215,18 @@ public class SpecializedExam : ReactiveObject
                 {
                     OperationPoint clonedOperationPoint = new()
                     {
-                        Id = IdGeneratorService.GenerateOperationPointId(),
+                        Id = IdGeneratorService.GenerateOperationId(),
                         Name = operationPoint.Name,
                         Description = operationPoint.Description,
                         Score = operationPoint.Score,
                         Order = operationPoint.Order,
-                        IsRequired = operationPoint.IsRequired,
-                        OperationType = operationPoint.OperationType
+                        IsEnabled = operationPoint.IsEnabled
                     };
 
                     // 克隆参数
-                    foreach (OperationParameter parameter in operationPoint.Parameters)
+                    foreach (ConfigurationParameter parameter in operationPoint.Parameters)
                     {
-                        OperationParameter clonedParameter = new()
+                        ConfigurationParameter clonedParameter = new()
                         {
                             Id = IdGeneratorService.GenerateParameterId(),
                             Name = parameter.Name,
