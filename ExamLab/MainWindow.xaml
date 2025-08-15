@@ -43,22 +43,45 @@
             <!--  工具栏  -->
             <Border Grid.Row="1" Padding="16,8" Background="{ThemeResource CardBackgroundFillColorDefault}">
                 <StackPanel Orientation="Horizontal" Spacing="16">
+                    <!--  状态信息  -->
                     <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding CurrentTabTitle}" />
                     <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●" ToolTipService.ToolTip="有未保存的更改" Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                    <!--  考试试卷工具栏  -->
-                    <StackPanel Orientation="Horizontal" Spacing="16" Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
-                        <Button Command="{Binding SaveExamCommand}" Content="保存" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
+                    <!--  分隔线  -->
+                    <Border Width="1" Height="24" Background="{ThemeResource SystemControlForegroundBaseLowBrush}" />
+
+                    <!--  通用工具栏  -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <!--  打开项目按钮（始终显示）  -->
                         <Button Command="{Binding OpenProjectCommand}" Content="打开项目" />
+
+                        <!--  保存项目按钮（考试试卷）  -->
+                        <Button Command="{Binding SaveExamCommand}"
+                                Content="保存项目"
+                                IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}"
+                                Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                        <!--  保存项目按钮（专项试卷）  -->
+                        <Button Command="{Binding SpecializedExamViewModel.SaveSpecializedExamCommand}"
+                                Content="保存项目"
+                                IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}"
+                                Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </StackPanel>
+
+                    <!--  分隔线  -->
+                    <Border Width="1" Height="24" Background="{ThemeResource SystemControlForegroundBaseLowBrush}" />
+
+                    <!--  考试试卷特定工具栏  -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
                         <Button Command="{Binding ImportExamCommand}" Content="导入" />
                         <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
                     </StackPanel>
 
-                    <!--  专项试卷工具栏  -->
-                    <StackPanel Orientation="Horizontal" Spacing="16" Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <!--  专项试卷特定工具栏  -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button Command="{Binding SpecializedExamViewModel.CreateSpecializedExamCommand}" Content="新建专项试卷" />
-                        <Button Command="{Binding SpecializedExamViewModel.SaveSpecializedExamCommand}" Content="保存" IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}" />
+                        <Button Command="{Binding SpecializedExamViewModel.ImportExamCommand}" Content="导入" />
                         <Button Command="{Binding SpecializedExamViewModel.ExportSpecializedExamCommand}" CommandParameter="{Binding SpecializedExamViewModel.SelectedSpecializedExam}" Content="导出" IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}" />
                     </StackPanel>
                 </StackPanel>
@@ -181,8 +204,9 @@
                     <!--  默认显示  -->
                     <Border Margin="16" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
                         <StackPanel VerticalAlignment="Center" Spacing="16">
-                            <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="SemiBold" Text="欢迎使用试卷制作系统" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="SemiBold" Text="考试试卷制作" />
                             <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请选择左侧的试卷和模块开始配置" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="或点击工具栏的新建考试试卷创建新的考试试卷" />
                         </StackPanel>
                     </Border>
 
