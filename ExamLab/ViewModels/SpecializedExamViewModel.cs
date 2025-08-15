@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -9,8 +8,6 @@ using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Services;
 using ExamLab.Views;
-using ExamLab.Views.Dialogs;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -103,6 +100,11 @@ public class SpecializedExamViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AddQuestionCommand { get; }
 
     /// <summary>
+    /// 编辑题目命令
+    /// </summary>
+    public ReactiveCommand<Question, Unit> EditQuestionCommand { get; }
+
+    /// <summary>
     /// 删除题目命令
     /// </summary>
     public ReactiveCommand<Question, Unit> DeleteQuestionCommand { get; }
@@ -140,27 +142,17 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 导出题目命令
     /// </summary>
-    public ReactiveCommand<Unit, Unit> ExportQuestionCommand { get; }
+    public ReactiveCommand<Question, Unit> ExportQuestionCommand { get; }
 
     /// <summary>
-    /// 添加填空处命令（C#模块使用）
+    /// 导入题目命令
     /// </summary>
-    public ReactiveCommand<Unit, Unit> AddCodeBlankCommand { get; }
+    public ReactiveCommand<Unit, Unit> ImportQuestionsCommand { get; }
 
     /// <summary>
-    /// 删除填空处命令（C#模块使用）
+    /// 导出所有题目命令
     /// </summary>
-    public ReactiveCommand<CodeBlank, Unit> DeleteCodeBlankCommand { get; }
-
-    /// <summary>
-    /// 选择C#代码文件命令（C#模块使用）
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> SelectCodeFileCommand { get; }
-
-    /// <summary>
-    /// 清除C#代码文件路径命令（C#模块使用）
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> ClearCodeFilePathCommand { get; }
+    public ReactiveCommand<Unit, Unit> ExportAllQuestionsCommand { get; }
 
     /// <summary>
     /// 主窗口ViewModel引用（用于共享模块编辑功能）
@@ -182,22 +174,19 @@ public class SpecializedExamViewModel : ViewModelBase
 
         // 题目管理命令
         AddQuestionCommand = ReactiveCommand.CreateFromTask(AddQuestionAsync);
+        EditQuestionCommand = ReactiveCommand.CreateFromTask<Question>(EditQuestionAsync);
         DeleteQuestionCommand = ReactiveCommand.CreateFromTask<Question>(DeleteQuestionAsync);
         CopyQuestionCommand = ReactiveCommand.CreateFromTask<Question>(CopyQuestionAsync);
         SaveQuestionCommand = ReactiveCommand.CreateFromTask(SaveQuestionAsync);
         PreviewQuestionCommand = ReactiveCommand.CreateFromTask(PreviewQuestionAsync);
-        ExportQuestionCommand = ReactiveCommand.CreateFromTask(ExportQuestionAsync);
+        ExportQuestionCommand = ReactiveCommand.CreateFromTask<Question>(ExportQuestionAsync);
+        ImportQuestionsCommand = ReactiveCommand.CreateFromTask(ImportQuestionsAsync);
+        ExportAllQuestionsCommand = ReactiveCommand.CreateFromTask(ExportAllQuestionsAsync);
 
         // 操作点管理命令
         AddOperationPointCommand = ReactiveCommand.CreateFromTask(AddOperationPointAsync);
         DeleteOperationPointCommand = ReactiveCommand.CreateFromTask<OperationPoint>(DeleteOperationPointAsync);
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
-
-        // C#模块相关命令
-        AddCodeBlankCommand = ReactiveCommand.Create(AddCodeBlank);
-        DeleteCodeBlankCommand = ReactiveCommand.Create<CodeBlank>(DeleteCodeBlank);
-        SelectCodeFileCommand = ReactiveCommand.CreateFromTask(SelectCodeFileAsync);
-        ClearCodeFilePathCommand = ReactiveCommand.Create(ClearCodeFilePath);
 
         // 监听选中试卷变化
         this.WhenAnyValue(x => x.SelectedSpecializedExam)
@@ -396,28 +385,62 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        string? questionTitle = await NotificationService.ShowInputDialogAsync(
-            "添加题目",
-            "请输入题目标题",
-            "新题目");
-
-        if (string.IsNullOrWhiteSpace(questionTitle))
+        try
         {
+            // 创建新题目
+            Question newQuestion = new()
+            {
+                Title = "新题目",
+                Content = "请输入题目内容",
+                Order = SelectedModule.Questions.Count + 1,
+                IsEnabled = true,
+                CreatedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
+            // 创建题目配置视图模型
+            QuestionConfigurationViewModel configViewModel = new(newQuestion, SelectedModule, true);
+            QuestionConfigurationDialog configDialog = new(configViewModel);
+
+            var result = await configDialog.ShowAsync();
+            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
+            {
+                SelectedQuestion = newQuestion;
+                await NotificationService.ShowSuccessAsync("添加成功", $"已添加题目：{newQuestion.Title}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("添加失败", $"添加题目时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 编辑题目
+    /// </summary>
+    private async Task EditQuestionAsync(Question question)
+    {
+        if (SelectedModule == null || question == null)
+        {
+            await NotificationService.ShowErrorAsync("错误", "请先选择一个题目");
             return;
         }
 
-        Question newQuestion = new()
+        try
         {
-            Title = questionTitle,
-            Content = "请输入题目内容",
-            Order = SelectedModule.Questions.Count + 1,
-            IsEnabled = true
-        };
+            // 创建题目配置视图模型
+            QuestionConfigurationViewModel configViewModel = new(question, SelectedModule, false);
+            QuestionConfigurationDialog configDialog = new(configViewModel);
 
-        SelectedModule.Questions.Add(newQuestion);
-        SelectedQuestion = newQuestion;
-
-        await NotificationService.ShowSuccessAsync("成功", $"已添加题目：{questionTitle}");
+            var result = await configDialog.ShowAsync();
+            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
+            {
+                await NotificationService.ShowSuccessAsync("编辑成功", $"题目"{question.Title}"已更新");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("编辑失败", $"编辑题目时发生错误：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -527,16 +550,96 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 导出题目
     /// </summary>
-    private async Task ExportQuestionAsync()
+    private async Task ExportQuestionAsync(Question? question = null)
     {
-        if (SelectedQuestion == null)
+        Question? questionToExport = question ?? SelectedQuestion;
+
+        if (questionToExport == null)
         {
             await NotificationService.ShowErrorAsync("错误", "请先选择一个题目");
             return;
         }
 
-        // 这里可以添加题目导出逻辑
-        await NotificationService.ShowSuccessAsync("导出", $"题目导出功能待实现\n题目：{SelectedQuestion.Title}");
+        if (SelectedModule == null)
+        {
+            await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+            return;
+        }
+
+        try
+        {
+            List<Question> questionsToExport = new() { questionToExport };
+            bool success = await QuestionImportExportService.ExportQuestionsAsync(questionsToExport, SelectedModule.Type);
+
+            if (success)
+            {
+                await NotificationService.ShowSuccessAsync("导出成功", $"题目"{questionToExport.Title}"已导出");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("导出失败", $"导出题目时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 导入题目
+    /// </summary>
+    private async Task ImportQuestionsAsync()
+    {
+        if (SelectedModule == null)
+        {
+            await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+            return;
+        }
+
+        try
+        {
+            List<Question>? importedQuestions = await QuestionImportExportService.ImportQuestionsAsync(SelectedModule);
+
+            if (importedQuestions != null && importedQuestions.Count > 0)
+            {
+                // 选择第一个导入的题目
+                SelectedQuestion = importedQuestions.First();
+                await NotificationService.ShowSuccessAsync("导入成功", $"已导入{importedQuestions.Count}个题目");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("导入失败", $"导入题目时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 导出所有题目
+    /// </summary>
+    private async Task ExportAllQuestionsAsync()
+    {
+        if (SelectedModule == null)
+        {
+            await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+            return;
+        }
+
+        if (SelectedModule.Questions.Count == 0)
+        {
+            await NotificationService.ShowErrorAsync("错误", "当前模块没有题目可导出");
+            return;
+        }
+
+        try
+        {
+            bool success = await QuestionImportExportService.ExportQuestionsAsync(SelectedModule.Questions, SelectedModule.Type);
+
+            if (success)
+            {
+                await NotificationService.ShowSuccessAsync("导出成功", $"已导出{SelectedModule.Questions.Count}个题目");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("导出失败", $"导出题目时发生错误：{ex.Message}");
+        }
     }
 
     #endregion
@@ -764,103 +867,4 @@ public class SpecializedExamViewModel : ViewModelBase
             await NotificationService.ShowErrorAsync("导出失败", $"导出专项试卷时发生错误：{ex.Message}");
         }
     }
-
-    #region C#模块相关方法
-
-    /// <summary>
-    /// 添加填空处
-    /// </summary>
-    private void AddCodeBlank()
-    {
-        if (SelectedQuestion == null) return;
-
-        CodeBlank newCodeBlank = new()
-        {
-            Description = "// 请输入需要学生填写的代码",
-            DetailedDescription = string.Empty,
-            Order = SelectedQuestion.CodeBlanks.Count + 1
-        };
-
-        SelectedQuestion.CodeBlanks.Add(newCodeBlank);
-    }
-
-    /// <summary>
-    /// 删除填空处
-    /// </summary>
-    /// <param name="codeBlank">要删除的填空处</param>
-    private void DeleteCodeBlank(CodeBlank codeBlank)
-    {
-        if (SelectedQuestion == null || codeBlank == null) return;
-
-        SelectedQuestion.CodeBlanks.Remove(codeBlank);
-
-        // 重新排序剩余的填空处
-        for (int i = 0; i < SelectedQuestion.CodeBlanks.Count; i++)
-        {
-            SelectedQuestion.CodeBlanks[i].Order = i + 1;
-        }
-    }
-
-    /// <summary>
-    /// 选择C#代码文件
-    /// </summary>
-    private async Task SelectCodeFileAsync()
-    {
-        if (SelectedQuestion == null) return;
-
-        try
-        {
-            // 定义支持的C#文件类型
-            List<string> csharpFileTypes = new() { ".cs", ".csx" };
-
-            // 打开文件选择对话框
-            Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(
-                csharpFileTypes,
-                Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary);
-
-            if (selectedFile != null)
-            {
-                // 验证文件是否为有效的C#代码文件
-                if (IsValidCSharpFile(selectedFile))
-                {
-                    SelectedQuestion.CodeFilePath = selectedFile.Path;
-                    await NotificationService.ShowSuccessAsync("文件选择成功", $"已选择C#代码文件：{selectedFile.Name}");
-                }
-                else
-                {
-                    await NotificationService.ShowErrorAsync("文件类型错误", "请选择有效的C#代码文件（.cs 或 .csx）");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            await NotificationService.ShowErrorAsync("文件选择失败", $"选择C#代码文件时发生错误：{ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 清除C#代码文件路径
-    /// </summary>
-    private void ClearCodeFilePath()
-    {
-        if (SelectedQuestion != null)
-        {
-            SelectedQuestion.CodeFilePath = null;
-        }
-    }
-
-    /// <summary>
-    /// 验证是否为有效的C#代码文件
-    /// </summary>
-    /// <param name="file">要验证的文件</param>
-    /// <returns>是否为有效的C#代码文件</returns>
-    private static bool IsValidCSharpFile(Windows.Storage.StorageFile file)
-    {
-        if (file == null) return false;
-
-        string extension = Path.GetExtension(file.Name).ToLowerInvariant();
-        return extension == ".cs" || extension == ".csx";
-    }
-
-    #endregion
 }

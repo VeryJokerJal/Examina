@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog x:Class="ExamLab.Views.OperationPointEditDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:converters="using:ExamLab.Converters"
+               xmlns:models="using:ExamLab.Models"
+               Title="编辑操作点"
+               PrimaryButtonText="保存"
+               SecondaryButtonText="取消"
+               DefaultButton="Primary"
+               Style="{StaticResource DefaultContentDialogStyle}">
+
+    <ContentDialog.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </ContentDialog.Resources>
+
+    <ScrollViewer MaxHeight="500" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="16" Margin="0,0,0,16">
+            <!-- 基本信息 -->
+            <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                    BorderThickness="1" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="基本信息" FontSize="16" FontWeight="SemiBold" />
+                    
+                    <TextBox Header="操作点名称" 
+                             Text="{Binding OperationPoint.Name, Mode=TwoWay}" 
+                             PlaceholderText="请输入操作点名称" />
+                    
+                    <TextBox Header="操作点描述" 
+                             Text="{Binding OperationPoint.Description, Mode=TwoWay}" 
+                             PlaceholderText="请输入操作点描述"
+                             AcceptsReturn="True" 
+                             Height="80" />
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <NumberBox Header="分值" 
+                                   Value="{Binding OperationPoint.Score, Mode=TwoWay}" 
+                                   Minimum="0" 
+                                   Width="120" />
+                        
+                        <NumberBox Header="排序" 
+                                   Value="{Binding OperationPoint.Order, Mode=TwoWay}" 
+                                   Minimum="1" 
+                                   Width="120" />
+                        
+                        <ToggleSwitch Header="启用" 
+                                      IsOn="{Binding OperationPoint.IsEnabled, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Windows操作类型配置 -->
+            <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                    BorderThickness="1" CornerRadius="8"
+                    Visibility="{Binding IsWindowsModule, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Windows操作配置" FontSize="16" FontWeight="SemiBold" />
+                    
+                    <ComboBox Header="操作类型" 
+                              SelectedItem="{Binding OperationPoint.WindowsOperationType, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch">
+                        <models:WindowsOperationType>QuickCreate</models:WindowsOperationType>
+                        <models:WindowsOperationType>DeleteOperation</models:WindowsOperationType>
+                        <models:WindowsOperationType>CopyOperation</models:WindowsOperationType>
+                        <models:WindowsOperationType>MoveOperation</models:WindowsOperationType>
+                        <models:WindowsOperationType>RenameOperation</models:WindowsOperationType>
+                        <models:WindowsOperationType>ShortcutOperation</models:WindowsOperationType>
+                        <models:WindowsOperationType>FilePropertyModification</models:WindowsOperationType>
+                        <models:WindowsOperationType>CopyRenameOperation</models:WindowsOperationType>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- PowerPoint知识点配置 -->
+            <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                    BorderThickness="1" CornerRadius="8"
+                    Visibility="{Binding IsPowerPointModule, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="PowerPoint知识点配置" FontSize="16" FontWeight="SemiBold" />
+                    
+                    <ComboBox Header="知识点类型" 
+                              SelectedItem="{Binding OperationPoint.PowerPointKnowledgeType, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch">
+                        <models:PowerPointKnowledgeType>SetSlideLayout</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>DeleteSlide</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>InsertSlide</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>SetSlideFont</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>SlideTransitionEffect</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>InsertImage</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>InsertTable</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>InsertSmartArt</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>InsertTextContent</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>SetTextFontSize</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>SetTextColor</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>ApplyTheme</models:PowerPointKnowledgeType>
+                        <models:PowerPointKnowledgeType>SetSlideBackground</models:PowerPointKnowledgeType>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Word知识点配置 -->
+            <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                    BorderThickness="1" CornerRadius="8"
+                    Visibility="{Binding IsWordModule, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Word知识点配置" FontSize="16" FontWeight="SemiBold" />
+                    
+                    <ComboBox Header="知识点类型" 
+                              SelectedItem="{Binding OperationPoint.WordKnowledgeType, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch">
+                        <models:WordKnowledgeType>SetParagraphFont</models:WordKnowledgeType>
+                        <models:WordKnowledgeType>SetParagraphFontSize</models:WordKnowledgeType>
+                        <models:WordKnowledgeType>SetParagraphFontStyle</models:WordKnowledgeType>
+                        <models:WordKnowledgeType>SetParagraphTextColor</models:WordKnowledgeType>
+                        <models:WordKnowledgeType>SetParagraphAlignment</models:WordKnowledgeType>
+                        <models:WordKnowledgeType>SetParagraphIndentation</models:WordKnowledgeType>
+                        <models:WordKnowledgeType>SetParagraphLineSpacing</models:WordKnowledgeType>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Excel知识点配置 -->
+            <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                    BorderThickness="1" CornerRadius="8"
+                    Visibility="{Binding IsExcelModule, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Excel知识点配置" FontSize="16" FontWeight="SemiBold" />
+                    
+                    <ComboBox Header="知识点类型" 
+                              SelectedItem="{Binding OperationPoint.ExcelKnowledgeType, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch">
+                        <models:ExcelKnowledgeType>CellContent</models:ExcelKnowledgeType>
+                        <models:ExcelKnowledgeType>CellFormat</models:ExcelKnowledgeType>
+                        <models:ExcelKnowledgeType>Formula</models:ExcelKnowledgeType>
+                        <models:ExcelKnowledgeType>Chart</models:ExcelKnowledgeType>
+                        <models:ExcelKnowledgeType>PivotTable</models:ExcelKnowledgeType>
+                        <models:ExcelKnowledgeType>DataValidation</models:ExcelKnowledgeType>
+                        <models:ExcelKnowledgeType>ConditionalFormatting</models:ExcelKnowledgeType>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 其他信息 -->
+            <Border Padding="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultSolidBrush}" 
+                    BorderThickness="1" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="其他信息" FontSize="16" FontWeight="SemiBold" />
+                    
+                    <TextBox Header="关联评分题目ID" 
+                             Text="{Binding OperationPoint.ScoringQuestionId, Mode=TwoWay}" 
+                             PlaceholderText="可选，用于关联特定的评分题目" />
+                    
+                    <TextBlock Text="{Binding OperationPoint.CreatedTime, StringFormat='创建时间: {0}'}" 
+                               FontSize="12" 
+                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>
