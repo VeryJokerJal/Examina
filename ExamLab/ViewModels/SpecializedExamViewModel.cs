@@ -276,21 +276,7 @@ public class SpecializedExamViewModel : ViewModelBase
         };
     }
 
-    /// <summary>
-    /// 获取默认模块描述
-    /// </summary>
-    private string GetDefaultModuleDescription(ModuleType type)
-    {
-        return type switch
-        {
-            ModuleType.Windows => "Windows文件和文件夹操作模块，包含9种操作类型",
-            ModuleType.CSharp => "C#程序设计模块，包含代码配置和输出验证",
-            ModuleType.PowerPoint => "PowerPoint幻灯片操作模块，包含39个知识点",
-            ModuleType.Excel => "Excel电子表格操作模块，包含数据处理和图表功能",
-            ModuleType.Word => "Word文档编辑模块，包含文档格式化和排版功能",
-            _ => "模块描述"
-        };
-    }
+
 
     /// <summary>
     /// 选择专项试卷
@@ -646,7 +632,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 删除专项试卷
     /// </summary>
-    private async Task DeleteSpecializedExamAsync(Exam exam)
+    private async Task DeleteSpecializedExamAsync(SpecializedExam exam)
     {
         try
         {
@@ -667,12 +653,12 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 克隆专项试卷
     /// </summary>
-    private async Task CloneSpecializedExamAsync(Exam exam)
+    private async Task CloneSpecializedExamAsync(SpecializedExam exam)
     {
         try
         {
             // 创建克隆
-            Exam clonedExam = CloneExam(exam);
+            SpecializedExam clonedExam = exam.Clone();
             SpecializedExams.Add(clonedExam);
             SelectedSpecializedExam = clonedExam;
             SpecializedExamCount = SpecializedExams.Count;
@@ -683,49 +669,7 @@ public class SpecializedExamViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 克隆试卷
-    /// </summary>
-    private Exam CloneExam(Exam original)
-    {
-        string cloneName = $"{original.Name} - 副本";
-        int counter = 1;
-        string originalCloneName = cloneName;
-        while (SpecializedExams.Any(e => e.Name == cloneName))
-        {
-            cloneName = $"{originalCloneName} ({counter})";
-            counter++;
-        }
 
-        Exam cloned = new()
-        {
-            Id = IdGeneratorService.GenerateExamId(),
-            Name = cloneName,
-            Description = original.Description,
-            ExamType = ExamType.Specialized, // 克隆的专项试卷保持专项类型
-            CreatedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-        };
-
-        // 简化克隆：只克隆模块基本信息
-        foreach (ExamModule originalModule in original.Modules)
-        {
-            ExamModule clonedModule = new()
-            {
-                Id = IdGeneratorService.GenerateModuleId(),
-                Name = originalModule.Name,
-                Type = originalModule.Type,
-                Description = originalModule.Description,
-                Score = originalModule.Score,
-                Order = originalModule.Order,
-                IsEnabled = originalModule.IsEnabled
-            };
-
-            cloned.Modules.Add(clonedModule);
-        }
-
-        return cloned;
-    }
 
     /// <summary>
     /// 保存专项试卷
@@ -813,14 +757,11 @@ public class SpecializedExamViewModel : ViewModelBase
                 return;
             }
 
-            // 5. 转换为ExamLab模型
-            Exam importedExam = ExamMappingService.FromExportDto(importDto);
-
-            // 5.1. 确保导入的试卷被标记为专项试卷类型
-            importedExam.ExamType = ExamType.Specialized;
+            // 5. 转换为SpecializedExam模型
+            SpecializedExam importedExam = SpecializedExamMappingService.FromExportDto(importDto);
 
             // 6. 数据验证
-            ValidationResult validationResult = ValidationService.ValidateExam(importedExam);
+            ValidationResult validationResult = SpecializedExamMappingService.ValidateSpecializedExam(importedExam);
             if (!validationResult.IsValid)
             {
                 bool continueWithErrors = await NotificationService.ShowConfirmationAsync(
@@ -854,12 +795,10 @@ public class SpecializedExamViewModel : ViewModelBase
 
             // 11. 显示成功消息
             string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
-            string summaryInfo = $"专项试卷名称：{importedExam.Name}\n" +
-                               $"模块数量：{importedExam.Modules.Count}\n" +
-                               $"题目总数：{importedExam.Modules.Sum(m => m.Questions.Count)}\n" +
-                               $"文件大小：{fileSize}";
+            string summaryInfo = SpecializedExamMappingService.CreateSummaryInfo(importedExam);
+            string importInfo = $"{summaryInfo}\n文件大小：{fileSize}";
 
-            await NotificationService.ShowSuccessAsync("导入成功", summaryInfo);
+            await NotificationService.ShowSuccessAsync("导入成功", importInfo);
         }
         catch (Exception ex)
         {
@@ -870,7 +809,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 导出专项试卷
     /// </summary>
-    private async Task ExportSpecializedExamAsync(Exam exam)
+    private async Task ExportSpecializedExamAsync(SpecializedExam exam)
     {
         if (exam == null)
         {
@@ -884,7 +823,7 @@ public class SpecializedExamViewModel : ViewModelBase
             ExportLevel exportLevel = ShowExportLevelSelection();
 
             // 2. 数据验证
-            ValidationResult validationResult = ValidationService.ValidateExam(exam);
+            ValidationResult validationResult = SpecializedExamMappingService.ValidateSpecializedExam(exam);
             if (!validationResult.IsValid)
             {
                 bool continueWithErrors = await NotificationService.ShowConfirmationAsync(
@@ -907,7 +846,7 @@ public class SpecializedExamViewModel : ViewModelBase
             }
 
             // 4. 转换为导出格式
-            ExamExportDto exportDto = ExamMappingService.ToExportDto(exam, exportLevel);
+            ExamExportDto exportDto = SpecializedExamMappingService.ToExportDto(exam, exportLevel);
 
             // 5. 根据文件扩展名选择序列化格式
             string fileContent;
@@ -943,10 +882,9 @@ public class SpecializedExamViewModel : ViewModelBase
 
             // 7. 显示成功消息
             string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
-            string exportInfo = $"专项试卷名称：{exam.Name}\n" +
+            string summaryInfo = SpecializedExamMappingService.CreateSummaryInfo(exam);
+            string exportInfo = $"{summaryInfo}\n" +
                               $"导出级别：{GetExportLevelDisplayName(exportLevel)}\n" +
-                              $"模块数量：{exam.Modules.Count}\n" +
-                              $"题目总数：{exam.Modules.Sum(m => m.Questions.Count)}\n" +
                               $"保存位置：{file.Path}\n" +
                               $"文件大小：{fileSize}";
 
