@@ -742,7 +742,7 @@ public class SpecializedExamViewModel : ViewModelBase
                 else if (file.FileType.ToLowerInvariant() == ".xml")
                 {
                     // XML反序列化
-                    importDto = Services.XmlSerializationService.DeserializeFromXml(fileContent);
+                    importDto = XmlSerializationService.DeserializeFromXml(fileContent);
                 }
             }
             catch (Exception parseEx)
@@ -757,8 +757,16 @@ public class SpecializedExamViewModel : ViewModelBase
                 return;
             }
 
-            // 5. 转换为SpecializedExam模型
-            SpecializedExam importedExam = SpecializedExamMappingService.FromExportDto(importDto);
+            // 5. 智能转换为SpecializedExam模型
+            SpecializedExamImportResult importResult = SpecializedExamMappingService.SmartImport(importDto);
+
+            if (!importResult.IsSuccess)
+            {
+                await NotificationService.ShowErrorAsync("导入失败", importResult.ErrorMessage ?? "未知错误");
+                return;
+            }
+
+            SpecializedExam importedExam = importResult.SpecializedExam!;
 
             // 6. 数据验证
             ValidationResult validationResult = SpecializedExamMappingService.ValidateSpecializedExam(importedExam);
@@ -797,6 +805,18 @@ public class SpecializedExamViewModel : ViewModelBase
             string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
             string summaryInfo = SpecializedExamMappingService.CreateSummaryInfo(importedExam);
             string importInfo = $"{summaryInfo}\n文件大小：{fileSize}";
+
+            // 如果有警告信息，添加到消息中
+            if (importResult.Warnings.Count > 0)
+            {
+                importInfo += "\n\n注意事项：\n" + string.Join("\n", importResult.Warnings);
+            }
+
+            // 如果是从通用格式转换而来，特别提醒
+            if (importResult.IsConvertedFromGeneric)
+            {
+                importInfo += "\n\n此专项试卷是从通用试卷格式自动转换而来，请检查数据完整性。";
+            }
 
             await NotificationService.ShowSuccessAsync("导入成功", importInfo);
         }
@@ -869,7 +889,7 @@ public class SpecializedExamViewModel : ViewModelBase
             else if (file.FileType.ToLowerInvariant() == ".xml")
             {
                 // XML序列化
-                fileContent = Services.XmlSerializationService.SerializeToXml(exportDto);
+                fileContent = XmlSerializationService.SerializeToXml(exportDto);
             }
             else
             {

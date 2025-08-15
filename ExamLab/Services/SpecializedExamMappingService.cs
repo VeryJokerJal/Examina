@@ -35,11 +35,63 @@ public enum DataSourceType
 public static class SpecializedExamMappingService
 {
     /// <summary>
-    /// 将SpecializedExam转换为ExamExportDto
+    /// 将SpecializedExam转换为专项试卷专用的导出DTO
     /// </summary>
     /// <param name="specializedExam">专项试卷</param>
     /// <param name="exportLevel">导出级别</param>
-    /// <returns>导出DTO</returns>
+    /// <returns>专项试卷导出DTO</returns>
+    public static SpecializedExamExportDto ToSpecializedExportDto(SpecializedExam specializedExam, ExportLevel exportLevel = ExportLevel.Complete)
+    {
+        if (specializedExam == null)
+            throw new ArgumentNullException(nameof(specializedExam));
+
+        SpecializedExamDto specializedExamDto = new()
+        {
+            Id = specializedExam.Id,
+            Name = specializedExam.Name,
+            Description = specializedExam.Description,
+            ModuleType = specializedExam.ModuleType.ToString(),
+            DifficultyLevel = specializedExam.DifficultyLevel,
+            RandomizeQuestions = specializedExam.RandomizeQuestions,
+            Tags = specializedExam.Tags,
+            TotalScore = specializedExam.TotalScore,
+            Duration = specializedExam.Duration,
+            CreatedTime = DateTime.TryParse(specializedExam.CreatedTime, out DateTime createdTime) ? createdTime : DateTime.Now,
+            LastModifiedTime = DateTime.TryParse(specializedExam.LastModifiedTime, out DateTime modifiedTime) ? modifiedTime : DateTime.Now,
+            IsEnabled = true
+        };
+
+        // 转换模块
+        foreach (ExamModule module in specializedExam.Modules)
+        {
+            specializedExamDto.Modules.Add(ToModuleDto(module, exportLevel));
+        }
+
+        ExportMetadataDto metadata = new()
+        {
+            ExportDate = DateTime.UtcNow,
+            ExportedBy = "ExamLab",
+            TotalSubjects = specializedExam.Modules.Count,
+            TotalQuestions = specializedExam.TotalQuestionCount,
+            TotalOperationPoints = specializedExam.TotalOperationPointCount,
+            ExportLevel = exportLevel.ToString()
+        };
+
+        return new SpecializedExamExportDto
+        {
+            SpecializedExam = specializedExamDto,
+            Metadata = metadata,
+            FormatVersion = "1.0",
+            DataType = "SpecializedExam"
+        };
+    }
+
+    /// <summary>
+    /// 将SpecializedExam转换为通用的ExamExportDto（向后兼容）
+    /// </summary>
+    /// <param name="specializedExam">专项试卷</param>
+    /// <param name="exportLevel">导出级别</param>
+    /// <returns>通用导出DTO</returns>
     public static ExamExportDto ToExportDto(SpecializedExam specializedExam, ExportLevel exportLevel = ExportLevel.Complete)
     {
         if (specializedExam == null)
@@ -648,5 +700,264 @@ public static class SpecializedExamMappingService
 
         // 默认返回Windows类型
         return ModuleType.Windows;
+    }
+
+    /// <summary>
+    /// 从专项试卷导出DTO转换为SpecializedExam
+    /// </summary>
+    /// <param name="exportDto">专项试卷导出DTO</param>
+    /// <returns>专项试卷</returns>
+    public static SpecializedExam FromSpecializedExportDto(SpecializedExamExportDto exportDto)
+    {
+        if (exportDto?.SpecializedExam == null)
+            throw new ArgumentNullException(nameof(exportDto));
+
+        SpecializedExamDto examDto = exportDto.SpecializedExam;
+
+        SpecializedExam specializedExam = new()
+        {
+            Id = string.IsNullOrEmpty(examDto.Id) ? IdGeneratorService.GenerateExamId() : examDto.Id,
+            Name = examDto.Name,
+            Description = examDto.Description,
+            TotalScore = examDto.TotalScore,
+            Duration = examDto.Duration,
+            DifficultyLevel = examDto.DifficultyLevel,
+            RandomizeQuestions = examDto.RandomizeQuestions,
+            Tags = examDto.Tags,
+            CreatedTime = examDto.CreatedTime.ToString("yyyy-MM-dd HH:mm:ss"),
+            LastModifiedTime = examDto.LastModifiedTime.ToString("yyyy-MM-dd HH:mm:ss")
+        };
+
+        // 解析模块类型
+        if (Enum.TryParse<ModuleType>(examDto.ModuleType, true, out ModuleType moduleType))
+        {
+            specializedExam.ModuleType = moduleType;
+        }
+
+        // 转换模块
+        foreach (ModuleDto moduleDto in examDto.Modules)
+        {
+            specializedExam.Modules.Add(FromModuleDtoToExamModule(moduleDto));
+        }
+
+        return specializedExam;
+    }
+
+    /// <summary>
+    /// 智能导入：检测格式并转换为SpecializedExam
+    /// </summary>
+    /// <param name="exportDto">通用导出DTO</param>
+    /// <returns>转换结果</returns>
+    public static SpecializedExamImportResult SmartImport(ExamExportDto exportDto)
+    {
+        if (exportDto?.Exam == null)
+            return SpecializedExamImportResult.Failure("导入数据不能为空");
+
+        try
+        {
+            // 检测数据格式
+            DataFormatDetectionResult detection = DetectDataFormat(exportDto);
+
+            switch (detection.FormatType)
+            {
+                case DataFormatType.SpecializedExam:
+                    // 直接转换专项试卷
+                    SpecializedExam specializedExam = FromExportDto(exportDto);
+                    return SpecializedExamImportResult.Success(specializedExam);
+
+                case DataFormatType.GenericExam:
+                    // 检查是否可以转换
+                    if (detection.CanConvertToSpecialized)
+                    {
+                        SpecializedExam convertedExam = ConvertGenericToSpecialized(exportDto);
+                        SpecializedExamImportResult result = SpecializedExamImportResult.Success(convertedExam, true);
+                        result.AddWarning("数据来源为通用试卷格式，已自动转换为专项试卷");
+                        if (!string.IsNullOrEmpty(detection.ConversionSuggestion))
+                        {
+                            result.AddWarning(detection.ConversionSuggestion);
+                        }
+                        return result;
+                    }
+                    else
+                    {
+                        return SpecializedExamImportResult.Failure(
+                            "检测到通用试卷格式，但无法转换为专项试卷。" +
+                            "专项试卷要求只包含一种模块类型，而当前数据包含多种模块类型。");
+                    }
+
+                case DataFormatType.Unknown:
+                default:
+                    return SpecializedExamImportResult.Failure(
+                        $"无法识别的数据格式。检测置信度：{detection.Confidence:P0}。" +
+                        $"检测依据：{detection.DetectionReason}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return SpecializedExamImportResult.Failure($"导入过程中发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 检测数据格式类型
+    /// </summary>
+    /// <param name="exportDto">导出DTO</param>
+    /// <returns>检测结果</returns>
+    public static DataFormatDetectionResult DetectDataFormat(ExamExportDto exportDto)
+    {
+        if (exportDto?.Exam == null)
+        {
+            return new DataFormatDetectionResult
+            {
+                FormatType = DataFormatType.Unknown,
+                Confidence = 0.0,
+                DetectionReason = "数据为空",
+                CanConvertToSpecialized = false
+            };
+        }
+
+        ExamDto examDto = exportDto.Exam;
+        double confidence = 0.0;
+        List<string> reasons = new();
+        bool canConvert = false;
+
+        // 检查扩展配置中的专项试卷标识
+        string? extendedConfigString = examDto.ExtendedConfig?.ToString();
+        if (!string.IsNullOrEmpty(extendedConfigString))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(extendedConfigString);
+                JsonElement root = doc.RootElement;
+
+                if (root.TryGetProperty("IsSpecializedExam", out JsonElement isSpecializedElement) &&
+                    isSpecializedElement.GetBoolean())
+                {
+                    confidence = 0.9;
+                    reasons.Add("ExtendedConfig中包含IsSpecializedExam=true标识");
+                    canConvert = true;
+
+                    return new DataFormatDetectionResult
+                    {
+                        FormatType = DataFormatType.SpecializedExam,
+                        Confidence = confidence,
+                        DetectionReason = string.Join("; ", reasons),
+                        CanConvertToSpecialized = canConvert
+                    };
+                }
+            }
+            catch (JsonException)
+            {
+                // 忽略JSON解析错误
+            }
+        }
+
+        // 检查模块类型一致性
+        List<string> moduleTypes = examDto.Modules.Select(m => m.Type).Distinct().ToList();
+        if (moduleTypes.Count == 0 && examDto.Subjects.Count > 0)
+        {
+            moduleTypes = examDto.Subjects.Select(s => s.SubjectType).Distinct().ToList();
+        }
+
+        if (moduleTypes.Count == 1)
+        {
+            confidence += 0.6;
+            reasons.Add($"只包含一种模块类型：{moduleTypes[0]}");
+            canConvert = true;
+        }
+        else if (moduleTypes.Count > 1)
+        {
+            confidence += 0.3;
+            reasons.Add($"包含多种模块类型：{string.Join(", ", moduleTypes)}");
+            canConvert = false; // 多模块类型无法转换为专项试卷
+        }
+
+        // 检查试卷名称特征
+        if (examDto.Name.Contains("专项") || examDto.Name.Contains("练习"))
+        {
+            confidence += 0.2;
+            reasons.Add("试卷名称包含专项试卷特征词汇");
+        }
+
+        // 检查题目数量（专项试卷通常题目较少）
+        int totalQuestions = examDto.Modules.Sum(m => m.Questions.Count) +
+                           examDto.Subjects.Sum(s => s.Questions.Count);
+        if (totalQuestions <= 20)
+        {
+            confidence += 0.1;
+            reasons.Add($"题目数量较少（{totalQuestions}题），符合专项试卷特征");
+        }
+
+        // 确定格式类型
+        DataFormatType formatType;
+        if (confidence >= 0.7)
+        {
+            formatType = DataFormatType.SpecializedExam;
+        }
+        else if (confidence >= 0.3)
+        {
+            formatType = DataFormatType.GenericExam;
+        }
+        else
+        {
+            formatType = DataFormatType.Unknown;
+        }
+
+        return new DataFormatDetectionResult
+        {
+            FormatType = formatType,
+            Confidence = confidence,
+            DetectionReason = string.Join("; ", reasons),
+            CanConvertToSpecialized = canConvert,
+            ConversionSuggestion = canConvert ? null : "建议手动创建专项试卷并导入单个模块"
+        };
+    }
+
+    /// <summary>
+    /// 将通用试卷格式转换为专项试卷
+    /// </summary>
+    /// <param name="exportDto">通用导出DTO</param>
+    /// <returns>专项试卷</returns>
+    private static SpecializedExam ConvertGenericToSpecialized(ExamExportDto exportDto)
+    {
+        if (exportDto?.Exam == null)
+            throw new ArgumentNullException(nameof(exportDto));
+
+        ExamDto examDto = exportDto.Exam;
+
+        // 创建专项试卷
+        SpecializedExam specializedExam = new()
+        {
+            Id = string.IsNullOrEmpty(examDto.Id) ? IdGeneratorService.GenerateExamId() : examDto.Id,
+            Name = examDto.Name,
+            Description = examDto.Description ?? string.Empty,
+            TotalScore = (int)examDto.TotalScore,
+            Duration = examDto.DurationMinutes,
+            CreatedTime = examDto.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+            LastModifiedTime = (examDto.UpdatedAt ?? DateTime.UtcNow).ToString("yyyy-MM-dd HH:mm:ss")
+        };
+
+        // 转换模块
+        foreach (ModuleDto moduleDto in examDto.Modules)
+        {
+            specializedExam.Modules.Add(FromModuleDtoToExamModule(moduleDto));
+        }
+
+        // 如果没有模块但有科目，则从科目转换
+        if (specializedExam.Modules.Count == 0 && examDto.Subjects.Count > 0)
+        {
+            foreach (SubjectDto subjectDto in examDto.Subjects)
+            {
+                specializedExam.Modules.Add(FromSubjectDtoToExamModule(subjectDto));
+            }
+        }
+
+        // 设置专项试卷的模块类型（取第一个模块的类型）
+        if (specializedExam.Modules.Count > 0)
+        {
+            specializedExam.ModuleType = specializedExam.Modules.First().Type;
+        }
+
+        return specializedExam;
     }
 }
