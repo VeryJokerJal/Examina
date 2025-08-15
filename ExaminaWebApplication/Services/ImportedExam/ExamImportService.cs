@@ -189,10 +189,14 @@ public class ExamImportService
     /// </summary>
     private async Task<Models.ImportedExam.ImportedExam> ConvertAndSaveExamAsync(ExamExportDto examExportDto, string fileName, long fileSize, string importedBy)
     {
-        using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
-
-        try
+        // 使用执行策略来处理 MySQL 重试机制
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
+            using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
             // 创建导入的考试实体
             Models.ImportedExam.ImportedExam importedExam = new Models.ImportedExam.ImportedExam
             {
@@ -284,14 +288,15 @@ public class ExamImportService
                 await ImportQuestionsAsync(moduleDto.Questions, importedExam.Id, null, importedModule.Id);
             }
 
-            await transaction.CommitAsync();
-            return importedExam;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+                await transaction.CommitAsync();
+                return importedExam;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
     }
 
     /// <summary>
