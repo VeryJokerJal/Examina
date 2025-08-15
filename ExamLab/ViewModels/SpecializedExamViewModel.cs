@@ -100,11 +100,6 @@ public class SpecializedExamViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AddQuestionCommand { get; }
 
     /// <summary>
-    /// 编辑题目命令
-    /// </summary>
-    public ReactiveCommand<Question, Unit> EditQuestionCommand { get; }
-
-    /// <summary>
     /// 删除题目命令
     /// </summary>
     public ReactiveCommand<Question, Unit> DeleteQuestionCommand { get; }
@@ -142,17 +137,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 导出题目命令
     /// </summary>
-    public ReactiveCommand<Question, Unit> ExportQuestionCommand { get; }
-
-    /// <summary>
-    /// 导入题目命令
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> ImportQuestionsCommand { get; }
-
-    /// <summary>
-    /// 导出所有题目命令
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> ExportAllQuestionsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ExportQuestionCommand { get; }
 
     /// <summary>
     /// 主窗口ViewModel引用（用于共享模块编辑功能）
@@ -174,14 +159,11 @@ public class SpecializedExamViewModel : ViewModelBase
 
         // 题目管理命令
         AddQuestionCommand = ReactiveCommand.CreateFromTask(AddQuestionAsync);
-        EditQuestionCommand = ReactiveCommand.CreateFromTask<Question>(EditQuestionAsync);
         DeleteQuestionCommand = ReactiveCommand.CreateFromTask<Question>(DeleteQuestionAsync);
         CopyQuestionCommand = ReactiveCommand.CreateFromTask<Question>(CopyQuestionAsync);
         SaveQuestionCommand = ReactiveCommand.CreateFromTask(SaveQuestionAsync);
         PreviewQuestionCommand = ReactiveCommand.CreateFromTask(PreviewQuestionAsync);
-        ExportQuestionCommand = ReactiveCommand.CreateFromTask<Question>(ExportQuestionAsync);
-        ImportQuestionsCommand = ReactiveCommand.CreateFromTask(ImportQuestionsAsync);
-        ExportAllQuestionsCommand = ReactiveCommand.CreateFromTask(ExportAllQuestionsAsync);
+        ExportQuestionCommand = ReactiveCommand.CreateFromTask(ExportQuestionAsync);
 
         // 操作点管理命令
         AddOperationPointCommand = ReactiveCommand.CreateFromTask(AddOperationPointAsync);
@@ -189,11 +171,11 @@ public class SpecializedExamViewModel : ViewModelBase
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
 
         // 监听选中试卷变化
-        _ = this.WhenAnyValue(x => x.SelectedSpecializedExam)
+        this.WhenAnyValue(x => x.SelectedSpecializedExam)
             .Subscribe(OnSelectedSpecializedExamChanged);
 
         // 初始化数据
-        _ = InitializeDataAsync();
+        InitializeDataAsync();
     }
 
     /// <summary>
@@ -324,7 +306,14 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     private void OnSelectedSpecializedExamChanged(Exam? exam)
     {
-        SelectedModule = exam?.Modules.Count > 0 ? exam.Modules.First() : null;
+        if (exam?.Modules.Count > 0)
+        {
+            SelectedModule = exam.Modules.First();
+        }
+        else
+        {
+            SelectedModule = null;
+        }
     }
 
     /// <summary>
@@ -335,7 +324,7 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 加载专项试卷数据
-            List<Exam> savedExams = LoadSpecializedExamsFromStorage();
+            List<Exam> savedExams = await LoadSpecializedExamsFromStorageAsync();
 
             foreach (Exam exam in savedExams)
             {
@@ -358,7 +347,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 从存储加载专项试卷
     /// </summary>
-    private List<Exam> LoadSpecializedExamsFromStorage()
+    private async Task<List<Exam>> LoadSpecializedExamsFromStorageAsync()
     {
         // 这里可以使用专门的存储键来区分专项试卷和普通试卷
         // 暂时返回空列表，后续可以扩展
@@ -378,58 +367,28 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        try
-        {
-            // 创建新题目
-            Question newQuestion = new()
-            {
-                Title = "新题目",
-                Content = "请输入题目内容",
-                Order = SelectedModule.Questions.Count + 1,
-                IsEnabled = true,
-                CreatedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-            };
+        string? questionTitle = await NotificationService.ShowInputDialogAsync(
+            "添加题目",
+            "请输入题目标题",
+            "新题目");
 
-            // 创建题目配置视图模型
-            QuestionConfigurationViewModel configViewModel = new(newQuestion, SelectedModule, true);
-            QuestionConfigurationDialog configDialog = new(configViewModel);
-
-            ContentDialogResult result = await configDialog.ShowAsync();
-            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
-            {
-                SelectedQuestion = newQuestion;
-                await NotificationService.ShowSuccessAsync("添加成功", $"已添加题目：{newQuestion.Title}");
-            }
-        }
-        catch (Exception ex)
+        if (string.IsNullOrWhiteSpace(questionTitle))
         {
-            await NotificationService.ShowErrorAsync("添加失败", $"添加题目时发生错误：{ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 编辑题目
-    /// </summary>
-    private async Task EditQuestionAsync(Question question)
-    {
-        if (SelectedModule == null || question == null)
-        {
-            await NotificationService.ShowErrorAsync("错误", "请先选择一个题目");
             return;
         }
 
-        try
+        Question newQuestion = new()
         {
-            // 创建题目配置视图模型
-            QuestionConfigurationViewModel configViewModel = new(question, SelectedModule, false);
-            QuestionConfigurationDialog configDialog = new(configViewModel);
+            Title = questionTitle,
+            Content = "请输入题目内容",
+            Order = SelectedModule.Questions.Count + 1,
+            IsEnabled = true
+        };
 
-            ContentDialogResult result = await configDialog.ShowAsync();
-        }
-        catch (Exception ex)
-        {
-            await NotificationService.ShowErrorAsync("编辑失败", $"编辑题目时发生错误：{ex.Message}");
-        }
+        SelectedModule.Questions.Add(newQuestion);
+        SelectedQuestion = newQuestion;
+
+        await NotificationService.ShowSuccessAsync("成功", $"已添加题目：{questionTitle}");
     }
 
     /// <summary>
@@ -451,7 +410,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        _ = SelectedModule.Questions.Remove(question);
+        SelectedModule.Questions.Remove(question);
 
         if (SelectedQuestion == question)
         {
@@ -539,96 +498,16 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 导出题目
     /// </summary>
-    private async Task ExportQuestionAsync(Question? question = null)
+    private async Task ExportQuestionAsync()
     {
-        Question? questionToExport = question ?? SelectedQuestion;
-
-        if (questionToExport == null)
+        if (SelectedQuestion == null)
         {
             await NotificationService.ShowErrorAsync("错误", "请先选择一个题目");
             return;
         }
 
-        if (SelectedModule == null)
-        {
-            await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
-            return;
-        }
-
-        try
-        {
-            List<Question> questionsToExport = [questionToExport];
-            bool success = await QuestionImportExportService.ExportQuestionsAsync(questionsToExport, SelectedModule.Type);
-
-            if (success)
-            {
-                await NotificationService.ShowSuccessAsync("导出成功", $"题目\"{questionToExport.Title}\"已导出");
-            }
-        }
-        catch (Exception ex)
-        {
-            await NotificationService.ShowErrorAsync("导出失败", $"导出题目时发生错误：{ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 导入题目
-    /// </summary>
-    private async Task ImportQuestionsAsync()
-    {
-        if (SelectedModule == null)
-        {
-            await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
-            return;
-        }
-
-        try
-        {
-            List<Question>? importedQuestions = await QuestionImportExportService.ImportQuestionsAsync(SelectedModule);
-
-            if (importedQuestions != null && importedQuestions.Count > 0)
-            {
-                // 选择第一个导入的题目
-                SelectedQuestion = importedQuestions.First();
-                await NotificationService.ShowSuccessAsync("导入成功", $"已导入{importedQuestions.Count}个题目");
-            }
-        }
-        catch (Exception ex)
-        {
-            await NotificationService.ShowErrorAsync("导入失败", $"导入题目时发生错误：{ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 导出所有题目
-    /// </summary>
-    private async Task ExportAllQuestionsAsync()
-    {
-        if (SelectedModule == null)
-        {
-            await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
-            return;
-        }
-
-        if (SelectedModule.Questions.Count == 0)
-        {
-            await NotificationService.ShowErrorAsync("错误", "当前模块没有题目可导出");
-            return;
-        }
-
-        try
-        {
-            bool success = await QuestionImportExportService.ExportQuestionsAsync(SelectedModule.Questions, SelectedModule.Type);
-
-            if (success)
-            {
-                await NotificationService.ShowSuccessAsync("导出成功", $"已导出{SelectedModule.Questions.Count}个题目");
-            }
-        }
-        catch (Exception ex)
-        {
-            await NotificationService.ShowErrorAsync("导出失败", $"导出题目时发生错误：{ex.Message}");
-        }
+        // 这里可以添加题目导出逻辑
+        await NotificationService.ShowSuccessAsync("导出", $"题目导出功能待实现\n题目：{SelectedQuestion.Title}");
     }
 
     #endregion
@@ -690,7 +569,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        _ = SelectedQuestion.OperationPoints.Remove(operationPoint);
+        SelectedQuestion.OperationPoints.Remove(operationPoint);
 
         if (SelectedOperationPoint == operationPoint)
         {
@@ -741,7 +620,7 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         try
         {
-            _ = SpecializedExams.Remove(exam);
+            SpecializedExams.Remove(exam);
             SpecializedExamCount = SpecializedExams.Count;
 
             if (SelectedSpecializedExam == exam)
