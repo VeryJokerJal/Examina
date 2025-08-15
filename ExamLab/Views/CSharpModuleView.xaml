@@ -34,12 +34,12 @@
 
                         <StackPanel Spacing="12">
                             <TextBlock FontSize="14" FontWeight="Medium" Text="模块名称" />
-                            <TextBox PlaceholderText="请输入模块名称" Text="{Binding SelectedModule.Name, Mode=TwoWay}" />
+                            <TextBox PlaceholderText="请输入模块名称" Text="{Binding Module.Name, Mode=TwoWay}" />
                         </StackPanel>
 
                         <StackPanel Spacing="12">
                             <TextBlock FontSize="14" FontWeight="Medium" Text="模块描述" />
-                            <TextBox Height="100" AcceptsReturn="True" PlaceholderText="请输入模块描述" Text="{Binding SelectedModule.Description, Mode=TwoWay}" TextWrapping="Wrap" />
+                            <TextBox Height="100" AcceptsReturn="True" PlaceholderText="请输入模块描述" Text="{Binding Module.Description, Mode=TwoWay}" TextWrapping="Wrap" />
                         </StackPanel>
 
                         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="12">

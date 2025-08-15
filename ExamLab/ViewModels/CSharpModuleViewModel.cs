@@ -45,8 +45,22 @@ public class CSharpModuleViewModel : ModuleViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> ClearCodeFilePathCommand { get; }
 
-    public CSharpModuleViewModel(ExamModule module) : base(module)
+    /// <summary>
+    /// 保存模块描述命令（代理到MainWindowViewModel）
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SaveModuleDescriptionCommand { get; }
+
+    /// <summary>
+    /// 重置模块描述命令（代理到MainWindowViewModel）
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ResetModuleDescriptionCommand { get; }
+
+    private readonly MainWindowViewModel? _mainWindowViewModel;
+
+    public CSharpModuleViewModel(ExamModule module, MainWindowViewModel? mainWindowViewModel = null) : base(module)
     {
+        _mainWindowViewModel = mainWindowViewModel;
+
         // C#模块不需要操作点管理，直接使用Question的ProgramInput和ExpectedOutput属性
 
         // 初始化命令（为了UI兼容性，但不执行任何操作）
@@ -60,6 +74,10 @@ public class CSharpModuleViewModel : ModuleViewModelBase
         // 初始化文件选择命令
         SelectCodeFileCommand = ReactiveCommand.CreateFromTask(SelectCodeFileAsync);
         ClearCodeFilePathCommand = ReactiveCommand.Create(ClearCodeFilePath);
+
+        // 初始化模块描述命令（代理到MainWindowViewModel）
+        SaveModuleDescriptionCommand = ReactiveCommand.CreateFromTask(SaveModuleDescriptionAsync);
+        ResetModuleDescriptionCommand = ReactiveCommand.CreateFromTask(ResetModuleDescriptionAsync);
     }
 
     protected override void AddOperationPoint()
@@ -208,5 +226,29 @@ public class CSharpModuleViewModel : ModuleViewModelBase
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 保存模块描述（代理到MainWindowViewModel）
+    /// </summary>
+    private Task SaveModuleDescriptionAsync()
+    {
+        if (_mainWindowViewModel != null)
+        {
+            _mainWindowViewModel.SaveModuleDescriptionCommand.Execute().Subscribe();
+        }
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 重置模块描述（代理到MainWindowViewModel）
+    /// </summary>
+    private Task ResetModuleDescriptionAsync()
+    {
+        if (_mainWindowViewModel != null)
+        {
+            _mainWindowViewModel.ResetModuleDescriptionCommand.Execute().Subscribe();
+        }
+        return Task.CompletedTask;
     }
 }

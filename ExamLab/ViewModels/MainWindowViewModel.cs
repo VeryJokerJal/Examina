@@ -208,7 +208,7 @@ public class MainWindowViewModel : ViewModelBase
         CurrentContentViewModel = module?.Type switch
         {
             ModuleType.Windows => new WindowsModuleViewModel(module),
-            ModuleType.CSharp => new CSharpModuleViewModel(module),
+            ModuleType.CSharp => new CSharpModuleViewModel(module, this),
             ModuleType.PowerPoint => new PowerPointModuleViewModel(module),
             ModuleType.Excel => new ExcelModuleViewModel(module),
             ModuleType.Word => new WordModuleViewModel(module),
