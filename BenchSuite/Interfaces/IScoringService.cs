@@ -116,3 +116,45 @@ public interface IExcelScoringService : IScoringService
     /// <returns>知识点检测结果列表</returns>
     Task<List<KnowledgePointResult>> DetectKnowledgePointsAsync(string filePath, List<OperationPointModel> knowledgePoints);
 }
+
+/// <summary>
+/// C#编程题打分服务接口
+/// </summary>
+public interface ICSharpScoringService : IScoringService
+{
+    /// <summary>
+    /// 对C#代码进行评分
+    /// </summary>
+    /// <param name="templateCode">模板代码（包含NotImplementedException的填空）</param>
+    /// <param name="studentCode">学生提交的代码</param>
+    /// <param name="expectedImplementations">期望的实现代码列表</param>
+    /// <param name="mode">评分模式</param>
+    /// <returns>评分结果</returns>
+    Task<CSharpScoringResult> ScoreCodeAsync(string templateCode, string studentCode, List<string> expectedImplementations, CSharpScoringMode mode);
+
+    /// <summary>
+    /// 检测代码补全填空
+    /// </summary>
+    /// <param name="templateCode">模板代码</param>
+    /// <param name="studentCode">学生代码</param>
+    /// <param name="expectedImplementations">期望实现</param>
+    /// <returns>填空检测结果</returns>
+    Task<List<FillBlankResult>> DetectFillBlanksAsync(string templateCode, string studentCode, List<string> expectedImplementations);
+
+    /// <summary>
+    /// 编译检查代码
+    /// </summary>
+    /// <param name="sourceCode">源代码</param>
+    /// <param name="references">引用程序集</param>
+    /// <returns>编译结果</returns>
+    Task<CompilationResult> CompileCodeAsync(string sourceCode, List<string>? references = null);
+
+    /// <summary>
+    /// 运行单元测试
+    /// </summary>
+    /// <param name="studentCode">学生代码</param>
+    /// <param name="testCode">测试代码</param>
+    /// <param name="references">引用程序集</param>
+    /// <returns>测试结果</returns>
+    Task<UnitTestResult> RunUnitTestsAsync(string studentCode, string testCode, List<string>? references = null);
+}
