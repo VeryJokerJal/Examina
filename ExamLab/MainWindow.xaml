@@ -64,7 +64,7 @@
 
                     <!--  考试试卷特定工具栏  -->
                     <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
+                        <Button Command="{Binding CreateExamCommand}" Content="新建考试试卷" />
                         <Button Command="{Binding ImportExamCommand}" Content="导入" />
                         <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
                     </StackPanel>

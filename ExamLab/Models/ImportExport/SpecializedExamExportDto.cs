@@ -1,3 +1,5 @@
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace ExamLab.Models.ImportExport;
@@ -113,7 +115,7 @@ public class SpecializedExamDto
     /// 专项试卷包含的模块（通常只有一个）
     /// </summary>
     [JsonPropertyName("modules")]
-    public List<ModuleDto> Modules { get; set; } = new();
+    public List<ModuleDto> Modules { get; set; } = [];
 
     /// <summary>
     /// 扩展配置（JSON格式）
@@ -145,7 +147,7 @@ public class SpecializedExamImportResult
     /// <summary>
     /// 警告消息列表
     /// </summary>
-    public List<string> Warnings { get; set; } = new();
+    public List<string> Warnings { get; set; } = [];
 
     /// <summary>
     /// 是否从通用格式转换而来

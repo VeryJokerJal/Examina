@@ -447,13 +447,13 @@ public class MainWindowViewModel : ViewModelBase
             ExamExportDto exportDto = ExamMappingService.ToExportDto(SelectedExam, ExportLevel.Complete);
 
             // 4. XML序列化
-            string xmlContent = Services.XmlSerializationService.SerializeToXml(exportDto);
+            string xmlContent = XmlSerializationService.SerializeToXml(exportDto);
 
             // 5. 写入文件
             await Windows.Storage.FileIO.WriteTextAsync(file, xmlContent);
 
             // 6. 记录最后保存的项目路径（用于自动恢复）
-            Services.AppSettingsService.SetLastProjectPath(file.Path);
+            AppSettingsService.SetLastProjectPath(file.Path);
 
             // 7. 同时保存到本地存储（用于应用内管理）
             await DataStorageService.Instance.SaveExamAsync(SelectedExam);
@@ -533,7 +533,7 @@ public class MainWindowViewModel : ViewModelBase
             Models.ImportExport.ExamExportDto? projectDto = null;
             try
             {
-                projectDto = Services.XmlSerializationService.DeserializeFromXml(fileContent);
+                projectDto = XmlSerializationService.DeserializeFromXml(fileContent);
             }
             catch (Exception xmlEx)
             {
@@ -1078,23 +1078,23 @@ public class MainWindowViewModel : ViewModelBase
         try
         {
             // 检查是否启用自动恢复
-            if (!Services.AppSettingsService.IsAutoRecoveryEnabled())
+            if (!AppSettingsService.IsAutoRecoveryEnabled())
             {
                 return;
             }
 
             // 获取上次保存的项目路径
-            string? lastProjectPath = Services.AppSettingsService.GetLastProjectPath();
+            string? lastProjectPath = AppSettingsService.GetLastProjectPath();
             if (string.IsNullOrWhiteSpace(lastProjectPath))
             {
                 return;
             }
 
             // 检查文件是否存在且可访问
-            if (!await Services.AppSettingsService.IsFileAccessibleAsync(lastProjectPath))
+            if (!await AppSettingsService.IsFileAccessibleAsync(lastProjectPath))
             {
                 // 文件不存在或无法访问，清除记录
-                Services.AppSettingsService.SetLastProjectPath(null);
+                AppSettingsService.SetLastProjectPath(null);
                 return;
             }
 
@@ -1128,7 +1128,7 @@ public class MainWindowViewModel : ViewModelBase
             }
 
             // 解析项目文件
-            Models.ImportExport.ExamExportDto projectDto = Services.XmlSerializationService.DeserializeFromXml(fileContent);
+            Models.ImportExport.ExamExportDto projectDto = XmlSerializationService.DeserializeFromXml(fileContent);
             if (projectDto?.Exam == null)
             {
                 return;
@@ -1159,7 +1159,7 @@ public class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             // 恢复失败，清除记录
-            Services.AppSettingsService.SetLastProjectPath(null);
+            AppSettingsService.SetLastProjectPath(null);
             throw new Exception($"自动恢复项目失败：{ex.Message}", ex);
         }
     }

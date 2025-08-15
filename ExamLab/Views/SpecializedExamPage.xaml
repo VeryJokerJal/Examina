@@ -23,15 +23,15 @@
             </Grid.RowDefinitions>
 
             <!--  专项试卷列表标题  -->
-            <TextBlock Grid.Row="0" Margin="16,16,16,0" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="专项试卷" />
+            <TextBlock Grid.Row="0" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="专项试卷" />
 
             <!--  专项试卷列表  -->
             <Grid Grid.Row="1">
                 <!--  空状态提示  -->
-                <Border Margin="16" Padding="16" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="8" Visibility="{Binding SpecializedExams.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
-                    <StackPanel HorizontalAlignment="Center" Spacing="12">
+                <Border Margin="10" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding SpecializedExams.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                         <FontIcon FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8A5;" />
-                        <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Text="暂无专项试卷" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无专项试卷" />
                         <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击上方工具栏的新建专项试卷开始创建" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>

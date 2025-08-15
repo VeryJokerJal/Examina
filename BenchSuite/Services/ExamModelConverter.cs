@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -29,7 +29,7 @@ public static class ExamModelConverter
             string examDescription = GetStringProperty(exam, "description");
 
             // 调试输出
-            System.Console.WriteLine($"[调试] 解析试卷信息: ID='{examId}', Name='{examName}', Description='{examDescription}'");
+            Console.WriteLine($"[调试] 解析试卷信息: ID='{examId}', Name='{examName}', Description='{examDescription}'");
 
             var examModel = new ExamModel
             {
@@ -457,23 +457,23 @@ public static class ExamModelConverter
     {
         if (element.TryGetProperty(propertyName, out var prop))
         {
-            System.Console.WriteLine($"[调试] 属性 '{propertyName}' 存在，类型: {prop.ValueKind}");
+            Console.WriteLine($"[调试] 属性 '{propertyName}' 存在，类型: {prop.ValueKind}");
 
             if (prop.ValueKind == JsonValueKind.String)
             {
                 string? value = prop.GetString();
-                System.Console.WriteLine($"[调试] 属性 '{propertyName}' 值: '{value}'");
+                Console.WriteLine($"[调试] 属性 '{propertyName}' 值: '{value}'");
                 return value ?? defaultValue;
             }
             else
             {
-                System.Console.WriteLine($"[调试] 属性 '{propertyName}' 不是字符串类型");
+                Console.WriteLine($"[调试] 属性 '{propertyName}' 不是字符串类型");
                 return defaultValue;
             }
         }
         else
         {
-            System.Console.WriteLine($"[调试] 属性 '{propertyName}' 不存在");
+            Console.WriteLine($"[调试] 属性 '{propertyName}' 不存在");
             return defaultValue;
         }
     }

@@ -693,7 +693,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 {
                     try
                     {
-                        if (shape.HasTextFrame == Microsoft.Office.Core.MsoTriState.msoTrue)
+                        if (shape.HasTextFrame == MsoTriState.msoTrue)
                         {
                             PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
                             string fontName = textRange.Font.Name;
@@ -724,7 +724,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     {
                         try
                         {
-                            if (shape.HasTextFrame == Microsoft.Office.Core.MsoTriState.msoTrue)
+                            if (shape.HasTextFrame == MsoTriState.msoTrue)
                             {
                                 PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
                                 string fontName = textRange.Font.Name;
@@ -1830,10 +1830,10 @@ public class PowerPointScoringService : IPowerPointScoringService
             try
             {
                 PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
-                if (textRange.ActionSettings[PowerPoint.PpMouseActivation.ppMouseClick].Hyperlink.Address != null)
+                if (textRange.ActionSettings[PpMouseActivation.ppMouseClick].Hyperlink.Address != null)
                 {
                     hasHyperlink = true;
-                    hyperlinkInfo = textRange.ActionSettings[PowerPoint.PpMouseActivation.ppMouseClick].Hyperlink.Address;
+                    hyperlinkInfo = textRange.ActionSettings[PpMouseActivation.ppMouseClick].Hyperlink.Address;
                 }
             }
             catch

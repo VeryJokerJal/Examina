@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json;
 using ExamLab.Models;
 using ExamLab.Models.ImportExport;
-using ExamLab.Services;
 
 namespace ExamLab.Services;
 
@@ -43,7 +42,9 @@ public static class SpecializedExamMappingService
     public static SpecializedExamExportDto ToSpecializedExportDto(SpecializedExam specializedExam, ExportLevel exportLevel = ExportLevel.Complete)
     {
         if (specializedExam == null)
+        {
             throw new ArgumentNullException(nameof(specializedExam));
+        }
 
         SpecializedExamDto specializedExamDto = new()
         {
@@ -127,9 +128,9 @@ public static class SpecializedExamMappingService
             {
                 IsSpecializedExam = true,
                 ModuleType = specializedExam.ModuleType.ToString(),
-                DifficultyLevel = specializedExam.DifficultyLevel,
-                RandomizeQuestions = specializedExam.RandomizeQuestions,
-                Tags = specializedExam.Tags
+                specializedExam.DifficultyLevel,
+                specializedExam.RandomizeQuestions,
+                specializedExam.Tags
             });
         }
 
@@ -271,7 +272,7 @@ public static class SpecializedExamMappingService
             return new ValidationResult(false, ["专项试卷对象为空"]);
         }
 
-        List<string> errors = new();
+        List<string> errors = [];
 
         // 基本信息验证
         if (string.IsNullOrWhiteSpace(specializedExam.Name))
@@ -323,7 +324,7 @@ public static class SpecializedExamMappingService
             }
         }
 
-        return new ValidationResult(errors.Count == 0,  errors);
+        return new ValidationResult(errors.Count == 0, errors);
     }
 
     /// <summary>
@@ -528,14 +529,7 @@ public static class SpecializedExamMappingService
 
                 if (root.TryGetProperty("IsSpecializedExam", out JsonElement isSpecializedElement))
                 {
-                    if (isSpecializedElement.GetBoolean())
-                    {
-                        return DataSourceType.SpecializedExam;
-                    }
-                    else
-                    {
-                        return DataSourceType.RegularExam;
-                    }
+                    return isSpecializedElement.GetBoolean() ? DataSourceType.SpecializedExam : DataSourceType.RegularExam;
                 }
             }
             catch (JsonException)
@@ -711,7 +705,9 @@ public static class SpecializedExamMappingService
     public static SpecializedExam FromSpecializedExportDto(SpecializedExamExportDto exportDto)
     {
         if (exportDto?.SpecializedExam == null)
+        {
             throw new ArgumentNullException(nameof(exportDto));
+        }
 
         SpecializedExamDto examDto = exportDto.SpecializedExam;
 
@@ -752,7 +748,9 @@ public static class SpecializedExamMappingService
     public static SpecializedExamImportResult SmartImport(ExamExportDto exportDto)
     {
         if (exportDto?.Exam == null)
+        {
             return SpecializedExamImportResult.Failure("导入数据不能为空");
+        }
 
         try
         {
@@ -763,7 +761,9 @@ public static class SpecializedExamMappingService
             {
                 case DataFormatType.SpecializedExam:
                     // 直接转换专项试卷
+#pragma warning disable CS0618 // 类型或成员已过时
                     SpecializedExam specializedExam = FromExportDto(exportDto);
+#pragma warning restore CS0618 // 类型或成员已过时
                     return SpecializedExamImportResult.Success(specializedExam);
 
                 case DataFormatType.GenericExam:
@@ -819,7 +819,7 @@ public static class SpecializedExamMappingService
 
         ExamDto examDto = exportDto.Exam;
         double confidence = 0.0;
-        List<string> reasons = new();
+        List<string> reasons = [];
         bool canConvert = false;
 
         // 检查扩展配置中的专项试卷标识
@@ -895,13 +895,9 @@ public static class SpecializedExamMappingService
         {
             formatType = DataFormatType.SpecializedExam;
         }
-        else if (confidence >= 0.3)
-        {
-            formatType = DataFormatType.GenericExam;
-        }
         else
         {
-            formatType = DataFormatType.Unknown;
+            formatType = confidence >= 0.3 ? DataFormatType.GenericExam : DataFormatType.Unknown;
         }
 
         return new DataFormatDetectionResult
@@ -922,7 +918,9 @@ public static class SpecializedExamMappingService
     private static SpecializedExam ConvertGenericToSpecialized(ExamExportDto exportDto)
     {
         if (exportDto?.Exam == null)
+        {
             throw new ArgumentNullException(nameof(exportDto));
+        }
 
         ExamDto examDto = exportDto.Exam;
 

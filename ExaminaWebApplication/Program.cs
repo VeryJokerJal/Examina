@@ -2,7 +2,7 @@
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
-using ExaminaWebApplication.Services.Exam;
+
 using ExaminaWebApplication.Services.Excel;
 using ExaminaWebApplication.Services.Windows;
 using ExaminaWebApplication.Services.Word;
@@ -73,15 +73,8 @@ builder.Services.AddScoped<WindowsOperationService>();
 
 // 注册Word相关服务
 builder.Services.AddScoped<WordOperationService>();
-builder.Services.AddScoped<WordQuestionService>();
-builder.Services.AddScoped<WordQuestionExcelService>();
 
-// 注册试卷管理相关服务
-builder.Services.AddScoped<ExamService>();
-builder.Services.AddScoped<ExamSubjectService>();
-builder.Services.AddScoped<ExamQuestionService>();
-builder.Services.AddScoped<SimplifiedQuestionService>();
-builder.Services.AddScoped<ExcelImportExportService>();
+
 
 // 添加后台服务
 builder.Services.AddHostedService<SessionCleanupService>();
@@ -505,12 +498,10 @@ static async Task ValidateDatabaseStateAsync(ApplicationDbContext context, ILogg
     {
         // 检查关键表是否存在并可访问
         int userCount = await context.Users.CountAsync();
-        int examCount = await context.Exams.CountAsync();
         int excelOpCount = await context.ExcelOperationPoints.CountAsync();
 
         logger.LogInformation("数据库状态验证成功:");
         logger.LogInformation("  - 用户数量: {UserCount}", userCount);
-        logger.LogInformation("  - 试卷数量: {ExamCount}", examCount);
         logger.LogInformation("  - Excel操作点数量: {ExcelOpCount}", excelOpCount);
 
         // 检查数据库版本信息
