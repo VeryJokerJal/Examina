@@ -1,0 +1,224 @@
+@model List<ExaminaWebApplication.Models.ImportedExam.ImportedExam>
+@{
+    ViewData["Title"] = "考试管理";
+}
+
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>考试管理
+                </h2>
+                <div>
+                    <a asp-action="ImportExam" class="btn btn-primary">
+                        <i class="bi bi-upload me-1"></i>导入考试
+                    </a>
+                    <a asp-action="ExamList" class="btn btn-outline-secondary">
+                        <i class="bi bi-list-ul me-1"></i>考试列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@Model.Count</h4>
+                            <p class="card-text">总考试数</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-file-earmark-text fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@Model.Sum(e => e.Subjects.Count)</h4>
+                            <p class="card-text">总科目数</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-collection fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@Model.Sum(e => e.Modules.Count)</h4>
+                            <p class="card-text">总模块数</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-grid-3x3-gap fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@(Model.Sum(e => e.Subjects.Sum(s => s.QuestionCount)) + Model.Sum(e => e.Modules.Sum(m => m.Questions.Count)))</h4>
+                            <p class="card-text">总题目数</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-question-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最近导入的考试 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>最近导入的考试
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>考试名称</th>
+                                        <th>考试类型</th>
+                                        <th>状态</th>
+                                        <th>总分</th>
+                                        <th>时长</th>
+                                        <th>科目数</th>
+                                        <th>模块数</th>
+                                        <th>导入时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var exam in Model.OrderByDescending(e => e.ImportedAt).Take(10))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@exam.Name</strong>
+                                                @if (!string.IsNullOrEmpty(exam.Description))
+                                                {
+                                                    <br><small class="text-muted">@exam.Description</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@exam.ExamType</span>
+                                            </td>
+                                            <td>
+                                                @switch (exam.Status)
+                                                {
+                                                    case "Draft":
+                                                        <span class="badge bg-warning">草稿</span>
+                                                        break;
+                                                    case "Published":
+                                                        <span class="badge bg-success">已发布</span>
+                                                        break;
+                                                    case "Archived":
+                                                        <span class="badge bg-secondary">已归档</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-light text-dark">@exam.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@exam.TotalScore 分</td>
+                                            <td>@exam.DurationMinutes 分钟</td>
+                                            <td>@exam.Subjects.Count</td>
+                                            <td>@exam.Modules.Count</td>
+                                            <td>
+                                                <small>@exam.ImportedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a asp-action="ExamDetails" asp-route-id="@exam.Id" 
+                                                       class="btn btn-outline-primary" title="查看详情">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-danger" 
+                                                            onclick="deleteExam(@exam.Id, '@exam.Name')" title="删除">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        @if (Model.Count > 10)
+                        {
+                            <div class="text-center mt-3">
+                                <a asp-action="ExamList" class="btn btn-outline-primary">
+                                    查看全部考试 (@Model.Count)
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <h4 class="mt-3 text-muted">暂无导入的考试</h4>
+                            <p class="text-muted">点击上方"导入考试"按钮开始导入您的第一个考试</p>
+                            <a asp-action="ImportExam" class="btn btn-primary">
+                                <i class="bi bi-upload me-1"></i>立即导入
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteExam(examId, examName) {
+            if (confirm(`确定要删除考试"${examName}"吗？此操作不可撤销。`)) {
+                $.ajax({
+                    url: '@Url.Action("DeleteExam")',
+                    type: 'POST',
+                    data: {
+                        id: examId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        if (result.success) {
+                            location.reload();
+                        } else {
+                            alert('删除失败: ' + result.message);
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败，请稍后重试');
+                    }
+                });
+            }
+        }
+    </script>
+}

@@ -1,0 +1,329 @@
+@model ExaminaWebApplication.Models.ImportedExam.ImportedExam
+@{
+    ViewData["Title"] = $"考试详情 - {Model.Name}";
+}
+
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">
+                    <i class="bi bi-eye me-2"></i>考试详情
+                </h2>
+                <div>
+                    <a asp-action="ExamList" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>返回列表
+                    </a>
+                    <button type="button" class="btn btn-outline-danger" 
+                            onclick="deleteExam(@Model.Id, '@Model.Name')">
+                        <i class="bi bi-trash me-1"></i>删除考试
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 考试基本信息 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>基本信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="mb-3">@Model.Name</h3>
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <p class="text-muted mb-3">@Model.Description</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Tags))
+                            {
+                                <div class="mb-3">
+                                    <strong>标签：</strong>
+                                    @foreach (var tag in Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <span class="badge bg-light text-dark me-1">@tag.Trim()</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-end">
+                                <div class="mb-2">
+                                    <span class="badge bg-secondary fs-6">@Model.ExamType</span>
+                                </div>
+                                <div>
+                                    @switch (Model.Status)
+                                    {
+                                        case "Draft":
+                                            <span class="badge bg-warning fs-6">草稿</span>
+                                            break;
+                                        case "Published":
+                                            <span class="badge bg-success fs-6">已发布</span>
+                                            break;
+                                        case "Archived":
+                                            <span class="badge bg-secondary fs-6">已归档</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-light text-dark fs-6">@Model.Status</span>
+                                            break;
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 考试设置和统计 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-gear me-2"></i>考试设置
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center">
+                                <h4 class="text-primary mb-1">@Model.TotalScore</h4>
+                                <small class="text-muted">总分</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center">
+                                <h4 class="text-info mb-1">@Model.DurationMinutes</h4>
+                                <small class="text-muted">时长(分钟)</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center">
+                                <h4 class="text-success mb-1">@Model.PassingScore</h4>
+                                <small class="text-muted">及格分</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center">
+                                <h4 class="text-warning mb-1">@Model.MaxRetakeCount</h4>
+                                <small class="text-muted">重考次数</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" @(Model.AllowRetake ? "checked" : "") disabled>
+                                <label class="form-check-label">允许重考</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" @(Model.RandomizeQuestions ? "checked" : "") disabled>
+                                <label class="form-check-label">随机题目顺序</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" @(Model.ShowScore ? "checked" : "") disabled>
+                                <label class="form-check-label">显示分数</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" @(Model.ShowAnswers ? "checked" : "") disabled>
+                                <label class="form-check-label">显示答案</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>内容统计
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center bg-primary text-white">
+                                <h4 class="mb-1">@Model.Subjects.Count</h4>
+                                <small>科目数</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center bg-success text-white">
+                                <h4 class="mb-1">@Model.Modules.Count</h4>
+                                <small>模块数</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center bg-info text-white">
+                                <h4 class="mb-1">@(Model.Subjects.Sum(s => s.Questions.Count) + Model.Modules.Sum(m => m.Questions.Count))</h4>
+                                <small>题目数</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center bg-warning text-white">
+                                <h4 class="mb-1">@(Model.Subjects.SelectMany(s => s.Questions).SelectMany(q => q.OperationPoints).Count() + Model.Modules.SelectMany(m => m.Questions).SelectMany(q => q.OperationPoints).Count())</h4>
+                                <small>操作点数</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 时间信息 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock me-2"></i>时间信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>导入时间：</strong><br>
+                            <span class="text-muted">@Model.ImportedAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>原始创建时间：</strong><br>
+                            <span class="text-muted">@Model.OriginalCreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                        </div>
+                        @if (Model.OriginalUpdatedAt.HasValue)
+                        {
+                            <div class="col-md-3">
+                                <strong>原始更新时间：</strong><br>
+                                <span class="text-muted">@Model.OriginalUpdatedAt.Value.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                            </div>
+                        }
+                        @if (Model.OriginalPublishedAt.HasValue)
+                        {
+                            <div class="col-md-3">
+                                <strong>原始发布时间：</strong><br>
+                                <span class="text-muted">@Model.OriginalPublishedAt.Value.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                            </div>
+                        }
+                    </div>
+                    
+                    @if (Model.StartTime.HasValue || Model.EndTime.HasValue)
+                    {
+                        <hr>
+                        <div class="row">
+                            @if (Model.StartTime.HasValue)
+                            {
+                                <div class="col-md-6">
+                                    <strong>考试开始时间：</strong><br>
+                                    <span class="text-muted">@Model.StartTime.Value.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                                </div>
+                            }
+                            @if (Model.EndTime.HasValue)
+                            {
+                                <div class="col-md-6">
+                                    <strong>考试结束时间：</strong><br>
+                                    <span class="text-muted">@Model.EndTime.Value.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入信息 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-download me-2"></i>导入信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>原始考试ID：</strong><br>
+                            <span class="text-muted">@Model.OriginalExamId</span>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>导入文件：</strong><br>
+                            <span class="text-muted">@Model.ImportFileName</span>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>文件大小：</strong><br>
+                            <span class="text-muted">@((Model.ImportFileSize / 1024.0).ToString("F1")) KB</span>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>导入版本：</strong><br>
+                            <span class="text-muted">@Model.ImportVersion</span>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <strong>导入状态：</strong>
+                            @switch (Model.ImportStatus)
+                            {
+                                case "Success":
+                                    <span class="badge bg-success">导入成功</span>
+                                    break;
+                                case "Failed":
+                                    <span class="badge bg-danger">导入失败</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-warning">@Model.ImportStatus</span>
+                                    break;
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.ImportErrorMessage))
+                        {
+                            <div class="col-md-6">
+                                <strong>错误信息：</strong><br>
+                                <span class="text-danger">@Model.ImportErrorMessage</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteExam(examId, examName) {
+            if (confirm(`确定要删除考试"${examName}"吗？此操作不可撤销。`)) {
+                $.ajax({
+                    url: '@Url.Action("DeleteExam")',
+                    type: 'POST',
+                    data: {
+                        id: examId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        if (result.success) {
+                            window.location.href = '@Url.Action("ExamList")';
+                        } else {
+                            alert('删除失败: ' + result.message);
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败，请稍后重试');
+                    }
+                });
+            }
+        }
+    </script>
+}
