@@ -28,12 +28,6 @@ public class CSharpScoringDemo
             Console.WriteLine("-".PadRight(50, '-'));
             
             await DemoCompleteWorkflowAsync();
-
-            Console.WriteLine();
-            Console.WriteLine("📊 演示不同难度的题目");
-            Console.WriteLine("-".PadRight(50, '-'));
-            
-            await DemoVariousDifficultyLevelsAsync();
         }
         catch (Exception ex)
         {
@@ -137,161 +131,12 @@ public class StringHelperTests
         Console.WriteLine($"   状态: {(implementationResult.UnitTestResult?.IsSuccess == true ? "全部通过✅" : "部分失败❌")}");
 
         // 综合评分
-        decimal totalScore = (completionResult.AchievedScore / completionResult.TotalScore) * 30 +
+        decimal totalScore = (completionResult.AchievedScore / Math.Max(completionResult.TotalScore, 1)) * 30 +
                            (debuggingResult.AchievedScore / Math.Max(debuggingResult.TotalScore, 1)) * 30 +
                            (implementationResult.AchievedScore / Math.Max(implementationResult.TotalScore, 1)) * 40;
 
         Console.WriteLine($"\n🎯 综合评分: {totalScore:F1}/100");
         Console.WriteLine($"   等级: {GetGradeLevel(totalScore)}");
-    }
-
-    /// <summary>
-    /// 演示不同难度级别的题目
-    /// </summary>
-    private static async Task DemoVariousDifficultyLevelsAsync()
-    {
-        CSharpScoringService service = new();
-
-        // 初级题目：简单计算
-        Console.WriteLine("🟢 初级题目：简单加法计算器");
-        await DemoBasicCalculatorAsync(service);
-
-        Console.WriteLine();
-
-        // 中级题目：数组操作
-        Console.WriteLine("🟡 中级题目：数组排序");
-        await DemoArraySortingAsync(service);
-
-        Console.WriteLine();
-
-        // 高级题目：算法实现
-        Console.WriteLine("🔴 高级题目：斐波那契数列");
-        await DemoFibonacciAsync(service);
-    }
-
-    /// <summary>
-    /// 演示基础计算器题目
-    /// </summary>
-    private static async Task DemoBasicCalculatorAsync(CSharpScoringService service)
-    {
-        string studentCode = @"
-public class Calculator
-{
-    public int Add(int a, int b) => a + b;
-    public int Subtract(int a, int b) => a - b;
-}";
-
-        string testCode = @"
-public class CalculatorTests
-{
-    [Test]
-    public void TestBasicOperations()
-    {
-        var calc = new Calculator();
-        if (calc.Add(2, 3) != 5) throw new Exception(""Add failed"");
-        if (calc.Subtract(5, 2) != 3) throw new Exception(""Subtract failed"");
-    }
-}";
-
-        var result = await service.ScoreCodeAsync("", studentCode, [testCode], CSharpScoringMode.UnitTest);
-        Console.WriteLine($"   测试结果: {result.UnitTestResult?.PassedTests}/{result.UnitTestResult?.TotalTests} 通过");
-        Console.WriteLine($"   难度评估: 简单 ⭐");
-    }
-
-    /// <summary>
-    /// 演示数组排序题目
-    /// </summary>
-    private static async Task DemoArraySortingAsync(CSharpScoringService service)
-    {
-        string studentCode = @"
-using System;
-
-public class ArrayHelper
-{
-    public static int[] BubbleSort(int[] array)
-    {
-        if (array == null || array.Length <= 1) return array;
-        
-        int[] result = new int[array.Length];
-        Array.Copy(array, result, array.Length);
-        
-        for (int i = 0; i < result.Length - 1; i++)
-        {
-            for (int j = 0; j < result.Length - 1 - i; j++)
-            {
-                if (result[j] > result[j + 1])
-                {
-                    int temp = result[j];
-                    result[j] = result[j + 1];
-                    result[j + 1] = temp;
-                }
-            }
-        }
-        return result;
-    }
-}";
-
-        string testCode = @"
-using System.Linq;
-
-public class ArrayHelperTests
-{
-    [Test]
-    public void TestBubbleSort()
-    {
-        var input = new int[] { 3, 1, 4, 1, 5, 9, 2, 6 };
-        var expected = new int[] { 1, 1, 2, 3, 4, 5, 6, 9 };
-        var result = ArrayHelper.BubbleSort(input);
-        
-        if (!result.SequenceEqual(expected))
-            throw new Exception(""Sort failed"");
-    }
-}";
-
-        var result = await service.ScoreCodeAsync("", studentCode, [testCode], CSharpScoringMode.UnitTest);
-        Console.WriteLine($"   测试结果: {result.UnitTestResult?.PassedTests}/{result.UnitTestResult?.TotalTests} 通过");
-        Console.WriteLine($"   难度评估: 中等 ⭐⭐⭐");
-    }
-
-    /// <summary>
-    /// 演示斐波那契数列题目
-    /// </summary>
-    private static async Task DemoFibonacciAsync(CSharpScoringService service)
-    {
-        string studentCode = @"
-public class MathHelper
-{
-    public static long Fibonacci(int n)
-    {
-        if (n <= 1) return n;
-        
-        long a = 0, b = 1;
-        for (int i = 2; i <= n; i++)
-        {
-            long temp = a + b;
-            a = b;
-            b = temp;
-        }
-        return b;
-    }
-}";
-
-        string testCode = @"
-public class MathHelperTests
-{
-    [Test]
-    public void TestFibonacci()
-    {
-        if (MathHelper.Fibonacci(0) != 0) throw new Exception(""Fib(0) failed"");
-        if (MathHelper.Fibonacci(1) != 1) throw new Exception(""Fib(1) failed"");
-        if (MathHelper.Fibonacci(10) != 55) throw new Exception(""Fib(10) failed"");
-        if (MathHelper.Fibonacci(20) != 6765) throw new Exception(""Fib(20) failed"");
-    }
-}";
-
-        var result = await service.ScoreCodeAsync("", studentCode, [testCode], CSharpScoringMode.UnitTest);
-        Console.WriteLine($"   测试结果: {result.UnitTestResult?.PassedTests}/{result.UnitTestResult?.TotalTests} 通过");
-        Console.WriteLine($"   难度评估: 困难 ⭐⭐⭐⭐⭐");
     }
 
     /// <summary>

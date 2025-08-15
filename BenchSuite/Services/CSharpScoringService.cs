@@ -236,19 +236,33 @@ public class CSharpScoringService : ICSharpScoringService
 
     #region IScoringService 基础接口实现
 
-    public Task<ScoringResult> ScoreAsync(string filePath, List<OperationPointModel> operationPoints)
+    public Task<ScoringResult> ScoreFileAsync(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
     {
         throw new NotSupportedException("C#打分服务不支持基于文件路径的评分，请使用ScoreCodeAsync方法");
     }
 
-    public Task<KnowledgePointResult> DetectKnowledgePointAsync(string filePath, string knowledgePointType, Dictionary<string, string> parameters)
+    public ScoringResult ScoreFile(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
     {
-        throw new NotSupportedException("C#打分服务不支持基于文件路径的知识点检测，请使用相应的代码评分方法");
+        throw new NotSupportedException("C#打分服务不支持基于文件路径的评分，请使用ScoreCodeAsync方法");
     }
 
-    public Task<List<KnowledgePointResult>> DetectKnowledgePointsAsync(string filePath, List<OperationPointModel> knowledgePoints)
+    public Task<ScoringResult> ScoreQuestionAsync(string filePath, QuestionModel question, ScoringConfiguration? configuration = null)
     {
-        throw new NotSupportedException("C#打分服务不支持基于文件路径的知识点检测，请使用相应的代码评分方法");
+        throw new NotSupportedException("C#打分服务不支持基于文件路径的评分，请使用ScoreCodeAsync方法");
+    }
+
+    public bool CanProcessFile(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+            return false;
+
+        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+        return GetSupportedExtensions().Contains(extension);
+    }
+
+    public IEnumerable<string> GetSupportedExtensions()
+    {
+        return [".cs", ".txt"]; // 支持C#源代码文件和文本文件
     }
 
     #endregion
