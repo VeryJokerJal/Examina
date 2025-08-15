@@ -724,24 +724,47 @@ public class SpecializedExamViewModel : ViewModelBase
                 return;
             }
 
-            // 4. 解析文件内容
+            // 4. 智能解析文件内容
             Models.ImportExport.ExamExportDto? importDto = null;
+            SpecializedExamImportResult? directImportResult = null;
+
             try
             {
                 if (file.FileType.ToLowerInvariant() == ".json")
                 {
-                    // JSON反序列化
+                    // JSON格式：尝试专项试卷格式，失败则尝试通用格式
                     System.Text.Json.JsonSerializerOptions jsonOptions = new()
                     {
                         PropertyNameCaseInsensitive = true,
                         PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
                     };
                     jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
-                    importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+
+                    // 首先尝试专项试卷专用格式
+                    try
+                    {
+                        SpecializedExamExportDto? specializedDto = System.Text.Json.JsonSerializer.Deserialize<SpecializedExamExportDto>(fileContent, jsonOptions);
+                        if (specializedDto?.SpecializedExam != null && specializedDto.DataType == "SpecializedExam")
+                        {
+                            // 直接从专项试卷格式导入
+                            SpecializedExam specializedExam = SpecializedExamMappingService.FromSpecializedExportDto(specializedDto);
+                            directImportResult = SpecializedExamImportResult.Success(specializedExam);
+                        }
+                    }
+                    catch
+                    {
+                        // 专项试卷格式解析失败，继续尝试通用格式
+                    }
+
+                    // 如果专项试卷格式失败，尝试通用格式
+                    if (directImportResult == null)
+                    {
+                        importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+                    }
                 }
                 else if (file.FileType.ToLowerInvariant() == ".xml")
                 {
-                    // XML反序列化
+                    // XML格式：只支持通用格式
                     importDto = XmlSerializationService.DeserializeFromXml(fileContent);
                 }
             }
@@ -751,15 +774,26 @@ public class SpecializedExamViewModel : ViewModelBase
                 return;
             }
 
-            if (importDto?.Exam == null)
+            // 5. 处理导入结果
+            SpecializedExamImportResult importResult;
+
+            if (directImportResult != null)
+            {
+                // 直接从专项试卷格式导入成功
+                importResult = directImportResult;
+            }
+            else if (importDto?.Exam != null)
+            {
+                // 从通用格式智能导入
+                importResult = SpecializedExamMappingService.SmartImport(importDto);
+            }
+            else
             {
                 await NotificationService.ShowErrorAsync("数据格式错误", "文件中没有找到有效的试卷数据");
                 return;
             }
 
-            // 5. 智能转换为SpecializedExam模型
-            SpecializedExamImportResult importResult = SpecializedExamMappingService.SmartImport(importDto);
-
+            // 6. 检查导入结果
             if (!importResult.IsSuccess)
             {
                 await NotificationService.ShowErrorAsync("导入失败", importResult.ErrorMessage ?? "未知错误");
@@ -865,15 +899,14 @@ public class SpecializedExamViewModel : ViewModelBase
                 return;
             }
 
-            // 4. 转换为导出格式
-            ExamExportDto exportDto = SpecializedExamMappingService.ToExportDto(exam, exportLevel);
-
-            // 5. 根据文件扩展名选择序列化格式
+            // 4. 根据文件格式选择导出方式
             string fileContent;
 
             if (file.FileType.ToLowerInvariant() == ".json")
             {
-                // JSON序列化
+                // JSON格式：使用专项试卷专用格式
+                SpecializedExamExportDto specializedExportDto = SpecializedExamMappingService.ToSpecializedExportDto(exam, exportLevel);
+
                 System.Text.Json.JsonSerializerOptions jsonOptions = new()
                 {
                     WriteIndented = true,
@@ -884,12 +917,13 @@ public class SpecializedExamViewModel : ViewModelBase
                 // 添加自定义转换器
                 jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
 
-                fileContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
+                fileContent = System.Text.Json.JsonSerializer.Serialize(specializedExportDto, jsonOptions);
             }
             else if (file.FileType.ToLowerInvariant() == ".xml")
             {
-                // XML序列化
-                fileContent = XmlSerializationService.SerializeToXml(exportDto);
+                // XML格式：使用通用格式（向后兼容）
+                ExamExportDto genericExportDto = SpecializedExamMappingService.ToExportDto(exam, exportLevel);
+                fileContent = XmlSerializationService.SerializeToXml(genericExportDto);
             }
             else
             {

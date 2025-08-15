@@ -137,13 +137,14 @@ public static class SpecializedExamMappingService
     }
 
     /// <summary>
-    /// 将ExamExportDto转换为SpecializedExam
-    /// 注意：此方法专门用于处理专项试卷格式的数据，会验证数据来源
+    /// 从通用ExamExportDto转换为SpecializedExam（已弃用）
+    /// 注意：此方法已弃用，建议使用SmartImport()进行智能导入，或使用FromSpecializedExportDto()处理专用格式
     /// </summary>
-    /// <param name="exportDto">导出DTO（应包含专项试卷数据）</param>
+    /// <param name="exportDto">通用导出DTO</param>
     /// <returns>专项试卷</returns>
     /// <exception cref="ArgumentNullException">当exportDto或其Exam属性为null时抛出</exception>
     /// <exception cref="InvalidOperationException">当数据不是专项试卷格式时抛出</exception>
+    [Obsolete("此方法已弃用。请使用SmartImport()进行智能导入，或使用FromSpecializedExportDto()处理专用格式。", false)]
     public static SpecializedExam FromExportDto(ExamExportDto exportDto)
     {
         if (exportDto?.Exam == null)
