@@ -44,7 +44,7 @@
                             Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" 
                             CornerRadius="8">
                         <StackPanel Spacing="12" HorizontalAlignment="Center">
-                            <SymbolIcon Symbol="Document" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                            <FontIcon Glyph="&#xE8A5;" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
                             <TextBlock Text="暂无专项试卷" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" />
                             <TextBlock Text="点击上方工具栏的新建专项试卷开始创建" 
                                        FontSize="12" 
@@ -98,7 +98,7 @@
             <Border Margin="16" 
                     Visibility="{Binding SelectedSpecializedExam, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
                 <StackPanel VerticalAlignment="Center" Spacing="16">
-                    <SymbolIcon Symbol="Document" FontSize="48" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                    <FontIcon Glyph="&#xE8A5;" FontSize="48" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
                     <TextBlock HorizontalAlignment="Center" 
                                FontSize="24" 
                                FontWeight="SemiBold" 
