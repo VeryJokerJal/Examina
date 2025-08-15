@@ -44,6 +44,12 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     [Reactive] public OperationPoint? SelectedOperationPoint { get; set; }
 
+        /// <summary>
+        /// 当前选中的参数
+        /// </summary>
+        [Reactive] public ConfigurationParameter? SelectedParameter { get; set; }
+
+
     /// <summary>
     /// 当前内容视图模型
     /// </summary>
@@ -58,6 +64,41 @@ public class SpecializedExamViewModel : ViewModelBase
     /// 专项试卷数量
     /// </summary>
     [Reactive] public int SpecializedExamCount { get; set; }
+
+        /// <summary>
+        /// 操作点参数类型枚举备选
+        /// </summary>
+        public IReadOnlyList<ParameterType> ParameterTypes { get; } = new List<ParameterType>
+        {
+            ParameterType.Text, ParameterType.Number, ParameterType.Boolean,
+            ParameterType.Enum, ParameterType.Color, ParameterType.File, ParameterType.MultipleChoice
+        };
+
+
+        /// <summary>
+        /// Windows知识点枚举备选
+        /// </summary>
+        public IReadOnlyList<WindowsKnowledgeType> WindowsKnowledgeTypes { get; } =
+            Enum.GetValues(typeof(WindowsKnowledgeType)).Cast<WindowsKnowledgeType>().ToList();
+
+        /// <summary>
+        /// PowerPoint知识点枚举备选
+        /// </summary>
+        public IReadOnlyList<PowerPointKnowledgeType> PowerPointKnowledgeTypes { get; } =
+            Enum.GetValues(typeof(PowerPointKnowledgeType)).Cast<PowerPointKnowledgeType>().ToList();
+
+        /// <summary>
+        /// Word知识点枚举备选
+        /// </summary>
+        public IReadOnlyList<WordKnowledgeType> WordKnowledgeTypes { get; } =
+            Enum.GetValues(typeof(WordKnowledgeType)).Cast<WordKnowledgeType>().ToList();
+
+        /// <summary>
+        /// Excel知识点枚举备选
+        /// </summary>
+        public IReadOnlyList<ExcelKnowledgeType> ExcelKnowledgeTypes { get; } =
+            Enum.GetValues(typeof(ExcelKnowledgeType)).Cast<ExcelKnowledgeType>().ToList();
+
 
     /// <summary>
     /// 是否有未保存的更改
@@ -117,6 +158,17 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 删除操作点命令
     /// </summary>
+
+        /// <summary>
+        /// 为当前操作点添加参数命令
+        /// </summary>
+        public ReactiveCommand<Unit, Unit> AddParameterCommand { get; }
+
+        /// <summary>
+        /// 删除参数命令
+        /// </summary>
+        public ReactiveCommand<ConfigurationParameter, Unit> DeleteParameterCommand { get; }
+
     public ReactiveCommand<OperationPoint, Unit> DeleteOperationPointCommand { get; }
 
     /// <summary>
@@ -169,6 +221,8 @@ public class SpecializedExamViewModel : ViewModelBase
         AddOperationPointCommand = ReactiveCommand.CreateFromTask(AddOperationPointAsync);
         DeleteOperationPointCommand = ReactiveCommand.CreateFromTask<OperationPoint>(DeleteOperationPointAsync);
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
+        AddParameterCommand = ReactiveCommand.Create(AddParameter);
+        DeleteParameterCommand = ReactiveCommand.CreateFromTask<ConfigurationParameter>(DeleteParameterAsync);
 
         // 监听选中试卷变化
         this.WhenAnyValue(x => x.SelectedSpecializedExam)
@@ -541,7 +595,9 @@ public class SpecializedExamViewModel : ViewModelBase
             Description = "请输入操作点描述",
             Order = SelectedQuestion.OperationPoints.Count + 1,
             IsEnabled = true,
-            Score = 1
+            Score = 1,
+            ModuleType = SelectedModule?.Type ?? ModuleType.Windows,
+            ScoringQuestionId = SelectedQuestion.Id
         };
 
         SelectedQuestion.OperationPoints.Add(newOperationPoint);
@@ -718,6 +774,54 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             await NotificationService.ShowErrorAsync("保存失败", $"保存专项试卷时发生错误：{ex.Message}");
         }
+
+        /// <summary>
+        /// 为当前选中的操作点添加一个示例参数
+        /// </summary>
+        private void AddParameter()
+        {
+            if (SelectedOperationPoint == null)
+            {
+                return;
+            }
+
+            ConfigurationParameter param = new()
+            {
+                Id = IdGeneratorService.GenerateParameterId(),
+                Name = "Param",
+                DisplayName = "参数",
+                Description = "请输入参数",
+                Type = ParameterType.Text,
+                IsRequired = false,
+                Order = SelectedOperationPoint.Parameters.Count + 1
+            };
+            SelectedOperationPoint.Parameters.Add(param);
+            SelectedParameter = param;
+        }
+
+        /// <summary>
+        /// 删除指定参数
+        /// </summary>
+        private async Task DeleteParameterAsync(ConfigurationParameter parameter)
+        {
+            if (SelectedOperationPoint == null || parameter == null)
+            {
+                return;
+            }
+
+            bool confirmed = await NotificationService.ShowConfirmationAsync("确认删除", $"确定要删除参数\"{parameter.DisplayName}\"吗？");
+            if (!confirmed)
+            {
+                return;
+            }
+
+            SelectedOperationPoint.Parameters.Remove(parameter);
+            if (SelectedParameter == parameter)
+            {
+                SelectedParameter = null;
+            }
+        }
+
     }
 
     /// <summary>
