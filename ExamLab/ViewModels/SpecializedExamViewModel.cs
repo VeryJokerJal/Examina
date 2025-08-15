@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ExamLab.Models;
+using ExamLab.Models.ImportExport;
 using ExamLab.Services;
 using ExamLab.Views;
 using Microsoft.UI.Xaml.Controls;
@@ -16,11 +17,17 @@ namespace ExamLab.ViewModels;
 
 /// <summary>
 /// 专项试卷制作页面的ViewModel
+///
+/// 设计说明：
+/// - 专项试卷复用Exam类型，通过ExamType.Specialized进行区分
+/// - 专项试卷通常只包含一个特定类型的模块（如Excel、Word等）
+/// - 所有导入导出功能与考试试卷保持一致，确保数据格式兼容性
+/// - 在创建、克隆、导入时自动设置ExamType为Specialized
 /// </summary>
 public class SpecializedExamViewModel : ViewModelBase
 {
     /// <summary>
-    /// 专项试卷列表
+    /// 专项试卷列表（使用Exam类型，通过ExamType.Specialized标识）
     /// </summary>
     public ObservableCollection<Exam> SpecializedExams { get; } = [];
 
@@ -242,6 +249,7 @@ public class SpecializedExamViewModel : ViewModelBase
             Id = IdGeneratorService.GenerateExamId(),
             Name = examName,
             Description = $"专门针对{moduleTypeName}的专项练习试卷",
+            ExamType = ExamType.Specialized, // 明确标识为专项试卷
             CreatedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
@@ -704,6 +712,7 @@ public class SpecializedExamViewModel : ViewModelBase
             Id = IdGeneratorService.GenerateExamId(),
             Name = cloneName,
             Description = original.Description,
+            ExamType = ExamType.Specialized, // 克隆的专项试卷保持专项类型
             CreatedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
@@ -765,7 +774,7 @@ public class SpecializedExamViewModel : ViewModelBase
             }
 
             // 2. 验证文件类型
-            List<string> supportedExtensions = new() { ".json", ".xml" };
+            List<string> supportedExtensions = [".json", ".xml"];
             if (!FilePickerService.IsValidFileType(file, supportedExtensions))
             {
                 await NotificationService.ShowErrorAsync("文件类型错误", "请选择JSON或XML格式的试卷文件");
@@ -816,6 +825,9 @@ public class SpecializedExamViewModel : ViewModelBase
 
             // 5. 转换为ExamLab模型
             Exam importedExam = ExamMappingService.FromExportDto(importDto);
+
+            // 5.1. 确保导入的试卷被标记为专项试卷类型
+            importedExam.ExamType = ExamType.Specialized;
 
             // 6. 数据验证
             ValidationResult validationResult = ValidationService.ValidateExam(importedExam);
@@ -879,7 +891,7 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 1. 选择导出级别
-            ExportLevel exportLevel = await ShowExportLevelSelectionAsync();
+            ExportLevel exportLevel = ShowExportLevelSelection();
 
             // 2. 数据验证
             ValidationResult validationResult = ValidationService.ValidateExam(exam);
@@ -959,7 +971,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 显示导出级别选择对话框
     /// </summary>
-    private async Task<ExportLevel> ShowExportLevelSelectionAsync()
+    private ExportLevel ShowExportLevelSelection()
     {
         // 暂时返回完整导出级别，后续可以添加对话框让用户选择
         return ExportLevel.Complete;
@@ -973,7 +985,7 @@ public class SpecializedExamViewModel : ViewModelBase
         return exportLevel switch
         {
             ExportLevel.Basic => "基础信息",
-            ExportLevel.Standard => "标准信息",
+            ExportLevel.WithoutAnswers => "标准信息",
             ExportLevel.Complete => "完整信息",
             _ => "未知级别"
         };

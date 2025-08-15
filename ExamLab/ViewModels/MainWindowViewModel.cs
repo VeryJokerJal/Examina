@@ -183,7 +183,7 @@ public class MainWindowViewModel : ViewModelBase
         DeleteExamCommand = ReactiveCommand.CreateFromTask<Exam>(DeleteExamAsync);
         CloneExamCommand = ReactiveCommand.CreateFromTask<Exam>(CloneExamAsync);
         SaveExamCommand = ReactiveCommand.CreateFromTask(SaveExamAsync);
-        SaveProjectCommand = ReactiveCommand.CreateFromTask(SaveProjectAsync, this.WhenAnyValue(x => x.IsExamTabSelected, x => x.IsSpecializedTabSelected, x => x.SelectedExam, x => x.SpecializedExamViewModel, (isExam, isSpecialized, selectedExam, specializedViewModel) => (isExam && selectedExam != null) || (isSpecialized && specializedViewModel?.SelectedSpecializedExam != null)));
+        SaveProjectCommand = ReactiveCommand.CreateFromTask(SaveProjectAsync);
         OpenProjectCommand = ReactiveCommand.CreateFromTask(OpenProjectAsync);
         ImportExamCommand = ReactiveCommand.CreateFromTask(ImportExamAsync);
         ExportExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportExamAsync);
@@ -234,6 +234,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             Name = $"新试卷 2025-08-10",
             Description = "新创建的试卷",
+            ExamType = ExamType.Regular, // 明确标识为考试试卷
             CreatedTime = "2025-08-10",
             LastModifiedTime = "2025-08-10"
         };
