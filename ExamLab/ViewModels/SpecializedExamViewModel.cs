@@ -85,6 +85,11 @@ public class SpecializedExamViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SaveSpecializedExamCommand { get; }
 
     /// <summary>
+    /// 导入专项试卷命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ImportExamCommand { get; }
+
+    /// <summary>
     /// 导出专项试卷命令
     /// </summary>
     public ReactiveCommand<Exam, Unit> ExportSpecializedExamCommand { get; }
@@ -154,13 +159,14 @@ public class SpecializedExamViewModel : ViewModelBase
         DeleteSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(DeleteSpecializedExamAsync);
         CloneSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(CloneSpecializedExamAsync);
         SaveSpecializedExamCommand = ReactiveCommand.CreateFromTask(SaveSpecializedExamAsync);
+        ImportExamCommand = ReactiveCommand.CreateFromTask(ImportSpecializedExamAsync);
         ExportSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportSpecializedExamAsync);
         SelectSpecializedExamCommand = ReactiveCommand.Create<Exam>(SelectSpecializedExam);
 
         // 题目管理命令
         AddQuestionCommand = ReactiveCommand.CreateFromTask(AddQuestionAsync);
         DeleteQuestionCommand = ReactiveCommand.CreateFromTask<Question>(DeleteQuestionAsync);
-        CopyQuestionCommand = ReactiveCommand.CreateFromTask<Question>(CopyQuestionAsync);
+        CopyQuestionCommand = ReactiveCommand.Create<Question>(CopyQuestion);
         SaveQuestionCommand = ReactiveCommand.CreateFromTask(SaveQuestionAsync);
         PreviewQuestionCommand = ReactiveCommand.CreateFromTask(PreviewQuestionAsync);
         ExportQuestionCommand = ReactiveCommand.CreateFromTask(ExportQuestionAsync);
@@ -171,11 +177,11 @@ public class SpecializedExamViewModel : ViewModelBase
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
 
         // 监听选中试卷变化
-        this.WhenAnyValue(x => x.SelectedSpecializedExam)
+        _ = this.WhenAnyValue(x => x.SelectedSpecializedExam)
             .Subscribe(OnSelectedSpecializedExamChanged);
 
         // 初始化数据
-        InitializeDataAsync();
+        _ = InitializeDataAsync();
     }
 
     /// <summary>
@@ -206,10 +212,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
                 // 更新计数
                 SpecializedExamCount = SpecializedExams.Count;
-
-                await NotificationService.ShowSuccessAsync(
-                    "创建成功",
-                    $"已创建{GetModuleTypeName(selectedType)}专项试卷：{specializedExam.Name}");
             }
         }
         catch (Exception ex)
@@ -364,7 +366,7 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 加载专项试卷数据
-            List<Exam> savedExams = await LoadSpecializedExamsFromStorageAsync();
+            List<Exam> savedExams = LoadSpecializedExamsFromStorage();
 
             foreach (Exam exam in savedExams)
             {
@@ -387,7 +389,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 从存储加载专项试卷
     /// </summary>
-    private async Task<List<Exam>> LoadSpecializedExamsFromStorageAsync()
+    private List<Exam> LoadSpecializedExamsFromStorage()
     {
         // 这里可以使用专门的存储键来区分专项试卷和普通试卷
         // 暂时返回空列表，后续可以扩展
@@ -427,8 +429,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
         SelectedModule.Questions.Add(newQuestion);
         SelectedQuestion = newQuestion;
-
-        await NotificationService.ShowSuccessAsync("成功", $"已添加题目：{questionTitle}");
     }
 
     /// <summary>
@@ -450,7 +450,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        SelectedModule.Questions.Remove(question);
+        _ = SelectedModule.Questions.Remove(question);
 
         if (SelectedQuestion == question)
         {
@@ -462,14 +462,12 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             SelectedModule.Questions[i].Order = i + 1;
         }
-
-        await NotificationService.ShowSuccessAsync("成功", "题目已删除");
     }
 
     /// <summary>
     /// 复制题目
     /// </summary>
-    private async Task CopyQuestionAsync(Question question)
+    private void CopyQuestion(Question question)
     {
         if (SelectedModule == null || question == null)
         {
@@ -501,8 +499,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
         SelectedModule.Questions.Add(copiedQuestion);
         SelectedQuestion = copiedQuestion;
-
-        await NotificationService.ShowSuccessAsync("成功", $"已复制题目：{question.Title}");
     }
 
     /// <summary>
@@ -586,8 +582,6 @@ public class SpecializedExamViewModel : ViewModelBase
 
         SelectedQuestion.OperationPoints.Add(newOperationPoint);
         SelectedOperationPoint = newOperationPoint;
-
-        await NotificationService.ShowSuccessAsync("成功", $"已添加操作点：{operationPointTitle}");
     }
 
     /// <summary>
@@ -609,7 +603,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        SelectedQuestion.OperationPoints.Remove(operationPoint);
+        _ = SelectedQuestion.OperationPoints.Remove(operationPoint);
 
         if (SelectedOperationPoint == operationPoint)
         {
@@ -621,8 +615,6 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             SelectedQuestion.OperationPoints[i].Order = i + 1;
         }
-
-        await NotificationService.ShowSuccessAsync("成功", "操作点已删除");
     }
 
     /// <summary>
@@ -660,15 +652,13 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         try
         {
-            SpecializedExams.Remove(exam);
+            _ = SpecializedExams.Remove(exam);
             SpecializedExamCount = SpecializedExams.Count;
 
             if (SelectedSpecializedExam == exam)
             {
                 SelectedSpecializedExam = SpecializedExams.FirstOrDefault();
             }
-
-            await NotificationService.ShowSuccessAsync("删除成功", $"已删除专项试卷：{exam.Name}");
         }
         catch (Exception ex)
         {
@@ -688,8 +678,6 @@ public class SpecializedExamViewModel : ViewModelBase
             SpecializedExams.Add(clonedExam);
             SelectedSpecializedExam = clonedExam;
             SpecializedExamCount = SpecializedExams.Count;
-
-            await NotificationService.ShowSuccessAsync("克隆成功", $"已克隆专项试卷：{clonedExam.Name}");
         }
         catch (Exception ex)
         {
@@ -761,18 +749,233 @@ public class SpecializedExamViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 导入专项试卷
+    /// </summary>
+    private async Task ImportSpecializedExamAsync()
+    {
+        try
+        {
+            // 1. 选择要导入的文件
+            Windows.Storage.StorageFile? file = await FilePickerService.PickExamFileForImportAsync();
+
+            if (file == null)
+            {
+                // 用户取消了导入操作
+                return;
+            }
+
+            // 2. 验证文件类型
+            List<string> supportedExtensions = new() { ".json", ".xml" };
+            if (!FilePickerService.IsValidFileType(file, supportedExtensions))
+            {
+                await NotificationService.ShowErrorAsync("文件类型错误", "请选择JSON或XML格式的试卷文件");
+                return;
+            }
+
+            // 3. 读取文件内容
+            string fileContent = await Windows.Storage.FileIO.ReadTextAsync(file);
+
+            if (string.IsNullOrWhiteSpace(fileContent))
+            {
+                await NotificationService.ShowErrorAsync("文件内容错误", "选择的文件为空或无法读取");
+                return;
+            }
+
+            // 4. 解析文件内容
+            Models.ImportExport.ExamExportDto? importDto = null;
+            try
+            {
+                if (file.FileType.ToLowerInvariant() == ".json")
+                {
+                    // JSON反序列化
+                    System.Text.Json.JsonSerializerOptions jsonOptions = new()
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                    };
+                    jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
+                    importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+                }
+                else if (file.FileType.ToLowerInvariant() == ".xml")
+                {
+                    // XML反序列化
+                    importDto = Services.XmlSerializationService.DeserializeFromXml(fileContent);
+                }
+            }
+            catch (Exception parseEx)
+            {
+                await NotificationService.ShowErrorAsync("文件解析错误", $"无法解析文件内容：{parseEx.Message}");
+                return;
+            }
+
+            if (importDto?.Exam == null)
+            {
+                await NotificationService.ShowErrorAsync("数据格式错误", "文件中没有找到有效的试卷数据");
+                return;
+            }
+
+            // 5. 转换为ExamLab模型
+            Exam importedExam = ExamMappingService.FromExportDto(importDto);
+
+            // 6. 数据验证
+            ValidationResult validationResult = ValidationService.ValidateExam(importedExam);
+            if (!validationResult.IsValid)
+            {
+                bool continueWithErrors = await NotificationService.ShowConfirmationAsync(
+                    "数据验证警告",
+                    $"导入的专项试卷数据存在以下问题：\n{validationResult.GetErrorMessage()}\n\n是否继续导入？");
+
+                if (!continueWithErrors)
+                {
+                    return;
+                }
+            }
+
+            // 7. 检查重名并处理
+            string originalName = importedExam.Name;
+            int counter = 1;
+            while (SpecializedExams.Any(e => e.Name == importedExam.Name))
+            {
+                importedExam.Name = $"{originalName} (导入{counter})";
+                counter++;
+            }
+
+            // 8. 添加到专项试卷列表
+            SpecializedExams.Add(importedExam);
+            SelectedSpecializedExam = importedExam;
+
+            // 9. 保存到本地存储
+            await SaveSpecializedExamToStorageAsync(importedExam);
+
+            // 10. 更新计数
+            SpecializedExamCount = SpecializedExams.Count;
+
+            // 11. 显示成功消息
+            string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
+            string summaryInfo = $"专项试卷名称：{importedExam.Name}\n" +
+                               $"模块数量：{importedExam.Modules.Count}\n" +
+                               $"题目总数：{importedExam.Modules.Sum(m => m.Questions.Count)}\n" +
+                               $"文件大小：{fileSize}";
+
+            await NotificationService.ShowSuccessAsync("导入成功", summaryInfo);
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("导入失败", $"导入专项试卷时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// 导出专项试卷
     /// </summary>
     private async Task ExportSpecializedExamAsync(Exam exam)
     {
+        if (exam == null)
+        {
+            await NotificationService.ShowErrorAsync("错误", "没有选择要导出的专项试卷");
+            return;
+        }
+
         try
         {
-            // 这里可以复用MainWindowViewModel的导出逻辑
-            await NotificationService.ShowSuccessAsync("导出功能", "专项试卷导出功能正在开发中...");
+            // 1. 选择导出级别
+            ExportLevel exportLevel = await ShowExportLevelSelectionAsync();
+
+            // 2. 数据验证
+            ValidationResult validationResult = ValidationService.ValidateExam(exam);
+            if (!validationResult.IsValid)
+            {
+                bool continueWithErrors = await NotificationService.ShowConfirmationAsync(
+                    "数据验证警告",
+                    $"专项试卷数据存在以下问题：\n{validationResult.GetErrorMessage()}\n\n是否继续导出？");
+
+                if (!continueWithErrors)
+                {
+                    return;
+                }
+            }
+
+            // 3. 选择保存位置
+            Windows.Storage.StorageFile? file = await FilePickerService.PickExamFileForExportAsync(exam.Name);
+
+            if (file == null)
+            {
+                // 用户取消了导出操作
+                return;
+            }
+
+            // 4. 转换为导出格式
+            ExamExportDto exportDto = ExamMappingService.ToExportDto(exam, exportLevel);
+
+            // 5. 根据文件扩展名选择序列化格式
+            string fileContent;
+
+            if (file.FileType.ToLowerInvariant() == ".json")
+            {
+                // JSON序列化
+                System.Text.Json.JsonSerializerOptions jsonOptions = new()
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                };
+
+                // 添加自定义转换器
+                jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
+
+                fileContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
+            }
+            else if (file.FileType.ToLowerInvariant() == ".xml")
+            {
+                // XML序列化
+                fileContent = Services.XmlSerializationService.SerializeToXml(exportDto);
+            }
+            else
+            {
+                await NotificationService.ShowErrorAsync("文件类型错误", "不支持的文件类型，请选择JSON或XML格式");
+                return;
+            }
+
+            // 6. 写入文件
+            await Windows.Storage.FileIO.WriteTextAsync(file, fileContent);
+
+            // 7. 显示成功消息
+            string fileSize = await FilePickerService.GetFileSizeStringAsync(file);
+            string exportInfo = $"专项试卷名称：{exam.Name}\n" +
+                              $"导出级别：{GetExportLevelDisplayName(exportLevel)}\n" +
+                              $"模块数量：{exam.Modules.Count}\n" +
+                              $"题目总数：{exam.Modules.Sum(m => m.Questions.Count)}\n" +
+                              $"保存位置：{file.Path}\n" +
+                              $"文件大小：{fileSize}";
+
+            await NotificationService.ShowSuccessAsync("导出成功", exportInfo);
         }
         catch (Exception ex)
         {
             await NotificationService.ShowErrorAsync("导出失败", $"导出专项试卷时发生错误：{ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 显示导出级别选择对话框
+    /// </summary>
+    private async Task<ExportLevel> ShowExportLevelSelectionAsync()
+    {
+        // 暂时返回完整导出级别，后续可以添加对话框让用户选择
+        return ExportLevel.Complete;
+    }
+
+    /// <summary>
+    /// 获取导出级别的显示名称
+    /// </summary>
+    private static string GetExportLevelDisplayName(ExportLevel exportLevel)
+    {
+        return exportLevel switch
+        {
+            ExportLevel.Basic => "基础信息",
+            ExportLevel.Standard => "标准信息",
+            ExportLevel.Complete => "完整信息",
+            _ => "未知级别"
+        };
     }
 }
