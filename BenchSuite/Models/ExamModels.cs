@@ -569,3 +569,64 @@ public enum ParameterType
     MultipleChoice,  // 多选
     Date
 }
+
+/// <summary>
+/// Excel知识点类型枚举
+/// </summary>
+public enum ExcelKnowledgeType
+{
+    // 第一类：Excel基础操作（操作点1-42）
+    FillOrCopyCellContent = 1,           // 操作点1：填充或复制单元格内容
+    MergeCells = 4,                      // 操作点4：合并单元格
+    SetCellFont = 6,                     // 操作点6：设置指定单元格字体
+    SetInnerBorderStyle = 10,            // 操作点10：内边框样式
+    SetInnerBorderColor = 11,            // 操作点11：内边框颜色
+    SetHorizontalAlignment = 13,         // 操作点13：设置单元格区域水平对齐方式
+    UseFunction = 15,                    // 操作点15：使用函数
+    SetRowHeight = 16,                   // 操作点16：设置行高
+    SetColumnWidth = 17,                 // 操作点17：设置列宽
+    SetCellFillColor = 20,               // 操作点20：设置单元格填充颜色
+    SetVerticalAlignment = 26,           // 操作点26：设置垂直对齐方式
+    ModifySheetName = 28,                // 操作点28：修改sheet表名称
+    SetFontStyle = 29,                   // 操作点29：设置字型
+    SetFontSize = 30,                    // 操作点30：设置字号
+    SetFontColor = 31,                   // 操作点31：字体颜色
+    SetNumberFormat = 32,                // 操作点32：设置目标区域单元格数字分类格式
+    SetPatternFillStyle = 36,            // 操作点36：设置图案填充样式
+    SetPatternFillColor = 37,            // 操作点37：设置填充图案颜色
+    SetOuterBorderStyle = 38,            // 操作点38：设置外边框样式
+    SetOuterBorderColor = 39,            // 操作点39：设置外边框颜色
+    AddUnderline = 40,                   // 操作点40：添加下划线
+    ConditionalFormat = 41,              // 操作点41：条件格式
+    SetCellStyleData = 42,               // 操作点42：设置单元格样式——数据
+
+    // 第二类：数据清单操作（操作点31-35）
+    Filter = 31,                         // 操作点31：筛选
+    Sort = 32,                           // 操作点32：排序
+    Subtotal = 33,                       // 操作点33：分类汇总
+    AdvancedFilterCondition = 34,        // 操作点34：高级筛选-条件
+    AdvancedFilterData = 35,             // 操作点35：高级筛选-数据
+    PivotTable = 71,                     // 操作点71：数据透视表
+
+    // 第三类：图表操作（操作点101-122）
+    ChartType = 101,                     // 操作点101：图表类型
+    ChartStyle = 102,                    // 操作点102：图表样式
+    ChartMove = 103,                     // 操作点103：图表移动
+    CategoryAxisDataRange = 104,         // 操作点104：分类轴数据区域
+    ValueAxisDataRange = 105,            // 操作点105：数值轴数据区域
+    ChartTitle = 107,                    // 操作点107：图表标题
+    ChartTitleFormat = 108,              // 操作点108：图表标题格式
+    HorizontalAxisTitle = 109,           // 操作点109：主要横坐标轴标题
+    HorizontalAxisTitleFormat = 110,     // 操作点110：主要横坐标轴标题格式
+    LegendPosition = 122,                // 操作点122：设置图例位置
+    LegendFormat = 123,                  // 操作点123：设置图例格式
+    VerticalAxisOptions = 124,           // 操作点124：设置主要纵坐标轴选项
+    MajorHorizontalGridlines = 125,      // 操作点125：设置网格线——主要横网格线
+    MinorHorizontalGridlines = 126,      // 操作点126：设置网格线——次要横网格线
+    MajorVerticalGridlines = 127,        // 操作点127：主要纵网格线
+    MinorVerticalGridlines = 128,        // 操作点128：次要纵网格线
+    DataLabels = 129,                    // 操作点129：数据标签
+    DataLabelPosition = 130,             // 操作点130：数据标签位置
+    SeriesFormat = 131,                  // 操作点131：系列格式
+    PlotAreaBorder = 132                 // 操作点132：绘图区边框
+}
