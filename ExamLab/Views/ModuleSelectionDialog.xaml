@@ -1,0 +1,77 @@
+<ContentDialog x:Class="ExamLab.Views.ModuleSelectionDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               Title="选择模块类型"
+               PrimaryButtonText="确定"
+               SecondaryButtonText="取消"
+               DefaultButton="Primary">
+
+    <Grid Width="400" Height="300">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,16" Spacing="8">
+            <TextBlock Text="选择专项试卷的模块类型" 
+                       FontSize="16" 
+                       FontWeight="SemiBold" />
+            <TextBlock Text="专项试卷只包含一个模块，请选择您要创建的模块类型。" 
+                       FontSize="14" 
+                       Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <ListView Grid.Row="1"
+                  x:Name="ModuleTypeListView"
+                  SelectionMode="Single">
+            <ListView.Items>
+                <ListViewItem Tag="Windows">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <SymbolIcon Symbol="Folder" />
+                        <StackPanel>
+                            <TextBlock Text="Windows操作" FontWeight="SemiBold" />
+                            <TextBlock Text="Windows文件和文件夹操作模块" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ListViewItem>
+                <ListViewItem Tag="CSharp">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <SymbolIcon Symbol="Library" />
+                        <StackPanel>
+                            <TextBlock Text="C#编程" FontWeight="SemiBold" />
+                            <TextBlock Text="C#程序设计模块" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ListViewItem>
+                <ListViewItem Tag="PowerPoint">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <SymbolIcon Symbol="SlideShow" />
+                        <StackPanel>
+                            <TextBlock Text="PowerPoint操作" FontWeight="SemiBold" />
+                            <TextBlock Text="PowerPoint幻灯片操作模块" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ListViewItem>
+                <ListViewItem Tag="Excel">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <SymbolIcon Symbol="Calculator" />
+                        <StackPanel>
+                            <TextBlock Text="Excel操作" FontWeight="SemiBold" />
+                            <TextBlock Text="Excel电子表格操作模块" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ListViewItem>
+                <ListViewItem Tag="Word">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <SymbolIcon Symbol="Document" />
+                        <StackPanel>
+                            <TextBlock Text="Word操作" FontWeight="SemiBold" />
+                            <TextBlock Text="Word文档编辑模块" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ListViewItem>
+            </ListView.Items>
+        </ListView>
+    </Grid>
+</ContentDialog>

@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Services;
-// using ExamLab.Views; // 暂时注释掉，等XAML文件创建后再启用
+using ExamLab.Views;
 using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -111,20 +111,17 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         try
         {
-            // TODO: 显示模块类型选择对话框
-            // ModuleTypeSelectionDialog dialog = new()
-            // {
-            //     XamlRoot = XamlRootService.GetXamlRoot()
-            // };
+            // 显示模块类型选择对话框
+            ModuleSelectionDialog dialog = new()
+            {
+                XamlRoot = XamlRootService.GetXamlRoot()
+            };
 
-            // ContentDialogResult result = await dialog.ShowAsync();
+            ContentDialogResult result = await dialog.ShowAsync();
 
-            // if (result == ContentDialogResult.Primary && dialog.SelectedModuleType.HasValue)
-            // {
-            //     ModuleType selectedType = dialog.SelectedModuleType.Value;
-
-            // 暂时硬编码为Windows类型，等对话框创建后再修改
-            ModuleType selectedType = ModuleType.Windows;
+            if (result == ContentDialogResult.Primary && dialog.SelectedModuleType.HasValue)
+            {
+                ModuleType selectedType = dialog.SelectedModuleType.Value;
 
                 // 创建专项试卷
                 Exam specializedExam = CreateSpecializedExam(selectedType);
@@ -142,7 +139,7 @@ public class SpecializedExamViewModel : ViewModelBase
                 await NotificationService.ShowSuccessAsync(
                     "创建成功",
                     $"已创建{GetModuleTypeName(selectedType)}专项试卷：{specializedExam.Name}");
-            // }
+            }
         }
         catch (Exception ex)
         {
