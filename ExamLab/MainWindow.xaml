@@ -55,17 +55,8 @@
                         <!--  打开项目按钮（始终显示）  -->
                         <Button Command="{Binding OpenProjectCommand}" Content="打开项目" />
 
-                        <!--  保存项目按钮（考试试卷）  -->
-                        <Button Command="{Binding SaveExamCommand}"
-                                Content="保存项目"
-                                IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}"
-                                Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                        <!--  保存项目按钮（专项试卷）  -->
-                        <Button Command="{Binding SpecializedExamViewModel.SaveSpecializedExamCommand}"
-                                Content="保存项目"
-                                IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}"
-                                Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <!--  统一保存项目按钮（始终显示）  -->
+                        <Button Command="{Binding SaveProjectCommand}" Content="保存项目" />
                     </StackPanel>
 
                     <!--  分隔线  -->

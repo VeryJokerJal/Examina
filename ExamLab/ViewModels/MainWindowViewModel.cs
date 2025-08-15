@@ -126,6 +126,11 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SaveExamCommand { get; }
 
     /// <summary>
+    /// 统一保存项目命令 - 根据当前标签页智能调用相应的保存方法
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SaveProjectCommand { get; }
+
+    /// <summary>
     /// 打开项目命令 - 从ExamLab项目文件打开试卷
     /// </summary>
     public ReactiveCommand<Unit, Unit> OpenProjectCommand { get; }
@@ -178,6 +183,7 @@ public class MainWindowViewModel : ViewModelBase
         DeleteExamCommand = ReactiveCommand.CreateFromTask<Exam>(DeleteExamAsync);
         CloneExamCommand = ReactiveCommand.CreateFromTask<Exam>(CloneExamAsync);
         SaveExamCommand = ReactiveCommand.CreateFromTask(SaveExamAsync);
+        SaveProjectCommand = ReactiveCommand.CreateFromTask(SaveProjectAsync, this.WhenAnyValue(x => x.IsExamTabSelected, x => x.IsSpecializedTabSelected, x => x.SelectedExam, x => x.SpecializedExamViewModel, (isExam, isSpecialized, selectedExam, specializedViewModel) => (isExam && selectedExam != null) || (isSpecialized && specializedViewModel?.SelectedSpecializedExam != null)));
         OpenProjectCommand = ReactiveCommand.CreateFromTask(OpenProjectAsync);
         ImportExamCommand = ReactiveCommand.CreateFromTask(ImportExamAsync);
         ExportExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportExamAsync);
@@ -463,6 +469,34 @@ public class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             await NotificationService.ShowErrorAsync("项目保存失败", $"保存ExamLab项目时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 统一保存项目方法 - 根据当前标签页智能调用相应的保存方法
+    /// </summary>
+    private async Task SaveProjectAsync()
+    {
+        try
+        {
+            if (IsExamTabSelected)
+            {
+                // 当前在考试试卷标签页，调用考试试卷保存逻辑
+                await SaveExamAsync();
+            }
+            else if (IsSpecializedTabSelected && SpecializedExamViewModel != null)
+            {
+                // 当前在专项试卷标签页，调用专项试卷保存逻辑
+                await SpecializedExamViewModel.SaveSpecializedExamCommand.Execute();
+            }
+            else
+            {
+                await NotificationService.ShowErrorAsync("错误", "无法确定当前要保存的项目类型");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("保存失败", $"保存项目时发生错误：{ex.Message}");
         }
     }
 
