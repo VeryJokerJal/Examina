@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Services.ImportedExam;
 using ExaminaWebApplication.Models.ImportedExam;
@@ -13,16 +12,13 @@ namespace ExaminaWebApplication.Controllers;
 public class ExamManagementController : Controller
 {
     private readonly ExamImportService _examImportService;
-    private readonly UserManager<IdentityUser> _userManager;
     private readonly ILogger<ExamManagementController> _logger;
 
     public ExamManagementController(
         ExamImportService examImportService,
-        UserManager<IdentityUser> userManager,
         ILogger<ExamManagementController> logger)
     {
         _examImportService = examImportService;
-        _userManager = userManager;
         _logger = logger;
     }
 
