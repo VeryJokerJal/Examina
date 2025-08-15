@@ -309,11 +309,51 @@ public class SpecializedExamViewModel : ViewModelBase
         if (exam?.Modules.Count > 0)
         {
             SelectedModule = exam.Modules.First();
+
+            // 根据模块类型创建对应的ViewModel和View
+            CreateModuleContentViewAndViewModel(SelectedModule);
         }
         else
         {
             SelectedModule = null;
+            CurrentContentViewModel = null;
+            CurrentContentView = null;
         }
+    }
+
+    /// <summary>
+    /// 根据模块类型创建对应的ViewModel和View
+    /// </summary>
+    private void CreateModuleContentViewAndViewModel(ExamModule? module)
+    {
+        if (module == null)
+        {
+            CurrentContentViewModel = null;
+            CurrentContentView = null;
+            return;
+        }
+
+        // 根据模块类型创建对应的ViewModel
+        CurrentContentViewModel = module.Type switch
+        {
+            ModuleType.Windows => new WindowsModuleViewModel(module),
+            ModuleType.CSharp => new CSharpModuleViewModel(module, _mainWindowViewModel),
+            ModuleType.PowerPoint => new PowerPointModuleViewModel(module),
+            ModuleType.Excel => new ExcelModuleViewModel(module),
+            ModuleType.Word => new WordModuleViewModel(module),
+            _ => null
+        };
+
+        // 创建对应的View，设置适当的DataContext
+        CurrentContentView = CurrentContentViewModel switch
+        {
+            WindowsModuleViewModel => new Views.WindowsModuleView { DataContext = this },
+            CSharpModuleViewModel csharpVM => new Views.CSharpModuleView(csharpVM) { MainWindowViewModel = _mainWindowViewModel },
+            PowerPointModuleViewModel => new Views.PowerPointModuleView { DataContext = this },
+            ExcelModuleViewModel => new Views.ExcelModuleView { DataContext = this },
+            WordModuleViewModel => new Views.WordModuleView { DataContext = this },
+            _ => null
+        };
     }
 
     /// <summary>
