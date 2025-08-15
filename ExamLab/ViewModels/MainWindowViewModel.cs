@@ -234,7 +234,6 @@ public class MainWindowViewModel : ViewModelBase
         {
             Name = $"新试卷 2025-08-10",
             Description = "新创建的试卷",
-            ExamType = ExamType.Regular, // 明确标识为考试试卷
             CreatedTime = "2025-08-10",
             LastModifiedTime = "2025-08-10"
         };

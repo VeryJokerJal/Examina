@@ -19,22 +19,22 @@ namespace ExamLab.ViewModels;
 /// 专项试卷制作页面的ViewModel
 ///
 /// 设计说明：
-/// - 专项试卷复用Exam类型，通过ExamType.Specialized进行区分
-/// - 专项试卷通常只包含一个特定类型的模块（如Excel、Word等）
-/// - 所有导入导出功能与考试试卷保持一致，确保数据格式兼容性
-/// - 在创建、克隆、导入时自动设置ExamType为Specialized
+/// - 使用独立的SpecializedExam模型，与考试试卷的Exam模型分离
+/// - 专项试卷专门针对单一模块类型的专项练习
+/// - 具有专项试卷特有的属性和行为，如ModuleType、DifficultyLevel等
+/// - 导入导出功能通过映射服务与通用格式兼容
 /// </summary>
 public class SpecializedExamViewModel : ViewModelBase
 {
     /// <summary>
-    /// 专项试卷列表（使用Exam类型，通过ExamType.Specialized标识）
+    /// 专项试卷列表
     /// </summary>
-    public ObservableCollection<Exam> SpecializedExams { get; } = [];
+    public ObservableCollection<SpecializedExam> SpecializedExams { get; } = [];
 
     /// <summary>
     /// 当前选中的专项试卷
     /// </summary>
-    [Reactive] public Exam? SelectedSpecializedExam { get; set; }
+    [Reactive] public SpecializedExam? SelectedSpecializedExam { get; set; }
 
     /// <summary>
     /// 当前选中的模块
@@ -79,12 +79,12 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 删除专项试卷命令
     /// </summary>
-    public ReactiveCommand<Exam, Unit> DeleteSpecializedExamCommand { get; }
+    public ReactiveCommand<SpecializedExam, Unit> DeleteSpecializedExamCommand { get; }
 
     /// <summary>
     /// 克隆专项试卷命令
     /// </summary>
-    public ReactiveCommand<Exam, Unit> CloneSpecializedExamCommand { get; }
+    public ReactiveCommand<SpecializedExam, Unit> CloneSpecializedExamCommand { get; }
 
     /// <summary>
     /// 保存专项试卷命令
@@ -99,12 +99,12 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 导出专项试卷命令
     /// </summary>
-    public ReactiveCommand<Exam, Unit> ExportSpecializedExamCommand { get; }
+    public ReactiveCommand<SpecializedExam, Unit> ExportSpecializedExamCommand { get; }
 
     /// <summary>
     /// 选择专项试卷命令
     /// </summary>
-    public ReactiveCommand<Exam, Unit> SelectSpecializedExamCommand { get; }
+    public ReactiveCommand<SpecializedExam, Unit> SelectSpecializedExamCommand { get; }
 
     /// <summary>
     /// 添加题目命令
@@ -163,12 +163,12 @@ public class SpecializedExamViewModel : ViewModelBase
 
         // 初始化命令
         CreateSpecializedExamCommand = ReactiveCommand.CreateFromTask(CreateSpecializedExamAsync);
-        DeleteSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(DeleteSpecializedExamAsync);
-        CloneSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(CloneSpecializedExamAsync);
+        DeleteSpecializedExamCommand = ReactiveCommand.CreateFromTask<SpecializedExam>(DeleteSpecializedExamAsync);
+        CloneSpecializedExamCommand = ReactiveCommand.CreateFromTask<SpecializedExam>(CloneSpecializedExamAsync);
         SaveSpecializedExamCommand = ReactiveCommand.CreateFromTask(SaveSpecializedExamAsync);
         ImportExamCommand = ReactiveCommand.CreateFromTask(ImportSpecializedExamAsync);
-        ExportSpecializedExamCommand = ReactiveCommand.CreateFromTask<Exam>(ExportSpecializedExamAsync);
-        SelectSpecializedExamCommand = ReactiveCommand.Create<Exam>(SelectSpecializedExam);
+        ExportSpecializedExamCommand = ReactiveCommand.CreateFromTask<SpecializedExam>(ExportSpecializedExamAsync);
+        SelectSpecializedExamCommand = ReactiveCommand.Create<SpecializedExam>(SelectSpecializedExam);
 
         // 题目管理命令
         AddQuestionCommand = ReactiveCommand.CreateFromTask(AddQuestionAsync);
@@ -208,7 +208,7 @@ public class SpecializedExamViewModel : ViewModelBase
                 ModuleType selectedType = dialog.SelectedModuleType.Value;
 
                 // 创建专项试卷
-                Exam specializedExam = CreateSpecializedExam(selectedType);
+                SpecializedExam specializedExam = CreateSpecializedExam(selectedType);
 
                 // 添加到列表
                 SpecializedExams.Add(specializedExam);
@@ -230,7 +230,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 创建专项试卷实例
     /// </summary>
-    private Exam CreateSpecializedExam(ModuleType moduleType)
+    private SpecializedExam CreateSpecializedExam(ModuleType moduleType)
     {
         string moduleTypeName = GetModuleTypeName(moduleType);
         string examName = $"{moduleTypeName}专项试卷";
@@ -244,29 +244,19 @@ public class SpecializedExamViewModel : ViewModelBase
             counter++;
         }
 
-        Exam exam = new()
+        SpecializedExam exam = new()
         {
             Id = IdGeneratorService.GenerateExamId(),
             Name = examName,
             Description = $"专门针对{moduleTypeName}的专项练习试卷",
-            ExamType = ExamType.Specialized, // 明确标识为专项试卷
+            ModuleType = moduleType,
             CreatedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
 
-        // 创建对应的模块
-        ExamModule module = new()
-        {
-            Id = IdGeneratorService.GenerateModuleId(),
-            Name = moduleTypeName,
-            Type = moduleType,
-            Description = GetDefaultModuleDescription(moduleType),
-            Score = 100,
-            Order = 1,
-            IsEnabled = true
-        };
+        // 创建默认模块
+        exam.CreateDefaultModule();
 
-        exam.Modules.Add(module);
         return exam;
     }
 
@@ -306,7 +296,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// 选择专项试卷
     /// </summary>
     /// <param name="exam">要选择的专项试卷</param>
-    private void SelectSpecializedExam(Exam exam)
+    private void SelectSpecializedExam(SpecializedExam exam)
     {
         SelectedSpecializedExam = exam;
     }
@@ -314,7 +304,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 选中专项试卷变化处理
     /// </summary>
-    private void OnSelectedSpecializedExamChanged(Exam? exam)
+    private void OnSelectedSpecializedExamChanged(SpecializedExam? exam)
     {
         if (exam?.Modules.Count > 0)
         {
@@ -374,9 +364,9 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 加载专项试卷数据
-            List<Exam> savedExams = LoadSpecializedExamsFromStorage();
+            List<SpecializedExam> savedExams = LoadSpecializedExamsFromStorage();
 
-            foreach (Exam exam in savedExams)
+            foreach (SpecializedExam exam in savedExams)
             {
                 SpecializedExams.Add(exam);
             }
@@ -397,7 +387,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 从存储加载专项试卷
     /// </summary>
-    private List<Exam> LoadSpecializedExamsFromStorage()
+    private List<SpecializedExam> LoadSpecializedExamsFromStorage()
     {
         // 这里可以使用专门的存储键来区分专项试卷和普通试卷
         // 暂时返回空列表，后续可以扩展
@@ -646,7 +636,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 保存专项试卷到存储
     /// </summary>
-    private async Task SaveSpecializedExamToStorageAsync(Exam exam)
+    private async Task SaveSpecializedExamToStorageAsync(SpecializedExam exam)
     {
         // 这里可以使用DataStorageService保存专项试卷
         // 暂时为空实现，后续可以扩展
