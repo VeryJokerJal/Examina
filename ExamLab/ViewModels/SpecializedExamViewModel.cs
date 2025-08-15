@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -189,11 +189,11 @@ public class SpecializedExamViewModel : ViewModelBase
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
 
         // 监听选中试卷变化
-        this.WhenAnyValue(x => x.SelectedSpecializedExam)
+        _ = this.WhenAnyValue(x => x.SelectedSpecializedExam)
             .Subscribe(OnSelectedSpecializedExamChanged);
 
         // 初始化数据
-        InitializeDataAsync();
+        _ = InitializeDataAsync();
     }
 
     /// <summary>
@@ -324,14 +324,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     private void OnSelectedSpecializedExamChanged(Exam? exam)
     {
-        if (exam?.Modules.Count > 0)
-        {
-            SelectedModule = exam.Modules.First();
-        }
-        else
-        {
-            SelectedModule = null;
-        }
+        SelectedModule = exam?.Modules.Count > 0 ? exam.Modules.First() : null;
     }
 
     /// <summary>
@@ -342,7 +335,7 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 加载专项试卷数据
-            List<Exam> savedExams = await LoadSpecializedExamsFromStorageAsync();
+            List<Exam> savedExams = LoadSpecializedExamsFromStorage();
 
             foreach (Exam exam in savedExams)
             {
@@ -365,7 +358,7 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 从存储加载专项试卷
     /// </summary>
-    private async Task<List<Exam>> LoadSpecializedExamsFromStorageAsync()
+    private List<Exam> LoadSpecializedExamsFromStorage()
     {
         // 这里可以使用专门的存储键来区分专项试卷和普通试卷
         // 暂时返回空列表，后续可以扩展
@@ -401,7 +394,7 @@ public class SpecializedExamViewModel : ViewModelBase
             QuestionConfigurationViewModel configViewModel = new(newQuestion, SelectedModule, true);
             QuestionConfigurationDialog configDialog = new(configViewModel);
 
-            var result = await configDialog.ShowAsync();
+            ContentDialogResult result = await configDialog.ShowAsync();
             if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
             {
                 SelectedQuestion = newQuestion;
@@ -431,11 +424,7 @@ public class SpecializedExamViewModel : ViewModelBase
             QuestionConfigurationViewModel configViewModel = new(question, SelectedModule, false);
             QuestionConfigurationDialog configDialog = new(configViewModel);
 
-            var result = await configDialog.ShowAsync();
-            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
-            {
-                await NotificationService.ShowSuccessAsync("编辑成功", $"题目"{question.Title}"已更新");
-            }
+            ContentDialogResult result = await configDialog.ShowAsync();
         }
         catch (Exception ex)
         {
@@ -462,7 +451,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        SelectedModule.Questions.Remove(question);
+        _ = SelectedModule.Questions.Remove(question);
 
         if (SelectedQuestion == question)
         {
@@ -568,12 +557,12 @@ public class SpecializedExamViewModel : ViewModelBase
 
         try
         {
-            List<Question> questionsToExport = new() { questionToExport };
+            List<Question> questionsToExport = [questionToExport];
             bool success = await QuestionImportExportService.ExportQuestionsAsync(questionsToExport, SelectedModule.Type);
 
             if (success)
             {
-                await NotificationService.ShowSuccessAsync("导出成功", $"题目"{questionToExport.Title}"已导出");
+                await NotificationService.ShowSuccessAsync("导出成功", $"题目\"{questionToExport.Title}\"已导出");
             }
         }
         catch (Exception ex)
@@ -701,7 +690,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        SelectedQuestion.OperationPoints.Remove(operationPoint);
+        _ = SelectedQuestion.OperationPoints.Remove(operationPoint);
 
         if (SelectedOperationPoint == operationPoint)
         {
@@ -752,7 +741,7 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         try
         {
-            SpecializedExams.Remove(exam);
+            _ = SpecializedExams.Remove(exam);
             SpecializedExamCount = SpecializedExams.Count;
 
             if (SelectedSpecializedExam == exam)

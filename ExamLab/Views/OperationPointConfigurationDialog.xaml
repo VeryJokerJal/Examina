@@ -66,7 +66,8 @@
                     <Border Background="{ThemeResource LayerFillColorDefaultBrush}" 
                             CornerRadius="4" 
                             Visibility="{Binding OperationPoint.Parameters.Count, Converter={StaticResource CountToVisibilityConverter}}">
-                        <ListView ItemsSource="{Binding OperationPoint.Parameters}" 
+                        <ListView x:Name="ParameterListView"
+                                  ItemsSource="{Binding OperationPoint.Parameters}"
                                   SelectedItem="{Binding SelectedParameter, Mode=TwoWay}"
                                   Background="Transparent"
                                   MaxHeight="300">
@@ -104,16 +105,16 @@
                                             </StackPanel>
                                         </StackPanel>
                                         
-                                        <Button Grid.Column="1" 
-                                                Content="编辑" 
-                                                Command="{Binding DataContext.EditParameterCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                        <Button Grid.Column="1"
+                                                Content="编辑"
+                                                Command="{Binding DataContext.EditParameterCommand, ElementName=ParameterListView}"
                                                 CommandParameter="{Binding}"
                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                 Margin="4,0" />
-                                        
-                                        <Button Grid.Column="2" 
-                                                Content="删除" 
-                                                Command="{Binding DataContext.DeleteParameterCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+
+                                        <Button Grid.Column="2"
+                                                Content="删除"
+                                                Command="{Binding DataContext.DeleteParameterCommand, ElementName=ParameterListView}"
                                                 CommandParameter="{Binding}"
                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                 Foreground="{ThemeResource SystemFillColorCriticalBrush}"

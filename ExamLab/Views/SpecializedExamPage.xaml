@@ -105,7 +105,7 @@
                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="题目列表" />
 
                                 <!--  题目列表内容  -->
-                                <ListView Background="Transparent" ItemsSource="{Binding SelectedModule.Questions}" SelectedItem="{Binding SelectedQuestion, Mode=TwoWay}" SelectionMode="Single">
+                                <ListView x:Name="QuestionListView" Background="Transparent" ItemsSource="{Binding SelectedModule.Questions}" SelectedItem="{Binding SelectedQuestion, Mode=TwoWay}" SelectionMode="Single">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
                                             <Border Padding="10" CornerRadius="6">
@@ -132,17 +132,17 @@
 
                                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
                                                         <Button Content="编辑"
-                                                                Command="{Binding DataContext.EditQuestionCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                                Command="{Binding DataContext.EditQuestionCommand, ElementName=QuestionListView}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                                 FontSize="12" />
                                                         <Button Content="导出"
-                                                                Command="{Binding DataContext.ExportQuestionCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                                Command="{Binding DataContext.ExportQuestionCommand, ElementName=QuestionListView}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                                 FontSize="12" />
                                                         <Button Content="删除"
-                                                                Command="{Binding DataContext.DeleteQuestionCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                                Command="{Binding DataContext.DeleteQuestionCommand, ElementName=QuestionListView}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                                 Foreground="{ThemeResource SystemFillColorCriticalBrush}"

@@ -109,7 +109,8 @@
                     <Border Background="{ThemeResource LayerFillColorDefaultBrush}" 
                             CornerRadius="4" 
                             Visibility="{Binding Question.OperationPoints.Count, Converter={StaticResource CountToVisibilityConverter}}">
-                        <ListView ItemsSource="{Binding Question.OperationPoints}" 
+                        <ListView x:Name="OperationPointListView"
+                                  ItemsSource="{Binding Question.OperationPoints}"
                                   SelectedItem="{Binding SelectedOperationPoint, Mode=TwoWay}"
                                   Background="Transparent"
                                   MaxHeight="200">
@@ -138,23 +139,23 @@
                                             </TextBlock>
                                         </StackPanel>
                                         
-                                        <Button Grid.Column="1" 
-                                                Content="编辑" 
-                                                Command="{Binding DataContext.EditOperationPointCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                        <Button Grid.Column="1"
+                                                Content="编辑"
+                                                Command="{Binding DataContext.EditOperationPointCommand, ElementName=OperationPointListView}"
                                                 CommandParameter="{Binding}"
                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                 Margin="4,0" />
-                                        
-                                        <Button Grid.Column="2" 
-                                                Content="配置" 
-                                                Command="{Binding DataContext.ConfigureOperationPointCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+
+                                        <Button Grid.Column="2"
+                                                Content="配置"
+                                                Command="{Binding DataContext.ConfigureOperationPointCommand, ElementName=OperationPointListView}"
                                                 CommandParameter="{Binding}"
                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                 Margin="4,0" />
-                                        
-                                        <Button Grid.Column="3" 
-                                                Content="删除" 
-                                                Command="{Binding DataContext.DeleteOperationPointCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+
+                                        <Button Grid.Column="3"
+                                                Content="删除"
+                                                Command="{Binding DataContext.DeleteOperationPointCommand, ElementName=OperationPointListView}"
                                                 CommandParameter="{Binding}"
                                                 Style="{ThemeResource DefaultButtonStyle}"
                                                 Foreground="{ThemeResource SystemFillColorCriticalBrush}"
