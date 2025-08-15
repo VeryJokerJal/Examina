@@ -16,28 +16,62 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  顶部工具栏  -->
-        <Border Grid.Row="0" Padding="16,8" Background="{ThemeResource CardBackgroundFillColorDefault}">
-            <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock VerticalAlignment="Center" FontSize="14" Text="试卷制作" />
-                <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●" ToolTipService.ToolTip="有未保存的更改" Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
-                <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
-                <Button Command="{Binding SaveExamCommand}" Content="保存" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
-                <Button Command="{Binding OpenProjectCommand}" Content="打开项目" />
-                <Button Command="{Binding ImportExamCommand}" Content="导入" />
-                <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
-            </StackPanel>
+        <!--  顶部导航和工具栏  -->
+        <Border Grid.Row="0" Background="{ThemeResource CardBackgroundFillColorDefault}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  导航选项卡  -->
+                <TabView Grid.Row="0" x:Name="MainTabView" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                         TabWidthMode="Equal" CanDragTabs="False" CanReorderTabs="False" IsAddTabButtonVisible="False">
+                    <TabView.TabItems>
+                        <TabViewItem Header="考试试卷" IconSource="Document" />
+                        <TabViewItem Header="专项试卷" IconSource="Target" />
+                    </TabView.TabItems>
+                </TabView>
+
+                <!--  工具栏  -->
+                <Border Grid.Row="1" Padding="16,8">
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding CurrentTabTitle}" />
+                        <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●"
+                                   ToolTipService.ToolTip="有未保存的更改"
+                                   Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                        <!-- 考试试卷工具栏 -->
+                        <StackPanel Orientation="Horizontal" Spacing="16" Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
+                            <Button Command="{Binding SaveExamCommand}" Content="保存" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
+                            <Button Command="{Binding OpenProjectCommand}" Content="打开项目" />
+                            <Button Command="{Binding ImportExamCommand}" Content="导入" />
+                            <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
+                        </StackPanel>
+
+                        <!-- 专项试卷工具栏 -->
+                        <StackPanel Orientation="Horizontal" Spacing="16" Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Button Command="{Binding SpecializedExamViewModel.CreateSpecializedExamCommand}" Content="新建专项试卷" />
+                            <Button Command="{Binding SpecializedExamViewModel.SaveSpecializedExamCommand}" Content="保存" IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}" />
+                            <Button Command="{Binding SpecializedExamViewModel.ExportSpecializedExamCommand}" CommandParameter="{Binding SpecializedExamViewModel.SelectedSpecializedExam}" Content="导出" IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Border>
 
         <!--  主内容区域  -->
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+            <!-- 考试试卷内容 -->
+            <Grid Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <!--  左侧导航面板  -->
-            <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                <!--  左侧导航面板  -->
+                <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -151,6 +185,11 @@
                 <!--  模块内容显示  -->
                 <ContentPresenter Content="{Binding CurrentContentView}" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}" />
             </Grid>
+            </Grid>
+
+            <!-- 专项试卷内容 -->
+            <ContentPresenter Grid.Row="0" Content="{Binding SpecializedExamPage}"
+                              Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
         </Grid>
     </Grid>
 </Window>

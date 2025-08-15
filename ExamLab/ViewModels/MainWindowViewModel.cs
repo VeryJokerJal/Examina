@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Models.ImportExport;
 using ExamLab.Services;
+using ExamLab.Views;
+using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
@@ -57,6 +59,36 @@ public class MainWindowViewModel : ViewModelBase
     /// 当前内容视图
     /// </summary>
     [Reactive] public Microsoft.UI.Xaml.Controls.UserControl? CurrentContentView { get; set; }
+
+    /// <summary>
+    /// 当前选中的选项卡索引
+    /// </summary>
+    [Reactive] public int SelectedTabIndex { get; set; } = 0;
+
+    /// <summary>
+    /// 是否选中考试试卷选项卡
+    /// </summary>
+    [Reactive] public bool IsExamTabSelected { get; set; } = true;
+
+    /// <summary>
+    /// 是否选中专项试卷选项卡
+    /// </summary>
+    [Reactive] public bool IsSpecializedTabSelected { get; set; } = false;
+
+    /// <summary>
+    /// 当前选项卡标题
+    /// </summary>
+    [Reactive] public string CurrentTabTitle { get; set; } = "考试试卷制作";
+
+    /// <summary>
+    /// 专项试卷ViewModel
+    /// </summary>
+    [Reactive] public SpecializedExamViewModel? SpecializedExamViewModel { get; set; }
+
+    /// <summary>
+    /// 专项试卷页面
+    /// </summary>
+    [Reactive] public UserControl? SpecializedExamPage { get; set; }
 
     /// <summary>
     /// 评分题目列表（过滤后的题目）
@@ -155,6 +187,9 @@ public class MainWindowViewModel : ViewModelBase
         SaveModuleDescriptionCommand = ReactiveCommand.CreateFromTask(SaveModuleDescriptionAsync);
         ResetModuleDescriptionCommand = ReactiveCommand.CreateFromTask(ResetModuleDescriptionAsync);
 
+        // 初始化导航
+        InitializeNavigation();
+
         // 初始化数据持久化
         InitializeDataPersistence();
 
@@ -172,6 +207,10 @@ public class MainWindowViewModel : ViewModelBase
                 UpdateScoringQuestions();
                 SelectModule(x);
             });
+
+        // 监听选项卡变化
+        _ = this.WhenAnyValue(x => x.SelectedTabIndex)
+            .Subscribe(OnTabIndexChanged);
     }
 
     private void CreateExam()
@@ -1079,6 +1118,56 @@ public class MainWindowViewModel : ViewModelBase
             // 恢复失败，清除记录
             Services.AppSettingsService.SetLastProjectPath(null);
             throw new Exception($"自动恢复项目失败：{ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// 初始化导航
+    /// </summary>
+    private void InitializeNavigation()
+    {
+        // 初始化专项试卷ViewModel和页面
+        SpecializedExamViewModel = new SpecializedExamViewModel(this);
+        SpecializedExamPage = new SpecializedExamPage(this);
+
+        // 设置初始状态
+        SelectedTabIndex = 0;
+        OnTabIndexChanged(0);
+    }
+
+    /// <summary>
+    /// 选项卡索引变化处理
+    /// </summary>
+    private void OnTabIndexChanged(int tabIndex)
+    {
+        IsExamTabSelected = tabIndex == 0;
+        IsSpecializedTabSelected = tabIndex == 1;
+
+        CurrentTabTitle = tabIndex switch
+        {
+            0 => "考试试卷制作",
+            1 => "专项试卷制作",
+            _ => "试卷制作"
+        };
+
+        // 更新HasUnsavedChanges属性
+        UpdateHasUnsavedChanges();
+    }
+
+    /// <summary>
+    /// 更新未保存更改状态
+    /// </summary>
+    private void UpdateHasUnsavedChanges()
+    {
+        if (IsExamTabSelected)
+        {
+            // 考试试卷的未保存状态逻辑保持不变
+            // HasUnsavedChanges 已经在现有代码中处理
+        }
+        else if (IsSpecializedTabSelected && SpecializedExamViewModel != null)
+        {
+            // 专项试卷的未保存状态
+            HasUnsavedChanges = SpecializedExamViewModel.HasUnsavedChanges;
         }
     }
 }

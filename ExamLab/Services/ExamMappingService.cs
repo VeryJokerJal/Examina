@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using ExamLab.Models;
@@ -19,7 +19,7 @@ public static class ExamMappingService
     /// <returns>导出DTO</returns>
     public static ExamExportDto ToExportDto(Exam exam, ExportLevel exportLevel = ExportLevel.Complete)
     {
-        var examDto = new ExamDto
+        ExamDto examDto = new()
         {
             Id = exam.Id,
             Name = exam.Name,
@@ -28,8 +28,8 @@ public static class ExamMappingService
             Status = "Draft", // ExamLab默认为草稿状态
             TotalScore = exam.TotalScore,
             DurationMinutes = exam.Duration,
-            CreatedAt = DateTime.TryParse(exam.CreatedTime, out var createdTime) ? createdTime : DateTime.UtcNow,
-            UpdatedAt = DateTime.TryParse(exam.LastModifiedTime, out var modifiedTime) ? modifiedTime : null,
+            CreatedAt = DateTime.TryParse(exam.CreatedTime, out DateTime createdTime) ? createdTime : DateTime.UtcNow,
+            UpdatedAt = DateTime.TryParse(exam.LastModifiedTime, out DateTime modifiedTime) ? modifiedTime : null,
             IsEnabled = true,
             Tags = string.Join(",", GetExamTags(exam)),
             Modules = exam.Modules.Select(ToModuleDto).ToList()
@@ -39,9 +39,9 @@ public static class ExamMappingService
         if (exportLevel == ExportLevel.Basic)
         {
             // 基本级别：清除详细配置信息
-            foreach (var module in examDto.Modules)
+            foreach (ModuleDto module in examDto.Modules)
             {
-                foreach (var question in module.Questions)
+                foreach (QuestionDto question in module.Questions)
                 {
                     question.QuestionConfig = null;
                     question.AnswerValidationRules = null;
@@ -54,9 +54,9 @@ public static class ExamMappingService
         else if (exportLevel == ExportLevel.WithoutAnswers)
         {
             // 不含答案级别：移除答案相关信息
-            foreach (var module in examDto.Modules)
+            foreach (ModuleDto module in examDto.Modules)
             {
-                foreach (var question in module.Questions)
+                foreach (QuestionDto question in module.Questions)
                 {
                     question.StandardAnswer = null;
                     question.ScoringRules = null;
@@ -64,7 +64,7 @@ public static class ExamMappingService
             }
         }
 
-        var metadata = new ExportMetadataDto
+        ExportMetadataDto metadata = new()
         {
             ExportDate = DateTime.UtcNow,
             ExportedBy = "ExamLab",
@@ -88,9 +88,9 @@ public static class ExamMappingService
     /// <returns>ExamLab试卷模型</returns>
     public static Exam FromExportDto(ExamExportDto exportDto)
     {
-        var examDto = exportDto.Exam;
-        
-        var exam = new Exam
+        ExamDto examDto = exportDto.Exam;
+
+        Exam exam = new()
         {
             Id = string.IsNullOrEmpty(examDto.Id) ? GenerateExamId() : examDto.Id,
             Name = examDto.Name,
@@ -102,7 +102,7 @@ public static class ExamMappingService
         };
 
         // 转换模块
-        foreach (var moduleDto in examDto.Modules)
+        foreach (ModuleDto moduleDto in examDto.Modules)
         {
             exam.Modules.Add(FromModuleDto(moduleDto));
         }
@@ -110,7 +110,7 @@ public static class ExamMappingService
         // 如果没有模块但有科目，则从科目转换为模块
         if (exam.Modules.Count == 0 && examDto.Subjects.Count > 0)
         {
-            foreach (var subjectDto in examDto.Subjects)
+            foreach (SubjectDto subjectDto in examDto.Subjects)
             {
                 exam.Modules.Add(FromSubjectDto(subjectDto));
             }
@@ -142,7 +142,7 @@ public static class ExamMappingService
     /// </summary>
     private static ExamModule FromModuleDto(ModuleDto moduleDto)
     {
-        var module = new ExamModule
+        ExamModule module = new()
         {
             Id = moduleDto.Id,
             Name = moduleDto.Name,
@@ -153,13 +153,13 @@ public static class ExamMappingService
         };
 
         // 解析模块类型
-        if (Enum.TryParse<ModuleType>(moduleDto.Type, true, out var moduleType))
+        if (Enum.TryParse<ModuleType>(moduleDto.Type, true, out ModuleType moduleType))
         {
             module.Type = moduleType;
         }
 
         // 转换题目
-        foreach (var questionDto in moduleDto.Questions)
+        foreach (QuestionDto questionDto in moduleDto.Questions)
         {
             module.Questions.Add(FromQuestionDto(questionDto));
         }
@@ -172,29 +172,28 @@ public static class ExamMappingService
     /// </summary>
     private static ExamModule FromSubjectDto(SubjectDto subjectDto)
     {
-        var module = new ExamModule
+        ExamModule module = new()
         {
             Id = $"module-{subjectDto.Id}",
             Name = subjectDto.SubjectName,
             Description = subjectDto.Description ?? string.Empty,
             Score = (int)subjectDto.Score,
             Order = subjectDto.SortOrder,
-            IsEnabled = subjectDto.IsEnabled
-        };
-
-        // 根据科目类型映射模块类型
-        module.Type = subjectDto.SubjectType.ToLower() switch
-        {
-            "excel" => ModuleType.Excel,
-            "word" => ModuleType.Word,
-            "powerpoint" => ModuleType.PowerPoint,
-            "windows" => ModuleType.Windows,
-            "csharp" => ModuleType.CSharp,
-            _ => ModuleType.Windows
+            IsEnabled = subjectDto.IsEnabled,
+            // 根据科目类型映射模块类型
+            Type = subjectDto.SubjectType.ToLower() switch
+            {
+                "excel" => ModuleType.Excel,
+                "word" => ModuleType.Word,
+                "powerpoint" => ModuleType.PowerPoint,
+                "windows" => ModuleType.Windows,
+                "csharp" => ModuleType.CSharp,
+                _ => ModuleType.Windows
+            }
         };
 
         // 转换题目
-        foreach (var questionDto in subjectDto.Questions)
+        foreach (QuestionDto questionDto in subjectDto.Questions)
         {
             module.Questions.Add(FromQuestionDto(questionDto));
         }
@@ -221,7 +220,7 @@ public static class ExamMappingService
             Tags = string.Empty,
             Remarks = string.Empty,
             IsEnabled = question.IsEnabled,
-            CreatedAt = DateTime.TryParse(question.CreatedTime, out var createdTime) ? createdTime : DateTime.UtcNow,
+            CreatedAt = DateTime.TryParse(question.CreatedTime, out DateTime createdTime) ? createdTime : DateTime.UtcNow,
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
             OperationPoints = question.OperationPoints.Select(ToOperationPointDto).ToList()
@@ -233,7 +232,7 @@ public static class ExamMappingService
     /// </summary>
     private static Question FromQuestionDto(QuestionDto questionDto)
     {
-        var question = new Question
+        Question question = new()
         {
             Id = questionDto.Id,
             Title = questionDto.Title,
@@ -247,7 +246,7 @@ public static class ExamMappingService
         };
 
         // 转换操作点
-        foreach (var operationPointDto in questionDto.OperationPoints)
+        foreach (OperationPointDto operationPointDto in questionDto.OperationPoints)
         {
             question.OperationPoints.Add(FromOperationPointDto(operationPointDto));
         }
@@ -279,7 +278,7 @@ public static class ExamMappingService
     /// </summary>
     private static OperationPoint FromOperationPointDto(OperationPointDto operationPointDto)
     {
-        var operationPoint = new OperationPoint
+        OperationPoint operationPoint = new()
         {
             Id = operationPointDto.Id,
             Name = operationPointDto.Name,
@@ -291,13 +290,13 @@ public static class ExamMappingService
         };
 
         // 解析模块类型
-        if (Enum.TryParse<ModuleType>(operationPointDto.ModuleType, true, out var moduleType))
+        if (Enum.TryParse<ModuleType>(operationPointDto.ModuleType, true, out ModuleType moduleType))
         {
             operationPoint.ModuleType = moduleType;
         }
 
         // 转换参数
-        foreach (var parameterDto in operationPointDto.Parameters)
+        foreach (ParameterDto parameterDto in operationPointDto.Parameters)
         {
             operationPoint.Parameters.Add(FromParameterDto(parameterDto));
         }
@@ -316,8 +315,8 @@ public static class ExamMappingService
             DisplayName = parameter.DisplayName,
             Description = parameter.Description,
             Type = parameter.Type.ToString(),
-            Value = parameter.Value,
-            DefaultValue = parameter.DefaultValue,
+            Value = parameter.Value ?? string.Empty,
+            DefaultValue = parameter.DefaultValue ?? string.Empty,
             IsRequired = parameter.IsRequired,
             Order = parameter.Order,
             EnumOptions = parameter.EnumOptions,
@@ -334,7 +333,7 @@ public static class ExamMappingService
     /// </summary>
     private static ConfigurationParameter FromParameterDto(ParameterDto parameterDto)
     {
-        var parameter = new ConfigurationParameter
+        ConfigurationParameter parameter = new()
         {
             Name = parameterDto.Name,
             DisplayName = parameterDto.DisplayName,
@@ -352,7 +351,7 @@ public static class ExamMappingService
         };
 
         // 解析参数类型
-        if (Enum.TryParse<ParameterType>(parameterDto.Type, true, out var parameterType))
+        if (Enum.TryParse<ParameterType>(parameterDto.Type, true, out ParameterType parameterType))
         {
             parameter.Type = parameterType;
         }
@@ -374,10 +373,10 @@ public static class ExamMappingService
     /// </summary>
     private static List<string> GetExamTags(Exam exam)
     {
-        var tags = new List<string>();
-        
+        List<string> tags = new();
+
         // 根据模块类型添加标签
-        foreach (var module in exam.Modules)
+        foreach (ExamModule module in exam.Modules)
         {
             if (module.IsEnabled)
             {
