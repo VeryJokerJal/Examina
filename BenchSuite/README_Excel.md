@@ -2,7 +2,7 @@
 
 ## 概述
 
-BenchSuite中的Excel打分功能提供了对Excel文档的自动化评分能力，支持检测Excel基础操作、数据清单操作和图表操作等多种知识点。
+BenchSuite中的Excel打分功能提供了对Excel文档的自动化评分能力，支持检测51个Excel操作点，包括Excel基础操作、数据清单操作和图表操作等多种知识点，与ExamLab中的ExcelKnowledgeService功能完全对应。
 
 ## 功能特性
 
@@ -10,38 +10,98 @@ BenchSuite中的Excel打分功能提供了对Excel文档的自动化评分能力
 - `.xls` - Excel 97-2003 工作簿
 - `.xlsx` - Excel 2007及以上版本工作簿
 
-### 支持的知识点类型
+### 支持的知识点类型（51个操作点）
 
-#### 第一类：Excel基础操作
+#### 第一类：Excel基础操作（42个操作点）
+
 1. **填充或复制单元格内容** (`FillOrCopyCellContent`)
    - 检测指定单元格是否包含期望的值
    - 参数：`TargetWorkbook`, `CellValues`
 
-2. **合并单元格** (`MergeCells`)
+2. **删除单元格内容** (`DeleteCellContent`)
+   - 检测单元格内容是否已删除
+   - 参数：`TargetWorkbook`, `CellRange`
+
+3. **插入或删除单元格** (`InsertDeleteCells`)
+   - 检测单元格的插入或删除操作
+   - 参数：`TargetWorkbook`, `OperationAction`, `CellRange`
+
+4. **合并单元格** (`MergeCells`)
    - 检测指定区域的单元格是否已合并
    - 参数：`TargetWorkbook`, `CellRange`
 
-3. **设置指定单元格字体** (`SetCellFont`)
+5. **插入或删除行** (`InsertDeleteRows`)
+   - 检测行的插入或删除操作
+   - 参数：`TargetWorkbook`, `OperationAction`, `RowNumbers`
+
+6. **设置指定单元格字体** (`SetCellFont`)
    - 检测单元格区域的字体设置
    - 参数：`TargetWorkbook`, `CellRange`, `FontFamily`
 
-4. **使用函数** (`UseFunction`)
-   - 检测单元格是否包含公式且计算结果正确
-   - 参数：`TargetWorkbook`, `CellAddress`, `ExpectedValue`
+7. **设置字型** (`SetFontStyle`)
+   - 检测字体样式（粗体、斜体等）
+   - 参数：`TargetWorkbook`, `CellRange`, `FontStyle`
 
-5. **设置水平对齐方式** (`SetHorizontalAlignment`)
-   - 检测单元格的水平对齐设置
-   - 参数：`TargetWorkbook`, `CellRange`, `HorizontalAlignment`
+8. **设置字号** (`SetFontSize`)
+   - 检测字体大小设置
+   - 参数：`TargetWorkbook`, `CellRange`, `FontSize`
 
-6. **设置行高** (`SetRowHeight`)
-   - 检测指定行的高度设置
-   - 参数：`TargetWorkbook`, `RowNumbers`, `RowHeight`
+9. **字体颜色** (`SetFontColor`)
+   - 检测字体颜色设置
+   - 参数：`TargetWorkbook`, `CellRange`, `FontColor`
 
-7. **设置列宽** (`SetColumnWidth`)
-   - 检测指定列的宽度设置
-   - 参数：`TargetWorkbook`, `ColumnLetters`, `ColumnWidth`
+10. **内边框样式** (`SetInnerBorderStyle`)
+    - 检测内边框样式设置
+    - 参数：`TargetWorkbook`, `CellRange`, `BorderStyle`
 
-#### 第二类：数据清单操作
+11. **内边框颜色** (`SetInnerBorderColor`)
+    - 检测内边框颜色设置
+    - 参数：`TargetWorkbook`, `CellRange`, `BorderColor`
+
+12. **插入或删除列** (`InsertDeleteColumns`)
+    - 检测列的插入或删除操作
+    - 参数：`TargetWorkbook`, `OperationAction`, `ColumnLetters`
+
+13. **设置水平对齐方式** (`SetHorizontalAlignment`)
+    - 检测单元格的水平对齐设置
+    - 参数：`TargetWorkbook`, `CellRange`, `HorizontalAlignment`
+
+14. **设置数字格式** (`SetNumberFormat`)
+    - 检测数字格式设置
+    - 参数：`TargetWorkbook`, `CellRange`, `NumberFormat`
+
+15. **使用函数** (`UseFunction`)
+    - 检测单元格是否包含公式且计算结果正确
+    - 参数：`TargetWorkbook`, `CellAddress`, `ExpectedValue`
+
+16. **设置行高** (`SetRowHeight`)
+    - 检测指定行的高度设置
+    - 参数：`TargetWorkbook`, `RowNumbers`, `RowHeight`
+
+17. **设置列宽** (`SetColumnWidth`)
+    - 检测指定列的宽度设置
+    - 参数：`TargetWorkbook`, `ColumnLetters`, `ColumnWidth`
+
+18. **自动调整行高** (`AutoFitRowHeight`)
+    - 检测行高是否自动调整
+    - 参数：`TargetWorkbook`, `RowNumbers`
+
+19. **自动调整列宽** (`AutoFitColumnWidth`)
+    - 检测列宽是否自动调整
+    - 参数：`TargetWorkbook`, `ColumnLetters`
+
+20. **设置单元格填充颜色** (`SetCellFillColor`)
+    - 检测单元格填充颜色设置
+    - 参数：`TargetWorkbook`, `CellRange`, `FillColor`
+
+21. **设置垂直对齐方式** (`SetVerticalAlignment`)
+    - 检测单元格的垂直对齐设置
+    - 参数：`TargetWorkbook`, `CellRange`, `VerticalAlignment`
+
+*注：其他基础操作包括图案填充、边框设置、文字换行、冻结窗格、工作表保护、批注、超链接等功能的占位符已实现，可根据需要扩展具体检测逻辑。*
+
+#### 第二类：数据清单操作（6个操作点）
+
 1. **筛选** (`Filter`)
    - 检测数据筛选是否已应用
    - 参数：`TargetWorkbook`, `FilterConditions`
@@ -50,18 +110,49 @@ BenchSuite中的Excel打分功能提供了对Excel文档的自动化评分能力
    - 检测数据是否按指定条件排序
    - 参数：`TargetWorkbook`, `SortColumn`, `SortOrder`, `HasHeader`
 
-3. **数据透视表** (`PivotTable`)
+3. **分类汇总** (`Subtotal`)
+   - 检测分类汇总是否已创建
+   - 参数：`TargetWorkbook`, `GroupByColumn`, `SummaryFunction`, `SummaryColumn`
+
+4. **高级筛选-条件** (`AdvancedFilterCondition`)
+   - 检测高级筛选条件设置
+   - 参数：`TargetWorkbook`, `ConditionRange`, `FilterField`, `FilterValue`
+
+5. **高级筛选-数据** (`AdvancedFilterData`)
+   - 检测高级筛选数据操作
+   - 参数：`TargetWorkbook`, `DataRange`, `CriteriaRange`, `CopyToRange`
+
+6. **数据透视表** (`PivotTable`)
    - 检测数据透视表的配置
    - 参数：`TargetWorkbook`, `PivotRowFields`, `PivotDataField`, `PivotFunction`
 
-#### 第三类：图表操作
+#### 第三类：图表操作（22个操作点）
+
 1. **图表类型** (`ChartType`)
    - 检测图表的类型设置
-   - 参数：`TargetWorkbook`, `ChartType`
+   - 参数：`TargetWorkbook`, `ChartType`, `ChartNumber`
 
-2. **图表标题** (`ChartTitle`)
+2. **图表样式** (`ChartStyle`)
+   - 检测图表样式设置
+   - 参数：`TargetWorkbook`, `StyleNumber`, `ChartNumber`
+
+3. **图表移动** (`ChartMove`)
+   - 检测图表移动操作
+   - 参数：`TargetWorkbook`, `MoveLocation`, `ChartNumber`, `TargetSheet`
+
+4. **分类轴数据区域** (`CategoryAxisDataRange`)
+   - 检测分类轴数据区域设置
+   - 参数：`TargetWorkbook`, `CategoryRange`, `ChartNumber`
+
+5. **数值轴数据区域** (`ValueAxisDataRange`)
+   - 检测数值轴数据区域设置
+   - 参数：`TargetWorkbook`, `ValueRange`, `ChartNumber`
+
+6. **图表标题** (`ChartTitle`)
    - 检测图表标题的设置
    - 参数：`TargetWorkbook`, `ChartNumber`, `ChartTitle`
+
+*注：其他图表操作包括图表标题格式、坐标轴标题、图例设置、网格线、数据标签、系列格式等功能的占位符已实现，可根据需要扩展具体检测逻辑。*
 
 ## 使用方法
 

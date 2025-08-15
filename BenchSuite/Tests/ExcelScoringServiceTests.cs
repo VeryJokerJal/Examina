@@ -65,6 +65,21 @@ public class ExcelScoringServiceTests
     /// </summary>
     public async Task TestDetectKnowledgePointAsync()
     {
+        // 测试基础操作知识点
+        await TestBasicOperationKnowledgePoint();
+
+        // 测试数据清单操作知识点
+        await TestDataListOperationKnowledgePoint();
+
+        // 测试图表操作知识点
+        await TestChartOperationKnowledgePoint();
+    }
+
+    /// <summary>
+    /// 测试基础操作知识点
+    /// </summary>
+    private async Task TestBasicOperationKnowledgePoint()
+    {
         // 创建测试参数
         Dictionary<string, string> parameters = new()
         {
@@ -77,11 +92,11 @@ public class ExcelScoringServiceTests
             // 注意：这里使用一个不存在的文件路径进行测试
             // 在实际测试中，应该使用真实的Excel文件
             KnowledgePointResult result = await _excelScoringService.DetectKnowledgePointAsync(
-                "nonexistent.xlsx", 
-                "FillOrCopyCellContent", 
+                "nonexistent.xlsx",
+                "FillOrCopyCellContent",
                 parameters);
 
-            Console.WriteLine($"知识点检测结果:");
+            Console.WriteLine($"基础操作知识点检测结果:");
             Console.WriteLine($"  知识点类型: {result.KnowledgePointType}");
             Console.WriteLine($"  是否正确: {result.IsCorrect}");
             Console.WriteLine($"  错误信息: {result.ErrorMessage}");
@@ -89,16 +104,95 @@ public class ExcelScoringServiceTests
             // 由于文件不存在，应该返回错误
             if (!result.IsCorrect && !string.IsNullOrEmpty(result.ErrorMessage))
             {
-                Console.WriteLine("✓ 知识点检测错误处理测试通过");
+                Console.WriteLine("✓ 基础操作知识点检测错误处理测试通过");
             }
             else
             {
-                Console.WriteLine("✗ 知识点检测错误处理测试失败");
+                Console.WriteLine("✗ 基础操作知识点检测错误处理测试失败");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"✗ 知识点检测测试异常: {ex.Message}");
+            Console.WriteLine($"✗ 基础操作知识点检测测试异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 测试数据清单操作知识点
+    /// </summary>
+    private async Task TestDataListOperationKnowledgePoint()
+    {
+        Dictionary<string, string> parameters = new()
+        {
+            ["TargetWorkbook"] = "测试工作簿",
+            ["GroupByColumn"] = "类别",
+            ["SummaryFunction"] = "求和",
+            ["SummaryColumn"] = "金额"
+        };
+
+        try
+        {
+            KnowledgePointResult result = await _excelScoringService.DetectKnowledgePointAsync(
+                "nonexistent.xlsx",
+                "Subtotal",
+                parameters);
+
+            Console.WriteLine($"数据清单操作知识点检测结果:");
+            Console.WriteLine($"  知识点类型: {result.KnowledgePointType}");
+            Console.WriteLine($"  是否正确: {result.IsCorrect}");
+            Console.WriteLine($"  错误信息: {result.ErrorMessage}");
+
+            if (!result.IsCorrect && !string.IsNullOrEmpty(result.ErrorMessage))
+            {
+                Console.WriteLine("✓ 数据清单操作知识点检测错误处理测试通过");
+            }
+            else
+            {
+                Console.WriteLine("✗ 数据清单操作知识点检测错误处理测试失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ 数据清单操作知识点检测测试异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 测试图表操作知识点
+    /// </summary>
+    private async Task TestChartOperationKnowledgePoint()
+    {
+        Dictionary<string, string> parameters = new()
+        {
+            ["TargetWorkbook"] = "测试工作簿",
+            ["ChartNumber"] = "1",
+            ["StyleNumber"] = "5"
+        };
+
+        try
+        {
+            KnowledgePointResult result = await _excelScoringService.DetectKnowledgePointAsync(
+                "nonexistent.xlsx",
+                "ChartStyle",
+                parameters);
+
+            Console.WriteLine($"图表操作知识点检测结果:");
+            Console.WriteLine($"  知识点类型: {result.KnowledgePointType}");
+            Console.WriteLine($"  是否正确: {result.IsCorrect}");
+            Console.WriteLine($"  错误信息: {result.ErrorMessage}");
+
+            if (!result.IsCorrect && !string.IsNullOrEmpty(result.ErrorMessage))
+            {
+                Console.WriteLine("✓ 图表操作知识点检测错误处理测试通过");
+            }
+            else
+            {
+                Console.WriteLine("✗ 图表操作知识点检测错误处理测试失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ 图表操作知识点检测测试异常: {ex.Message}");
         }
     }
 
@@ -162,9 +256,9 @@ public class ExcelScoringServiceTests
                         new QuestionModel
                         {
                             Id = "question-001",
-                            Title = "填充单元格内容",
-                            Content = "在A1单元格中输入'测试值'",
-                            OperationPoints = 
+                            Title = "Excel基础操作",
+                            Content = "完成Excel基础操作任务",
+                            OperationPoints =
                             [
                                 new OperationPointModel
                                 {
@@ -174,7 +268,7 @@ public class ExcelScoringServiceTests
                                     ModuleType = ModuleType.Excel,
                                     ExcelKnowledgeType = "FillOrCopyCellContent",
                                     Score = 10,
-                                    Parameters = 
+                                    Parameters =
                                     [
                                         new ConfigurationParameterModel
                                         {
@@ -185,6 +279,110 @@ public class ExcelScoringServiceTests
                                         {
                                             Name = "CellValues",
                                             Value = "A1：测试值"
+                                        }
+                                    ]
+                                },
+                                new OperationPointModel
+                                {
+                                    Id = "op-002",
+                                    Name = "设置字体样式",
+                                    Description = "检测字体样式设置",
+                                    ModuleType = ModuleType.Excel,
+                                    ExcelKnowledgeType = "SetFontStyle",
+                                    Score = 8,
+                                    Parameters =
+                                    [
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "TargetWorkbook",
+                                            Value = "测试工作簿"
+                                        },
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "CellRange",
+                                            Value = "A1:B2"
+                                        },
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "FontStyle",
+                                            Value = "粗体"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        new QuestionModel
+                        {
+                            Id = "question-002",
+                            Title = "数据清单操作",
+                            Content = "完成数据清单操作任务",
+                            OperationPoints =
+                            [
+                                new OperationPointModel
+                                {
+                                    Id = "op-003",
+                                    Name = "分类汇总",
+                                    Description = "检测分类汇总功能",
+                                    ModuleType = ModuleType.Excel,
+                                    ExcelKnowledgeType = "Subtotal",
+                                    Score = 15,
+                                    Parameters =
+                                    [
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "TargetWorkbook",
+                                            Value = "测试工作簿"
+                                        },
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "GroupByColumn",
+                                            Value = "类别"
+                                        },
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "SummaryFunction",
+                                            Value = "求和"
+                                        },
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "SummaryColumn",
+                                            Value = "金额"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        new QuestionModel
+                        {
+                            Id = "question-003",
+                            Title = "图表操作",
+                            Content = "完成图表操作任务",
+                            OperationPoints =
+                            [
+                                new OperationPointModel
+                                {
+                                    Id = "op-004",
+                                    Name = "图表样式",
+                                    Description = "检测图表样式设置",
+                                    ModuleType = ModuleType.Excel,
+                                    ExcelKnowledgeType = "ChartStyle",
+                                    Score = 12,
+                                    Parameters =
+                                    [
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "TargetWorkbook",
+                                            Value = "测试工作簿"
+                                        },
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "ChartNumber",
+                                            Value = "1"
+                                        },
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "StyleNumber",
+                                            Value = "5"
                                         }
                                     ]
                                 }
