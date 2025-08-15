@@ -25,12 +25,7 @@
             </Grid.RowDefinitions>
 
             <!--  导航栏  -->
-            <NavigationView Grid.Row="0" x:Name="MainNavigationView"
-                            IsBackButtonVisible="Collapsed"
-                            IsSettingsVisible="False"
-                            PaneDisplayMode="Top"
-                            SelectionChanged="MainNavigationView_SelectionChanged"
-                            Background="{ThemeResource CardBackgroundFillColorDefault}">
+            <NavigationView x:Name="MainNavigationView" Grid.Row="0" Background="{ThemeResource CardBackgroundFillColorDefault}" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Top" SelectionChanged="MainNavigationView_SelectionChanged">
                 <NavigationView.MenuItems>
                     <NavigationViewItem Content="考试试卷" Tag="ExamPage">
                         <NavigationViewItem.Icon>
@@ -39,7 +34,7 @@
                     </NavigationViewItem>
                     <NavigationViewItem Content="专项试卷" Tag="SpecializedPage">
                         <NavigationViewItem.Icon>
-                            <SymbolIcon Symbol="Target" />
+                            <SymbolIcon Symbol="Paste" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>
@@ -49,11 +44,9 @@
             <Border Grid.Row="1" Padding="16,8" Background="{ThemeResource CardBackgroundFillColorDefault}">
                 <StackPanel Orientation="Horizontal" Spacing="16">
                     <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding CurrentTabTitle}" />
-                    <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●"
-                               ToolTipService.ToolTip="有未保存的更改"
-                               Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <TextBlock VerticalAlignment="Center" FontSize="16" Foreground="Orange" Text="●" ToolTipService.ToolTip="有未保存的更改" Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                    <!-- 考试试卷工具栏 -->
+                    <!--  考试试卷工具栏  -->
                     <StackPanel Orientation="Horizontal" Spacing="16" Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button Command="{Binding CreateExamCommand}" Content="新建试卷" />
                         <Button Command="{Binding SaveExamCommand}" Content="保存" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
@@ -62,7 +55,7 @@
                         <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" />
                     </StackPanel>
 
-                    <!-- 专项试卷工具栏 -->
+                    <!--  专项试卷工具栏  -->
                     <StackPanel Orientation="Horizontal" Spacing="16" Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button Command="{Binding SpecializedExamViewModel.CreateSpecializedExamCommand}" Content="新建专项试卷" />
                         <Button Command="{Binding SpecializedExamViewModel.SaveSpecializedExamCommand}" Content="保存" IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}" />
@@ -74,7 +67,7 @@
 
         <!--  主内容区域  -->
         <Grid Grid.Row="1">
-            <!-- 考试试卷内容 -->
+            <!--  考试试卷内容  -->
             <Grid Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="300" />
@@ -83,124 +76,123 @@
 
                 <!--  左侧导航面板  -->
                 <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefault}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="310" />
-                    </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="310" />
+                        </Grid.RowDefinitions>
 
-                    <!--  试卷列表标题  -->
-                    <TextBlock Grid.Row="0" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="试卷" />
+                        <!--  试卷列表标题  -->
+                        <TextBlock Grid.Row="0" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="试卷" />
 
-                    <!--  试卷列表  -->
-                    <ListView Grid.Row="1" Margin="8,0" ItemsSource="{Binding Exams}" SelectedItem="{Binding SelectedExam, Mode=TwoWay}" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="8,4" Padding="0,5">
-                                    <Grid.ContextFlyout>
-                                        <MenuFlyout>
-                                            <MenuFlyoutItem Click="CloneExam_Click" Tag="{Binding}" Text="克隆试卷">
-                                                <MenuFlyoutItem.Icon>
-                                                    <SymbolIcon Symbol="Copy" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem Click="DeleteExam_Click" Tag="{Binding}" Text="删除试卷">
-                                                <MenuFlyoutItem.Icon>
-                                                    <SymbolIcon Symbol="Delete" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                        </MenuFlyout>
-                                    </Grid.ContextFlyout>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" FontWeight="SemiBold" Text="{Binding Name}" />
-                                    <TextBlock Grid.Row="1" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                        <!--  试卷列表  -->
+                        <ListView Grid.Row="1" Margin="8,0" ItemsSource="{Binding Exams}" SelectedItem="{Binding SelectedExam, Mode=TwoWay}" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="8,4" Padding="0,5">
+                                        <Grid.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Click="CloneExam_Click" Tag="{Binding}" Text="克隆试卷">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <SymbolIcon Symbol="Copy" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Click="DeleteExam_Click" Tag="{Binding}" Text="删除试卷">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <SymbolIcon Symbol="Delete" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </Grid.ContextFlyout>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" FontWeight="SemiBold" Text="{Binding Name}" />
+                                        <TextBlock Grid.Row="1" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
 
-                    <!--  试卷列表空状态提示  -->
-                    <Border Grid.Row="1" Margin="10" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                            <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8A5;" />
-                            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无试卷" />
-                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击上方按钮创建您的第一个试卷" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Border>
+                        <!--  试卷列表空状态提示  -->
+                        <Border Grid.Row="1" Margin="10" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8A5;" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无试卷" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="点击上方按钮创建您的第一个试卷" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
 
-                    <!--  模块列表标题  -->
-                    <TextBlock Grid.Row="2" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="模块" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}" />
+                        <!--  模块列表标题  -->
+                        <TextBlock Grid.Row="2" Margin="16,16,16,8" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="模块" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}" />
 
-                    <!--  模块列表  -->
-                    <ListView Grid.Row="3" Margin="8,0" ItemsSource="{Binding SelectedExam.Modules}" SelectedItem="{Binding SelectedModule, Mode=TwoWay}" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Padding="10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                        <!--  模块列表  -->
+                        <ListView Grid.Row="3" Margin="8,0" ItemsSource="{Binding SelectedExam.Modules}" SelectedItem="{Binding SelectedModule, Mode=TwoWay}" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <!--  模块名称  -->
-                                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding Name}" />
+                                        <!--  模块名称  -->
+                                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding Name}" />
 
-                                    <!--  题目数量 InfoBadge  -->
-                                    <InfoBadge Grid.Row="0" Grid.Column="1" Value="{Binding QuestionCount}" />
+                                        <!--  题目数量 InfoBadge  -->
+                                        <InfoBadge Grid.Row="0" Grid.Column="1" Value="{Binding QuestionCount}" />
 
-                                    <!--  统计信息  -->
-                                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,4,0,0" Orientation="Horizontal" Spacing="12">
-                                        <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
-                                            <Run Text="总分: " />
-                                            <Run Text="{Binding TotalScore}" />
-                                        </TextBlock>
-                                        <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
-                                            <Run Text="操作点: " />
-                                            <Run Text="{Binding OperationPointCount}" />
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                                        <!--  统计信息  -->
+                                        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,4,0,0" Orientation="Horizontal" Spacing="12">
+                                            <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
+                                                <Run Text="总分: " />
+                                                <Run Text="{Binding TotalScore}" />
+                                            </TextBlock>
+                                            <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
+                                                <Run Text="操作点: " />
+                                                <Run Text="{Binding OperationPointCount}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
 
-                    <!--  模块列表空状态提示  -->
-                    <Border Grid.Row="2" Grid.RowSpan="2" Margin="10,0,10,10" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                            <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8FD;" />
-                            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无模块" />
-                            <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请先创建试卷以查看模块列表" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
-            </Border>
-
-            <!--  右侧内容区域  -->
-            <Grid Grid.Column="1">
-                <!--  默认显示  -->
-                <Border Margin="16" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
-                    <StackPanel VerticalAlignment="Center" Spacing="16">
-                        <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="SemiBold" Text="欢迎使用试卷制作系统" />
-                        <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请选择左侧的试卷和模块开始配置" />
-                    </StackPanel>
+                        <!--  模块列表空状态提示  -->
+                        <Border Grid.Row="2" Grid.RowSpan="2" Margin="10,0,10,10" Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8" Visibility="{Binding ExamCount, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=Zero}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="32" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Glyph="&#xE8FD;" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="暂无模块" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请先创建试卷以查看模块列表" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </Border>
 
-                <!--  模块内容显示  -->
-                <ContentPresenter Content="{Binding CurrentContentView}" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}" />
-            </Grid>
+                <!--  右侧内容区域  -->
+                <Grid Grid.Column="1">
+                    <!--  默认显示  -->
+                    <Border Margin="16" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
+                        <StackPanel VerticalAlignment="Center" Spacing="16">
+                            <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="SemiBold" Text="欢迎使用试卷制作系统" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="请选择左侧的试卷和模块开始配置" />
+                        </StackPanel>
+                    </Border>
+
+                    <!--  模块内容显示  -->
+                    <ContentPresenter Content="{Binding CurrentContentView}" Visibility="{Binding SelectedModule, Converter={StaticResource NullToVisibilityConverter}}" />
+                </Grid>
             </Grid>
 
-            <!-- 专项试卷内容 -->
-            <ContentPresenter Grid.Row="0" Content="{Binding SpecializedExamPage}"
-                              Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <!--  专项试卷内容  -->
+            <ContentPresenter Grid.Row="0" Content="{Binding SpecializedExamPage}" Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
         </Grid>
     </Grid>
 </Window>
