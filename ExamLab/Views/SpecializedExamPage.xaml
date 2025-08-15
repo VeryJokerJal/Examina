@@ -223,7 +223,7 @@
                                                         <TextBox Header="校验(正则)" Text="{Binding SelectedParameter.ValidationRule, Mode=TwoWay}" />
                                                         <TextBox Header="错误提示" Text="{Binding SelectedParameter.ValidationErrorMessage, Mode=TwoWay}" />
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                                            <Button Content="删除参数" Command="{Binding DeleteParameterCommand}" CommandParameter="{Binding SelectedParameter, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                                            <Button Content="删除参数" Command="{Binding DeleteParameterCommand}" CommandParameter="{Binding SelectedParameter}" />
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </StackPanel>
