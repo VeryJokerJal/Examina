@@ -10,6 +10,7 @@
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+            <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -28,8 +29,16 @@
                 <TabView Grid.Row="0" x:Name="MainTabView" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
                          TabWidthMode="Equal" CanDragTabs="False" CanReorderTabs="False" IsAddTabButtonVisible="False">
                     <TabView.TabItems>
-                        <TabViewItem Header="考试试卷" IconSource="Document" />
-                        <TabViewItem Header="专项试卷" IconSource="Target" />
+                        <TabViewItem Header="考试试卷">
+                            <TabViewItem.IconSource>
+                                <SymbolIconSource Symbol="Document" />
+                            </TabViewItem.IconSource>
+                        </TabViewItem>
+                        <TabViewItem Header="专项试卷">
+                            <TabViewItem.IconSource>
+                                <SymbolIconSource Symbol="Target" />
+                            </TabViewItem.IconSource>
+                        </TabViewItem>
                     </TabView.TabItems>
                 </TabView>
 

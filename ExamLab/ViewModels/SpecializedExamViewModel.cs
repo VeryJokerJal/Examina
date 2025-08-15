@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -6,7 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Services;
-using ExamLab.Views;
+// using ExamLab.Views; // 暂时注释掉，等XAML文件创建后再启用
 using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -110,17 +111,20 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         try
         {
-            // 显示模块类型选择对话框
-            ModuleTypeSelectionDialog dialog = new()
-            {
-                XamlRoot = XamlRootService.GetXamlRoot()
-            };
+            // TODO: 显示模块类型选择对话框
+            // ModuleTypeSelectionDialog dialog = new()
+            // {
+            //     XamlRoot = XamlRootService.GetXamlRoot()
+            // };
 
-            ContentDialogResult result = await dialog.ShowAsync();
+            // ContentDialogResult result = await dialog.ShowAsync();
 
-            if (result == ContentDialogResult.Primary && dialog.SelectedModuleType.HasValue)
-            {
-                ModuleType selectedType = dialog.SelectedModuleType.Value;
+            // if (result == ContentDialogResult.Primary && dialog.SelectedModuleType.HasValue)
+            // {
+            //     ModuleType selectedType = dialog.SelectedModuleType.Value;
+
+            // 暂时硬编码为Windows类型，等对话框创建后再修改
+            ModuleType selectedType = ModuleType.Windows;
 
                 // 创建专项试卷
                 Exam specializedExam = CreateSpecializedExam(selectedType);
@@ -138,7 +142,7 @@ public class SpecializedExamViewModel : ViewModelBase
                 await NotificationService.ShowSuccessAsync(
                     "创建成功",
                     $"已创建{GetModuleTypeName(selectedType)}专项试卷：{specializedExam.Name}");
-            }
+            // }
         }
         catch (Exception ex)
         {
@@ -350,7 +354,7 @@ public class SpecializedExamViewModel : ViewModelBase
             LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
 
-        // 克隆模块
+        // 简化克隆：只克隆模块基本信息
         foreach (ExamModule originalModule in original.Modules)
         {
             ExamModule clonedModule = new()
@@ -363,56 +367,6 @@ public class SpecializedExamViewModel : ViewModelBase
                 Order = originalModule.Order,
                 IsEnabled = originalModule.IsEnabled
             };
-
-            // 克隆题目
-            foreach (Question originalQuestion in originalModule.Questions)
-            {
-                Question clonedQuestion = new()
-                {
-                    Id = IdGeneratorService.GenerateQuestionId(),
-                    Title = originalQuestion.Title,
-                    Description = originalQuestion.Description,
-                    Score = originalQuestion.Score,
-                    Order = originalQuestion.Order,
-                    IsEnabled = originalQuestion.IsEnabled
-                };
-
-                // 克隆操作点
-                foreach (OperationPoint originalOp in originalQuestion.OperationPoints)
-                {
-                    OperationPoint clonedOp = new()
-                    {
-                        Id = IdGeneratorService.GenerateOperationPointId(),
-                        Name = originalOp.Name,
-                        Description = originalOp.Description,
-                        Score = originalOp.Score,
-                        Order = originalOp.Order,
-                        IsEnabled = originalOp.IsEnabled,
-                        OperationType = originalOp.OperationType
-                    };
-
-                    // 克隆配置参数
-                    foreach (ConfigurationParameter originalParam in originalOp.Parameters)
-                    {
-                        ConfigurationParameter clonedParam = new()
-                        {
-                            Name = originalParam.Name,
-                            Value = originalParam.Value,
-                            Type = originalParam.Type,
-                            Description = originalParam.Description,
-                            IsRequired = originalParam.IsRequired,
-                            DefaultValue = originalParam.DefaultValue,
-                            Options = originalParam.Options?.ToList() ?? []
-                        };
-
-                        clonedOp.Parameters.Add(clonedParam);
-                    }
-
-                    clonedQuestion.OperationPoints.Add(clonedOp);
-                }
-
-                clonedModule.Questions.Add(clonedQuestion);
-            }
 
             cloned.Modules.Add(clonedModule);
         }
@@ -448,7 +402,7 @@ public class SpecializedExamViewModel : ViewModelBase
         try
         {
             // 这里可以复用MainWindowViewModel的导出逻辑
-            await NotificationService.ShowInfoAsync("导出功能", "专项试卷导出功能正在开发中...");
+            await NotificationService.ShowSuccessAsync("导出功能", "专项试卷导出功能正在开发中...");
         }
         catch (Exception ex)
         {

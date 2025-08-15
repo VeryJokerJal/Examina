@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using ExamLab.Models;
+using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
@@ -67,7 +68,7 @@ public class ModuleTypeSelectionDialogViewModel : ViewModelBase
             Type = ModuleType.Windows,
             Name = "Windows操作",
             Description = "Windows文件和文件夹操作模块，包含9种操作类型",
-            Icon = "Folder"
+            Icon = Symbol.Folder
         });
 
         ModuleTypes.Add(new ModuleTypeItem
@@ -75,7 +76,7 @@ public class ModuleTypeSelectionDialogViewModel : ViewModelBase
             Type = ModuleType.CSharp,
             Name = "C#编程",
             Description = "C#程序设计模块，包含代码配置和输出验证",
-            Icon = "Code"
+            Icon = Symbol.Library
         });
 
         ModuleTypes.Add(new ModuleTypeItem
@@ -83,7 +84,7 @@ public class ModuleTypeSelectionDialogViewModel : ViewModelBase
             Type = ModuleType.PowerPoint,
             Name = "PowerPoint操作",
             Description = "PowerPoint幻灯片操作模块，包含39个知识点",
-            Icon = "SlideShow"
+            Icon = Symbol.SlideShow
         });
 
         ModuleTypes.Add(new ModuleTypeItem
@@ -91,7 +92,7 @@ public class ModuleTypeSelectionDialogViewModel : ViewModelBase
             Type = ModuleType.Excel,
             Name = "Excel操作",
             Description = "Excel电子表格操作模块，包含数据处理和图表功能",
-            Icon = "Table"
+            Icon = Symbol.Calculator
         });
 
         ModuleTypes.Add(new ModuleTypeItem
@@ -99,7 +100,7 @@ public class ModuleTypeSelectionDialogViewModel : ViewModelBase
             Type = ModuleType.Word,
             Name = "Word操作",
             Description = "Word文档编辑模块，包含文档格式化和排版功能",
-            Icon = "Document"
+            Icon = Symbol.Document
         });
 
         // 默认选择第一个
@@ -151,7 +152,7 @@ public class ModuleTypeItem
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    /// 图标名称
+    /// 图标符号
     /// </summary>
-    public string Icon { get; set; } = string.Empty;
+    public Symbol Icon { get; set; } = Symbol.Document;
 }
