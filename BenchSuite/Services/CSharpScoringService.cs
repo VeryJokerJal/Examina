@@ -32,12 +32,12 @@ public class CSharpScoringService : ICSharpScoringService
                     await ScoreCodeCompletionAsync(result, templateCode, studentCode, expectedImplementations);
                     break;
 
-                case CSharpScoringMode.CompilationCheck:
-                    await ScoreCompilationCheckAsync(result, studentCode);
+                case CSharpScoringMode.Debugging:
+                    await ScoreDebuggingAsync(result, templateCode, studentCode, expectedImplementations);
                     break;
 
-                case CSharpScoringMode.UnitTest:
-                    await ScoreUnitTestAsync(result, studentCode, expectedImplementations);
+                case CSharpScoringMode.Implementation:
+                    await ScoreImplementationAsync(result, studentCode, expectedImplementations);
                     break;
 
                 default:
@@ -96,6 +96,19 @@ public class CSharpScoringService : ICSharpScoringService
     }
 
     /// <summary>
+    /// 调试纠错评分
+    /// </summary>
+    /// <param name="buggyCode">包含错误的代码</param>
+    /// <param name="studentFixedCode">学生修复后的代码</param>
+    /// <param name="expectedErrors">期望发现的错误列表</param>
+    /// <param name="testCode">验证修复的测试代码</param>
+    /// <returns>调试结果</returns>
+    public async Task<DebuggingResult> DebugCodeAsync(string buggyCode, string studentFixedCode, List<string> expectedErrors, string? testCode = null)
+    {
+        return await CSharpDebuggingGrader.DebugCodeAsync(buggyCode, studentFixedCode, expectedErrors, testCode);
+    }
+
+    /// <summary>
     /// 代码补全模式评分
     /// </summary>
     private async Task ScoreCodeCompletionAsync(CSharpScoringResult result, string templateCode, string studentCode, List<string> expectedImplementations)
@@ -126,80 +139,89 @@ public class CSharpScoringService : ICSharpScoringService
         }
     }
 
-    /// <summary>
-    /// 编译检查模式评分
-    /// </summary>
-    private async Task ScoreCompilationCheckAsync(CSharpScoringResult result, string studentCode)
-    {
-        CompilationResult compilationResult = await CompileCodeAsync(studentCode);
-        
-        result.CompilationResult = compilationResult;
-        result.TotalScore = 1;
-        result.AchievedScore = compilationResult.IsSuccess ? 1 : 0;
-        result.IsSuccess = true;
-        
-        if (compilationResult.IsSuccess)
-        {
-            result.Details = $"编译成功。编译耗时: {compilationResult.CompilationTimeMs}ms";
-            
-            if (compilationResult.Warnings.Count > 0)
-            {
-                result.Details += $"\n警告数量: {compilationResult.Warnings.Count}";
-            }
-        }
-        else
-        {
-            result.Details = $"编译失败。错误数量: {compilationResult.Errors.Count}";
-            
-            if (compilationResult.Errors.Count > 0)
-            {
-                result.Details += "\n主要错误:";
-                foreach (CompilationError error in compilationResult.Errors.Take(3))
-                {
-                    result.Details += $"\n  行 {error.Line}: {error.Message}";
-                }
-                
-                if (compilationResult.Errors.Count > 3)
-                {
-                    result.Details += $"\n  ... 还有 {compilationResult.Errors.Count - 3} 个错误";
-                }
-            }
-        }
-    }
+
 
     /// <summary>
-    /// 单元测试模式评分
+    /// 调试纠错模式评分
     /// </summary>
-    private async Task ScoreUnitTestAsync(CSharpScoringResult result, string studentCode, List<string> expectedImplementations)
+    private async Task ScoreDebuggingAsync(CSharpScoringResult result, string buggyCode, string studentCode, List<string> expectedImplementations)
     {
         if (expectedImplementations.Count == 0)
         {
             result.IsSuccess = false;
-            result.ErrorMessage = "单元测试模式需要提供测试代码";
+            result.ErrorMessage = "调试纠错模式需要提供期望的错误列表";
             return;
         }
 
+        // 第一个元素作为期望错误列表，第二个元素（如果有）作为测试代码
+        List<string> expectedErrors = expectedImplementations[0].Split('\n', StringSplitOptions.RemoveEmptyEntries).ToList();
+        string? testCode = expectedImplementations.Count > 1 ? expectedImplementations[1] : null;
+
+        DebuggingResult debuggingResult = await DebugCodeAsync(buggyCode, studentCode, expectedErrors, testCode);
+
+        result.DebuggingResult = debuggingResult;
+        result.TotalScore = debuggingResult.TotalErrors;
+        result.AchievedScore = debuggingResult.FixedErrors;
+        result.IsSuccess = true;
+        result.Details = debuggingResult.Details;
+
+        // 同时进行编译检查
+        CompilationResult compilationResult = await CompileCodeAsync(studentCode);
+        result.CompilationResult = compilationResult;
+
+        if (!compilationResult.IsSuccess)
+        {
+            result.Details += $"\n⚠️ 修复后的代码仍有编译错误: {compilationResult.Errors.Count} 个";
+        }
+    }
+
+    /// <summary>
+    /// 编写实现模式评分
+    /// </summary>
+    private async Task ScoreImplementationAsync(CSharpScoringResult result, string studentCode, List<string> expectedImplementations)
+    {
+        if (expectedImplementations.Count == 0)
+        {
+            result.IsSuccess = false;
+            result.ErrorMessage = "编写实现模式需要提供测试代码";
+            return;
+        }
+
+        // 1. 首先进行编译检查
+        CompilationResult compilationResult = await CompileCodeAsync(studentCode);
+        result.CompilationResult = compilationResult;
+
+        if (!compilationResult.IsSuccess)
+        {
+            result.TotalScore = 1;
+            result.AchievedScore = 0;
+            result.IsSuccess = true;
+            result.Details = $"编译失败。错误数量: {compilationResult.Errors.Count}";
+            return;
+        }
+
+        // 2. 运行单元测试
         string testCode = expectedImplementations[0]; // 第一个元素作为测试代码
         UnitTestResult testResult = await RunUnitTestsAsync(studentCode, testCode);
-        
+
         result.UnitTestResult = testResult;
-        result.TotalScore = testResult.TotalTests;
-        result.AchievedScore = testResult.PassedTests;
+        result.TotalScore = testResult.TotalTests + 1; // +1 for compilation
+        result.AchievedScore = testResult.PassedTests + 1; // +1 for successful compilation
         result.IsSuccess = true;
-        
+
         if (testResult.IsSuccess)
         {
-            result.Details = $"所有测试通过。总测试数: {testResult.TotalTests}, 执行耗时: {testResult.ExecutionTimeMs}ms";
+            result.Details = $"实现完成。编译成功，所有测试通过。总测试数: {testResult.TotalTests}, 执行耗时: {testResult.ExecutionTimeMs}ms";
         }
         else
         {
-            result.Details = $"部分测试失败。通过: {testResult.PassedTests}/{testResult.TotalTests}";
-            
+            result.Details = $"实现部分完成。编译成功，但部分测试失败。通过: {testResult.PassedTests}/{testResult.TotalTests}";
+
             if (!string.IsNullOrEmpty(testResult.ErrorMessage))
             {
                 result.Details += $"\n错误信息: {testResult.ErrorMessage}";
             }
-            
+
             List<TestCaseResult> failedTests = testResult.TestCaseResults.Where(t => !t.Passed).Take(3).ToList();
             if (failedTests.Count > 0)
             {

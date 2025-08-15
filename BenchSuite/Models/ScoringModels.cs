@@ -166,7 +166,7 @@ public class ScoringConfiguration
 }
 
 /// <summary>
-/// C#评分模式枚举
+/// C#评分模式枚举 - 与ExamLab的CSharpQuestionType保持一致
 /// </summary>
 public enum CSharpScoringMode
 {
@@ -176,14 +176,14 @@ public enum CSharpScoringMode
     CodeCompletion,
 
     /// <summary>
-    /// 编译检查模式 - 验证代码能否正确编译
+    /// 调试纠错模式 - 找出并修复代码中的错误
     /// </summary>
-    CompilationCheck,
+    Debugging,
 
     /// <summary>
-    /// 单元测试模式 - 运行测试用例验证功能
+    /// 编写实现模式 - 完整实现指定功能并通过测试
     /// </summary>
-    UnitTest
+    Implementation
 }
 
 /// <summary>
@@ -232,14 +232,19 @@ public class CSharpScoringResult
     public List<FillBlankResult> FillBlankResults { get; set; } = new();
 
     /// <summary>
-    /// 编译结果（编译检查模式）
+    /// 编译结果（所有模式都可能需要）
     /// </summary>
     public CompilationResult? CompilationResult { get; set; }
 
     /// <summary>
-    /// 单元测试结果（单元测试模式）
+    /// 单元测试结果（实现模式）
     /// </summary>
     public UnitTestResult? UnitTestResult { get; set; }
+
+    /// <summary>
+    /// 调试结果（调试纠错模式）
+    /// </summary>
+    public DebuggingResult? DebuggingResult { get; set; }
 
     /// <summary>
     /// 开始时间
@@ -522,4 +527,132 @@ public class TestCaseResult
     /// 输出信息
     /// </summary>
     public string Output { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 调试结果
+/// </summary>
+public class DebuggingResult
+{
+    /// <summary>
+    /// 是否成功修复所有错误
+    /// </summary>
+    public bool IsSuccess { get; set; }
+
+    /// <summary>
+    /// 原始代码中发现的错误数量
+    /// </summary>
+    public int TotalErrors { get; set; }
+
+    /// <summary>
+    /// 已修复的错误数量
+    /// </summary>
+    public int FixedErrors { get; set; }
+
+    /// <summary>
+    /// 剩余的错误数量
+    /// </summary>
+    public int RemainingErrors { get; set; }
+
+    /// <summary>
+    /// 错误检测结果列表
+    /// </summary>
+    public List<ErrorDetectionResult> ErrorDetections { get; set; } = new();
+
+    /// <summary>
+    /// 修复验证结果
+    /// </summary>
+    public List<FixVerificationResult> FixVerifications { get; set; } = new();
+
+    /// <summary>
+    /// 调试耗时（毫秒）
+    /// </summary>
+    public long DebuggingTimeMs { get; set; }
+
+    /// <summary>
+    /// 详细信息
+    /// </summary>
+    public string Details { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 错误信息
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+}
+
+/// <summary>
+/// 错误检测结果
+/// </summary>
+public class ErrorDetectionResult
+{
+    /// <summary>
+    /// 错误类型
+    /// </summary>
+    public string ErrorType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 错误描述
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 错误位置（行号）
+    /// </summary>
+    public int LineNumber { get; set; }
+
+    /// <summary>
+    /// 错误位置（列号）
+    /// </summary>
+    public int ColumnNumber { get; set; }
+
+    /// <summary>
+    /// 错误严重程度
+    /// </summary>
+    public string Severity { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 是否已修复
+    /// </summary>
+    public bool IsFixed { get; set; }
+
+    /// <summary>
+    /// 修复建议
+    /// </summary>
+    public string? FixSuggestion { get; set; }
+}
+
+/// <summary>
+/// 修复验证结果
+/// </summary>
+public class FixVerificationResult
+{
+    /// <summary>
+    /// 修复的错误类型
+    /// </summary>
+    public string ErrorType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 修复是否正确
+    /// </summary>
+    public bool IsCorrectFix { get; set; }
+
+    /// <summary>
+    /// 修复前的代码
+    /// </summary>
+    public string BeforeCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 修复后的代码
+    /// </summary>
+    public string AfterCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 验证消息
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 得分
+    /// </summary>
+    public decimal Score { get; set; }
 }

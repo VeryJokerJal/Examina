@@ -157,4 +157,14 @@ public interface ICSharpScoringService : IScoringService
     /// <param name="references">引用程序集</param>
     /// <returns>测试结果</returns>
     Task<UnitTestResult> RunUnitTestsAsync(string studentCode, string testCode, List<string>? references = null);
+
+    /// <summary>
+    /// 调试纠错评分
+    /// </summary>
+    /// <param name="buggyCode">包含错误的代码</param>
+    /// <param name="studentFixedCode">学生修复后的代码</param>
+    /// <param name="expectedErrors">期望发现的错误列表</param>
+    /// <param name="testCode">验证修复的测试代码</param>
+    /// <returns>调试结果</returns>
+    Task<DebuggingResult> DebugCodeAsync(string buggyCode, string studentFixedCode, List<string> expectedErrors, string? testCode = null);
 }

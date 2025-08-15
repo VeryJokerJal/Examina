@@ -6,7 +6,7 @@ BenchSuite中的C#编程题打分功能提供了对C#代码的自动化评分能
 
 ## 功能特性
 
-### 支持的评分模式
+### 支持的评分模式（与ExamLab完全对应）
 
 #### 1. 代码补全模式 (CodeCompletion)
 - **原理**: 基于`NotImplementedException`的填空检测
@@ -33,29 +33,69 @@ public int Add(int a, int b)
 "return a + b;"
 ```
 
-#### 2. 编译检查模式 (CompilationCheck)
-- **原理**: 验证代码是否能正确编译
-- **适用场景**: 语法检查、基础编程能力评估
-- **技术实现**: 使用Roslyn编译器进行实时编译
-- **评分标准**: 编译成功得满分，编译失败得0分
+#### 2. 调试纠错模式 (Debugging)
+- **原理**: 检测和验证代码错误修复
+- **适用场景**: 调试能力评估、错误识别和修复
+- **技术实现**: 对比错误代码和修复代码，验证错误是否正确修复
+- **评分标准**: 根据正确修复的错误数量计算得分
 
 **特性**:
-- 详细的编译错误信息
-- 编译警告统计
-- 编译耗时统计
-- 支持自定义引用程序集
+- 语法错误检测
+- 编译错误分析
+- 逻辑错误识别
+- 修复验证和评分
 
-#### 3. 单元测试模式 (UnitTest)
-- **原理**: 运行测试用例验证代码功能
-- **适用场景**: 功能正确性验证、算法实现评估
-- **技术实现**: 动态编译并执行测试代码
-- **评分标准**: 根据通过的测试用例数量计算得分
+**示例**:
+```csharp
+// 包含错误的代码
+public int Add(int a, int b)
+{
+    return a - b; // 错误：应该是加法
+}
+
+// 学生修复后的代码
+public int Add(int a, int b)
+{
+    return a + b; // 修复：改为正确的加法
+}
+
+// 期望发现的错误
+["减法错误"]
+```
+
+#### 3. 编写实现模式 (Implementation)
+- **原理**: 完整实现指定功能并通过测试验证
+- **适用场景**: 完整功能实现、算法编程、项目开发
+- **技术实现**: 编译检查 + 单元测试验证
+- **评分标准**: 编译成功 + 测试通过率
 
 **特性**:
-- 支持多种测试框架属性
-- 详细的测试执行报告
-- 异常捕获和错误信息
-- 测试执行时间统计
+- 编译正确性验证
+- 功能完整性测试
+- 性能和质量评估
+- 综合能力评价
+
+**示例**:
+```csharp
+// 学生实现的完整代码
+public class Calculator
+{
+    public int Add(int a, int b) => a + b;
+    public int Subtract(int a, int b) => a - b;
+}
+
+// 测试代码
+public class CalculatorTests
+{
+    [Test]
+    public void TestAdd()
+    {
+        var calc = new Calculator();
+        if (calc.Add(2, 3) != 5)
+            throw new Exception("Add test failed");
+    }
+}
+```
 
 ## 核心组件
 
@@ -82,8 +122,15 @@ public async Task<CSharpScoringResult> ScoreCodeAsync(
 - 收集编译错误和警告
 - 生成可执行程序集
 
-### 4. CSharpUnitTestRunner
-单元测试模式的核心组件，负责：
+### 4. CSharpDebuggingGrader
+调试纠错模式的核心组件，负责：
+- 分析代码中的各种错误
+- 比较修复前后的代码差异
+- 验证错误修复的正确性
+- 生成详细的调试报告
+
+### 5. CSharpUnitTestRunner
+单元测试执行组件，负责：
 - 合并学生代码和测试代码
 - 动态执行测试用例
 - 收集测试结果和统计信息
@@ -110,18 +157,18 @@ Console.WriteLine($"得分: {result.AchievedScore}/{result.TotalScore}");
 var completionResult = await service.ScoreCodeAsync(
     template, studentCode, expected, CSharpScoringMode.CodeCompletion);
 
-// 2. 编译检查
-var compilationResult = await service.ScoreCodeAsync(
-    "", studentCode, [], CSharpScoringMode.CompilationCheck);
+// 2. 调试纠错评分
+var debuggingResult = await service.ScoreCodeAsync(
+    buggyCode, fixedCode, expectedErrors, CSharpScoringMode.Debugging);
 
-// 3. 单元测试
-var testResult = await service.ScoreCodeAsync(
-    "", studentCode, [testCode], CSharpScoringMode.UnitTest);
+// 3. 编写实现评分
+var implementationResult = await service.ScoreCodeAsync(
+    "", studentCode, [testCode], CSharpScoringMode.Implementation);
 
 // 综合评分
-decimal totalScore = completionResult.AchievedScore + 
-                   (compilationResult.CompilationResult?.IsSuccess == true ? 1 : 0) + 
-                   (testResult.UnitTestResult?.PassedTests ?? 0);
+decimal totalScore = completionResult.AchievedScore +
+                   debuggingResult.AchievedScore +
+                   implementationResult.AchievedScore;
 ```
 
 ## 评分结果模型
@@ -141,6 +188,7 @@ public class CSharpScoringResult
     public List<FillBlankResult> FillBlankResults { get; set; }
     public CompilationResult? CompilationResult { get; set; }
     public UnitTestResult? UnitTestResult { get; set; }
+    public DebuggingResult? DebuggingResult { get; set; }
 }
 ```
 
@@ -166,6 +214,20 @@ public class CompilationResult
     public List<CompilationWarning> Warnings { get; set; }
     public byte[]? AssemblyBytes { get; set; }
     public long CompilationTimeMs { get; set; }
+}
+```
+
+### 调试结果 (DebuggingResult)
+```csharp
+public class DebuggingResult
+{
+    public bool IsSuccess { get; set; }
+    public int TotalErrors { get; set; }
+    public int FixedErrors { get; set; }
+    public int RemainingErrors { get; set; }
+    public List<ErrorDetectionResult> ErrorDetections { get; set; }
+    public List<FixVerificationResult> FixVerifications { get; set; }
+    public long DebuggingTimeMs { get; set; }
 }
 ```
 

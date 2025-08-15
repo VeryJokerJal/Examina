@@ -26,10 +26,10 @@ public class CSharpScoringServiceTests
         await TestCodeCompletionModeAsync();
         Console.WriteLine();
 
-        await TestCompilationCheckModeAsync();
+        await TestDebuggingModeAsync();
         Console.WriteLine();
 
-        await TestUnitTestModeAsync();
+        await TestImplementationModeAsync();
         Console.WriteLine();
 
         await TestCodeCompletionGraderAsync();
@@ -138,90 +138,114 @@ class Calculator
     }
 
     /// <summary>
-    /// 测试编译检查模式
+    /// 测试调试纠错模式
     /// </summary>
-    public async Task TestCompilationCheckModeAsync()
+    public async Task TestDebuggingModeAsync()
     {
-        Console.WriteLine("🔧 测试编译检查模式");
+        Console.WriteLine("🐛 测试调试纠错模式");
 
-        // 正确的代码
-        string correctCode = @"
+        // 包含错误的代码
+        string buggyCode = @"
 using System;
 
-class Program 
+class Calculator
 {
-    static void Main() 
+    public int Add(int a, int b)
     {
-        Console.WriteLine(""Hello, World!"");
+        return a - b; // 错误：应该是加法，不是减法
     }
 
-    public static int Add(int a, int b)
+    public int Divide(int a, int b)
     {
-        return a + b;
+        return a / b; // 错误：没有检查除零
+    }
+
+    public void PrintResult()
+    {
+        int result = Add(5, 3);
+        Console.WriteLine(""Result: "" + result);
+        // 错误：缺少分号
+        int x = 10
     }
 }";
 
-        // 错误的代码
-        string incorrectCode = @"
+        // 学生修复后的代码
+        string fixedCode = @"
 using System;
 
-class Program 
+class Calculator
 {
-    static void Main() 
+    public int Add(int a, int b)
     {
-        Console.WriteLine(""Hello, World!"");
-        int result = Add(1, 2, 3); // 参数数量错误
+        return a + b; // 修复：改为正确的加法
     }
 
-    public static int Add(int a, int b)
+    public int Divide(int a, int b)
     {
-        return a + b;
+        if (b == 0)
+            throw new ArgumentException(""除数不能为零"");
+        return a / b; // 修复：添加除零检查
+    }
+
+    public void PrintResult()
+    {
+        int result = Add(5, 3);
+        Console.WriteLine(""Result: "" + result);
+        int x = 10; // 修复：添加分号
     }
 }";
+
+        // 期望发现的错误
+        List<string> expectedErrors =
+        [
+            "减法错误\n除零检查\n缺少分号"
+        ];
 
         try
         {
-            // 测试正确代码
-            Console.WriteLine("  测试正确代码:");
-            CSharpScoringResult correctResult = await _csharpScoringService.ScoreCodeAsync(
-                "", correctCode, [], CSharpScoringMode.CompilationCheck);
+            CSharpScoringResult result = await _csharpScoringService.ScoreCodeAsync(
+                buggyCode, fixedCode, expectedErrors, CSharpScoringMode.Debugging);
 
-            Console.WriteLine($"    编译成功: {correctResult.CompilationResult?.IsSuccess}");
-            Console.WriteLine($"    得分: {correctResult.AchievedScore}/{correctResult.TotalScore}");
-            Console.WriteLine($"    详细信息: {correctResult.Details}");
+            Console.WriteLine($"  评分模式: {result.Mode}");
+            Console.WriteLine($"  总错误数: {result.DebuggingResult?.TotalErrors}");
+            Console.WriteLine($"  已修复错误数: {result.DebuggingResult?.FixedErrors}");
+            Console.WriteLine($"  剩余错误数: {result.DebuggingResult?.RemainingErrors}");
+            Console.WriteLine($"  得分: {result.AchievedScore}/{result.TotalScore}");
+            Console.WriteLine($"  得分率: {result.ScoreRate:P2}");
+            Console.WriteLine($"  详细信息: {result.Details}");
+            Console.WriteLine($"  耗时: {result.ElapsedMilliseconds}ms");
 
-            // 测试错误代码
-            Console.WriteLine("  测试错误代码:");
-            CSharpScoringResult incorrectResult = await _csharpScoringService.ScoreCodeAsync(
-                "", incorrectCode, [], CSharpScoringMode.CompilationCheck);
-
-            Console.WriteLine($"    编译成功: {incorrectResult.CompilationResult?.IsSuccess}");
-            Console.WriteLine($"    得分: {incorrectResult.AchievedScore}/{incorrectResult.TotalScore}");
-            Console.WriteLine($"    错误数量: {incorrectResult.CompilationResult?.Errors.Count}");
-            Console.WriteLine($"    详细信息: {incorrectResult.Details}");
-
-            if (correctResult.CompilationResult?.IsSuccess == true && 
-                incorrectResult.CompilationResult?.IsSuccess == false)
+            if (result.DebuggingResult?.FixVerifications.Count > 0)
             {
-                Console.WriteLine("✅ 编译检查模式测试通过");
+                Console.WriteLine("  修复验证结果:");
+                foreach (FixVerificationResult fixResult in result.DebuggingResult.FixVerifications)
+                {
+                    Console.WriteLine($"    {fixResult.ErrorType}: {(fixResult.IsCorrectFix ? "✅" : "❌")}");
+                    Console.WriteLine($"      {fixResult.Message}");
+                }
+            }
+
+            if (result.IsSuccess)
+            {
+                Console.WriteLine("✅ 调试纠错模式测试通过");
             }
             else
             {
-                Console.WriteLine("❌ 编译检查模式测试失败");
+                Console.WriteLine("⚠️ 调试纠错模式测试部分通过");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ 编译检查模式测试异常: {ex.Message}");
+            Console.WriteLine($"❌ 调试纠错模式测试异常: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// 测试单元测试模式
+    /// 测试编写实现模式
     /// </summary>
-    public async Task TestUnitTestModeAsync()
+    public async Task TestImplementationModeAsync()
     {
-        Console.WriteLine("🧪 测试单元测试模式");
+        Console.WriteLine("💻 测试编写实现模式");
 
         // 学生代码
         string studentCode = @"
@@ -294,9 +318,10 @@ public class CalculatorTests
         try
         {
             CSharpScoringResult result = await _csharpScoringService.ScoreCodeAsync(
-                "", studentCode, [testCode], CSharpScoringMode.UnitTest);
+                "", studentCode, [testCode], CSharpScoringMode.Implementation);
 
             Console.WriteLine($"  评分模式: {result.Mode}");
+            Console.WriteLine($"  编译成功: {result.CompilationResult?.IsSuccess}");
             Console.WriteLine($"  总测试数: {result.UnitTestResult?.TotalTests}");
             Console.WriteLine($"  通过测试数: {result.UnitTestResult?.PassedTests}");
             Console.WriteLine($"  失败测试数: {result.UnitTestResult?.FailedTests}");
@@ -320,16 +345,16 @@ public class CalculatorTests
 
             if (result.IsSuccess)
             {
-                Console.WriteLine("✅ 单元测试模式测试通过");
+                Console.WriteLine("✅ 编写实现模式测试通过");
             }
             else
             {
-                Console.WriteLine("⚠️ 单元测试模式测试部分通过");
+                Console.WriteLine("⚠️ 编写实现模式测试部分通过");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ 单元测试模式测试异常: {ex.Message}");
+            Console.WriteLine($"❌ 编写实现模式测试异常: {ex.Message}");
         }
     }
 

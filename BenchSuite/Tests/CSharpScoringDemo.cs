@@ -122,22 +122,24 @@ public class StringHelperTests
         Console.WriteLine($"   得分: {completionResult.AchievedScore}/{completionResult.TotalScore}");
         Console.WriteLine($"   状态: {(completionResult.AchievedScore == completionResult.TotalScore ? "完全正确✅" : "部分正确⚠️")}");
 
-        // 2. 编译检查模式
-        Console.WriteLine("\n2️⃣ 编译检查模式评分:");
-        var compilationResult = await service.ScoreCodeAsync("", studentCode, [], CSharpScoringMode.CompilationCheck);
-        Console.WriteLine($"   编译: {(compilationResult.CompilationResult?.IsSuccess == true ? "成功✅" : "失败❌")}");
-        Console.WriteLine($"   耗时: {compilationResult.CompilationResult?.CompilationTimeMs}ms");
+        // 2. 调试纠错模式（模拟）
+        Console.WriteLine("\n2️⃣ 调试纠错模式评分:");
+        string buggyTemplate = template.Replace("Array.Reverse(chars);", "// 这里有错误");
+        var debuggingResult = await service.ScoreCodeAsync(buggyTemplate, studentCode, ["缺少实现"], CSharpScoringMode.Debugging);
+        Console.WriteLine($"   修复: {debuggingResult.DebuggingResult?.FixedErrors}/{debuggingResult.DebuggingResult?.TotalErrors} 个错误");
+        Console.WriteLine($"   状态: {(debuggingResult.DebuggingResult?.IsSuccess == true ? "全部修复✅" : "部分修复⚠️")}");
 
-        // 3. 单元测试模式
-        Console.WriteLine("\n3️⃣ 单元测试模式评分:");
-        var testResult = await service.ScoreCodeAsync("", studentCode, [testCode], CSharpScoringMode.UnitTest);
-        Console.WriteLine($"   测试: {testResult.UnitTestResult?.PassedTests}/{testResult.UnitTestResult?.TotalTests} 通过");
-        Console.WriteLine($"   状态: {(testResult.UnitTestResult?.IsSuccess == true ? "全部通过✅" : "部分失败❌")}");
+        // 3. 编写实现模式
+        Console.WriteLine("\n3️⃣ 编写实现模式评分:");
+        var implementationResult = await service.ScoreCodeAsync("", studentCode, [testCode], CSharpScoringMode.Implementation);
+        Console.WriteLine($"   编译: {(implementationResult.CompilationResult?.IsSuccess == true ? "成功✅" : "失败❌")}");
+        Console.WriteLine($"   测试: {implementationResult.UnitTestResult?.PassedTests}/{implementationResult.UnitTestResult?.TotalTests} 通过");
+        Console.WriteLine($"   状态: {(implementationResult.UnitTestResult?.IsSuccess == true ? "全部通过✅" : "部分失败❌")}");
 
         // 综合评分
-        decimal totalScore = (completionResult.AchievedScore / completionResult.TotalScore) * 40 +
-                           (compilationResult.CompilationResult?.IsSuccess == true ? 20 : 0) +
-                           ((decimal)(testResult.UnitTestResult?.PassedTests ?? 0) / (testResult.UnitTestResult?.TotalTests ?? 1)) * 40;
+        decimal totalScore = (completionResult.AchievedScore / completionResult.TotalScore) * 30 +
+                           (debuggingResult.AchievedScore / Math.Max(debuggingResult.TotalScore, 1)) * 30 +
+                           (implementationResult.AchievedScore / Math.Max(implementationResult.TotalScore, 1)) * 40;
 
         Console.WriteLine($"\n🎯 综合评分: {totalScore:F1}/100");
         Console.WriteLine($"   等级: {GetGradeLevel(totalScore)}");
