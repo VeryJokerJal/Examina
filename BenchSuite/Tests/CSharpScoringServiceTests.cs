@@ -32,6 +32,9 @@ public class CSharpScoringServiceTests
         await TestImplementationModeAsync();
         Console.WriteLine();
 
+        await TestFileBasedScoringAsync();
+        Console.WriteLine();
+
         Console.WriteLine("=== 所有测试完成 ===");
     }
 
@@ -251,5 +254,166 @@ public class CalculatorTests
         {
             Console.WriteLine($"❌ 编写实现模式测试异常: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 测试基于文件路径的评分功能
+    /// </summary>
+    public async Task TestFileBasedScoringAsync()
+    {
+        Console.WriteLine("📁 测试基于文件路径的评分功能");
+
+        try
+        {
+            // 创建临时测试文件
+            string tempFilePath = Path.Combine(Path.GetTempPath(), "test_student_code.cs");
+            string studentCode = @"
+using System;
+
+public class Calculator
+{
+    public int Add(int a, int b)
+    {
+        return a + b;
+    }
+
+    public int Multiply(int a, int b)
+    {
+        return a * b;
+    }
+}";
+
+            await File.WriteAllTextAsync(tempFilePath, studentCode);
+
+            // 创建测试试卷模型
+            ExamModel examModel = CreateTestExamModel();
+
+            // 测试文件评分
+            ScoringResult result = await _csharpScoringService.ScoreFileAsync(tempFilePath, examModel);
+
+            Console.WriteLine($"  文件路径: {tempFilePath}");
+            Console.WriteLine($"  文件可处理: {_csharpScoringService.CanProcessFile(tempFilePath)}");
+            Console.WriteLine($"  支持的扩展名: {string.Join(", ", _csharpScoringService.GetSupportedExtensions())}");
+            Console.WriteLine($"  评分成功: {result.IsSuccess}");
+            Console.WriteLine($"  总分: {result.TotalScore}");
+            Console.WriteLine($"  得分: {result.AchievedScore}");
+            Console.WriteLine($"  知识点数量: {result.KnowledgePointResults.Count}");
+            Console.WriteLine($"  耗时: {result.ElapsedMilliseconds}ms");
+
+            if (!string.IsNullOrEmpty(result.ErrorMessage))
+            {
+                Console.WriteLine($"  错误信息: {result.ErrorMessage}");
+            }
+
+            // 清理临时文件
+            if (File.Exists(tempFilePath))
+            {
+                File.Delete(tempFilePath);
+            }
+
+            if (result.IsSuccess)
+            {
+                Console.WriteLine("✅ 基于文件路径的评分测试通过");
+            }
+            else
+            {
+                Console.WriteLine("⚠️ 基于文件路径的评分测试部分通过");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ 基于文件路径的评分测试异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 创建测试用的试卷模型
+    /// </summary>
+    /// <returns>试卷模型</returns>
+    private static ExamModel CreateTestExamModel()
+    {
+        return new ExamModel
+        {
+            Id = "test-exam-001",
+            Name = "C#编程测试试卷",
+            Description = "用于测试C#编程题评分功能",
+            Modules =
+            [
+                new ExamModuleModel
+                {
+                    Id = "csharp-module-001",
+                    Name = "C#编程模块",
+                    Type = ModuleType.CSharp,
+                    Questions =
+                    [
+                        new QuestionModel
+                        {
+                            Id = "csharp-question-001",
+                            Title = "实现计算器功能",
+                            Content = "请实现一个计算器类，包含加法和乘法方法",
+                            QuestionType = "Implementation",
+                            Score = 10,
+                            OperationPoints =
+                            [
+                                new OperationPointModel
+                                {
+                                    Id = "op-001",
+                                    Name = "实现Add方法",
+                                    Description = "实现两个整数的加法运算",
+                                    ModuleType = ModuleType.CSharp,
+                                    Score = 5,
+                                    Parameters =
+                                    [
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "TestCode",
+                                            Value = @"
+public class CalculatorTests
+{
+    [Test]
+    public void TestAdd()
+    {
+        var calc = new Calculator();
+        var result = calc.Add(2, 3);
+        if (result != 5)
+            throw new Exception($""Add test failed: expected 5, got {result}"");
+    }
+}"
+                                        }
+                                    ]
+                                },
+                                new OperationPointModel
+                                {
+                                    Id = "op-002",
+                                    Name = "实现Multiply方法",
+                                    Description = "实现两个整数的乘法运算",
+                                    ModuleType = ModuleType.CSharp,
+                                    Score = 5,
+                                    Parameters =
+                                    [
+                                        new ConfigurationParameterModel
+                                        {
+                                            Name = "TestCode",
+                                            Value = @"
+public class CalculatorTests
+{
+    [Test]
+    public void TestMultiply()
+    {
+        var calc = new Calculator();
+        var result = calc.Multiply(3, 4);
+        if (result != 12)
+            throw new Exception($""Multiply test failed: expected 12, got {result}"");
+    }
+}"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
     }
 }

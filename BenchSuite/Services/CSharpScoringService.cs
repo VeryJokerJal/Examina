@@ -236,24 +236,166 @@ public class CSharpScoringService : ICSharpScoringService
 
     #region IScoringService 基础接口实现
 
-    public Task<ScoringResult> ScoreFileAsync(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
+    public async Task<ScoringResult> ScoreFileAsync(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
     {
-        throw new NotSupportedException("C#打分服务不支持基于文件路径的评分，请使用ScoreCodeAsync方法");
+        ScoringResult result = new()
+        {
+            StartTime = DateTime.Now,
+            IsSuccess = false
+        };
+
+        try
+        {
+            // 验证文件是否可以处理
+            if (!CanProcessFile(filePath))
+            {
+                result.ErrorMessage = $"无法处理文件: {filePath}。请确保文件存在且为支持的C#源代码文件格式。";
+                return result;
+            }
+
+            // 读取学生代码文件
+            string studentCode = await File.ReadAllTextAsync(filePath);
+            if (string.IsNullOrWhiteSpace(studentCode))
+            {
+                result.ErrorMessage = "学生代码文件为空";
+                return result;
+            }
+
+            // 处理试卷中的所有C#题目
+            List<KnowledgePointResult> allResults = [];
+            decimal totalScore = 0;
+            decimal achievedScore = 0;
+
+            // 从所有模块中获取C#题目
+            var csharpQuestions = examModel.Modules
+                .Where(m => m.Type == ModuleType.CSharp)
+                .SelectMany(m => m.Questions);
+
+            foreach (QuestionModel question in csharpQuestions)
+            {
+                ScoringResult questionResult = await ScoreQuestionAsync(filePath, question, configuration);
+
+                // 合并结果
+                allResults.AddRange(questionResult.KnowledgePointResults);
+                totalScore += questionResult.TotalScore;
+                achievedScore += questionResult.AchievedScore;
+
+                // 如果某个题目评分失败，记录但继续处理其他题目
+                if (!questionResult.IsSuccess && string.IsNullOrEmpty(result.ErrorMessage))
+                {
+                    result.ErrorMessage = questionResult.ErrorMessage;
+                }
+            }
+
+            // 设置最终结果
+            result.KnowledgePointResults = allResults;
+            result.TotalScore = totalScore;
+            result.AchievedScore = achievedScore;
+            result.IsSuccess = allResults.Count > 0; // 只要有结果就算成功
+
+            if (allResults.Count == 0)
+            {
+                result.ErrorMessage = "试卷中没有找到C#编程题目";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"评分过程中发生异常: {ex.Message}";
+            result.IsSuccess = false;
+        }
+        finally
+        {
+            result.EndTime = DateTime.Now;
+        }
+
+        return result;
     }
 
     public ScoringResult ScoreFile(string filePath, ExamModel examModel, ScoringConfiguration? configuration = null)
     {
-        throw new NotSupportedException("C#打分服务不支持基于文件路径的评分，请使用ScoreCodeAsync方法");
+        try
+        {
+            // 调用异步版本并等待结果
+            return ScoreFileAsync(filePath, examModel, configuration).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            return new ScoringResult
+            {
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now,
+                IsSuccess = false,
+                ErrorMessage = $"同步评分失败: {ex.Message}",
+                KnowledgePointResults = [],
+                TotalScore = 0,
+                AchievedScore = 0
+            };
+        }
     }
 
-    public Task<ScoringResult> ScoreQuestionAsync(string filePath, QuestionModel question, ScoringConfiguration? configuration = null)
+    public async Task<ScoringResult> ScoreQuestionAsync(string filePath, QuestionModel question, ScoringConfiguration? configuration = null)
     {
-        throw new NotSupportedException("C#打分服务不支持基于文件路径的评分，请使用ScoreCodeAsync方法");
+        ScoringResult result = new()
+        {
+            StartTime = DateTime.Now,
+            IsSuccess = false
+        };
+
+        try
+        {
+            // 验证文件是否可以处理
+            if (!CanProcessFile(filePath))
+            {
+                result.ErrorMessage = $"无法处理文件: {filePath}";
+                return result;
+            }
+
+            // 读取学生代码文件
+            string studentCode = await File.ReadAllTextAsync(filePath);
+            if (string.IsNullOrWhiteSpace(studentCode))
+            {
+                result.ErrorMessage = "学生代码文件为空";
+                return result;
+            }
+
+            // 从题目中提取C#相关信息
+            CSharpQuestionInfo? questionInfo = ExtractCSharpQuestionInfo(question);
+            if (questionInfo == null)
+            {
+                result.ErrorMessage = "无法从题目中提取C#编程信息";
+                return result;
+            }
+
+            // 根据题目类型调用相应的评分方法
+            CSharpScoringResult csharpResult = await ScoreCodeAsync(
+                questionInfo.TemplateCode,
+                studentCode,
+                questionInfo.ExpectedImplementations,
+                questionInfo.ScoringMode);
+
+            // 转换为ScoringResult
+            result = ConvertToScoringResult(csharpResult, question);
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"题目评分过程中发生异常: {ex.Message}";
+            result.IsSuccess = false;
+        }
+        finally
+        {
+            result.EndTime = DateTime.Now;
+        }
+
+        return result;
     }
 
     public bool CanProcessFile(string filePath)
     {
         if (string.IsNullOrEmpty(filePath))
+            return false;
+
+        // 检查文件是否存在
+        if (!File.Exists(filePath))
             return false;
 
         string extension = Path.GetExtension(filePath).ToLowerInvariant();
@@ -262,8 +404,266 @@ public class CSharpScoringService : ICSharpScoringService
 
     public IEnumerable<string> GetSupportedExtensions()
     {
-        return [".cs", ".txt"]; // 支持C#源代码文件和文本文件
+        return [".cs", ".txt", ".csharp"]; // 支持C#源代码文件和文本文件
     }
 
     #endregion
+
+    #region 私有辅助方法
+
+    /// <summary>
+    /// 从题目模型中提取C#编程题信息
+    /// </summary>
+    /// <param name="question">题目模型</param>
+    /// <returns>C#题目信息</returns>
+    private static CSharpQuestionInfo? ExtractCSharpQuestionInfo(QuestionModel question)
+    {
+        try
+        {
+            // 从题目的操作点中提取C#相关信息
+            var csharpOperationPoints = question.OperationPoints
+                .Where(op => op.ModuleType == ModuleType.CSharp)
+                .ToList();
+
+            if (csharpOperationPoints.Count == 0)
+            {
+                return null;
+            }
+
+            // 确定评分模式
+            CSharpScoringMode scoringMode = DetermineScoringMode(question);
+
+            // 提取模板代码
+            string templateCode = ExtractTemplateCode(question, csharpOperationPoints);
+
+            // 提取期望实现
+            List<string> expectedImplementations = ExtractExpectedImplementations(question, csharpOperationPoints, scoringMode);
+
+            return new CSharpQuestionInfo
+            {
+                ScoringMode = scoringMode,
+                TemplateCode = templateCode,
+                ExpectedImplementations = expectedImplementations,
+                QuestionId = question.Id,
+                QuestionTitle = question.Title
+            };
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 确定C#题目的评分模式
+    /// </summary>
+    /// <param name="question">题目模型</param>
+    /// <returns>评分模式</returns>
+    private static CSharpScoringMode DetermineScoringMode(QuestionModel question)
+    {
+        // 从题目类型或操作点中确定模式
+        string questionType = question.QuestionType?.ToLowerInvariant() ?? "";
+
+        return questionType switch
+        {
+            "codecompletion" => CSharpScoringMode.CodeCompletion,
+            "debugging" => CSharpScoringMode.Debugging,
+            "implementation" => CSharpScoringMode.Implementation,
+            _ => CSharpScoringMode.CodeCompletion // 默认为代码补全模式
+        };
+    }
+
+    /// <summary>
+    /// 提取模板代码
+    /// </summary>
+    /// <param name="question">题目模型</param>
+    /// <param name="operationPoints">操作点列表</param>
+    /// <returns>模板代码</returns>
+    private static string ExtractTemplateCode(QuestionModel question, List<OperationPointModel> operationPoints)
+    {
+        // 优先从操作点参数中查找模板代码
+        foreach (var op in operationPoints)
+        {
+            var templateParam = op.Parameters?.FirstOrDefault(p =>
+                p.Name.Equals("TemplateCode", StringComparison.OrdinalIgnoreCase) ||
+                p.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
+
+            if (templateParam != null && !string.IsNullOrWhiteSpace(templateParam.Value))
+            {
+                return templateParam.Value;
+            }
+        }
+
+        // 如果没有找到，尝试从题目内容中提取
+        if (!string.IsNullOrWhiteSpace(question.Content))
+        {
+            // 查找代码块标记
+            var codeBlockMatch = System.Text.RegularExpressions.Regex.Match(
+                question.Content,
+                @"```(?:csharp|cs|c#)?\s*\n(.*?)\n```",
+                System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            if (codeBlockMatch.Success)
+            {
+                return codeBlockMatch.Groups[1].Value.Trim();
+            }
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// 提取期望实现
+    /// </summary>
+    /// <param name="question">题目模型</param>
+    /// <param name="operationPoints">操作点列表</param>
+    /// <param name="scoringMode">评分模式</param>
+    /// <returns>期望实现列表</returns>
+    private static List<string> ExtractExpectedImplementations(QuestionModel question, List<OperationPointModel> operationPoints, CSharpScoringMode scoringMode)
+    {
+        List<string> implementations = [];
+
+        foreach (var op in operationPoints)
+        {
+            // 根据评分模式查找不同的参数
+            string[] paramNames = scoringMode switch
+            {
+                CSharpScoringMode.CodeCompletion => ["ExpectedImplementation", "Expected", "Implementation"],
+                CSharpScoringMode.Debugging => ["ExpectedErrors", "Errors", "BugList"],
+                CSharpScoringMode.Implementation => ["TestCode", "Tests", "UnitTests"],
+                _ => ["ExpectedImplementation", "Expected"]
+            };
+
+            foreach (string paramName in paramNames)
+            {
+                var param = op.Parameters?.FirstOrDefault(p =>
+                    p.Name.Equals(paramName, StringComparison.OrdinalIgnoreCase));
+
+                if (param != null && !string.IsNullOrWhiteSpace(param.Value))
+                {
+                    implementations.Add(param.Value);
+                    break; // 找到一个就跳出内层循环
+                }
+            }
+        }
+
+        return implementations;
+    }
+
+    /// <summary>
+    /// 将CSharpScoringResult转换为ScoringResult
+    /// </summary>
+    /// <param name="csharpResult">C#评分结果</param>
+    /// <param name="question">题目模型</param>
+    /// <returns>通用评分结果</returns>
+    private static ScoringResult ConvertToScoringResult(CSharpScoringResult csharpResult, QuestionModel question)
+    {
+        var result = new ScoringResult
+        {
+            StartTime = csharpResult.StartTime,
+            EndTime = csharpResult.EndTime,
+            IsSuccess = csharpResult.IsSuccess,
+            ErrorMessage = csharpResult.ErrorMessage,
+            TotalScore = csharpResult.TotalScore,
+            AchievedScore = csharpResult.AchievedScore,
+            KnowledgePointResults = []
+        };
+
+        // 根据评分模式创建知识点结果
+        switch (csharpResult.Mode)
+        {
+            case CSharpScoringMode.CodeCompletion:
+                foreach (var fillResult in csharpResult.FillBlankResults)
+                {
+                    result.KnowledgePointResults.Add(new KnowledgePointResult
+                    {
+                        KnowledgePointType = "CodeCompletion",
+                        IsCorrect = fillResult.Matched,
+                        TotalScore = 1,
+                        AchievedScore = fillResult.Matched ? 1 : 0,
+                        Details = fillResult.Message,
+                        ExpectedValue = fillResult.ExpectedText,
+                        ActualValue = fillResult.StudentText,
+                        Parameters = new Dictionary<string, string>
+                        {
+                            ["BlankIndex"] = fillResult.BlankIndex.ToString(),
+                            ["Location"] = fillResult.Descriptor.LocationSummary
+                        }
+                    });
+                }
+                break;
+
+            case CSharpScoringMode.Debugging:
+                if (csharpResult.DebuggingResult != null)
+                {
+                    result.KnowledgePointResults.Add(new KnowledgePointResult
+                    {
+                        KnowledgePointType = "Debugging",
+                        IsCorrect = csharpResult.DebuggingResult.IsSuccess,
+                        TotalScore = csharpResult.DebuggingResult.TotalErrors,
+                        AchievedScore = csharpResult.DebuggingResult.FixedErrors,
+                        Details = csharpResult.Details,
+                        Parameters = new Dictionary<string, string>
+                        {
+                            ["TotalErrors"] = csharpResult.DebuggingResult.TotalErrors.ToString(),
+                            ["FixedErrors"] = csharpResult.DebuggingResult.FixedErrors.ToString(),
+                            ["RemainingErrors"] = csharpResult.DebuggingResult.RemainingErrors.ToString()
+                        }
+                    });
+                }
+                break;
+
+            case CSharpScoringMode.Implementation:
+                result.KnowledgePointResults.Add(new KnowledgePointResult
+                {
+                    KnowledgePointType = "Implementation",
+                    IsCorrect = csharpResult.IsSuccess && csharpResult.CompilationResult?.IsSuccess == true,
+                    TotalScore = csharpResult.TotalScore,
+                    AchievedScore = csharpResult.AchievedScore,
+                    Details = csharpResult.Details,
+                    Parameters = new Dictionary<string, string>
+                    {
+                        ["CompilationSuccess"] = (csharpResult.CompilationResult?.IsSuccess ?? false).ToString(),
+                        ["TestsPassed"] = (csharpResult.UnitTestResult?.PassedTests ?? 0).ToString(),
+                        ["TotalTests"] = (csharpResult.UnitTestResult?.TotalTests ?? 0).ToString()
+                    }
+                });
+                break;
+        }
+
+        return result;
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// C#题目信息
+/// </summary>
+internal class CSharpQuestionInfo
+{
+    /// <summary>
+    /// 评分模式
+    /// </summary>
+    public CSharpScoringMode ScoringMode { get; set; }
+
+    /// <summary>
+    /// 模板代码
+    /// </summary>
+    public string TemplateCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 期望实现列表
+    /// </summary>
+    public List<string> ExpectedImplementations { get; set; } = [];
+
+    /// <summary>
+    /// 题目ID
+    /// </summary>
+    public string QuestionId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 题目标题
+    /// </summary>
+    public string QuestionTitle { get; set; } = string.Empty;
 }
