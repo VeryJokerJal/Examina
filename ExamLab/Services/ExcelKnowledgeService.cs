@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using ExamLab.Models;
@@ -104,10 +104,9 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
-                new() { Name = "CellValues", DisplayName = "目标区域个别单元格的值", Description = "用单元格+值的方式匹配，比如：E10：我的天啊", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 4 }
+                new() { Name = "CellValues", DisplayName = "目标区域个别单元格的值", Description = "用单元格+值的方式匹配，比如：E10：我的天啊", Type = ParameterType.Text, IsRequired = true, Order = 3 }
             ]
         };
 
@@ -120,10 +119,9 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标图表", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
-                new() { Name = "CellRange", DisplayName = "起始单元和结束单元格", Description = "用:号分隔，添加合并操作", Type = ParameterType.Text, IsRequired = true, Order = 3 },
-                new() { Name = "Description", DisplayName = "文本题目描述", Description = "题目描述", Type = ParameterType.Text, IsRequired = true, Order = 4 }
+                new() { Name = "CellRange", DisplayName = "起始单元和结束单元格", Description = "用:号分隔，添加合并操作", Type = ParameterType.Text, IsRequired = true, Order = 3 }
             ]
         };
 
