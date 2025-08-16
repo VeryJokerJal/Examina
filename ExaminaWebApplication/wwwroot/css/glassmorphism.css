@@ -3195,6 +3195,194 @@ select.glass-select-native.glass-select-danger {
     border-color: rgba(13, 202, 240, 0.4);
 }
 
+.glass-alert-error {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(176, 42, 55, 0.2));
+    border-color: rgba(220, 53, 69, 0.4);
+}
+
+/* ===== GLASS NOTIFICATIONS ===== */
+.glass-notification {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--glass-primary);
+    -webkit-backdrop-filter: var(--blur-md);
+    backdrop-filter: var(--blur-md);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    color: var(--text-primary);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    padding: 1rem 1.25rem;
+    min-width: 300px;
+    max-width: 500px;
+    position: relative;
+    overflow: hidden;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.glass-notification::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.glass-notification-content {
+    flex: 1;
+    line-height: 1.5;
+    font-weight: 500;
+    word-wrap: break-word;
+}
+
+.glass-notification .glass-btn-close {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: -0.25rem -0.25rem -0.25rem 0;
+}
+
+.glass-notification .glass-btn-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.glass-notification .glass-btn-close:active {
+    transform: scale(0.95);
+}
+
+/* Notification variants */
+.glass-notification.glass-alert-success {
+    background: linear-gradient(135deg,
+        rgba(40, 167, 69, 0.25) 0%,
+        rgba(25, 135, 84, 0.15) 100%);
+    border-color: rgba(40, 167, 69, 0.4);
+    color: #198754;
+}
+
+.glass-notification.glass-alert-error {
+    background: linear-gradient(135deg,
+        rgba(220, 53, 69, 0.25) 0%,
+        rgba(176, 42, 55, 0.15) 100%);
+    border-color: rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+}
+
+.glass-notification.glass-alert-warning {
+    background: linear-gradient(135deg,
+        rgba(255, 193, 7, 0.25) 0%,
+        rgba(255, 143, 0, 0.15) 100%);
+    border-color: rgba(255, 193, 7, 0.4);
+    color: #ffc107;
+}
+
+.glass-notification.glass-alert-info {
+    background: linear-gradient(135deg,
+        rgba(13, 202, 240, 0.25) 0%,
+        rgba(11, 172, 204, 0.15) 100%);
+    border-color: rgba(13, 202, 240, 0.4);
+    color: #0dcaf0;
+}
+
+/* Notification animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.glass-notification.fade-out {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+
+/* Notification positioning */
+.glass-notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+.glass-notification-container .glass-notification {
+    pointer-events: auto;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .glass-notification {
+        min-width: 280px;
+        max-width: calc(100vw - 40px);
+        padding: 0.875rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .glass-notification .glass-btn-close {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.9rem;
+    }
+
+    .glass-notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        right: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .glass-notification {
+        min-width: auto;
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .glass-notification .glass-btn-close {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.8rem;
+    }
+}
+
 /* Glass Badge */
 .glass-badge {
     background: var(--glass-primary);

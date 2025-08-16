@@ -1,0 +1,164 @@
+@{
+    ViewData["Title"] = "通知系统演示";
+}
+
+<div class="container mt-4">
+    <div class="glass-card">
+        <div class="card-body">
+            <h2 class="mb-4">
+                <i class="bi bi-bell me-2"></i>玻璃拟态通知系统演示
+            </h2>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="glass-card glass-card-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-check-circle text-success me-2"></i>成功通知
+                            </h5>
+                            <p class="card-text">显示操作成功的通知消息</p>
+                            <button type="button" class="glass-btn glass-btn-success" onclick="showSuccessDemo()">
+                                显示成功通知
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="glass-card glass-card-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-exclamation-triangle text-danger me-2"></i>错误通知
+                            </h5>
+                            <p class="card-text">显示操作失败的错误消息</p>
+                            <button type="button" class="glass-btn glass-btn-danger" onclick="showErrorDemo()">
+                                显示错误通知
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="glass-card glass-card-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-exclamation-triangle text-warning me-2"></i>警告通知
+                            </h5>
+                            <p class="card-text">显示警告信息</p>
+                            <button type="button" class="glass-btn glass-btn-warning" onclick="showWarningDemo()">
+                                显示警告通知
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="glass-card glass-card-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-info-circle text-info me-2"></i>信息通知
+                            </h5>
+                            <p class="card-text">显示一般信息</p>
+                            <button type="button" class="glass-btn glass-btn-info" onclick="showInfoDemo()">
+                                显示信息通知
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="glass-card glass-card-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-clock me-2"></i>持久通知
+                            </h5>
+                            <p class="card-text">显示不会自动消失的通知</p>
+                            <button type="button" class="glass-btn glass-btn-secondary" onclick="showPersistentDemo()">
+                                显示持久通知
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="glass-card glass-card-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-x-circle me-2"></i>清除所有
+                            </h5>
+                            <p class="card-text">清除所有显示的通知</p>
+                            <button type="button" class="glass-btn glass-btn-outline-secondary" onclick="clearAllNotifications()">
+                                清除所有通知
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="glass-card glass-card-secondary">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-code me-2"></i>使用示例
+                    </h5>
+                    <pre class="bg-dark text-light p-3 rounded"><code>// 基本用法
+showNotification('消息内容', '类型');
+
+// 便捷方法
+showSuccessMessage('操作成功！');
+showErrorMessage('操作失败！');
+showWarningMessage('请注意！');
+showInfoMessage('提示信息');
+
+// 高级用法
+glassNotification.show('自定义消息', 'success', {
+    duration: 3000,    // 显示时长（毫秒）
+    dismissible: true, // 是否可关闭
+    icon: true        // 是否显示图标
+});</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showSuccessDemo() {
+    showSuccessMessage('学校创建成功！操作已完成。');
+}
+
+function showErrorDemo() {
+    showErrorMessage('操作失败：创建学校失败，请检查输入信息。');
+}
+
+function showWarningDemo() {
+    showWarningMessage('请注意：该操作将影响所有相关数据。');
+}
+
+function showInfoDemo() {
+    showInfoMessage('系统提示：新功能已上线，欢迎体验。');
+}
+
+function showPersistentDemo() {
+    glassNotification.show('这是一个持久通知，不会自动消失。', 'info', {
+        duration: 0, // 不自动消失
+        dismissible: true
+    });
+}
+
+function clearAllNotifications() {
+    glassNotification.hideAll();
+}
+
+// 页面加载时显示欢迎消息
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        showInfoMessage('欢迎使用玻璃拟态通知系统！');
+    }, 500);
+});
+</script>
