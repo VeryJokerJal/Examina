@@ -7,6 +7,7 @@ using ExaminaWebApplication.Services.Excel;
 using ExaminaWebApplication.Services.Windows;
 using ExaminaWebApplication.Services.Word;
 using ExaminaWebApplication.Services.ImportedExam;
+using ExaminaWebApplication.Services.Organization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -77,6 +78,10 @@ builder.Services.AddScoped<WordOperationService>();
 
 // 注册考试导入相关服务
 builder.Services.AddScoped<ExamImportService>();
+
+// 注册组织相关服务
+builder.Services.AddScoped<IInvitationCodeService, InvitationCodeService>();
+builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 
 
 

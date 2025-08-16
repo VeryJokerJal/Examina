@@ -5,6 +5,7 @@ using ExaminaWebApplication.Models.Excel;
 using ExaminaWebApplication.Models.Windows;
 using ExaminaWebApplication.Models.Word;
 using ExaminaWebApplication.Models.ImportedExam;
+using ExaminaWebApplication.Models.Organization;
 
 using ExaminaWebApplication.Data.Excel;
 using ExaminaWebApplication.Data.Windows;
@@ -56,6 +57,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<ImportedQuestion> ImportedQuestions { get; set; }
     public DbSet<ImportedOperationPoint> ImportedOperationPoints { get; set; }
     public DbSet<ImportedParameter> ImportedParameters { get; set; }
+
+    // 组织相关实体
+    public DbSet<Organization> Organizations { get; set; }
+    public DbSet<InvitationCode> InvitationCodes { get; set; }
+    public DbSet<StudentOrganization> StudentOrganizations { get; set; }
 
 
 
@@ -594,9 +600,104 @@ public class ApplicationDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // 配置组织相关实体
+        ConfigureOrganizationEntities(modelBuilder);
+    }
 
+    /// <summary>
+    /// 配置组织相关实体
+    /// </summary>
+    private static void ConfigureOrganizationEntities(ModelBuilder modelBuilder)
+    {
+        // 配置Organization实体
+        modelBuilder.Entity<Organization>(entity =>
+        {
+            entity.HasKey(e => e.Id);
 
+            // 配置属性
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Type).IsRequired().HasConversion<int>();
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.CreatedBy).IsRequired();
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
 
+            // 配置索引
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.Type);
+            entity.HasIndex(e => e.CreatedBy);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置外键关系
+            entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置InvitationCode实体
+        modelBuilder.Entity<InvitationCode>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置属性
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(7);
+            entity.Property(e => e.OrganizationId).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            entity.Property(e => e.UsageCount).IsRequired().HasDefaultValue(0);
+
+            // 配置索引
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 配置外键关系
+            entity.HasOne(e => e.Organization)
+                  .WithMany(o => o.InvitationCodes)
+                  .HasForeignKey(e => e.OrganizationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置StudentOrganization实体
+        modelBuilder.Entity<StudentOrganization>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 配置属性
+            entity.Property(e => e.StudentId).IsRequired();
+            entity.Property(e => e.OrganizationId).IsRequired();
+            entity.Property(e => e.JoinedAt).IsRequired();
+            entity.Property(e => e.InvitationCodeId).IsRequired();
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+
+            // 配置索引
+            entity.HasIndex(e => new { e.StudentId, e.OrganizationId }).IsUnique();
+            entity.HasIndex(e => e.StudentId);
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => e.InvitationCodeId);
+            entity.HasIndex(e => e.JoinedAt);
+            entity.HasIndex(e => e.IsActive);
+
+            // 配置外键关系
+            entity.HasOne(e => e.Student)
+                  .WithMany()
+                  .HasForeignKey(e => e.StudentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Organization)
+                  .WithMany(o => o.StudentOrganizations)
+                  .HasForeignKey(e => e.OrganizationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.InvitationCode)
+                  .WithMany(ic => ic.StudentOrganizations)
+                  .HasForeignKey(e => e.InvitationCodeId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 
     private static void SeedData(ModelBuilder modelBuilder)
@@ -725,7 +826,64 @@ public class ApplicationDbContext : DbContext
             return param;
         }));
 
+        // 添加组织相关种子数据
+        SeedOrganizationData(modelBuilder, seedDate);
+    }
 
+    /// <summary>
+    /// 添加组织相关种子数据
+    /// </summary>
+    private static void SeedOrganizationData(ModelBuilder modelBuilder, DateTime seedDate)
+    {
+        // 创建测试组织
+        modelBuilder.Entity<Organization>().HasData(
+            new Organization
+            {
+                Id = 1,
+                Name = "河北省示范高中",
+                Type = OrganizationType.School,
+                Description = "河北省重点示范高中，专注于计算机教育",
+                CreatedAt = seedDate,
+                CreatedBy = 1, // admin用户
+                IsActive = true
+            },
+            new Organization
+            {
+                Id = 2,
+                Name = "计算机培训机构",
+                Type = OrganizationType.Institution,
+                Description = "专业的计算机技能培训机构",
+                CreatedAt = seedDate,
+                CreatedBy = 1, // admin用户
+                IsActive = true
+            }
+        );
+
+        // 创建测试邀请码
+        modelBuilder.Entity<InvitationCode>().HasData(
+            new InvitationCode
+            {
+                Id = 1,
+                Code = "SCHOOL1",
+                OrganizationId = 1,
+                CreatedAt = seedDate,
+                ExpiresAt = null, // 永不过期
+                IsActive = true,
+                UsageCount = 0,
+                MaxUsage = null // 无限制
+            },
+            new InvitationCode
+            {
+                Id = 2,
+                Code = "INST001",
+                OrganizationId = 2,
+                CreatedAt = seedDate,
+                ExpiresAt = seedDate.AddDays(30), // 30天后过期
+                IsActive = true,
+                UsageCount = 0,
+                MaxUsage = 100 // 最多100人使用
+            }
+        );
     }
 
 
