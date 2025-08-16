@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using ExaminaWebApplication.Services.Organization;
+using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
 using System.Security.Claims;
@@ -402,7 +403,7 @@ public class AdminOrganizationWebController : Controller
     }
 
     /// <summary>
-    /// 批量更新成员手机号（支持预配置模式）
+    /// 批量添加/更新组织成员信息
     /// </summary>
     [HttpPost]
     [Route("Admin/Organization/BatchUpdateMemberPhone")]
@@ -422,87 +423,112 @@ public class AdminOrganizationWebController : Controller
                 return Unauthorized(new { message = "用户身份验证失败" });
             }
 
-            int successCount = 0;
+            int addedCount = 0;
+            int updatedCount = 0;
             int failureCount = 0;
-            int preConfiguredCount = 0;
             List<string> errors = new();
-            List<string> preConfiguredUsers = new();
+            List<string> addedMembers = new();
+            List<string> updatedMembers = new();
 
-            // 从请求中获取组织ID（需要在前端传递）
-            // 如果没有传递，尝试从当前上下文获取
+            // 验证组织ID
             int organizationId = request.OrganizationId;
             if (organizationId <= 0)
             {
                 return BadRequest(new { message = "组织ID无效" });
             }
 
+            // 验证组织是否存在
+            bool organizationExists = await _context.Organizations.AnyAsync(o => o.Id == organizationId);
+            if (!organizationExists)
+            {
+                return BadRequest(new { message = "指定的组织不存在" });
+            }
+
             foreach (PhoneEntry entry in request.PhoneEntries)
             {
                 try
                 {
-                    // 根据用户名查找用户
-                    User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == entry.Username);
+                    // 检查该用户名在当前组织中是否已存在
+                    OrganizationMember? existingMember = await _context.OrganizationMembers
+                        .FirstOrDefaultAsync(m => m.Username == entry.Username && m.OrganizationId == organizationId);
 
-                    if (user == null)
+                    if (existingMember != null)
                     {
-                        // 用户不存在，创建预配置记录
-                        await CreateOrUpdatePreConfiguredUser(organizationId, entry, currentUserId);
-                        preConfiguredCount++;
-                        preConfiguredUsers.Add(entry.Username);
-                        continue;
-                    }
+                        // 更新现有成员信息
+                        if (!request.OverwriteExisting && !string.IsNullOrEmpty(existingMember.PhoneNumber))
+                        {
+                            errors.Add($"成员 {entry.Username} 已有手机号，跳过");
+                            failureCount++;
+                            continue;
+                        }
 
-                    // 检查是否需要覆盖现有手机号
-                    if (!request.OverwriteExisting && !string.IsNullOrEmpty(user.PhoneNumber))
+                        existingMember.PhoneNumber = entry.Phone;
+                        existingMember.UpdatedAt = DateTime.UtcNow;
+                        existingMember.UpdatedBy = currentUserId;
+
+                        updatedCount++;
+                        updatedMembers.Add(entry.Username);
+                    }
+                    else
                     {
-                        errors.Add($"用户 {entry.Username} 已有手机号，跳过");
-                        failureCount++;
-                        continue;
-                    }
+                        // 检查手机号是否已被同组织其他成员使用
+                        bool phoneExists = await _context.OrganizationMembers
+                            .AnyAsync(m => m.PhoneNumber == entry.Phone && m.OrganizationId == organizationId);
+                        if (phoneExists)
+                        {
+                            errors.Add($"手机号 {entry.Phone} 已被同组织其他成员使用");
+                            failureCount++;
+                            continue;
+                        }
 
-                    // 检查手机号是否已被其他用户使用
-                    bool phoneExists = await _context.Users
-                        .AnyAsync(u => u.PhoneNumber == entry.Phone && u.Id != user.Id);
-                    if (phoneExists)
-                    {
-                        errors.Add($"手机号 {entry.Phone} 已被其他用户使用");
-                        failureCount++;
-                        continue;
-                    }
+                        // 创建新成员记录
+                        OrganizationMember newMember = new()
+                        {
+                            Username = entry.Username,
+                            PhoneNumber = entry.Phone,
+                            OrganizationId = organizationId,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = currentUserId,
+                            UpdatedAt = DateTime.UtcNow,
+                            UpdatedBy = currentUserId,
+                            IsActive = true
+                        };
 
-                    // 更新手机号
-                    user.PhoneNumber = entry.Phone;
-                    successCount++;
+                        _context.OrganizationMembers.Add(newMember);
+                        addedCount++;
+                        addedMembers.Add(entry.Username);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "批量更新手机号时处理用户 {Username} 失败", entry.Username);
-                    errors.Add($"处理用户 {entry.Username} 时发生错误");
+                    _logger.LogError(ex, "批量处理成员信息时处理用户 {Username} 失败", entry.Username);
+                    errors.Add($"处理成员 {entry.Username} 时发生错误");
                     failureCount++;
                 }
             }
 
             // 保存所有更改
-            if (successCount > 0 || preConfiguredCount > 0)
+            if (addedCount > 0 || updatedCount > 0)
             {
                 await _context.SaveChangesAsync();
             }
 
-            _logger.LogInformation("批量更新手机号完成: 成功 {SuccessCount}, 预配置 {PreConfiguredCount}, 失败 {FailureCount}",
-                successCount, preConfiguredCount, failureCount);
+            _logger.LogInformation("批量处理组织成员完成: 新增 {AddedCount}, 更新 {UpdatedCount}, 失败 {FailureCount}",
+                addedCount, updatedCount, failureCount);
 
             string message = $"批量处理完成";
-            if (successCount > 0) message += $"，更新现有用户 {successCount} 个";
-            if (preConfiguredCount > 0) message += $"，预配置用户 {preConfiguredCount} 个";
+            if (addedCount > 0) message += $"，新增成员 {addedCount} 个";
+            if (updatedCount > 0) message += $"，更新成员 {updatedCount} 个";
             if (failureCount > 0) message += $"，失败 {failureCount} 个";
 
             return Ok(new
             {
                 message,
-                successCount,
-                preConfiguredCount,
+                addedCount,
+                updatedCount,
                 failureCount,
-                preConfiguredUsers = preConfiguredUsers.Take(10).ToList(),
+                addedMembers = addedMembers.Take(10).ToList(),
+                updatedMembers = updatedMembers.Take(10).ToList(),
                 errors = errors.Take(10).ToList() // 只返回前10个错误
             });
         }
@@ -582,41 +608,7 @@ public class AdminOrganizationWebController : Controller
         }
     }
 
-    /// <summary>
-    /// 创建或更新预配置用户信息
-    /// </summary>
-    private async Task CreateOrUpdatePreConfiguredUser(int organizationId, PhoneEntry entry, int creatorUserId)
-    {
-        // 检查是否已存在预配置记录
-        PreConfiguredUser? existingPreConfig = await _context.PreConfiguredUsers
-            .FirstOrDefaultAsync(p => p.Username == entry.Username && p.OrganizationId == organizationId);
 
-        if (existingPreConfig != null)
-        {
-            // 更新现有预配置记录
-            existingPreConfig.PhoneNumber = entry.Phone;
-            existingPreConfig.CreatedAt = DateTime.UtcNow;
-            existingPreConfig.CreatedBy = creatorUserId;
-            existingPreConfig.IsApplied = false; // 重置应用状态
-            existingPreConfig.AppliedAt = null;
-            existingPreConfig.AppliedToUserId = null;
-        }
-        else
-        {
-            // 创建新的预配置记录
-            PreConfiguredUser preConfiguredUser = new()
-            {
-                Username = entry.Username,
-                PhoneNumber = entry.Phone,
-                OrganizationId = organizationId,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = creatorUserId,
-                IsApplied = false
-            };
-
-            _context.PreConfiguredUsers.Add(preConfiguredUser);
-        }
-    }
 }
 
 /// <summary>
@@ -663,7 +655,7 @@ public class UpdateMemberPhoneRequest
 }
 
 /// <summary>
-/// 批量更新成员手机号请求模型
+/// 批量添加/更新组织成员信息请求模型
 /// </summary>
 public class BatchUpdateMemberPhoneRequest
 {
@@ -674,30 +666,30 @@ public class BatchUpdateMemberPhoneRequest
     public int OrganizationId { get; set; }
 
     /// <summary>
-    /// 手机号条目列表
+    /// 成员信息条目列表
     /// </summary>
-    [Required(ErrorMessage = "手机号条目不能为空")]
+    [Required(ErrorMessage = "成员信息条目不能为空")]
     public List<PhoneEntry> PhoneEntries { get; set; } = new();
 
     /// <summary>
-    /// 是否覆盖现有手机号
+    /// 是否覆盖现有信息
     /// </summary>
     public bool OverwriteExisting { get; set; }
 }
 
 /// <summary>
-/// 手机号条目
+/// 成员信息条目
 /// </summary>
 public class PhoneEntry
 {
     /// <summary>
-    /// 用户名
+    /// 成员用户名
     /// </summary>
     [Required(ErrorMessage = "用户名不能为空")]
     public string Username { get; set; } = string.Empty;
 
     /// <summary>
-    /// 手机号
+    /// 成员手机号
     /// </summary>
     [Required(ErrorMessage = "手机号不能为空")]
     [Phone(ErrorMessage = "手机号格式不正确")]

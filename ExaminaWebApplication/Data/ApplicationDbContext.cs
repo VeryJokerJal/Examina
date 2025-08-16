@@ -28,6 +28,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<InvitationCode> InvitationCodes { get; set; }
     public DbSet<StudentOrganization> StudentOrganizations { get; set; }
     public DbSet<PreConfiguredUser> PreConfiguredUsers { get; set; }
+    public DbSet<OrganizationMember> OrganizationMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -453,6 +454,51 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.AppliedToUserId)
                   .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // 配置OrganizationMember实体
+        _ = modelBuilder.Entity<OrganizationMember>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => new { e.Username, e.OrganizationId }).IsUnique();
+            _ = entity.HasIndex(e => e.PhoneNumber);
+            _ = entity.HasIndex(e => e.IsActive);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.HasIndex(e => e.UserId);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.Username).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            _ = entity.Property(e => e.RealName).HasMaxLength(100);
+            _ = entity.Property(e => e.StudentId).HasMaxLength(50);
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.UpdatedAt).IsRequired();
+            _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
+            _ = entity.Property(e => e.Notes).HasMaxLength(500);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Organization)
+                  .WithMany()
+                  .HasForeignKey(e => e.OrganizationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            _ = entity.HasOne(e => e.Updater)
+                  .WithMany()
+                  .HasForeignKey(e => e.UpdatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

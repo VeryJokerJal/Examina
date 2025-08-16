@@ -235,7 +235,7 @@
             <i class="bi bi-people me-2"></i>成员列表
         </h5>
         <button type="button" class="glass-btn glass-btn-primary btn-sm" onclick="showBatchAddPhoneModal()">
-            <i class="bi bi-telephone-plus me-1"></i>批量添加手机号
+            <i class="bi bi-people-fill me-1"></i>批量管理成员
         </button>
     </div>
     <div class="card-body">
@@ -393,28 +393,28 @@
     </div>
 </div>
 
-<!-- 批量添加手机号模态框 -->
+<!-- 批量添加/更新成员信息模态框 -->
 <div class="modal fade" id="batchAddPhoneModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content glass-modal">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-telephone-plus me-2"></i>批量添加手机号
+                    <i class="bi bi-people-fill me-2"></i>批量添加/更新成员信息
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    <strong>批量配置手机号功能：</strong><br/>
-                    • 对于已存在的用户：直接更新手机号<br/>
-                    • 对于不存在的用户：创建预配置记录，用户注册后自动关联<br/>
+                    <strong>批量成员管理功能：</strong><br/>
+                    • 直接添加组织成员，无需用户预先注册<br/>
+                    • 如果成员已存在，则更新其信息<br/>
                     • 格式：每行一个，用户名,手机号
                 </div>
 
                 <div class="mb-3">
                     <label for="phoneData" class="form-label">
-                        <i class="bi bi-list me-1"></i>手机号数据
+                        <i class="bi bi-list me-1"></i>成员信息数据
                     </label>
                     <textarea id="phoneData" class="form-control glass-input" rows="8"
                               placeholder="示例：&#10;张三,13800138000&#10;李四,13900139000&#10;王五,13700137000"></textarea>
@@ -425,7 +425,7 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="overwriteExisting">
                         <label class="form-check-label" for="overwriteExisting">
-                            覆盖已有手机号
+                            覆盖已有信息
                         </label>
                     </div>
                 </div>
@@ -435,7 +435,7 @@
                     <i class="bi bi-x-circle me-2"></i>取消
                 </button>
                 <button type="button" class="glass-btn glass-btn-primary" onclick="processBatchAddPhone()">
-                    <i class="bi bi-check-circle me-2"></i>批量添加
+                    <i class="bi bi-check-circle me-2"></i>批量处理
                 </button>
             </div>
         </div>
@@ -567,13 +567,13 @@
             }
         }
 
-        // 显示批量添加手机号模态框
+        // 显示批量管理成员模态框
         function showBatchAddPhoneModal() {
             const modal = new bootstrap.Modal(document.getElementById('batchAddPhoneModal'));
             modal.show();
         }
 
-        // 处理批量添加手机号
+        // 处理批量添加/更新成员信息
         async function processBatchAddPhone() {
             const phoneData = document.getElementById('phoneData').value.trim();
             const overwriteExisting = document.getElementById('overwriteExisting').checked;
@@ -641,8 +641,11 @@
                 if (response.ok) {
                     const result = await response.json();
                     let message = result.message;
-                    if (result.preConfiguredUsers && result.preConfiguredUsers.length > 0) {
-                        message += `\n预配置用户：${result.preConfiguredUsers.join(', ')}`;
+                    if (result.addedMembers && result.addedMembers.length > 0) {
+                        message += `\n新增成员：${result.addedMembers.join(', ')}`;
+                    }
+                    if (result.updatedMembers && result.updatedMembers.length > 0) {
+                        message += `\n更新成员：${result.updatedMembers.join(', ')}`;
                     }
                     showNotification(message, 'success');
 
@@ -655,11 +658,11 @@
                     }, 1500);
                 } else {
                     const errorData = await response.json();
-                    showNotification(errorData.message || '批量更新失败，请稍后重试', 'danger');
+                    showNotification(errorData.message || '批量处理失败，请稍后重试', 'danger');
                 }
             } catch (error) {
-                console.error('批量更新手机号失败:', error);
-                showNotification('批量更新失败，请稍后重试', 'danger');
+                console.error('批量处理成员信息失败:', error);
+                showNotification('批量处理失败，请稍后重试', 'danger');
             }
         }
     </script>
