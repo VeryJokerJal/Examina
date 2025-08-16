@@ -128,14 +128,14 @@ public class AdminOrganizationWebController : Controller
             // 获取邀请码列表
             var invitationCodes = await _invitationCodeService.GetOrganizationInvitationCodesAsync(id, includeInactive: true);
             
-            // 获取成员列表
-            var members = await _organizationService.GetOrganizationMembersAsync(id, includeInactive: false);
+            // 获取成员列表（从 OrganizationMember 表）
+            var members = await GetOrganizationMembersFromTableAsync(id, includeInactive: false);
 
             // 添加调试日志
             _logger.LogInformation("组织 {OrganizationId} 的成员数量: {MemberCount}", id, members.Count);
             foreach (var member in members)
             {
-                _logger.LogInformation("成员: {Username}, 手机号: {Phone}", member.StudentUsername, member.StudentPhoneNumber ?? "未设置");
+                _logger.LogInformation("成员: {Username}, 手机号: {Phone}", member.Username, member.PhoneNumber ?? "未设置");
             }
 
             var viewModel = new OrganizationDetailsViewModel
@@ -153,7 +153,7 @@ public class AdminOrganizationWebController : Controller
                     UsageCount = ic.UsageCount,
                     MaxUsage = ic.MaxUsage
                 }).ToList(),
-                Members = members ?? new List<StudentOrganizationDto>()
+                Members = members ?? new List<OrganizationMemberDto>()
             };
 
             // 验证 ViewModel
@@ -608,7 +608,71 @@ public class AdminOrganizationWebController : Controller
         }
     }
 
+    /// <summary>
+    /// 从 OrganizationMember 表获取组织成员列表
+    /// </summary>
+    private async Task<List<OrganizationMemberDto>> GetOrganizationMembersFromTableAsync(int organizationId, bool includeInactive = false)
+    {
+        try
+        {
+            _logger.LogInformation("开始从 OrganizationMember 表获取组织 {OrganizationId} 的成员列表，包含非活跃成员: {IncludeInactive}", organizationId, includeInactive);
 
+            IQueryable<OrganizationMember> query = _context.OrganizationMembers
+                .Include(m => m.Organization)
+                .Include(m => m.Creator)
+                .Where(m => m.OrganizationId == organizationId);
+
+            if (!includeInactive)
+            {
+                query = query.Where(m => m.IsActive);
+            }
+
+            List<OrganizationMember> organizationMembers = await query
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+
+            _logger.LogInformation("从数据库获取到 {Count} 个成员记录", organizationMembers.Count);
+
+            List<OrganizationMemberDto> result = organizationMembers.Select(MapToOrganizationMemberDto).ToList();
+
+            _logger.LogInformation("成功映射 {Count} 个成员DTO", result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取组织成员列表失败: 组织ID: {OrganizationId}", organizationId);
+            return new List<OrganizationMemberDto>();
+        }
+    }
+
+    /// <summary>
+    /// 将 OrganizationMember 实体映射为 DTO
+    /// </summary>
+    private static OrganizationMemberDto MapToOrganizationMemberDto(OrganizationMember member)
+    {
+        if (member == null)
+        {
+            throw new ArgumentNullException(nameof(member));
+        }
+
+        return new OrganizationMemberDto
+        {
+            Id = member.Id,
+            Username = member.Username,
+            RealName = member.RealName,
+            StudentId = member.StudentId,
+            PhoneNumber = member.PhoneNumber,
+            OrganizationId = member.OrganizationId,
+            OrganizationName = member.Organization?.Name ?? "未知",
+            JoinedAt = member.CreatedAt, // 使用创建时间作为加入时间
+            IsActive = member.IsActive,
+            UserId = member.UserId,
+            Notes = member.Notes,
+            CreatedByUsername = member.Creator?.Username,
+            UpdatedAt = member.UpdatedAt
+        };
+    }
 }
 
 /// <summary>
@@ -618,7 +682,7 @@ public class OrganizationDetailsViewModel
 {
     public OrganizationDto Organization { get; set; } = new();
     public List<InvitationCodeDto> InvitationCodes { get; set; } = new();
-    public List<StudentOrganizationDto> Members { get; set; } = new();
+    public List<OrganizationMemberDto> Members { get; set; } = new();
 }
 
 /// <summary>
