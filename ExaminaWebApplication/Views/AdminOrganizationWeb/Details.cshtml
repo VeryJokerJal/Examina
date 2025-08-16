@@ -1,4 +1,4 @@
-@model OrganizationDetailsViewModel
+﻿@model OrganizationDetailsViewModel
 @using ExaminaWebApplication.Controllers
 @using ExaminaWebApplication.Models.Organization
 @using ExaminaWebApplication.Models.Organization.Dto
@@ -160,8 +160,8 @@
     <div class="card-body">
         @if (Model.InvitationCodes.Any())
         {
-            <div class="table-responsive">
-                <table class="table table-sm">
+            <div>
+                <table class="table glass-table">
                     <thead>
                         <tr>
                             <th>邀请码</th>
