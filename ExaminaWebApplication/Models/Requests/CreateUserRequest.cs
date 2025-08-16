@@ -49,12 +49,6 @@ public class CreateUserRequest
     public string? RealName { get; set; }
 
     /// <summary>
-    /// 学号（学生）或工号（教师/管理员）
-    /// </summary>
-    [StringLength(50, ErrorMessage = "学号/工号长度不能超过50个字符")]
-    public string? StudentId { get; set; }
-
-    /// <summary>
     /// 所属学校ID（教师必填）
     /// </summary>
     public int? SchoolId { get; set; }

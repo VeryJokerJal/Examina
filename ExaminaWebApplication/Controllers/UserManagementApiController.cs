@@ -46,7 +46,7 @@ public class UserManagementApiController : ControllerBase
                     request.PhoneNumber,
                     request.Password,
                     request.RealName,
-                    request.StudentId,
+                    null, // StudentId 设为 null
                     creatorUserId);
             }
             else if (request.Role == UserRole.Teacher)
@@ -57,7 +57,7 @@ public class UserManagementApiController : ControllerBase
                     request.PhoneNumber,
                     request.Password,
                     request.RealName,
-                    request.StudentId,
+                    null, // StudentId 设为 null
                     request.SchoolId,
                     request.ClassIds,
                     creatorUserId);
@@ -142,7 +142,7 @@ public class UserManagementApiController : ControllerBase
                 request.Email,
                 request.PhoneNumber,
                 request.RealName,
-                request.StudentId,
+                null, // StudentId 设为 null
                 updaterUserId);
 
             if (user == null)

@@ -128,7 +128,6 @@
                                     <th>用户信息</th>
                                     <th>角色</th>
                                     <th>联系方式</th>
-                                    <th>学号/工号</th>
                                     <th>注册时间</th>
                                     <th>状态</th>
                                     <th>操作</th>
@@ -161,16 +160,7 @@
                                                 }
                                             </div>
                                         </td>
-                                        <td>
-                                            @if (!string.IsNullOrEmpty(user.StudentId))
-                                            {
-                                                <span class="font-monospace">@user.StudentId</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">-</span>
-                                            }
-                                        </td>
+
                                         <td>
                                             <small>@user.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
                                             @if (user.LastLoginAt.HasValue)
@@ -281,11 +271,7 @@
                             <input type="text" class="glass-form-control" id="userRealName" name="RealName" maxlength="50" placeholder="请输入真实姓名">
                             <div class="invalid-feedback"></div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="userStudentId" class="glass-form-label">学号/工号</label>
-                            <input type="text" class="glass-form-control" id="userStudentId" name="StudentId" maxlength="50" placeholder="请输入学号或工号">
-                            <div class="invalid-feedback"></div>
-                        </div>
+
                         <div class="col-md-6" id="schoolSelection" style="display: none;">
                             <label for="userSchoolId" class="glass-form-label">所属学校 <span class="text-danger">*</span></label>
                             <select class="glass-form-control" id="userSchoolId" name="SchoolId">
@@ -348,11 +334,7 @@
                         <input type="text" class="glass-form-control" id="editUserRealName" name="RealName" maxlength="50" placeholder="请输入真实姓名">
                         <div class="invalid-feedback"></div>
                     </div>
-                    <div class="mb-3">
-                        <label for="editUserStudentId" class="glass-form-label">学号/工号</label>
-                        <input type="text" class="glass-form-control" id="editUserStudentId" name="StudentId" maxlength="50" placeholder="请输入学号或工号">
-                        <div class="invalid-feedback"></div>
-                    </div>
+
                 </div>
                 <div class="modal-footer glass-modal-footer">
                     <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">

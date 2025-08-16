@@ -186,7 +186,6 @@ function renderUserTable(users) {
                         <th>用户信息</th>
                         <th>角色</th>
                         <th>联系方式</th>
-                        <th>学号/工号</th>
                         <th>注册时间</th>
                         <th>状态</th>
                         <th>操作</th>
@@ -218,9 +217,7 @@ function renderUserTable(users) {
                         ${user.phoneNumber ? `<br><small class="text-muted font-monospace">${escapeHtml(user.phoneNumber)}</small>` : ''}
                     </div>
                 </td>
-                <td>
-                    ${user.studentId ? `<span class="font-monospace">${escapeHtml(user.studentId)}</span>` : '<span class="text-muted">-</span>'}
-                </td>
+
                 <td>
                     <small>${formatDateTime(user.createdAt)}</small>
                     ${user.lastLoginAt ? `<br><small class="text-muted">最后登录：${formatDateTime(user.lastLoginAt)}</small>` : ''}
@@ -289,7 +286,6 @@ function createUser() {
         role: $('#userRole').val(),
         phoneNumber: $('#userPhoneNumber').val().trim() || null,
         realName: $('#userRealName').val().trim() || null,
-        studentId: $('#userStudentId').val().trim() || null,
         schoolId: $('#userSchoolId').val() ? parseInt($('#userSchoolId').val()) : null,
         classIds: []
     };
@@ -370,7 +366,6 @@ function editUser(userId) {
             $('#editUserEmail').val(user.email);
             $('#editUserPhoneNumber').val(user.phoneNumber || '');
             $('#editUserRealName').val(user.realName || '');
-            $('#editUserStudentId').val(user.studentId || '');
             
             // 显示编辑模态框
             $('#editUserModal').modal('show');
@@ -388,8 +383,7 @@ function updateUser() {
     const formData = {
         email: $('#editUserEmail').val().trim(),
         phoneNumber: $('#editUserPhoneNumber').val().trim() || null,
-        realName: $('#editUserRealName').val().trim() || null,
-        studentId: $('#editUserStudentId').val().trim() || null
+        realName: $('#editUserRealName').val().trim() || null
     };
 
     // 验证表单

@@ -151,10 +151,7 @@ public class UserManagementService : IUserManagementService
             {
                 user.RealName = realName;
             }
-            if (!string.IsNullOrEmpty(studentId))
-            {
-                user.StudentId = studentId;
-            }
+            // 移除StudentId的更新逻辑，不再处理该字段
 
             user.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();

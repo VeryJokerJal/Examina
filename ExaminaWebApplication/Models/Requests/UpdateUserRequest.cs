@@ -26,10 +26,4 @@ public class UpdateUserRequest
     /// </summary>
     [StringLength(50, ErrorMessage = "真实姓名长度不能超过50个字符")]
     public string? RealName { get; set; }
-
-    /// <summary>
-    /// 学号（学生）或工号（教师/管理员）
-    /// </summary>
-    [StringLength(50, ErrorMessage = "学号/工号长度不能超过50个字符")]
-    public string? StudentId { get; set; }
 }
