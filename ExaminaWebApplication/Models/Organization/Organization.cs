@@ -19,6 +19,10 @@ public class Organization
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
 
+
+
+
+
     /// <summary>
     /// 创建时间
     /// </summary>
@@ -44,10 +48,10 @@ public class Organization
     /// <summary>
     /// 邀请码集合
     /// </summary>
-    public ICollection<InvitationCode> InvitationCodes { get; set; } = [];
+    public ICollection<InvitationCode> InvitationCodes { get; set; } = new List<InvitationCode>();
 
     /// <summary>
     /// 学生组织关系集合
     /// </summary>
-    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = [];
+    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = new List<StudentOrganization>();
 }

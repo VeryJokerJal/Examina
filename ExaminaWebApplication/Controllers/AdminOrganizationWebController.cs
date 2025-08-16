@@ -134,7 +134,7 @@ public class AdminOrganizationWebController : Controller
             _logger.LogInformation("组织 {OrganizationId} 的成员数量: {MemberCount}", id, members.Count);
             foreach (OrganizationMemberDto member in members)
             {
-                _logger.LogInformation("成员: {RealName}, 手机号: {Phone}", member.RealName, member.PhoneNumber ?? "未设置");
+                _logger.LogInformation("成员: {Username}, 手机号: {Phone}", member.Username, member.PhoneNumber ?? "未设置");
             }
 
             OrganizationDetailsViewModel viewModel = new()
@@ -460,7 +460,7 @@ public class AdminOrganizationWebController : Controller
             member.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
             member.UpdatedAt = DateTime.UtcNow;
             member.UpdatedBy = currentUserId;
-            _ = await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("管理员更新成员信息成功: 成员ID: {MemberId}, 真实姓名: {RealName}, 手机号: {PhoneNumber}",
                 request.MemberId, request.RealName, request.PhoneNumber ?? "空");
@@ -741,7 +741,7 @@ public class AdminOrganizationWebController : Controller
             : new OrganizationMemberDto
             {
                 Id = member.Id,
-                RealName = member.RealName,
+                Username = member.Username,
                 PhoneNumber = member.PhoneNumber,
                 OrganizationId = member.OrganizationId,
                 OrganizationName = member.Organization?.Name ?? "未知",
@@ -752,111 +752,6 @@ public class AdminOrganizationWebController : Controller
                 CreatedByUsername = member.Creator?.Username,
                 UpdatedAt = member.UpdatedAt
             };
-    }
-
-    /// <summary>
-    /// 用户管理页面
-    /// </summary>
-    [HttpGet]
-    [Route("Admin/Users")]
-    public async Task<IActionResult> Users()
-    {
-        try
-        {
-            // 获取所有用户列表
-            List<User> users = await _context.Users
-                .OrderByDescending(u => u.CreatedAt)
-                .ToListAsync();
-
-            // 转换为DTO
-            List<UserDto> userDtos = users.Select(MapToUserDto).ToList();
-
-            _logger.LogInformation("获取用户列表成功，共 {Count} 个用户", userDtos.Count);
-
-            var viewModel = new UsersViewModel
-            {
-                Users = userDtos
-            };
-
-            return View(viewModel);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "获取用户列表失败");
-            TempData["ErrorMessage"] = "获取用户列表失败，请稍后重试";
-            return RedirectToAction(nameof(Index));
-        }
-    }
-
-    /// <summary>
-    /// 更新用户信息（真实姓名和手机号）
-    /// </summary>
-    [HttpPost]
-    [Route("Admin/Users/UpdateUserInfo")]
-    public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
-    {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { message = "请求参数无效" });
-            }
-
-            // 查找用户
-            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.UserId);
-            if (user == null)
-            {
-                return NotFound(new { message = "用户不存在" });
-            }
-
-            // 检查手机号是否已被其他用户使用（如果不为空）
-            if (!string.IsNullOrEmpty(request.PhoneNumber))
-            {
-                bool phoneExists = await _context.Users
-                    .AnyAsync(u => u.PhoneNumber == request.PhoneNumber && u.Id != request.UserId);
-                if (phoneExists)
-                {
-                    return BadRequest(new { message = "该手机号已被其他用户使用" });
-                }
-            }
-
-            // 更新用户信息
-            user.RealName = request.RealName?.Trim();
-            user.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
-            _ = await _context.SaveChangesAsync();
-
-            _logger.LogInformation("管理员更新用户信息成功: 用户ID: {UserId}, 真实姓名: {RealName}, 手机号: {PhoneNumber}",
-                request.UserId, request.RealName, request.PhoneNumber ?? "空");
-
-            return Ok(new { message = "用户信息更新成功" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "更新用户信息失败: 用户ID: {UserId}", request.UserId);
-            return StatusCode(500, new { message = "服务器内部错误" });
-        }
-    }
-
-    /// <summary>
-    /// 将 User 实体映射为 DTO
-    /// </summary>
-    private static UserDto MapToUserDto(User user)
-    {
-        if (user == null)
-        {
-            throw new ArgumentNullException(nameof(user));
-        }
-
-        return new UserDto
-        {
-            Id = user.Id,
-            Username = user.Username,
-            RealName = user.RealName,
-            PhoneNumber = user.PhoneNumber,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt,
-            IsActive = user.IsActive
-        };
     }
 }
 
@@ -955,80 +850,6 @@ public class UpdateMemberInfoRequest
     /// </summary>
     [Required(ErrorMessage = "成员ID不能为空")]
     public int MemberId { get; set; }
-
-    /// <summary>
-    /// 真实姓名
-    /// </summary>
-    [Required(ErrorMessage = "真实姓名不能为空")]
-    [StringLength(50, ErrorMessage = "真实姓名长度不能超过50个字符")]
-    public string RealName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 手机号
-    /// </summary>
-    [StringLength(11, ErrorMessage = "手机号长度不能超过11个字符")]
-    public string? PhoneNumber { get; set; }
-}
-
-/// <summary>
-/// 用户管理视图模型
-/// </summary>
-public class UsersViewModel
-{
-    public List<UserDto> Users { get; set; } = new();
-}
-
-/// <summary>
-/// 用户DTO
-/// </summary>
-public class UserDto
-{
-    /// <summary>
-    /// 用户ID
-    /// </summary>
-    public int Id { get; set; }
-
-    /// <summary>
-    /// 用户名
-    /// </summary>
-    public string Username { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 真实姓名
-    /// </summary>
-    public string? RealName { get; set; }
-
-    /// <summary>
-    /// 手机号
-    /// </summary>
-    public string? PhoneNumber { get; set; }
-
-    /// <summary>
-    /// 邮箱
-    /// </summary>
-    public string? Email { get; set; }
-
-    /// <summary>
-    /// 注册时间
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// 是否激活
-    /// </summary>
-    public bool IsActive { get; set; }
-}
-
-/// <summary>
-/// 更新用户信息请求模型
-/// </summary>
-public class UpdateUserInfoRequest
-{
-    /// <summary>
-    /// 用户ID
-    /// </summary>
-    [Required(ErrorMessage = "用户ID不能为空")]
-    public int UserId { get; set; }
 
     /// <summary>
     /// 真实姓名

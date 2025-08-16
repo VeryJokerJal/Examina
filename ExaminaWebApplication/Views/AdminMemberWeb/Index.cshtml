@@ -1,0 +1,414 @@
+@model MemberManagementViewModel
+@{
+    ViewData["Title"] = "成员管理";
+}
+
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-people me-2"></i>成员管理
+                    </h2>
+                    <p class="text-muted mb-0">管理系统中的所有成员信息</p>
+                </div>
+                <div>
+                    <button type="button" class="glass-btn glass-btn-primary" onclick="showBatchAddMemberModal()">
+                        <i class="bi bi-person-plus me-2"></i>批量添加成员
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="glass-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">@Model.Members.Count</h4>
+                    <p class="text-muted mb-0">总成员数</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-check text-success" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">@Model.Members.Count(m => m.IsActive)</h4>
+                    <p class="text-muted mb-0">活跃成员</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-telephone text-info" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">@Model.Members.Count(m => !string.IsNullOrEmpty(m.PhoneNumber))</h4>
+                    <p class="text-muted mb-0">已设置手机号</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-plus text-warning" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">@Model.Members.Count(m => m.JoinedAt >= DateTime.Today.AddDays(-7))</h4>
+                    <p class="text-muted mb-0">本周新增</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成员列表 -->
+    <div class="glass-card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>成员列表
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Members.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table glass-table">
+                        <thead>
+                            <tr>
+                                <th>真实姓名</th>
+                                <th>手机号</th>
+                                <th>加入时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var member in Model.Members.OrderByDescending(m => m.JoinedAt))
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person me-2"></i>
+                                            <span>@(member.RealName ?? "未设置")</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(member.PhoneNumber))
+                                        {
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-telephone me-1"></i>
+                                                <span>@member.PhoneNumber</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">未设置</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small>@member.JoinedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        @if (member.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>激活
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle me-1"></i>已停用
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (member.IsActive)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    onclick="showEditMemberModal(@member.Id, '@(member.RealName ?? "")', '@(member.PhoneNumber ?? "")')"
+                                                    title="编辑成员信息">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                    <h6 class="text-muted mt-3">暂无成员</h6>
+                    <p class="text-muted">点击上方按钮添加成员</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- 编辑成员信息模态框 -->
+<div class="modal fade" id="editMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-gear me-2"></i>编辑成员信息
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editMemberForm">
+                    <div class="mb-3">
+                        <label for="editRealName" class="form-label">
+                            <i class="bi bi-person me-1"></i>真实姓名
+                        </label>
+                        <input type="text" 
+                               id="editRealName" 
+                               class="form-control glass-input" 
+                               placeholder="请输入真实姓名"
+                               maxlength="50">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editPhoneNumber" class="form-label">
+                            <i class="bi bi-telephone me-1"></i>手机号
+                        </label>
+                        <input type="tel" 
+                               id="editPhoneNumber" 
+                               class="form-control glass-input" 
+                               placeholder="请输入手机号"
+                               maxlength="11">
+                        <div class="form-text">请输入11位手机号码</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="glass-btn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>取消
+                </button>
+                <button type="button" class="glass-btn glass-btn-primary" onclick="saveMemberInfo()">
+                    <i class="bi bi-check-circle me-2"></i>保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量添加成员模态框 -->
+<div class="modal fade" id="batchAddMemberModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2"></i>批量添加成员
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>数据格式说明：</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>每行一个成员，格式：真实姓名,手机号</li>
+                        <li>手机号可以为空，格式：真实姓名,</li>
+                        <li>示例：张三,13800138000</li>
+                        <li>示例：李四,</li>
+                    </ul>
+                </div>
+                
+                <form id="batchAddMemberForm">
+                    <div class="mb-3">
+                        <label for="memberData" class="form-label">
+                            <i class="bi bi-file-text me-1"></i>成员数据
+                        </label>
+                        <textarea id="memberData" 
+                                  class="form-control glass-input" 
+                                  rows="10" 
+                                  placeholder="请输入成员数据，每行一个成员..."></textarea>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="overwriteExisting">
+                        <label class="form-check-label" for="overwriteExisting">
+                            覆盖已存在的成员信息
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="glass-btn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>取消
+                </button>
+                <button type="button" class="glass-btn glass-btn-primary" onclick="processBatchAddMember()">
+                    <i class="bi bi-upload me-2"></i>批量添加
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 成员信息编辑功能
+        let currentEditingMemberId = null;
+
+        function showEditMemberModal(memberId, realName, phoneNumber) {
+            currentEditingMemberId = memberId;
+            
+            // 填充表单数据
+            document.getElementById('editRealName').value = realName || '';
+            document.getElementById('editPhoneNumber').value = phoneNumber || '';
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('editMemberModal'));
+            modal.show();
+        }
+
+        async function saveMemberInfo() {
+            if (!currentEditingMemberId) {
+                showNotification('编辑会话已失效，请重新打开编辑窗口', 'warning');
+                return;
+            }
+
+            const realName = document.getElementById('editRealName').value.trim();
+            const phoneNumber = document.getElementById('editPhoneNumber').value.trim();
+
+            // 验证真实姓名
+            if (!realName) {
+                showNotification('请输入真实姓名', 'warning');
+                return;
+            }
+
+            // 验证手机号格式（如果填写了）
+            if (phoneNumber && !/^1[3-9]\d{9}$/.test(phoneNumber)) {
+                showNotification('请输入正确的手机号格式', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/Admin/Member/UpdateMemberInfo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        memberId: currentEditingMemberId,
+                        realName: realName,
+                        phoneNumber: phoneNumber || null
+                    })
+                });
+
+                if (response.ok) {
+                    showNotification('成员信息更新成功', 'success');
+                    
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editMemberModal'));
+                    modal.hide();
+                    
+                    // 刷新页面以显示更新后的数据
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    const errorData = await response.json();
+                    showNotification(errorData.message || '更新失败，请稍后重试', 'danger');
+                }
+            } catch (error) {
+                console.error('更新成员信息失败:', error);
+                showNotification('更新失败，请稍后重试', 'danger');
+            }
+        }
+
+        // 显示批量添加成员模态框
+        function showBatchAddMemberModal() {
+            const modal = new bootstrap.Modal(document.getElementById('batchAddMemberModal'));
+            modal.show();
+        }
+
+        // 处理批量添加成员
+        async function processBatchAddMember() {
+            const memberData = document.getElementById('memberData').value.trim();
+            const overwriteExisting = document.getElementById('overwriteExisting').checked;
+
+            if (!memberData) {
+                showNotification('请输入成员数据', 'warning');
+                return;
+            }
+
+            // 解析数据
+            const lines = memberData.split('\n').filter(line => line.trim());
+            const memberEntries = [];
+
+            for (const line of lines) {
+                const parts = line.split(',');
+                if (parts.length >= 1) {
+                    const realName = parts[0].trim();
+                    const phoneNumber = parts.length > 1 ? parts[1].trim() : '';
+                    
+                    if (realName) {
+                        memberEntries.push({
+                            realName: realName,
+                            phoneNumber: phoneNumber || null
+                        });
+                    }
+                }
+            }
+
+            if (memberEntries.length === 0) {
+                showNotification('没有有效的成员数据', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/Admin/Member/BatchAddMembers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        memberEntries: memberEntries,
+                        overwriteExisting: overwriteExisting
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(result.message, 'success');
+                    
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('batchAddMemberModal'));
+                    modal.hide();
+                    
+                    // 清空表单
+                    document.getElementById('memberData').value = '';
+                    document.getElementById('overwriteExisting').checked = false;
+                    
+                    // 刷新页面
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    const errorData = await response.json();
+                    showNotification(errorData.message || '批量添加失败，请稍后重试', 'danger');
+                }
+            } catch (error) {
+                console.error('批量添加成员失败:', error);
+                showNotification('批量添加失败，请稍后重试', 'danger');
+            }
+        }
+
+        // 通知函数
+        function showNotification(message, type) {
+            // 这里可以使用 Toast 或其他通知组件
+            alert(message);
+        }
+    </script>
+}
