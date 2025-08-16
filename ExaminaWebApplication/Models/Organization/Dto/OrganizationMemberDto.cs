@@ -1,7 +1,7 @@
 ﻿namespace ExaminaWebApplication.Models.Organization.Dto;
 
 /// <summary>
-/// 组织成员DTO
+/// 组织成员DTO - 简化版本，只包含必要的核心字段
 /// </summary>
 public class OrganizationMemberDto
 {
@@ -11,9 +11,9 @@ public class OrganizationMemberDto
     public int Id { get; set; }
 
     /// <summary>
-    /// 用户名
+    /// 真实姓名
     /// </summary>
-    public string Username { get; set; } = string.Empty;
+    public string? RealName { get; set; }
 
     /// <summary>
     /// 手机号
@@ -31,7 +31,7 @@ public class OrganizationMemberDto
     public string OrganizationName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 创建时间（相当于加入时间）
+    /// 加入时间
     /// </summary>
     public DateTime JoinedAt { get; set; }
 
@@ -59,26 +59,4 @@ public class OrganizationMemberDto
     /// 最后更新时间
     /// </summary>
     public DateTime UpdatedAt { get; set; }
-
-    // 为了与现有视图兼容，添加映射属性
-
-    /// <summary>
-    /// 学生用户名（兼容性属性）
-    /// </summary>
-    public string StudentUsername => Username;
-
-    /// <summary>
-    /// 学生手机号（兼容性属性）
-    /// </summary>
-    public string? StudentPhoneNumber => PhoneNumber;
-
-    /// <summary>
-    /// 邀请码（兼容性属性，OrganizationMember 中暂时返回空）
-    /// </summary>
-    public string InvitationCode => "直接添加";
-
-    /// <summary>
-    /// 学生ID（兼容性属性，使用成员ID）
-    /// </summary>
-    public int StudentId_Compat => Id;
 }
