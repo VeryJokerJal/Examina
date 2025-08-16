@@ -1,0 +1,182 @@
+@model AdminLoginViewModel
+@{
+    ViewData["Title"] = "管理员登录";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-card">
+            <div class="card-body p-4">
+                <!-- 登录标题 -->
+                <div class="text-center mb-4">
+                    <h3 class="card-title">
+                        <i class="bi bi-shield-lock me-2"></i>管理员登录
+                    </h3>
+                    <p class="text-muted">请使用管理员或教师账号登录</p>
+                </div>
+
+                <!-- 角色说明 -->
+                <div class="alert alert-info glass-alert-info mb-4">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-info-circle me-1"></i>登录说明
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li><strong>管理员：</strong>可以创建和管理所有类型的组织</li>
+                        <li><strong>教师：</strong>可以加入学校类型的组织</li>
+                        <li><strong>学生：</strong>请使用移动端或API进行登录</li>
+                    </ul>
+                </div>
+
+                <!-- 登录表单 -->
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <!-- 用户名输入 -->
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label">
+                            <i class="bi bi-person me-1"></i>@Html.DisplayNameFor(m => m.Username)
+                        </label>
+                        <input asp-for="Username" class="form-control glass-input" 
+                               placeholder="请输入用户名或邮箱" autocomplete="username" />
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+
+                    <!-- 密码输入 -->
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">
+                            <i class="bi bi-lock me-1"></i>@Html.DisplayNameFor(m => m.Password)
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="Password" class="form-control glass-input" 
+                                   placeholder="请输入密码" autocomplete="current-password" />
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- 记住我 -->
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label">
+                            @Html.DisplayNameFor(m => m.RememberMe) (7天内免登录)
+                        </label>
+                    </div>
+
+                    <!-- 登录按钮 -->
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="glass-btn glass-btn-primary" id="loginBtn">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>登录
+                        </button>
+                    </div>
+
+                    <!-- 其他选项 -->
+                    <div class="text-center">
+                        <small class="text-muted">
+                            <a href="#" class="text-decoration-none" onclick="showForgotPassword()">
+                                <i class="bi bi-question-circle me-1"></i>忘记密码？
+                            </a>
+                        </small>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 系统信息 -->
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                Examina 考试管理系统 - 安全登录
+            </small>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // 切换密码显示/隐藏
+        function togglePassword() {
+            const passwordInput = document.getElementById('Password');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'bi bi-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'bi bi-eye';
+            }
+        }
+
+        // 忘记密码
+        function showForgotPassword() {
+            alert('请联系系统管理员重置密码。');
+        }
+
+        // 表单提交处理
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>登录中...';
+            loginBtn.disabled = true;
+        });
+
+        // 页面加载完成后聚焦到用户名输入框
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('Username');
+            if (usernameInput && !usernameInput.value) {
+                usernameInput.focus();
+            }
+        });
+
+        // 回车键快捷登录
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const form = document.querySelector('form');
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    </script>
+}
+
+<style>
+    /* 登录页面特定样式 */
+    .glass-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .input-group .btn-outline-secondary {
+        border-color: var(--glass-border);
+        background: var(--glass-secondary);
+        color: var(--text-primary);
+    }
+
+    .input-group .btn-outline-secondary:hover {
+        background: var(--glass-primary);
+        border-color: var(--primary-color);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .glass-alert-info {
+        background: rgba(13, 202, 240, 0.1);
+        border: 1px solid rgba(13, 202, 240, 0.2);
+        color: var(--text-primary);
+    }
+
+    .glass-alert-info .alert-heading {
+        color: #0dcaf0;
+    }
+</style>

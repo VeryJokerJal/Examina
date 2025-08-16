@@ -1,0 +1,247 @@
+@model CreateOrganizationRequest
+@using ExaminaWebApplication.Models.Organization
+@{
+    ViewData["Title"] = "创建组织";
+    Layout = "_Layout";
+}
+
+<!-- 页面标题 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>
+            <i class="bi bi-plus-circle me-2"></i>创建组织
+        </h2>
+        <p class="text-muted mb-0">创建新的组织并配置基本信息</p>
+    </div>
+    <div>
+        <a href="/Admin/Organization" class="glass-btn">
+            <i class="bi bi-arrow-left me-2"></i>返回列表
+        </a>
+    </div>
+</div>
+
+<!-- 创建表单 -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>组织基本信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" id="createForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <!-- 组织名称 -->
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            <i class="bi bi-building me-1"></i>@Html.DisplayNameFor(m => m.Name) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Name" class="form-control glass-input" 
+                               placeholder="请输入组织名称" maxlength="100" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="form-text">组织的正式名称，将显示在系统中</div>
+                    </div>
+
+                    <!-- 组织类型 -->
+                    <div class="mb-3">
+                        <label asp-for="Type" class="form-label">
+                            <i class="bi bi-tag me-1"></i>@Html.DisplayNameFor(m => m.Type) <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Type" class="form-select glass-input">
+                            <option value="">请选择组织类型</option>
+                            <option value="@((int)OrganizationType.School)">
+                                <i class="bi bi-mortarboard"></i> 学校组织
+                            </option>
+                            <option value="@((int)OrganizationType.Institution)">
+                                <i class="bi bi-briefcase"></i> 机构组织
+                            </option>
+                        </select>
+                        <span asp-validation-for="Type" class="text-danger"></span>
+                        <div class="form-text">
+                            <strong>学校组织：</strong>教师和学生都可以加入<br>
+                            <strong>机构组织：</strong>只有学生可以加入
+                        </div>
+                    </div>
+
+                    <!-- 组织描述 -->
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">
+                            <i class="bi bi-text-paragraph me-1"></i>@Html.DisplayNameFor(m => m.Description)
+                        </label>
+                        <textarea asp-for="Description" class="form-control glass-input" 
+                                  rows="3" placeholder="请输入组织描述（可选）" maxlength="500"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                        <div class="form-text">简要描述组织的性质、目标或特色</div>
+                    </div>
+
+                    <!-- 邀请码设置 -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="GenerateInvitationCode" class="form-check-input" checked />
+                            <label asp-for="GenerateInvitationCode" class="form-check-label">
+                                <i class="bi bi-key me-1"></i>自动生成邀请码
+                            </label>
+                        </div>
+                        <div class="form-text">创建组织时自动生成一个邀请码，方便成员加入</div>
+                    </div>
+
+                    <!-- 邀请码高级设置 -->
+                    <div id="invitationCodeSettings" class="border rounded p-3 mb-3" style="background: var(--glass-secondary);">
+                        <h6 class="mb-3">
+                            <i class="bi bi-gear me-1"></i>邀请码设置
+                        </h6>
+                        
+                        <!-- 过期时间 -->
+                        <div class="mb-3">
+                            <label asp-for="InvitationCodeExpiresAt" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>过期时间
+                            </label>
+                            <input asp-for="InvitationCodeExpiresAt" type="datetime-local" 
+                                   class="form-control glass-input" />
+                            <span asp-validation-for="InvitationCodeExpiresAt" class="text-danger"></span>
+                            <div class="form-text">留空表示永不过期</div>
+                        </div>
+
+                        <!-- 最大使用次数 -->
+                        <div class="mb-3">
+                            <label asp-for="InvitationCodeMaxUsage" class="form-label">
+                                <i class="bi bi-people me-1"></i>最大使用次数
+                            </label>
+                            <input asp-for="InvitationCodeMaxUsage" type="number" 
+                                   class="form-control glass-input" min="1" placeholder="留空表示无限制" />
+                            <span asp-validation-for="InvitationCodeMaxUsage" class="text-danger"></span>
+                            <div class="form-text">限制邀请码的使用次数，留空表示无限制</div>
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="glass-btn glass-btn-primary" id="submitBtn">
+                            <i class="bi bi-check-circle me-2"></i>创建组织
+                        </button>
+                        <a href="/Admin/Organization" class="glass-btn">
+                            <i class="bi bi-x-circle me-2"></i>取消
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧帮助信息 -->
+    <div class="col-md-4">
+        <div class="glass-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>创建说明
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-primary">
+                        <i class="bi bi-mortarboard me-1"></i>学校组织
+                    </h6>
+                    <ul class="small mb-0">
+                        <li>适用于学校、院系等教育机构</li>
+                        <li>教师和学生都可以加入</li>
+                        <li>支持教学管理和学生管理</li>
+                    </ul>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-info">
+                        <i class="bi bi-briefcase me-1"></i>机构组织
+                    </h6>
+                    <ul class="small mb-0">
+                        <li>适用于培训机构、企业等</li>
+                        <li>只有学生可以加入</li>
+                        <li>专注于培训和考试管理</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-warning glass-alert-warning">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-exclamation-triangle me-1"></i>注意事项
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>组织名称创建后可以修改</li>
+                        <li>组织类型创建后不可修改</li>
+                        <li>邀请码可以随时生成和管理</li>
+                        <li>停用的组织不会删除数据</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // 控制邀请码设置显示/隐藏
+        document.getElementById('GenerateInvitationCode').addEventListener('change', function() {
+            const settings = document.getElementById('invitationCodeSettings');
+            if (this.checked) {
+                settings.style.display = 'block';
+            } else {
+                settings.style.display = 'none';
+            }
+        });
+
+        // 表单提交处理
+        document.getElementById('createForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>创建中...';
+            submitBtn.disabled = true;
+        });
+
+        // 组织类型选择提示
+        document.getElementById('Type').addEventListener('change', function() {
+            const value = this.value;
+            const helpText = this.parentNode.querySelector('.form-text');
+            
+            if (value == '@((int)OrganizationType.School)') {
+                helpText.innerHTML = '<strong class="text-success">学校组织：</strong>教师和学生都可以加入，适合教育机构使用';
+            } else if (value == '@((int)OrganizationType.Institution)') {
+                helpText.innerHTML = '<strong class="text-info">机构组织：</strong>只有学生可以加入，适合培训机构使用';
+            } else {
+                helpText.innerHTML = '<strong>学校组织：</strong>教师和学生都可以加入<br><strong>机构组织：</strong>只有学生可以加入';
+            }
+        });
+
+        // 页面加载完成后聚焦到组织名称输入框
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('Name').focus();
+        });
+    </script>
+}
+
+<style>
+    .glass-alert-warning {
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        color: var(--text-primary);
+    }
+
+    .glass-alert-warning .alert-heading {
+        color: #ffc107;
+    }
+
+    .form-text {
+        color: var(--text-secondary);
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .glass-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+</style>

@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "访问被拒绝";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card text-center">
+            <div class="card-body p-5">
+                <!-- 错误图标 -->
+                <div class="mb-4">
+                    <i class="bi bi-shield-exclamation text-warning" style="font-size: 4rem;"></i>
+                </div>
+
+                <!-- 错误标题 -->
+                <h2 class="card-title text-warning mb-3">
+                    访问被拒绝
+                </h2>
+
+                <!-- 错误描述 -->
+                <p class="text-muted mb-4">
+                    抱歉，您没有权限访问此页面。请确认您的账户具有相应的访问权限。
+                </p>
+
+                <!-- 可能的原因 -->
+                <div class="alert alert-warning glass-alert-warning mb-4">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-info-circle me-1"></i>可能的原因
+                    </h6>
+                    <ul class="mb-0 text-start">
+                        <li>您的账户权限不足</li>
+                        <li>登录会话已过期</li>
+                        <li>您尝试访问的功能需要更高级别的权限</li>
+                        <li>系统配置限制了您的访问</li>
+                    </ul>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="/Admin/Login" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>重新登录
+                    </a>
+                    <a href="/" class="glass-btn">
+                        <i class="bi bi-house-door me-2"></i>返回首页
+                    </a>
+                    <button class="glass-btn" onclick="history.back()">
+                        <i class="bi bi-arrow-left me-2"></i>返回上页
+                    </button>
+                </div>
+
+                <!-- 联系信息 -->
+                <div class="mt-4 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="bi bi-question-circle me-1"></i>
+                        如果您认为这是一个错误，请联系系统管理员获取帮助。
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-alert-warning {
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        color: var(--text-primary);
+    }
+
+    .glass-alert-warning .alert-heading {
+        color: #ffc107;
+    }
+
+    .border-top {
+        border-color: var(--glass-border) !important;
+    }
+</style>

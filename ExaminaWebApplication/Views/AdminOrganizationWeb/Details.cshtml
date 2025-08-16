@@ -1,0 +1,427 @@
+@model OrganizationDetailsViewModel
+@using ExaminaWebApplication.Models.Organization
+@using ExaminaWebApplication.Models.Organization.Dto
+@{
+    ViewData["Title"] = $"组织详情 - {Model.Organization.Name}";
+    Layout = "_Layout";
+}
+
+<!-- 页面标题 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>
+            <i class="bi @(Model.Organization.Type == OrganizationType.School ? "bi-mortarboard" : "bi-briefcase") me-2"></i>
+            @Model.Organization.Name
+        </h2>
+        <p class="text-muted mb-0">
+            <span class="badge @(Model.Organization.Type == OrganizationType.School ? "bg-success" : "bg-info") me-2">
+                @Model.Organization.TypeDisplayName
+            </span>
+            创建于 @Model.Organization.CreatedAt.ToString("yyyy年MM月dd日")
+        </p>
+    </div>
+    <div>
+        <a href="/Admin/Organization/Edit/@Model.Organization.Id" class="glass-btn glass-btn-primary me-2">
+            <i class="bi bi-pencil me-2"></i>编辑
+        </a>
+        <a href="/Admin/Organization" class="glass-btn">
+            <i class="bi bi-arrow-left me-2"></i>返回列表
+        </a>
+    </div>
+</div>
+
+<!-- 成功/错误消息 -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success glass-alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger glass-alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- 组织信息概览 -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="glass-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>基本信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">组织名称：</dt>
+                            <dd class="col-sm-8">@Model.Organization.Name</dd>
+                            
+                            <dt class="col-sm-4">组织类型：</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge @(Model.Organization.Type == OrganizationType.School ? "bg-success" : "bg-info")">
+                                    @Model.Organization.TypeDisplayName
+                                </span>
+                            </dd>
+                            
+                            <dt class="col-sm-4">创建者：</dt>
+                            <dd class="col-sm-8">@Model.Organization.CreatorUsername</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">创建时间：</dt>
+                            <dd class="col-sm-8">@Model.Organization.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+                            
+                            <dt class="col-sm-4">状态：</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.Organization.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>激活
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle me-1"></i>停用
+                                    </span>
+                                }
+                            </dd>
+                            
+                            <dt class="col-sm-4">成员数量：</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-primary">@Model.Members.Count</span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Organization.Description))
+                {
+                    <hr>
+                    <div>
+                        <strong>组织描述：</strong>
+                        <p class="mt-2 mb-0">@Model.Organization.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- 统计信息 -->
+    <div class="col-md-4">
+        <div class="glass-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>统计信息
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-0">@Model.Members.Count</h4>
+                    <small class="text-muted">总成员数</small>
+                </div>
+                
+                <div class="text-center mb-3">
+                    <i class="bi bi-key text-success" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-0">@Model.InvitationCodes.Count</h4>
+                    <small class="text-muted">邀请码数</small>
+                </div>
+                
+                <div class="text-center">
+                    <i class="bi bi-check-circle text-info" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-0">@Model.InvitationCodes.Count(ic => ic.IsAvailable)</h4>
+                    <small class="text-muted">可用邀请码</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 邀请码管理 -->
+<div class="glass-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-key me-2"></i>邀请码管理
+        </h5>
+        <button type="button" class="glass-btn glass-btn-primary btn-sm" onclick="showCreateInvitationCodeModal()">
+            <i class="bi bi-plus-circle me-1"></i>生成邀请码
+        </button>
+    </div>
+    <div class="card-body">
+        @if (Model.InvitationCodes.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>邀请码</th>
+                            <th>创建时间</th>
+                            <th>过期时间</th>
+                            <th>使用情况</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var code in Model.InvitationCodes.OrderByDescending(ic => ic.CreatedAt))
+                        {
+                            <tr>
+                                <td>
+                                    <code class="text-primary">@code.Code</code>
+                                </td>
+                                <td>
+                                    <small>@code.CreatedAt.ToString("MM-dd HH:mm")</small>
+                                </td>
+                                <td>
+                                    @if (code.ExpiresAt.HasValue)
+                                    {
+                                        <small>@code.ExpiresAt.Value.ToString("MM-dd HH:mm")</small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">永不过期</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        @code.UsageCount@(code.MaxUsage.HasValue ? $"/{code.MaxUsage}" : "")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (code.IsAvailable)
+                                    {
+                                        <span class="badge bg-success">可用</span>
+                                    }
+                                    else if (!code.IsActive)
+                                    {
+                                        <span class="badge bg-danger">已停用</span>
+                                    }
+                                    else if (code.IsExpired)
+                                    {
+                                        <span class="badge bg-warning">已过期</span>
+                                    }
+                                    else if (code.IsMaxUsageReached)
+                                    {
+                                        <span class="badge bg-info">已用完</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (code.IsActive)
+                                    {
+                                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                onclick="deactivateInvitationCode(@code.Id, '@code.Code')">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-3">
+                <i class="bi bi-key text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mt-2 mb-0">暂无邀请码</p>
+                <button type="button" class="glass-btn glass-btn-primary btn-sm mt-2" onclick="showCreateInvitationCodeModal()">
+                    <i class="bi bi-plus-circle me-1"></i>生成第一个邀请码
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- 成员列表 -->
+<div class="glass-card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-people me-2"></i>成员列表
+        </h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Members.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>真实姓名</th>
+                            <th>学号</th>
+                            <th>加入时间</th>
+                            <th>邀请码</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var member in Model.Members.OrderByDescending(m => m.JoinedAt))
+                        {
+                            <tr>
+                                <td>
+                                    <i class="bi bi-person me-1"></i>@member.StudentUsername
+                                </td>
+                                <td>@(member.StudentRealName ?? "-")</td>
+                                <td>@(member.StudentId_Number ?? "-")</td>
+                                <td>
+                                    <small>@member.JoinedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                </td>
+                                <td>
+                                    <code class="text-muted">@member.InvitationCode</code>
+                                </td>
+                                <td>
+                                    @if (member.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>激活
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>已退出
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                <h6 class="text-muted mt-3">暂无成员</h6>
+                <p class="text-muted">分享邀请码给用户，让他们加入组织</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- 生成邀请码模态框 -->
+<div class="modal fade" id="createInvitationCodeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-key me-2"></i>生成邀请码
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createInvitationCodeForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="expiresAt" class="form-label">
+                            <i class="bi bi-calendar me-1"></i>过期时间
+                        </label>
+                        <input type="datetime-local" id="expiresAt" name="expiresAt" class="form-control glass-input" />
+                        <div class="form-text">留空表示永不过期</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="maxUsage" class="form-label">
+                            <i class="bi bi-people me-1"></i>最大使用次数
+                        </label>
+                        <input type="number" id="maxUsage" name="maxUsage" class="form-control glass-input" min="1" />
+                        <div class="form-text">留空表示无限制</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="glass-btn" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="submit" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>生成
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 显示生成邀请码模态框
+        function showCreateInvitationCodeModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createInvitationCodeModal'));
+            modal.show();
+        }
+
+        // 处理生成邀请码表单提交
+        document.getElementById('createInvitationCodeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            try {
+                submitBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>生成中...';
+                submitBtn.disabled = true;
+
+                const response = await fetch('/Admin/Organization/@Model.Organization.Id/CreateInvitationCode', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showNotification('邀请码生成成功', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification('生成失败，请稍后重试', 'danger');
+                }
+            } catch (error) {
+                console.error('生成邀请码失败:', error);
+                showNotification('生成失败，请稍后重试', 'danger');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // 停用邀请码
+        async function deactivateInvitationCode(invitationCodeId, code) {
+            if (confirm(`确定要停用邀请码"${code}"吗？\n\n停用后该邀请码将无法使用。`)) {
+                try {
+                    const response = await fetch(`/Admin/Organization/DeactivateInvitationCode/${invitationCodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({ organizationId: @Model.Organization.Id })
+                    });
+
+                    if (response.ok) {
+                        showNotification('邀请码已停用', 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification('停用失败，请稍后重试', 'danger');
+                    }
+                } catch (error) {
+                    console.error('停用邀请码失败:', error);
+                    showNotification('停用失败，请稍后重试', 'danger');
+                }
+            }
+        }
+    </script>
+}
+
+@Html.AntiForgeryToken()
