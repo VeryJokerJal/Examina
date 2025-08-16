@@ -572,11 +572,15 @@
             }
 
             try {
+                // 获取防伪令牌
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenElement ? tokenElement.value : '';
+
                 const response = await fetch('/Admin/Organization/UpdateMemberInfo', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': token
                     },
                     body: JSON.stringify({
                         memberId: currentEditingMemberId,
@@ -664,11 +668,15 @@
             }
 
             try {
+                // 获取防伪令牌
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenElement ? tokenElement.value : '';
+
                 const response = await fetch('/Admin/Organization/BatchUpdateMemberPhone', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': token
                     },
                     body: JSON.stringify({
                         organizationId: @Model.Organization.Id,
@@ -712,11 +720,15 @@
             }
 
             try {
+                // 获取防伪令牌
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenElement ? tokenElement.value : '';
+
                 const response = await fetch(`/Admin/Organization/RemoveMember/${memberId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': token
                     },
                     body: JSON.stringify({
                         organizationId: organizationId

@@ -262,6 +262,7 @@
 </div>
 
 @section Scripts {
+    @Html.AntiForgeryToken()
     <script>
         // 成员信息编辑功能
         let currentEditingMemberId = null;
@@ -300,11 +301,15 @@
             }
 
             try {
+                // 获取防伪令牌
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenElement ? tokenElement.value : '';
+
                 const response = await fetch('/Admin/Member/UpdateMemberInfo', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': token
                     },
                     body: JSON.stringify({
                         memberId: currentEditingMemberId,
@@ -375,11 +380,15 @@
             }
 
             try {
+                // 获取防伪令牌
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenElement ? tokenElement.value : '';
+
                 const response = await fetch('/Admin/Member/BatchAddMembers', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': token
                     },
                     body: JSON.stringify({
                         memberEntries: memberEntries,
@@ -420,10 +429,14 @@
             }
 
             try {
+                // 获取防伪令牌
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenElement ? tokenElement.value : '';
+
                 const response = await fetch(`/Admin/Member/DeleteMember/${memberId}`, {
                     method: 'DELETE',
                     headers: {
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': token
                     }
                 });
 
