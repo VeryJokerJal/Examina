@@ -719,7 +719,7 @@ public class AdminOrganizationWebController : Controller
                 return Unauthorized(new { message = "用户身份验证失败" });
             }
 
-            // 软删除：设置为非活跃状态，但保留记录
+            // 软删除：设置为非活跃状态，但保留成员记录
             member.IsActive = false;
             member.UpdatedAt = DateTime.UtcNow;
             member.UpdatedBy = currentUserId;
@@ -728,11 +728,11 @@ public class AdminOrganizationWebController : Controller
             _logger.LogInformation("管理员从组织中移除成员: 成员ID: {MemberId}, 成员姓名: {RealName}, 组织: {OrganizationName}, 操作者: {UserId}",
                 memberId, member.RealName, member.Organization?.Name, currentUserId);
 
-            return Ok(new { message = $"成员"{member.RealName}"已从组织中移除" });
+            return Ok(new { message = "成员移除成功" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "从组织中移除成员失败: 成员ID: {MemberId}", memberId);
+            _logger.LogError(ex, "移除组织成员失败: 成员ID: {MemberId}, 组织ID: {OrganizationId}", memberId, request.OrganizationId);
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }

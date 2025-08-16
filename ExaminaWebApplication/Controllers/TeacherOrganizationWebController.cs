@@ -239,12 +239,12 @@ public class TeacherOrganizationViewModel
     /// <summary>
     /// 已加入的组织列表
     /// </summary>
-    public List<StudentOrganizationDto> JoinedOrganizations { get; set; } = [];
+    public List<StudentOrganizationDto> JoinedOrganizations { get; set; } = new();
 
     /// <summary>
     /// 可用的学校组织列表
     /// </summary>
-    public List<OrganizationDto> AvailableSchoolOrganizations { get; set; } = [];
+    public List<OrganizationDto> AvailableSchoolOrganizations { get; set; } = new();
 }
 
 /// <summary>
@@ -260,7 +260,7 @@ public class TeacherOrganizationDetailsViewModel
     /// <summary>
     /// 组织成员列表
     /// </summary>
-    public List<StudentOrganizationDto> Members { get; set; } = [];
+    public List<StudentOrganizationDto> Members { get; set; } = new();
 
     /// <summary>
     /// 教师是否在该组织中

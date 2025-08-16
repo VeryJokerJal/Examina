@@ -428,8 +428,7 @@
                 });
 
                 if (response.ok) {
-                    const result = await response.json();
-                    showNotification(result.message || '成员删除成功', 'success');
+                    showNotification('成员删除成功', 'success');
 
                     // 刷新页面以显示更新后的数据
                     setTimeout(() => {

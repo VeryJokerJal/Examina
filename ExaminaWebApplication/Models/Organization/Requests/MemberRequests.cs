@@ -36,7 +36,7 @@ public class BatchAddMembersRequest
     /// 成员数据列表
     /// </summary>
     [Required(ErrorMessage = "成员数据不能为空")]
-    public List<MemberEntry> MemberEntries { get; set; } = [];
+    public List<MemberEntry> MemberEntries { get; set; } = new();
 
     /// <summary>
     /// 是否覆盖已存在的成员

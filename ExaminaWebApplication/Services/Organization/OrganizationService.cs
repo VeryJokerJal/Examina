@@ -109,7 +109,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织列表失败");
-            return [];
+            return new List<OrganizationDto>();
         }
     }
 
@@ -320,7 +320,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户组织列表失败: 用户ID: {UserId}", userId);
-            return [];
+            return new List<StudentOrganizationDto>();
         }
     }
 
@@ -359,7 +359,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织成员列表失败: 组织ID: {OrganizationId}", organizationId);
-            return [];
+            return new List<StudentOrganizationDto>();
         }
     }
 

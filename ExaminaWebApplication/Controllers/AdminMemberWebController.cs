@@ -1,6 +1,8 @@
-﻿using System.Security.Claims;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Organization;
+using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
 using ExaminaWebApplication.Models.Organization.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -37,11 +39,11 @@ public class AdminMemberWebController : Controller
             _logger.LogInformation("访问成员管理页面");
 
             // 获取所有成员列表
-            List<MemberDto>? members = await GetAllMembersAsync(includeInactive: false);
+            var members = await GetAllMembersAsync(includeInactive: false);
 
-            MemberManagementViewModel viewModel = new()
+            var viewModel = new MemberManagementViewModel
             {
-                Members = members ?? []
+                Members = members ?? new List<MemberDto>()
             };
 
             _logger.LogInformation("成员管理页面加载完成，成员数量: {MemberCount}", members.Count);
@@ -101,7 +103,7 @@ public class AdminMemberWebController : Controller
             member.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
             member.UpdatedAt = DateTime.UtcNow;
             member.UpdatedBy = currentUserId;
-            _ = await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("管理员更新成员信息成功: 成员ID: {MemberId}, 真实姓名: {RealName}, 手机号: {PhoneNumber}",
                 request.MemberId, request.RealName, request.PhoneNumber ?? "空");
@@ -139,17 +141,17 @@ public class AdminMemberWebController : Controller
             int addedCount = 0;
             int updatedCount = 0;
             int failureCount = 0;
-            List<string> addedMembers = [];
-            List<string> updatedMembers = [];
-            List<string> errors = [];
+            var addedMembers = new List<string>();
+            var updatedMembers = new List<string>();
+            var errors = new List<string>();
 
-            foreach (MemberEntry entry in request.MemberEntries)
+            foreach (var entry in request.MemberEntries)
             {
                 try
                 {
                     // 检查是否已存在相同真实姓名的成员
-                    OrganizationMember? existingMember = await _context.OrganizationMembers
-                        .FirstOrDefaultAsync(m => m.RealName == entry.RealName && m.OrganizationId == -1);
+                    var existingMember = await _context.OrganizationMembers
+                        .FirstOrDefaultAsync(m => m.RealName == entry.RealName && m.OrganizationId == null);
 
                     if (existingMember != null)
                     {
@@ -171,12 +173,12 @@ public class AdminMemberWebController : Controller
                     else
                     {
                         // 创建新成员
-                        OrganizationMember newMember = new()
+                        var newMember = new OrganizationMember
                         {
                             Username = entry.RealName, // 使用真实姓名作为用户名
                             RealName = entry.RealName,
                             PhoneNumber = entry.PhoneNumber,
-                            OrganizationId = -1, // 非组织成员
+                            OrganizationId = null, // 非组织成员
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = currentUserId,
                             UpdatedAt = DateTime.UtcNow,
@@ -184,7 +186,7 @@ public class AdminMemberWebController : Controller
                             IsActive = true
                         };
 
-                        _ = _context.OrganizationMembers.Add(newMember);
+                        _context.OrganizationMembers.Add(newMember);
                         addedCount++;
                         addedMembers.Add(entry.RealName);
                     }
@@ -197,9 +199,9 @@ public class AdminMemberWebController : Controller
                 }
             }
 
-            _ = await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-            string message = $"批量处理完成，新增成员 {addedCount} 个，更新成员 {updatedCount} 个";
+            var message = $"批量处理完成，新增成员 {addedCount} 个，更新成员 {updatedCount} 个";
             if (failureCount > 0)
             {
                 message += $"，失败 {failureCount} 个";
@@ -207,13 +209,13 @@ public class AdminMemberWebController : Controller
 
             return Ok(new
             {
-                message,
-                addedCount,
-                updatedCount,
-                failureCount,
-                addedMembers,
-                updatedMembers,
-                errors
+                message = message,
+                addedCount = addedCount,
+                updatedCount = updatedCount,
+                failureCount = failureCount,
+                addedMembers = addedMembers,
+                updatedMembers = updatedMembers,
+                errors = errors
             });
         }
         catch (Exception ex)
@@ -255,7 +257,7 @@ public class AdminMemberWebController : Controller
             _logger.LogInformation("管理员删除成员成功: 成员ID: {MemberId}, 成员姓名: {RealName}, 操作者: {UserId}",
                 memberId, member.RealName, currentUserId);
 
-            return Ok(new { message = $"成员"{member.RealName}"删除成功" });
+            return Ok(new { message = "成员删除成功" });
         }
         catch (Exception ex)
         {
@@ -289,15 +291,15 @@ public class AdminMemberWebController : Controller
             _logger.LogInformation("从数据库获取到 {Count} 个成员记录", members.Count);
 
             List<MemberDto> result = members.Select(MapToMemberDto).ToList();
-
+            
             _logger.LogInformation("成功映射 {Count} 个成员DTO", result.Count);
-
+            
             return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取成员列表失败");
-            return [];
+            return new List<MemberDto>();
         }
     }
 
@@ -306,20 +308,23 @@ public class AdminMemberWebController : Controller
     /// </summary>
     private static MemberDto MapToMemberDto(OrganizationMember member)
     {
-        return member == null
-            ? throw new ArgumentNullException(nameof(member))
-            : new MemberDto
-            {
-                Id = member.Id,
-                RealName = member.RealName,
-                PhoneNumber = member.PhoneNumber,
-                JoinedAt = member.CreatedAt,
-                IsActive = member.IsActive,
-                UserId = member.UserId,
-                Notes = member.Notes,
-                CreatedByUsername = member.Creator?.Username,
-                UpdatedAt = member.UpdatedAt
-            };
+        if (member == null)
+        {
+            throw new ArgumentNullException(nameof(member));
+        }
+
+        return new MemberDto
+        {
+            Id = member.Id,
+            RealName = member.RealName,
+            PhoneNumber = member.PhoneNumber,
+            JoinedAt = member.CreatedAt,
+            IsActive = member.IsActive,
+            UserId = member.UserId,
+            Notes = member.Notes,
+            CreatedByUsername = member.Creator?.Username,
+            UpdatedAt = member.UpdatedAt
+        };
     }
 }
 

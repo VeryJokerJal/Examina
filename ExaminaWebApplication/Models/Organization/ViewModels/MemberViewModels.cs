@@ -8,7 +8,7 @@ public class MemberManagementViewModel
     /// <summary>
     /// 成员列表
     /// </summary>
-    public List<MemberDto> Members { get; set; } = [];
+    public List<MemberDto> Members { get; set; } = new();
 }
 
 /// <summary>
