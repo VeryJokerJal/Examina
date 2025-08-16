@@ -6,6 +6,7 @@ using ExaminaWebApplication.Models.Organization.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -147,9 +148,9 @@ public class AdminMemberWebController : Controller
             {
                 try
                 {
-                    // 检查是否已存在相同真实姓名的成员
+                    // 检查是否已存在相同真实姓名的非组织成员
                     OrganizationMember? existingMember = await _context.OrganizationMembers
-                        .FirstOrDefaultAsync(m => m.RealName == entry.RealName && m.OrganizationId == -1);
+                        .FirstOrDefaultAsync(m => m.RealName == entry.RealName && m.OrganizationId == null);
 
                     if (existingMember != null)
                     {
@@ -176,7 +177,7 @@ public class AdminMemberWebController : Controller
                             Username = entry.RealName, // 使用真实姓名作为用户名
                             RealName = entry.RealName,
                             PhoneNumber = entry.PhoneNumber,
-                            OrganizationId = -1, // 非组织成员
+                            OrganizationId = null, // 非组织成员
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = currentUserId,
                             UpdatedAt = DateTime.UtcNow,
@@ -216,10 +217,15 @@ public class AdminMemberWebController : Controller
                 errors
             });
         }
+        catch (MySqlException ex) when (ex.Number == 1452) // 外键约束错误
+        {
+            _logger.LogError(ex, "批量添加成员失败：外键约束错误");
+            return StatusCode(400, new { message = "数据完整性错误：引用的组织不存在，请联系管理员检查数据配置" });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "批量添加成员失败");
-            return StatusCode(500, new { message = "服务器内部错误" });
+            return StatusCode(500, new { message = "服务器内部错误，请稍后重试" });
         }
     }
 

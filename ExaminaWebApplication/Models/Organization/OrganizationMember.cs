@@ -41,11 +41,10 @@ public class OrganizationMember
     public string? StudentId { get; set; }
 
     /// <summary>
-    /// 组织ID（外键）
+    /// 组织ID（外键，可为空表示非组织成员）
     /// </summary>
-    [Required]
     [ForeignKey(nameof(Organization))]
-    public int OrganizationId { get; set; }
+    public int? OrganizationId { get; set; }
 
     /// <summary>
     /// 创建时间
@@ -91,9 +90,9 @@ public class OrganizationMember
     #region 导航属性
 
     /// <summary>
-    /// 关联的组织
+    /// 关联的组织（可为空，表示非组织成员）
     /// </summary>
-    public virtual Organization Organization { get; set; } = null!;
+    public virtual Organization? Organization { get; set; }
 
     /// <summary>
     /// 关联的用户（如果已注册）

@@ -460,7 +460,7 @@ public class AdminOrganizationWebController : Controller
             member.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
             member.UpdatedAt = DateTime.UtcNow;
             member.UpdatedBy = currentUserId;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("管理员更新成员信息成功: 成员ID: {MemberId}, 真实姓名: {RealName}, 手机号: {PhoneNumber}",
                 request.MemberId, request.RealName, request.PhoneNumber ?? "空");
@@ -723,7 +723,7 @@ public class AdminOrganizationWebController : Controller
             member.IsActive = false;
             member.UpdatedAt = DateTime.UtcNow;
             member.UpdatedBy = currentUserId;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("管理员从组织中移除成员: 成员ID: {MemberId}, 成员姓名: {RealName}, 组织: {OrganizationName}, 操作者: {UserId}",
                 memberId, member.RealName, member.Organization?.Name, currentUserId);
@@ -786,6 +786,7 @@ public class AdminOrganizationWebController : Controller
             {
                 Id = member.Id,
                 Username = member.Username,
+                RealName = member.RealName,
                 PhoneNumber = member.PhoneNumber,
                 OrganizationId = member.OrganizationId,
                 OrganizationName = member.Organization?.Name ?? "未知",

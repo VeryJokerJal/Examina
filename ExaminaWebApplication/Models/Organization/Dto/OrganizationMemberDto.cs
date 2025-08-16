@@ -26,9 +26,9 @@ public class OrganizationMemberDto
     public string? PhoneNumber { get; set; }
 
     /// <summary>
-    /// 组织ID
+    /// 组织ID（可为空表示非组织成员）
     /// </summary>
-    public int OrganizationId { get; set; }
+    public int? OrganizationId { get; set; }
 
     /// <summary>
     /// 组织名称

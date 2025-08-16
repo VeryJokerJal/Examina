@@ -479,11 +479,12 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
             _ = entity.Property(e => e.Notes).HasMaxLength(500);
 
-            // 配置外键关系
+            // 配置外键关系（允许null值表示非组织成员）
             _ = entity.HasOne(e => e.Organization)
                   .WithMany()
                   .HasForeignKey(e => e.OrganizationId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.SetNull)
+                  .IsRequired(false);
 
             _ = entity.HasOne(e => e.User)
                   .WithMany()
