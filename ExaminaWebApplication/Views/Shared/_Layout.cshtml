@@ -83,63 +83,7 @@
 
 
 
-                        <!-- 统计分析下拉菜单 -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="statisticsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-graph-up me-1"></i>统计分析
-                            </a>
-                            <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="statisticsDropdown">
-                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="Statistics" asp-action="Index">
-                                    <i class="bi bi-speedometer2 me-2"></i>统计概览
-                                </a></li>
-                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="Statistics" asp-action="SystemStatistics">
-                                    <i class="bi bi-graph-up me-2"></i>系统统计
-                                </a></li>
-                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="Statistics" asp-action="ExamStatistics">
-                                    <i class="bi bi-clipboard-data me-2"></i>试卷统计
-                                </a></li>
-                            </ul>
-                        </li>
 
-                        <!-- 系统管理下拉菜单 -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="systemDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-gear me-1"></i>系统管理
-                            </a>
-                            <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="systemDropdown">
-                                <li><a class="dropdown-item glass-dropdown-item" href="#" onclick="createSampleData()">
-                                    <i class="bi bi-database-add me-2"></i>创建示例数据
-                                </a></li>
-                            </ul>
-                        </li>
-
-                        <!-- 管理员组织管理菜单 -->
-                        @if (User.Identity.IsAuthenticated && User.IsInRole("Administrator"))
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminOrgDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-building me-1"></i>组织管理
-                                </a>
-                                <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="adminOrgDropdown">
-                                    <li><a class="dropdown-item glass-dropdown-item" href="/Admin/Organization">
-                                        <i class="bi bi-list-ul me-2"></i>组织列表
-                                    </a></li>
-                                    <li><a class="dropdown-item glass-dropdown-item" href="/Admin/Organization/Create">
-                                        <i class="bi bi-plus-circle me-2"></i>创建组织
-                                    </a></li>
-                                </ul>
-                            </li>
-                        }
-
-                        <!-- 管理员学生成员管理菜单 -->
-                        @if (User.Identity.IsAuthenticated && User.IsInRole("Administrator"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" href="/StudentMemberManagement">
-                                    <i class="bi bi-people me-1"></i>学生成员管理
-                                </a>
-                            </li>
-                        }
 
                         <!-- 教师组织菜单 -->
                         @if (User.Identity.IsAuthenticated && User.IsInRole("Teacher"))
@@ -241,8 +185,7 @@
                     <h6 class="text-dark">系统功能</h6>
                     <ul class="list-unstyled small">
 
-                        <li><i class="bi bi-graph-up me-1"></i>统计分析</li>
-                        <li><i class="bi bi-gear me-1"></i>系统配置</li>
+
                     </ul>
                 </div>
             </div>
@@ -288,27 +231,7 @@
             }
         }
 
-        // 创建示例数据
-        async function createSampleData() {
-            if (confirm('确定要创建示例数据吗？这将创建一个示例试卷和相关题目。')) {
-                try {
-                    const response = await fetch('/api/ExamTest/create-sample-exam', {
-                        method: 'POST'
-                    });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        alert('示例数据创建成功！\n' + data.Message);
-                    } else {
-                        const error = await response.text();
-                        alert('创建失败：' + error);
-                    }
-                } catch (error) {
-                    console.error('创建示例数据失败:', error);
-                    alert('创建示例数据失败，请检查控制台错误信息。');
-                }
-            }
-        }
 
         // 显示通知
         function showNotification(message, type = 'info') {

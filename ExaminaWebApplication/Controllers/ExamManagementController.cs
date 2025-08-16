@@ -192,41 +192,5 @@ public class ExamManagementController : Controller
         }
     }
 
-    /// <summary>
-    /// 获取考试统计信息
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> GetExamStatistics()
-    {
-        try
-        {
-            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            int userId = 1; // 使用管理员用户ID
 
-            List<ImportedExam> exams = await _examImportService.GetImportedExamsAsync(userId);
-            
-            object statistics = new
-            {
-                totalExams = exams.Count,
-                totalSubjects = exams.Sum(e => e.Subjects.Count),
-                totalModules = exams.Sum(e => e.Modules.Count),
-                recentImports = exams.OrderByDescending(e => e.ImportedAt)
-                    .Take(5)
-                    .Select(e => new
-                    {
-                        id = e.Id,
-                        name = e.Name,
-                        importedAt = e.ImportedAt.ToString("yyyy-MM-dd HH:mm"),
-                        status = e.ImportStatus
-                    })
-            };
-
-            return Json(new { success = true, data = statistics });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "获取考试统计信息失败");
-            return Json(new { success = false, message = "获取统计信息失败" });
-        }
-    }
 }

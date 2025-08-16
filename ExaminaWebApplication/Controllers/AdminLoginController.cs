@@ -201,7 +201,7 @@ public class LoginController : Controller
 
         return userRole switch
         {
-            UserRole.Administrator => Redirect("/Admin/Organization"),
+            UserRole.Administrator => RedirectToAction("Index", "Home"),
             UserRole.Teacher => Redirect("/Teacher/Organization"),
             _ => RedirectToAction("Index", "Home")
         };

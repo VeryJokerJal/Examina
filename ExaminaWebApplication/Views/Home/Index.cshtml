@@ -135,45 +135,7 @@
         </div>
     </div>
 
-    <div class="row g-4" id="system-statistics">
-        <!-- 统计数据将通过JavaScript动态加载 -->
-        <div class="col-md-3">
-            <div class="glass-card text-center">
-                <div class="card-body">
-                    <i class="bi bi-clipboard-check text-primary mb-2" style="font-size: 2rem;"></i>
-                    <h4 class="fw-bold text-primary" id="total-exams">-</h4>
-                    <p class="text-muted mb-0">总试卷数</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="glass-card text-center">
-                <div class="card-body">
-                    <i class="bi bi-people text-info mb-2" style="font-size: 2rem;"></i>
-                    <h4 class="fw-bold text-info" id="total-users">-</h4>
-                    <p class="text-muted mb-0">系统用户</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="glass-card text-center">
-                <div class="card-body">
-                    <i class="bi bi-question-circle text-info mb-2" style="font-size: 2rem;"></i>
-                    <h4 class="fw-bold text-info" id="total-questions">-</h4>
-                    <p class="text-muted mb-0">题目总数</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="glass-card text-center">
-                <div class="card-body">
-                    <i class="bi bi-tags text-warning mb-2" style="font-size: 2rem;"></i>
-                    <h4 class="fw-bold text-warning" id="total-enums">107</h4>
-                    <p class="text-muted mb-0">枚举值</p>
-                </div>
-            </div>
-        </div>
-    </div>
+
 </div>
 
 <!-- 快速操作 -->
@@ -210,33 +172,4 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        // 页面加载完成后加载统计数据
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSystemStatistics();
-        });
 
-        // 加载系统统计数据
-        async function loadSystemStatistics() {
-            try {
-                const response = await fetch('/api/ExamTest/statistics');
-                if (response.ok) {
-                    const data = await response.json();
-
-                    // 更新统计数据
-                    document.getElementById('total-exams').textContent = data.ExamStatistics.TotalExams;
-                    document.getElementById('total-users').textContent = data.UserStatistics?.TotalUsers || 0;
-
-                    // 计算总题目数（这里可以根据实际API调整）
-                    const totalQuestions = data.ExamStatistics.TotalExams * 5; // 假设每个试卷平均5道题
-                    document.getElementById('total-questions').textContent = totalQuestions;
-                }
-            } catch (error) {
-                console.error('加载统计数据失败:', error);
-            }
-        }
-
-
-    </script>
-}
