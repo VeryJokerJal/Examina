@@ -1,0 +1,167 @@
+{
+  "comprehensiveTraining": {
+    "id": "CT001",
+    "name": "测试综合训练",
+    "description": "这是一个测试用的综合训练",
+    "comprehensiveTrainingType": "UnifiedTraining",
+    "status": "Draft",
+    "totalScore": 100,
+    "durationMinutes": 120,
+    "startTime": null,
+    "endTime": null,
+    "allowRetake": false,
+    "maxRetakeCount": 0,
+    "passingScore": 60,
+    "randomizeQuestions": false,
+    "showScore": true,
+    "showAnswers": false,
+    "isEnabled": true,
+    "tags": "测试,综合训练",
+    "extendedConfig": null,
+    "createdBy": 1,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": null,
+    "publishedAt": null,
+    "publishedBy": null,
+    "subjects": [
+      {
+        "id": 1,
+        "comprehensiveTrainingId": 1,
+        "subjectType": "理论",
+        "subjectName": "基础理论",
+        "description": "基础理论科目",
+        "score": 50,
+        "durationMinutes": 60,
+        "sortOrder": 1,
+        "isRequired": true,
+        "isEnabled": true,
+        "minScore": 30,
+        "weight": 1.0,
+        "subjectConfig": null,
+        "questionCount": 2,
+        "questions": [
+          {
+            "id": "Q001",
+            "title": "测试题目1",
+            "content": "这是第一道测试题目",
+            "questionType": "单选题",
+            "score": 25,
+            "difficultyLevel": 1,
+            "estimatedMinutes": 5,
+            "sortOrder": 1,
+            "isRequired": true,
+            "isEnabled": true,
+            "questionConfig": null,
+            "answerValidationRules": null,
+            "standardAnswer": null,
+            "scoringRules": null,
+            "tags": "基础",
+            "remarks": null,
+            "programInput": null,
+            "expectedOutput": null,
+            "createdAt": "2024-01-01T00:00:00Z",
+            "updatedAt": null,
+            "operationPoints": [
+              {
+                "id": "OP001",
+                "name": "选择答案",
+                "description": "选择正确答案",
+                "moduleType": "选择",
+                "score": 25,
+                "order": 1,
+                "isEnabled": true,
+                "createdTime": "2024-01-01T00:00:00Z",
+                "parameters": [
+                  {
+                    "id": "P001",
+                    "name": "选项A",
+                    "displayName": "选项A",
+                    "description": "第一个选项",
+                    "type": "string",
+                    "value": "选项A内容",
+                    "defaultValue": "",
+                    "isRequired": false,
+                    "order": 1,
+                    "enumOptions": null,
+                    "validationRule": null,
+                    "validationErrorMessage": null,
+                    "minValue": null,
+                    "maxValue": null,
+                    "isEnabled": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "Q002",
+            "title": "测试题目2",
+            "content": "这是第二道测试题目",
+            "questionType": "多选题",
+            "score": 25,
+            "difficultyLevel": 2,
+            "estimatedMinutes": 8,
+            "sortOrder": 2,
+            "isRequired": true,
+            "isEnabled": true,
+            "questionConfig": null,
+            "answerValidationRules": null,
+            "standardAnswer": null,
+            "scoringRules": null,
+            "tags": "进阶",
+            "remarks": null,
+            "programInput": null,
+            "expectedOutput": null,
+            "createdAt": "2024-01-01T00:00:00Z",
+            "updatedAt": null,
+            "operationPoints": []
+          }
+        ]
+      }
+    ],
+    "modules": [
+      {
+        "id": "M001",
+        "name": "实践模块",
+        "type": "实践",
+        "description": "实践操作模块",
+        "score": 50,
+        "order": 1,
+        "isEnabled": true,
+        "questions": [
+          {
+            "id": "Q003",
+            "title": "实践题目1",
+            "content": "这是一道实践题目",
+            "questionType": "操作题",
+            "score": 50,
+            "difficultyLevel": 3,
+            "estimatedMinutes": 30,
+            "sortOrder": 1,
+            "isRequired": true,
+            "isEnabled": true,
+            "questionConfig": null,
+            "answerValidationRules": null,
+            "standardAnswer": null,
+            "scoringRules": null,
+            "tags": "实践",
+            "remarks": null,
+            "programInput": null,
+            "expectedOutput": null,
+            "createdAt": "2024-01-01T00:00:00Z",
+            "updatedAt": null,
+            "operationPoints": []
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "exportVersion": "1.0",
+    "exportedAt": "2024-01-01T00:00:00Z",
+    "exportedBy": "测试用户",
+    "exportLevel": "Complete",
+    "applicationInfo": "ExamLab",
+    "applicationVersion": "1.0.0"
+  }
+}

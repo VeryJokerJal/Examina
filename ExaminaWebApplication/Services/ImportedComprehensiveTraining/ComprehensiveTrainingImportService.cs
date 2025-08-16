@@ -182,7 +182,8 @@ public class ComprehensiveTrainingImportService
 
         if (string.IsNullOrWhiteSpace(exportDto.ComprehensiveTraining.Id))
         {
-            return "综合训练ID不能为空";
+            // 如果ID为空，生成一个默认ID
+            exportDto.ComprehensiveTraining.Id = Guid.NewGuid().ToString();
         }
 
         if (string.IsNullOrWhiteSpace(exportDto.ComprehensiveTraining.Name))
