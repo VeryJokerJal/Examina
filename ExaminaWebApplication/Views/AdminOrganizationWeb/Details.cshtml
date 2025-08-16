@@ -239,21 +239,10 @@
         </button>
     </div>
     <div class="card-body">
-        <!-- 临时调试信息 -->
-        <div class="alert alert-warning">
-            <strong>调试信息：</strong><br/>
-            Model.Members 是否为 null: @(Model.Members == null ? "是" : "否")<br/>
-            成员数量: @(Model.Members?.Count ?? 0)<br/>
-            @if (Model.Members != null && Model.Members.Any())
-            {
-                <text>第一个成员: @Model.Members.First().StudentUsername</text>
-            }
-        </div>
-
         @if (Model.Members != null && Model.Members.Any())
         {
-            <div class="table-responsive">
-                <table class="table table-hover">
+            <div>
+                <table class="table glass-table">
                     <thead>
                         <tr>
                             <th>用户名</th>
@@ -277,6 +266,7 @@
                                 <td>@(member.StudentId_Number ?? "-")</td>
                                 <td>
                                     <div class="d-flex align-items-center">
+                                        <!-- 显示模式 -->
                                         <span id="phone-display-@member.StudentId" class="me-2">
                                             @if (!string.IsNullOrEmpty(member.StudentPhoneNumber))
                                             {
@@ -287,18 +277,26 @@
                                                 <span class="text-muted">未设置</span>
                                             }
                                         </span>
-                                        <div id="phone-edit-@member.StudentId" style="display: none;" class="d-flex align-items-center">
-                                            <input type="text" class="form-control form-control-sm me-2"
+
+                                        <!-- 编辑模式 -->
+                                        <div id="phone-edit-@member.StudentId" class="d-flex align-items-center" style="display: none;">
+                                            <input type="tel"
                                                    id="phone-input-@member.StudentId"
+                                                   class="form-control form-control-sm me-2"
+                                                   style="width: 140px;"
                                                    value="@(member.StudentPhoneNumber ?? "")"
                                                    placeholder="请输入手机号"
-                                                   maxlength="20" style="width: 150px;" />
-                                            <button type="button" class="btn btn-sm btn-success me-1"
-                                                    onclick="savePhoneNumber(@member.StudentId)">
+                                                   maxlength="11">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success me-1"
+                                                    onclick="savePhoneNumber(@member.StudentId)"
+                                                    title="保存">
                                                 <i class="bi bi-check"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-secondary"
-                                                    onclick="cancelEditPhone(@member.StudentId)">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-secondary"
+                                                    onclick="cancelEditPhone(@member.StudentId)"
+                                                    title="取消">
                                                 <i class="bi bi-x"></i>
                                             </button>
                                         </div>
@@ -514,18 +512,43 @@
 
         // 手机号编辑功能
         function editPhoneNumber(studentId) {
-            document.getElementById(`phone-display-${studentId}`).style.display = 'none';
-            document.getElementById(`phone-edit-${studentId}`).style.display = 'flex';
-            document.getElementById(`phone-input-${studentId}`).focus();
+            const displayElement = document.getElementById(`phone-display-${studentId}`);
+            const editElement = document.getElementById(`phone-edit-${studentId}`);
+            const inputElement = document.getElementById(`phone-input-${studentId}`);
+
+            if (!displayElement || !editElement || !inputElement) {
+                console.error(`无法找到编辑手机号所需的DOM元素，studentId: ${studentId}`);
+                showNotification('编辑功能初始化失败，请刷新页面重试', 'danger');
+                return;
+            }
+
+            displayElement.style.display = 'none';
+            editElement.style.display = 'flex';
+            inputElement.focus();
         }
 
         function cancelEditPhone(studentId) {
-            document.getElementById(`phone-display-${studentId}`).style.display = 'block';
-            document.getElementById(`phone-edit-${studentId}`).style.display = 'none';
+            const displayElement = document.getElementById(`phone-display-${studentId}`);
+            const editElement = document.getElementById(`phone-edit-${studentId}`);
+
+            if (!displayElement || !editElement) {
+                console.error(`无法找到取消编辑所需的DOM元素，studentId: ${studentId}`);
+                return;
+            }
+
+            displayElement.style.display = 'block';
+            editElement.style.display = 'none';
         }
 
         async function savePhoneNumber(studentId) {
             const phoneInput = document.getElementById(`phone-input-${studentId}`);
+
+            if (!phoneInput) {
+                console.error(`无法找到手机号输入框，studentId: ${studentId}`);
+                showNotification('保存失败，请刷新页面重试', 'danger');
+                return;
+            }
+
             const phoneNumber = phoneInput.value.trim();
 
             // 简单的手机号验证
@@ -551,10 +574,12 @@
                     showNotification('手机号更新成功', 'success');
                     // 更新显示
                     const displayElement = document.getElementById(`phone-display-${studentId}`);
-                    if (phoneNumber) {
-                        displayElement.innerHTML = `<i class="bi bi-telephone me-1"></i>${phoneNumber}`;
-                    } else {
-                        displayElement.innerHTML = '<span class="text-muted">未设置</span>';
+                    if (displayElement) {
+                        if (phoneNumber) {
+                            displayElement.innerHTML = `<i class="bi bi-telephone me-1"></i>${phoneNumber}`;
+                        } else {
+                            displayElement.innerHTML = '<span class="text-muted">未设置</span>';
+                        }
                     }
                     cancelEditPhone(studentId);
                 } else {

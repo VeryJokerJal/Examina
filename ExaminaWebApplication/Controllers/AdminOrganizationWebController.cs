@@ -368,26 +368,38 @@ public class AdminOrganizationWebController : Controller
                 return BadRequest(new { message = "请求参数无效" });
             }
 
-            // 查找用户
-            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.StudentId);
-            if (user == null)
+            // 查找组织成员（使用成员ID而不是用户ID）
+            OrganizationMember? member = await _context.OrganizationMembers
+                .FirstOrDefaultAsync(m => m.Id == request.StudentId);
+            if (member == null)
             {
-                return NotFound(new { message = "用户不存在" });
+                return NotFound(new { message = "成员不存在" });
             }
 
-            // 检查手机号是否已被其他用户使用（如果不为空）
+            // 检查手机号是否已被同组织其他成员使用（如果不为空）
             if (!string.IsNullOrEmpty(request.PhoneNumber))
             {
-                bool phoneExists = await _context.Users
-                    .AnyAsync(u => u.PhoneNumber == request.PhoneNumber && u.Id != request.StudentId);
+                bool phoneExists = await _context.OrganizationMembers
+                    .AnyAsync(m => m.PhoneNumber == request.PhoneNumber &&
+                                  m.Id != request.StudentId &&
+                                  m.OrganizationId == member.OrganizationId);
                 if (phoneExists)
                 {
-                    return BadRequest(new { message = "该手机号已被其他用户使用" });
+                    return BadRequest(new { message = "该手机号已被同组织其他成员使用" });
                 }
             }
 
+            // 获取当前用户ID
+            string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int currentUserId))
+            {
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
             // 更新手机号
-            user.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber;
+            member.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber;
+            member.UpdatedAt = DateTime.UtcNow;
+            member.UpdatedBy = currentUserId;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("管理员更新用户手机号成功: 用户ID: {UserId}, 新手机号: {PhoneNumber}",

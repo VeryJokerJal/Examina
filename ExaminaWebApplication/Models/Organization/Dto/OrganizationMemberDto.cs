@@ -101,4 +101,9 @@ public class OrganizationMemberDto
     /// 学生ID（兼容性属性，使用成员ID）
     /// </summary>
     public int StudentId_Compat => Id;
+
+    /// <summary>
+    /// 学生ID（兼容性属性，用于JavaScript函数）
+    /// </summary>
+    public int StudentId => Id;
 }
