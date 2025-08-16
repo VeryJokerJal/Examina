@@ -557,6 +557,32 @@ public class AdminOrganizationWebController : Controller
     }
 
     /// <summary>
+    /// 测试PreConfiguredUsers表访问
+    /// </summary>
+    [HttpGet]
+    [Route("Admin/Organization/TestPreConfiguredTable")]
+    public async Task<IActionResult> TestPreConfiguredTable()
+    {
+        try
+        {
+            int count = await _context.PreConfiguredUsers.CountAsync();
+            return Json(new {
+                success = true,
+                message = "PreConfiguredUsers表访问正常",
+                recordCount = count
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "测试PreConfiguredUsers表访问失败");
+            return Json(new {
+                success = false,
+                error = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
     /// 创建或更新预配置用户信息
     /// </summary>
     private async Task CreateOrUpdatePreConfiguredUser(int organizationId, PhoneEntry entry, int creatorUserId)
