@@ -402,7 +402,7 @@ public class AdminOrganizationWebController : Controller
     }
 
     /// <summary>
-    /// 批量更新成员手机号
+    /// 批量更新成员手机号（支持预配置模式）
     /// </summary>
     [HttpPost]
     [Route("Admin/Organization/BatchUpdateMemberPhone")]
@@ -415,9 +415,26 @@ public class AdminOrganizationWebController : Controller
                 return BadRequest(new { message = "请求参数无效" });
             }
 
+            // 获取当前用户ID
+            string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int currentUserId))
+            {
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
             int successCount = 0;
             int failureCount = 0;
+            int preConfiguredCount = 0;
             List<string> errors = new();
+            List<string> preConfiguredUsers = new();
+
+            // 从请求中获取组织ID（需要在前端传递）
+            // 如果没有传递，尝试从当前上下文获取
+            int organizationId = request.OrganizationId;
+            if (organizationId <= 0)
+            {
+                return BadRequest(new { message = "组织ID无效" });
+            }
 
             foreach (PhoneEntry entry in request.PhoneEntries)
             {
@@ -425,10 +442,13 @@ public class AdminOrganizationWebController : Controller
                 {
                     // 根据用户名查找用户
                     User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == entry.Username);
+
                     if (user == null)
                     {
-                        errors.Add($"用户 {entry.Username} 不存在");
-                        failureCount++;
+                        // 用户不存在，创建预配置记录
+                        await CreateOrUpdatePreConfiguredUser(organizationId, entry, currentUserId);
+                        preConfiguredCount++;
+                        preConfiguredUsers.Add(entry.Username);
                         continue;
                     }
 
@@ -463,19 +483,26 @@ public class AdminOrganizationWebController : Controller
             }
 
             // 保存所有更改
-            if (successCount > 0)
+            if (successCount > 0 || preConfiguredCount > 0)
             {
                 await _context.SaveChangesAsync();
             }
 
-            _logger.LogInformation("批量更新手机号完成: 成功 {SuccessCount}, 失败 {FailureCount}",
-                successCount, failureCount);
+            _logger.LogInformation("批量更新手机号完成: 成功 {SuccessCount}, 预配置 {PreConfiguredCount}, 失败 {FailureCount}",
+                successCount, preConfiguredCount, failureCount);
+
+            string message = $"批量处理完成";
+            if (successCount > 0) message += $"，更新现有用户 {successCount} 个";
+            if (preConfiguredCount > 0) message += $"，预配置用户 {preConfiguredCount} 个";
+            if (failureCount > 0) message += $"，失败 {failureCount} 个";
 
             return Ok(new
             {
-                message = "批量更新完成",
+                message,
                 successCount,
+                preConfiguredCount,
                 failureCount,
+                preConfiguredUsers = preConfiguredUsers.Take(10).ToList(),
                 errors = errors.Take(10).ToList() // 只返回前10个错误
             });
         }
@@ -528,6 +555,42 @@ public class AdminOrganizationWebController : Controller
             return Json(new { error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// 创建或更新预配置用户信息
+    /// </summary>
+    private async Task CreateOrUpdatePreConfiguredUser(int organizationId, PhoneEntry entry, int creatorUserId)
+    {
+        // 检查是否已存在预配置记录
+        PreConfiguredUser? existingPreConfig = await _context.PreConfiguredUsers
+            .FirstOrDefaultAsync(p => p.Username == entry.Username && p.OrganizationId == organizationId);
+
+        if (existingPreConfig != null)
+        {
+            // 更新现有预配置记录
+            existingPreConfig.PhoneNumber = entry.Phone;
+            existingPreConfig.CreatedAt = DateTime.UtcNow;
+            existingPreConfig.CreatedBy = creatorUserId;
+            existingPreConfig.IsApplied = false; // 重置应用状态
+            existingPreConfig.AppliedAt = null;
+            existingPreConfig.AppliedToUserId = null;
+        }
+        else
+        {
+            // 创建新的预配置记录
+            PreConfiguredUser preConfiguredUser = new()
+            {
+                Username = entry.Username,
+                PhoneNumber = entry.Phone,
+                OrganizationId = organizationId,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = creatorUserId,
+                IsApplied = false
+            };
+
+            _context.PreConfiguredUsers.Add(preConfiguredUser);
+        }
+    }
 }
 
 /// <summary>
@@ -578,6 +641,12 @@ public class UpdateMemberPhoneRequest
 /// </summary>
 public class BatchUpdateMemberPhoneRequest
 {
+    /// <summary>
+    /// 组织ID
+    /// </summary>
+    [Required(ErrorMessage = "组织ID不能为空")]
+    public int OrganizationId { get; set; }
+
     /// <summary>
     /// 手机号条目列表
     /// </summary>

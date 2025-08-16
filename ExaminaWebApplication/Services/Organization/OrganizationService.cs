@@ -250,6 +250,9 @@ public class OrganizationService : IOrganizationService
             // 增加邀请码使用次数
             await _invitationCodeService.IncrementUsageCountAsync(invitation.Id);
 
+            // 检查并应用预配置信息
+            await ApplyPreConfiguredUserInfo(userId, invitation.OrganizationId);
+
             await _context.SaveChangesAsync();
 
             string userTypeText = userRole == UserRole.Teacher ? "教师" : "学生";
@@ -465,5 +468,64 @@ public class OrganizationService : IOrganizationService
             InvitationCode = studentOrganization.InvitationCode?.Code ?? "未知",
             IsActive = studentOrganization.IsActive
         };
+    }
+
+    /// <summary>
+    /// 应用预配置用户信息
+    /// </summary>
+    private async Task ApplyPreConfiguredUserInfo(int userId, int organizationId)
+    {
+        try
+        {
+            // 获取用户信息
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return;
+
+            // 查找匹配的预配置记录
+            PreConfiguredUser? preConfigured = await _context.PreConfiguredUsers
+                .FirstOrDefaultAsync(p => p.Username == user.Username &&
+                                         p.OrganizationId == organizationId &&
+                                         !p.IsApplied);
+
+            if (preConfigured != null)
+            {
+                // 应用预配置信息
+                bool userUpdated = false;
+
+                if (!string.IsNullOrEmpty(preConfigured.PhoneNumber) && string.IsNullOrEmpty(user.PhoneNumber))
+                {
+                    user.PhoneNumber = preConfigured.PhoneNumber;
+                    userUpdated = true;
+                }
+
+                if (!string.IsNullOrEmpty(preConfigured.RealName) && string.IsNullOrEmpty(user.RealName))
+                {
+                    user.RealName = preConfigured.RealName;
+                    userUpdated = true;
+                }
+
+                if (!string.IsNullOrEmpty(preConfigured.StudentId) && string.IsNullOrEmpty(user.StudentId))
+                {
+                    user.StudentId = preConfigured.StudentId;
+                    userUpdated = true;
+                }
+
+                // 标记预配置记录为已应用
+                preConfigured.IsApplied = true;
+                preConfigured.AppliedAt = DateTime.UtcNow;
+                preConfigured.AppliedToUserId = userId;
+
+                if (userUpdated)
+                {
+                    _logger.LogInformation("应用预配置信息成功: 用户ID: {UserId}, 组织ID: {OrganizationId}, 手机号: {PhoneNumber}",
+                        userId, organizationId, preConfigured.PhoneNumber);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "应用预配置用户信息失败: 用户ID: {UserId}, 组织ID: {OrganizationId}", userId, organizationId);
+            // 不抛出异常，避免影响用户加入组织的主流程
+        }
     }
 }

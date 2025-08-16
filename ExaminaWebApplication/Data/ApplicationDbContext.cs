@@ -27,6 +27,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<InvitationCode> InvitationCodes { get; set; }
     public DbSet<StudentOrganization> StudentOrganizations { get; set; }
+    public DbSet<PreConfiguredUser> PreConfiguredUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -414,6 +415,44 @@ public class ApplicationDbContext : DbContext
                   .WithMany(op => op.Parameters)
                   .HasForeignKey(e => e.OperationPointId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置PreConfiguredUser实体
+        _ = modelBuilder.Entity<PreConfiguredUser>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => new { e.Username, e.OrganizationId }).IsUnique();
+            _ = entity.HasIndex(e => e.PhoneNumber);
+            _ = entity.HasIndex(e => e.IsApplied);
+            _ = entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.Username).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            _ = entity.Property(e => e.RealName).HasMaxLength(100);
+            _ = entity.Property(e => e.StudentId).HasMaxLength(50);
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.IsApplied).HasDefaultValue(false);
+            _ = entity.Property(e => e.Notes).HasMaxLength(500);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Organization)
+                  .WithMany()
+                  .HasForeignKey(e => e.OrganizationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            _ = entity.HasOne(e => e.AppliedToUser)
+                  .WithMany()
+                  .HasForeignKey(e => e.AppliedToUserId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

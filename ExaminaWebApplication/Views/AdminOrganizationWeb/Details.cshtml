@@ -406,7 +406,10 @@
             <div class="modal-body">
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    为没有手机号的成员批量添加手机号码。每行一个，格式：用户名,手机号
+                    <strong>批量配置手机号功能：</strong><br/>
+                    • 对于已存在的用户：直接更新手机号<br/>
+                    • 对于不存在的用户：创建预配置记录，用户注册后自动关联<br/>
+                    • 格式：每行一个，用户名,手机号
                 </div>
 
                 <div class="mb-3">
@@ -629,6 +632,7 @@
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                     },
                     body: JSON.stringify({
+                        organizationId: @Model.Organization.Id,
                         phoneEntries: phoneEntries,
                         overwriteExisting: overwriteExisting
                     })
@@ -636,7 +640,11 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    showNotification(`批量更新完成！成功：${result.successCount}，失败：${result.failureCount}`, 'success');
+                    let message = result.message;
+                    if (result.preConfiguredUsers && result.preConfiguredUsers.length > 0) {
+                        message += `\n预配置用户：${result.preConfiguredUsers.join(', ')}`;
+                    }
+                    showNotification(message, 'success');
 
                     // 关闭模态框并刷新页面
                     const modal = bootstrap.Modal.getInstance(document.getElementById('batchAddPhoneModal'));
