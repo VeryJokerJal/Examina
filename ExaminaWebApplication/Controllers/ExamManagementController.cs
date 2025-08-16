@@ -167,6 +167,7 @@ public class ExamManagementController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Route("ExamManagement/DeleteExam")]
     public async Task<IActionResult> DeleteExam(int id)
     {
         try
