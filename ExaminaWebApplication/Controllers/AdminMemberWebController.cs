@@ -3,6 +3,8 @@ using System.Security.Claims;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
+using ExaminaWebApplication.Models.Organization.Requests;
+using ExaminaWebApplication.Models.Organization.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -285,64 +287,4 @@ public class AdminMemberWebController : Controller
     }
 }
 
-/// <summary>
-/// 成员管理视图模型
-/// </summary>
-public class MemberManagementViewModel
-{
-    public List<MemberDto> Members { get; set; } = new();
-}
 
-/// <summary>
-/// 成员DTO（非组织成员）
-/// </summary>
-public class MemberDto
-{
-    public int Id { get; set; }
-    public string? RealName { get; set; }
-    public string? PhoneNumber { get; set; }
-    public DateTime JoinedAt { get; set; }
-    public bool IsActive { get; set; }
-    public int? UserId { get; set; }
-    public string? Notes { get; set; }
-    public string? CreatedByUsername { get; set; }
-    public DateTime UpdatedAt { get; set; }
-}
-
-/// <summary>
-/// 更新成员信息请求模型
-/// </summary>
-public class UpdateMemberInfoRequest
-{
-    [Required(ErrorMessage = "成员ID不能为空")]
-    public int MemberId { get; set; }
-
-    [Required(ErrorMessage = "真实姓名不能为空")]
-    [StringLength(50, ErrorMessage = "真实姓名长度不能超过50个字符")]
-    public string RealName { get; set; } = string.Empty;
-
-    [StringLength(11, ErrorMessage = "手机号长度不能超过11个字符")]
-    public string? PhoneNumber { get; set; }
-}
-
-/// <summary>
-/// 批量添加成员请求模型
-/// </summary>
-public class BatchAddMembersRequest
-{
-    [Required(ErrorMessage = "成员数据不能为空")]
-    public List<MemberEntry> MemberEntries { get; set; } = new();
-
-    public bool OverwriteExisting { get; set; } = false;
-}
-
-/// <summary>
-/// 成员条目
-/// </summary>
-public class MemberEntry
-{
-    [Required(ErrorMessage = "真实姓名不能为空")]
-    public string RealName { get; set; } = string.Empty;
-
-    public string? PhoneNumber { get; set; }
-}

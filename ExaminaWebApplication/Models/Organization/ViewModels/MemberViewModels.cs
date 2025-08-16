@@ -1,19 +1,25 @@
-﻿namespace ExaminaWebApplication.Models.Organization.Dto;
+namespace ExaminaWebApplication.Models.Organization.ViewModels;
 
 /// <summary>
-/// 组织成员DTO - 简化版本，只包含必要的核心字段
+/// 成员管理视图模型
 /// </summary>
-public class OrganizationMemberDto
+public class MemberManagementViewModel
+{
+    /// <summary>
+    /// 成员列表
+    /// </summary>
+    public List<MemberDto> Members { get; set; } = new();
+}
+
+/// <summary>
+/// 成员DTO（非组织成员）
+/// </summary>
+public class MemberDto
 {
     /// <summary>
     /// 成员ID
     /// </summary>
     public int Id { get; set; }
-
-    /// <summary>
-    /// 用户名
-    /// </summary>
-    public string Username { get; set; } = string.Empty;
 
     /// <summary>
     /// 真实姓名
@@ -24,16 +30,6 @@ public class OrganizationMemberDto
     /// 手机号
     /// </summary>
     public string? PhoneNumber { get; set; }
-
-    /// <summary>
-    /// 组织ID
-    /// </summary>
-    public int OrganizationId { get; set; }
-
-    /// <summary>
-    /// 组织名称
-    /// </summary>
-    public string OrganizationName { get; set; } = string.Empty;
 
     /// <summary>
     /// 加入时间

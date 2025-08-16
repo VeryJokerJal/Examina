@@ -840,27 +840,4 @@ public class PhoneEntry
     public string Phone { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// 更新成员信息请求模型
-/// </summary>
-public class UpdateMemberInfoRequest
-{
-    /// <summary>
-    /// 成员ID
-    /// </summary>
-    [Required(ErrorMessage = "成员ID不能为空")]
-    public int MemberId { get; set; }
 
-    /// <summary>
-    /// 真实姓名
-    /// </summary>
-    [Required(ErrorMessage = "真实姓名不能为空")]
-    [StringLength(50, ErrorMessage = "真实姓名长度不能超过50个字符")]
-    public string RealName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 手机号
-    /// </summary>
-    [StringLength(11, ErrorMessage = "手机号长度不能超过11个字符")]
-    public string? PhoneNumber { get; set; }
-}
