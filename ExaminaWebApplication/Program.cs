@@ -78,6 +78,9 @@ builder.Services.AddScoped<ExaminaWebApplication.Services.ImportedComprehensiveT
 // 注册组织相关服务
 builder.Services.AddScoped<IInvitationCodeService, InvitationCodeService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<ITeacherOrganizationService, TeacherOrganizationService>();
+builder.Services.AddScoped<INonOrganizationStudentService, NonOrganizationStudentService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
 
 

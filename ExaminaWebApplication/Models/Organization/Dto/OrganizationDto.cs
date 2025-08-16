@@ -14,6 +14,20 @@ public class OrganizationDto
     /// 组织名称
     /// </summary>
     public string Name { get; set; } = string.Empty;
+    /// <summary>
+    /// 组织类型（学校或班级）
+    /// </summary>
+    public OrganizationType Type { get; set; }
+
+    /// <summary>
+    /// 父组织ID（班级的父组织是学校）
+    /// </summary>
+    public int? ParentOrganizationId { get; set; }
+
+    /// <summary>
+    /// 父组织名称（学校名称）
+    /// </summary>
+    public string? ParentOrganizationName { get; set; }
 
 
 
@@ -42,5 +56,9 @@ public class OrganizationDto
     /// <summary>
     /// 邀请码数量
     /// </summary>
+    /// <summary>
+    /// 子组织数量（学校下的班级数量）
+    /// </summary>
+    public int ChildOrganizationCount { get; set; }
     public int InvitationCodeCount { get; set; }
 }

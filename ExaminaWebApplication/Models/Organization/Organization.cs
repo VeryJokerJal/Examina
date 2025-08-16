@@ -3,7 +3,7 @@
 namespace ExaminaWebApplication.Models.Organization;
 
 /// <summary>
-/// 组织实体模型
+/// 组织实体模型（支持学校-班级层次结构）
 /// </summary>
 public class Organization
 {
@@ -18,6 +18,17 @@ public class Organization
     [Required]
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 组织类型（学校或班级）
+    /// </summary>
+    [Required]
+    public OrganizationType Type { get; set; } = OrganizationType.School;
+
+    /// <summary>
+    /// 父组织ID（班级的父组织是学校，学校的父组织为null）
+    /// </summary>
+    public int? ParentOrganizationId { get; set; }
 
 
 
@@ -46,9 +57,24 @@ public class Organization
     public User Creator { get; set; } = null!;
 
     /// <summary>
-    /// 邀请码集合
+    /// 父组织（学校）
+    /// </summary>
+    public Organization? ParentOrganization { get; set; }
+
+    /// <summary>
+    /// 子组织集合（班级）
+    /// </summary>
+    public ICollection<Organization> ChildOrganizations { get; set; } = new List<Organization>();
+
+    /// <summary>
+    /// 邀请码集合（仅班级有邀请码）
     /// </summary>
     public ICollection<InvitationCode> InvitationCodes { get; set; } = new List<InvitationCode>();
+
+    /// <summary>
+    /// 教师组织关系集合
+    /// </summary>
+    public ICollection<TeacherOrganization> TeacherOrganizations { get; set; } = new List<TeacherOrganization>();
 
     /// <summary>
     /// 学生组织关系集合

@@ -80,6 +80,46 @@ public interface IOrganizationService
     Task<List<StudentOrganizationDto>> GetOrganizationMembersAsync(int organizationId, bool includeInactive = false);
 
     /// <summary>
+    /// 创建学校
+    /// </summary>
+    /// <param name="name">学校名称</param>
+    /// <param name="creatorUserId">创建者用户ID</param>
+    /// <returns>创建的学校DTO</returns>
+    Task<OrganizationDto> CreateSchoolAsync(string name, int creatorUserId);
+
+    /// <summary>
+    /// 创建班级
+    /// </summary>
+    /// <param name="name">班级名称</param>
+    /// <param name="schoolId">所属学校ID</param>
+    /// <param name="creatorUserId">创建者用户ID</param>
+    /// <param name="generateInvitationCode">是否自动生成邀请码</param>
+    /// <returns>创建的班级DTO</returns>
+    Task<OrganizationDto> CreateClassAsync(string name, int schoolId, int creatorUserId, bool generateInvitationCode = true);
+
+    /// <summary>
+    /// 获取学校列表
+    /// </summary>
+    /// <param name="includeInactive">是否包含非激活的学校</param>
+    /// <returns>学校DTO列表</returns>
+    Task<List<OrganizationDto>> GetSchoolsAsync(bool includeInactive = false);
+
+    /// <summary>
+    /// 获取学校下的班级列表
+    /// </summary>
+    /// <param name="schoolId">学校ID</param>
+    /// <param name="includeInactive">是否包含非激活的班级</param>
+    /// <returns>班级DTO列表</returns>
+    Task<List<OrganizationDto>> GetClassesBySchoolAsync(int schoolId, bool includeInactive = false);
+
+    /// <summary>
+    /// 获取所有班级列表
+    /// </summary>
+    /// <param name="includeInactive">是否包含非激活的班级</param>
+    /// <returns>班级DTO列表</returns>
+    Task<List<OrganizationDto>> GetClassesAsync(bool includeInactive = false);
+
+    /// <summary>
     /// 检查用户是否已在组织中
     /// </summary>
     /// <param name="userId">用户ID</param>

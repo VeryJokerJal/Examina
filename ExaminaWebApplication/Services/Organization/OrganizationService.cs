@@ -436,12 +436,201 @@ public class OrganizationService : IOrganizationService
         {
             Id = organization.Id,
             Name = organization.Name,
+            Type = organization.Type,
+            ParentOrganizationId = organization.ParentOrganizationId,
+            ParentOrganizationName = organization.ParentOrganization?.Name,
             CreatedAt = organization.CreatedAt,
             CreatorUsername = organization.Creator?.Username ?? "未知",
             IsActive = organization.IsActive,
             StudentCount = organization.StudentOrganizations?.Count(so => so.IsActive) ?? 0,
-            InvitationCodeCount = organization.InvitationCodes?.Count(ic => ic.IsActive) ?? 0
+            InvitationCodeCount = organization.InvitationCodes?.Count(ic => ic.IsActive) ?? 0,
+            ChildOrganizationCount = organization.ChildOrganizations?.Count(co => co.IsActive) ?? 0
         };
+    }
+
+    /// <summary>
+    /// 创建学校
+    /// </summary>
+    public async Task<OrganizationDto> CreateSchoolAsync(string name, int creatorUserId)
+    {
+        try
+        {
+            User? creator = await _context.Users.FindAsync(creatorUserId);
+            if (creator == null)
+            {
+                throw new ArgumentException("创建者用户不存在", nameof(creatorUserId));
+            }
+
+            Models.Organization.Organization school = new Models.Organization.Organization
+            {
+                Name = name,
+                Type = OrganizationType.School,
+                ParentOrganizationId = null,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = creatorUserId,
+                Creator = creator,
+                IsActive = true
+            };
+
+            _context.Organizations.Add(school);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("创建学校成功: {SchoolName}, ID: {SchoolId}, 创建者: {CreatorUserId}",
+                school.Name, school.Id, creatorUserId);
+
+            return MapToDto(school);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "创建学校失败: {SchoolName}, 创建者: {CreatorUserId}", name, creatorUserId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 创建班级
+    /// </summary>
+    public async Task<OrganizationDto> CreateClassAsync(string name, int schoolId, int creatorUserId, bool generateInvitationCode = true)
+    {
+        try
+        {
+            User? creator = await _context.Users.FindAsync(creatorUserId);
+            if (creator == null)
+            {
+                throw new ArgumentException("创建者用户不存在", nameof(creatorUserId));
+            }
+
+            Models.Organization.Organization? school = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == schoolId && o.Type == OrganizationType.School && o.IsActive);
+            if (school == null)
+            {
+                throw new ArgumentException("学校不存在或已停用", nameof(schoolId));
+            }
+
+            Models.Organization.Organization classOrg = new Models.Organization.Organization
+            {
+                Name = name,
+                Type = OrganizationType.Class,
+                ParentOrganizationId = schoolId,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = creatorUserId,
+                Creator = creator,
+                IsActive = true
+            };
+
+            _context.Organizations.Add(classOrg);
+            await _context.SaveChangesAsync();
+
+            // 如果需要自动生成邀请码
+            if (generateInvitationCode)
+            {
+                await _invitationCodeService.CreateInvitationCodeAsync(classOrg.Id);
+            }
+
+            _logger.LogInformation("创建班级成功: {ClassName}, ID: {ClassId}, 学校ID: {SchoolId}, 创建者: {CreatorUserId}",
+                classOrg.Name, classOrg.Id, schoolId, creatorUserId);
+
+            return MapToDto(classOrg);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "创建班级失败: {ClassName}, 学校ID: {SchoolId}, 创建者: {CreatorUserId}", name, schoolId, creatorUserId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 获取学校列表
+    /// </summary>
+    public async Task<List<OrganizationDto>> GetSchoolsAsync(bool includeInactive = false)
+    {
+        try
+        {
+            IQueryable<Models.Organization.Organization> query = _context.Organizations
+                .Include(o => o.Creator)
+                .Include(o => o.ChildOrganizations.Where(c => c.IsActive))
+                .Where(o => o.Type == OrganizationType.School);
+
+            if (!includeInactive)
+            {
+                query = query.Where(o => o.IsActive);
+            }
+
+            List<Models.Organization.Organization> schools = await query
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return schools.Select(MapToDto).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学校列表失败");
+            return new List<OrganizationDto>();
+        }
+    }
+
+    /// <summary>
+    /// 获取学校下的班级列表
+    /// </summary>
+    public async Task<List<OrganizationDto>> GetClassesBySchoolAsync(int schoolId, bool includeInactive = false)
+    {
+        try
+        {
+            IQueryable<Models.Organization.Organization> query = _context.Organizations
+                .Include(o => o.Creator)
+                .Include(o => o.ParentOrganization)
+                .Include(o => o.InvitationCodes)
+                .Include(o => o.StudentOrganizations.Where(so => so.IsActive))
+                .Where(o => o.Type == OrganizationType.Class && o.ParentOrganizationId == schoolId);
+
+            if (!includeInactive)
+            {
+                query = query.Where(o => o.IsActive);
+            }
+
+            List<Models.Organization.Organization> classes = await query
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return classes.Select(MapToDto).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学校班级列表失败: {SchoolId}", schoolId);
+            return new List<OrganizationDto>();
+        }
+    }
+
+    /// <summary>
+    /// 获取所有班级列表
+    /// </summary>
+    public async Task<List<OrganizationDto>> GetClassesAsync(bool includeInactive = false)
+    {
+        try
+        {
+            IQueryable<Models.Organization.Organization> query = _context.Organizations
+                .Include(o => o.Creator)
+                .Include(o => o.ParentOrganization)
+                .Include(o => o.InvitationCodes)
+                .Include(o => o.StudentOrganizations.Where(so => so.IsActive))
+                .Where(o => o.Type == OrganizationType.Class);
+
+            if (!includeInactive)
+            {
+                query = query.Where(o => o.IsActive);
+            }
+
+            List<Models.Organization.Organization> classes = await query
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return classes.Select(MapToDto).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取班级列表失败");
+            return new List<OrganizationDto>();
+        }
     }
 
     /// <summary>

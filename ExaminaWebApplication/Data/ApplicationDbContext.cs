@@ -36,6 +36,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<InvitationCode> InvitationCodes { get; set; }
     public DbSet<StudentOrganization> StudentOrganizations { get; set; }
+    public DbSet<TeacherOrganization> TeacherOrganizations { get; set; }
+    public DbSet<NonOrganizationStudent> NonOrganizationStudents { get; set; }
     public DbSet<PreConfiguredUser> PreConfiguredUsers { get; set; }
     public DbSet<OrganizationMember> OrganizationMembers { get; set; }
 
@@ -160,14 +162,17 @@ public class ApplicationDbContext : DbContext
                   .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // 配置Organization实体（显式指定 Creator 外键为 CreatedBy，避免生成影子列 CreatorId）
+        // 配置Organization实体（支持学校-班级层次结构）
         _ = modelBuilder.Entity<Organization>(entity =>
         {
             _ = entity.HasKey(e => e.Id);
 
             // 索引与属性
             _ = entity.HasIndex(e => e.Name);
+            _ = entity.HasIndex(e => e.Type);
+            _ = entity.HasIndex(e => e.ParentOrganizationId);
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            _ = entity.Property(e => e.Type).IsRequired();
             _ = entity.Property(e => e.CreatedAt).IsRequired();
             _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
 
@@ -176,6 +181,79 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.CreatedBy)
                   .OnDelete(DeleteBehavior.Cascade);
+
+            // 父子组织关系（学校-班级）
+            _ = entity.HasOne(e => e.ParentOrganization)
+                  .WithMany(e => e.ChildOrganizations)
+                  .HasForeignKey(e => e.ParentOrganizationId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置TeacherOrganization实体
+        _ = modelBuilder.Entity<TeacherOrganization>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 索引与属性
+            _ = entity.HasIndex(e => new { e.TeacherId, e.OrganizationId }).IsUnique();
+            _ = entity.HasIndex(e => e.TeacherId);
+            _ = entity.HasIndex(e => e.OrganizationId);
+            _ = entity.HasIndex(e => e.IsActive);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.Property(e => e.JoinedAt).IsRequired();
+            _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.Notes).HasMaxLength(500);
+
+            // 外键关系
+            _ = entity.HasOne(e => e.Teacher)
+                  .WithMany()
+                  .HasForeignKey(e => e.TeacherId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Organization)
+                  .WithMany(o => o.TeacherOrganizations)
+                  .HasForeignKey(e => e.OrganizationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置NonOrganizationStudent实体
+        _ = modelBuilder.Entity<NonOrganizationStudent>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 索引与属性
+            _ = entity.HasIndex(e => e.PhoneNumber);
+            _ = entity.HasIndex(e => e.RealName);
+            _ = entity.HasIndex(e => e.IsActive);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.Property(e => e.RealName).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(20);
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.UpdatedAt).IsRequired();
+            _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
+            _ = entity.Property(e => e.Notes).HasMaxLength(500);
+
+            // 外键关系
+            _ = entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            _ = entity.HasOne(e => e.Updater)
+                  .WithMany()
+                  .HasForeignKey(e => e.UpdatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
 
