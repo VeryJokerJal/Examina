@@ -678,7 +678,7 @@ public class ApplicationDbContext : DbContext
 
             // 配置外键关系
             _ = entity.HasOne(e => e.ComprehensiveTraining)
-                  .WithMany()
+                  .WithMany(ct => ct.Questions)
                   .HasForeignKey(e => e.ComprehensiveTrainingId)
                   .OnDelete(DeleteBehavior.Cascade);
 

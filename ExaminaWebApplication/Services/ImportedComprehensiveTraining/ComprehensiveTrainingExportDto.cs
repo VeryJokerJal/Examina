@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
 namespace ExaminaWebApplication.Services.ImportedComprehensiveTraining;
@@ -13,7 +13,7 @@ public class ComprehensiveTrainingExportDto
     /// 综合训练信息
     /// </summary>
     [JsonPropertyName("comprehensiveTraining")]
-    [XmlElement("ComprehensiveTraining")]
+    [XmlElement("comprehensiveTraining")]
     public ComprehensiveTrainingDto ComprehensiveTraining { get; set; } = new();
 
     /// <summary>

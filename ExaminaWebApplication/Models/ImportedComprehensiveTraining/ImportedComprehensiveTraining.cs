@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using ExaminaWebApplication.Services.ImportedComprehensiveTraining;
@@ -123,6 +123,7 @@ public class ImportedComprehensiveTraining
                     OriginalCreatedAt = questionDto.CreatedAt,
                     OriginalUpdatedAt = questionDto.UpdatedAt,
                     ImportedAt = now,
+                    ComprehensiveTraining = importedComprehensiveTraining,
                     Subject = subject
                 };
 
@@ -220,6 +221,7 @@ public class ImportedComprehensiveTraining
                     OriginalCreatedAt = questionDto.CreatedAt,
                     OriginalUpdatedAt = questionDto.UpdatedAt,
                     ImportedAt = now,
+                    ComprehensiveTraining = importedComprehensiveTraining,
                     Module = module
                 };
 
@@ -484,4 +486,9 @@ public class ImportedComprehensiveTraining
     /// 模块列表
     /// </summary>
     public virtual ICollection<ImportedComprehensiveTrainingModule> Modules { get; set; } = [];
+
+    /// <summary>
+    /// 题目列表（包含所有科目和模块下的题目）
+    /// </summary>
+    public virtual ICollection<ImportedComprehensiveTrainingQuestion> Questions { get; set; } = [];
 }
