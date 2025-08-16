@@ -152,8 +152,12 @@ public class AdminOrganizationWebController : Controller
                     UsageCount = ic.UsageCount,
                     MaxUsage = ic.MaxUsage
                 }).ToList(),
-                Members = members
+                Members = members ?? new List<StudentOrganizationDto>()
             };
+
+            // 验证 ViewModel
+            _logger.LogInformation("ViewModel 创建完成 - 成员数量: {MemberCount}, 邀请码数量: {InvitationCodeCount}",
+                viewModel.Members.Count, viewModel.InvitationCodes.Count);
 
             return View(viewModel);
         }
@@ -486,8 +490,8 @@ public class AdminOrganizationWebController : Controller
     /// 调试方法：检查组织成员数据
     /// </summary>
     [HttpGet]
-    [Route("Admin/Organization/Debug/{id}")]
-    public async Task<IActionResult> DebugMembers(int id)
+    [Route("Admin/Organization/TestMembers/{id}")]
+    public async Task<IActionResult> TestMembers(int id)
     {
         try
         {

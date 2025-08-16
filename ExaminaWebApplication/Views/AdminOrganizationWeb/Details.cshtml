@@ -239,6 +239,16 @@
         </button>
     </div>
     <div class="card-body">
+        <!-- 临时调试信息 -->
+        <div class="alert alert-warning">
+            <strong>调试信息：</strong><br/>
+            Model.Members 是否为 null: @(Model.Members == null ? "是" : "否")<br/>
+            成员数量: @(Model.Members?.Count ?? 0)<br/>
+            @if (Model.Members != null && Model.Members.Any())
+            {
+                <text>第一个成员: @Model.Members.First().StudentUsername</text>
+            }
+        </div>
 
         @if (Model.Members != null && Model.Members.Any())
         {
