@@ -103,7 +103,7 @@ public class StudentMemberManagementController : Controller
     /// </summary>
     [HttpPut]
     [Route("StudentMemberManagement/UpdateMember")]
-    public async Task<IActionResult> UpdateMember([FromBody] UpdateMemberRequest request)
+    public async Task<IActionResult> UpdateMember([FromBody] UpdateMemberInfoRequest request)
     {
         try
         {
@@ -149,7 +149,7 @@ public class StudentMemberManagementController : Controller
     /// </summary>
     [HttpPost]
     [Route("StudentMemberManagement/BatchAddMembers")]
-    public async Task<IActionResult> BatchAddMembers([FromBody] BatchAddMemberRequest request)
+    public async Task<IActionResult> BatchAddMembers([FromBody] BatchAddMembersRequest request)
     {
         try
         {
