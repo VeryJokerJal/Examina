@@ -30,7 +30,7 @@ public class ExamManagementController : Controller
         try
         {
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            string userId = "test-user-id";
+            int userId = 1; // 使用管理员用户ID
 
             List<ImportedExam> exams = await _examImportService.GetImportedExamsAsync(userId);
             return View(exams);
@@ -51,7 +51,7 @@ public class ExamManagementController : Controller
         try
         {
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            string userId = "test-user-id";
+            int userId = 1; // 使用管理员用户ID
 
             List<ImportedExam> exams = await _examImportService.GetImportedExamsAsync(userId);
             return View(exams);
@@ -130,7 +130,7 @@ public class ExamManagementController : Controller
         try
         {
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            string userId = "test-user-id";
+            int userId = 1; // 使用管理员用户ID
 
             using Stream fileStream = examFile.OpenReadStream();
             ExamImportResult result = await _examImportService.ImportExamAsync(
@@ -172,7 +172,7 @@ public class ExamManagementController : Controller
         try
         {
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            string userId = "test-user-id";
+            int userId = 1; // 使用管理员用户ID
 
             bool deleted = await _examImportService.DeleteImportedExamAsync(id, userId);
             if (deleted)
@@ -201,7 +201,7 @@ public class ExamManagementController : Controller
         try
         {
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            string userId = "test-user-id";
+            int userId = 1; // 使用管理员用户ID
 
             List<ImportedExam> exams = await _examImportService.GetImportedExamsAsync(userId);
             

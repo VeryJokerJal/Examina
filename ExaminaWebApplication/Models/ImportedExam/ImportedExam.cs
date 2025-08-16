@@ -122,7 +122,7 @@ public class ImportedExam
     /// 导入者ID
     /// </summary>
     [Required]
-    public string ImportedBy { get; set; } = string.Empty;
+    public int ImportedBy { get; set; }
 
     /// <summary>
     /// 导入时间
@@ -189,7 +189,7 @@ public class ImportedExam
     /// 导入者用户
     /// </summary>
     [ForeignKey(nameof(ImportedBy))]
-    public virtual IdentityUser? Importer { get; set; }
+    public virtual User? Importer { get; set; }
 
     /// <summary>
     /// 科目列表

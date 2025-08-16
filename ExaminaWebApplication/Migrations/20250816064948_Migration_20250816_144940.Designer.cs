@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExaminaWebApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250804092650_AddWindowsOperationSystem")]
-    partial class AddWindowsOperationSystem
+    [Migration("20250816064948_Migration_20250816_144940")]
+    partial class Migration_20250816_144940
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,336 +24,6 @@ namespace ExaminaWebApplication.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.Exam", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("AllowRetake")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<int>("DurationMinutes")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(120);
-
-                    b.Property<DateTime?>("EndTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("ExamType")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("ExtendedConfig")
-                        .HasColumnType("json");
-
-                    b.Property<bool>("IsEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true);
-
-                    b.Property<int>("MaxRetakeCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("PassingScore")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(60);
-
-                    b.Property<DateTime?>("PublishedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("PublishedBy")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("RandomizeQuestions")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("ShowAnswers")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("ShowScore")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true);
-
-                    b.Property<DateTime?>("StartTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("Tags")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<int>("TotalScore")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(100);
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.HasIndex("EndTime");
-
-                    b.HasIndex("ExamType");
-
-                    b.HasIndex("IsEnabled");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("PublishedBy");
-
-                    b.HasIndex("StartTime");
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("Exams");
-                });
-
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.ExamQuestion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AnswerValidationRules")
-                        .HasColumnType("json");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("DifficultyLevel")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<int>("EstimatedMinutes")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(5);
-
-                    b.Property<int>("ExamId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ExamSubjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ExcelOperationPointId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ExcelQuestionInstanceId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ExcelQuestionTemplateId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("IsRequired")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("QuestionConfig")
-                        .HasColumnType("json");
-
-                    b.Property<int>("QuestionNumber")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionType")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<int>("Score")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(10);
-
-                    b.Property<string>("ScoringRules")
-                        .HasColumnType("json");
-
-                    b.Property<int>("SortOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("StandardAnswer")
-                        .HasColumnType("json");
-
-                    b.Property<string>("Tags")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DifficultyLevel");
-
-                    b.HasIndex("ExamId");
-
-                    b.HasIndex("ExamSubjectId");
-
-                    b.HasIndex("ExcelOperationPointId");
-
-                    b.HasIndex("ExcelQuestionInstanceId");
-
-                    b.HasIndex("ExcelQuestionTemplateId");
-
-                    b.HasIndex("IsEnabled");
-
-                    b.HasIndex("QuestionNumber");
-
-                    b.HasIndex("QuestionType");
-
-                    b.HasIndex("SortOrder");
-
-                    b.ToTable("ExamQuestions");
-                });
-
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.ExamSubject", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<int>("DurationMinutes")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(30);
-
-                    b.Property<int>("ExamId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("IsRequired")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true);
-
-                    b.Property<int?>("MinScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<int>("Score")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(20);
-
-                    b.Property<int>("SortOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("SubjectConfig")
-                        .HasColumnType("json");
-
-                    b.Property<string>("SubjectName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<int>("SubjectType")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<decimal>("Weight")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(65,30)")
-                        .HasDefaultValue(1.0m);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExamId");
-
-                    b.HasIndex("IsEnabled");
-
-                    b.HasIndex("SortOrder");
-
-                    b.HasIndex("SubjectType");
-
-                    b.ToTable("ExamSubjects");
-                });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelEnumType", b =>
                 {
@@ -3458,6 +3128,67 @@ namespace ExaminaWebApplication.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelOperationParameterTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AllowMultipleValues")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DataType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DefaultValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int?>("EnumTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExampleValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("OperationTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ParameterDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("ParameterOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnumTypeId");
+
+                    b.HasIndex("OperationTemplateId");
+
+                    b.ToTable("ExcelOperationParameterTemplates");
+                });
+
             modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelOperationPoint", b =>
                 {
                     b.Property<int>("Id")
@@ -4136,6 +3867,51 @@ namespace ExaminaWebApplication.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelOperationTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("OperationNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OperationType")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("varchar(1)");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExcelOperationTemplates");
+                });
+
             modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelQuestionInstance", b =>
                 {
                     b.Property<int>("Id")
@@ -4257,6 +4033,602 @@ namespace ExaminaWebApplication.Migrations
                     b.HasIndex("OperationPointId");
 
                     b.ToTable("ExcelQuestionTemplates");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedExam", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AllowRetake")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<int>("DurationMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(120);
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ExamType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("UnifiedExam");
+
+                    b.Property<string>("ExtendedConfig")
+                        .HasColumnType("json");
+
+                    b.Property<string>("ImportErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("ImportFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<long>("ImportFileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ImportStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("Success");
+
+                    b.Property<string>("ImportVersion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("1.0");
+
+                    b.Property<DateTime>("ImportedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ImportedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("MaxRetakeCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("OriginalCreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("OriginalCreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OriginalExamId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("OriginalPublishedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("OriginalPublishedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("OriginalUpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("PassingScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(6,2)")
+                        .HasDefaultValue(60.0m);
+
+                    b.Property<bool>("RandomizeQuestions")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("ShowAnswers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("ShowScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("Draft");
+
+                    b.Property<string>("Tags")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<decimal>("TotalScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(6,2)")
+                        .HasDefaultValue(100.0m);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamType");
+
+                    b.HasIndex("ImportStatus");
+
+                    b.HasIndex("ImportedAt");
+
+                    b.HasIndex("ImportedBy");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("OriginalExamId")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("ImportedExams");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedModule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ImportedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("OriginalModuleId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("Score")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("ImportedAt");
+
+                    b.HasIndex("Order");
+
+                    b.HasIndex("OriginalModuleId");
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("ImportedModules");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedOperationPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedTime")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("ImportedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ModuleType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("OriginalOperationPointId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Score")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0.0m);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportedAt");
+
+                    b.HasIndex("ModuleType");
+
+                    b.HasIndex("Order");
+
+                    b.HasIndex("OriginalOperationPointId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("ImportedOperationPoints");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedParameter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DefaultValue")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("EnumOptions")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("ImportedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<double?>("MaxValue")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("MinValue")
+                        .HasColumnType("double");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("OperationPointId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ValidationErrorMessage")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ValidationRule")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportedAt");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("OperationPointId");
+
+                    b.HasIndex("Order");
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("ImportedParameters");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedQuestion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnswerValidationRules")
+                        .HasColumnType("json");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<int>("DifficultyLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("EstimatedMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExpectedOutput")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("ImportedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<int?>("ModuleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("OriginalCreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("OriginalQuestionId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("OriginalUpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ProgramInput")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("QuestionConfig")
+                        .HasColumnType("json");
+
+                    b.Property<string>("QuestionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<decimal>("Score")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(10.0m);
+
+                    b.Property<string>("ScoringRules")
+                        .HasColumnType("json");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("StandardAnswer")
+                        .HasColumnType("json");
+
+                    b.Property<int?>("SubjectId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tags")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("ImportedAt");
+
+                    b.HasIndex("ModuleId");
+
+                    b.HasIndex("OriginalQuestionId");
+
+                    b.HasIndex("QuestionType");
+
+                    b.HasIndex("SortOrder");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("ImportedQuestions");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedSubject", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("DurationMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(30);
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ImportedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal?>("MinScore")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("OriginalSubjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<decimal>("Score")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(20.0m);
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("SubjectConfig")
+                        .HasColumnType("json");
+
+                    b.Property<string>("SubjectName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<decimal>("Weight")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(1.0m);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("ImportedAt");
+
+                    b.HasIndex("OriginalSubjectId");
+
+                    b.HasIndex("SortOrder");
+
+                    b.HasIndex("SubjectType");
+
+                    b.ToTable("ImportedSubjects");
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.User", b =>
@@ -4897,6 +5269,14 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
+                    b.Property<string>("InputDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("InputExample")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<bool>("IsEnabled")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
@@ -4904,6 +5284,14 @@ namespace ExaminaWebApplication.Migrations
 
                     b.Property<int>("OperationPointId")
                         .HasColumnType("int");
+
+                    b.Property<string>("OutputDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("OutputExample")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("ParameterConfiguration")
                         .IsRequired()
@@ -4913,6 +5301,10 @@ namespace ExaminaWebApplication.Migrations
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Requirements")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<string>("Tags")
                         .HasMaxLength(500)
@@ -4944,73 +5336,416 @@ namespace ExaminaWebApplication.Migrations
                     b.ToTable("WindowsQuestionTemplates");
                 });
 
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.Exam", b =>
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordEnumType", b =>
                 {
-                    b.HasOne("ExaminaWebApplication.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.HasOne("ExaminaWebApplication.Models.User", "Publisher")
-                        .WithMany()
-                        .HasForeignKey("PublishedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Navigation("Creator");
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
-                    b.Navigation("Publisher");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("TypeName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("TypeName")
+                        .IsUnique();
+
+                    b.ToTable("WordEnumTypes");
                 });
 
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.ExamQuestion", b =>
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordEnumValue", b =>
                 {
-                    b.HasOne("ExaminaWebApplication.Models.Exam.Exam", "Exam")
-                        .WithMany("Questions")
-                        .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.HasOne("ExaminaWebApplication.Models.Exam.ExamSubject", "ExamSubject")
-                        .WithMany("Questions")
-                        .HasForeignKey("ExamSubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.HasOne("ExaminaWebApplication.Models.Excel.ExcelOperationPoint", "ExcelOperationPoint")
-                        .WithMany()
-                        .HasForeignKey("ExcelOperationPointId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
 
-                    b.HasOne("ExaminaWebApplication.Models.Excel.ExcelQuestionInstance", "ExcelQuestionInstance")
-                        .WithMany()
-                        .HasForeignKey("ExcelQuestionInstanceId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
-                    b.HasOne("ExaminaWebApplication.Models.Excel.ExcelQuestionTemplate", "ExcelQuestionTemplate")
-                        .WithMany()
-                        .HasForeignKey("ExcelQuestionTemplateId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
-                    b.Navigation("Exam");
+                    b.Property<int>("EnumTypeId")
+                        .HasColumnType("int");
 
-                    b.Navigation("ExamSubject");
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
-                    b.Navigation("ExcelOperationPoint");
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
 
-                    b.Navigation("ExcelQuestionInstance");
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
 
-                    b.Navigation("ExcelQuestionTemplate");
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("EnumTypeId");
+
+                    b.HasIndex("IsDefault");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("SortOrder");
+
+                    b.HasIndex("Value");
+
+                    b.ToTable("WordEnumValues");
                 });
 
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.ExamSubject", b =>
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordOperationParameter", b =>
                 {
-                    b.HasOne("ExaminaWebApplication.Models.Exam.Exam", "Exam")
-                        .WithMany("Subjects")
-                        .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Navigation("Exam");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DataType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DefaultValue")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<int?>("EnumTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("OperationPointId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ParameterKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("ParameterOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("DataType");
+
+                    b.HasIndex("EnumTypeId");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("IsRequired");
+
+                    b.HasIndex("OperationPointId");
+
+                    b.HasIndex("ParameterKey");
+
+                    b.ToTable("WordOperationParameters");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordOperationPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("OperationNumber")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("OperationNumber")
+                        .IsUnique();
+
+                    b.ToTable("WordOperationPoints");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordQuestionInstance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ExpectedAnswer")
+                        .HasColumnType("json");
+
+                    b.Property<string>("InstanceName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ParameterValues")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("QuestionContent")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<int>("QuestionTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ScoringCriteria")
+                        .HasColumnType("json");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UsageCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("QuestionTemplateId");
+
+                    b.HasIndex("UsageCount");
+
+                    b.ToTable("WordQuestionInstances");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordQuestionTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("DifficultyLevel")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EstimatedMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("OperationPointId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ParameterConfiguration")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("QuestionTemplate")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Tags")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("TemplateName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UsageCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("DifficultyLevel");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("OperationPointId");
+
+                    b.HasIndex("UsageCount");
+
+                    b.ToTable("WordQuestionTemplates");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("IdentityUser");
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelEnumValue", b =>
@@ -5040,6 +5775,23 @@ namespace ExaminaWebApplication.Migrations
                     b.Navigation("EnumType");
 
                     b.Navigation("OperationPoint");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelOperationParameterTemplate", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.Excel.ExcelEnumType", "EnumType")
+                        .WithMany()
+                        .HasForeignKey("EnumTypeId");
+
+                    b.HasOne("ExaminaWebApplication.Models.Excel.ExcelOperationTemplate", "OperationTemplate")
+                        .WithMany("ParameterTemplates")
+                        .HasForeignKey("OperationTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EnumType");
+
+                    b.Navigation("OperationTemplate");
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelQuestionInstance", b =>
@@ -5076,6 +5828,86 @@ namespace ExaminaWebApplication.Migrations
                     b.Navigation("Creator");
 
                     b.Navigation("OperationPoint");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedExam", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Importer")
+                        .WithMany()
+                        .HasForeignKey("ImportedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Importer");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedModule", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedExam", "Exam")
+                        .WithMany("Modules")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedOperationPoint", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedQuestion", "Question")
+                        .WithMany("OperationPoints")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedParameter", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedOperationPoint", "OperationPoint")
+                        .WithMany("Parameters")
+                        .HasForeignKey("OperationPointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OperationPoint");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedQuestion", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedExam", "Exam")
+                        .WithMany()
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedModule", "Module")
+                        .WithMany("Questions")
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedSubject", "Subject")
+                        .WithMany("Questions")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Module");
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedSubject", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedExam", "Exam")
+                        .WithMany("Subjects")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.UserDevice", b =>
@@ -5158,16 +5990,55 @@ namespace ExaminaWebApplication.Migrations
                     b.Navigation("OperationPoint");
                 });
 
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.Exam", b =>
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordEnumValue", b =>
                 {
-                    b.Navigation("Questions");
+                    b.HasOne("ExaminaWebApplication.Models.Word.WordEnumType", "EnumType")
+                        .WithMany("EnumValues")
+                        .HasForeignKey("EnumTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Subjects");
+                    b.Navigation("EnumType");
                 });
 
-            modelBuilder.Entity("ExaminaWebApplication.Models.Exam.ExamSubject", b =>
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordOperationParameter", b =>
                 {
-                    b.Navigation("Questions");
+                    b.HasOne("ExaminaWebApplication.Models.Word.WordEnumType", "EnumType")
+                        .WithMany("Parameters")
+                        .HasForeignKey("EnumTypeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ExaminaWebApplication.Models.Word.WordOperationPoint", "OperationPoint")
+                        .WithMany("Parameters")
+                        .HasForeignKey("OperationPointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EnumType");
+
+                    b.Navigation("OperationPoint");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordQuestionInstance", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.Word.WordQuestionTemplate", "QuestionTemplate")
+                        .WithMany("QuestionInstances")
+                        .HasForeignKey("QuestionTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("QuestionTemplate");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordQuestionTemplate", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.Word.WordOperationPoint", "OperationPoint")
+                        .WithMany("QuestionTemplates")
+                        .HasForeignKey("OperationPointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OperationPoint");
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelEnumType", b =>
@@ -5182,6 +6053,38 @@ namespace ExaminaWebApplication.Migrations
                     b.Navigation("Parameters");
 
                     b.Navigation("QuestionTemplates");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelOperationTemplate", b =>
+                {
+                    b.Navigation("ParameterTemplates");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedExam", b =>
+                {
+                    b.Navigation("Modules");
+
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedModule", b =>
+                {
+                    b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedOperationPoint", b =>
+                {
+                    b.Navigation("Parameters");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedQuestion", b =>
+                {
+                    b.Navigation("OperationPoints");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedSubject", b =>
+                {
+                    b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.User", b =>
@@ -5206,6 +6109,25 @@ namespace ExaminaWebApplication.Migrations
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.Windows.WindowsQuestionTemplate", b =>
+                {
+                    b.Navigation("QuestionInstances");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordEnumType", b =>
+                {
+                    b.Navigation("EnumValues");
+
+                    b.Navigation("Parameters");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordOperationPoint", b =>
+                {
+                    b.Navigation("Parameters");
+
+                    b.Navigation("QuestionTemplates");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.Word.WordQuestionTemplate", b =>
                 {
                     b.Navigation("QuestionInstances");
                 });

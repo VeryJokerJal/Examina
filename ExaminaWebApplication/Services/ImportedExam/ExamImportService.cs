@@ -27,7 +27,7 @@ public class ExamImportService
     /// <param name="fileName">文件名</param>
     /// <param name="importedBy">导入者ID</param>
     /// <returns>导入结果</returns>
-    public async Task<ExamImportResult> ImportExamAsync(Stream fileStream, string fileName, string importedBy)
+    public async Task<ExamImportResult> ImportExamAsync(Stream fileStream, string fileName, int importedBy)
     {
         ExamImportResult result = new ExamImportResult
         {
@@ -187,7 +187,7 @@ public class ExamImportService
     /// <summary>
     /// 转换并保存考试数据
     /// </summary>
-    private async Task<Models.ImportedExam.ImportedExam> ConvertAndSaveExamAsync(ExamExportDto examExportDto, string fileName, long fileSize, string importedBy)
+    private async Task<Models.ImportedExam.ImportedExam> ConvertAndSaveExamAsync(ExamExportDto examExportDto, string fileName, long fileSize, int importedBy)
     {
         // 使用执行策略来处理 MySQL 重试机制
         var strategy = _context.Database.CreateExecutionStrategy();
@@ -411,7 +411,7 @@ public class ExamImportService
     /// <summary>
     /// 获取导入的考试列表
     /// </summary>
-    public async Task<List<Models.ImportedExam.ImportedExam>> GetImportedExamsAsync(string? importedBy = null)
+    public async Task<List<Models.ImportedExam.ImportedExam>> GetImportedExamsAsync(int? importedBy = null)
     {
         IQueryable<Models.ImportedExam.ImportedExam> query = _context.ImportedExams
             .Include(e => e.Importer)
@@ -419,9 +419,9 @@ public class ExamImportService
             .Include(e => e.Modules)
             .OrderByDescending(e => e.ImportedAt);
 
-        if (!string.IsNullOrEmpty(importedBy))
+        if (importedBy.HasValue)
         {
-            query = query.Where(e => e.ImportedBy == importedBy);
+            query = query.Where(e => e.ImportedBy == importedBy.Value);
         }
 
         return await query.ToListAsync();
@@ -448,7 +448,7 @@ public class ExamImportService
     /// <summary>
     /// 删除导入的考试
     /// </summary>
-    public async Task<bool> DeleteImportedExamAsync(int examId, string userId)
+    public async Task<bool> DeleteImportedExamAsync(int examId, int userId)
     {
         Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
             .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);

@@ -38,7 +38,7 @@ public class ExamImportResult
     /// <summary>
     /// 导入者ID
     /// </summary>
-    public string ImportedBy { get; set; } = string.Empty;
+    public int ImportedBy { get; set; }
 
     /// <summary>
     /// 开始时间

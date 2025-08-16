@@ -4095,9 +4095,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime>("ImportedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("ImportedBy")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
+                    b.Property<int>("ImportedBy")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsEnabled")
                         .ValueGeneratedOnAdd()
@@ -5693,58 +5692,6 @@ namespace ExaminaWebApplication.Migrations
                     b.ToTable("WordQuestionTemplates");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("IdentityUser");
-                });
-
             modelBuilder.Entity("ExaminaWebApplication.Models.Excel.ExcelEnumValue", b =>
                 {
                     b.HasOne("ExaminaWebApplication.Models.Excel.ExcelEnumType", "EnumType")
@@ -5829,7 +5776,7 @@ namespace ExaminaWebApplication.Migrations
 
             modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedExam", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Importer")
+                    b.HasOne("ExaminaWebApplication.Models.User", "Importer")
                         .WithMany()
                         .HasForeignKey("ImportedBy")
                         .OnDelete(DeleteBehavior.Restrict)
