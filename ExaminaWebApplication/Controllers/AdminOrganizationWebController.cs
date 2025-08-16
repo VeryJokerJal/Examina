@@ -358,11 +358,13 @@ public class UpdateOrganizationRequest
     /// </summary>
     [Required(ErrorMessage = "组织名称不能为空")]
     [StringLength(100, ErrorMessage = "组织名称长度不能超过100个字符")]
+    [Display(Name = "组织名称")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 组织描述
     /// </summary>
     [StringLength(500, ErrorMessage = "组织描述长度不能超过500个字符")]
+    [Display(Name = "组织描述")]
     public string? Description { get; set; }
 }
