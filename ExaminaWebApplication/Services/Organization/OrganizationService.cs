@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
@@ -200,9 +201,9 @@ public class OrganizationService : IOrganizationService
     }
 
     /// <summary>
-    /// 学生加入组织
+    /// 用户加入组织（支持学生和教师）
     /// </summary>
-    public async Task<JoinOrganizationResult> JoinOrganizationAsync(int studentUserId, string invitationCode)
+    public async Task<JoinOrganizationResult> JoinOrganizationAsync(int userId, UserRole userRole, string invitationCode)
     {
         try
         {
@@ -220,102 +221,111 @@ public class OrganizationService : IOrganizationService
                 return JoinOrganizationResult.CreateFailure(reason);
             }
 
-            // 检查学生是否已在组织中
-            bool alreadyInOrganization = await IsStudentInOrganizationAsync(studentUserId, invitation.OrganizationId);
+            // 验证用户角色是否可以加入该类型的组织
+            if (!CanUserJoinOrganization(userRole, invitation.Organization.Type))
+            {
+                string roleText = userRole == UserRole.Teacher ? "教师" : "用户";
+                string orgTypeText = invitation.Organization.Type == OrganizationType.School ? "学校" : "机构";
+                return JoinOrganizationResult.CreateFailure($"{roleText}不能加入{orgTypeText}组织");
+            }
+
+            // 检查用户是否已在组织中
+            bool alreadyInOrganization = await IsUserInOrganizationAsync(userId, invitation.OrganizationId);
             if (alreadyInOrganization)
             {
                 return JoinOrganizationResult.CreateFailure("您已经是该组织的成员");
             }
 
-            // 创建学生组织关系
-            StudentOrganization studentOrganization = new()
+            // 创建用户组织关系
+            StudentOrganization userOrganization = new()
             {
-                StudentId = studentUserId,
+                StudentId = userId,
                 OrganizationId = invitation.OrganizationId,
                 JoinedAt = DateTime.UtcNow,
                 InvitationCodeId = invitation.Id,
                 IsActive = true
             };
 
-            _context.StudentOrganizations.Add(studentOrganization);
+            _context.StudentOrganizations.Add(userOrganization);
 
             // 增加邀请码使用次数
             await _invitationCodeService.IncrementUsageCountAsync(invitation.Id);
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("学生加入组织成功: 学生ID: {StudentId}, 组织ID: {OrganizationId}, 邀请码: {InvitationCode}",
-                studentUserId, invitation.OrganizationId, invitationCode);
+            string userTypeText = userRole == UserRole.Teacher ? "教师" : "学生";
+            _logger.LogInformation("{UserType}加入组织成功: 用户ID: {UserId}, 组织ID: {OrganizationId}, 邀请码: {InvitationCode}",
+                userTypeText, userId, invitation.OrganizationId, invitationCode);
 
-            // 获取完整的学生组织关系信息
-            StudentOrganizationDto? dto = await GetStudentOrganizationDtoAsync(studentOrganization.Id);
+            // 获取完整的用户组织关系信息
+            StudentOrganizationDto? dto = await GetUserOrganizationDtoAsync(userOrganization.Id);
             return dto == null
                 ? JoinOrganizationResult.CreateFailure("加入成功但无法获取详细信息")
                 : JoinOrganizationResult.CreateSuccess(dto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "学生加入组织失败: 学生ID: {StudentId}, 邀请码: {InvitationCode}", studentUserId, invitationCode);
+            _logger.LogError(ex, "用户加入组织失败: 用户ID: {UserId}, 邀请码: {InvitationCode}", userId, invitationCode);
             return JoinOrganizationResult.CreateFailure("系统错误，请稍后重试");
         }
     }
 
     /// <summary>
-    /// 学生退出组织
+    /// 用户退出组织
     /// </summary>
-    public async Task<bool> LeaveOrganizationAsync(int studentUserId, int organizationId)
+    public async Task<bool> LeaveOrganizationAsync(int userId, int organizationId)
     {
         try
         {
-            StudentOrganization? studentOrganization = await _context.StudentOrganizations
-                .FirstOrDefaultAsync(so => so.StudentId == studentUserId && so.OrganizationId == organizationId && so.IsActive);
+            StudentOrganization? userOrganization = await _context.StudentOrganizations
+                .FirstOrDefaultAsync(so => so.StudentId == userId && so.OrganizationId == organizationId && so.IsActive);
 
-            if (studentOrganization == null)
+            if (userOrganization == null)
             {
                 return false;
             }
 
-            studentOrganization.IsActive = false;
+            userOrganization.IsActive = false;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("学生退出组织成功: 学生ID: {StudentId}, 组织ID: {OrganizationId}", studentUserId, organizationId);
+            _logger.LogInformation("用户退出组织成功: 用户ID: {UserId}, 组织ID: {OrganizationId}", userId, organizationId);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "学生退出组织失败: 学生ID: {StudentId}, 组织ID: {OrganizationId}", studentUserId, organizationId);
+            _logger.LogError(ex, "用户退出组织失败: 用户ID: {UserId}, 组织ID: {OrganizationId}", userId, organizationId);
             return false;
         }
     }
 
     /// <summary>
-    /// 获取学生已加入的组织列表
+    /// 获取用户已加入的组织列表
     /// </summary>
-    public async Task<List<StudentOrganizationDto>> GetStudentOrganizationsAsync(int studentUserId)
+    public async Task<List<StudentOrganizationDto>> GetUserOrganizationsAsync(int userId)
     {
         try
         {
-            List<StudentOrganization> studentOrganizations = await _context.StudentOrganizations
+            List<StudentOrganization> userOrganizations = await _context.StudentOrganizations
                 .Include(so => so.Student)
                 .Include(so => so.Organization)
                 .Include(so => so.InvitationCode)
-                .Where(so => so.StudentId == studentUserId && so.IsActive)
+                .Where(so => so.StudentId == userId && so.IsActive)
                 .OrderByDescending(so => so.JoinedAt)
                 .ToListAsync();
 
-            return studentOrganizations.Select(MapToStudentOrganizationDto).ToList();
+            return userOrganizations.Select(MapToStudentOrganizationDto).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "获取学生组织列表失败: 学生ID: {StudentId}", studentUserId);
+            _logger.LogError(ex, "获取用户组织列表失败: 用户ID: {UserId}", userId);
             return new List<StudentOrganizationDto>();
         }
     }
 
     /// <summary>
-    /// 获取组织的学生列表
+    /// 获取组织的成员列表
     /// </summary>
-    public async Task<List<StudentOrganizationDto>> GetOrganizationStudentsAsync(int organizationId, bool includeInactive = false)
+    public async Task<List<StudentOrganizationDto>> GetOrganizationMembersAsync(int organizationId, bool includeInactive = false)
     {
         try
         {
@@ -330,34 +340,51 @@ public class OrganizationService : IOrganizationService
                 query = query.Where(so => so.IsActive);
             }
 
-            List<StudentOrganization> studentOrganizations = await query
+            List<StudentOrganization> userOrganizations = await query
                 .OrderByDescending(so => so.JoinedAt)
                 .ToListAsync();
 
-            return studentOrganizations.Select(MapToStudentOrganizationDto).ToList();
+            return userOrganizations.Select(MapToStudentOrganizationDto).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "获取组织学生列表失败: 组织ID: {OrganizationId}", organizationId);
+            _logger.LogError(ex, "获取组织成员列表失败: 组织ID: {OrganizationId}", organizationId);
             return new List<StudentOrganizationDto>();
         }
     }
 
     /// <summary>
-    /// 检查学生是否已在组织中
+    /// 检查用户是否已在组织中
     /// </summary>
-    public async Task<bool> IsStudentInOrganizationAsync(int studentUserId, int organizationId)
+    public async Task<bool> IsUserInOrganizationAsync(int userId, int organizationId)
     {
         try
         {
             return await _context.StudentOrganizations
-                .AnyAsync(so => so.StudentId == studentUserId && so.OrganizationId == organizationId && so.IsActive);
+                .AnyAsync(so => so.StudentId == userId && so.OrganizationId == organizationId && so.IsActive);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "检查学生组织关系失败: 学生ID: {StudentId}, 组织ID: {OrganizationId}", studentUserId, organizationId);
+            _logger.LogError(ex, "检查用户组织关系失败: 用户ID: {UserId}, 组织ID: {OrganizationId}", userId, organizationId);
             return false;
         }
+    }
+
+    /// <summary>
+    /// 验证用户角色是否可以加入指定类型的组织
+    /// </summary>
+    /// <param name="userRole">用户角色</param>
+    /// <param name="organizationType">组织类型</param>
+    /// <returns>是否可以加入</returns>
+    private static bool CanUserJoinOrganization(UserRole userRole, OrganizationType organizationType)
+    {
+        return userRole switch
+        {
+            UserRole.Student => true, // 学生可以加入所有类型组织
+            UserRole.Teacher => organizationType == OrganizationType.School, // 教师只能加入学校组织
+            UserRole.Administrator => false, // 管理员不需要加入组织，只管理组织
+            _ => false
+        };
     }
 
     /// <summary>
@@ -384,23 +411,23 @@ public class OrganizationService : IOrganizationService
     }
 
     /// <summary>
-    /// 获取学生组织关系DTO
+    /// 获取用户组织关系DTO
     /// </summary>
-    private async Task<StudentOrganizationDto?> GetStudentOrganizationDtoAsync(int studentOrganizationId)
+    private async Task<StudentOrganizationDto?> GetUserOrganizationDtoAsync(int userOrganizationId)
     {
         try
         {
-            StudentOrganization? studentOrganization = await _context.StudentOrganizations
+            StudentOrganization? userOrganization = await _context.StudentOrganizations
                 .Include(so => so.Student)
                 .Include(so => so.Organization)
                 .Include(so => so.InvitationCode)
-                .FirstOrDefaultAsync(so => so.Id == studentOrganizationId);
+                .FirstOrDefaultAsync(so => so.Id == userOrganizationId);
 
-            return studentOrganization == null ? null : MapToStudentOrganizationDto(studentOrganization);
+            return userOrganization == null ? null : MapToStudentOrganizationDto(userOrganization);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "获取学生组织关系DTO失败: {StudentOrganizationId}", studentOrganizationId);
+            _logger.LogError(ex, "获取用户组织关系DTO失败: {UserOrganizationId}", userOrganizationId);
             return null;
         }
     }

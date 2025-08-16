@@ -1,3 +1,4 @@
+using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
@@ -48,43 +49,44 @@ public interface IOrganizationService
     Task<bool> DeactivateOrganizationAsync(int organizationId);
 
     /// <summary>
-    /// 学生加入组织
+    /// 用户加入组织（支持学生和教师）
     /// </summary>
-    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="userId">用户ID</param>
+    /// <param name="userRole">用户角色</param>
     /// <param name="invitationCode">邀请码</param>
     /// <returns>加入结果</returns>
-    Task<JoinOrganizationResult> JoinOrganizationAsync(int studentUserId, string invitationCode);
+    Task<JoinOrganizationResult> JoinOrganizationAsync(int userId, UserRole userRole, string invitationCode);
 
     /// <summary>
-    /// 学生退出组织
+    /// 用户退出组织
     /// </summary>
-    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="userId">用户ID</param>
     /// <param name="organizationId">组织ID</param>
     /// <returns>是否成功</returns>
-    Task<bool> LeaveOrganizationAsync(int studentUserId, int organizationId);
+    Task<bool> LeaveOrganizationAsync(int userId, int organizationId);
 
     /// <summary>
-    /// 获取学生已加入的组织列表
+    /// 获取用户已加入的组织列表
     /// </summary>
-    /// <param name="studentUserId">学生用户ID</param>
-    /// <returns>学生组织关系DTO列表</returns>
-    Task<List<StudentOrganizationDto>> GetStudentOrganizationsAsync(int studentUserId);
+    /// <param name="userId">用户ID</param>
+    /// <returns>用户组织关系DTO列表</returns>
+    Task<List<StudentOrganizationDto>> GetUserOrganizationsAsync(int userId);
 
     /// <summary>
-    /// 获取组织的学生列表
+    /// 获取组织的成员列表
     /// </summary>
     /// <param name="organizationId">组织ID</param>
     /// <param name="includeInactive">是否包含非激活的关系</param>
-    /// <returns>学生组织关系DTO列表</returns>
-    Task<List<StudentOrganizationDto>> GetOrganizationStudentsAsync(int organizationId, bool includeInactive = false);
+    /// <returns>组织成员关系DTO列表</returns>
+    Task<List<StudentOrganizationDto>> GetOrganizationMembersAsync(int organizationId, bool includeInactive = false);
 
     /// <summary>
-    /// 检查学生是否已在组织中
+    /// 检查用户是否已在组织中
     /// </summary>
-    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="userId">用户ID</param>
     /// <param name="organizationId">组织ID</param>
     /// <returns>是否已在组织中</returns>
-    Task<bool> IsStudentInOrganizationAsync(int studentUserId, int organizationId);
+    Task<bool> IsUserInOrganizationAsync(int userId, int organizationId);
 }
 
 /// <summary>

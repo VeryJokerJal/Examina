@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using ExaminaWebApplication.Services.Organization;
+using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
 using System.Security.Claims;
@@ -56,7 +57,7 @@ public class StudentOrganizationController : ControllerBase
             }
 
             // 加入组织
-            JoinOrganizationResult result = await _organizationService.JoinOrganizationAsync(studentUserId, request.InvitationCode);
+            JoinOrganizationResult result = await _organizationService.JoinOrganizationAsync(studentUserId, UserRole.Student, request.InvitationCode);
 
             if (!result.Success)
             {
@@ -92,7 +93,7 @@ public class StudentOrganizationController : ControllerBase
                 return Unauthorized(new { message = "无法获取用户信息" });
             }
 
-            List<StudentOrganizationDto> organizations = await _organizationService.GetStudentOrganizationsAsync(studentUserId);
+            List<StudentOrganizationDto> organizations = await _organizationService.GetUserOrganizationsAsync(studentUserId);
             return Ok(organizations);
         }
         catch (Exception ex)
@@ -120,7 +121,7 @@ public class StudentOrganizationController : ControllerBase
             }
 
             // 检查学生是否在该组织中
-            bool isInOrganization = await _organizationService.IsStudentInOrganizationAsync(studentUserId, id);
+            bool isInOrganization = await _organizationService.IsUserInOrganizationAsync(studentUserId, id);
             if (!isInOrganization)
             {
                 return NotFound(new { message = "您不在该组织中" });
@@ -160,7 +161,7 @@ public class StudentOrganizationController : ControllerBase
                 return Unauthorized(new { message = "无法获取用户信息" });
             }
 
-            bool isInOrganization = await _organizationService.IsStudentInOrganizationAsync(studentUserId, id);
+            bool isInOrganization = await _organizationService.IsUserInOrganizationAsync(studentUserId, id);
             
             return Ok(new 
             { 
