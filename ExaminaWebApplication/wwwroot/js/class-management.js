@@ -405,9 +405,20 @@ function renderInvitationCodes(invitationCodes) {
                             <i class="bi bi-calendar me-1"></i>创建时间：${formatDateTime(code.createdAt)}
                         </small>
                         
-                        <div class="mt-3">
+                        <div class="mt-3 d-flex gap-2 flex-wrap">
                             <button class="glass-btn glass-btn-sm glass-btn-secondary" onclick="copyInvitationCode('${code.code}')">
                                 <i class="bi bi-clipboard me-1"></i>复制
+                            </button>
+                            <button class="glass-btn glass-btn-sm glass-btn-primary" onclick="editInvitationCode(${code.id})">
+                                <i class="bi bi-pencil me-1"></i>编辑
+                            </button>
+                            <button class="glass-btn glass-btn-sm ${code.isActive ? 'glass-btn-warning' : 'glass-btn-success'}"
+                                    onclick="toggleInvitationCodeStatus(${code.id}, ${!code.isActive})">
+                                <i class="bi ${code.isActive ? 'bi-pause' : 'bi-play'} me-1"></i>
+                                ${code.isActive ? '停用' : '激活'}
+                            </button>
+                            <button class="glass-btn glass-btn-sm glass-btn-danger" onclick="deleteInvitationCode(${code.id})">
+                                <i class="bi bi-trash me-1"></i>删除
                             </button>
                         </div>
                     </div>
@@ -420,6 +431,66 @@ function renderInvitationCodes(invitationCodes) {
     container.html(html);
 }
 
+// 显示创建邀请码模态框
+function showCreateInvitationCodeModal() {
+    const modalHtml = `
+        <div class="modal fade glass-modal" id="createInvitationCodeModal" tabindex="-1" aria-labelledby="createInvitationCodeModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header glass-modal-header">
+                        <h5 class="modal-title" id="createInvitationCodeModalLabel">
+                            <i class="bi bi-plus-circle me-2"></i>生成新邀请码
+                        </h5>
+                        <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <form id="createInvitationCodeForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="createMaxUsage" class="glass-form-label">最大使用次数</label>
+                                <input type="number" class="glass-form-control" id="createMaxUsage" name="MaxUsage"
+                                       min="1" placeholder="留空表示无限制">
+                                <div class="invalid-feedback"></div>
+                                <small class="text-muted">设置邀请码的最大使用次数，留空表示无限制</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="createExpiresAt" class="glass-form-label">过期时间</label>
+                                <input type="datetime-local" class="glass-form-control" id="createExpiresAt" name="ExpiresAt">
+                                <div class="invalid-feedback"></div>
+                                <small class="text-muted">设置邀请码的过期时间，留空表示永不过期</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer glass-modal-footer">
+                            <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-2"></i>取消
+                            </button>
+                            <button type="submit" class="glass-btn glass-btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>生成
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 移除已存在的模态框
+    $('#createInvitationCodeModal').remove();
+
+    // 添加新模态框
+    $('body').append(modalHtml);
+
+    // 绑定表单提交事件
+    $('#createInvitationCodeForm').on('submit', function(e) {
+        e.preventDefault();
+        createInvitationCode();
+    });
+
+    // 显示模态框
+    $('#createInvitationCodeModal').modal('show');
+}
+
 // 创建邀请码
 function createInvitationCode() {
     if (!currentClassId) {
@@ -427,17 +498,32 @@ function createInvitationCode() {
         return;
     }
 
+    const form = $('#createInvitationCodeForm');
+    const formData = {
+        maxUsage: $('#createMaxUsage').val() ? parseInt($('#createMaxUsage').val()) : null,
+        expiresAt: $('#createExpiresAt').val() ? new Date($('#createExpiresAt').val()).toISOString() : null
+    };
+
+    // 清除之前的错误
+    clearFormErrors(form);
+
     $.ajax({
         url: `/api/ClassManagementApi/${currentClassId}/invitation-codes`,
         method: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({}),
+        data: JSON.stringify(formData),
         success: function() {
+            // 关闭模态框
+            $('#createInvitationCodeModal').modal('hide');
+
+            // 显示成功消息
             showSuccessMessage('邀请码生成成功！');
+
+            // 刷新邀请码列表
             loadInvitationCodes(currentClassId);
         },
         error: function(xhr) {
-            showErrorMessage('生成邀请码失败：' + getErrorMessage(xhr));
+            handleFormError(xhr, form);
         }
     });
 }
@@ -455,6 +541,177 @@ function copyInvitationCode(code) {
         document.execCommand('copy');
         document.body.removeChild(textArea);
         showSuccessMessage('邀请码已复制到剪贴板');
+    });
+}
+
+// 编辑邀请码
+function editInvitationCode(invitationCodeId) {
+    if (!currentClassId) {
+        showErrorMessage('无法确定班级ID');
+        return;
+    }
+
+    // 获取邀请码信息
+    $.ajax({
+        url: `/api/ClassManagementApi/${currentClassId}/invitation-codes`,
+        method: 'GET',
+        success: function(invitationCodes) {
+            const code = invitationCodes.find(c => c.id === invitationCodeId);
+            if (!code) {
+                showErrorMessage('邀请码不存在');
+                return;
+            }
+            showEditInvitationCodeModal(code);
+        },
+        error: function(xhr) {
+            showErrorMessage('获取邀请码信息失败：' + getErrorMessage(xhr));
+        }
+    });
+}
+
+// 显示编辑邀请码模态框
+function showEditInvitationCodeModal(code) {
+    const modalHtml = `
+        <div class="modal fade glass-modal" id="editInvitationCodeModal" tabindex="-1" aria-labelledby="editInvitationCodeModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header glass-modal-header">
+                        <h5 class="modal-title" id="editInvitationCodeModalLabel">
+                            <i class="bi bi-pencil me-2"></i>编辑邀请码
+                        </h5>
+                        <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <form id="editInvitationCodeForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="glass-form-label">邀请码</label>
+                                <input type="text" class="glass-form-control" value="${code.code}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editMaxUsage" class="glass-form-label">最大使用次数</label>
+                                <input type="number" class="glass-form-control" id="editMaxUsage" name="MaxUsage"
+                                       value="${code.maxUsage || ''}" min="1" placeholder="留空表示无限制">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editExpiresAt" class="glass-form-label">过期时间</label>
+                                <input type="datetime-local" class="glass-form-control" id="editExpiresAt" name="ExpiresAt"
+                                       value="${code.expiresAt ? new Date(code.expiresAt).toISOString().slice(0, 16) : ''}">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="glass-form-check">
+                                    <input class="glass-form-check-input" type="checkbox" id="editIsActive" name="IsActive" ${code.isActive ? 'checked' : ''}>
+                                    <label class="glass-form-check-label" for="editIsActive">
+                                        激活状态
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer glass-modal-footer">
+                            <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-2"></i>取消
+                            </button>
+                            <button type="submit" class="glass-btn glass-btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>保存
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 移除已存在的模态框
+    $('#editInvitationCodeModal').remove();
+
+    // 添加新模态框
+    $('body').append(modalHtml);
+
+    // 绑定表单提交事件
+    $('#editInvitationCodeForm').on('submit', function(e) {
+        e.preventDefault();
+        updateInvitationCode(code.id);
+    });
+
+    // 显示模态框
+    $('#editInvitationCodeModal').modal('show');
+}
+
+// 更新邀请码
+function updateInvitationCode(invitationCodeId) {
+    const form = $('#editInvitationCodeForm');
+    const formData = {
+        maxUsage: $('#editMaxUsage').val() ? parseInt($('#editMaxUsage').val()) : null,
+        expiresAt: $('#editExpiresAt').val() ? new Date($('#editExpiresAt').val()).toISOString() : null,
+        isActive: $('#editIsActive').is(':checked')
+    };
+
+    // 清除之前的错误
+    clearFormErrors(form);
+
+    $.ajax({
+        url: `/api/ClassManagementApi/${currentClassId}/invitation-codes/${invitationCodeId}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function() {
+            // 关闭模态框
+            $('#editInvitationCodeModal').modal('hide');
+
+            // 显示成功消息
+            showSuccessMessage('邀请码更新成功！');
+
+            // 刷新邀请码列表
+            loadInvitationCodes(currentClassId);
+        },
+        error: function(xhr) {
+            handleFormError(xhr, form);
+        }
+    });
+}
+
+// 删除邀请码
+function deleteInvitationCode(invitationCodeId) {
+    if (!confirm('确定要删除这个邀请码吗？删除后无法恢复。')) {
+        return;
+    }
+
+    $.ajax({
+        url: `/api/ClassManagementApi/${currentClassId}/invitation-codes/${invitationCodeId}`,
+        method: 'DELETE',
+        success: function() {
+            showSuccessMessage('邀请码删除成功！');
+            loadInvitationCodes(currentClassId);
+        },
+        error: function(xhr) {
+            showErrorMessage('删除邀请码失败：' + getErrorMessage(xhr));
+        }
+    });
+}
+
+// 切换邀请码状态
+function toggleInvitationCodeStatus(invitationCodeId, newStatus) {
+    const action = newStatus ? '激活' : '停用';
+
+    if (!confirm(`确定要${action}这个邀请码吗？`)) {
+        return;
+    }
+
+    $.ajax({
+        url: `/api/ClassManagementApi/${currentClassId}/invitation-codes/${invitationCodeId}/status`,
+        method: 'PATCH',
+        contentType: 'application/json',
+        data: JSON.stringify({ isActive: newStatus }),
+        success: function() {
+            showSuccessMessage(`邀请码${action}成功！`);
+            loadInvitationCodes(currentClassId);
+        },
+        error: function(xhr) {
+            showErrorMessage(`${action}邀请码失败：` + getErrorMessage(xhr));
+        }
     });
 }
 

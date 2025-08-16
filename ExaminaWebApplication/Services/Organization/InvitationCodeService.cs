@@ -191,6 +191,106 @@ public class InvitationCodeService : IInvitationCodeService
     }
 
     /// <summary>
+    /// 更新邀请码信息
+    /// </summary>
+    public async Task<InvitationCode?> UpdateInvitationCodeAsync(int invitationCodeId, int? maxUsage = null, DateTime? expiresAt = null, bool? isActive = null)
+    {
+        try
+        {
+            InvitationCode? invitationCode = await _context.InvitationCodes
+                .FirstOrDefaultAsync(ic => ic.Id == invitationCodeId);
+
+            if (invitationCode == null)
+            {
+                return null;
+            }
+
+            // 更新字段（只更新提供的字段）
+            if (maxUsage.HasValue)
+            {
+                invitationCode.MaxUsage = maxUsage.Value == 0 ? null : maxUsage.Value;
+            }
+
+            if (expiresAt.HasValue)
+            {
+                invitationCode.ExpiresAt = expiresAt.Value;
+            }
+
+            if (isActive.HasValue)
+            {
+                invitationCode.IsActive = isActive.Value;
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("更新邀请码成功: {Code}, ID: {InvitationCodeId}", invitationCode.Code, invitationCodeId);
+            return invitationCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新邀请码失败: {InvitationCodeId}", invitationCodeId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 删除邀请码
+    /// </summary>
+    public async Task<bool> DeleteInvitationCodeAsync(int invitationCodeId)
+    {
+        try
+        {
+            InvitationCode? invitationCode = await _context.InvitationCodes
+                .FirstOrDefaultAsync(ic => ic.Id == invitationCodeId);
+
+            if (invitationCode == null)
+            {
+                return false;
+            }
+
+            _context.InvitationCodes.Remove(invitationCode);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("删除邀请码成功: {Code}, ID: {InvitationCodeId}", invitationCode.Code, invitationCodeId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "删除邀请码失败: {InvitationCodeId}", invitationCodeId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 设置邀请码激活状态
+    /// </summary>
+    public async Task<bool> SetInvitationCodeStatusAsync(int invitationCodeId, bool isActive)
+    {
+        try
+        {
+            InvitationCode? invitationCode = await _context.InvitationCodes
+                .FirstOrDefaultAsync(ic => ic.Id == invitationCodeId);
+
+            if (invitationCode == null)
+            {
+                return false;
+            }
+
+            invitationCode.IsActive = isActive;
+            await _context.SaveChangesAsync();
+
+            string status = isActive ? "激活" : "停用";
+            _logger.LogInformation("{Status}邀请码成功: {Code}, ID: {InvitationCodeId}", status, invitationCode.Code, invitationCodeId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "设置邀请码状态失败: {InvitationCodeId}", invitationCodeId);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 获取组织的邀请码列表
     /// </summary>
     public async Task<List<InvitationCode>> GetOrganizationInvitationCodesAsync(int organizationId, bool includeInactive = false)

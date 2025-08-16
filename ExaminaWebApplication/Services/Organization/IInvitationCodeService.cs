@@ -51,6 +51,31 @@ public interface IInvitationCodeService
     Task<bool> DeactivateInvitationCodeAsync(int invitationCodeId);
 
     /// <summary>
+    /// 更新邀请码信息
+    /// </summary>
+    /// <param name="invitationCodeId">邀请码ID</param>
+    /// <param name="maxUsage">最大使用次数（可选）</param>
+    /// <param name="expiresAt">过期时间（可选）</param>
+    /// <param name="isActive">是否激活（可选）</param>
+    /// <returns>更新后的邀请码，如果不存在则返回null</returns>
+    Task<InvitationCode?> UpdateInvitationCodeAsync(int invitationCodeId, int? maxUsage = null, DateTime? expiresAt = null, bool? isActive = null);
+
+    /// <summary>
+    /// 删除邀请码
+    /// </summary>
+    /// <param name="invitationCodeId">邀请码ID</param>
+    /// <returns>是否成功</returns>
+    Task<bool> DeleteInvitationCodeAsync(int invitationCodeId);
+
+    /// <summary>
+    /// 设置邀请码激活状态
+    /// </summary>
+    /// <param name="invitationCodeId">邀请码ID</param>
+    /// <param name="isActive">是否激活</param>
+    /// <returns>是否成功</returns>
+    Task<bool> SetInvitationCodeStatusAsync(int invitationCodeId, bool isActive);
+
+    /// <summary>
     /// 获取组织的邀请码列表
     /// </summary>
     /// <param name="organizationId">组织ID</param>

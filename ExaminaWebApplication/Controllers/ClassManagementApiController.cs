@@ -173,10 +173,10 @@ public class ClassManagementApiController : ControllerBase
         try
         {
             InvitationCode invitationCode = await _invitationCodeService.CreateInvitationCodeAsync(
-                classId, 
-                request?.ExpiresAt, 
+                classId,
+                request?.ExpiresAt,
                 request?.MaxUsage);
-            
+
             _logger.LogInformation("班级邀请码创建成功: {ClassId}, 邀请码: {Code}", classId, invitationCode.Code);
             return Ok(invitationCode);
         }
@@ -184,6 +184,86 @@ public class ClassManagementApiController : ControllerBase
         {
             _logger.LogError(ex, "创建班级邀请码失败: {ClassId}", classId);
             return StatusCode(500, new { message = "创建班级邀请码失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 更新邀请码信息
+    /// </summary>
+    [HttpPut("{classId}/invitation-codes/{invitationCodeId}")]
+    public async Task<ActionResult<InvitationCode>> UpdateInvitationCode(int classId, int invitationCodeId, [FromBody] UpdateInvitationCodeRequest request)
+    {
+        try
+        {
+            InvitationCode? updatedCode = await _invitationCodeService.UpdateInvitationCodeAsync(
+                invitationCodeId,
+                request.MaxUsage,
+                request.ExpiresAt,
+                request.IsActive);
+
+            if (updatedCode == null)
+            {
+                return NotFound(new { message = "邀请码不存在" });
+            }
+
+            _logger.LogInformation("邀请码更新成功: {InvitationCodeId}, 班级: {ClassId}", invitationCodeId, classId);
+            return Ok(updatedCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新邀请码失败: {InvitationCodeId}, 班级: {ClassId}", invitationCodeId, classId);
+            return StatusCode(500, new { message = "更新邀请码失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 删除邀请码
+    /// </summary>
+    [HttpDelete("{classId}/invitation-codes/{invitationCodeId}")]
+    public async Task<ActionResult> DeleteInvitationCode(int classId, int invitationCodeId)
+    {
+        try
+        {
+            bool success = await _invitationCodeService.DeleteInvitationCodeAsync(invitationCodeId);
+
+            if (!success)
+            {
+                return NotFound(new { message = "邀请码不存在" });
+            }
+
+            _logger.LogInformation("邀请码删除成功: {InvitationCodeId}, 班级: {ClassId}", invitationCodeId, classId);
+            return Ok(new { message = "邀请码删除成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "删除邀请码失败: {InvitationCodeId}, 班级: {ClassId}", invitationCodeId, classId);
+            return StatusCode(500, new { message = "删除邀请码失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 设置邀请码激活状态
+    /// </summary>
+    [HttpPatch("{classId}/invitation-codes/{invitationCodeId}/status")]
+    public async Task<ActionResult> SetInvitationCodeStatus(int classId, int invitationCodeId, [FromBody] SetInvitationCodeStatusRequest request)
+    {
+        try
+        {
+            bool success = await _invitationCodeService.SetInvitationCodeStatusAsync(invitationCodeId, request.IsActive);
+
+            if (!success)
+            {
+                return NotFound(new { message = "邀请码不存在" });
+            }
+
+            string status = request.IsActive ? "激活" : "停用";
+            _logger.LogInformation("邀请码{Status}成功: {InvitationCodeId}, 班级: {ClassId}", status, invitationCodeId, classId);
+            return Ok(new { message = $"邀请码{status}成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "设置邀请码状态失败: {InvitationCodeId}, 班级: {ClassId}", invitationCodeId, classId);
+            return StatusCode(500, new { message = "设置邀请码状态失败", error = ex.Message });
         }
     }
 
@@ -233,4 +313,36 @@ public class CreateInvitationCodeRequest
     /// 最大使用次数（可选）
     /// </summary>
     public int? MaxUsage { get; set; }
+}
+
+/// <summary>
+/// 更新邀请码请求模型
+/// </summary>
+public class UpdateInvitationCodeRequest
+{
+    /// <summary>
+    /// 最大使用次数（可选，null表示无限制）
+    /// </summary>
+    public int? MaxUsage { get; set; }
+
+    /// <summary>
+    /// 过期时间（可选，null表示永不过期）
+    /// </summary>
+    public DateTime? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// 是否激活
+    /// </summary>
+    public bool? IsActive { get; set; }
+}
+
+/// <summary>
+/// 设置邀请码状态请求模型
+/// </summary>
+public class SetInvitationCodeStatusRequest
+{
+    /// <summary>
+    /// 是否激活
+    /// </summary>
+    public bool IsActive { get; set; }
 }
