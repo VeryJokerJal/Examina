@@ -328,6 +328,8 @@ public class OrganizationService : IOrganizationService
     {
         try
         {
+            _logger.LogInformation("开始获取组织 {OrganizationId} 的成员列表，包含非活跃成员: {IncludeInactive}", organizationId, includeInactive);
+
             IQueryable<StudentOrganization> query = _context.StudentOrganizations
                 .Include(so => so.Student)
                 .Include(so => so.Organization)
@@ -343,7 +345,13 @@ public class OrganizationService : IOrganizationService
                 .OrderByDescending(so => so.JoinedAt)
                 .ToListAsync();
 
-            return userOrganizations.Select(MapToStudentOrganizationDto).ToList();
+            _logger.LogInformation("从数据库获取到 {Count} 个成员记录", userOrganizations.Count);
+
+            List<StudentOrganizationDto> result = userOrganizations.Select(MapToStudentOrganizationDto).ToList();
+
+            _logger.LogInformation("成功映射 {Count} 个成员DTO", result.Count);
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -438,6 +446,11 @@ public class OrganizationService : IOrganizationService
     /// </summary>
     private static StudentOrganizationDto MapToStudentOrganizationDto(StudentOrganization studentOrganization)
     {
+        if (studentOrganization == null)
+        {
+            throw new ArgumentNullException(nameof(studentOrganization));
+        }
+
         return new StudentOrganizationDto
         {
             Id = studentOrganization.Id,

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models.Organization;
 
@@ -18,10 +18,6 @@ public class Organization
     [Required]
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
-
-
-
-
 
     /// <summary>
     /// 创建时间
@@ -48,10 +44,10 @@ public class Organization
     /// <summary>
     /// 邀请码集合
     /// </summary>
-    public ICollection<InvitationCode> InvitationCodes { get; set; } = new List<InvitationCode>();
+    public ICollection<InvitationCode> InvitationCodes { get; set; } = [];
 
     /// <summary>
     /// 学生组织关系集合
     /// </summary>
-    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = new List<StudentOrganization>();
+    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = [];
 }

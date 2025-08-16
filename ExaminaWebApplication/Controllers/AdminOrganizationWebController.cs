@@ -130,6 +130,13 @@ public class AdminOrganizationWebController : Controller
             // 获取成员列表
             var members = await _organizationService.GetOrganizationMembersAsync(id, includeInactive: false);
 
+            // 添加调试日志
+            _logger.LogInformation("组织 {OrganizationId} 的成员数量: {MemberCount}", id, members.Count);
+            foreach (var member in members)
+            {
+                _logger.LogInformation("成员: {Username}, 手机号: {Phone}", member.StudentUsername, member.StudentPhoneNumber ?? "未设置");
+            }
+
             var viewModel = new OrganizationDetailsViewModel
             {
                 Organization = organization,
@@ -472,6 +479,49 @@ public class AdminOrganizationWebController : Controller
         {
             _logger.LogError(ex, "批量更新用户手机号失败");
             return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 调试方法：检查组织成员数据
+    /// </summary>
+    [HttpGet]
+    [Route("Admin/Organization/Debug/{id}")]
+    public async Task<IActionResult> DebugMembers(int id)
+    {
+        try
+        {
+            // 直接查询数据库
+            var rawMembers = await _context.StudentOrganizations
+                .Include(so => so.Student)
+                .Include(so => so.Organization)
+                .Include(so => so.InvitationCode)
+                .Where(so => so.OrganizationId == id)
+                .ToListAsync();
+
+            var debugInfo = new
+            {
+                OrganizationId = id,
+                TotalMembersInDb = rawMembers.Count,
+                ActiveMembers = rawMembers.Count(m => m.IsActive),
+                Members = rawMembers.Select(m => new
+                {
+                    Id = m.Id,
+                    StudentId = m.StudentId,
+                    StudentUsername = m.Student?.Username ?? "NULL",
+                    StudentRealName = m.Student?.RealName ?? "NULL",
+                    StudentPhoneNumber = m.Student?.PhoneNumber ?? "NULL",
+                    IsActive = m.IsActive,
+                    JoinedAt = m.JoinedAt
+                }).ToList()
+            };
+
+            return Json(debugInfo);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "调试组织成员数据失败: {OrganizationId}", id);
+            return Json(new { error = ex.Message });
         }
     }
 }
