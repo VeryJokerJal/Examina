@@ -1,0 +1,415 @@
+@model ExaminaWebApplication.ViewModels.UserManagementViewModel
+@{
+    ViewData["Title"] = "用户管理";
+}
+
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="glass-card glass-card-primary mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="mb-0">
+                        <i class="bi bi-people-fill me-2"></i>用户管理
+                    </h2>
+                    <p class="text-muted mb-0">管理系统中的学生和教师用户账户</p>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="glass-btn glass-btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                        <i class="bi bi-person-plus me-2"></i>创建用户
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索和筛选 -->
+    <div class="glass-card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="glass-form-label">用户角色</label>
+                    <select class="glass-form-control" id="roleFilter">
+                        @foreach (var option in Model.RoleFilterOptions)
+                        {
+                            <option value="@(option.Value?.ToString() ?? "")" @(Model.SelectedRole == option.Value ? "selected" : "")>
+                                @option.Text
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="glass-form-label">搜索用户</label>
+                    <div class="glass-input-group">
+                        <span class="glass-input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="glass-form-control" id="searchKeyword" placeholder="搜索用户名、邮箱、手机号或姓名..." value="@Model.SearchKeyword">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="glass-form-label">&nbsp;</label>
+                    <div class="glass-form-check">
+                        <input class="glass-form-check-input" type="checkbox" id="includeInactive" @(Model.IncludeInactive ? "checked" : "")>
+                        <label class="glass-form-check-label" for="includeInactive">
+                            包含已停用
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="glass-form-label">&nbsp;</label>
+                    <button type="button" class="glass-btn glass-btn-secondary w-100" onclick="searchUsers()">
+                        <i class="bi bi-search me-2"></i>搜索
+                    </button>
+                </div>
+                <div class="col-md-1">
+                    <label class="glass-form-label">&nbsp;</label>
+                    <button type="button" class="glass-btn glass-btn-outline-secondary w-100" onclick="resetSearch()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card glass-card-secondary">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="totalUsers">@Model.Users.Count</div>
+                    <div class="glass-stat-label">用户总数</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card glass-card-secondary">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="teacherCount">@Model.Users.Count(u => u.Role == ExaminaWebApplication.Models.UserRole.Teacher)</div>
+                    <div class="glass-stat-label">教师数量</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card glass-card-secondary">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="studentCount">@Model.Users.Count(u => u.Role == ExaminaWebApplication.Models.UserRole.Student)</div>
+                    <div class="glass-stat-label">学生数量</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card glass-card-secondary">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="adminCount">@Model.Users.Count(u => u.Role == ExaminaWebApplication.Models.UserRole.Administrator)</div>
+                    <div class="glass-stat-label">管理员数量</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户列表 -->
+    <div class="glass-card">
+        <div class="card-header glass-card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>用户列表
+                <span class="badge glass-badge ms-2" id="userCount">@Model.Users.Count</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div id="usersContainer">
+                @if (Model.Users.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table glass-table">
+                            <thead>
+                                <tr>
+                                    <th>用户信息</th>
+                                    <th>角色</th>
+                                    <th>联系方式</th>
+                                    <th>学号/工号</th>
+                                    <th>注册时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Model.Users)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong>@user.Username</strong>
+                                                @if (!string.IsNullOrEmpty(user.RealName))
+                                                {
+                                                    <br><small class="text-muted">@user.RealName</small>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge @(user.Role == ExaminaWebApplication.Models.UserRole.Administrator ? "glass-badge-danger" : user.Role == ExaminaWebApplication.Models.UserRole.Teacher ? "glass-badge-warning" : "glass-badge-info")">
+                                                @(user.Role == ExaminaWebApplication.Models.UserRole.Administrator ? "管理员" : user.Role == ExaminaWebApplication.Models.UserRole.Teacher ? "教师" : "学生")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <small>@user.Email</small>
+                                                @if (!string.IsNullOrEmpty(user.PhoneNumber))
+                                                {
+                                                    <br><small class="text-muted font-monospace">@user.PhoneNumber</small>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(user.StudentId))
+                                            {
+                                                <span class="font-monospace">@user.StudentId</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <small>@user.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                            @if (user.LastLoginAt.HasValue)
+                                            {
+                                                <br><small class="text-muted">最后登录：@user.LastLoginAt.Value.ToString("MM-dd HH:mm")</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <span class="badge @(user.IsActive ? "glass-badge-success" : "glass-badge-danger")">
+                                                    @(user.IsActive ? "正常" : "已停用")
+                                                </span>
+                                                @if (user.IsFirstLogin)
+                                                {
+                                                    <br><span class="badge glass-badge-warning mt-1">首次登录</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-primary" onclick="editUser(@user.Id)" title="编辑">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="resetPassword(@user.Id)" title="重置密码">
+                                                    <i class="bi bi-key"></i>
+                                                </button>
+                                                @if (user.IsActive)
+                                                {
+                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-danger" onclick="deactivateUser(@user.Id)" title="停用">
+                                                        <i class="bi bi-person-x"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="activateUser(@user.Id)" title="激活">
+                                                        <i class="bi bi-person-check"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-people-fill display-1 text-muted"></i>
+                        <h5 class="text-muted mt-3">暂无用户数据</h5>
+                        <p class="text-muted">点击上方"创建用户"按钮添加第一个用户</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 创建用户模态框 -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">
+                    <i class="bi bi-person-plus me-2"></i>创建用户
+                </h5>
+                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <form id="createUserForm">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="userUsername" class="glass-form-label">用户名 <span class="text-danger">*</span></label>
+                            <input type="text" class="glass-form-control" id="userUsername" name="Username" required maxlength="50" placeholder="请输入用户名">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="userRole" class="glass-form-label">用户角色 <span class="text-danger">*</span></label>
+                            <select class="glass-form-control" id="userRole" name="Role" required>
+                                <option value="">请选择角色</option>
+                                @foreach (var option in Model.UserRoleOptions)
+                                {
+                                    <option value="@option.Value">@option.Text</option>
+                                }
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="userEmail" class="glass-form-label">邮箱 <span class="text-danger">*</span></label>
+                            <input type="email" class="glass-form-control" id="userEmail" name="Email" required maxlength="100" placeholder="请输入邮箱">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="userPhoneNumber" class="glass-form-label">手机号</label>
+                            <input type="tel" class="glass-form-control" id="userPhoneNumber" name="PhoneNumber" maxlength="20" placeholder="请输入手机号">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="userPassword" class="glass-form-label">密码 <span class="text-danger">*</span></label>
+                            <input type="password" class="glass-form-control" id="userPassword" name="Password" required minlength="6" maxlength="100" placeholder="请输入密码">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="userRealName" class="glass-form-label">真实姓名</label>
+                            <input type="text" class="glass-form-control" id="userRealName" name="RealName" maxlength="50" placeholder="请输入真实姓名">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="userStudentId" class="glass-form-label">学号/工号</label>
+                            <input type="text" class="glass-form-control" id="userStudentId" name="StudentId" maxlength="50" placeholder="请输入学号或工号">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6" id="schoolSelection" style="display: none;">
+                            <label for="userSchoolId" class="glass-form-label">所属学校 <span class="text-danger">*</span></label>
+                            <select class="glass-form-control" id="userSchoolId" name="SchoolId">
+                                <option value="">请选择学校</option>
+                                @foreach (var school in Model.Schools)
+                                {
+                                    <option value="@school.Id">@school.Name</option>
+                                }
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-12" id="classSelection" style="display: none;">
+                            <label class="glass-form-label">所属班级（可多选）</label>
+                            <div id="classCheckboxes" class="row g-2">
+                                <!-- 班级复选框将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="submit" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>创建
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑用户模态框 -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">
+                    <i class="bi bi-pencil me-2"></i>编辑用户
+                </h5>
+                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId" name="Id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editUserEmail" class="glass-form-label">邮箱</label>
+                        <input type="email" class="glass-form-control" id="editUserEmail" name="Email" maxlength="100" placeholder="请输入邮箱">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserPhoneNumber" class="glass-form-label">手机号</label>
+                        <input type="tel" class="glass-form-control" id="editUserPhoneNumber" name="PhoneNumber" maxlength="20" placeholder="请输入手机号">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserRealName" class="glass-form-label">真实姓名</label>
+                        <input type="text" class="glass-form-control" id="editUserRealName" name="RealName" maxlength="50" placeholder="请输入真实姓名">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserStudentId" class="glass-form-label">学号/工号</label>
+                        <input type="text" class="glass-form-control" id="editUserStudentId" name="StudentId" maxlength="50" placeholder="请输入学号或工号">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="submit" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 重置密码模态框 -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-modal-header">
+                <h5 class="modal-title" id="resetPasswordModalLabel">
+                    <i class="bi bi-key me-2"></i>重置密码
+                </h5>
+                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <form id="resetPasswordForm">
+                <input type="hidden" id="resetPasswordUserId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newPassword" class="glass-form-label">新密码 <span class="text-danger">*</span></label>
+                        <input type="password" class="glass-form-control" id="newPassword" name="NewPassword" required minlength="6" maxlength="100" placeholder="请输入新密码">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="glass-form-label">确认密码 <span class="text-danger">*</span></label>
+                        <input type="password" class="glass-form-control" id="confirmPassword" required minlength="6" maxlength="100" placeholder="请再次输入新密码">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="submit" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 将学校和班级数据传递给JavaScript
+        window.schoolsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Schools));
+        window.classesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Classes));
+    </script>
+    <script src="~/js/user-management.js" asp-append-version="true"></script>
+}

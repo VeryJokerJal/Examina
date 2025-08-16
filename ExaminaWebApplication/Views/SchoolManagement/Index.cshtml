@@ -1,0 +1,212 @@
+@model ExaminaWebApplication.ViewModels.SchoolManagementViewModel
+@{
+    ViewData["Title"] = "学校管理";
+}
+
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="glass-card glass-card-primary mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="mb-0">
+                        <i class="bi bi-building me-2"></i>学校管理
+                    </h2>
+                    <p class="text-muted mb-0">管理系统中的学校信息</p>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="glass-btn glass-btn-primary" data-bs-toggle="modal" data-bs-target="#createSchoolModal">
+                        <i class="bi bi-plus-circle me-2"></i>创建学校
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索和筛选 -->
+    <div class="glass-card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="glass-input-group">
+                        <span class="glass-input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="glass-form-control" id="searchKeyword" placeholder="搜索学校名称..." value="@Model.SearchKeyword">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="glass-form-check">
+                        <input class="glass-form-check-input" type="checkbox" id="includeInactive" @(Model.IncludeInactive ? "checked" : "")>
+                        <label class="glass-form-check-label" for="includeInactive">
+                            包含已停用的学校
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="glass-btn glass-btn-secondary w-100" onclick="searchSchools()">
+                        <i class="bi bi-search me-2"></i>搜索
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学校列表 -->
+    <div class="glass-card">
+        <div class="card-header glass-card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>学校列表
+                <span class="badge glass-badge ms-2" id="schoolCount">@Model.FilteredSchools.Count</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div id="schoolsContainer">
+                @if (Model.FilteredSchools.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var school in Model.FilteredSchools)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="glass-card glass-card-secondary h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h6 class="card-title mb-0">@school.Name</h6>
+                                            <div class="dropdown">
+                                                <button class="glass-btn glass-btn-sm" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu glass-dropdown-menu">
+                                                    <li><a class="dropdown-item glass-dropdown-item" href="#" onclick="editSchool(@school.Id)">
+                                                        <i class="bi bi-pencil me-2"></i>编辑
+                                                    </a></li>
+                                                    <li><a class="dropdown-item glass-dropdown-item" href="#" onclick="viewSchoolClasses(@school.Id)">
+                                                        <i class="bi bi-people me-2"></i>查看班级
+                                                    </a></li>
+                                                    @if (school.IsActive)
+                                                    {
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li><a class="dropdown-item glass-dropdown-item text-danger" href="#" onclick="deactivateSchool(@school.Id)">
+                                                            <i class="bi bi-x-circle me-2"></i>停用
+                                                        </a></li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="glass-stat-card">
+                                                    <div class="glass-stat-number">@school.ChildOrganizationCount</div>
+                                                    <div class="glass-stat-label">班级数量</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="glass-stat-card">
+                                                    <div class="glass-stat-number">@school.StudentCount</div>
+                                                    <div class="glass-stat-label">学生数量</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="bi bi-person me-1"></i>@school.CreatorUsername
+                                            </small>
+                                            <span class="badge @(school.IsActive ? "glass-badge-success" : "glass-badge-danger")">
+                                                @(school.IsActive ? "激活" : "已停用")
+                                            </span>
+                                        </div>
+                                        
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="bi bi-calendar me-1"></i>@school.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-building display-1 text-muted"></i>
+                        <h5 class="text-muted mt-3">暂无学校数据</h5>
+                        <p class="text-muted">点击上方"创建学校"按钮添加第一个学校</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 创建学校模态框 -->
+<div class="modal fade" id="createSchoolModal" tabindex="-1" aria-labelledby="createSchoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-modal-header">
+                <h5 class="modal-title" id="createSchoolModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>创建学校
+                </h5>
+                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <form id="createSchoolForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="schoolName" class="glass-form-label">学校名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="glass-form-control" id="schoolName" name="Name" required maxlength="100" placeholder="请输入学校名称">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="submit" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>创建
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑学校模态框 -->
+<div class="modal fade" id="editSchoolModal" tabindex="-1" aria-labelledby="editSchoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-modal-header">
+                <h5 class="modal-title" id="editSchoolModalLabel">
+                    <i class="bi bi-pencil me-2"></i>编辑学校
+                </h5>
+                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <form id="editSchoolForm">
+                <input type="hidden" id="editSchoolId" name="Id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editSchoolName" class="glass-form-label">学校名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="glass-form-control" id="editSchoolName" name="Name" required maxlength="100" placeholder="请输入学校名称">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="submit" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/school-management.js" asp-append-version="true"></script>
+}

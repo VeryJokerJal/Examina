@@ -103,19 +103,51 @@
 
 
 
-                        <!-- 教师组织菜单 -->
-                        @if (User.Identity.IsAuthenticated && User.IsInRole("Teacher"))
+                        <!-- 组织管理菜单（管理员和教师） -->
+                        @if (User.Identity.IsAuthenticated && (User.IsInRole("Administrator") || User.IsInRole("Teacher")))
                         {
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="teacherOrgDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-people me-1"></i>我的组织
+                                <a class="nav-link dropdown-toggle" href="#" id="organizationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-building me-1"></i>组织管理
                                 </a>
-                                <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="teacherOrgDropdown">
-                                    <li><a class="dropdown-item glass-dropdown-item" href="/Teacher/Organization">
-                                        <i class="bi bi-house-door me-2"></i>组织首页
-                                    </a></li>
-                                    <li><a class="dropdown-item glass-dropdown-item" href="/Teacher/Organization/Join">
-                                        <i class="bi bi-plus-circle me-2"></i>加入组织
+                                <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="organizationDropdown">
+                                    @if (User.IsInRole("Administrator"))
+                                    {
+                                        <li><h6 class="dropdown-header">
+                                            <i class="bi bi-gear me-1"></i>系统管理
+                                        </h6></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="SchoolManagementWeb" asp-action="Index">
+                                            <i class="bi bi-building me-2"></i>学校管理
+                                        </a></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="ClassManagementWeb" asp-action="Index">
+                                            <i class="bi bi-people me-2"></i>班级管理
+                                        </a></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="NonOrganizationStudentWeb" asp-action="Index">
+                                            <i class="bi bi-person-plus me-2"></i>非组织学生
+                                        </a></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="UserManagementWeb" asp-action="Index">
+                                            <i class="bi bi-people-fill me-2"></i>用户管理
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                    }
+                                    @if (User.IsInRole("Teacher"))
+                                    {
+                                        <li><h6 class="dropdown-header">
+                                            <i class="bi bi-person-workspace me-1"></i>我的组织
+                                        </h6></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" href="/Teacher/Organization">
+                                            <i class="bi bi-house-door me-2"></i>组织首页
+                                        </a></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" href="/Teacher/Organization/Join">
+                                            <i class="bi bi-plus-circle me-2"></i>加入组织
+                                        </a></li>
+                                        @if (User.IsInRole("Administrator"))
+                                        {
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
+                                    }
+                                    <li><a class="dropdown-item glass-dropdown-item" asp-controller="ClassManagementWeb" asp-action="Index">
+                                        <i class="bi bi-eye me-2"></i>查看班级
                                     </a></li>
                                 </ul>
                             </li>

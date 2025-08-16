@@ -4283,3 +4283,104 @@ select.glass-select-native.glass-select-danger {
         color: rgba(0, 0, 0, 1);
     }
 }
+
+/* ===== GLASS STAT CARDS ===== */
+.glass-stat-card {
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.glass-stat-card:hover {
+    background: var(--glass-secondary);
+    transform: translateY(-2px);
+}
+
+.glass-stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.glass-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== GLASS BADGES ===== */
+.glass-badge {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.glass-badge-success {
+    background: rgba(25, 135, 84, 0.3);
+    border-color: rgba(25, 135, 84, 0.5);
+    color: #198754;
+}
+
+.glass-badge-danger {
+    background: rgba(220, 53, 69, 0.3);
+    border-color: rgba(220, 53, 69, 0.5);
+    color: #dc3545;
+}
+
+/* ===== GLASS MODALS ===== */
+.glass-modal .modal-content {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-md);
+    -webkit-backdrop-filter: var(--blur-md);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 20px 40px var(--glass-shadow);
+}
+
+.glass-modal-header {
+    background: var(--glass-secondary);
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.glass-modal-footer {
+    background: var(--glass-secondary);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+.glass-btn-close {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.3s ease;
+}
+
+.glass-btn-close:hover {
+    background: var(--glass-accent);
+    color: var(--text-primary);
+}
+
+/* ===== GLASS FORM LABELS ===== */
+.glass-form-label {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}

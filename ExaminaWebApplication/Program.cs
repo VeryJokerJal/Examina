@@ -384,6 +384,27 @@ using (IServiceScope scope = app.Services.CreateScope())
     }
 }
 
+// 组织管理相关路由
+app.MapControllerRoute(
+    name: "schoolManagement",
+    pattern: "SchoolManagement/{action=Index}/{id?}",
+    defaults: new { controller = "SchoolManagementWeb" });
+
+app.MapControllerRoute(
+    name: "classManagement",
+    pattern: "ClassManagement/{action=Index}/{id?}",
+    defaults: new { controller = "ClassManagementWeb" });
+
+app.MapControllerRoute(
+    name: "nonOrganizationStudent",
+    pattern: "NonOrganizationStudent/{action=Index}/{id?}",
+    defaults: new { controller = "NonOrganizationStudentWeb" });
+
+app.MapControllerRoute(
+    name: "userManagement",
+    pattern: "UserManagement/{action=Index}/{id?}",
+    defaults: new { controller = "UserManagementWeb" });
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
