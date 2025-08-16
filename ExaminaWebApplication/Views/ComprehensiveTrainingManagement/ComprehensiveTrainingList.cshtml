@@ -1,0 +1,273 @@
+@model List<ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining>
+@{
+	ViewData["Title"] = "综合训练列表";
+}
+
+<!-- 页面标题横幅 -->
+<div class="glass-card glass-card-primary py-4 mb-4">
+	<div class="container">
+		<div class="row align-items-center">
+			<div class="col-md-8">
+				<h1 class="display-6 fw-bold mb-2">
+					<i class="bi bi-list-ul me-3"></i>综合训练列表
+				</h1>
+				<p class="lead mb-0">管理和查看所有导入的综合训练</p>
+			</div>
+			<div class="col-md-4 text-end">
+				<a asp-action="ImportComprehensiveTraining" class="glass-btn glass-btn-primary me-2">
+					<i class="bi bi-upload me-1"></i>导入综合训练
+				</a>
+				<a asp-action="Index" class="glass-btn">
+					<i class="bi bi-speedometer2 me-1"></i>管理面板
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 搜索和筛选 -->
+<div class="container mb-4">
+	<div class="glass-card">
+		<div class="card-header">
+			<h5 class="card-title mb-0">
+				<i class="bi bi-funnel me-2"></i>搜索和筛选
+			</h5>
+		</div>
+		<div class="card-body">
+			<div class="row g-3">
+				<div class="col-md-4">
+					<label for="searchInput" class="form-label">搜索综合训练</label>
+					<input type="text" class="form-control glass-input" id="searchInput" placeholder="输入训练名称或描述...">
+				</div>
+				<div class="col-md-3">
+					<label for="statusFilter" class="form-label">状态筛选</label>
+					<select class="form-select" id="statusFilter">
+						<option value="">全部状态</option>
+						<option value="Draft">草稿</option>
+						<option value="Published">已发布</option>
+						<option value="Archived">已归档</option>
+					</select>
+				</div>
+				<div class="col-md-3">
+					<label for="typeFilter" class="form-label">类型筛选</label>
+					<select class="form-select" id="typeFilter">
+						<option value="">全部类型</option>
+						<option value="UnifiedTraining">统一训练</option>
+						<option value="PracticeTraining">练习训练</option>
+						<option value="MockTraining">模拟训练</option>
+					</select>
+				</div>
+				<div class="col-md-2">
+					<label class="form-label">&nbsp;</label>
+					<div>
+						<button type="button" class="glass-btn w-100" onclick="clearFilters()">
+							<i class="bi bi-arrow-clockwise me-1"></i>重置
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 综合训练列表 -->
+<div class="container">
+	<div class="glass-card">
+		<div class="card-header">
+			<h5 class="card-title mb-0">
+				<i class="bi bi-target me-2"></i>
+				已导入的综合训练
+				<span class="badge bg-primary ms-2">@Model.Count</span>
+			</h5>
+		</div>
+		<div class="card-body">
+			@if (Model.Any())
+			{
+				<div>
+					<table class="table glass-table" data-glass-table id="comprehensiveTrainingTable">
+						<thead>
+							<tr>
+								<th>训练信息</th>
+								<th>类型/状态</th>
+								<th>训练设置</th>
+								<th>内容统计</th>
+								<th>导入信息</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var comprehensiveTraining in Model.OrderByDescending(e => e.ImportedAt))
+							{
+								<tr>
+									<td>
+										<div class="d-flex align-items-center">
+											<div class="me-3">
+												<i class="bi bi-target text-primary" style="font-size: 1.5rem;"></i>
+											</div>
+											<div>
+												<h6 class="mb-1 fw-bold">
+													<a asp-action="ComprehensiveTrainingDetails" asp-route-id="@comprehensiveTraining.Id" 
+													   class="text-decoration-none">@comprehensiveTraining.Name</a>
+												</h6>
+												<small class="text-muted">
+													@if (!string.IsNullOrEmpty(comprehensiveTraining.Description))
+													{
+														@(comprehensiveTraining.Description.Length > 80 ? comprehensiveTraining.Description.Substring(0, 80) + "..." : comprehensiveTraining.Description)
+													}
+													else
+													{
+														<span class="text-muted">暂无描述</span>
+													}
+												</small>
+											</div>
+										</div>
+									</td>
+									<td>
+										<span class="badge bg-info mb-1">@comprehensiveTraining.ComprehensiveTrainingType</span><br>
+										<span class="badge bg-secondary">@comprehensiveTraining.Status</span>
+									</td>
+									<td>
+										<div>
+											<small class="text-muted">总分:</small> <strong>@comprehensiveTraining.TotalScore 分</strong><br>
+											<small class="text-muted">时长:</small> <strong>@comprehensiveTraining.DurationMinutes 分钟</strong><br>
+											<small class="text-muted">及格:</small> <strong>@comprehensiveTraining.PassingScore 分</strong>
+										</div>
+									</td>
+									<td>
+										<div>
+											<small class="text-muted">科目:</small> <strong>@comprehensiveTraining.Subjects.Count</strong><br>
+											<small class="text-muted">模块:</small> <strong>@comprehensiveTraining.Modules.Count</strong><br>
+											<small class="text-muted">题目:</small> <strong>@(comprehensiveTraining.Subjects.Sum(s => s.Questions.Count) + comprehensiveTraining.Modules.Sum(m => m.Questions.Count))</strong>
+										</div>
+									</td>
+									<td>
+										<div>
+											<small class="text-muted">导入时间:</small><br>
+											<small>@comprehensiveTraining.ImportedAt.ToString("yyyy-MM-dd HH:mm")</small><br>
+											@if (comprehensiveTraining.Importer != null)
+											{
+												<small class="text-muted">导入者: @comprehensiveTraining.Importer.Username</small>
+											}
+										</div>
+									</td>
+									<td>
+										<div class="btn-group btn-group-sm" role="group">
+											<a asp-action="ComprehensiveTrainingDetails" asp-route-id="@comprehensiveTraining.Id"
+											   class="glass-btn glass-btn-primary" title="查看详情">
+												<i class="bi bi-eye"></i>
+											</a>
+											<button type="button" class="glass-btn glass-btn-danger"
+													onclick="deleteComprehensiveTraining(@comprehensiveTraining.Id, '@comprehensiveTraining.Name')" title="删除">
+												<i class="bi bi-trash"></i>
+											</button>
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+			else
+			{
+				<div class="text-center py-5">
+					<i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+					<h4 class="text-muted mt-3">暂无综合训练数据</h4>
+					<p class="text-muted">您还没有导入任何综合训练，点击下方按钮开始导入</p>
+					<a asp-action="ImportComprehensiveTraining" class="glass-btn glass-btn-primary btn-lg">
+						<i class="bi bi-upload me-2"></i>导入第一个综合训练
+					</a>
+				</div>
+			}
+		</div>
+	</div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content glass-modal">
+			<div class="modal-header">
+				<h5 class="modal-title" id="deleteModalLabel">确认删除</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p>您确定要删除综合训练 "<span id="comprehensiveTrainingName"></span>" 吗？</p>
+				<p class="text-danger"><small>此操作不可撤销，将删除所有相关的科目、模块、题目和操作点数据。</small></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="glass-btn" data-bs-dismiss="modal">取消</button>
+				<form id="deleteForm" method="post" style="display: inline;">
+					@Html.AntiForgeryToken()
+					<button type="submit" class="glass-btn glass-btn-danger">确认删除</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		// 搜索功能
+		document.getElementById('searchInput').addEventListener('input', function() {
+			filterTable();
+		});
+
+		// 状态筛选
+		document.getElementById('statusFilter').addEventListener('change', function() {
+			filterTable();
+		});
+
+		// 类型筛选
+		document.getElementById('typeFilter').addEventListener('change', function() {
+			filterTable();
+		});
+
+		function filterTable() {
+			const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+			const statusFilter = document.getElementById('statusFilter').value;
+			const typeFilter = document.getElementById('typeFilter').value;
+			const table = document.getElementById('comprehensiveTrainingTable');
+			const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+			for (let i = 0; i < rows.length; i++) {
+				const row = rows[i];
+				const nameCell = row.cells[0].textContent.toLowerCase();
+				const statusCell = row.cells[1].textContent;
+				const typeCell = row.cells[1].textContent;
+
+				let showRow = true;
+
+				// 搜索筛选
+				if (searchTerm && !nameCell.includes(searchTerm)) {
+					showRow = false;
+				}
+
+				// 状态筛选
+				if (statusFilter && !statusCell.includes(statusFilter)) {
+					showRow = false;
+				}
+
+				// 类型筛选
+				if (typeFilter && !typeCell.includes(typeFilter)) {
+					showRow = false;
+				}
+
+				row.style.display = showRow ? '' : 'none';
+			}
+		}
+
+		function clearFilters() {
+			document.getElementById('searchInput').value = '';
+			document.getElementById('statusFilter').value = '';
+			document.getElementById('typeFilter').value = '';
+			filterTable();
+		}
+
+		function deleteComprehensiveTraining(id, name) {
+			document.getElementById('comprehensiveTrainingName').textContent = name;
+			document.getElementById('deleteForm').action = '@Url.Action("DeleteComprehensiveTraining")/' + id;
+			new bootstrap.Modal(document.getElementById('deleteModal')).show();
+		}
+	</script>
+}

@@ -81,6 +81,24 @@
                             </ul>
                         </li>
 
+                        <!-- 综合训练管理下拉菜单 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="comprehensiveTrainingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-target me-1"></i>综合训练管理
+                            </a>
+                            <ul class="dropdown-menu glass-dropdown-menu" aria-labelledby="comprehensiveTrainingDropdown">
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="ComprehensiveTrainingManagement" asp-action="Index">
+                                    <i class="bi bi-speedometer2 me-2"></i>管理面板
+                                </a></li>
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="ComprehensiveTrainingManagement" asp-action="ComprehensiveTrainingList">
+                                    <i class="bi bi-list-ul me-2"></i>训练列表
+                                </a></li>
+                                <li><a class="dropdown-item glass-dropdown-item" asp-controller="ComprehensiveTrainingManagement" asp-action="ImportComprehensiveTraining">
+                                    <i class="bi bi-upload me-2"></i>导入训练
+                                </a></li>
+                            </ul>
+                        </li>
+
 
 
 

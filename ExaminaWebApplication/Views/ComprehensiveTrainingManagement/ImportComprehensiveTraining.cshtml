@@ -1,0 +1,224 @@
+@{
+    ViewData["Title"] = "导入综合训练";
+}
+
+<!-- 页面标题横幅 -->
+<div class="glass-card glass-card-primary py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    <i class="bi bi-upload me-3"></i>导入综合训练
+                </h1>
+                <p class="lead mb-0">从 ExamLab 项目导入综合训练数据</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a asp-action="ComprehensiveTrainingList" class="glass-btn me-2">
+                    <i class="bi bi-list-ul me-1"></i>训练列表
+                </a>
+                <a asp-action="Index" class="glass-btn">
+                    <i class="bi bi-speedometer2 me-1"></i>管理面板
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 主要内容区域 -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- 导入说明 -->
+            <div class="glass-card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>导入说明
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-check-circle text-success me-1"></i>支持的文件格式</h6>
+                            <ul class="list-unstyled ms-3">
+                                <li><i class="bi bi-file-earmark-code me-1"></i>JSON 格式 (.json)</li>
+                                <li><i class="bi bi-file-earmark-code me-1"></i>XML 格式 (.xml)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-exclamation-triangle text-warning me-1"></i>注意事项</h6>
+                            <ul class="list-unstyled ms-3">
+                                <li><i class="bi bi-arrow-right me-1"></i>不支持重复导入相同训练</li>
+                                <li><i class="bi bi-arrow-right me-1"></i>导入后数据为只读状态</li>
+                                <li><i class="bi bi-arrow-right me-1"></i>支持任意大小的训练文件</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>提示：</strong>综合训练文件应从 ExamLab 项目导出，包含完整的训练结构、科目、模块、题目和操作点信息。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件上传表单 -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-cloud-upload me-2"></i>选择综合训练文件
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ImportComprehensiveTraining" method="post" enctype="multipart/form-data" id="importForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-4">
+                            <label for="comprehensiveTrainingFile" class="form-label">综合训练文件</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control glass-input" id="comprehensiveTrainingFile" name="comprehensiveTrainingFile"
+                                       accept=".json,.xml" required>
+                                <button type="button" class="glass-btn" onclick="clearFile()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                请选择从 ExamLab 导出的 JSON 或 XML 格式综合训练文件
+                            </div>
+                        </div>
+
+                        <!-- 文件信息预览 -->
+                        <div id="fileInfo" class="mb-4" style="display: none;">
+                            <div class="glass-card glass-card-accent">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="bi bi-file-earmark-text me-2"></i>文件信息
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">文件名：</small>
+                                            <div id="fileName" class="fw-bold"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">文件大小：</small>
+                                            <div id="fileSize" class="fw-bold"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">文件类型：</small>
+                                            <div id="fileType" class="fw-bold"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 导入按钮 -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="glass-btn me-md-2" onclick="window.history.back()">
+                                <i class="bi bi-arrow-left me-1"></i>返回
+                            </button>
+                            <button type="submit" class="glass-btn glass-btn-primary" id="submitBtn" disabled>
+                                <span id="submitText">
+                                    <i class="bi bi-upload me-1"></i>开始导入
+                                </span>
+                                <span id="loadingText" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    正在导入...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 导入历史 -->
+            <div class="glass-card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>最近导入记录
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        导入成功后，您可以在 <a asp-action="ComprehensiveTrainingList" class="text-decoration-none">综合训练列表</a> 中查看和管理导入的数据
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('comprehensiveTrainingFile');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const fileType = document.getElementById('fileType');
+            const submitBtn = document.getElementById('submitBtn');
+            const importForm = document.getElementById('importForm');
+            const submitText = document.getElementById('submitText');
+            const loadingText = document.getElementById('loadingText');
+
+            // 文件选择事件
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // 显示文件信息
+                    fileName.textContent = file.name;
+                    fileSize.textContent = formatFileSize(file.size);
+                    fileType.textContent = file.name.split('.').pop().toUpperCase();
+                    fileInfo.style.display = 'block';
+                    submitBtn.disabled = false;
+
+                    // 验证文件类型
+                    const allowedTypes = ['json', 'xml'];
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+                    if (!allowedTypes.includes(fileExtension)) {
+                        alert('只支持 JSON 和 XML 格式的文件！');
+                        clearFile();
+                        return;
+                    }
+
+                    // 验证文件大小（10MB限制）
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert('文件大小不能超过 10MB！');
+                        clearFile();
+                        return;
+                    }
+                } else {
+                    fileInfo.style.display = 'none';
+                    submitBtn.disabled = true;
+                }
+            });
+
+            // 表单提交事件
+            importForm.addEventListener('submit', function(e) {
+                if (!fileInput.files[0]) {
+                    e.preventDefault();
+                    alert('请选择要导入的综合训练文件！');
+                    return;
+                }
+
+                // 显示加载状态
+                submitBtn.disabled = true;
+                submitText.style.display = 'none';
+                loadingText.style.display = 'inline';
+            });
+        });
+
+        function clearFile() {
+            document.getElementById('comprehensiveTrainingFile').value = '';
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('submitBtn').disabled = true;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+}

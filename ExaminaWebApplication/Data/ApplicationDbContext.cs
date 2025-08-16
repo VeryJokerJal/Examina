@@ -1,5 +1,6 @@
 ﻿using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.ImportedExam;
+using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using ExaminaWebApplication.Models.Organization;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<ImportedQuestion> ImportedQuestions { get; set; }
     public DbSet<ImportedOperationPoint> ImportedOperationPoints { get; set; }
     public DbSet<ImportedParameter> ImportedParameters { get; set; }
+
+    // 导入综合训练相关实体
+    public DbSet<ImportedComprehensiveTraining> ImportedComprehensiveTrainings { get; set; }
+    public DbSet<ImportedComprehensiveTrainingSubject> ImportedComprehensiveTrainingSubjects { get; set; }
+    public DbSet<ImportedComprehensiveTrainingModule> ImportedComprehensiveTrainingModules { get; set; }
+    public DbSet<ImportedComprehensiveTrainingQuestion> ImportedComprehensiveTrainingQuestions { get; set; }
+    public DbSet<ImportedComprehensiveTrainingOperationPoint> ImportedComprehensiveTrainingOperationPoints { get; set; }
+    public DbSet<ImportedComprehensiveTrainingParameter> ImportedComprehensiveTrainingParameters { get; set; }
 
     // 组织相关实体
     public DbSet<Organization> Organizations { get; set; }
@@ -172,6 +181,10 @@ public class ApplicationDbContext : DbContext
 
         // 配置导入考试相关实体
         ConfigureImportedExamEntities(modelBuilder);
+
+        // 配置导入综合训练相关实体
+        ConfigureImportedComprehensiveTrainingEntities(modelBuilder);
+        ConfigureImportedComprehensiveTrainingQuestionEntities(modelBuilder);
     }
 
     /// <summary>
@@ -500,6 +513,252 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.UpdatedBy)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    /// <summary>
+    /// 配置导入综合训练相关实体
+    /// </summary>
+    private static void ConfigureImportedComprehensiveTrainingEntities(ModelBuilder modelBuilder)
+    {
+        // 配置ImportedComprehensiveTraining实体
+        _ = modelBuilder.Entity<ImportedComprehensiveTraining>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.OriginalComprehensiveTrainingId).IsUnique();
+            _ = entity.HasIndex(e => e.ImportedBy);
+            _ = entity.HasIndex(e => e.ImportedAt);
+            _ = entity.HasIndex(e => e.Name);
+            _ = entity.HasIndex(e => e.ComprehensiveTrainingType);
+            _ = entity.HasIndex(e => e.Status);
+            _ = entity.HasIndex(e => e.ImportStatus);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.OriginalComprehensiveTrainingId).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            _ = entity.Property(e => e.Description).HasMaxLength(1000);
+            _ = entity.Property(e => e.ComprehensiveTrainingType).IsRequired().HasMaxLength(50).HasDefaultValue("UnifiedTraining");
+            _ = entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Draft");
+            _ = entity.Property(e => e.TotalScore).HasColumnType("decimal(6,2)").HasDefaultValue(100.0m);
+            _ = entity.Property(e => e.DurationMinutes).HasDefaultValue(120);
+            _ = entity.Property(e => e.PassingScore).HasColumnType("decimal(6,2)").HasDefaultValue(60.0m);
+            _ = entity.Property(e => e.RandomizeQuestions).HasDefaultValue(false);
+            _ = entity.Property(e => e.ShowScore).HasDefaultValue(true);
+            _ = entity.Property(e => e.ShowAnswers).HasDefaultValue(false);
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            _ = entity.Property(e => e.Tags).HasMaxLength(500);
+            _ = entity.Property(e => e.ExtendedConfig).HasColumnType("json");
+            _ = entity.Property(e => e.ImportedBy).IsRequired();
+            _ = entity.Property(e => e.ImportedAt).IsRequired();
+            _ = entity.Property(e => e.ImportFileName).HasMaxLength(255);
+            _ = entity.Property(e => e.ImportVersion).HasMaxLength(20).HasDefaultValue("1.0");
+            _ = entity.Property(e => e.ImportStatus).IsRequired().HasMaxLength(50).HasDefaultValue("Success");
+            _ = entity.Property(e => e.ImportErrorMessage).HasMaxLength(2000);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Importer)
+                  .WithMany()
+                  .HasForeignKey(e => e.ImportedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置ImportedComprehensiveTrainingSubject实体
+        _ = modelBuilder.Entity<ImportedComprehensiveTrainingSubject>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.ComprehensiveTrainingId);
+            _ = entity.HasIndex(e => e.OriginalSubjectId);
+            _ = entity.HasIndex(e => e.SubjectType);
+            _ = entity.HasIndex(e => e.SortOrder);
+            _ = entity.HasIndex(e => e.ImportedAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.OriginalSubjectId).IsRequired();
+            _ = entity.Property(e => e.ComprehensiveTrainingId).IsRequired();
+            _ = entity.Property(e => e.SubjectType).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.SubjectName).IsRequired().HasMaxLength(100);
+            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            _ = entity.Property(e => e.Score).HasColumnType("decimal(5,2)").HasDefaultValue(20.0m);
+            _ = entity.Property(e => e.DurationMinutes).HasDefaultValue(30);
+            _ = entity.Property(e => e.SortOrder).HasDefaultValue(1);
+            _ = entity.Property(e => e.IsRequired).HasDefaultValue(true);
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            _ = entity.Property(e => e.MinScore).HasColumnType("decimal(5,2)");
+            _ = entity.Property(e => e.Weight).HasColumnType("decimal(5,2)").HasDefaultValue(1.0m);
+            _ = entity.Property(e => e.SubjectConfig).HasColumnType("json");
+            _ = entity.Property(e => e.QuestionCount).HasDefaultValue(0);
+            _ = entity.Property(e => e.ImportedAt).IsRequired();
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.ComprehensiveTraining)
+                  .WithMany(ct => ct.Subjects)
+                  .HasForeignKey(e => e.ComprehensiveTrainingId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置ImportedComprehensiveTrainingModule实体
+        _ = modelBuilder.Entity<ImportedComprehensiveTrainingModule>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.ComprehensiveTrainingId);
+            _ = entity.HasIndex(e => e.OriginalModuleId);
+            _ = entity.HasIndex(e => e.Type);
+            _ = entity.HasIndex(e => e.Order);
+            _ = entity.HasIndex(e => e.ImportedAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.OriginalModuleId).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.ComprehensiveTrainingId).IsRequired();
+            _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            _ = entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            _ = entity.Property(e => e.Score).IsRequired().HasDefaultValue(0);
+            _ = entity.Property(e => e.Order).IsRequired().HasDefaultValue(1);
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            _ = entity.Property(e => e.ImportedAt).IsRequired();
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.ComprehensiveTraining)
+                  .WithMany(ct => ct.Modules)
+                  .HasForeignKey(e => e.ComprehensiveTrainingId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    /// <summary>
+    /// 配置导入综合训练题目相关实体
+    /// </summary>
+    private static void ConfigureImportedComprehensiveTrainingQuestionEntities(ModelBuilder modelBuilder)
+    {
+        // 配置ImportedComprehensiveTrainingQuestion实体
+        _ = modelBuilder.Entity<ImportedComprehensiveTrainingQuestion>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.ComprehensiveTrainingId);
+            _ = entity.HasIndex(e => e.SubjectId);
+            _ = entity.HasIndex(e => e.ModuleId);
+            _ = entity.HasIndex(e => e.OriginalQuestionId);
+            _ = entity.HasIndex(e => e.QuestionType);
+            _ = entity.HasIndex(e => e.SortOrder);
+            _ = entity.HasIndex(e => e.ImportedAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.OriginalQuestionId).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.ComprehensiveTrainingId).IsRequired();
+            _ = entity.Property(e => e.Title).IsRequired().HasMaxLength(500);
+            _ = entity.Property(e => e.Content).IsRequired().HasMaxLength(2000);
+            _ = entity.Property(e => e.QuestionType).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.Score).HasColumnType("decimal(5,2)").HasDefaultValue(10.0m);
+            _ = entity.Property(e => e.DifficultyLevel).HasDefaultValue(1);
+            _ = entity.Property(e => e.EstimatedMinutes).HasDefaultValue(5);
+            _ = entity.Property(e => e.SortOrder).HasDefaultValue(1);
+            _ = entity.Property(e => e.IsRequired).HasDefaultValue(true);
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            _ = entity.Property(e => e.QuestionConfig).HasColumnType("json");
+            _ = entity.Property(e => e.AnswerValidationRules).HasColumnType("json");
+            _ = entity.Property(e => e.StandardAnswer).HasColumnType("json");
+            _ = entity.Property(e => e.ScoringRules).HasColumnType("json");
+            _ = entity.Property(e => e.Tags).HasMaxLength(500);
+            _ = entity.Property(e => e.Remarks).HasMaxLength(1000);
+            _ = entity.Property(e => e.ProgramInput).HasMaxLength(1000);
+            _ = entity.Property(e => e.ExpectedOutput).HasMaxLength(2000);
+            _ = entity.Property(e => e.ImportedAt).IsRequired();
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.ComprehensiveTraining)
+                  .WithMany()
+                  .HasForeignKey(e => e.ComprehensiveTrainingId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Subject)
+                  .WithMany(s => s.Questions)
+                  .HasForeignKey(e => e.SubjectId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Module)
+                  .WithMany(m => m.Questions)
+                  .HasForeignKey(e => e.ModuleId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置ImportedComprehensiveTrainingOperationPoint实体
+        _ = modelBuilder.Entity<ImportedComprehensiveTrainingOperationPoint>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.QuestionId);
+            _ = entity.HasIndex(e => e.OriginalOperationPointId);
+            _ = entity.HasIndex(e => e.ModuleType);
+            _ = entity.HasIndex(e => e.Order);
+            _ = entity.HasIndex(e => e.ImportedAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.OriginalOperationPointId).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.QuestionId).IsRequired();
+            _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            _ = entity.Property(e => e.ModuleType).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.Score).HasColumnType("decimal(5,2)").HasDefaultValue(0);
+            _ = entity.Property(e => e.Order).HasDefaultValue(1);
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            _ = entity.Property(e => e.CreatedTime).HasMaxLength(50);
+            _ = entity.Property(e => e.ImportedAt).IsRequired();
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Question)
+                  .WithMany(q => q.OperationPoints)
+                  .HasForeignKey(e => e.QuestionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置ImportedComprehensiveTrainingParameter实体
+        _ = modelBuilder.Entity<ImportedComprehensiveTrainingParameter>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.OperationPointId);
+            _ = entity.HasIndex(e => e.Name);
+            _ = entity.HasIndex(e => e.Type);
+            _ = entity.HasIndex(e => e.Order);
+            _ = entity.HasIndex(e => e.ImportedAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.OperationPointId).IsRequired();
+            _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            _ = entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(100);
+            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            _ = entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
+            _ = entity.Property(e => e.Value).HasMaxLength(1000);
+            _ = entity.Property(e => e.DefaultValue).HasMaxLength(1000);
+            _ = entity.Property(e => e.IsRequired).HasDefaultValue(false);
+            _ = entity.Property(e => e.Order).HasDefaultValue(1);
+            _ = entity.Property(e => e.EnumOptions).HasMaxLength(2000);
+            _ = entity.Property(e => e.ValidationRule).HasMaxLength(500);
+            _ = entity.Property(e => e.ValidationErrorMessage).HasMaxLength(200);
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            _ = entity.Property(e => e.ImportedAt).IsRequired();
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.OperationPoint)
+                  .WithMany(op => op.Parameters)
+                  .HasForeignKey(e => e.OperationPointId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
