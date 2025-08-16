@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization;
@@ -109,7 +109,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织列表失败");
-            return new List<OrganizationDto>();
+            return [];
         }
     }
 
@@ -320,7 +320,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户组织列表失败: 用户ID: {UserId}", userId);
-            return new List<StudentOrganizationDto>();
+            return [];
         }
     }
 
@@ -359,7 +359,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织成员列表失败: 组织ID: {OrganizationId}", organizationId);
-            return new List<StudentOrganizationDto>();
+            return [];
         }
     }
 

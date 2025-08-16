@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BenchSuite.Models;
 
@@ -35,7 +35,7 @@ public class ScoringResult
     /// <summary>
     /// 知识点检测结果列表（只包含与当前题目相关的知识点）
     /// </summary>
-    public List<KnowledgePointResult> KnowledgePointResults { get; set; } = new();
+    public List<KnowledgePointResult> KnowledgePointResults { get; set; } = [];
 
     /// <summary>
     /// 检测是否成功
@@ -136,7 +136,7 @@ public class KnowledgePointResult
     /// <summary>
     /// 配置参数
     /// </summary>
-    public Dictionary<string, string> Parameters { get; set; } = new();
+    public Dictionary<string, string> Parameters { get; set; } = [];
 }
 
 /// <summary>
@@ -229,7 +229,7 @@ public class CSharpScoringResult
     /// <summary>
     /// 填空结果（代码补全模式）
     /// </summary>
-    public List<FillBlankResult> FillBlankResults { get; set; } = new();
+    public List<FillBlankResult> FillBlankResults { get; set; } = [];
 
     /// <summary>
     /// 编译结果（所有模式都可能需要）
@@ -352,12 +352,12 @@ public class CompilationResult
     /// <summary>
     /// 编译错误列表
     /// </summary>
-    public List<CompilationError> Errors { get; set; } = new();
+    public List<CompilationError> Errors { get; set; } = [];
 
     /// <summary>
     /// 编译警告列表
     /// </summary>
-    public List<CompilationWarning> Warnings { get; set; } = new();
+    public List<CompilationWarning> Warnings { get; set; } = [];
 
     /// <summary>
     /// 编译后的程序集字节
@@ -475,7 +475,7 @@ public class UnitTestResult
     /// <summary>
     /// 测试用例结果列表
     /// </summary>
-    public List<TestCaseResult> TestCaseResults { get; set; } = new();
+    public List<TestCaseResult> TestCaseResults { get; set; } = [];
 
     /// <summary>
     /// 测试运行耗时（毫秒）
@@ -557,12 +557,12 @@ public class DebuggingResult
     /// <summary>
     /// 错误检测结果列表
     /// </summary>
-    public List<ErrorDetectionResult> ErrorDetections { get; set; } = new();
+    public List<ErrorDetectionResult> ErrorDetections { get; set; } = [];
 
     /// <summary>
     /// 修复验证结果
     /// </summary>
-    public List<FixVerificationResult> FixVerifications { get; set; } = new();
+    public List<FixVerificationResult> FixVerifications { get; set; } = [];
 
     /// <summary>
     /// 调试耗时（毫秒）

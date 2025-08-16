@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
 using ExamLab.Services;
@@ -38,7 +38,7 @@ public class Exam : ReactiveObject
     /// <summary>
     /// 试卷包含的模块
     /// </summary>
-    public ObservableCollection<ExamModule> Modules { get; set; } = new();
+    public ObservableCollection<ExamModule> Modules { get; set; } = [];
 
     /// <summary>
     /// 试卷总分

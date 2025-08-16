@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Organization.Dto;
+﻿using ExaminaWebApplication.Models.Organization.Dto;
 
 namespace ExaminaWebApplication.ViewModels;
 
@@ -10,10 +10,10 @@ public class TeacherOrganizationViewModel
     /// <summary>
     /// 已加入的组织列表
     /// </summary>
-    public List<StudentOrganizationDto> JoinedOrganizations { get; set; } = new();
+    public List<StudentOrganizationDto> JoinedOrganizations { get; set; } = [];
 
     /// <summary>
     /// 可加入的学校组织列表
     /// </summary>
-    public List<OrganizationDto> AvailableSchoolOrganizations { get; set; } = new();
+    public List<OrganizationDto> AvailableSchoolOrganizations { get; set; } = [];
 }

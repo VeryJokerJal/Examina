@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Organization;
 using System.Security.Cryptography;
@@ -214,7 +214,7 @@ public class InvitationCodeService : IInvitationCodeService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织邀请码列表失败: {OrganizationId}", organizationId);
-            return new List<InvitationCode>();
+            return [];
         }
     }
 

@@ -1,4 +1,4 @@
-using System.Reactive;
+﻿using System.Reactive;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ExamLab.Models;
@@ -148,7 +148,7 @@ public class CSharpModuleViewModel : ModuleViewModelBase
         try
         {
             // 定义支持的C#文件类型
-            List<string> csharpFileTypes = new() { ".cs", ".csx" };
+            List<string> csharpFileTypes = [".cs", ".csx"];
 
             // 打开文件选择对话框
             Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(

@@ -594,8 +594,7 @@ public class MainWindowViewModel : ViewModelBase
             }
 
             // 2. 验证文件类型
-            List<string> supportedExtensions = new()
-            { ".json", ".xml" };
+            List<string> supportedExtensions = [".json", ".xml"];
             if (!FilePickerService.IsValidFileType(file, supportedExtensions))
             {
                 await NotificationService.ShowErrorAsync("文件类型错误", "请选择JSON或XML格式的试卷文件");

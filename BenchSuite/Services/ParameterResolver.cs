@@ -9,7 +9,7 @@ namespace BenchSuite.Services
     /// </summary>
     public class ParameterResolutionContext
     {
-        private readonly Dictionary<string, string> _resolvedParameters = new();
+        private readonly Dictionary<string, string> _resolvedParameters = [];
         private readonly Random _random;
         private readonly string _contextId;
 
@@ -110,9 +110,7 @@ namespace BenchSuite.Services
                 return "无参数解析记录";
             }
 
-            List<string> logEntries = new();
-            logEntries.Add($"上下文ID: {_contextId}");
-            logEntries.Add($"随机种子: {_contextId.GetHashCode()}");
+            List<string> logEntries = [$"上下文ID: {_contextId}", $"随机种子: {_contextId.GetHashCode()}"];
 
             foreach (KeyValuePair<string, string> param in _resolvedParameters)
             {
@@ -260,8 +258,8 @@ namespace BenchSuite.Services
             }
 
             string[] values = parameterValue.Split(',');
-            List<string> resolvedValues = new();
-            List<string> errors = new();
+            List<string> resolvedValues = [];
+            List<string> errors = [];
 
             foreach (string value in values)
             {

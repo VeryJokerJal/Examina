@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 
@@ -229,7 +229,7 @@ public class SessionService : ISessionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户活跃会话失败，用户ID: {UserId}", userId);
-            return new List<SessionInfo>();
+            return [];
         }
     }
 

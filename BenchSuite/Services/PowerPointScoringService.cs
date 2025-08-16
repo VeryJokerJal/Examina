@@ -73,7 +73,7 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             // 收集所有操作点并记录题目关联关系
             List<OperationPointModel> allOperationPoints = [];
-            Dictionary<string, string> operationPointToQuestionMap = new();
+            Dictionary<string, string> operationPointToQuestionMap = [];
 
             foreach (QuestionModel question in pptModule.Questions)
             {
@@ -1065,7 +1065,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             // 智能搜索：优先检测指定幻灯片，如果没有找到则搜索所有幻灯片
             int totalImageCount = 0;
             string searchDetails = "";
-            List<string> allShapeTypes = new();
+            List<string> allShapeTypes = [];
 
             // 尝试获取指定的幻灯片索引
             int slideIndex = 0;
@@ -2436,7 +2436,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     private static Dictionary<string, string> GetResolvedParameters(Dictionary<string, string> originalParameters, ParameterResolutionContext context)
     {
-        Dictionary<string, string> resolvedParameters = new();
+        Dictionary<string, string> resolvedParameters = [];
 
         foreach (KeyValuePair<string, string> parameter in originalParameters)
         {

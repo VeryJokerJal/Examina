@@ -295,11 +295,18 @@
                                 <td>
                                     @if (member.IsActive)
                                     {
-                                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                                onclick="showEditMemberModal(@member.Id, '@(member.RealName ?? "")', '@(member.PhoneNumber ?? "")')"
-                                                title="编辑成员信息">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    onclick="showEditMemberModal(@member.Id, '@(member.RealName ?? "")', '@(member.PhoneNumber ?? "")')"
+                                                    title="编辑成员信息">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="removeOrganizationMember(@member.Id, '@(member.RealName ?? "")', @Model.Organization.Id)"
+                                                    title="从组织中移除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     }
                                 </td>
                             </tr>
@@ -695,6 +702,42 @@
             } catch (error) {
                 console.error('批量处理成员信息失败:', error);
                 showNotification('批量处理失败，请稍后重试', 'danger');
+            }
+        }
+
+        // 从组织中移除成员
+        async function removeOrganizationMember(memberId, memberName, organizationId) {
+            if (!confirm(`确定要从组织中移除成员"${memberName}"吗？\n\n移除后该成员将不再属于此组织，但成员信息会被保留。`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Admin/Organization/RemoveMember/${memberId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        organizationId: organizationId
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(result.message || '成员移除成功', 'success');
+
+                    // 刷新页面以显示更新后的数据
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    const errorData = await response.json();
+                    showNotification(errorData.message || '移除失败，请稍后重试', 'danger');
+                }
+            } catch (error) {
+                console.error('移除成员失败:', error);
+                showNotification('移除失败，请稍后重试', 'danger');
             }
         }
     </script>

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models.Organization;
 
@@ -59,5 +59,5 @@ public class InvitationCode
     /// <summary>
     /// 使用此邀请码的学生组织关系集合
     /// </summary>
-    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = new List<StudentOrganization>();
+    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = [];
 }

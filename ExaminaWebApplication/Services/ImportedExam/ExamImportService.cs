@@ -153,7 +153,7 @@ public class ExamImportService
     /// </summary>
     private List<string> ValidateExamData(ExamExportDto examExportDto)
     {
-        List<string> errors = new();
+        List<string> errors = [];
 
         // 验证考试基本信息
         if (string.IsNullOrWhiteSpace(examExportDto.Exam.Id))

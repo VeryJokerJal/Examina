@@ -373,7 +373,7 @@ public static class ExamMappingService
     /// </summary>
     private static List<string> GetExamTags(Exam exam)
     {
-        List<string> tags = new();
+        List<string> tags = [];
 
         // 根据模块类型添加标签
         foreach (ExamModule module in exam.Modules)

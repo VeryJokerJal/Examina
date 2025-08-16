@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -99,7 +99,7 @@ public class SecureStorageService : ISecureStorageService
     {
         try
         {
-            await SaveStorageAsync(new Dictionary<string, string>());
+            await SaveStorageAsync([]);
             return true;
         }
         catch (Exception ex)
@@ -116,7 +116,7 @@ public class SecureStorageService : ISecureStorageService
     {
         if (!File.Exists(_storageFilePath))
         {
-            return new Dictionary<string, string>();
+            return [];
         }
 
         try
@@ -124,12 +124,12 @@ public class SecureStorageService : ISecureStorageService
             byte[] encryptedData = await File.ReadAllBytesAsync(_storageFilePath);
             string decryptedJson = DecryptData(encryptedData);
             return JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson) 
-                   ?? new Dictionary<string, string>();
+                   ?? [];
         }
         catch
         {
             // 如果解密失败，返回空字典
-            return new Dictionary<string, string>();
+            return [];
         }
     }
 

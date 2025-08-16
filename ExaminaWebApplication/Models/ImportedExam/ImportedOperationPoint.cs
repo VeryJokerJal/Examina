@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.ImportedExam;
@@ -84,5 +84,5 @@ public class ImportedOperationPoint
     /// <summary>
     /// 配置参数列表
     /// </summary>
-    public virtual ICollection<ImportedParameter> Parameters { get; set; } = new List<ImportedParameter>();
+    public virtual ICollection<ImportedParameter> Parameters { get; set; } = [];
 }

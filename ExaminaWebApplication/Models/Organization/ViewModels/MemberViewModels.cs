@@ -1,4 +1,4 @@
-namespace ExaminaWebApplication.Models.Organization.ViewModels;
+﻿namespace ExaminaWebApplication.Models.Organization.ViewModels;
 
 /// <summary>
 /// 成员管理视图模型
@@ -8,7 +8,7 @@ public class MemberManagementViewModel
     /// <summary>
     /// 成员列表
     /// </summary>
-    public List<MemberDto> Members { get; set; } = new();
+    public List<MemberDto> Members { get; set; } = [];
 }
 
 /// <summary>

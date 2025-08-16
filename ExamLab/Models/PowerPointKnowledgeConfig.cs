@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
 
@@ -32,7 +32,7 @@ public class PowerPointKnowledgeConfig : ReactiveObject
     /// <summary>
     /// 配置参数模板
     /// </summary>
-    public ObservableCollection<ConfigurationParameterTemplate> ParameterTemplates { get; set; } = new();
+    public ObservableCollection<ConfigurationParameterTemplate> ParameterTemplates { get; set; } = [];
 }
 
 /// <summary>

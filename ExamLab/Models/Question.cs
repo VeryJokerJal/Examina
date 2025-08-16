@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -78,7 +78,7 @@ public class Question : ReactiveObject
     /// <summary>
     /// 关联的操作点
     /// </summary>
-    public ObservableCollection<OperationPoint> OperationPoints { get; set; } = new();
+    public ObservableCollection<OperationPoint> OperationPoints { get; set; } = [];
 
     /// <summary>
     /// 是否启用该题目
@@ -242,5 +242,5 @@ public class Question : ReactiveObject
     /// <summary>
     /// 代码补全填空处集合（仅C#模块代码补全类型使用）
     /// </summary>
-    public ObservableCollection<CodeBlank> CodeBlanks { get; set; } = new();
+    public ObservableCollection<CodeBlank> CodeBlanks { get; set; } = [];
 }

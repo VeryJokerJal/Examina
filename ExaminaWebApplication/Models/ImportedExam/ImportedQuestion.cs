@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.ImportedExam;
@@ -174,5 +174,5 @@ public class ImportedQuestion
     /// <summary>
     /// 操作点列表
     /// </summary>
-    public virtual ICollection<ImportedOperationPoint> OperationPoints { get; set; } = new List<ImportedOperationPoint>();
+    public virtual ICollection<ImportedOperationPoint> OperationPoints { get; set; } = [];
 }

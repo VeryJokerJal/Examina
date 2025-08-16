@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models;
 
@@ -107,12 +107,12 @@ public class User
     /// <summary>
     /// 用户设备列表
     /// </summary>
-    public virtual ICollection<UserDevice> Devices { get; set; } = new List<UserDevice>();
+    public virtual ICollection<UserDevice> Devices { get; set; } = [];
 
     /// <summary>
     /// 用户会话列表
     /// </summary>
-    public virtual ICollection<UserSession> Sessions { get; set; } = new List<UserSession>();
+    public virtual ICollection<UserSession> Sessions { get; set; } = [];
 }
 
 /// <summary>

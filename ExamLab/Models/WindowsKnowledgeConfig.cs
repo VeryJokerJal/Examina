@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
@@ -85,5 +85,5 @@ public class WindowsKnowledgeConfig : ReactiveObject
     /// <summary>
     /// 配置参数模板
     /// </summary>
-    public ObservableCollection<ConfigurationParameterTemplate> ParameterTemplates { get; set; } = new();
+    public ObservableCollection<ConfigurationParameterTemplate> ParameterTemplates { get; set; } = [];
 }

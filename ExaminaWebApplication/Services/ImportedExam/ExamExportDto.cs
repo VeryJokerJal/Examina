@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
 namespace ExaminaWebApplication.Services.ImportedExam;
@@ -196,7 +196,7 @@ public class ExamDto
     [JsonPropertyName("subjects")]
     [XmlArray("Subjects")]
     [XmlArrayItem("Subject")]
-    public List<SubjectDto> Subjects { get; set; } = new();
+    public List<SubjectDto> Subjects { get; set; } = [];
 
     /// <summary>
     /// 模块列表（ExamLab特有）
@@ -204,7 +204,7 @@ public class ExamDto
     [JsonPropertyName("modules")]
     [XmlArray("Modules")]
     [XmlArrayItem("Module")]
-    public List<ModuleDto> Modules { get; set; } = new();
+    public List<ModuleDto> Modules { get; set; } = [];
 }
 
 /// <summary>
@@ -295,7 +295,7 @@ public class SubjectDto
     /// 题目列表
     /// </summary>
     [JsonPropertyName("questions")]
-    public List<QuestionDto> Questions { get; set; } = new();
+    public List<QuestionDto> Questions { get; set; } = [];
 
     /// <summary>
     /// 题目数量（简化版导出使用）
@@ -364,7 +364,7 @@ public class ModuleDto
     [JsonPropertyName("questions")]
     [XmlArray("Questions")]
     [XmlArrayItem("Question")]
-    public List<QuestionDto> Questions { get; set; } = new();
+    public List<QuestionDto> Questions { get; set; } = [];
 }
 
 /// <summary>
@@ -496,7 +496,7 @@ public class QuestionDto
     /// 操作点列表
     /// </summary>
     [JsonPropertyName("operationPoints")]
-    public List<OperationPointDto> OperationPoints { get; set; } = new();
+    public List<OperationPointDto> OperationPoints { get; set; } = [];
 }
 
 /// <summary>
@@ -556,7 +556,7 @@ public class OperationPointDto
     /// 配置参数列表
     /// </summary>
     [JsonPropertyName("parameters")]
-    public List<ParameterDto> Parameters { get; set; } = new();
+    public List<ParameterDto> Parameters { get; set; } = [];
 }
 
 /// <summary>

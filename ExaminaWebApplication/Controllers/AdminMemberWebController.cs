@@ -1,8 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Organization;
-using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
 using ExaminaWebApplication.Models.Organization.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -39,11 +37,11 @@ public class AdminMemberWebController : Controller
             _logger.LogInformation("访问成员管理页面");
 
             // 获取所有成员列表
-            var members = await GetAllMembersAsync(includeInactive: false);
+            List<MemberDto>? members = await GetAllMembersAsync(includeInactive: false);
 
-            var viewModel = new MemberManagementViewModel
+            MemberManagementViewModel viewModel = new()
             {
-                Members = members ?? new List<MemberDto>()
+                Members = members ?? []
             };
 
             _logger.LogInformation("成员管理页面加载完成，成员数量: {MemberCount}", members.Count);
@@ -103,7 +101,7 @@ public class AdminMemberWebController : Controller
             member.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
             member.UpdatedAt = DateTime.UtcNow;
             member.UpdatedBy = currentUserId;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("管理员更新成员信息成功: 成员ID: {MemberId}, 真实姓名: {RealName}, 手机号: {PhoneNumber}",
                 request.MemberId, request.RealName, request.PhoneNumber ?? "空");
@@ -141,17 +139,17 @@ public class AdminMemberWebController : Controller
             int addedCount = 0;
             int updatedCount = 0;
             int failureCount = 0;
-            var addedMembers = new List<string>();
-            var updatedMembers = new List<string>();
-            var errors = new List<string>();
+            List<string> addedMembers = [];
+            List<string> updatedMembers = [];
+            List<string> errors = [];
 
-            foreach (var entry in request.MemberEntries)
+            foreach (MemberEntry entry in request.MemberEntries)
             {
                 try
                 {
                     // 检查是否已存在相同真实姓名的成员
-                    var existingMember = await _context.OrganizationMembers
-                        .FirstOrDefaultAsync(m => m.RealName == entry.RealName && m.OrganizationId == null);
+                    OrganizationMember? existingMember = await _context.OrganizationMembers
+                        .FirstOrDefaultAsync(m => m.RealName == entry.RealName && m.OrganizationId == -1);
 
                     if (existingMember != null)
                     {
@@ -173,12 +171,12 @@ public class AdminMemberWebController : Controller
                     else
                     {
                         // 创建新成员
-                        var newMember = new OrganizationMember
+                        OrganizationMember newMember = new()
                         {
                             Username = entry.RealName, // 使用真实姓名作为用户名
                             RealName = entry.RealName,
                             PhoneNumber = entry.PhoneNumber,
-                            OrganizationId = null, // 非组织成员
+                            OrganizationId = -1, // 非组织成员
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = currentUserId,
                             UpdatedAt = DateTime.UtcNow,
@@ -186,7 +184,7 @@ public class AdminMemberWebController : Controller
                             IsActive = true
                         };
 
-                        _context.OrganizationMembers.Add(newMember);
+                        _ = _context.OrganizationMembers.Add(newMember);
                         addedCount++;
                         addedMembers.Add(entry.RealName);
                     }
@@ -199,9 +197,9 @@ public class AdminMemberWebController : Controller
                 }
             }
 
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
-            var message = $"批量处理完成，新增成员 {addedCount} 个，更新成员 {updatedCount} 个";
+            string message = $"批量处理完成，新增成员 {addedCount} 个，更新成员 {updatedCount} 个";
             if (failureCount > 0)
             {
                 message += $"，失败 {failureCount} 个";
@@ -209,18 +207,59 @@ public class AdminMemberWebController : Controller
 
             return Ok(new
             {
-                message = message,
-                addedCount = addedCount,
-                updatedCount = updatedCount,
-                failureCount = failureCount,
-                addedMembers = addedMembers,
-                updatedMembers = updatedMembers,
-                errors = errors
+                message,
+                addedCount,
+                updatedCount,
+                failureCount,
+                addedMembers,
+                updatedMembers,
+                errors
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "批量添加成员失败");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 删除成员
+    /// </summary>
+    [HttpDelete]
+    [Route("Admin/Member/DeleteMember/{memberId}")]
+    public async Task<IActionResult> DeleteMember(int memberId)
+    {
+        try
+        {
+            // 查找成员
+            OrganizationMember? member = await _context.OrganizationMembers
+                .FirstOrDefaultAsync(m => m.Id == memberId && m.OrganizationId == null);
+
+            if (member == null)
+            {
+                return NotFound(new { message = "成员不存在" });
+            }
+
+            // 获取当前用户ID用于日志记录
+            string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int currentUserId))
+            {
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
+            // 硬删除成员记录
+            _context.OrganizationMembers.Remove(member);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("管理员删除成员成功: 成员ID: {MemberId}, 成员姓名: {RealName}, 操作者: {UserId}",
+                memberId, member.RealName, currentUserId);
+
+            return Ok(new { message = $"成员"{member.RealName}"删除成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "删除成员失败: 成员ID: {MemberId}", memberId);
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }
@@ -250,15 +289,15 @@ public class AdminMemberWebController : Controller
             _logger.LogInformation("从数据库获取到 {Count} 个成员记录", members.Count);
 
             List<MemberDto> result = members.Select(MapToMemberDto).ToList();
-            
+
             _logger.LogInformation("成功映射 {Count} 个成员DTO", result.Count);
-            
+
             return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取成员列表失败");
-            return new List<MemberDto>();
+            return [];
         }
     }
 
@@ -267,23 +306,20 @@ public class AdminMemberWebController : Controller
     /// </summary>
     private static MemberDto MapToMemberDto(OrganizationMember member)
     {
-        if (member == null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
-
-        return new MemberDto
-        {
-            Id = member.Id,
-            RealName = member.RealName,
-            PhoneNumber = member.PhoneNumber,
-            JoinedAt = member.CreatedAt,
-            IsActive = member.IsActive,
-            UserId = member.UserId,
-            Notes = member.Notes,
-            CreatedByUsername = member.Creator?.Username,
-            UpdatedAt = member.UpdatedAt
-        };
+        return member == null
+            ? throw new ArgumentNullException(nameof(member))
+            : new MemberDto
+            {
+                Id = member.Id,
+                RealName = member.RealName,
+                PhoneNumber = member.PhoneNumber,
+                JoinedAt = member.CreatedAt,
+                IsActive = member.IsActive,
+                UserId = member.UserId,
+                Notes = member.Notes,
+                CreatedByUsername = member.Creator?.Username,
+                UpdatedAt = member.UpdatedAt
+            };
     }
 }
 

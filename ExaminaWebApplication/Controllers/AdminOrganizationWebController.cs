@@ -694,6 +694,50 @@ public class AdminOrganizationWebController : Controller
     }
 
     /// <summary>
+    /// 从组织中移除成员
+    /// </summary>
+    [HttpDelete]
+    [Route("Admin/Organization/RemoveMember/{memberId}")]
+    public async Task<IActionResult> RemoveMember(int memberId, [FromBody] RemoveMemberRequest request)
+    {
+        try
+        {
+            // 查找组织成员
+            OrganizationMember? member = await _context.OrganizationMembers
+                .Include(m => m.Organization)
+                .FirstOrDefaultAsync(m => m.Id == memberId && m.OrganizationId == request.OrganizationId);
+
+            if (member == null)
+            {
+                return NotFound(new { message = "成员不存在或不属于该组织" });
+            }
+
+            // 获取当前用户ID用于日志记录
+            string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int currentUserId))
+            {
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
+            // 软删除：设置为非活跃状态，但保留记录
+            member.IsActive = false;
+            member.UpdatedAt = DateTime.UtcNow;
+            member.UpdatedBy = currentUserId;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("管理员从组织中移除成员: 成员ID: {MemberId}, 成员姓名: {RealName}, 组织: {OrganizationName}, 操作者: {UserId}",
+                memberId, member.RealName, member.Organization?.Name, currentUserId);
+
+            return Ok(new { message = $"成员"{member.RealName}"已从组织中移除" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "从组织中移除成员失败: 成员ID: {MemberId}", memberId);
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
     /// 从 OrganizationMember 表获取组织成员列表
     /// </summary>
     private async Task<List<OrganizationMemberDto>> GetOrganizationMembersFromTableAsync(int organizationId, bool includeInactive = false)

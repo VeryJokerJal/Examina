@@ -1,4 +1,4 @@
-using ReactiveUI.Fody.Helpers;
+﻿using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Prism.Commands;
@@ -21,7 +21,7 @@ public class PracticeViewModel : ViewModelBase
     /// <summary>
     /// 练习类型列表
     /// </summary>
-    public ObservableCollection<PracticeTypeItem> PracticeTypes { get; } = new();
+    public ObservableCollection<PracticeTypeItem> PracticeTypes { get; } = [];
 
     /// <summary>
     /// 选中的练习类型

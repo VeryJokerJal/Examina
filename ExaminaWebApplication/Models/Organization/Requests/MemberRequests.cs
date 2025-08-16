@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models.Organization.Requests;
 
@@ -36,7 +36,7 @@ public class BatchAddMembersRequest
     /// 成员数据列表
     /// </summary>
     [Required(ErrorMessage = "成员数据不能为空")]
-    public List<MemberEntry> MemberEntries { get; set; } = new();
+    public List<MemberEntry> MemberEntries { get; set; } = [];
 
     /// <summary>
     /// 是否覆盖已存在的成员
@@ -59,4 +59,16 @@ public class MemberEntry
     /// 手机号
     /// </summary>
     public string? PhoneNumber { get; set; }
+}
+
+/// <summary>
+/// 移除成员请求模型
+/// </summary>
+public class RemoveMemberRequest
+{
+    /// <summary>
+    /// 组织ID
+    /// </summary>
+    [Required(ErrorMessage = "组织ID不能为空")]
+    public int OrganizationId { get; set; }
 }

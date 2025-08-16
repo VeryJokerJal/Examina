@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using ExaminaWebApplication.Data;
@@ -150,7 +150,7 @@ public class DeviceService : IDeviceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户设备列表失败，用户ID: {UserId}", userId);
-            return new List<DeviceInfo>();
+            return [];
         }
     }
 

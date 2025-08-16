@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -143,7 +143,7 @@ public static class FilePickerService
     {
         var fileTypeChoices = new Dictionary<string, IList<string>>
         {
-            ["JSON文件"] = new List<string> { ".json" }
+            ["JSON文件"] = [".json"]
         };
 
         return await PickSaveFileAsync(suggestedFileName, fileTypeChoices);
@@ -158,7 +158,7 @@ public static class FilePickerService
     {
         Dictionary<string, IList<string>> fileTypeChoices = new Dictionary<string, IList<string>>
         {
-            ["ExamLab项目文件"] = new List<string> { ".xml" }
+            ["ExamLab项目文件"] = [".xml"]
         };
 
         return await PickSaveFileAsync(suggestedFileName, fileTypeChoices);
@@ -180,7 +180,7 @@ public static class FilePickerService
     /// <returns>选择的项目文件</returns>
     public static async Task<StorageFile?> PickProjectFileForImportAsync()
     {
-        List<string> fileTypes = new List<string> { ".xml" };
+        List<string> fileTypes = [".xml"];
         return await PickSingleFileAsync(fileTypes);
     }
 
@@ -198,20 +198,20 @@ public static class FilePickerService
         {
             ExportFormat.Json => new Dictionary<string, IList<string>>
             {
-                ["JSON文件"] = new List<string> { ".json" }
+                ["JSON文件"] = [".json"]
             },
             ExportFormat.Xml => new Dictionary<string, IList<string>>
             {
-                ["XML文件"] = new List<string> { ".xml" }
+                ["XML文件"] = [".xml"]
             },
             ExportFormat.Both => new Dictionary<string, IList<string>>
             {
-                ["JSON文件"] = new List<string> { ".json" },
-                ["XML文件"] = new List<string> { ".xml" }
+                ["JSON文件"] = [".json"],
+                ["XML文件"] = [".xml"]
             },
             _ => new Dictionary<string, IList<string>>
             {
-                ["JSON文件"] = new List<string> { ".json" }
+                ["JSON文件"] = [".json"]
             }
         };
 

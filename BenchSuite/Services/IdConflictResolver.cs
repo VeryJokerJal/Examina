@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BenchSuite.Models;
@@ -232,7 +232,7 @@ public static class IdConflictResolver
         string key = id ?? string.Empty;
         if (!seenIds.ContainsKey(key))
         {
-            seenIds[key] = new List<string>();
+            seenIds[key] = [];
         }
         seenIds[key].Add(entityInfo);
     }
@@ -251,12 +251,12 @@ public class IdValidationResult
     /// <summary>
     /// 重复的ID及其使用位置
     /// </summary>
-    public Dictionary<string, List<string>> DuplicateIds { get; set; } = new();
+    public Dictionary<string, List<string>> DuplicateIds { get; set; } = [];
 
     /// <summary>
     /// 空ID的实体位置
     /// </summary>
-    public List<string> EmptyIds { get; set; } = new();
+    public List<string> EmptyIds { get; set; } = [];
 
     /// <summary>
     /// 获取验证结果摘要

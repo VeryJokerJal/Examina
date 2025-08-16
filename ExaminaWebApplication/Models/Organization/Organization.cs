@@ -48,10 +48,10 @@ public class Organization
     /// <summary>
     /// 邀请码集合
     /// </summary>
-    public ICollection<InvitationCode> InvitationCodes { get; set; } = new List<InvitationCode>();
+    public ICollection<InvitationCode> InvitationCodes { get; set; } = [];
 
     /// <summary>
     /// 学生组织关系集合
     /// </summary>
-    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = new List<StudentOrganization>();
+    public ICollection<StudentOrganization> StudentOrganizations { get; set; } = [];
 }
