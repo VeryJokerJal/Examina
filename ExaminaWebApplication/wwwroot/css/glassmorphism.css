@@ -2518,7 +2518,7 @@ select.glass-select-native[multiple] {
     right: 0;
     z-index: 1050;
     margin-top: 4px;
-    background: var(--glass-primary);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: var(--blur-lg);
     -webkit-backdrop-filter: var(--blur-lg);
     border: 1px solid var(--glass-border);
@@ -2551,7 +2551,7 @@ select.glass-select-native[multiple] {
     padding: 12px 16px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: var(--text-primary);
+    color: var(--text-dark, rgba(0, 0, 0, 0.87));
     display: flex;
     align-items: center;
     gap: 12px;
@@ -2573,7 +2573,7 @@ select.glass-select-native[multiple] {
 /* 已选中的选项 */
 .glass-multiselect-option.selected {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
-    color: var(--text-primary);
+    color: var(--text-dark, rgba(0, 0, 0, 0.87));
 }
 
 /* 选项复选框 */
@@ -2861,7 +2861,7 @@ select.glass-select-native.glass-select-danger {
     right: 0;
     z-index: 1050;
     margin-top: 4px;
-    background: var(--glass-primary);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: var(--blur-lg);
     -webkit-backdrop-filter: var(--blur-lg);
     border: 1px solid var(--glass-border);
@@ -2892,7 +2892,7 @@ select.glass-select-native.glass-select-danger {
 /* 单个选项 */
 .glass-select-option {
     padding: 12px 16px;
-    color: var(--text-secondary);
+    color: var(--text-dark, rgba(0, 0, 0, 0.87));
     cursor: pointer;
     transition: all 0.3s ease;
     border-radius: 0;
@@ -2907,7 +2907,7 @@ select.glass-select-native.glass-select-danger {
 /* 选项悬停效果 */
 .glass-select-option:hover {
     background: rgba(102, 126, 234, 0.15);
-    color: var(--text-primary);
+    color: var(--text-dark, rgba(0, 0, 0, 0.87));
     transform: translateX(4px);
     box-shadow: inset 3px 0 0 rgba(102, 126, 234, 0.6);
 }
@@ -2916,7 +2916,7 @@ select.glass-select-native.glass-select-danger {
 .glass-select-option:focus,
 .glass-select-option.focused {
     background: rgba(102, 126, 234, 0.2);
-    color: var(--text-primary);
+    color: var(--text-dark, rgba(0, 0, 0, 0.87));
     outline: none;
     transform: translateX(4px);
     box-shadow: inset 3px 0 0 rgba(102, 126, 234, 0.8);
@@ -2925,7 +2925,7 @@ select.glass-select-native.glass-select-danger {
 /* 选中的选项 */
 .glass-select-option.selected {
     background: rgba(102, 126, 234, 0.25);
-    color: var(--text-primary);
+    color: var(--text-dark, rgba(0, 0, 0, 0.87));
     font-weight: 500;
 }
 
@@ -2938,7 +2938,7 @@ select.glass-select-native.glass-select-danger {
 
 /* 禁用的选项 */
 .glass-select-option.disabled {
-    color: var(--text-muted);
+    color: rgba(0, 0, 0, 0.45);
     cursor: not-allowed;
     opacity: 0.5;
 }
@@ -2952,7 +2952,7 @@ select.glass-select-native.glass-select-danger {
 /* 选项分组标题 */
 .glass-select-group-title {
     padding: 8px 16px 4px;
-    color: var(--text-muted);
+    color: rgba(0, 0, 0, 0.6);
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -2979,7 +2979,7 @@ select.glass-select-native.glass-select-danger {
     -webkit-backdrop-filter: var(--blur-sm);
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius-sm);
-    color: var(--text-primary);
+    color: var(--text-dark, rgba(0, 0, 0, 0.87));
     font-size: 0.85rem;
     outline: none;
     transition: all 0.3s ease;
@@ -2991,7 +2991,7 @@ select.glass-select-native.glass-select-danger {
 }
 
 .glass-select-search::placeholder {
-    color: var(--text-muted);
+    color: rgba(0, 0, 0, 0.5);
     opacity: 0.8;
 }
 
