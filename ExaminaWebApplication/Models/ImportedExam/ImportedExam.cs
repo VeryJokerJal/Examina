@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using ExaminaWebApplication.Services.ImportedExam;
@@ -35,11 +33,15 @@ public class ImportedExam
         {
             throw new ArgumentNullException(nameof(export));
         }
+        if (importedBy <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(importedBy), "导入者用户ID必须为正整数");
+        }
 
         DateTime now = DateTime.UtcNow;
 
         // 根实体映射（ExamDto -> ImportedExam）
-        ImportedExam importedExam = new ImportedExam
+        ImportedExam importedExam = new()
         {
             OriginalExamId = export.Exam.Id,
             Name = export.Exam.Name,
@@ -76,7 +78,7 @@ public class ImportedExam
         // 科目映射（SubjectDto -> ImportedSubject）
         foreach (SubjectDto subjectDto in export.Exam.Subjects)
         {
-            ImportedSubject subject = new ImportedSubject
+            ImportedSubject subject = new()
             {
                 OriginalSubjectId = subjectDto.Id,
                 SubjectType = subjectDto.SubjectType,
@@ -98,7 +100,7 @@ public class ImportedExam
             // 题目映射（在科目下）
             foreach (QuestionDto questionDto in subjectDto.Questions)
             {
-                ImportedQuestion question = new ImportedQuestion
+                ImportedQuestion question = new()
                 {
                     OriginalQuestionId = questionDto.Id,
                     Title = questionDto.Title,
@@ -128,7 +130,7 @@ public class ImportedExam
                 // 操作点映射（OperationPointDto -> ImportedOperationPoint）
                 foreach (OperationPointDto opDto in questionDto.OperationPoints)
                 {
-                    ImportedOperationPoint op = new ImportedOperationPoint
+                    ImportedOperationPoint op = new()
                     {
                         OriginalOperationPointId = opDto.Id,
                         Name = opDto.Name,
@@ -145,7 +147,7 @@ public class ImportedExam
                     // 参数映射（ParameterDto -> ImportedParameter）
                     foreach (ParameterDto paramDto in opDto.Parameters)
                     {
-                        ImportedParameter parameter = new ImportedParameter
+                        ImportedParameter parameter = new()
                         {
                             Name = paramDto.Name,
                             DisplayName = paramDto.DisplayName,
@@ -165,22 +167,22 @@ public class ImportedExam
                             OperationPoint = op
                         };
 
-                        _ = op.Parameters.Add(parameter);
+                        op.Parameters.Add(parameter);
                     }
 
-                    _ = question.OperationPoints.Add(op);
+                    question.OperationPoints.Add(op);
                 }
 
-                _ = subject.Questions.Add(question);
+                subject.Questions.Add(question);
             }
 
-            _ = importedExam.Subjects.Add(subject);
+            importedExam.Subjects.Add(subject);
         }
 
         // 模块映射（ModuleDto -> ImportedModule）
         foreach (ModuleDto moduleDto in export.Exam.Modules)
         {
-            ImportedModule module = new ImportedModule
+            ImportedModule module = new()
             {
                 OriginalModuleId = moduleDto.Id,
                 Name = moduleDto.Name,
@@ -196,7 +198,7 @@ public class ImportedExam
             // 模块内题目映射
             foreach (QuestionDto questionDto in moduleDto.Questions)
             {
-                ImportedQuestion question = new ImportedQuestion
+                ImportedQuestion question = new()
                 {
                     OriginalQuestionId = questionDto.Id,
                     Title = questionDto.Title,
@@ -225,7 +227,7 @@ public class ImportedExam
 
                 foreach (OperationPointDto opDto in questionDto.OperationPoints)
                 {
-                    ImportedOperationPoint op = new ImportedOperationPoint
+                    ImportedOperationPoint op = new()
                     {
                         OriginalOperationPointId = opDto.Id,
                         Name = opDto.Name,
@@ -241,7 +243,7 @@ public class ImportedExam
 
                     foreach (ParameterDto paramDto in opDto.Parameters)
                     {
-                        ImportedParameter parameter = new ImportedParameter
+                        ImportedParameter parameter = new()
                         {
                             Name = paramDto.Name,
                             DisplayName = paramDto.DisplayName,
@@ -261,16 +263,16 @@ public class ImportedExam
                             OperationPoint = op
                         };
 
-                        _ = op.Parameters.Add(parameter);
+                        op.Parameters.Add(parameter);
                     }
 
-                    _ = question.OperationPoints.Add(op);
+                    question.OperationPoints.Add(op);
                 }
 
-                _ = module.Questions.Add(question);
+                module.Questions.Add(question);
             }
 
-            _ = importedExam.Modules.Add(module);
+            importedExam.Modules.Add(module);
         }
 
         return importedExam;
@@ -283,7 +285,7 @@ public class ImportedExam
             return null;
         }
 
-        JsonSerializerOptions options = new JsonSerializerOptions
+        JsonSerializerOptions options = new()
         {
             WriteIndented = false
         };
@@ -475,10 +477,10 @@ public class ImportedExam
     /// <summary>
     /// 科目列表
     /// </summary>
-    public virtual ICollection<ImportedSubject> Subjects { get; set; } = new List<ImportedSubject>();
+    public virtual ICollection<ImportedSubject> Subjects { get; set; } = [];
 
     /// <summary>
     /// 模块列表
     /// </summary>
-    public virtual ICollection<ImportedModule> Modules { get; set; } = new List<ImportedModule>();
+    public virtual ICollection<ImportedModule> Modules { get; set; } = [];
 }

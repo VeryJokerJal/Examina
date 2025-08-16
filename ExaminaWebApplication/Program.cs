@@ -2,10 +2,6 @@
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
-
-using ExaminaWebApplication.Services.Excel;
-using ExaminaWebApplication.Services.Windows;
-using ExaminaWebApplication.Services.Word;
 using ExaminaWebApplication.Services.ImportedExam;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.EntityFrameworkCore;
@@ -65,16 +61,6 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IWeChatService, WeChatService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
-
-// 注册Excel相关服务
-builder.Services.AddScoped<ExcelOperationService>();
-builder.Services.AddScoped<ExcelQuestionService>();
-
-// 注册Windows相关服务
-builder.Services.AddScoped<WindowsOperationService>();
-
-// 注册Word相关服务
-builder.Services.AddScoped<WordOperationService>();
 
 // 注册考试导入相关服务
 builder.Services.AddScoped<ExamImportService>();
@@ -352,6 +338,41 @@ app.MapStaticAssets();
 // 映射API控制器
 app.MapControllers();
 
+// 应用启动时进行简单的种子数据检查，确保至少存在一个管理员用户
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        // 仅在数据库可用时执行
+        if (db.Database.CanConnect())
+        {
+            bool hasAnyUser = db.Users.Any();
+            if (!hasAnyUser)
+            {
+                User admin = new User
+                {
+                    Username = "admin",
+                    Email = "admin@example.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456"),
+                    Role = UserRole.Administrator,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    AllowMultipleDevices = true,
+                    MaxDeviceCount = 10
+                };
+                db.Users.Add(admin);
+                db.SaveChanges();
+            }
+        }
+    }
+    catch (Exception seedingEx)
+    {
+        // 仅记录，不阻止应用启动
+        logger.LogWarning(seedingEx, "用户种子初始化失败，可能导致外键导入失败。请确保至少存在一个有效用户。");
+    }
+}
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
@@ -507,11 +528,9 @@ static async Task ValidateDatabaseStateAsync(ApplicationDbContext context, ILogg
     {
         // 检查关键表是否存在并可访问
         int userCount = await context.Users.CountAsync();
-        int excelOpCount = await context.ExcelOperationPoints.CountAsync();
 
         logger.LogInformation("数据库状态验证成功:");
         logger.LogInformation("  - 用户数量: {UserCount}", userCount);
-        logger.LogInformation("  - Excel操作点数量: {ExcelOpCount}", excelOpCount);
 
         // 检查数据库版本信息
         string? lastMigration = (await context.Database.GetAppliedMigrationsAsync()).LastOrDefault();

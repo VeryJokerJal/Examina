@@ -38,6 +38,17 @@ public class ExamImportService
 
         try
         {
+            // 校验导入用户是否存在，避免外键约束错误
+            bool userExists = await _context.Users.AnyAsync(u => u.Id == importedBy);
+            if (!userExists)
+            {
+                result.IsSuccess = false;
+                result.ErrorMessage = $"导入者用户不存在或无效（ID={importedBy}），请先创建有效用户后再导入。";
+                result.EndTime = DateTime.UtcNow;
+                _logger.LogWarning("导入者不存在，已阻止导入。ImportedBy={ImportedBy}", importedBy);
+                return result;
+            }
+
             // 读取文件内容
             using StreamReader reader = new(fileStream);
             string content = await reader.ReadToEndAsync();
@@ -189,6 +200,12 @@ public class ExamImportService
     /// </summary>
     private async Task<Models.ImportedExam.ImportedExam> ConvertAndSaveExamAsync(ExamExportDto examExportDto, string fileName, long fileSize, int importedBy)
     {
+        // 再次防御性校验导入者存在性
+        if (!await _context.Users.AnyAsync(u => u.Id == importedBy))
+        {
+            throw new InvalidOperationException($"导入者用户不存在或无效（ID={importedBy}），无法保存导入考试。");
+        }
+
         // 使用执行策略来处理 MySQL 重试机制
         var strategy = _context.Database.CreateExecutionStrategy();
         return await strategy.ExecuteAsync(async () =>
