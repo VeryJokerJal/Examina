@@ -388,22 +388,22 @@ using (IServiceScope scope = app.Services.CreateScope())
 app.MapControllerRoute(
     name: "schoolManagement",
     pattern: "SchoolManagement/{action=Index}/{id?}",
-    defaults: new { controller = "SchoolManagementWeb" });
+    defaults: new { controller = "SchoolManagement" });
 
 app.MapControllerRoute(
     name: "classManagement",
     pattern: "ClassManagement/{action=Index}/{id?}",
-    defaults: new { controller = "ClassManagementWeb" });
+    defaults: new { controller = "ClassManagement" });
 
 app.MapControllerRoute(
     name: "nonOrganizationStudent",
     pattern: "NonOrganizationStudent/{action=Index}/{id?}",
-    defaults: new { controller = "NonOrganizationStudentWeb" });
+    defaults: new { controller = "NonOrganizationStudent" });
 
 app.MapControllerRoute(
     name: "userManagement",
     pattern: "UserManagement/{action=Index}/{id?}",
-    defaults: new { controller = "UserManagementWeb" });
+    defaults: new { controller = "UserManagement" });
 
 app.MapControllerRoute(
     name: "default",

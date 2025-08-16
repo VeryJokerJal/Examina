@@ -60,9 +60,9 @@ function searchStudents() {
     
     if (keyword) {
         // 使用搜索API
-        const url = searchType === 'phone' ? 
-            '/api/NonOrganizationStudent/search/phone' : 
-            '/api/NonOrganizationStudent/search/name';
+        const url = searchType === 'phone' ?
+            '/api/NonOrganizationStudentApi/search/phone' :
+            '/api/NonOrganizationStudentApi/search/name';
         
         showLoading('#studentsContainer');
         
@@ -94,7 +94,7 @@ function loadStudents(page = 1, includeInactive = false) {
     showLoading('#studentsContainer');
     
     $.ajax({
-        url: '/api/NonOrganizationStudent',
+        url: '/api/NonOrganizationStudentApi',
         method: 'GET',
         data: {
             pageNumber: page,
@@ -106,7 +106,7 @@ function loadStudents(page = 1, includeInactive = false) {
             
             // 获取总数
             $.ajax({
-                url: '/api/NonOrganizationStudent/count',
+                url: '/api/NonOrganizationStudentApi/count',
                 method: 'GET',
                 data: { includeInactive: includeInactive },
                 success: function(totalCount) {
@@ -304,7 +304,7 @@ function createStudent() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>添加中...').prop('disabled', true);
 
     $.ajax({
-        url: '/api/NonOrganizationStudent',
+        url: '/api/NonOrganizationStudentApi',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -336,7 +336,7 @@ function createStudent() {
 function editStudent(studentId) {
     // 获取学生详情
     $.ajax({
-        url: `/api/NonOrganizationStudent/${studentId}`,
+        url: `/api/NonOrganizationStudentApi/${studentId}`,
         method: 'GET',
         success: function(student) {
             // 填充编辑表单
@@ -383,7 +383,7 @@ function updateStudent() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>保存中...').prop('disabled', true);
 
     $.ajax({
-        url: `/api/NonOrganizationStudent/${studentId}`,
+        url: `/api/NonOrganizationStudentApi/${studentId}`,
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -415,7 +415,7 @@ function deleteStudent(studentId) {
     }
 
     $.ajax({
-        url: `/api/NonOrganizationStudent/${studentId}`,
+        url: `/api/NonOrganizationStudentApi/${studentId}`,
         method: 'DELETE',
         success: function() {
             showSuccessMessage('学生已删除');
@@ -437,7 +437,7 @@ function linkToUser(studentId) {
     }
 
     $.ajax({
-        url: `/api/NonOrganizationStudent/${studentId}/link-user/${userId}`,
+        url: `/api/NonOrganizationStudentApi/${studentId}/link-user/${userId}`,
         method: 'POST',
         success: function() {
             showSuccessMessage('用户关联成功');

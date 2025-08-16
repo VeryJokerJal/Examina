@@ -47,9 +47,9 @@ function searchClasses() {
     
     showLoading('#classesContainer');
     
-    let url = '/api/ClassManagement';
+    let url = '/api/ClassManagementApi';
     if (schoolId) {
-        url = `/api/SchoolManagement/${schoolId}/classes`;
+        url = `/api/SchoolManagementApi/${schoolId}/classes`;
     }
     
     $.ajax({
@@ -194,7 +194,7 @@ function createClass() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>创建中...').prop('disabled', true);
 
     $.ajax({
-        url: '/api/ClassManagement',
+        url: '/api/ClassManagementApi',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -225,7 +225,7 @@ function createClass() {
 function editClass(classId) {
     // 获取班级详情
     $.ajax({
-        url: `/api/ClassManagement/${classId}`,
+        url: `/api/ClassManagementApi/${classId}`,
         method: 'GET',
         success: function(classOrg) {
             // 填充编辑表单
@@ -270,7 +270,7 @@ function updateClass() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>保存中...').prop('disabled', true);
 
     $.ajax({
-        url: `/api/ClassManagement/${classId}`,
+        url: `/api/ClassManagementApi/${classId}`,
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -301,7 +301,7 @@ function deactivateClass(classId) {
     }
 
     $.ajax({
-        url: `/api/ClassManagement/${classId}`,
+        url: `/api/ClassManagementApi/${classId}`,
         method: 'DELETE',
         success: function() {
             showSuccessMessage('班级已停用');
@@ -329,7 +329,7 @@ function loadInvitationCodes(classId) {
     showLoading('#invitationCodesContainer');
     
     $.ajax({
-        url: `/api/ClassManagement/${classId}/invitation-codes`,
+        url: `/api/ClassManagementApi/${classId}/invitation-codes`,
         method: 'GET',
         success: function(invitationCodes) {
             renderInvitationCodes(invitationCodes);
@@ -428,7 +428,7 @@ function createInvitationCode() {
     }
 
     $.ajax({
-        url: `/api/ClassManagement/${currentClassId}/invitation-codes`,
+        url: `/api/ClassManagementApi/${currentClassId}/invitation-codes`,
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({}),

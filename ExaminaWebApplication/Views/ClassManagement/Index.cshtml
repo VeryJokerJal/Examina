@@ -1,4 +1,4 @@
-@model ExaminaWebApplication.ViewModels.ClassManagementViewModel
+﻿@model ExaminaWebApplication.ViewModels.ClassManagementViewModel
 @{
     ViewData["Title"] = "班级管理";
 }
@@ -33,7 +33,8 @@
                         <option value="">全部学校</option>
                         @foreach (var school in Model.Schools)
                         {
-                            <option value="@school.Id" @(Model.SelectedSchool?.Id == school.Id ? "selected" : "")>
+                            string selected = Model.SelectedSchool?.Id == school.Id ? "selected" : "";
+                            <option value="@school.Id" selected="@selected">
                                 @school.Name
                             </option>
                         }

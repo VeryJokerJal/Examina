@@ -32,7 +32,8 @@
                     <select class="glass-form-control" id="roleFilter">
                         @foreach (var option in Model.RoleFilterOptions)
                         {
-                            <option value="@(option.Value?.ToString() ?? "")" @(Model.SelectedRole == option.Value ? "selected" : "")>
+                            string selected = Model.SelectedRole == option.Value ? "selected" : "";
+                            <option value="@(option.Value?.ToString() ?? "")" selected="@selected">
                                 @option.Text
                             </option>
                         }

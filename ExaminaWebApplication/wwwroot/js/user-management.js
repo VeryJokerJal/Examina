@@ -135,7 +135,7 @@ function searchUsers() {
     showLoading('#usersContainer');
     
     $.ajax({
-        url: '/api/UserManagement',
+        url: '/api/UserManagementApi',
         method: 'GET',
         data: {
             role: role || null,
@@ -330,7 +330,7 @@ function createUser() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>创建中...').prop('disabled', true);
 
     $.ajax({
-        url: '/api/UserManagement',
+        url: '/api/UserManagementApi',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -362,7 +362,7 @@ function createUser() {
 function editUser(userId) {
     // 获取用户详情
     $.ajax({
-        url: `/api/UserManagement/${userId}`,
+        url: `/api/UserManagementApi/${userId}`,
         method: 'GET',
         success: function(user) {
             // 填充编辑表单
@@ -407,7 +407,7 @@ function updateUser() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>保存中...').prop('disabled', true);
 
     $.ajax({
-        url: `/api/UserManagement/${userId}`,
+        url: `/api/UserManagementApi/${userId}`,
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -463,7 +463,7 @@ function resetUserPassword() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>重置中...').prop('disabled', true);
 
     $.ajax({
-        url: `/api/UserManagement/${userId}/reset-password`,
+        url: `/api/UserManagementApi/${userId}/reset-password`,
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ newPassword: newPassword }),
@@ -494,7 +494,7 @@ function deactivateUser(userId) {
     }
 
     $.ajax({
-        url: `/api/UserManagement/${userId}/deactivate`,
+        url: `/api/UserManagementApi/${userId}/deactivate`,
         method: 'POST',
         success: function() {
             showSuccessMessage('用户已停用');
@@ -509,7 +509,7 @@ function deactivateUser(userId) {
 // 激活用户
 function activateUser(userId) {
     $.ajax({
-        url: `/api/UserManagement/${userId}/activate`,
+        url: `/api/UserManagementApi/${userId}/activate`,
         method: 'POST',
         success: function() {
             showSuccessMessage('用户已激活');

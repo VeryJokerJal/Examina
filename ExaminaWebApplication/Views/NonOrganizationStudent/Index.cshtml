@@ -1,4 +1,4 @@
-@model ExaminaWebApplication.ViewModels.NonOrganizationStudentViewModel
+﻿@model ExaminaWebApplication.ViewModels.NonOrganizationStudentViewModel
 @{
     ViewData["Title"] = "非组织学生管理";
 }
@@ -32,7 +32,8 @@
                     <select class="glass-form-control" id="searchType">
                         @foreach (var option in Model.SearchTypeOptions)
                         {
-                            <option value="@option.Value" @(Model.SearchType == option.Value ? "selected" : "")>
+                            string selected = Model.SearchType == option.Value ? "selected" : "";
+                            <option value="@option.Value" selected="@selected">
                                 @option.Text
                             </option>
                         }

@@ -40,7 +40,7 @@ function searchSchools() {
     showLoading('#schoolsContainer');
     
     $.ajax({
-        url: '/api/SchoolManagement',
+        url: '/api/SchoolManagementApi',
         method: 'GET',
         data: {
             includeInactive: includeInactive
@@ -167,7 +167,7 @@ function createSchool() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>创建中...').prop('disabled', true);
 
     $.ajax({
-        url: '/api/SchoolManagement',
+        url: '/api/SchoolManagementApi',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -198,7 +198,7 @@ function createSchool() {
 function editSchool(schoolId) {
     // 获取学校详情
     $.ajax({
-        url: `/api/SchoolManagement/${schoolId}`,
+        url: `/api/SchoolManagementApi/${schoolId}`,
         method: 'GET',
         success: function(school) {
             // 填充编辑表单
@@ -237,7 +237,7 @@ function updateSchool() {
     submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>保存中...').prop('disabled', true);
 
     $.ajax({
-        url: `/api/SchoolManagement/${schoolId}`,
+        url: `/api/SchoolManagementApi/${schoolId}`,
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -268,7 +268,7 @@ function deactivateSchool(schoolId) {
     }
 
     $.ajax({
-        url: `/api/SchoolManagement/${schoolId}`,
+        url: `/api/SchoolManagementApi/${schoolId}`,
         method: 'DELETE',
         success: function() {
             showSuccessMessage('学校已停用');
