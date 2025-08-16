@@ -245,12 +245,9 @@
                 <table class="table glass-table">
                     <thead>
                         <tr>
-                            <th>用户名</th>
                             <th>真实姓名</th>
-                            <th>学号</th>
                             <th>手机号</th>
                             <th>加入时间</th>
-                            <th>邀请码</th>
                             <th>状态</th>
                             <th>操作</th>
                         </tr>
@@ -260,53 +257,26 @@
                         {
                             <tr>
                                 <td>
-                                    <i class="bi bi-person me-1"></i>@member.StudentUsername
-                                </td>
-                                <td>@(member.StudentRealName ?? "-")</td>
-                                <td>@(member.StudentId_Number ?? "-")</td>
-                                <td>
                                     <div class="d-flex align-items-center">
-                                        <!-- 显示模式 -->
-                                        <span id="phone-display-@member.StudentId" class="me-2">
-                                            @if (!string.IsNullOrEmpty(member.StudentPhoneNumber))
-                                            {
-                                                <i class="bi bi-telephone me-1"></i>@member.StudentPhoneNumber
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">未设置</span>
-                                            }
-                                        </span>
-
-                                        <!-- 编辑模式 -->
-                                        <div id="phone-edit-@member.StudentId" class="d-flex align-items-center" style="display: none;">
-                                            <input type="tel"
-                                                   id="phone-input-@member.StudentId"
-                                                   class="form-control form-control-sm me-2"
-                                                   style="width: 140px;"
-                                                   value="@(member.StudentPhoneNumber ?? "")"
-                                                   placeholder="请输入手机号"
-                                                   maxlength="11">
-                                            <button type="button"
-                                                    class="btn btn-sm btn-success me-1"
-                                                    onclick="savePhoneNumber(@member.StudentId)"
-                                                    title="保存">
-                                                <i class="bi bi-check"></i>
-                                            </button>
-                                            <button type="button"
-                                                    class="btn btn-sm btn-secondary"
-                                                    onclick="cancelEditPhone(@member.StudentId)"
-                                                    title="取消">
-                                                <i class="bi bi-x"></i>
-                                            </button>
-                                        </div>
+                                        <i class="bi bi-person me-2"></i>
+                                        <span>@(member.RealName ?? "未设置")</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <small>@member.JoinedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                    @if (!string.IsNullOrEmpty(member.PhoneNumber))
+                                    {
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-telephone me-1"></i>
+                                            <span>@member.PhoneNumber</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">未设置</span>
+                                    }
                                 </td>
                                 <td>
-                                    <code class="text-muted">@member.InvitationCode</code>
+                                    <small>@member.JoinedAt.ToString("yyyy-MM-dd HH:mm")</small>
                                 </td>
                                 <td>
                                     @if (member.IsActive)
@@ -326,9 +296,9 @@
                                     @if (member.IsActive)
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-primary"
-                                                onclick="editPhoneNumber(@member.StudentId)"
-                                                title="编辑手机号">
-                                            <i class="bi bi-telephone"></i>
+                                                onclick="showEditMemberModal(@member.Id, '@(member.RealName ?? "")', '@(member.PhoneNumber ?? "")')"
+                                                title="编辑成员信息">
+                                            <i class="bi bi-pencil"></i>
                                         </button>
                                     }
                                 </td>
@@ -387,6 +357,54 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑成员信息模态框 -->
+<div class="modal fade" id="editMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-gear me-2"></i>编辑成员信息
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editMemberForm">
+                    <div class="mb-3">
+                        <label for="editRealName" class="form-label">
+                            <i class="bi bi-person me-1"></i>真实姓名
+                        </label>
+                        <input type="text"
+                               id="editRealName"
+                               class="form-control glass-input"
+                               placeholder="请输入真实姓名"
+                               maxlength="50">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editPhoneNumber" class="form-label">
+                            <i class="bi bi-telephone me-1"></i>手机号
+                        </label>
+                        <input type="tel"
+                               id="editPhoneNumber"
+                               class="form-control glass-input"
+                               placeholder="请输入手机号"
+                               maxlength="11">
+                        <div class="form-text">请输入11位手机号码</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="glass-btn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>取消
+                </button>
+                <button type="button" class="glass-btn glass-btn-primary" onclick="saveMemberInfo()">
+                    <i class="bi bi-check-circle me-2"></i>保存
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -510,84 +528,73 @@
             }
         }
 
-        // 手机号编辑功能
-        function editPhoneNumber(studentId) {
-            const displayElement = document.getElementById(`phone-display-${studentId}`);
-            const editElement = document.getElementById(`phone-edit-${studentId}`);
-            const inputElement = document.getElementById(`phone-input-${studentId}`);
+        // 成员信息编辑功能
+        let currentEditingMemberId = null;
 
-            if (!displayElement || !editElement || !inputElement) {
-                console.error(`无法找到编辑手机号所需的DOM元素，studentId: ${studentId}`);
-                showNotification('编辑功能初始化失败，请刷新页面重试', 'danger');
-                return;
-            }
+        function showEditMemberModal(memberId, realName, phoneNumber) {
+            currentEditingMemberId = memberId;
 
-            displayElement.style.display = 'none';
-            editElement.style.display = 'flex';
-            inputElement.focus();
+            // 填充表单数据
+            document.getElementById('editRealName').value = realName || '';
+            document.getElementById('editPhoneNumber').value = phoneNumber || '';
+
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('editMemberModal'));
+            modal.show();
         }
 
-        function cancelEditPhone(studentId) {
-            const displayElement = document.getElementById(`phone-display-${studentId}`);
-            const editElement = document.getElementById(`phone-edit-${studentId}`);
-
-            if (!displayElement || !editElement) {
-                console.error(`无法找到取消编辑所需的DOM元素，studentId: ${studentId}`);
+        async function saveMemberInfo() {
+            if (!currentEditingMemberId) {
+                showNotification('编辑会话已失效，请重新打开编辑窗口', 'warning');
                 return;
             }
 
-            displayElement.style.display = 'block';
-            editElement.style.display = 'none';
-        }
+            const realName = document.getElementById('editRealName').value.trim();
+            const phoneNumber = document.getElementById('editPhoneNumber').value.trim();
 
-        async function savePhoneNumber(studentId) {
-            const phoneInput = document.getElementById(`phone-input-${studentId}`);
-
-            if (!phoneInput) {
-                console.error(`无法找到手机号输入框，studentId: ${studentId}`);
-                showNotification('保存失败，请刷新页面重试', 'danger');
+            // 验证真实姓名
+            if (!realName) {
+                showNotification('请输入真实姓名', 'warning');
                 return;
             }
 
-            const phoneNumber = phoneInput.value.trim();
-
-            // 简单的手机号验证
+            // 验证手机号格式（如果填写了）
             if (phoneNumber && !/^1[3-9]\d{9}$/.test(phoneNumber)) {
                 showNotification('请输入正确的手机号格式', 'warning');
                 return;
             }
 
             try {
-                const response = await fetch('/Admin/Organization/UpdateMemberPhone', {
+                const response = await fetch('/Admin/Organization/UpdateMemberInfo', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                     },
                     body: JSON.stringify({
-                        studentId: studentId,
-                        phoneNumber: phoneNumber
+                        memberId: currentEditingMemberId,
+                        realName: realName,
+                        phoneNumber: phoneNumber || null
                     })
                 });
 
                 if (response.ok) {
-                    showNotification('手机号更新成功', 'success');
-                    // 更新显示
-                    const displayElement = document.getElementById(`phone-display-${studentId}`);
-                    if (displayElement) {
-                        if (phoneNumber) {
-                            displayElement.innerHTML = `<i class="bi bi-telephone me-1"></i>${phoneNumber}`;
-                        } else {
-                            displayElement.innerHTML = '<span class="text-muted">未设置</span>';
-                        }
-                    }
-                    cancelEditPhone(studentId);
+                    showNotification('成员信息更新成功', 'success');
+
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editMemberModal'));
+                    modal.hide();
+
+                    // 刷新页面以显示更新后的数据
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 } else {
                     const errorData = await response.json();
                     showNotification(errorData.message || '更新失败，请稍后重试', 'danger');
                 }
             } catch (error) {
-                console.error('更新手机号失败:', error);
+                console.error('更新成员信息失败:', error);
                 showNotification('更新失败，请稍后重试', 'danger');
             }
         }

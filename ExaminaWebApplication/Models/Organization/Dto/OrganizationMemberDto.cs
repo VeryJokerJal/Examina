@@ -1,4 +1,4 @@
-namespace ExaminaWebApplication.Models.Organization.Dto;
+﻿namespace ExaminaWebApplication.Models.Organization.Dto;
 
 /// <summary>
 /// 组织成员DTO
@@ -14,16 +14,6 @@ public class OrganizationMemberDto
     /// 用户名
     /// </summary>
     public string Username { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 真实姓名
-    /// </summary>
-    public string? RealName { get; set; }
-
-    /// <summary>
-    /// 学号/工号
-    /// </summary>
-    public string? StudentId { get; set; }
 
     /// <summary>
     /// 手机号
@@ -71,21 +61,11 @@ public class OrganizationMemberDto
     public DateTime UpdatedAt { get; set; }
 
     // 为了与现有视图兼容，添加映射属性
-    
+
     /// <summary>
     /// 学生用户名（兼容性属性）
     /// </summary>
     public string StudentUsername => Username;
-
-    /// <summary>
-    /// 学生真实姓名（兼容性属性）
-    /// </summary>
-    public string? StudentRealName => RealName;
-
-    /// <summary>
-    /// 学生学号（兼容性属性）
-    /// </summary>
-    public string? StudentId_Number => StudentId;
 
     /// <summary>
     /// 学生手机号（兼容性属性）
@@ -101,9 +81,4 @@ public class OrganizationMemberDto
     /// 学生ID（兼容性属性，使用成员ID）
     /// </summary>
     public int StudentId_Compat => Id;
-
-    /// <summary>
-    /// 学生ID（兼容性属性，用于JavaScript函数）
-    /// </summary>
-    public int StudentId => Id;
 }

@@ -1,13 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ExaminaWebApplication.Services.Organization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
-using System.Security.Claims;
-using System.ComponentModel.DataAnnotations;
-using ExaminaWebApplication.Data;
-using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Services.Organization;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Controllers;
@@ -92,7 +91,7 @@ public class AdminOrganizationWebController : Controller
 
             _logger.LogInformation("管理员 {AdminUserId} 创建组织成功: {OrganizationName}", adminUserId, organization.Name);
             TempData["SuccessMessage"] = $"组织 '{organization.Name}' 创建成功";
-            
+
             return RedirectToAction(nameof(Details), new { id = organization.Id });
         }
         catch (InvalidOperationException ex)
@@ -126,19 +125,19 @@ public class AdminOrganizationWebController : Controller
             }
 
             // 获取邀请码列表
-            var invitationCodes = await _invitationCodeService.GetOrganizationInvitationCodesAsync(id, includeInactive: true);
-            
+            List<InvitationCode> invitationCodes = await _invitationCodeService.GetOrganizationInvitationCodesAsync(id, includeInactive: true);
+
             // 获取成员列表（从 OrganizationMember 表）
-            var members = await GetOrganizationMembersFromTableAsync(id, includeInactive: false);
+            List<OrganizationMemberDto> members = await GetOrganizationMembersFromTableAsync(id, includeInactive: false);
 
             // 添加调试日志
             _logger.LogInformation("组织 {OrganizationId} 的成员数量: {MemberCount}", id, members.Count);
-            foreach (var member in members)
+            foreach (OrganizationMemberDto member in members)
             {
                 _logger.LogInformation("成员: {Username}, 手机号: {Phone}", member.Username, member.PhoneNumber ?? "未设置");
             }
 
-            var viewModel = new OrganizationDetailsViewModel
+            OrganizationDetailsViewModel viewModel = new()
             {
                 Organization = organization,
                 InvitationCodes = invitationCodes.Select(ic => new InvitationCodeDto
@@ -153,7 +152,7 @@ public class AdminOrganizationWebController : Controller
                     UsageCount = ic.UsageCount,
                     MaxUsage = ic.MaxUsage
                 }).ToList(),
-                Members = members ?? new List<OrganizationMemberDto>()
+                Members = members ?? []
             };
 
             // 验证 ViewModel
@@ -186,7 +185,7 @@ public class AdminOrganizationWebController : Controller
                 return RedirectToAction(nameof(Index));
             }
 
-            var request = new UpdateOrganizationRequest
+            UpdateOrganizationRequest request = new()
             {
                 Name = organization.Name
             };
@@ -272,7 +271,7 @@ public class AdminOrganizationWebController : Controller
             }
 
             // 创建邀请码
-            var invitationCode = await _invitationCodeService.CreateInvitationCodeAsync(
+            InvitationCode invitationCode = await _invitationCodeService.CreateInvitationCodeAsync(
                 id, request.ExpiresAt, request.MaxUsage);
 
             string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -400,7 +399,7 @@ public class AdminOrganizationWebController : Controller
             member.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber;
             member.UpdatedAt = DateTime.UtcNow;
             member.UpdatedBy = currentUserId;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("管理员更新用户手机号成功: 用户ID: {UserId}, 新手机号: {PhoneNumber}",
                 request.StudentId, request.PhoneNumber ?? "空");
@@ -410,6 +409,67 @@ public class AdminOrganizationWebController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "更新用户手机号失败: 用户ID: {UserId}", request.StudentId);
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 更新成员信息（真实姓名和手机号）
+    /// </summary>
+    [HttpPost]
+    [Route("Admin/Organization/UpdateMemberInfo")]
+    public async Task<IActionResult> UpdateMemberInfo([FromBody] UpdateMemberInfoRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "请求参数无效" });
+            }
+
+            // 查找组织成员
+            OrganizationMember? member = await _context.OrganizationMembers
+                .FirstOrDefaultAsync(m => m.Id == request.MemberId);
+            if (member == null)
+            {
+                return NotFound(new { message = "成员不存在" });
+            }
+
+            // 检查手机号是否已被同组织其他成员使用（如果不为空）
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                bool phoneExists = await _context.OrganizationMembers
+                    .AnyAsync(m => m.PhoneNumber == request.PhoneNumber &&
+                                  m.Id != request.MemberId &&
+                                  m.OrganizationId == member.OrganizationId);
+                if (phoneExists)
+                {
+                    return BadRequest(new { message = "该手机号已被同组织其他成员使用" });
+                }
+            }
+
+            // 获取当前用户ID
+            string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int currentUserId))
+            {
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
+            // 更新成员信息
+            member.RealName = request.RealName?.Trim();
+            member.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
+            member.UpdatedAt = DateTime.UtcNow;
+            member.UpdatedBy = currentUserId;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("管理员更新成员信息成功: 成员ID: {MemberId}, 真实姓名: {RealName}, 手机号: {PhoneNumber}",
+                request.MemberId, request.RealName, request.PhoneNumber ?? "空");
+
+            return Ok(new { message = "成员信息更新成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新成员信息失败: 成员ID: {MemberId}", request.MemberId);
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }
@@ -438,9 +498,9 @@ public class AdminOrganizationWebController : Controller
             int addedCount = 0;
             int updatedCount = 0;
             int failureCount = 0;
-            List<string> errors = new();
-            List<string> addedMembers = new();
-            List<string> updatedMembers = new();
+            List<string> errors = [];
+            List<string> addedMembers = [];
+            List<string> updatedMembers = [];
 
             // 验证组织ID
             int organizationId = request.OrganizationId;
@@ -506,7 +566,7 @@ public class AdminOrganizationWebController : Controller
                             IsActive = true
                         };
 
-                        _context.OrganizationMembers.Add(newMember);
+                        _ = _context.OrganizationMembers.Add(newMember);
                         addedCount++;
                         addedMembers.Add(entry.Username);
                     }
@@ -522,16 +582,27 @@ public class AdminOrganizationWebController : Controller
             // 保存所有更改
             if (addedCount > 0 || updatedCount > 0)
             {
-                await _context.SaveChangesAsync();
+                _ = await _context.SaveChangesAsync();
             }
 
             _logger.LogInformation("批量处理组织成员完成: 新增 {AddedCount}, 更新 {UpdatedCount}, 失败 {FailureCount}",
                 addedCount, updatedCount, failureCount);
 
             string message = $"批量处理完成";
-            if (addedCount > 0) message += $"，新增成员 {addedCount} 个";
-            if (updatedCount > 0) message += $"，更新成员 {updatedCount} 个";
-            if (failureCount > 0) message += $"，失败 {failureCount} 个";
+            if (addedCount > 0)
+            {
+                message += $"，新增成员 {addedCount} 个";
+            }
+
+            if (updatedCount > 0)
+            {
+                message += $"，更新成员 {updatedCount} 个";
+            }
+
+            if (failureCount > 0)
+            {
+                message += $"，失败 {failureCount} 个";
+            }
 
             return Ok(new
             {
@@ -561,7 +632,7 @@ public class AdminOrganizationWebController : Controller
         try
         {
             // 直接查询数据库
-            var rawMembers = await _context.StudentOrganizations
+            List<StudentOrganization> rawMembers = await _context.StudentOrganizations
                 .Include(so => so.Student)
                 .Include(so => so.Organization)
                 .Include(so => so.InvitationCode)
@@ -575,13 +646,13 @@ public class AdminOrganizationWebController : Controller
                 ActiveMembers = rawMembers.Count(m => m.IsActive),
                 Members = rawMembers.Select(m => new
                 {
-                    Id = m.Id,
-                    StudentId = m.StudentId,
+                    m.Id,
+                    m.StudentId,
                     StudentUsername = m.Student?.Username ?? "NULL",
                     StudentRealName = m.Student?.RealName ?? "NULL",
                     StudentPhoneNumber = m.Student?.PhoneNumber ?? "NULL",
-                    IsActive = m.IsActive,
-                    JoinedAt = m.JoinedAt
+                    m.IsActive,
+                    m.JoinedAt
                 }).ToList()
             };
 
@@ -604,7 +675,8 @@ public class AdminOrganizationWebController : Controller
         try
         {
             int count = await _context.PreConfiguredUsers.CountAsync();
-            return Json(new {
+            return Json(new
+            {
                 success = true,
                 message = "PreConfiguredUsers表访问正常",
                 recordCount = count
@@ -613,7 +685,8 @@ public class AdminOrganizationWebController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "测试PreConfiguredUsers表访问失败");
-            return Json(new {
+            return Json(new
+            {
                 success = false,
                 error = ex.Message
             });
@@ -654,7 +727,7 @@ public class AdminOrganizationWebController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织成员列表失败: 组织ID: {OrganizationId}", organizationId);
-            return new List<OrganizationMemberDto>();
+            return [];
         }
     }
 
@@ -663,27 +736,22 @@ public class AdminOrganizationWebController : Controller
     /// </summary>
     private static OrganizationMemberDto MapToOrganizationMemberDto(OrganizationMember member)
     {
-        if (member == null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
-
-        return new OrganizationMemberDto
-        {
-            Id = member.Id,
-            Username = member.Username,
-            RealName = member.RealName,
-            StudentId = member.StudentId,
-            PhoneNumber = member.PhoneNumber,
-            OrganizationId = member.OrganizationId,
-            OrganizationName = member.Organization?.Name ?? "未知",
-            JoinedAt = member.CreatedAt, // 使用创建时间作为加入时间
-            IsActive = member.IsActive,
-            UserId = member.UserId,
-            Notes = member.Notes,
-            CreatedByUsername = member.Creator?.Username,
-            UpdatedAt = member.UpdatedAt
-        };
+        return member == null
+            ? throw new ArgumentNullException(nameof(member))
+            : new OrganizationMemberDto
+            {
+                Id = member.Id,
+                Username = member.Username,
+                PhoneNumber = member.PhoneNumber,
+                OrganizationId = member.OrganizationId,
+                OrganizationName = member.Organization?.Name ?? "未知",
+                JoinedAt = member.CreatedAt, // 使用创建时间作为加入时间
+                IsActive = member.IsActive,
+                UserId = member.UserId,
+                Notes = member.Notes,
+                CreatedByUsername = member.Creator?.Username,
+                UpdatedAt = member.UpdatedAt
+            };
     }
 }
 
@@ -693,8 +761,8 @@ public class AdminOrganizationWebController : Controller
 public class OrganizationDetailsViewModel
 {
     public OrganizationDto Organization { get; set; } = new();
-    public List<InvitationCodeDto> InvitationCodes { get; set; } = new();
-    public List<OrganizationMemberDto> Members { get; set; } = new();
+    public List<InvitationCodeDto> InvitationCodes { get; set; } = [];
+    public List<OrganizationMemberDto> Members { get; set; } = [];
 }
 
 /// <summary>
@@ -745,7 +813,7 @@ public class BatchUpdateMemberPhoneRequest
     /// 成员信息条目列表
     /// </summary>
     [Required(ErrorMessage = "成员信息条目不能为空")]
-    public List<PhoneEntry> PhoneEntries { get; set; } = new();
+    public List<PhoneEntry> PhoneEntries { get; set; } = [];
 
     /// <summary>
     /// 是否覆盖现有信息
@@ -770,4 +838,29 @@ public class PhoneEntry
     [Required(ErrorMessage = "手机号不能为空")]
     [Phone(ErrorMessage = "手机号格式不正确")]
     public string Phone { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 更新成员信息请求模型
+/// </summary>
+public class UpdateMemberInfoRequest
+{
+    /// <summary>
+    /// 成员ID
+    /// </summary>
+    [Required(ErrorMessage = "成员ID不能为空")]
+    public int MemberId { get; set; }
+
+    /// <summary>
+    /// 真实姓名
+    /// </summary>
+    [Required(ErrorMessage = "真实姓名不能为空")]
+    [StringLength(50, ErrorMessage = "真实姓名长度不能超过50个字符")]
+    public string RealName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 手机号
+    /// </summary>
+    [StringLength(11, ErrorMessage = "手机号长度不能超过11个字符")]
+    public string? PhoneNumber { get; set; }
 }
