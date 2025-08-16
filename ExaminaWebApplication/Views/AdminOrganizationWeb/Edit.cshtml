@@ -51,16 +51,7 @@
                         <div class="form-text">组织的正式名称，将显示在系统中</div>
                     </div>
 
-                    <!-- 组织描述 -->
-                    <div class="mb-3">
-                        <label asp-for="Description" class="form-label">
-                            <i class="bi bi-text-paragraph me-1"></i>@Html.DisplayNameFor(m => m.Description)
-                        </label>
-                        <textarea asp-for="Description" class="form-control glass-input" 
-                                  rows="3" placeholder="请输入组织描述（可选）" maxlength="500"></textarea>
-                        <span asp-validation-for="Description" class="text-danger"></span>
-                        <div class="form-text">简要描述组织的性质、目标或特色</div>
-                    </div>
+
 
                     <!-- 提交按钮 -->
                     <div class="d-flex gap-2">

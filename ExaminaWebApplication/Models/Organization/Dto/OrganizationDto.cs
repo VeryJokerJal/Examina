@@ -15,25 +15,9 @@ public class OrganizationDto
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 组织类型
-    /// </summary>
-    public OrganizationType Type { get; set; }
 
-    /// <summary>
-    /// 组织类型显示名称
-    /// </summary>
-    public string TypeDisplayName => Type switch
-    {
-        OrganizationType.School => "学校组织",
-        OrganizationType.Institution => "机构组织",
-        _ => "未知类型"
-    };
 
-    /// <summary>
-    /// 组织描述
-    /// </summary>
-    public string? Description { get; set; }
+
 
     /// <summary>
     /// 创建时间

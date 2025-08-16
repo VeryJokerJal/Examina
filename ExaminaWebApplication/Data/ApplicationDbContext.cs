@@ -157,7 +157,6 @@ public class ApplicationDbContext : DbContext
             // 索引与属性
             _ = entity.HasIndex(e => e.Name);
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
             _ = entity.Property(e => e.CreatedAt).IsRequired();
             _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
 

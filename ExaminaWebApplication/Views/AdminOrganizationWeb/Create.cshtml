@@ -47,37 +47,9 @@
                         <div class="form-text">组织的正式名称，将显示在系统中</div>
                     </div>
 
-                    <!-- 组织类型 -->
-                    <div class="mb-3">
-                        <label asp-for="Type" class="form-label">
-                            <i class="bi bi-tag me-1"></i>@Html.DisplayNameFor(m => m.Type) <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="Type" class="form-select">
-                            <option value="">请选择组织类型</option>
-                            <option value="@((int)OrganizationType.School)">
-                                <i class="bi bi-mortarboard"></i> 学校组织
-                            </option>
-                            <option value="@((int)OrganizationType.Institution)">
-                                <i class="bi bi-briefcase"></i> 机构组织
-                            </option>
-                        </select>
-                        <span asp-validation-for="Type" class="text-danger"></span>
-                        <div class="form-text">
-                            <strong>学校组织：</strong>教师和学生都可以加入<br>
-                            <strong>机构组织：</strong>只有学生可以加入
-                        </div>
-                    </div>
 
-                    <!-- 组织描述 -->
-                    <div class="mb-3">
-                        <label asp-for="Description" class="form-label">
-                            <i class="bi bi-text-paragraph me-1"></i>@Html.DisplayNameFor(m => m.Description)
-                        </label>
-                        <textarea asp-for="Description" class="form-control glass-input" 
-                                  rows="3" placeholder="请输入组织描述（可选）" maxlength="500"></textarea>
-                        <span asp-validation-for="Description" class="text-danger"></span>
-                        <div class="form-text">简要描述组织的性质、目标或特色</div>
-                    </div>
+
+
 
                     <!-- 邀请码设置 -->
                     <div class="mb-3">
@@ -201,19 +173,7 @@
             submitBtn.disabled = true;
         });
 
-        // 组织类型选择提示
-        document.getElementById('Type').addEventListener('change', function() {
-            const value = this.value;
-            const helpText = this.parentNode.querySelector('.form-text');
-            
-            if (value == '@((int)OrganizationType.School)') {
-                helpText.innerHTML = '<strong class="text-success">学校组织：</strong>教师和学生都可以加入，适合教育机构使用';
-            } else if (value == '@((int)OrganizationType.Institution)') {
-                helpText.innerHTML = '<strong class="text-info">机构组织：</strong>只有学生可以加入，适合培训机构使用';
-            } else {
-                helpText.innerHTML = '<strong>学校组织：</strong>教师和学生都可以加入<br><strong>机构组织：</strong>只有学生可以加入';
-            }
-        });
+
 
         // 页面加载完成后聚焦到组织名称输入框
         document.addEventListener('DOMContentLoaded', function() {

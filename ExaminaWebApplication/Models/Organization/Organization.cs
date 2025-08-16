@@ -19,17 +19,9 @@ public class Organization
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 组织类型
-    /// </summary>
-    [Required]
-    public OrganizationType Type { get; set; }
 
-    /// <summary>
-    /// 组织描述
-    /// </summary>
-    [StringLength(500)]
-    public string? Description { get; set; }
+
+
 
     /// <summary>
     /// 创建时间

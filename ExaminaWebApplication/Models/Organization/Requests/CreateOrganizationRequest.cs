@@ -15,19 +15,9 @@ public class CreateOrganizationRequest
     [Display(Name = "组织名称")]
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 组织类型
-    /// </summary>
-    [Required(ErrorMessage = "组织类型不能为空")]
-    [Display(Name = "组织类型")]
-    public OrganizationType Type { get; set; }
 
-    /// <summary>
-    /// 组织描述
-    /// </summary>
-    [StringLength(500, ErrorMessage = "组织描述长度不能超过500个字符")]
-    [Display(Name = "组织描述")]
-    public string? Description { get; set; }
+
+
 
     /// <summary>
     /// 是否自动生成邀请码

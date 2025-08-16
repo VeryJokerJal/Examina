@@ -11,13 +11,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2>
-            <i class="bi @(Model.Organization.Type == OrganizationType.School ? "bi-mortarboard" : "bi-briefcase") me-2"></i>
+            <i class="bi bi-building me-2"></i>
             @Model.Organization.Name
         </h2>
         <p class="text-muted mb-0">
-            <span class="badge @(Model.Organization.Type == OrganizationType.School ? "bg-success" : "bg-info") me-2">
-                @Model.Organization.TypeDisplayName
-            </span>
             创建于 @Model.Organization.CreatedAt.ToString("yyyy年MM月dd日")
         </p>
     </div>
@@ -64,12 +61,7 @@
                             <dt class="col-sm-4">组织名称：</dt>
                             <dd class="col-sm-8">@Model.Organization.Name</dd>
                             
-                            <dt class="col-sm-4">组织类型：</dt>
-                            <dd class="col-sm-8">
-                                <span class="badge @(Model.Organization.Type == OrganizationType.School ? "bg-success" : "bg-info")">
-                                    @Model.Organization.TypeDisplayName
-                                </span>
-                            </dd>
+
                             
                             <dt class="col-sm-4">创建者：</dt>
                             <dd class="col-sm-8">@Model.Organization.CreatorUsername</dd>
@@ -104,14 +96,7 @@
                     </div>
                 </div>
                 
-                @if (!string.IsNullOrEmpty(Model.Organization.Description))
-                {
-                    <hr>
-                    <div>
-                        <strong>组织描述：</strong>
-                        <p class="mt-2 mb-0">@Model.Organization.Description</p>
-                    </div>
-                }
+
             </div>
         </div>
     </div>
@@ -260,9 +245,11 @@
                             <th>用户名</th>
                             <th>真实姓名</th>
                             <th>学号</th>
+                            <th>手机号</th>
                             <th>加入时间</th>
                             <th>邀请码</th>
                             <th>状态</th>
+                            <th>操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -274,6 +261,35 @@
                                 </td>
                                 <td>@(member.StudentRealName ?? "-")</td>
                                 <td>@(member.StudentId_Number ?? "-")</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span id="phone-display-@member.StudentId" class="me-2">
+                                            @if (!string.IsNullOrEmpty(member.StudentPhoneNumber))
+                                            {
+                                                <i class="bi bi-telephone me-1"></i>@member.StudentPhoneNumber
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">未设置</span>
+                                            }
+                                        </span>
+                                        <div id="phone-edit-@member.StudentId" style="display: none;" class="d-flex align-items-center">
+                                            <input type="text" class="form-control form-control-sm me-2"
+                                                   id="phone-input-@member.StudentId"
+                                                   value="@(member.StudentPhoneNumber ?? "")"
+                                                   placeholder="请输入手机号"
+                                                   maxlength="20" style="width: 150px;" />
+                                            <button type="button" class="btn btn-sm btn-success me-1"
+                                                    onclick="savePhoneNumber(@member.StudentId)">
+                                                <i class="bi bi-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary"
+                                                    onclick="cancelEditPhone(@member.StudentId)">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
                                     <small>@member.JoinedAt.ToString("yyyy-MM-dd HH:mm")</small>
                                 </td>
@@ -292,6 +308,16 @@
                                         <span class="badge bg-danger">
                                             <i class="bi bi-x-circle me-1"></i>已退出
                                         </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (member.IsActive)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                onclick="editPhoneNumber(@member.StudentId)"
+                                                title="编辑手机号">
+                                            <i class="bi bi-telephone"></i>
+                                        </button>
                                     }
                                 </td>
                             </tr>
@@ -420,6 +446,61 @@
                     console.error('停用邀请码失败:', error);
                     showNotification('停用失败，请稍后重试', 'danger');
                 }
+            }
+        }
+
+        // 手机号编辑功能
+        function editPhoneNumber(studentId) {
+            document.getElementById(`phone-display-${studentId}`).style.display = 'none';
+            document.getElementById(`phone-edit-${studentId}`).style.display = 'flex';
+            document.getElementById(`phone-input-${studentId}`).focus();
+        }
+
+        function cancelEditPhone(studentId) {
+            document.getElementById(`phone-display-${studentId}`).style.display = 'block';
+            document.getElementById(`phone-edit-${studentId}`).style.display = 'none';
+        }
+
+        async function savePhoneNumber(studentId) {
+            const phoneInput = document.getElementById(`phone-input-${studentId}`);
+            const phoneNumber = phoneInput.value.trim();
+
+            // 简单的手机号验证
+            if (phoneNumber && !/^1[3-9]\d{9}$/.test(phoneNumber)) {
+                showNotification('请输入正确的手机号格式', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/Admin/Organization/UpdateMemberPhone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        phoneNumber: phoneNumber
+                    })
+                });
+
+                if (response.ok) {
+                    showNotification('手机号更新成功', 'success');
+                    // 更新显示
+                    const displayElement = document.getElementById(`phone-display-${studentId}`);
+                    if (phoneNumber) {
+                        displayElement.innerHTML = `<i class="bi bi-telephone me-1"></i>${phoneNumber}`;
+                    } else {
+                        displayElement.innerHTML = '<span class="text-muted">未设置</span>';
+                    }
+                    cancelEditPhone(studentId);
+                } else {
+                    const errorData = await response.json();
+                    showNotification(errorData.message || '更新失败，请稍后重试', 'danger');
+                }
+            } catch (error) {
+                console.error('更新手机号失败:', error);
+                showNotification('更新失败，请稍后重试', 'danger');
             }
         }
     </script>

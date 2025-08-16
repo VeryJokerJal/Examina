@@ -52,27 +52,18 @@
     <div class="col-md-3">
         <div class="glass-card">
             <div class="card-body text-center">
-                <i class="bi bi-mortarboard text-success" style="font-size: 2rem;"></i>
-                <h4 class="mt-2 mb-0">@Model.Count(o => o.Type == OrganizationType.School)</h4>
-                <small class="text-muted">学校组织</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="glass-card">
-            <div class="card-body text-center">
-                <i class="bi bi-briefcase text-info" style="font-size: 2rem;"></i>
-                <h4 class="mt-2 mb-0">@Model.Count(o => o.Type == OrganizationType.Institution)</h4>
-                <small class="text-muted">机构组织</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="glass-card">
-            <div class="card-body text-center">
-                <i class="bi bi-people text-warning" style="font-size: 2rem;"></i>
+                <i class="bi bi-people text-success" style="font-size: 2rem;"></i>
                 <h4 class="mt-2 mb-0">@Model.Sum(o => o.StudentCount)</h4>
                 <small class="text-muted">总成员数</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card">
+            <div class="card-body text-center">
+                <i class="bi bi-key text-warning" style="font-size: 2rem;"></i>
+                <h4 class="mt-2 mb-0">@Model.Sum(o => o.InvitationCodeCount)</h4>
+                <small class="text-muted">总邀请码数</small>
             </div>
         </div>
     </div>
@@ -93,7 +84,6 @@
                     <thead>
                         <tr>
                             <th>组织名称</th>
-                            <th>类型</th>
                             <th>成员数</th>
                             <th>邀请码数</th>
                             <th>创建者</th>
@@ -108,20 +98,11 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <i class="bi @(org.Type == OrganizationType.School ? "bi-mortarboard" : "bi-briefcase") me-2"></i>
+                                        <i class="bi bi-building me-2"></i>
                                         <div>
                                             <strong>@org.Name</strong>
-                                            @if (!string.IsNullOrEmpty(org.Description))
-                                            {
-                                                <br><small class="text-muted">@org.Description</small>
-                                            }
                                         </div>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="badge @(org.Type == OrganizationType.School ? "bg-success" : "bg-info")">
-                                        @org.TypeDisplayName
-                                    </span>
                                 </td>
                                 <td>
                                     <span class="badge bg-primary">@org.StudentCount</span>

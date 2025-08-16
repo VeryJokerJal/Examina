@@ -194,9 +194,6 @@ public class StudentOrganizationController : ControllerBase
             {
                 org.Id,
                 org.Name,
-                org.Type,
-                org.TypeDisplayName,
-                org.Description,
                 org.StudentCount
             }).ToList();
 

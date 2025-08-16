@@ -31,6 +31,11 @@ public class StudentOrganizationDto
     public string? StudentId_Number { get; set; }
 
     /// <summary>
+    /// 学生手机号
+    /// </summary>
+    public string? StudentPhoneNumber { get; set; }
+
+    /// <summary>
     /// 组织ID
     /// </summary>
     public int OrganizationId { get; set; }
@@ -40,10 +45,7 @@ public class StudentOrganizationDto
     /// </summary>
     public string OrganizationName { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 组织类型
-    /// </summary>
-    public OrganizationType OrganizationType { get; set; }
+
 
     /// <summary>
     /// 加入时间

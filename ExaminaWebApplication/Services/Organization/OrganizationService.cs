@@ -53,8 +53,6 @@ public class OrganizationService : IOrganizationService
             Models.Organization.Organization organization = new Models.Organization.Organization
             {
                 Name = request.Name,
-                Type = request.Type,
-                Description = request.Description,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = creatorUserId,
                 Creator = creator,
@@ -140,7 +138,7 @@ public class OrganizationService : IOrganizationService
     /// <summary>
     /// 更新组织信息
     /// </summary>
-    public async Task<OrganizationDto?> UpdateOrganizationAsync(int organizationId, string name, string? description = null)
+    public async Task<OrganizationDto?> UpdateOrganizationAsync(int organizationId, string name)
     {
         try
         {
@@ -165,7 +163,6 @@ public class OrganizationService : IOrganizationService
             }
 
             organization.Name = name;
-            organization.Description = description;
 
             await _context.SaveChangesAsync();
 
@@ -229,13 +226,7 @@ public class OrganizationService : IOrganizationService
                 return JoinOrganizationResult.CreateFailure(reason);
             }
 
-            // 验证用户角色是否可以加入该类型的组织
-            if (!CanUserJoinOrganization(userRole, invitation.Organization.Type))
-            {
-                string roleText = userRole == UserRole.Teacher ? "教师" : "用户";
-                string orgTypeText = invitation.Organization.Type == OrganizationType.School ? "学校" : "机构";
-                return JoinOrganizationResult.CreateFailure($"{roleText}不能加入{orgTypeText}组织");
-            }
+            // 所有用户都可以加入组织（移除类型限制）
 
             // 检查用户是否已在组织中
             bool alreadyInOrganization = await IsUserInOrganizationAsync(userId, invitation.OrganizationId);
@@ -378,22 +369,7 @@ public class OrganizationService : IOrganizationService
         }
     }
 
-    /// <summary>
-    /// 验证用户角色是否可以加入指定类型的组织
-    /// </summary>
-    /// <param name="userRole">用户角色</param>
-    /// <param name="organizationType">组织类型</param>
-    /// <returns>是否可以加入</returns>
-    private static bool CanUserJoinOrganization(UserRole userRole, OrganizationType organizationType)
-    {
-        return userRole switch
-        {
-            UserRole.Student => true, // 学生可以加入所有类型组织
-            UserRole.Teacher => organizationType == OrganizationType.School, // 教师只能加入学校组织
-            UserRole.Administrator => false, // 管理员不需要加入组织，只管理组织
-            _ => false
-        };
-    }
+
 
     /// <summary>
     /// 获取邀请码不可用的原因
@@ -449,8 +425,6 @@ public class OrganizationService : IOrganizationService
         {
             Id = organization.Id,
             Name = organization.Name,
-            Type = organization.Type,
-            Description = organization.Description,
             CreatedAt = organization.CreatedAt,
             CreatorUsername = organization.Creator?.Username ?? "未知",
             IsActive = organization.IsActive,
@@ -471,9 +445,9 @@ public class OrganizationService : IOrganizationService
             StudentUsername = studentOrganization.Student?.Username ?? "未知",
             StudentRealName = studentOrganization.Student?.RealName,
             StudentId_Number = studentOrganization.Student?.StudentId,
+            StudentPhoneNumber = studentOrganization.Student?.PhoneNumber,
             OrganizationId = studentOrganization.OrganizationId,
             OrganizationName = studentOrganization.Organization?.Name ?? "未知",
-            OrganizationType = studentOrganization.Organization?.Type ?? OrganizationType.School,
             JoinedAt = studentOrganization.JoinedAt,
             InvitationCode = studentOrganization.InvitationCode?.Code ?? "未知",
             IsActive = studentOrganization.IsActive

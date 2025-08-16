@@ -47,16 +47,13 @@ public class TeacherOrganizationWebController : Controller
             // 获取教师已加入的组织
             List<StudentOrganizationDto> joinedOrganizations = await _organizationService.GetUserOrganizationsAsync(teacherId);
 
-            // 获取可用的学校组织（教师只能加入学校组织）
-            List<OrganizationDto> allOrganizations = await _organizationService.GetOrganizationsAsync(includeInactive: false);
-            List<OrganizationDto> availableSchoolOrganizations = allOrganizations
-                .Where(o => o.Type == OrganizationType.School)
-                .ToList();
+            // 获取可用的组织
+            List<OrganizationDto> availableOrganizations = await _organizationService.GetOrganizationsAsync(includeInactive: false);
 
             var viewModel = new TeacherOrganizationViewModel
             {
                 JoinedOrganizations = joinedOrganizations,
-                AvailableSchoolOrganizations = availableSchoolOrganizations
+                AvailableSchoolOrganizations = availableOrganizations
             };
 
             return View(viewModel);

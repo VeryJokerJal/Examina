@@ -5,6 +5,9 @@ using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
+using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -17,15 +20,18 @@ public class AdminOrganizationWebController : Controller
     private readonly IOrganizationService _organizationService;
     private readonly IInvitationCodeService _invitationCodeService;
     private readonly ILogger<AdminOrganizationWebController> _logger;
+    private readonly ApplicationDbContext _context;
 
     public AdminOrganizationWebController(
         IOrganizationService organizationService,
         IInvitationCodeService invitationCodeService,
-        ILogger<AdminOrganizationWebController> logger)
+        ILogger<AdminOrganizationWebController> logger,
+        ApplicationDbContext context)
     {
         _organizationService = organizationService;
         _invitationCodeService = invitationCodeService;
         _logger = logger;
+        _context = context;
     }
 
     /// <summary>
@@ -170,8 +176,7 @@ public class AdminOrganizationWebController : Controller
 
             var request = new UpdateOrganizationRequest
             {
-                Name = organization.Name,
-                Description = organization.Description
+                Name = organization.Name
             };
 
             ViewBag.OrganizationId = id;
@@ -201,7 +206,7 @@ public class AdminOrganizationWebController : Controller
                 return View(request);
             }
 
-            OrganizationDto? organization = await _organizationService.UpdateOrganizationAsync(id, request.Name, request.Description);
+            OrganizationDto? organization = await _organizationService.UpdateOrganizationAsync(id, request.Name);
             if (organization == null)
             {
                 TempData["ErrorMessage"] = "组织不存在";
@@ -336,6 +341,54 @@ public class AdminOrganizationWebController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
     }
+
+    /// <summary>
+    /// 更新成员手机号
+    /// </summary>
+    [HttpPost]
+    [Route("Admin/Organization/UpdateMemberPhone")]
+    public async Task<IActionResult> UpdateMemberPhone([FromBody] UpdateMemberPhoneRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "请求参数无效" });
+            }
+
+            // 查找用户
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.StudentId);
+            if (user == null)
+            {
+                return NotFound(new { message = "用户不存在" });
+            }
+
+            // 检查手机号是否已被其他用户使用（如果不为空）
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                bool phoneExists = await _context.Users
+                    .AnyAsync(u => u.PhoneNumber == request.PhoneNumber && u.Id != request.StudentId);
+                if (phoneExists)
+                {
+                    return BadRequest(new { message = "该手机号已被其他用户使用" });
+                }
+            }
+
+            // 更新手机号
+            user.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) ? null : request.PhoneNumber;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("管理员更新用户手机号成功: 用户ID: {UserId}, 新手机号: {PhoneNumber}",
+                request.StudentId, request.PhoneNumber ?? "空");
+
+            return Ok(new { message = "手机号更新成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新用户手机号失败: 用户ID: {UserId}", request.StudentId);
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
 }
 
 /// <summary>
@@ -360,11 +413,23 @@ public class UpdateOrganizationRequest
     [StringLength(100, ErrorMessage = "组织名称长度不能超过100个字符")]
     [Display(Name = "组织名称")]
     public string Name { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 更新成员手机号请求模型
+/// </summary>
+public class UpdateMemberPhoneRequest
+{
+    /// <summary>
+    /// 学生用户ID
+    /// </summary>
+    [Required(ErrorMessage = "学生ID不能为空")]
+    public int StudentId { get; set; }
 
     /// <summary>
-    /// 组织描述
+    /// 手机号（可为空表示清除）
     /// </summary>
-    [StringLength(500, ErrorMessage = "组织描述长度不能超过500个字符")]
-    [Display(Name = "组织描述")]
-    public string? Description { get; set; }
+    [Phone(ErrorMessage = "手机号格式不正确")]
+    [StringLength(20, ErrorMessage = "手机号长度不能超过20个字符")]
+    public string? PhoneNumber { get; set; }
 }

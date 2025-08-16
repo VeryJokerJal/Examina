@@ -104,11 +104,7 @@ public class AdminUserWebController : Controller
                     return View(request);
                 }
 
-                if (invitation.Organization.Type != Models.Organization.OrganizationType.School)
-                {
-                    ModelState.AddModelError("InvitationCode", "教师必须使用学校组织的邀请码");
-                    return View(request);
-                }
+                // 移除组织类型限制，所有组织都可以接受教师
             }
 
             // 学生邀请码可选：如果填写则需要验证有效性（可用即可，不强制学校类型）

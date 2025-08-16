@@ -37,9 +37,8 @@ public interface IOrganizationService
     /// </summary>
     /// <param name="organizationId">组织ID</param>
     /// <param name="name">组织名称</param>
-    /// <param name="description">组织描述</param>
     /// <returns>更新后的组织DTO，如果失败则返回null</returns>
-    Task<OrganizationDto?> UpdateOrganizationAsync(int organizationId, string name, string? description = null);
+    Task<OrganizationDto?> UpdateOrganizationAsync(int organizationId, string name);
 
     /// <summary>
     /// 停用组织
