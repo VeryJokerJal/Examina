@@ -110,22 +110,22 @@
                 </h6>
             </div>
             <div class="card-body">
-                <div class="text-center mb-3">
-                    <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
-                    <h4 class="mt-2 mb-0">@Model.Members.Count</h4>
-                    <small class="text-muted">总成员数</small>
-                </div>
-                
-                <div class="text-center mb-3">
-                    <i class="bi bi-key text-success" style="font-size: 2rem;"></i>
-                    <h4 class="mt-2 mb-0">@Model.InvitationCodes.Count</h4>
-                    <small class="text-muted">邀请码数</small>
-                </div>
-                
-                <div class="text-center">
-                    <i class="bi bi-check-circle text-info" style="font-size: 2rem;"></i>
-                    <h4 class="mt-2 mb-0">@Model.InvitationCodes.Count(ic => ic.IsAvailable)</h4>
-                    <small class="text-muted">可用邀请码</small>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <i class="bi bi-people text-primary" style="font-size: 1.5rem;"></i>
+                        <h5 class="mt-1 mb-0">@Model.Members.Count</h5>
+                        <small class="text-muted">总成员</small>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-key text-success" style="font-size: 1.5rem;"></i>
+                        <h5 class="mt-1 mb-0">@Model.InvitationCodes.Count</h5>
+                        <small class="text-muted">邀请码</small>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-check-circle text-info" style="font-size: 1.5rem;"></i>
+                        <h5 class="mt-1 mb-0">@Model.InvitationCodes.Count(ic => ic.IsAvailable)</h5>
+                        <small class="text-muted">可用码</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -230,10 +230,13 @@
 
 <!-- 成员列表 -->
 <div class="glass-card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-people me-2"></i>成员列表
         </h5>
+        <button type="button" class="glass-btn glass-btn-primary btn-sm" onclick="showBatchAddPhoneModal()">
+            <i class="bi bi-telephone-plus me-1"></i>批量添加手机号
+        </button>
     </div>
     <div class="card-body">
         @if (Model.Members.Any())
@@ -379,6 +382,52 @@
     </div>
 </div>
 
+<!-- 批量添加手机号模态框 -->
+<div class="modal fade" id="batchAddPhoneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-telephone-plus me-2"></i>批量添加手机号
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    为没有手机号的成员批量添加手机号码。每行一个，格式：用户名,手机号
+                </div>
+
+                <div class="mb-3">
+                    <label for="phoneData" class="form-label">
+                        <i class="bi bi-list me-1"></i>手机号数据
+                    </label>
+                    <textarea id="phoneData" class="form-control glass-input" rows="8"
+                              placeholder="示例：&#10;张三,13800138000&#10;李四,13900139000&#10;王五,13700137000"></textarea>
+                    <div class="form-text">格式：用户名,手机号（每行一个）</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="overwriteExisting">
+                        <label class="form-check-label" for="overwriteExisting">
+                            覆盖已有手机号
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="glass-btn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>取消
+                </button>
+                <button type="button" class="glass-btn glass-btn-primary" onclick="processBatchAddPhone()">
+                    <i class="bi bi-check-circle me-2"></i>批量添加
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // 显示生成邀请码模态框
@@ -501,6 +550,97 @@
             } catch (error) {
                 console.error('更新手机号失败:', error);
                 showNotification('更新失败，请稍后重试', 'danger');
+            }
+        }
+
+        // 显示批量添加手机号模态框
+        function showBatchAddPhoneModal() {
+            const modal = new bootstrap.Modal(document.getElementById('batchAddPhoneModal'));
+            modal.show();
+        }
+
+        // 处理批量添加手机号
+        async function processBatchAddPhone() {
+            const phoneData = document.getElementById('phoneData').value.trim();
+            const overwriteExisting = document.getElementById('overwriteExisting').checked;
+
+            if (!phoneData) {
+                showNotification('请输入手机号数据', 'warning');
+                return;
+            }
+
+            // 解析数据
+            const lines = phoneData.split('\n').filter(line => line.trim());
+            const phoneEntries = [];
+            const errors = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                const parts = line.split(',');
+
+                if (parts.length !== 2) {
+                    errors.push(`第${i + 1}行格式错误：${line}`);
+                    continue;
+                }
+
+                const username = parts[0].trim();
+                const phone = parts[1].trim();
+
+                if (!username || !phone) {
+                    errors.push(`第${i + 1}行数据不完整：${line}`);
+                    continue;
+                }
+
+                // 简单的手机号验证
+                if (!/^1[3-9]\d{9}$/.test(phone)) {
+                    errors.push(`第${i + 1}行手机号格式错误：${phone}`);
+                    continue;
+                }
+
+                phoneEntries.push({ username, phone });
+            }
+
+            if (errors.length > 0) {
+                showNotification(`数据格式错误：\n${errors.join('\n')}`, 'danger');
+                return;
+            }
+
+            if (phoneEntries.length === 0) {
+                showNotification('没有有效的数据', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/Admin/Organization/BatchUpdateMemberPhone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        phoneEntries: phoneEntries,
+                        overwriteExisting: overwriteExisting
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(`批量更新完成！成功：${result.successCount}，失败：${result.failureCount}`, 'success');
+
+                    // 关闭模态框并刷新页面
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('batchAddPhoneModal'));
+                    modal.hide();
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    const errorData = await response.json();
+                    showNotification(errorData.message || '批量更新失败，请稍后重试', 'danger');
+                }
+            } catch (error) {
+                console.error('批量更新手机号失败:', error);
+                showNotification('批量更新失败，请稍后重试', 'danger');
             }
         }
     </script>

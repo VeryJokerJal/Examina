@@ -389,6 +389,91 @@ public class AdminOrganizationWebController : Controller
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }
+
+    /// <summary>
+    /// 批量更新成员手机号
+    /// </summary>
+    [HttpPost]
+    [Route("Admin/Organization/BatchUpdateMemberPhone")]
+    public async Task<IActionResult> BatchUpdateMemberPhone([FromBody] BatchUpdateMemberPhoneRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "请求参数无效" });
+            }
+
+            int successCount = 0;
+            int failureCount = 0;
+            List<string> errors = new();
+
+            foreach (PhoneEntry entry in request.PhoneEntries)
+            {
+                try
+                {
+                    // 根据用户名查找用户
+                    User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == entry.Username);
+                    if (user == null)
+                    {
+                        errors.Add($"用户 {entry.Username} 不存在");
+                        failureCount++;
+                        continue;
+                    }
+
+                    // 检查是否需要覆盖现有手机号
+                    if (!request.OverwriteExisting && !string.IsNullOrEmpty(user.PhoneNumber))
+                    {
+                        errors.Add($"用户 {entry.Username} 已有手机号，跳过");
+                        failureCount++;
+                        continue;
+                    }
+
+                    // 检查手机号是否已被其他用户使用
+                    bool phoneExists = await _context.Users
+                        .AnyAsync(u => u.PhoneNumber == entry.Phone && u.Id != user.Id);
+                    if (phoneExists)
+                    {
+                        errors.Add($"手机号 {entry.Phone} 已被其他用户使用");
+                        failureCount++;
+                        continue;
+                    }
+
+                    // 更新手机号
+                    user.PhoneNumber = entry.Phone;
+                    successCount++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "批量更新手机号时处理用户 {Username} 失败", entry.Username);
+                    errors.Add($"处理用户 {entry.Username} 时发生错误");
+                    failureCount++;
+                }
+            }
+
+            // 保存所有更改
+            if (successCount > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            _logger.LogInformation("批量更新手机号完成: 成功 {SuccessCount}, 失败 {FailureCount}",
+                successCount, failureCount);
+
+            return Ok(new
+            {
+                message = "批量更新完成",
+                successCount,
+                failureCount,
+                errors = errors.Take(10).ToList() // 只返回前10个错误
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "批量更新用户手机号失败");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
 }
 
 /// <summary>
@@ -432,4 +517,40 @@ public class UpdateMemberPhoneRequest
     [Phone(ErrorMessage = "手机号格式不正确")]
     [StringLength(20, ErrorMessage = "手机号长度不能超过20个字符")]
     public string? PhoneNumber { get; set; }
+}
+
+/// <summary>
+/// 批量更新成员手机号请求模型
+/// </summary>
+public class BatchUpdateMemberPhoneRequest
+{
+    /// <summary>
+    /// 手机号条目列表
+    /// </summary>
+    [Required(ErrorMessage = "手机号条目不能为空")]
+    public List<PhoneEntry> PhoneEntries { get; set; } = new();
+
+    /// <summary>
+    /// 是否覆盖现有手机号
+    /// </summary>
+    public bool OverwriteExisting { get; set; }
+}
+
+/// <summary>
+/// 手机号条目
+/// </summary>
+public class PhoneEntry
+{
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    [Required(ErrorMessage = "用户名不能为空")]
+    public string Username { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 手机号
+    /// </summary>
+    [Required(ErrorMessage = "手机号不能为空")]
+    [Phone(ErrorMessage = "手机号格式不正确")]
+    public string Phone { get; set; } = string.Empty;
 }
