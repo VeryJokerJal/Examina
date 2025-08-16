@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using ExamLab.Models.ImportExport;
+using ExaminaWebApplication.Services.ImportedExam;
 
 namespace ExaminaWebApplication.Models.ImportedExam;
 
