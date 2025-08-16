@@ -194,13 +194,6 @@
                                 </a>
                             </li>
                         }
-
-                        <!-- 系统状态 -->
-                        <li class="nav-item">
-                            <span class="navbar-text system-status">
-                                <i class="bi bi-circle-fill text-success me-1"></i>系统正常运行
-                            </span>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -333,29 +326,7 @@
             // 更新系统时间
             updateSystemTime();
             setInterval(updateSystemTime, 1000);
-
-            // 导航链接现在使用MVC路由，无需特殊处理
-
-            // 检查系统状态
-            checkSystemStatus();
         });
-
-        // 检查系统状态
-        async function checkSystemStatus() {
-            try {
-                const response = await fetch('/api/ExamTest/statistics');
-                const statusElement = document.querySelector('.system-status');
-
-                if (response.ok) {
-                    statusElement.innerHTML = '<i class="bi bi-circle-fill text-success me-1"></i>系统正常运行';
-                } else {
-                    statusElement.innerHTML = '<i class="bi bi-circle-fill text-warning me-1"></i>系统异常';
-                }
-            } catch (error) {
-                const statusElement = document.querySelector('.system-status');
-                statusElement.innerHTML = '<i class="bi bi-circle-fill text-danger me-1"></i>连接失败';
-            }
-        }
 
         // 用户相关功能
         function showUserProfile() {
