@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Windows;
+﻿using ExaminaWebApplication.Models.Windows;
 
 namespace ExaminaWebApplication.Data.Windows;
 
@@ -16,8 +16,7 @@ public static class WindowsOperationData
         return new List<WindowsOperationPoint>
         {
             // 操作点1：创建文件/文件夹
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 1,
                 OperationNumber = 1,
                 Name = "创建文件/文件夹",
@@ -27,8 +26,7 @@ public static class WindowsOperationData
             },
             
             // 操作点2：复制文件/文件夹
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 2,
                 OperationNumber = 2,
                 Name = "复制文件/文件夹",
@@ -38,8 +36,7 @@ public static class WindowsOperationData
             },
             
             // 操作点3：移动文件/文件夹
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 3,
                 OperationNumber = 3,
                 Name = "移动文件/文件夹",
@@ -49,8 +46,7 @@ public static class WindowsOperationData
             },
             
             // 操作点4：删除文件/文件夹
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 4,
                 OperationNumber = 4,
                 Name = "删除文件/文件夹",
@@ -60,8 +56,7 @@ public static class WindowsOperationData
             },
             
             // 操作点5：重命名文件/文件夹
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 5,
                 OperationNumber = 5,
                 Name = "重命名文件/文件夹",
@@ -71,8 +66,7 @@ public static class WindowsOperationData
             },
             
             // 操作点6：创建快捷方式
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 6,
                 OperationNumber = 6,
                 Name = "创建快捷方式",
@@ -82,8 +76,7 @@ public static class WindowsOperationData
             },
             
             // 操作点7：修改属性
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 7,
                 OperationNumber = 7,
                 Name = "修改文件/文件夹属性",
@@ -93,8 +86,7 @@ public static class WindowsOperationData
             },
             
             // 操作点8：复制并重命名
-            new WindowsOperationPoint
-            {
+            new() {
                 Id = 8,
                 OperationNumber = 8,
                 Name = "复制并重命名",
@@ -111,7 +103,7 @@ public static class WindowsOperationData
     /// <returns></returns>
     public static List<WindowsOperationParameter> GetWindowsOperationParameters()
     {
-        List<WindowsOperationParameter> parameters = new List<WindowsOperationParameter>();
+        List<WindowsOperationParameter> parameters = new();
 
         // 操作点1：创建文件/文件夹的参数
         parameters.AddRange(new[]

@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Excel;
+﻿using ExaminaWebApplication.Models.Excel;
 
 namespace ExaminaWebApplication.Data.Excel;
 
@@ -13,7 +13,7 @@ public static class ExcelBasicOperationParametersExtended
     /// <returns></returns>
     public static List<ExcelOperationParameter> GetExtendedBasicOperationParameters()
     {
-        List<ExcelOperationParameter> parameters = new List<ExcelOperationParameter>();
+        List<ExcelOperationParameter> parameters = new();
 
         // 操作点14：设置目标区域单元格数字分类格式的参数
         parameters.AddRange(new[]

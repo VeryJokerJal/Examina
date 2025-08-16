@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Excel;
+﻿using ExaminaWebApplication.Models.Excel;
 
 namespace ExaminaWebApplication.Data.Excel;
 
@@ -16,8 +16,7 @@ public static class ExcelChartOperationData
         return new List<ExcelOperationPoint>
         {
             // 操作点101：图表类型
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 30,
                 OperationNumber = 101,
                 Name = "图表类型",
@@ -27,8 +26,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点102：图表样式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 31,
                 OperationNumber = 102,
                 Name = "图表样式",
@@ -38,8 +36,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点103：图表移动
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 32,
                 OperationNumber = 103,
                 Name = "图表移动",
@@ -49,8 +46,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点104：分类轴数据区域
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 33,
                 OperationNumber = 104,
                 Name = "分类轴数据区域",
@@ -60,8 +56,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点105：数值轴数据区域
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 34,
                 OperationNumber = 105,
                 Name = "数值轴数据区域",
@@ -71,8 +66,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点107：图表标题
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 35,
                 OperationNumber = 107,
                 Name = "图表标题",
@@ -82,8 +76,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点108：图表标题格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 36,
                 OperationNumber = 108,
                 Name = "图表标题格式",
@@ -93,8 +86,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点112：主要横坐标轴标题
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 37,
                 OperationNumber = 112,
                 Name = "主要横坐标轴标题",
@@ -104,8 +96,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点113：主要横坐标轴标题格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 38,
                 OperationNumber = 113,
                 Name = "主要横坐标轴标题格式",
@@ -115,8 +106,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点122：设置图例位置
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 39,
                 OperationNumber = 122,
                 Name = "设置图例位置",
@@ -126,8 +116,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点123：设置图例格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 40,
                 OperationNumber = 123,
                 Name = "设置图例格式",
@@ -137,8 +126,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点139：设置主要纵坐标轴选项
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 41,
                 OperationNumber = 139,
                 Name = "设置主要纵坐标轴选项",
@@ -148,8 +136,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点140：设置网格线——主要横网格线
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 42,
                 OperationNumber = 140,
                 Name = "设置网格线——主要横网格线",
@@ -159,8 +146,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点141：设置网格线——次要横网格线
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 43,
                 OperationNumber = 141,
                 Name = "设置网格线——次要横网格线",
@@ -170,8 +156,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点142：主要纵网格线
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 44,
                 OperationNumber = 142,
                 Name = "主要纵网格线",
@@ -181,8 +166,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点143：次要纵网格线
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 45,
                 OperationNumber = 143,
                 Name = "次要纵网格线",
@@ -192,8 +176,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点145：设置数据系列格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 46,
                 OperationNumber = 145,
                 Name = "设置数据系列格式",
@@ -203,8 +186,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点154：添加数据标签
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 47,
                 OperationNumber = 154,
                 Name = "添加数据标签",
@@ -214,8 +196,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点155：设置数据标签格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 48,
                 OperationNumber = 155,
                 Name = "设置数据标签格式",
@@ -225,8 +206,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点156：设置图表区域格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 49,
                 OperationNumber = 156,
                 Name = "设置图表区域格式",
@@ -236,8 +216,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点159：显示图表基底颜色
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 50,
                 OperationNumber = 159,
                 Name = "显示图表基底颜色",
@@ -247,8 +226,7 @@ public static class ExcelChartOperationData
                 TargetType = ExcelTargetType.Chart
             },
             // 操作点160：设置图表边框线
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 51,
                 OperationNumber = 160,
                 Name = "设置图表边框线",

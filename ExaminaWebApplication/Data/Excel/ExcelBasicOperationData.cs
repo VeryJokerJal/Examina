@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Excel;
+﻿using ExaminaWebApplication.Models.Excel;
 
 namespace ExaminaWebApplication.Data.Excel;
 
@@ -16,8 +16,7 @@ public static class ExcelBasicOperationData
         return new List<ExcelOperationPoint>
         {
             // 操作点1：填充或复制单元格内容
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 1,
                 OperationNumber = 1,
                 Name = "填充或复制单元格内容",
@@ -27,8 +26,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点4：合并单元格
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 2,
                 OperationNumber = 4,
                 Name = "合并单元格",
@@ -38,8 +36,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点6：设置指定单元格字体
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 3,
                 OperationNumber = 6,
                 Name = "设置指定单元格字体",
@@ -49,8 +46,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点10：内边框样式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 4,
                 OperationNumber = 10,
                 Name = "内边框样式",
@@ -60,8 +56,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点11：内边框颜色
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 5,
                 OperationNumber = 11,
                 Name = "内边框颜色",
@@ -71,8 +66,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点13：设置单元格区域水平对齐方式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 6,
                 OperationNumber = 13,
                 Name = "设置单元格区域水平对齐方式",
@@ -82,8 +76,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点14：设置目标区域单元格数字分类格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 7,
                 OperationNumber = 14,
                 Name = "设置目标区域单元格数字分类格式",
@@ -93,8 +86,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点15：使用函数
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 8,
                 OperationNumber = 15,
                 Name = "使用函数",
@@ -104,8 +96,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点16：设置行高
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 9,
                 OperationNumber = 16,
                 Name = "设置行高",
@@ -115,8 +106,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点17：设置列宽
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 10,
                 OperationNumber = 17,
                 Name = "设置列宽",
@@ -126,8 +116,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点20：设置单元格填充颜色
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 11,
                 OperationNumber = 20,
                 Name = "设置单元格填充颜色",
@@ -137,8 +126,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点24：设置外边框样式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 12,
                 OperationNumber = 24,
                 Name = "设置外边框样式",
@@ -148,8 +136,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点25：设置外边框颜色
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 13,
                 OperationNumber = 25,
                 Name = "设置外边框颜色",
@@ -159,8 +146,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点26：设置垂直对齐方式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 14,
                 OperationNumber = 26,
                 Name = "设置垂直对齐方式",
@@ -170,8 +156,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点28：修改sheet表名称
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 15,
                 OperationNumber = 28,
                 Name = "修改sheet表名称",
@@ -181,8 +166,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Workbook
             },
             // 操作点29：添加下划线
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 16,
                 OperationNumber = 29,
                 Name = "添加下划线",
@@ -192,8 +176,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点7：设置字型
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 17,
                 OperationNumber = 7,
                 Name = "设置字型",
@@ -203,8 +186,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点8：设置字号
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 18,
                 OperationNumber = 8,
                 Name = "设置字号",
@@ -214,8 +196,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点9：字体颜色
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 19,
                 OperationNumber = 9,
                 Name = "字体颜色",
@@ -225,8 +206,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点21：设置图案填充样式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 20,
                 OperationNumber = 21,
                 Name = "设置图案填充样式",
@@ -236,8 +216,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点22：设置填充图案颜色
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 21,
                 OperationNumber = 22,
                 Name = "设置填充图案颜色",
@@ -247,8 +226,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点33：条件格式
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 22,
                 OperationNumber = 33,
                 Name = "条件格式",
@@ -258,8 +236,7 @@ public static class ExcelBasicOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点83：设置单元格样式——数据
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 23,
                 OperationNumber = 83,
                 Name = "设置单元格样式——数据",
@@ -277,7 +254,7 @@ public static class ExcelBasicOperationData
     /// <returns></returns>
     public static List<ExcelOperationParameter> GetBasicOperationParameters()
     {
-        List<ExcelOperationParameter> parameters = new List<ExcelOperationParameter>();
+        List<ExcelOperationParameter> parameters = new();
 
         // 操作点1：填充或复制单元格内容的参数
         parameters.AddRange(new[]

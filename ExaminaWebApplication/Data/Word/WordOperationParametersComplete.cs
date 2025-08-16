@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Word;
+﻿using ExaminaWebApplication.Models.Word;
 
 namespace ExaminaWebApplication.Data.Word;
 
@@ -13,7 +13,7 @@ public static class WordOperationParametersComplete
     /// <returns></returns>
     public static List<WordOperationParameter> GetWordOperationParameters()
     {
-        List<WordOperationParameter> parameters = new List<WordOperationParameter>();
+        List<WordOperationParameter> parameters = new();
         int currentId = 1;
 
         // 操作点1：设置段落的字体

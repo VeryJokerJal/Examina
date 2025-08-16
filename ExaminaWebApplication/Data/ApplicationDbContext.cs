@@ -32,7 +32,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ExcelQuestionInstance> ExcelQuestionInstances { get; set; }
 
     // Windows操作点相关实体
-    public DbSet<Models.Windows.WindowsOperationPoint> WindowsOperationPoints { get; set; }
+    public DbSet<WindowsOperationPoint> WindowsOperationPoints { get; set; }
     public DbSet<WindowsOperationParameter> WindowsOperationParameters { get; set; }
     public DbSet<WindowsEnumType> WindowsEnumTypes { get; set; }
     public DbSet<WindowsEnumValue> WindowsEnumValues { get; set; }
@@ -42,7 +42,7 @@ public class ApplicationDbContext : DbContext
 
 
     // Word操作点相关实体
-    public DbSet<Models.Word.WordOperationPoint> WordOperationPoints { get; set; }
+    public DbSet<WordOperationPoint> WordOperationPoints { get; set; }
     public DbSet<WordOperationParameter> WordOperationParameters { get; set; }
     public DbSet<WordEnumType> WordEnumTypes { get; set; }
     public DbSet<WordEnumValue> WordEnumValues { get; set; }
@@ -409,7 +409,7 @@ public class ApplicationDbContext : DbContext
     private static void ConfigureWindowsEntities(ModelBuilder modelBuilder)
     {
         // 配置WindowsOperationPoint实体
-        modelBuilder.Entity<Models.Windows.WindowsOperationPoint>(entity =>
+        modelBuilder.Entity<WindowsOperationPoint>(entity =>
         {
             entity.HasKey(e => e.Id);
 
@@ -733,7 +733,7 @@ public class ApplicationDbContext : DbContext
     private static void ConfigureWordEntities(ModelBuilder modelBuilder)
     {
         // 配置WordOperationPoint实体
-        modelBuilder.Entity<Models.Word.WordOperationPoint>(entity =>
+        modelBuilder.Entity<WordOperationPoint>(entity =>
         {
             entity.HasKey(e => e.Id);
 
@@ -1123,7 +1123,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Value).HasMaxLength(1000);
-            entity.Property(e => e.DefaultValue).HasMaxLength(1000);
+            entity.Property(e => e.DefaultValue).IsRequired().HasMaxLength(1000).HasDefaultValue(string.Empty);
             entity.Property(e => e.IsRequired).HasDefaultValue(false);
             entity.Property(e => e.Order).IsRequired().HasDefaultValue(1);
             entity.Property(e => e.EnumOptions).HasMaxLength(2000);

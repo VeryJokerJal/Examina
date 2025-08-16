@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Excel;
@@ -86,7 +86,7 @@ public class ExcelQuestionService
         string questionDescription = GenerateQuestionDescription(template.QuestionTemplate, templateParameters);
 
         // 创建题目实例
-        ExcelQuestionInstance instance = new ExcelQuestionInstance
+        ExcelQuestionInstance instance = new()
         {
             TemplateId = templateId,
             QuestionTitle = $"{template.OperationPoint.Name} - {template.TemplateName}",
@@ -175,7 +175,7 @@ public class ExcelQuestionService
         int count, 
         Dictionary<string, List<object>>? parameterVariations = null)
     {
-        List<ExcelQuestionInstance> instances = new List<ExcelQuestionInstance>();
+        List<ExcelQuestionInstance> instances = new();
 
         for (int i = 0; i < count; i++)
         {
@@ -187,7 +187,7 @@ public class ExcelQuestionService
                 foreach (KeyValuePair<string, List<object>> variation in parameterVariations)
                 {
                     // 随机选择一个变化值
-                    Random random = new Random();
+                    Random random = new();
                     int index = random.Next(variation.Value.Count);
                     customParameters[variation.Key] = variation.Value[index];
                 }
@@ -266,7 +266,7 @@ public class ExcelQuestionService
     /// <returns></returns>
     private static string GenerateAnswerValidationRules(ExcelOperationPoint operationPoint, Dictionary<string, object?> parameters)
     {
-        AnswerValidationRules rules = new AnswerValidationRules
+        AnswerValidationRules rules = new()
         {
             OperationType = operationPoint.OperationType,
             TargetType = operationPoint.TargetType.ToString(),

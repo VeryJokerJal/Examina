@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Windows;
+﻿using ExaminaWebApplication.Models.Windows;
 
 namespace ExaminaWebApplication.Data.Windows;
 
@@ -16,8 +16,7 @@ public static class WindowsEnumData
         return new List<WindowsEnumType>
         {
             // 创建类型
-            new WindowsEnumType
-            {
+            new() {
                 Id = 1,
                 TypeName = "CreateType",
                 Description = "创建类型（文件或文件夹）",
@@ -25,8 +24,7 @@ public static class WindowsEnumData
             },
             
             // 删除方式
-            new WindowsEnumType
-            {
+            new() {
                 Id = 2,
                 TypeName = "DeleteMode",
                 Description = "删除方式",
@@ -34,8 +32,7 @@ public static class WindowsEnumData
             },
             
             // 文件属性
-            new WindowsEnumType
-            {
+            new() {
                 Id = 3,
                 TypeName = "FileAttributes",
                 Description = "文件属性设置",
@@ -50,7 +47,7 @@ public static class WindowsEnumData
     /// <returns></returns>
     public static List<WindowsEnumValue> GetEnumValues()
     {
-        List<WindowsEnumValue> enumValues = new List<WindowsEnumValue>();
+        List<WindowsEnumValue> enumValues = new();
 
         // 创建类型枚举值
         enumValues.AddRange(new[]

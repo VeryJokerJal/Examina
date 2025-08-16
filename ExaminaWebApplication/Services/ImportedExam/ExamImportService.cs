@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Xml.Serialization;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.ImportedExam;
@@ -29,7 +29,7 @@ public class ExamImportService
     /// <returns>导入结果</returns>
     public async Task<ExamImportResult> ImportExamAsync(Stream fileStream, string fileName, int importedBy)
     {
-        ExamImportResult result = new ExamImportResult
+        ExamImportResult result = new()
         {
             FileName = fileName,
             ImportedBy = importedBy,
@@ -39,7 +39,7 @@ public class ExamImportService
         try
         {
             // 读取文件内容
-            using StreamReader reader = new StreamReader(fileStream);
+            using StreamReader reader = new(fileStream);
             string content = await reader.ReadToEndAsync();
             result.FileSize = content.Length;
 
@@ -111,7 +111,7 @@ public class ExamImportService
             if (fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase) || 
                 content.TrimStart().StartsWith("{"))
             {
-                JsonSerializerOptions options = new JsonSerializerOptions
+                JsonSerializerOptions options = new()
                 {
                     PropertyNameCaseInsensitive = true,
                     AllowTrailingCommas = true
@@ -123,8 +123,8 @@ public class ExamImportService
             if (fileName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) || 
                 content.TrimStart().StartsWith("<"))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(ExamExportDto));
-                using StringReader stringReader = new StringReader(content);
+                XmlSerializer serializer = new(typeof(ExamExportDto));
+                using StringReader stringReader = new(content);
                 return (ExamExportDto?)serializer.Deserialize(stringReader);
             }
 
@@ -142,7 +142,7 @@ public class ExamImportService
     /// </summary>
     private List<string> ValidateExamData(ExamExportDto examExportDto)
     {
-        List<string> errors = new List<string>();
+        List<string> errors = new();
 
         // 验证考试基本信息
         if (string.IsNullOrWhiteSpace(examExportDto.Exam.Id))
@@ -198,7 +198,7 @@ public class ExamImportService
             try
             {
             // 创建导入的考试实体
-            Models.ImportedExam.ImportedExam importedExam = new Models.ImportedExam.ImportedExam
+            Models.ImportedExam.ImportedExam importedExam = new()
             {
                 OriginalExamId = examExportDto.Exam.Id,
                 Name = examExportDto.Exam.Name,
@@ -238,7 +238,7 @@ public class ExamImportService
             // 导入科目
             foreach (SubjectDto subjectDto in examExportDto.Exam.Subjects)
             {
-                Models.ImportedExam.ImportedSubject importedSubject = new Models.ImportedExam.ImportedSubject
+                    ImportedSubject importedSubject = new()
                 {
                     OriginalSubjectId = subjectDto.Id,
                     ExamId = importedExam.Id,
@@ -268,7 +268,7 @@ public class ExamImportService
             // 导入模块
             foreach (ModuleDto moduleDto in examExportDto.Exam.Modules)
             {
-                Models.ImportedExam.ImportedModule importedModule = new Models.ImportedExam.ImportedModule
+                    ImportedModule importedModule = new()
                 {
                     OriginalModuleId = moduleDto.Id,
                     ExamId = importedExam.Id,
@@ -306,7 +306,7 @@ public class ExamImportService
     {
         foreach (QuestionDto questionDto in questions)
         {
-            Models.ImportedExam.ImportedQuestion importedQuestion = new Models.ImportedExam.ImportedQuestion
+            ImportedQuestion importedQuestion = new()
             {
                 OriginalQuestionId = questionDto.Id,
                 ExamId = examId,
@@ -353,7 +353,7 @@ public class ExamImportService
     {
         foreach (OperationPointDto operationPointDto in operationPoints)
         {
-            Models.ImportedExam.ImportedOperationPoint importedOperationPoint = new Models.ImportedExam.ImportedOperationPoint
+            ImportedOperationPoint importedOperationPoint = new()
             {
                 OriginalOperationPointId = operationPointDto.Id,
                 QuestionId = questionId,
@@ -382,7 +382,7 @@ public class ExamImportService
     {
         foreach (ParameterDto parameterDto in parameters)
         {
-            Models.ImportedExam.ImportedParameter importedParameter = new Models.ImportedExam.ImportedParameter
+            ImportedParameter importedParameter = new()
             {
                 OperationPointId = operationPointId,
                 Name = parameterDto.Name,
@@ -390,7 +390,7 @@ public class ExamImportService
                 Description = parameterDto.Description,
                 Type = parameterDto.Type,
                 Value = parameterDto.Value,
-                DefaultValue = parameterDto.DefaultValue,
+                DefaultValue = parameterDto.DefaultValue ?? string.Empty, // 确保不为null
                 IsRequired = parameterDto.IsRequired,
                 Order = parameterDto.Order,
                 EnumOptions = parameterDto.EnumOptions,

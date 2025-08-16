@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Excel;
+﻿using ExaminaWebApplication.Models.Excel;
 
 namespace ExaminaWebApplication.Data.Excel;
 
@@ -16,94 +16,82 @@ public static class ExcelEnumData
         return new List<ExcelEnumType>
         {
             // 对齐方式
-            new ExcelEnumType
-            {
+            new() {
                 Id = 1,
                 TypeName = "HorizontalAlignment",
                 Description = "水平对齐方式",
                 Category = "对齐方式"
             },
-            new ExcelEnumType
-            {
+            new() {
                 Id = 2,
                 TypeName = "VerticalAlignment",
                 Description = "垂直对齐方式",
                 Category = "对齐方式"
             },
             // 边框样式
-            new ExcelEnumType
-            {
+            new() {
                 Id = 3,
                 TypeName = "BorderStyle",
                 Description = "边框线样式",
                 Category = "边框样式"
             },
             // 字体样式
-            new ExcelEnumType
-            {
+            new() {
                 Id = 4,
                 TypeName = "FontStyle",
                 Description = "字体样式",
                 Category = "字体样式"
             },
-            new ExcelEnumType
-            {
+            new() {
                 Id = 5,
                 TypeName = "UnderlineStyle",
                 Description = "下划线样式",
                 Category = "字体样式"
             },
             // 数字格式
-            new ExcelEnumType
-            {
+            new() {
                 Id = 6,
                 TypeName = "NumberFormat",
                 Description = "数字分类格式",
                 Category = "数字格式"
             },
             // 填充图案
-            new ExcelEnumType
-            {
+            new() {
                 Id = 7,
                 TypeName = "PatternStyle",
                 Description = "图案填充样式",
                 Category = "填充样式"
             },
             // 图表类型
-            new ExcelEnumType
-            {
+            new() {
                 Id = 8,
                 TypeName = "ChartType",
                 Description = "图表类型",
                 Category = "图表"
             },
             // 图例位置
-            new ExcelEnumType
-            {
+            new() {
                 Id = 9,
                 TypeName = "LegendPosition",
                 Description = "图例位置",
                 Category = "图表"
             },
             // 数据标签位置
-            new ExcelEnumType
-            {
+            new() {
                 Id = 10,
                 TypeName = "DataLabelPosition",
                 Description = "数据标签位置",
                 Category = "图表"
             },
             // 填充类型
-            new ExcelEnumType
-            {
+            new() {
                 Id = 11,
                 TypeName = "FillType",
                 Description = "填充类型",
                 Category = "填充样式"
             },
             // 单元格样式
-            new ExcelEnumType
-            {
+            new() {
                 Id = 12,
                 TypeName = "CellStyle",
                 Description = "单元格样式",
@@ -118,7 +106,7 @@ public static class ExcelEnumData
     /// <returns></returns>
     public static List<ExcelEnumValue> GetEnumValues()
     {
-        List<ExcelEnumValue> enumValues = new List<ExcelEnumValue>();
+        List<ExcelEnumValue> enumValues = new();
 
         // 水平对齐方式
         enumValues.AddRange(new[]

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ExaminaWebApplication.Models.Excel;
 
 namespace ExaminaWebApplication.Services.Excel;
@@ -130,7 +130,7 @@ public class ExcelParameterConfigurationManager
     public static ParameterValidationResult ValidateParameters(
         List<ExcelParameterConfigurationBase> configurations)
     {
-        ParameterValidationResult result = new ParameterValidationResult();
+        ParameterValidationResult result = new();
 
         foreach (ExcelParameterConfigurationBase config in configurations)
         {
@@ -173,7 +173,7 @@ public class ExcelParameterConfigurationManager
         string json, 
         List<ExcelOperationParameter> parameters)
     {
-        List<ExcelParameterConfigurationBase> configurations = new List<ExcelParameterConfigurationBase>();
+        List<ExcelParameterConfigurationBase> configurations = new();
 
         try
         {

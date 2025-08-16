@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Excel;
 
@@ -107,7 +107,7 @@ public class ExcelOperationService
             };
         }
 
-        List<ExcelParameterConfigurationBase> configurations = new List<ExcelParameterConfigurationBase>();
+        List<ExcelParameterConfigurationBase> configurations = new();
         
         foreach (ExcelOperationParameter parameter in operationPoint.Parameters)
         {

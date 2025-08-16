@@ -49,7 +49,7 @@ public class SmsService : ISmsService
         _configuration = configuration;
 
         // 读取SMS服务启用状态
-        _enabled = _configuration.GetValue<bool>("TencentSms:Enabled", true);
+        _enabled = _configuration.GetValue("TencentSms:Enabled", true);
 
         // 读取基础配置
         _sdkAppId = _configuration["TencentSms:SDKAppID"] ?? "";
@@ -58,12 +58,12 @@ public class SmsService : ISmsService
         _region = _configuration["TencentSms:Region"] ?? "ap-beijing";
 
         // 读取限制配置
-        _codeValidMinutes = _configuration.GetValue<int>("TencentSms:CodeValidMinutes", 5);
-        _sendIntervalSeconds = _configuration.GetValue<int>("TencentSms:SendIntervalSeconds", 60);
-        _maxDailyCount = _configuration.GetValue<int>("TencentSms:MaxDailyCount", 10);
-        _maxAttemptCount = _configuration.GetValue<int>("TencentSms:MaxAttemptCount", 5);
-        _retryCount = _configuration.GetValue<int>("TencentSms:RetryCount", 3);
-        _retryDelayMs = _configuration.GetValue<int>("TencentSms:RetryDelayMs", 1000);
+        _codeValidMinutes = _configuration.GetValue("TencentSms:CodeValidMinutes", 5);
+        _sendIntervalSeconds = _configuration.GetValue("TencentSms:SendIntervalSeconds", 60);
+        _maxDailyCount = _configuration.GetValue("TencentSms:MaxDailyCount", 10);
+        _maxAttemptCount = _configuration.GetValue("TencentSms:MaxAttemptCount", 5);
+        _retryCount = _configuration.GetValue("TencentSms:RetryCount", 3);
+        _retryDelayMs = _configuration.GetValue("TencentSms:RetryDelayMs", 1000);
 
         // 如果SMS服务未启用，记录日志并跳过客户端初始化
         if (!_enabled)

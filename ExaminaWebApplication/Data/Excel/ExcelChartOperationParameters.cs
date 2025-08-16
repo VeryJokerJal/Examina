@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Excel;
+﻿using ExaminaWebApplication.Models.Excel;
 
 namespace ExaminaWebApplication.Data.Excel;
 
@@ -13,7 +13,7 @@ public static class ExcelChartOperationParameters
     /// <returns></returns>
     public static List<ExcelOperationParameter> GetChartOperationParametersPart1()
     {
-        List<ExcelOperationParameter> parameters = new List<ExcelOperationParameter>();
+        List<ExcelOperationParameter> parameters = new();
 
         // 操作点101：图表类型的参数
         parameters.AddRange(new[]
@@ -305,7 +305,7 @@ public static class ExcelChartOperationParameters
     /// <returns></returns>
     public static List<ExcelOperationParameter> GetChartOperationParametersPart2()
     {
-        List<ExcelOperationParameter> parameters = new List<ExcelOperationParameter>();
+        List<ExcelOperationParameter> parameters = new();
 
         // 操作点112：主要横坐标轴标题的参数
         parameters.AddRange(new[]
@@ -495,7 +495,7 @@ public static class ExcelChartOperationParameters
     /// <returns></returns>
     public static List<ExcelOperationParameter> GetAllChartOperationParameters()
     {
-        List<ExcelOperationParameter> allParameters = new List<ExcelOperationParameter>();
+        List<ExcelOperationParameter> allParameters = new();
         allParameters.AddRange(GetChartOperationParametersPart1());
         allParameters.AddRange(GetChartOperationParametersPart2());
         // 这里可以继续添加更多部分的参数

@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Word;
+﻿using ExaminaWebApplication.Models.Word;
 
 namespace ExaminaWebApplication.Data.Word;
 
@@ -16,43 +16,43 @@ public static class WordEnumDataComplete
         return new List<WordEnumType>
         {
             // 基础段落操作枚举
-            new WordEnumType { Id = 1, TypeName = "FontFamily", DisplayName = "字体", Description = "Word文档中可用的字体类型", Category = "字体样式" },
-            new WordEnumType { Id = 2, TypeName = "FontStyle", DisplayName = "字形", Description = "字体样式（粗体、斜体等）", Category = "字体样式" },
-            new WordEnumType { Id = 3, TypeName = "FontSize", DisplayName = "字号", Description = "字体大小", Category = "字体样式" },
-            new WordEnumType { Id = 4, TypeName = "ParagraphAlignment", DisplayName = "段落对齐", Description = "段落对齐方式", Category = "段落格式" },
-            new WordEnumType { Id = 5, TypeName = "LineSpacing", DisplayName = "行距", Description = "行间距类型", Category = "段落格式" },
-            new WordEnumType { Id = 6, TypeName = "DropCapType", DisplayName = "首字下沉", Description = "首字下沉类型", Category = "段落格式" },
-            new WordEnumType { Id = 7, TypeName = "BorderStyle", DisplayName = "边框线型", Description = "边框线条样式", Category = "边框设置" },
-            new WordEnumType { Id = 8, TypeName = "BorderWidth", DisplayName = "边框线宽", Description = "边框线条宽度", Category = "边框设置" },
-            new WordEnumType { Id = 9, TypeName = "ShadingPattern", DisplayName = "底纹图案", Description = "段落底纹图案样式", Category = "背景设置" },
+            new() { Id = 1, TypeName = "FontFamily", DisplayName = "字体", Description = "Word文档中可用的字体类型", Category = "字体样式" },
+            new() { Id = 2, TypeName = "FontStyle", DisplayName = "字形", Description = "字体样式（粗体、斜体等）", Category = "字体样式" },
+            new() { Id = 3, TypeName = "FontSize", DisplayName = "字号", Description = "字体大小", Category = "字体样式" },
+            new() { Id = 4, TypeName = "ParagraphAlignment", DisplayName = "段落对齐", Description = "段落对齐方式", Category = "段落格式" },
+            new() { Id = 5, TypeName = "LineSpacing", DisplayName = "行距", Description = "行间距类型", Category = "段落格式" },
+            new() { Id = 6, TypeName = "DropCapType", DisplayName = "首字下沉", Description = "首字下沉类型", Category = "段落格式" },
+            new() { Id = 7, TypeName = "BorderStyle", DisplayName = "边框线型", Description = "边框线条样式", Category = "边框设置" },
+            new() { Id = 8, TypeName = "BorderWidth", DisplayName = "边框线宽", Description = "边框线条宽度", Category = "边框设置" },
+            new() { Id = 9, TypeName = "ShadingPattern", DisplayName = "底纹图案", Description = "段落底纹图案样式", Category = "背景设置" },
 
             // 页面设置枚举
-            new WordEnumType { Id = 10, TypeName = "PaperSize", DisplayName = "纸张大小", Description = "文档纸张尺寸", Category = "页面设置" },
-            new WordEnumType { Id = 11, TypeName = "HeaderFooterAlignment", DisplayName = "页眉页脚对齐", Description = "页眉页脚文字对齐方式", Category = "页面设置" },
-            new WordEnumType { Id = 12, TypeName = "PageBorderType", DisplayName = "页面边框类型", Description = "页面边框的类型", Category = "页面设置" },
+            new() { Id = 10, TypeName = "PaperSize", DisplayName = "纸张大小", Description = "文档纸张尺寸", Category = "页面设置" },
+            new() { Id = 11, TypeName = "HeaderFooterAlignment", DisplayName = "页眉页脚对齐", Description = "页眉页脚文字对齐方式", Category = "页面设置" },
+            new() { Id = 12, TypeName = "PageBorderType", DisplayName = "页面边框类型", Description = "页面边框的类型", Category = "页面设置" },
 
             // 水印设置枚举
-            new WordEnumType { Id = 13, TypeName = "WatermarkType", DisplayName = "水印类型", Description = "水印的类型（文字或图片）", Category = "水印设置" },
-            new WordEnumType { Id = 14, TypeName = "WatermarkLayout", DisplayName = "水印版式", Description = "水印的布局方式", Category = "水印设置" },
+            new() { Id = 13, TypeName = "WatermarkType", DisplayName = "水印类型", Description = "水印的类型（文字或图片）", Category = "水印设置" },
+            new() { Id = 14, TypeName = "WatermarkLayout", DisplayName = "水印版式", Description = "水印的布局方式", Category = "水印设置" },
 
             // 项目符号与编号枚举
-            new WordEnumType { Id = 15, TypeName = "BulletType", DisplayName = "项目符号类型", Description = "项目符号的样式", Category = "列表设置" },
-            new WordEnumType { Id = 16, TypeName = "NumberingType", DisplayName = "编号类型", Description = "编号的样式", Category = "列表设置" },
+            new() { Id = 15, TypeName = "BulletType", DisplayName = "项目符号类型", Description = "项目符号的样式", Category = "列表设置" },
+            new() { Id = 16, TypeName = "NumberingType", DisplayName = "编号类型", Description = "编号的样式", Category = "列表设置" },
 
             // 表格操作枚举
-            new WordEnumType { Id = 17, TypeName = "TableBorderType", DisplayName = "表格边框类型", Description = "表格边框样式", Category = "表格设置" },
-            new WordEnumType { Id = 18, TypeName = "CellAlignment", DisplayName = "单元格对齐", Description = "表格单元格对齐方式", Category = "表格设置" },
+            new() { Id = 17, TypeName = "TableBorderType", DisplayName = "表格边框类型", Description = "表格边框样式", Category = "表格设置" },
+            new() { Id = 18, TypeName = "CellAlignment", DisplayName = "单元格对齐", Description = "表格单元格对齐方式", Category = "表格设置" },
 
             // 图形设置枚举
-            new WordEnumType { Id = 19, TypeName = "ShapeType", DisplayName = "图形类型", Description = "自选图形的类型", Category = "图形设置" },
-            new WordEnumType { Id = 20, TypeName = "HorizontalPosition", DisplayName = "水平参考位置", Description = "图形水平定位参考", Category = "图形设置" },
-            new WordEnumType { Id = 21, TypeName = "VerticalPosition", DisplayName = "垂直参考位置", Description = "图形垂直定位参考", Category = "图形设置" },
-            new WordEnumType { Id = 22, TypeName = "WrapType", DisplayName = "环绕方式", Description = "图片文本框环绕方式", Category = "图形设置" },
+            new() { Id = 19, TypeName = "ShapeType", DisplayName = "图形类型", Description = "自选图形的类型", Category = "图形设置" },
+            new() { Id = 20, TypeName = "HorizontalPosition", DisplayName = "水平参考位置", Description = "图形水平定位参考", Category = "图形设置" },
+            new() { Id = 21, TypeName = "VerticalPosition", DisplayName = "垂直参考位置", Description = "图形垂直定位参考", Category = "图形设置" },
+            new() { Id = 22, TypeName = "WrapType", DisplayName = "环绕方式", Description = "图片文本框环绕方式", Category = "图形设置" },
 
             // 图片边框相关枚举
-            new WordEnumType { Id = 23, TypeName = "LineCompoundType", DisplayName = "边框复合类型", Description = "图片边框的复合线型", Category = "图片设置" },
-            new WordEnumType { Id = 24, TypeName = "LineDashType", DisplayName = "短划线类型", Description = "图片边框的短划线样式", Category = "图片设置" },
-            new WordEnumType { Id = 25, TypeName = "ShadowType", DisplayName = "阴影类型", Description = "图片阴影效果类型", Category = "图片设置" }
+            new() { Id = 23, TypeName = "LineCompoundType", DisplayName = "边框复合类型", Description = "图片边框的复合线型", Category = "图片设置" },
+            new() { Id = 24, TypeName = "LineDashType", DisplayName = "短划线类型", Description = "图片边框的短划线样式", Category = "图片设置" },
+            new() { Id = 25, TypeName = "ShadowType", DisplayName = "阴影类型", Description = "图片阴影效果类型", Category = "图片设置" }
         };
     }
 
@@ -62,7 +62,7 @@ public static class WordEnumDataComplete
     /// <returns></returns>
     public static List<WordEnumValue> GetEnumValues()
     {
-        List<WordEnumValue> enumValues = new List<WordEnumValue>();
+        List<WordEnumValue> enumValues = new();
         int currentId = 1;
 
         // 1. 字体枚举值

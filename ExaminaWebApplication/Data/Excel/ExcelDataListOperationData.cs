@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Excel;
+﻿using ExaminaWebApplication.Models.Excel;
 
 namespace ExaminaWebApplication.Data.Excel;
 
@@ -16,8 +16,7 @@ public static class ExcelDataListOperationData
         return new List<ExcelOperationPoint>
         {
             // 操作点31：筛选
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 24,
                 OperationNumber = 31,
                 Name = "筛选",
@@ -27,8 +26,7 @@ public static class ExcelDataListOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点32：排序
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 25,
                 OperationNumber = 32,
                 Name = "排序",
@@ -38,8 +36,7 @@ public static class ExcelDataListOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点35：分类汇总
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 26,
                 OperationNumber = 35,
                 Name = "分类汇总",
@@ -49,8 +46,7 @@ public static class ExcelDataListOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点36：高级筛选-条件
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 27,
                 OperationNumber = 36,
                 Name = "高级筛选-条件",
@@ -60,8 +56,7 @@ public static class ExcelDataListOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点63：高级筛选-数据
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 28,
                 OperationNumber = 63,
                 Name = "高级筛选-数据",
@@ -71,8 +66,7 @@ public static class ExcelDataListOperationData
                 TargetType = ExcelTargetType.Worksheet
             },
             // 操作点71：数据透视表
-            new ExcelOperationPoint
-            {
+            new() {
                 Id = 29,
                 OperationNumber = 71,
                 Name = "数据透视表",
@@ -90,7 +84,7 @@ public static class ExcelDataListOperationData
     /// <returns></returns>
     public static List<ExcelOperationParameter> GetDataListOperationParameters()
     {
-        List<ExcelOperationParameter> parameters = new List<ExcelOperationParameter>();
+        List<ExcelOperationParameter> parameters = new();
 
         // 操作点31：筛选的参数
         parameters.AddRange(new[]
