@@ -1,4 +1,4 @@
-@model CreateOrganizationRequest
+﻿@model CreateOrganizationRequest
 @using ExaminaWebApplication.Models.Organization
 @using ExaminaWebApplication.Models.Organization.Requests
 @{
@@ -52,7 +52,7 @@
                         <label asp-for="Type" class="form-label">
                             <i class="bi bi-tag me-1"></i>@Html.DisplayNameFor(m => m.Type) <span class="text-danger">*</span>
                         </label>
-                        <select asp-for="Type" class="form-select glass-input">
+                        <select asp-for="Type" class="form-select">
                             <option value="">请选择组织类型</option>
                             <option value="@((int)OrganizationType.School)">
                                 <i class="bi bi-mortarboard"></i> 学校组织

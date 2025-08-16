@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Filters;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
 using ExaminaWebApplication.Services.ImportedExam;
@@ -15,10 +16,16 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new RequireLoginAttribute());
+});
 
 // 添加API控制器并配置JSON序列化选项
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new RequireLoginAttribute());
+})
     .AddJsonOptions(options =>
     {
         // 配置JSON序列化以支持CamelCase命名策略
@@ -117,9 +124,9 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie("Cookie", options =>
 {
-    options.LoginPath = "/Admin/Login";
-    options.LogoutPath = "/Admin/Logout";
-    options.AccessDeniedPath = "/Admin/AccessDenied";
+    options.LoginPath = "/Login";
+    options.LogoutPath = "/Logout";
+    options.AccessDeniedPath = "/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
     options.SlidingExpiration = true;
     options.Cookie.Name = "ExaminaAuth";
@@ -133,6 +140,12 @@ builder.Services.AddAuthentication(options =>
         // 根据请求路径决定使用哪种认证方案
         string path = context.Request.Path.Value?.ToLower() ?? "";
 
+        // 非 API 页面统一用 Cookie（便于未登录重定向到登录页）
+        if (!path.StartsWith("/api"))
+        {
+            return "Cookie";
+        }
+
         // 学生API使用JWT认证
         if (path.StartsWith("/api/student/"))
         {
@@ -145,64 +158,54 @@ builder.Services.AddAuthentication(options =>
             return "Cookie";
         }
 
-        // 其他API路径根据Authorization头决定
+        // 其他API路径根据Authorization头或路径决定
         if (path.StartsWith("/api/"))
         {
             string authHeader = context.Request.Headers.Authorization.ToString();
             return authHeader.StartsWith("Bearer ") ? "JwtBearer" : "Cookie";
         }
 
-        // 管理员和教师页面使用Cookie认证
-        if (path.StartsWith("/admin/") || path.StartsWith("/teacher/"))
-        {
-            return "Cookie";
-        }
-
-        // 默认使用JWT认证
-        return "JwtBearer";
+        // 默认回退 Cookie
+        return "Cookie";
     };
 });
 
-// 配置授权策略
+// 配置授权策略（默认由自定义过滤器 RequireLoginAttribute 保护页面；策略用于角色控制与API）
 builder.Services.AddAuthorization(options =>
 {
-    // 学生策略（仅JWT认证）
+    // 学生策略（JWT）
     options.AddPolicy("StudentPolicy", policy =>
     {
         policy.AuthenticationSchemes.Add("JwtBearer");
         _ = policy.RequireAuthenticatedUser();
-        _ = policy.RequireClaim("Role", "Student");
+        _ = policy.RequireRole("Student");
     });
 
-    // 教师策略（Cookie认证）
+    // 教师策略（Cookie）
     options.AddPolicy("TeacherPolicy", policy =>
     {
         policy.AuthenticationSchemes.Add("Cookie");
         _ = policy.RequireAuthenticatedUser();
-        _ = policy.RequireClaim("Role", "Teacher");
+        _ = policy.RequireRole("Teacher");
     });
 
-    // 管理员策略（Cookie认证）
+    // 管理员策略（Cookie）
     options.AddPolicy("AdminPolicy", policy =>
     {
         policy.AuthenticationSchemes.Add("Cookie");
         _ = policy.RequireAuthenticatedUser();
-        _ = policy.RequireClaim("Role", "Administrator");
+        _ = policy.RequireRole("Administrator");
     });
 
-    // 教师或管理员策略
+    // 教师或管理员策略（Cookie）
     options.AddPolicy("TeacherOrAdminPolicy", policy =>
     {
         policy.AuthenticationSchemes.Add("Cookie");
         _ = policy.RequireAuthenticatedUser();
-        _ = policy.RequireAssertion(context =>
-        {
-            string? role = context.User.FindFirst("Role")?.Value;
-            return role is "Teacher" or "Administrator";
-        });
+        _ = policy.RequireRole("Teacher", "Administrator");
     });
 
-    // API访问策略（JWT认证）
+    // 通用 API 访问策略（JWT）
     options.AddPolicy("ApiPolicy", policy =>
     {
         policy.AuthenticationSchemes.Add("JwtBearer");
@@ -321,6 +324,7 @@ app.Use(async (context, next) =>
 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"),
     appBuilder => appBuilder.UseHttpsRedirection());
 
+app.UseStaticFiles();
 app.UseRouting();
 
 // 启用CORS
@@ -350,19 +354,20 @@ using (IServiceScope scope = app.Services.CreateScope())
             bool hasAnyUser = db.Users.Any();
             if (!hasAnyUser)
             {
-                User admin = new User
+                User admin = new()
                 {
                     Username = "admin",
-                    Email = "admin@example.com",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456"),
+                    Email = "admin@hbexam.com",
+                    // 管理员初始强密码（至少12位，包含大小写字母、数字、特殊字符）：Adm!n#2025$ExaMina
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Adm!n#2025$ExaMina"),
                     Role = UserRole.Administrator,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     AllowMultipleDevices = true,
                     MaxDeviceCount = 10
                 };
-                db.Users.Add(admin);
-                db.SaveChanges();
+                _ = db.Users.Add(admin);
+                _ = db.SaveChanges();
             }
         }
     }
@@ -551,34 +556,9 @@ static async Task InitializeTestDataAsync(ApplicationDbContext context, ILogger 
 {
     try
     {
-        // 检查是否已有测试用户
-        bool hasTestUser = await context.Users.AnyAsync(u => u.PhoneNumber == "13800138000");
-
-        if (!hasTestUser)
-        {
-            // 创建测试学生用户
-            User testStudent = new()
-            {
-                Username = "test_student",
-                Email = "test@example.com",
-                PhoneNumber = "13800138000",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"), // 简单密码用于测试
-                RealName = "测试学生",
-                StudentId = "TEST001",
-                Role = UserRole.Student,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _ = context.Users.Add(testStudent);
-            _ = await context.SaveChangesAsync();
-
-            logger.LogInformation("✅ 已创建测试学生用户: 手机号 13800138000, 密码 123456");
-        }
-        else
-        {
-            logger.LogInformation("✅ 测试用户已存在，跳过创建");
-        }
+        // 按要求：不再创建任何测试学生用户
+        logger.LogInformation("跳过测试数据初始化：不创建测试学生用户");
+        await Task.CompletedTask;
     }
     catch (Exception ex)
     {

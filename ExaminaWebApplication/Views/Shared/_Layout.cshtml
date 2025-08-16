@@ -189,7 +189,7 @@
                         {
                             <!-- 未登录状态 -->
                             <li class="nav-item">
-                                <a class="nav-link" href="/Admin/Login">
+                                <a class="nav-link" href="/Login">
                                     <i class="bi bi-box-arrow-in-right me-1"></i>登录
                                 </a>
                             </li>
@@ -369,7 +369,7 @@
         async function logout() {
             if (confirm('确定要退出登录吗？')) {
                 try {
-                    const response = await fetch('/Admin/Logout', {
+                    const response = await fetch('/Logout', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -380,7 +380,7 @@
                     if (response.ok) {
                         showNotification('退出登录成功', 'success');
                         setTimeout(() => {
-                            window.location.href = '/Admin/Login';
+                            window.location.href = '/Login';
                         }, 1000);
                     } else {
                         showNotification('退出登录失败', 'danger');

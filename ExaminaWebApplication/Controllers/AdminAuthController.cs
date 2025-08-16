@@ -37,7 +37,8 @@ public class AdminAuthController : ControllerBase
     /// <summary>
     /// 管理员/教师登录
     /// </summary>
-    [HttpPost("login")]
+    [AllowAnonymous]
+[HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] AdminLoginRequest request)
     {
         try

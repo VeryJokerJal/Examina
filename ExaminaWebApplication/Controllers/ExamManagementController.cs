@@ -8,7 +8,7 @@ namespace ExaminaWebApplication.Controllers;
 /// <summary>
 /// 考试管理控制器
 /// </summary>
-// [Authorize] // 暂时注释掉，允许匿名访问
+[Authorize(Policy = "TeacherOrAdminPolicy")]
 public class ExamManagementController : Controller
 {
     private readonly ExamImportService _examImportService;

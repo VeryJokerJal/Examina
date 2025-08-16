@@ -33,6 +33,13 @@ public class OrganizationService : IOrganizationService
     {
         try
         {
+            // 验证创建者用户是否存在且有效
+            User? creator = await _context.Users.FirstOrDefaultAsync(u => u.Id == creatorUserId && u.IsActive);
+            if (creator == null)
+            {
+                throw new InvalidOperationException("创建者用户不存在或已被禁用");
+            }
+
             // 检查组织名称是否已存在
             bool nameExists = await _context.Organizations
                 .AnyAsync(o => o.Name == request.Name && o.IsActive);
@@ -42,14 +49,15 @@ public class OrganizationService : IOrganizationService
                 throw new InvalidOperationException($"组织名称 '{request.Name}' 已存在");
             }
 
-            // 创建组织
-            Models.Organization.Organization organization = new()
+            // 创建组织（显式设置 Creator 导航；CreatedBy 作为外键由模型配置映射）
+            Models.Organization.Organization organization = new Models.Organization.Organization
             {
                 Name = request.Name,
                 Type = request.Type,
                 Description = request.Description,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = creatorUserId,
+                Creator = creator,
                 IsActive = true
             };
 

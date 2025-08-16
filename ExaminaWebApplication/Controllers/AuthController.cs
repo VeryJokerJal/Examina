@@ -22,7 +22,8 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("login")]
+    [AllowAnonymous]
+[HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
         try
@@ -87,7 +88,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpPost("wechat-login")]
+    [AllowAnonymous]
+[HttpPost("wechat-login")]
     public async Task<ActionResult<LoginResponse>> WeChatLogin([FromBody] WeChatLoginRequest request)
     {
         try
@@ -204,7 +206,8 @@ public class AuthController : ControllerBase
         return Ok(new { message = "登出成功" });
     }
 
-    [HttpGet("qrcode")]
+    [AllowAnonymous]
+[HttpGet("qrcode")]
     public ActionResult GetQrCode()
     {
         try

@@ -1,8 +1,7 @@
-@model AdminLoginViewModel
+﻿@model AdminLoginViewModel
 @using ExaminaWebApplication.ViewModels
 @{
-    ViewData["Title"] = "管理员登录";
-    Layout = "_Layout";
+    ViewData["Title"] = "系统登录";
 }
 
 <div class="row justify-content-center">
@@ -12,9 +11,9 @@
                 <!-- 登录标题 -->
                 <div class="text-center mb-4">
                     <h3 class="card-title">
-                        <i class="bi bi-shield-lock me-2"></i>管理员登录
+                        <i class="bi bi-shield-lock me-2"></i>系统登录
                     </h3>
-                    <p class="text-muted">请使用管理员或教师账号登录</p>
+                    <p class="text-muted">请使用手机号或邮箱登录</p>
                 </div>
 
                 <!-- 角色说明 -->
@@ -23,9 +22,9 @@
                         <i class="bi bi-info-circle me-1"></i>登录说明
                     </h6>
                     <ul class="mb-0 small">
-                        <li><strong>管理员：</strong>可以创建和管理所有类型的组织</li>
-                        <li><strong>教师：</strong>可以加入学校类型的组织</li>
-                        <li><strong>学生：</strong>请使用移动端或API进行登录</li>
+                        <li>使用手机号或邮箱进行登录</li>
+                        <li>管理员和教师登录成功后将进入相应的管理界面</li>
+                        <li>学生用户请使用移动端或学生端 API 登录</li>
                     </ul>
                 </div>
 
@@ -38,12 +37,12 @@
 
                     <!-- 用户名输入 -->
                     <div class="mb-3">
-                        <label asp-for="Username" class="form-label">
-                            <i class="bi bi-person me-1"></i>@Html.DisplayNameFor(m => m.Username)
+                        <label asp-for="Identifier" class="form-label">
+                            <i class="bi bi-person me-1"></i>@Html.DisplayNameFor(m => m.Identifier)
                         </label>
-                        <input asp-for="Username" class="form-control glass-input" 
-                               placeholder="请输入用户名或邮箱" autocomplete="username" />
-                        <span asp-validation-for="Username" class="text-danger"></span>
+                        <input asp-for="Identifier" class="form-control glass-input"
+                               placeholder="请输入手机号或邮箱" autocomplete="username" />
+                        <span asp-validation-for="Identifier" class="text-danger"></span>
                     </div>
 
                     <!-- 密码输入 -->
@@ -118,7 +117,7 @@
 
         // 忘记密码
         function showForgotPassword() {
-            alert('请联系系统管理员重置密码。');
+            alert('请联系系统负责人重置密码。');
         }
 
         // 表单提交处理

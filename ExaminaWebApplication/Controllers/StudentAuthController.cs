@@ -46,7 +46,8 @@ public class StudentAuthController : ControllerBase
     /// <summary>
     /// 学生登录（支持用户名密码、短信验证码、微信扫码）
     /// </summary>
-    [HttpPost("login")]
+    [AllowAnonymous]
+[HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
         try
@@ -163,7 +164,8 @@ public class StudentAuthController : ControllerBase
     /// <summary>
     /// 短信验证码登录（支持自动注册）
     /// </summary>
-    [HttpPost("sms-login")]
+    [AllowAnonymous]
+[HttpPost("sms-login")]
     public async Task<ActionResult<LoginResponse>> SmsLogin([FromBody] SmsLoginRequest request)
     {
         try
@@ -272,7 +274,8 @@ public class StudentAuthController : ControllerBase
     /// <summary>
     /// 发送短信验证码
     /// </summary>
-    [HttpPost("send-sms")]
+    [AllowAnonymous]
+[HttpPost("send-sms")]
     public async Task<ActionResult> SendSmsCode([FromBody] SmsCodeRequest request)
     {
         try
@@ -333,6 +336,7 @@ public class StudentAuthController : ControllerBase
     /// <summary>
     /// 获取微信登录二维码
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("wechat-qrcode")]
     public async Task<ActionResult> GetWeChatQrCode()
     {
@@ -466,7 +470,8 @@ public class StudentAuthController : ControllerBase
     /// <summary>
     /// 检查微信二维码扫描状态
     /// </summary>
-    [HttpGet("wechat-status/{qrCodeKey}")]
+    [AllowAnonymous]
+[HttpGet("wechat-status/{qrCodeKey}")]
     public async Task<ActionResult> CheckWeChatStatus(string qrCodeKey)
     {
         try
@@ -702,7 +707,8 @@ public class StudentAuthController : ControllerBase
     /// <summary>
     /// 刷新JWT令牌
     /// </summary>
-    [HttpPost("refresh")]
+    [AllowAnonymous]
+[HttpPost("refresh")]
     public async Task<ActionResult<RefreshTokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         try

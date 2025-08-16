@@ -1,28 +1,30 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
-using System.Security.Claims;
-using System.ComponentModel.DataAnnotations;
+using ExaminaWebApplication.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Controllers;
 
 /// <summary>
-/// 管理员和教师网页端登录控制器
+/// 系统登录控制器
 /// </summary>
-public class AdminLoginController : Controller
+public class LoginController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly SessionService _sessionService;
-    private readonly ILogger<AdminLoginController> _logger;
+    private readonly ISessionService _sessionService;
+    private readonly ILogger<LoginController> _logger;
 
-    public AdminLoginController(
+    public LoginController(
         ApplicationDbContext context,
-        SessionService sessionService,
-        ILogger<AdminLoginController> logger)
+        ISessionService sessionService,
+        ILogger<LoginController> logger)
     {
         _context = context;
         _sessionService = sessionService;
@@ -32,8 +34,9 @@ public class AdminLoginController : Controller
     /// <summary>
     /// 登录页面
     /// </summary>
+    [AllowAnonymous]
     [HttpGet]
-    [Route("Admin/Login")]
+    [Route("Login")]
     public IActionResult Login(string? returnUrl = null)
     {
         // 如果已经登录，重定向到相应页面
@@ -43,14 +46,15 @@ public class AdminLoginController : Controller
         }
 
         ViewBag.ReturnUrl = returnUrl;
-        return View(new AdminLoginViewModel());
+        return View("~/Views/AdminLogin/Login.cshtml", new AdminLoginViewModel());
     }
 
     /// <summary>
     /// 处理登录请求
     /// </summary>
+    [AllowAnonymous]
     [HttpPost]
-    [Route("Admin/Login")]
+    [Route("Login")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(AdminLoginViewModel model, string? returnUrl = null)
     {
@@ -58,14 +62,14 @@ public class AdminLoginController : Controller
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return View("~/Views/AdminLogin/Login.cshtml", model);
             }
 
-            // 查找用户（支持用户名、邮箱登录）
+            // 查找用户（支持手机号、邮箱登录）
             User? user = await _context.Users
-                .FirstOrDefaultAsync(u => 
-                    (u.Username == model.Username || u.Email == model.Username) 
-                    && u.IsActive 
+                .FirstOrDefaultAsync(u =>
+                    ((u.PhoneNumber != null && u.PhoneNumber == model.Identifier) || u.Email == model.Identifier)
+                    && u.IsActive
                     && (u.Role == UserRole.Administrator || u.Role == UserRole.Teacher));
 
             if (user == null)
@@ -78,18 +82,18 @@ public class AdminLoginController : Controller
             if (!BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
             {
                 ModelState.AddModelError("", "密码错误");
-                return View(model);
+                return View("~/Views/AdminLogin/Login.cshtml", model);
             }
 
             // 创建Claims
-            List<Claim> claims = new()
-            {
+            List<Claim> claims =
+            [
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.Username),
                 new(ClaimTypes.Email, user.Email),
                 new(ClaimTypes.Role, user.Role.ToString()),
                 new("IsFirstLogin", user.IsFirstLogin.ToString())
-            };
+            ];
 
             if (!string.IsNullOrEmpty(user.PhoneNumber))
             {
@@ -108,8 +112,8 @@ public class AdminLoginController : Controller
             AuthenticationProperties authProperties = new()
             {
                 IsPersistent = model.RememberMe,
-                ExpiresUtc = model.RememberMe 
-                    ? DateTimeOffset.UtcNow.AddDays(7) 
+                ExpiresUtc = model.RememberMe
+                    ? DateTimeOffset.UtcNow.AddDays(7)
                     : DateTimeOffset.UtcNow.AddHours(8)
             };
 
@@ -122,8 +126,8 @@ public class AdminLoginController : Controller
             // 创建会话记录
             string sessionToken = HttpContext.Session.Id;
             DateTime expiresAt = authProperties.ExpiresUtc?.DateTime ?? DateTime.UtcNow.AddHours(8);
-            
-            await _sessionService.CreateSessionAsync(
+
+            _ = await _sessionService.CreateSessionAsync(
                 user.Id,
                 sessionToken,
                 SessionType.Cookie,
@@ -136,17 +140,12 @@ public class AdminLoginController : Controller
 
             // 更新最后登录时间
             user.LastLoginAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("{Role} {Username} 登录成功", user.Role, user.Username);
 
             // 根据返回URL或用户角色重定向
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-
-            return RedirectToRoleBasedHome(user.Role);
+            return !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : RedirectToRoleBasedHome(user.Role);
         }
         catch (Exception ex)
         {
@@ -160,7 +159,7 @@ public class AdminLoginController : Controller
     /// 退出登录
     /// </summary>
     [HttpPost]
-    [Route("Admin/Logout")]
+    [Route("Logout")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
@@ -185,11 +184,12 @@ public class AdminLoginController : Controller
     /// <summary>
     /// 访问被拒绝页面
     /// </summary>
+    [AllowAnonymous]
     [HttpGet]
-    [Route("Admin/AccessDenied")]
+    [Route("AccessDenied")]
     public IActionResult AccessDenied()
     {
-        return View();
+        return View("~/Views/AdminLogin/AccessDenied.cshtml");
     }
 
     /// <summary>
@@ -233,31 +233,4 @@ public class AdminLoginController : Controller
         await Task.Delay(1);
         return "未知位置";
     }
-}
-
-/// <summary>
-/// 管理员登录视图模型
-/// </summary>
-public class AdminLoginViewModel
-{
-    /// <summary>
-    /// 用户名或邮箱
-    /// </summary>
-    [Required(ErrorMessage = "请输入用户名或邮箱")]
-    [Display(Name = "用户名/邮箱")]
-    public string Username { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 密码
-    /// </summary>
-    [Required(ErrorMessage = "请输入密码")]
-    [DataType(DataType.Password)]
-    [Display(Name = "密码")]
-    public string Password { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 记住我
-    /// </summary>
-    [Display(Name = "记住我")]
-    public bool RememberMe { get; set; }
 }

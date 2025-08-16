@@ -8,11 +8,11 @@ namespace ExaminaWebApplication.ViewModels;
 public class AdminLoginViewModel
 {
     /// <summary>
-    /// 用户名或邮箱
+    /// 手机号或邮箱
     /// </summary>
-    [Required(ErrorMessage = "请输入用户名或邮箱")]
-    [Display(Name = "用户名/邮箱")]
-    public string Username { get; set; } = string.Empty;
+    [Required(ErrorMessage = "请输入手机号或邮箱")]
+    [Display(Name = "手机号/邮箱")]
+    public string Identifier { get; set; } = string.Empty;
 
     /// <summary>
     /// 密码
