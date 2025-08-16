@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Services.ImportedComprehensiveTraining;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
+using ImportedComprehensiveTrainingEntity = ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -32,14 +33,14 @@ public class ComprehensiveTrainingManagementController : Controller
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
             int userId = 1; // 使用管理员用户ID
 
-            List<ImportedComprehensiveTraining> comprehensiveTrainings = await _comprehensiveTrainingImportService.GetImportedComprehensiveTrainingsAsync(userId);
+            List<ImportedComprehensiveTrainingEntity> comprehensiveTrainings = await _comprehensiveTrainingImportService.GetImportedComprehensiveTrainingsAsync(userId);
             return View(comprehensiveTrainings);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取综合训练列表失败");
             TempData["ErrorMessage"] = "获取综合训练列表失败，请稍后重试";
-            return View(new List<ImportedComprehensiveTraining>());
+            return View(new List<ImportedComprehensiveTrainingEntity>());
         }
     }
 
@@ -53,14 +54,14 @@ public class ComprehensiveTrainingManagementController : Controller
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
             int userId = 1; // 使用管理员用户ID
 
-            List<ImportedComprehensiveTraining> comprehensiveTrainings = await _comprehensiveTrainingImportService.GetImportedComprehensiveTrainingsAsync(userId);
+            List<ImportedComprehensiveTrainingEntity> comprehensiveTrainings = await _comprehensiveTrainingImportService.GetImportedComprehensiveTrainingsAsync(userId);
             return View(comprehensiveTrainings);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取综合训练列表失败");
             TempData["ErrorMessage"] = "获取综合训练列表失败，请稍后重试";
-            return View(new List<ImportedComprehensiveTraining>());
+            return View(new List<ImportedComprehensiveTrainingEntity>());
         }
     }
 
@@ -71,7 +72,7 @@ public class ComprehensiveTrainingManagementController : Controller
     {
         try
         {
-            ImportedComprehensiveTraining? comprehensiveTraining = await _comprehensiveTrainingImportService.GetImportedComprehensiveTrainingDetailsAsync(id);
+            ImportedComprehensiveTrainingEntity? comprehensiveTraining = await _comprehensiveTrainingImportService.GetImportedComprehensiveTrainingDetailsAsync(id);
             if (comprehensiveTraining == null)
             {
                 TempData["ErrorMessage"] = "综合训练不存在或已被删除";

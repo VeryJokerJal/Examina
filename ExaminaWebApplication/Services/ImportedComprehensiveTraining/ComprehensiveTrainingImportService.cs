@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using Microsoft.EntityFrameworkCore;
+using ImportedComprehensiveTrainingEntity = ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining;
 
 namespace ExaminaWebApplication.Services.ImportedComprehensiveTraining;
 
@@ -86,7 +87,7 @@ public class ComprehensiveTrainingImportService
             }
 
             // 转换并保存数据
-            ImportedComprehensiveTraining importedComprehensiveTraining = await ConvertAndSaveComprehensiveTrainingAsync(comprehensiveTrainingExportDto, fileName, result.FileSize, importedBy);
+            ImportedComprehensiveTrainingEntity importedComprehensiveTraining = await ConvertAndSaveComprehensiveTrainingAsync(comprehensiveTrainingExportDto, fileName, result.FileSize, importedBy);
             
             result.IsSuccess = true;
             result.ImportedComprehensiveTrainingId = importedComprehensiveTraining.Id;
@@ -223,14 +224,14 @@ public class ComprehensiveTrainingImportService
     /// <summary>
     /// 转换并保存综合训练数据
     /// </summary>
-    private async Task<ImportedComprehensiveTraining> ConvertAndSaveComprehensiveTrainingAsync(
+    private async Task<ImportedComprehensiveTrainingEntity> ConvertAndSaveComprehensiveTrainingAsync(
         ComprehensiveTrainingExportDto comprehensiveTrainingExportDto,
         string fileName,
         long fileSize,
         int importedBy)
     {
         // 使用静态方法创建完整的对象图
-        ImportedComprehensiveTraining importedComprehensiveTraining = ImportedComprehensiveTraining.FromComprehensiveTrainingExportDto(
+        ImportedComprehensiveTrainingEntity importedComprehensiveTraining = ImportedComprehensiveTrainingEntity.FromComprehensiveTrainingExportDto(
             comprehensiveTrainingExportDto, importedBy, fileName, fileSize);
 
         // 保存到数据库
@@ -245,9 +246,9 @@ public class ComprehensiveTrainingImportService
     /// <summary>
     /// 获取导入的综合训练列表
     /// </summary>
-    public async Task<List<ImportedComprehensiveTraining>> GetImportedComprehensiveTrainingsAsync(int? importedBy = null)
+    public async Task<List<ImportedComprehensiveTrainingEntity>> GetImportedComprehensiveTrainingsAsync(int? importedBy = null)
     {
-        IQueryable<ImportedComprehensiveTraining> query = _context.ImportedComprehensiveTrainings
+        IQueryable<ImportedComprehensiveTrainingEntity> query = _context.ImportedComprehensiveTrainings
             .Include(e => e.Importer)
             .Include(e => e.Subjects)
             .Include(e => e.Modules)
@@ -264,7 +265,7 @@ public class ComprehensiveTrainingImportService
     /// <summary>
     /// 获取综合训练详情
     /// </summary>
-    public async Task<ImportedComprehensiveTraining?> GetImportedComprehensiveTrainingDetailsAsync(int id)
+    public async Task<ImportedComprehensiveTrainingEntity?> GetImportedComprehensiveTrainingDetailsAsync(int id)
     {
         return await _context.ImportedComprehensiveTrainings
             .Include(e => e.Importer)
@@ -284,7 +285,7 @@ public class ComprehensiveTrainingImportService
     /// </summary>
     public async Task<bool> DeleteImportedComprehensiveTrainingAsync(int id, int userId)
     {
-        ImportedComprehensiveTraining? comprehensiveTraining = await _context.ImportedComprehensiveTrainings
+        ImportedComprehensiveTrainingEntity? comprehensiveTraining = await _context.ImportedComprehensiveTrainings
             .FirstOrDefaultAsync(e => e.Id == id && e.ImportedBy == userId);
 
         if (comprehensiveTraining == null)
