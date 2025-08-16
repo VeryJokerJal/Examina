@@ -4,7 +4,6 @@ using ExaminaWebApplication.Filters;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
 using ExaminaWebApplication.Services.ImportedExam;
-using ExaminaWebApplication.Services.ImportedComprehensiveTraining;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -74,7 +73,7 @@ builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<ExamImportService>();
 
 // 注册综合训练导入相关服务
-builder.Services.AddScoped<ComprehensiveTrainingImportService>();
+builder.Services.AddScoped<ExaminaWebApplication.Services.ImportedComprehensiveTraining.ComprehensiveTrainingImportService>();
 
 // 注册组织相关服务
 builder.Services.AddScoped<IInvitationCodeService, InvitationCodeService>();
