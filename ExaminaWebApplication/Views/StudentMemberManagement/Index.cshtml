@@ -1,7 +1,7 @@
-﻿@using ExaminaWebApplication.Models.Organization.ViewModels
+@using ExaminaWebApplication.Models.Organization.ViewModels
 @model MemberManagementViewModel
 @{
-    ViewData["Title"] = "成员管理";
+    ViewData["Title"] = "学生成员管理";
 }
 
 <div class="container-fluid">
@@ -11,9 +11,9 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2 class="mb-1">
-                        <i class="bi bi-people me-2"></i>成员管理
+                        <i class="bi bi-people me-2"></i>学生成员管理
                     </h2>
-                    <p class="text-muted mb-0">管理系统中的所有成员信息</p>
+                    <p class="text-muted mb-0">管理系统中的学生成员信息</p>
                 </div>
                 <div>
                     <button type="button" class="glass-btn glass-btn-primary" onclick="showBatchAddMemberModal()">
@@ -56,7 +56,7 @@
         <div class="col-md-3">
             <div class="glass-card">
                 <div class="card-body text-center">
-                    <i class="bi bi-calendar-plus text-warning" style="font-size: 2rem;"></i>
+                    <i class="bi bi-clock text-warning" style="font-size: 2rem;"></i>
                     <h4 class="mt-2 mb-1">@Model.Members.Count(m => m.JoinedAt >= DateTime.Today.AddDays(-7))</h4>
                     <p class="text-muted mb-0">本周新增</p>
                 </div>
@@ -150,193 +150,93 @@
             }
             else
             {
-                <div class="text-center py-4">
+                <div class="text-center py-5">
                     <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
-                    <h6 class="text-muted mt-3">暂无成员</h6>
-                    <p class="text-muted">点击上方按钮添加成员</p>
+                    <h5 class="text-muted mt-3">暂无成员</h5>
+                    <p class="text-muted">点击上方按钮开始添加成员</p>
                 </div>
             }
         </div>
     </div>
 </div>
 
-<!-- 编辑成员信息模态框 -->
-<div class="modal fade" id="editMemberModal" tabindex="-1">
+<!-- 编辑成员模态框 -->
+<div class="modal fade" id="editMemberModal" tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content glass-modal">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-person-gear me-2"></i>编辑成员信息
+                <h5 class="modal-title" id="editMemberModalLabel">
+                    <i class="bi bi-pencil me-2"></i>编辑成员信息
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="editMemberForm">
+                    <input type="hidden" id="editMemberId" />
                     <div class="mb-3">
-                        <label for="editRealName" class="form-label">
-                            <i class="bi bi-person me-1"></i>真实姓名
-                        </label>
-                        <input type="text" 
-                               id="editRealName" 
-                               class="form-control glass-input" 
-                               placeholder="请输入真实姓名"
-                               maxlength="50">
+                        <label for="editRealName" class="form-label">真实姓名</label>
+                        <input type="text" class="form-control" id="editRealName" required>
                     </div>
-                    
                     <div class="mb-3">
-                        <label for="editPhoneNumber" class="form-label">
-                            <i class="bi bi-telephone me-1"></i>手机号
-                        </label>
-                        <input type="tel" 
-                               id="editPhoneNumber" 
-                               class="form-control glass-input" 
-                               placeholder="请输入手机号"
-                               maxlength="11">
-                        <div class="form-text">请输入11位手机号码</div>
+                        <label for="editPhoneNumber" class="form-label">手机号</label>
+                        <input type="tel" class="form-control" id="editPhoneNumber">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="glass-btn" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>取消
-                </button>
-                <button type="button" class="glass-btn glass-btn-primary" onclick="saveMemberInfo()">
-                    <i class="bi bi-check-circle me-2"></i>保存
-                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="updateMember()">保存更改</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- 批量添加成员模态框 -->
-<div class="modal fade" id="batchAddMemberModal" tabindex="-1">
+<div class="modal fade" id="batchAddMemberModal" tabindex="-1" aria-labelledby="batchAddMemberModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content glass-modal">
             <div class="modal-header">
-                <h5 class="modal-title">
+                <h5 class="modal-title" id="batchAddMemberModalLabel">
                     <i class="bi bi-person-plus me-2"></i>批量添加成员
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>数据格式说明：</strong>
-                    <ul class="mb-0 mt-2">
-                        <li>每行一个成员，格式：真实姓名,手机号</li>
-                        <li>手机号可以为空，格式：真实姓名,</li>
-                        <li>示例：张三,13800138000</li>
-                        <li>示例：李四,</li>
-                    </ul>
-                </div>
-                
-                <form id="batchAddMemberForm">
-                    <div class="mb-3">
-                        <label for="memberData" class="form-label">
-                            <i class="bi bi-file-text me-1"></i>成员数据
-                        </label>
-                        <textarea id="memberData" 
-                                  class="form-control glass-input" 
-                                  rows="10" 
-                                  placeholder="请输入成员数据，每行一个成员..."></textarea>
+                <div class="mb-3">
+                    <label for="memberData" class="form-label">成员信息</label>
+                    <textarea class="form-control" id="memberData" rows="10" 
+                              placeholder="请输入成员信息，每行一个成员，格式：真实姓名,手机号&#10;例如：&#10;张三,13800138000&#10;李四,13900139000"></textarea>
+                    <div class="form-text">
+                        每行一个成员，格式：真实姓名,手机号（手机号可选）
                     </div>
-                    
+                </div>
+                <div class="mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="overwriteExisting">
                         <label class="form-check-label" for="overwriteExisting">
                             覆盖已存在的成员信息
                         </label>
                     </div>
-                </form>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="glass-btn" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>取消
-                </button>
-                <button type="button" class="glass-btn glass-btn-primary" onclick="processBatchAddMember()">
-                    <i class="bi bi-upload me-2"></i>批量添加
-                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="batchAddMembers()">添加成员</button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @Html.AntiForgeryToken()
     <script>
-        // 成员信息编辑功能
-        let currentEditingMemberId = null;
-
-        function showEditMemberModal(memberId, realName, phoneNumber) {
-            currentEditingMemberId = memberId;
-            
-            // 填充表单数据
+        // 显示编辑成员模态框
+        function showEditMemberModal(id, realName, phoneNumber) {
+            document.getElementById('editMemberId').value = id;
             document.getElementById('editRealName').value = realName || '';
             document.getElementById('editPhoneNumber').value = phoneNumber || '';
             
-            // 显示模态框
             const modal = new bootstrap.Modal(document.getElementById('editMemberModal'));
             modal.show();
-        }
-
-        async function saveMemberInfo() {
-            if (!currentEditingMemberId) {
-                showNotification('编辑会话已失效，请重新打开编辑窗口', 'warning');
-                return;
-            }
-
-            const realName = document.getElementById('editRealName').value.trim();
-            const phoneNumber = document.getElementById('editPhoneNumber').value.trim();
-
-            // 验证真实姓名
-            if (!realName) {
-                showNotification('请输入真实姓名', 'warning');
-                return;
-            }
-
-            // 验证手机号格式（如果填写了）
-            if (phoneNumber && !/^1[3-9]\d{9}$/.test(phoneNumber)) {
-                showNotification('请输入正确的手机号格式', 'warning');
-                return;
-            }
-
-            try {
-                // 获取防伪令牌
-                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
-                const token = tokenElement ? tokenElement.value : '';
-
-                const response = await fetch('/Admin/Member/UpdateMemberInfo', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({
-                        memberId: currentEditingMemberId,
-                        realName: realName,
-                        phoneNumber: phoneNumber || null
-                    })
-                });
-
-                if (response.ok) {
-                    showNotification('成员信息更新成功', 'success');
-                    
-                    // 关闭模态框
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editMemberModal'));
-                    modal.hide();
-                    
-                    // 刷新页面以显示更新后的数据
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    const errorData = await response.json();
-                    showNotification(errorData.message || '更新失败，请稍后重试', 'danger');
-                }
-            } catch (error) {
-                console.error('更新成员信息失败:', error);
-                showNotification('更新失败，请稍后重试', 'danger');
-            }
         }
 
         // 显示批量添加成员模态框
@@ -345,50 +245,104 @@
             modal.show();
         }
 
-        // 处理批量添加成员
-        async function processBatchAddMember() {
-            const memberData = document.getElementById('memberData').value.trim();
-            const overwriteExisting = document.getElementById('overwriteExisting').checked;
+        // 更新成员信息
+        async function updateMember() {
+            const memberId = document.getElementById('editMemberId').value;
+            const realName = document.getElementById('editRealName').value.trim();
+            const phoneNumber = document.getElementById('editPhoneNumber').value.trim();
 
-            if (!memberData) {
-                showNotification('请输入成员数据', 'warning');
-                return;
-            }
-
-            // 解析数据
-            const lines = memberData.split('\n').filter(line => line.trim());
-            const memberEntries = [];
-
-            for (const line of lines) {
-                const parts = line.split(',');
-                if (parts.length >= 1) {
-                    const realName = parts[0].trim();
-                    const phoneNumber = parts.length > 1 ? parts[1].trim() : '';
-                    
-                    if (realName) {
-                        memberEntries.push({
-                            realName: realName,
-                            phoneNumber: phoneNumber || null
-                        });
-                    }
-                }
-            }
-
-            if (memberEntries.length === 0) {
-                showNotification('没有有效的成员数据', 'warning');
+            if (!realName) {
+                showToast('请输入真实姓名', 'error');
                 return;
             }
 
             try {
-                // 获取防伪令牌
-                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
-                const token = tokenElement ? tokenElement.value : '';
+                const response = await fetch('/StudentMemberManagement/UpdateMember', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        memberId: parseInt(memberId),
+                        realName: realName,
+                        phoneNumber: phoneNumber || null
+                    })
+                });
 
-                const response = await fetch('/Admin/Member/BatchAddMembers', {
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast(result.message, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('editMemberModal')).hide();
+                    location.reload();
+                } else {
+                    showToast(result.message || '更新失败', 'error');
+                }
+            } catch (error) {
+                console.error('更新成员信息失败:', error);
+                showToast('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 删除成员
+        async function deleteMember(id, realName) {
+            if (!confirm(`确定要删除成员 "${realName}" 吗？此操作不可撤销。`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/StudentMemberManagement/DeleteMember/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast(result.message, 'success');
+                    location.reload();
+                } else {
+                    showToast(result.message || '删除失败', 'error');
+                }
+            } catch (error) {
+                console.error('删除成员失败:', error);
+                showToast('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 批量添加成员
+        async function batchAddMembers() {
+            const memberData = document.getElementById('memberData').value.trim();
+            const overwriteExisting = document.getElementById('overwriteExisting').checked;
+
+            if (!memberData) {
+                showToast('请输入成员信息', 'error');
+                return;
+            }
+
+            // 解析成员数据
+            const lines = memberData.split('\n').filter(line => line.trim());
+            const memberEntries = [];
+
+            for (const line of lines) {
+                const parts = line.split(',').map(part => part.trim());
+                if (parts.length >= 1) {
+                    memberEntries.push({
+                        realName: parts[0],
+                        phoneNumber: parts[1] || null
+                    });
+                }
+            }
+
+            if (memberEntries.length === 0) {
+                showToast('没有有效的成员信息', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/StudentMemberManagement/BatchAddMembers', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
                     },
                     body: JSON.stringify({
                         memberEntries: memberEntries,
@@ -396,71 +350,53 @@
                     })
                 });
 
+                const result = await response.json();
+
                 if (response.ok) {
-                    const result = await response.json();
-                    showNotification(result.message, 'success');
-                    
+                    showToast(result.message, 'success');
+
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('batchAddMemberModal'));
                     modal.hide();
-                    
+
                     // 清空表单
                     document.getElementById('memberData').value = '';
                     document.getElementById('overwriteExisting').checked = false;
-                    
+
                     // 刷新页面
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 } else {
-                    const errorData = await response.json();
-                    showNotification(errorData.message || '批量添加失败，请稍后重试', 'danger');
+                    showToast(result.message || '批量添加失败，请稍后重试', 'error');
                 }
             } catch (error) {
                 console.error('批量添加成员失败:', error);
-                showNotification('批量添加失败，请稍后重试', 'danger');
-            }
-        }
-
-        // 删除成员功能
-        async function deleteMember(memberId, memberName) {
-            if (!confirm(`确定要删除成员"${memberName}"吗？\n\n删除后该成员的所有信息将被永久移除，此操作不可撤销。`)) {
-                return;
-            }
-
-            try {
-                // 获取防伪令牌
-                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
-                const token = tokenElement ? tokenElement.value : '';
-
-                const response = await fetch(`/Admin/Member/DeleteMember/${memberId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'RequestVerificationToken': token
-                    }
-                });
-
-                if (response.ok) {
-                    showNotification('成员删除成功', 'success');
-
-                    // 刷新页面以显示更新后的数据
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    const errorData = await response.json();
-                    showNotification(errorData.message || '删除失败，请稍后重试', 'danger');
-                }
-            } catch (error) {
-                console.error('删除成员失败:', error);
-                showNotification('删除失败，请稍后重试', 'danger');
+                showToast('批量添加失败，请稍后重试', 'error');
             }
         }
 
         // 通知函数
-        function showNotification(message, type) {
-            // 这里可以使用 Toast 或其他通知组件
-            alert(message);
+        function showToast(message, type) {
+            // 简单的通知实现，可以替换为更复杂的Toast组件
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
+                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+            // 自动移除通知
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                if (alerts.length > 0) {
+                    alerts[alerts.length - 1].remove();
+                }
+            }, 5000);
         }
     </script>
 }

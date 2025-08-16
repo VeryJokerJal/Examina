@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Requests;
@@ -11,16 +11,17 @@ using MySqlConnector;
 namespace ExaminaWebApplication.Controllers;
 
 /// <summary>
-/// 管理员网页端成员管理控制器（非组织成员）
+/// 学生成员管理控制器
+/// 用于管理学生成员名单（非组织成员）
 /// </summary>
 [Authorize(Policy = "AdminPolicy")]
-public class AdminMemberWebController : Controller
+public class StudentMemberManagementController : Controller
 {
-    private readonly ILogger<AdminMemberWebController> _logger;
+    private readonly ILogger<StudentMemberManagementController> _logger;
     private readonly ApplicationDbContext _context;
 
-    public AdminMemberWebController(
-        ILogger<AdminMemberWebController> logger,
+    public StudentMemberManagementController(
+        ILogger<StudentMemberManagementController> logger,
         ApplicationDbContext context)
     {
         _logger = logger;
@@ -35,7 +36,7 @@ public class AdminMemberWebController : Controller
     {
         try
         {
-            _logger.LogInformation("访问成员管理页面");
+            _logger.LogInformation("访问学生成员管理页面");
 
             // 获取所有成员列表
             List<MemberDto>? members = await GetAllMembersAsync(includeInactive: false);
@@ -45,49 +46,76 @@ public class AdminMemberWebController : Controller
                 Members = members ?? []
             };
 
-            _logger.LogInformation("成员管理页面加载完成，成员数量: {MemberCount}", members.Count);
+            _logger.LogInformation("学生成员管理页面加载完成，成员数量: {MemberCount}", members.Count);
 
             return View(viewModel);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "加载成员管理页面失败");
+            _logger.LogError(ex, "加载学生成员管理页面失败");
             TempData["ErrorMessage"] = "加载页面失败，请稍后重试";
             return RedirectToAction("Index", "Home");
         }
     }
 
     /// <summary>
-    /// 更新成员信息
+    /// 删除成员
     /// </summary>
-    [HttpPost]
-    [Route("Admin/Member/UpdateMemberInfo")]
-    public async Task<IActionResult> UpdateMemberInfo([FromBody] UpdateMemberInfoRequest request)
+    [HttpDelete]
+    [Route("StudentMemberManagement/DeleteMember/{id}")]
+    public async Task<IActionResult> DeleteMember(int id)
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { message = "请求参数无效" });
-            }
-
-            // 查找成员
-            OrganizationMember? member = await _context.OrganizationMembers
-                .FirstOrDefaultAsync(m => m.Id == request.MemberId);
+            OrganizationMember? member = await _context.OrganizationMembers.FindAsync(id);
             if (member == null)
             {
                 return NotFound(new { message = "成员不存在" });
             }
 
-            // 检查手机号是否已被其他成员使用（如果不为空）
-            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            // 软删除：设置为非活跃状态
+            member.IsActive = false;
+            member.UpdatedAt = DateTime.UtcNow;
+
+            // 获取当前用户ID
+            string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out int currentUserId))
             {
-                bool phoneExists = await _context.OrganizationMembers
-                    .AnyAsync(m => m.PhoneNumber == request.PhoneNumber && m.Id != request.MemberId);
-                if (phoneExists)
-                {
-                    return BadRequest(new { message = "该手机号已被其他成员使用" });
-                }
+                member.UpdatedBy = currentUserId;
+            }
+
+            _ = await _context.SaveChangesAsync();
+
+            _logger.LogInformation("管理员删除成员成功: 成员ID: {MemberId}, 真实姓名: {RealName}",
+                id, member.RealName);
+
+            return Ok(new { message = "成员删除成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "删除成员失败: 成员ID: {MemberId}", id);
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 更新成员信息
+    /// </summary>
+    [HttpPut]
+    [Route("StudentMemberManagement/UpdateMember")]
+    public async Task<IActionResult> UpdateMember([FromBody] UpdateMemberRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            OrganizationMember? member = await _context.OrganizationMembers.FindAsync(request.MemberId);
+            if (member == null)
+            {
+                return NotFound(new { message = "成员不存在" });
             }
 
             // 获取当前用户ID
@@ -120,14 +148,14 @@ public class AdminMemberWebController : Controller
     /// 批量添加成员
     /// </summary>
     [HttpPost]
-    [Route("Admin/Member/BatchAddMembers")]
-    public async Task<IActionResult> BatchAddMembers([FromBody] BatchAddMembersRequest request)
+    [Route("StudentMemberManagement/BatchAddMembers")]
+    public async Task<IActionResult> BatchAddMembers([FromBody] BatchAddMemberRequest request)
     {
         try
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "请求参数无效" });
+                return BadRequest(ModelState);
             }
 
             // 获取当前用户ID
@@ -206,35 +234,33 @@ public class AdminMemberWebController : Controller
                 message += $"，失败 {failureCount} 个";
             }
 
+            _logger.LogInformation("管理员批量添加成员完成: 新增 {AddedCount} 个，更新 {UpdatedCount} 个，失败 {FailureCount} 个",
+                addedCount, updatedCount, failureCount);
+
             return Ok(new
             {
                 message,
                 addedCount,
                 updatedCount,
                 failureCount,
-                addedMembers,
-                updatedMembers,
-                errors
+                addedMembers = addedMembers.Take(10).ToList(),
+                updatedMembers = updatedMembers.Take(10).ToList(),
+                errors = errors.Take(10).ToList() // 只返回前10个错误
             });
-        }
-        catch (MySqlException ex) when (ex.Number == 1452) // 外键约束错误
-        {
-            _logger.LogError(ex, "批量添加成员失败：外键约束错误");
-            return StatusCode(400, new { message = "数据完整性错误：引用的组织不存在，请联系管理员检查数据配置" });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "批量添加成员失败");
-            return StatusCode(500, new { message = "服务器内部错误，请稍后重试" });
+            return StatusCode(500, new { message = "服务器内部错误" });
         }
     }
 
     /// <summary>
-    /// 删除成员
+    /// 硬删除成员（管理员专用）
     /// </summary>
     [HttpDelete]
-    [Route("Admin/Member/DeleteMember/{memberId}")]
-    public async Task<IActionResult> DeleteMember(int memberId)
+    [Route("StudentMemberManagement/HardDeleteMember/{memberId}")]
+    public async Task<IActionResult> HardDeleteMember(int memberId)
     {
         try
         {
@@ -328,5 +354,3 @@ public class AdminMemberWebController : Controller
             };
     }
 }
-
-

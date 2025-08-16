@@ -4,6 +4,8 @@ using ExaminaWebApplication.Services.Organization;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
+using ExaminaWebApplication.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace ExaminaWebApplication.Controllers;
@@ -17,13 +19,16 @@ namespace ExaminaWebApplication.Controllers;
 public class StudentOrganizationController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<StudentOrganizationController> _logger;
 
     public StudentOrganizationController(
         IOrganizationService organizationService,
+        ApplicationDbContext context,
         ILogger<StudentOrganizationController> logger)
     {
         _organizationService = organizationService;
+        _context = context;
         _logger = logger;
     }
 
@@ -202,6 +207,71 @@ public class StudentOrganizationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取可用组织列表时发生错误");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 获取学生的组织状态信息
+    /// </summary>
+    /// <returns>学生组织状态</returns>
+    [HttpGet("status")]
+    public async Task<ActionResult<object>> GetStudentOrganizationStatus()
+    {
+        try
+        {
+            // 获取当前学生用户ID
+            string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int studentUserId))
+            {
+                return Unauthorized(new { message = "无法获取用户信息" });
+            }
+
+            // 获取学生用户信息
+            User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == UserRole.Student);
+
+            if (student == null)
+            {
+                return NotFound(new { message = "学生用户不存在" });
+            }
+
+            // 检查学生是否已加入任何组织
+            bool hasJoinedOrganization = await _context.StudentOrganizations
+                .AnyAsync(so => so.StudentId == studentUserId && so.IsActive);
+
+            bool isInMemberList = false;
+
+            // 如果未加入组织，检查是否在成员名单中
+            if (!hasJoinedOrganization && !string.IsNullOrEmpty(student.RealName))
+            {
+                isInMemberList = await _context.OrganizationMembers
+                    .AnyAsync(om => om.RealName == student.RealName &&
+                                   om.OrganizationId == null &&
+                                   om.IsActive);
+            }
+
+            var result = new
+            {
+                hasJoinedOrganization,
+                isInMemberList,
+                studentInfo = new
+                {
+                    id = student.Id,
+                    username = student.Username,
+                    realName = student.RealName,
+                    phoneNumber = student.PhoneNumber
+                }
+            };
+
+            _logger.LogInformation("获取学生 {StudentId} 组织状态: 已加入组织={HasJoined}, 在成员名单={InMemberList}",
+                studentUserId, hasJoinedOrganization, isInMemberList);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生组织状态时发生错误");
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }
