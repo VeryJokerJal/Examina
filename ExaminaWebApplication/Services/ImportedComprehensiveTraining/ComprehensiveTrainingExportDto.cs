@@ -12,8 +12,8 @@ public class ComprehensiveTrainingExportDto
     /// <summary>
     /// 综合训练信息
     /// </summary>
-    [JsonPropertyName("comprehensiveTraining")]
-    [XmlElement("comprehensiveTraining")]
+    [JsonPropertyName("exam")]
+    [XmlElement("exam")]
     public ComprehensiveTrainingDto ComprehensiveTraining { get; set; } = new();
 
     /// <summary>

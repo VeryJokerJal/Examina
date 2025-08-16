@@ -745,9 +745,9 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.Description).HasMaxLength(500);
             _ = entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.Value).HasMaxLength(1000);
-            _ = entity.Property(e => e.DefaultValue).HasMaxLength(1000);
+            _ = entity.Property(e => e.DefaultValue).IsRequired().HasMaxLength(1000).HasDefaultValue(string.Empty);
             _ = entity.Property(e => e.IsRequired).HasDefaultValue(false);
-            _ = entity.Property(e => e.Order).HasDefaultValue(1);
+            _ = entity.Property(e => e.Order).IsRequired().HasDefaultValue(1);
             _ = entity.Property(e => e.EnumOptions).HasMaxLength(2000);
             _ = entity.Property(e => e.ValidationRule).HasMaxLength(500);
             _ = entity.Property(e => e.ValidationErrorMessage).HasMaxLength(200);
