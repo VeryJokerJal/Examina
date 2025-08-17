@@ -133,6 +133,9 @@ public class StudentAuthController : ControllerBase
             user.LastLoginAt = DateTime.UtcNow;
             _ = await _context.SaveChangesAsync();
 
+            // 检查用户权限状态
+            bool hasFullAccess = await CheckUserFullAccessAsync(user.Id, user.PhoneNumber);
+
             LoginResponse response = new()
             {
                 AccessToken = accessToken,
@@ -146,7 +149,8 @@ public class StudentAuthController : ControllerBase
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
-                    MaxDeviceCount = user.MaxDeviceCount
+                    MaxDeviceCount = user.MaxDeviceCount,
+                    HasFullAccess = hasFullAccess
                 },
                 RequireDeviceBinding = device == null && request.DeviceInfo == null
             };
@@ -243,6 +247,9 @@ public class StudentAuthController : ControllerBase
             user.LastLoginAt = DateTime.UtcNow;
             _ = await _context.SaveChangesAsync();
 
+            // 检查用户权限状态
+            bool hasFullAccess = await CheckUserFullAccessAsync(user.Id, user.PhoneNumber);
+
             LoginResponse response = new()
             {
                 AccessToken = accessToken,
@@ -256,7 +263,8 @@ public class StudentAuthController : ControllerBase
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
-                    MaxDeviceCount = user.MaxDeviceCount
+                    MaxDeviceCount = user.MaxDeviceCount,
+                    HasFullAccess = hasFullAccess
                 },
                 RequireDeviceBinding = device == null && request.DeviceInfo == null
             };
@@ -446,6 +454,9 @@ public class StudentAuthController : ControllerBase
                 _logger.LogInformation("用户 {UserId} 没有任何更改", userId);
             }
 
+            // 检查用户权限状态
+            bool hasFullAccess = await CheckUserFullAccessAsync(user.Id, user.PhoneNumber);
+
             // 返回更新后的用户信息
             UserInfo userInfo = new()
             {
@@ -455,7 +466,8 @@ public class StudentAuthController : ControllerBase
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
-                MaxDeviceCount = user.MaxDeviceCount
+                MaxDeviceCount = user.MaxDeviceCount,
+                HasFullAccess = hasFullAccess
             };
 
             return Ok(userInfo);
@@ -543,6 +555,9 @@ public class StudentAuthController : ControllerBase
                 return Unauthorized(new { message = "用户不存在、已被禁用或不是学生账号" });
             }
 
+            // 检查用户权限状态
+            bool hasFullAccess = await CheckUserFullAccessAsync(user.Id, user.PhoneNumber);
+
             UserInfo userInfo = new()
             {
                 Id = user.Id.ToString(),
@@ -551,7 +566,8 @@ public class StudentAuthController : ControllerBase
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
-                MaxDeviceCount = user.MaxDeviceCount
+                MaxDeviceCount = user.MaxDeviceCount,
+                HasFullAccess = hasFullAccess
             };
 
             _logger.LogInformation("获取用户 {UserId} 的profile信息，IsFirstLogin={IsFirstLogin}", userId, user.IsFirstLogin);
@@ -624,6 +640,9 @@ public class StudentAuthController : ControllerBase
                 _logger.LogInformation("用户 {UserId} 没有任何更改", userId);
             }
 
+            // 检查用户权限状态
+            bool hasFullAccess = await CheckUserFullAccessAsync(user.Id, user.PhoneNumber);
+
             // 返回更新后的用户信息
             UserInfo userInfo = new()
             {
@@ -633,7 +652,8 @@ public class StudentAuthController : ControllerBase
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
-                MaxDeviceCount = user.MaxDeviceCount
+                MaxDeviceCount = user.MaxDeviceCount,
+                HasFullAccess = hasFullAccess
             };
 
             return Ok(userInfo);
@@ -1039,6 +1059,75 @@ public class StudentAuthController : ControllerBase
         // 这里可以集成第三方IP地理位置服务
         // 简化实现，返回默认位置
         return await Task.FromResult("中国");
+    }
+
+    #endregion
+
+    #region 权限判断方法
+
+    /// <summary>
+    /// 检查用户是否拥有完整功能权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="userPhoneNumber">用户手机号</param>
+    /// <returns>是否拥有完整功能权限</returns>
+    private async Task<bool> CheckUserFullAccessAsync(int userId, string? userPhoneNumber)
+    {
+        try
+        {
+            // 1. 检查用户是否属于学校组织（学生组织关系）
+            bool hasStudentOrganization = await _context.StudentOrganizations
+                .AnyAsync(so => so.StudentId == userId && so.IsActive);
+
+            if (hasStudentOrganization)
+            {
+                _logger.LogDebug("用户 {UserId} 属于学生组织，拥有完整权限", userId);
+                return true;
+            }
+
+            // 2. 检查用户是否属于学校组织（教师组织关系）
+            bool hasTeacherOrganization = await _context.TeacherOrganizations
+                .AnyAsync(to => to.TeacherId == userId && to.IsActive);
+
+            if (hasTeacherOrganization)
+            {
+                _logger.LogDebug("用户 {UserId} 属于教师组织，拥有完整权限", userId);
+                return true;
+            }
+
+            // 3. 检查用户是否在非组织学生名单中（通过UserId直接关联）
+            bool isNonOrgStudentByUserId = await _context.NonOrganizationStudents
+                .AnyAsync(nos => nos.UserId == userId && nos.IsActive);
+
+            if (isNonOrgStudentByUserId)
+            {
+                _logger.LogDebug("用户 {UserId} 在非组织学生名单中（通过UserId），拥有完整权限", userId);
+                return true;
+            }
+
+            // 4. 检查用户是否在非组织学生名单中（通过手机号关联）
+            if (!string.IsNullOrEmpty(userPhoneNumber))
+            {
+                bool isNonOrgStudentByPhone = await _context.NonOrganizationStudents
+                    .AnyAsync(nos => nos.PhoneNumber == userPhoneNumber && nos.IsActive);
+
+                if (isNonOrgStudentByPhone)
+                {
+                    _logger.LogDebug("用户 {UserId} 在非组织学生名单中（通过手机号 {PhoneNumber}），拥有完整权限", userId, userPhoneNumber);
+                    return true;
+                }
+            }
+
+            // 5. 用户既不属于组织也不在非组织名单中，无完整权限
+            _logger.LogDebug("用户 {UserId} 既不属于组织也不在非组织学生名单中，无完整权限", userId);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查用户 {UserId} 权限状态时发生错误", userId);
+            // 出现异常时，为了安全起见，返回false
+            return false;
+        }
     }
 
     #endregion

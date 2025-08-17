@@ -209,6 +209,11 @@ public class UserInfo
     public bool IsFirstLogin { get; set; }
     public bool AllowMultipleDevices { get; set; }
     public int MaxDeviceCount { get; set; }
+
+    /// <summary>
+    /// 是否拥有完整功能权限
+    /// </summary>
+    public bool HasFullAccess { get; set; }
 }
 
 /// <summary>
