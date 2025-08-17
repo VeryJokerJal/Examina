@@ -146,7 +146,7 @@ public class ClassMembersApiController : ControllerBase
             }
 
             // 如果没有活跃的邀请码，创建一个默认的
-            var newCode = await _invitationCodeService.CreateInvitationCodeAsync(classId, GetCurrentUserId());
+            var newCode = await _invitationCodeService.CreateInvitationCodeAsync(classId);
             return newCode?.Id ?? throw new InvalidOperationException("无法创建默认邀请码");
         }
         catch (Exception ex)
