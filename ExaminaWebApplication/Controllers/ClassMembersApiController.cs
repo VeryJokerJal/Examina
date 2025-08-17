@@ -147,32 +147,6 @@ public class ClassMembersApiController : ControllerBase
     }
 
     /// <summary>
-    /// 获取班级的默认邀请码ID
-    /// </summary>
-    private async Task<int> GetDefaultInvitationCodeId(int classId)
-    {
-        try
-        {
-            var invitationCodes = await _invitationCodeService.GetOrganizationInvitationCodesAsync(classId, false);
-            var activeCode = invitationCodes.FirstOrDefault(c => c.IsActive);
-
-            if (activeCode != null)
-            {
-                return activeCode.Id;
-            }
-
-            // 如果没有活跃的邀请码，创建一个默认的
-            var newCode = await _invitationCodeService.CreateInvitationCodeAsync(classId);
-            return newCode?.Id ?? throw new InvalidOperationException("无法创建默认邀请码");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "获取或创建默认邀请码失败: {ClassId}", classId);
-            throw;
-        }
-    }
-
-    /// <summary>
     /// 创建学生组织关系
     /// </summary>
     private async Task<StudentOrganizationDto?> CreateStudentOrganizationAsync(int nonOrgStudentId, int classId)
