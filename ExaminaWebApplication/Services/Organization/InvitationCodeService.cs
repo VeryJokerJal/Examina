@@ -64,7 +64,7 @@ public class InvitationCodeService : IInvitationCodeService
         {
             InvitationCode? invitationCode = await _context.InvitationCodes
                 .Include(ic => ic.Organization)
-                .FirstOrDefaultAsync(ic => ic.Code == code.ToUpper());
+                .FirstOrDefaultAsync(ic => ic.Code.Equals(code, StringComparison.CurrentCultureIgnoreCase));
 
             return invitationCode;
         }

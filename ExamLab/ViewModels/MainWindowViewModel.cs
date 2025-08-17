@@ -613,7 +613,7 @@ public class MainWindowViewModel : ViewModelBase
             // 4. 解析文件内容
             Models.ImportExport.ExamExportDto? importDto = null;
 
-            if (file.FileType.ToLowerInvariant() == ".json")
+            if (file.FileType.Equals(".json", StringComparison.InvariantCultureIgnoreCase))
             {
                 // JSON格式解析
                 System.Text.Json.JsonSerializerOptions jsonOptions = new()
@@ -635,7 +635,7 @@ public class MainWindowViewModel : ViewModelBase
                     return;
                 }
             }
-            else if (file.FileType.ToLowerInvariant() == ".xml")
+            else if (file.FileType.Equals(".xml", StringComparison.InvariantCultureIgnoreCase))
             {
                 // XML格式解析（暂时不支持，显示提示）
                 await NotificationService.ShowErrorAsync("格式不支持", "XML格式导入功能将在后续版本中实现，请使用JSON格式");
@@ -751,7 +751,7 @@ public class MainWindowViewModel : ViewModelBase
             // 5. 根据文件扩展名选择序列化格式
             string fileContent;
 
-            if (file.FileType.ToLowerInvariant() == ".json")
+            if (file.FileType.Equals(".json", StringComparison.InvariantCultureIgnoreCase))
             {
                 // JSON序列化
                 System.Text.Json.JsonSerializerOptions jsonOptions = new()
@@ -766,7 +766,7 @@ public class MainWindowViewModel : ViewModelBase
 
                 fileContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
             }
-            else if (file.FileType.ToLowerInvariant() == ".xml")
+            else if (file.FileType.Equals(".xml", StringComparison.InvariantCultureIgnoreCase))
             {
                 // XML序列化（暂时不支持，显示提示）
                 await NotificationService.ShowErrorAsync("格式不支持", "XML格式导出功能将在后续版本中实现，请选择JSON格式");

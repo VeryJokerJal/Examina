@@ -235,6 +235,30 @@ public class OrganizationService : IOrganizationService
                 return JoinOrganizationResult.CreateFailure("您已经是该组织的成员");
             }
 
+            // 验证用户信息完整性
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("用户不存在: {UserId}", userId);
+                return JoinOrganizationResult.CreateFailure("用户不存在");
+            }
+
+            // 检查用户是否提供了完整的个人信息
+            if (string.IsNullOrWhiteSpace(user.RealName))
+            {
+                _logger.LogWarning("用户 {UserId} 缺少真实姓名，无法加入组织", userId);
+                return JoinOrganizationResult.CreateFailure("请先完善个人信息（真实姓名）后再加入组织");
+            }
+
+            if (string.IsNullOrWhiteSpace(user.PhoneNumber))
+            {
+                _logger.LogWarning("用户 {UserId} 缺少手机号码，无法加入组织", userId);
+                return JoinOrganizationResult.CreateFailure("请先完善个人信息（手机号码）后再加入组织");
+            }
+
+            _logger.LogInformation("用户 {UserId} 信息完整性验证通过，真实姓名: {RealName}, 手机号: {PhoneNumber}",
+                userId, user.RealName, user.PhoneNumber);
+
             // 创建用户组织关系
             StudentOrganization userOrganization = new()
             {
@@ -375,6 +399,22 @@ public class OrganizationService : IOrganizationService
                 _logger.LogWarning("用户不存在或已停用: {UserId}", userId);
                 return null;
             }
+
+            // 验证用户信息完整性
+            if (string.IsNullOrWhiteSpace(user.RealName))
+            {
+                _logger.LogWarning("用户 {UserId} 缺少真实姓名，无法加入组织", userId);
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.PhoneNumber))
+            {
+                _logger.LogWarning("用户 {UserId} 缺少手机号码，无法加入组织", userId);
+                return null;
+            }
+
+            _logger.LogInformation("用户 {UserId} 信息完整性验证通过，真实姓名: {RealName}, 手机号: {PhoneNumber}",
+                userId, user.RealName, user.PhoneNumber);
 
             // 验证组织
             Models.Organization.Organization? organization = await _context.Organizations

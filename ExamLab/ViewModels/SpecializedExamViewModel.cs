@@ -730,7 +730,7 @@ public class SpecializedExamViewModel : ViewModelBase
 
             try
             {
-                if (file.FileType.ToLowerInvariant() == ".json")
+                if (file.FileType.Equals(".json", StringComparison.InvariantCultureIgnoreCase))
                 {
                     // JSON格式：尝试专项试卷格式，失败则尝试通用格式
                     System.Text.Json.JsonSerializerOptions jsonOptions = new()
@@ -762,7 +762,7 @@ public class SpecializedExamViewModel : ViewModelBase
                         importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
                     }
                 }
-                else if (file.FileType.ToLowerInvariant() == ".xml")
+                else if (file.FileType.Equals(".xml", StringComparison.InvariantCultureIgnoreCase))
                 {
                     // XML格式：只支持通用格式
                     importDto = XmlSerializationService.DeserializeFromXml(fileContent);
@@ -902,7 +902,7 @@ public class SpecializedExamViewModel : ViewModelBase
             // 4. 根据文件格式选择导出方式
             string fileContent;
 
-            if (file.FileType.ToLowerInvariant() == ".json")
+            if (file.FileType.Equals(".json", StringComparison.InvariantCultureIgnoreCase))
             {
                 // JSON格式：使用专项试卷专用格式
                 SpecializedExamExportDto specializedExportDto = SpecializedExamMappingService.ToSpecializedExportDto(exam, exportLevel);
@@ -919,7 +919,7 @@ public class SpecializedExamViewModel : ViewModelBase
 
                 fileContent = System.Text.Json.JsonSerializer.Serialize(specializedExportDto, jsonOptions);
             }
-            else if (file.FileType.ToLowerInvariant() == ".xml")
+            else if (file.FileType.Equals(".xml", StringComparison.InvariantCultureIgnoreCase))
             {
                 // XML格式：使用通用格式（向后兼容）
                 ExamExportDto genericExportDto = SpecializedExamMappingService.ToExportDto(exam, exportLevel);
