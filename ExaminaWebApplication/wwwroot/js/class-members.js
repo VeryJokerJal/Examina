@@ -45,6 +45,16 @@ function initializeClassMembers() {
         resetAddMemberForm();
     });
 
+    // 绑定手机号码输入验证
+    $('#studentPhoneNumber').on('input', function() {
+        validatePhoneNumber(this);
+    });
+
+    // 绑定姓名输入验证
+    $('#studentRealName').on('input', function() {
+        validateRealName(this);
+    });
+
 
 
     // 初始加载成员列表
@@ -208,13 +218,27 @@ function loadInvitationCodes() {
 function addMember() {
     const form = $('#addMemberForm');
     const formData = {
-        studentId: parseInt($('#studentSelect').val()),
+        realName: $('#studentRealName').val().trim(),
+        phoneNumber: $('#studentPhoneNumber').val().trim(),
+        notes: $('#studentNotes').val().trim() || null,
         invitationCodeId: $('#invitationCodeSelect').val() ? parseInt($('#invitationCodeSelect').val()) : null
     };
 
     // 验证表单
-    if (!formData.studentId) {
-        showFieldError('#studentSelect', '请选择学生');
+    if (!formData.realName) {
+        showFieldError('#studentRealName', '请输入学生姓名');
+        return;
+    }
+
+    if (!formData.phoneNumber) {
+        showFieldError('#studentPhoneNumber', '请输入手机号码');
+        return;
+    }
+
+    // 验证手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(formData.phoneNumber)) {
+        showFieldError('#studentPhoneNumber', '请输入正确的11位手机号码');
         return;
     }
 
@@ -304,6 +328,40 @@ function resetAddMemberForm() {
     const form = $('#addMemberForm');
     form[0].reset();
     clearFormErrors(form);
+}
+
+// 验证手机号码
+function validatePhoneNumber(input) {
+    const phoneNumber = $(input).val().trim();
+    const phoneRegex = /^1[3-9]\d{9}$/;
+
+    if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+        showFieldError('#studentPhoneNumber', '请输入正确的11位手机号码');
+        return false;
+    } else {
+        clearFieldError('#studentPhoneNumber');
+        return true;
+    }
+}
+
+// 验证真实姓名
+function validateRealName(input) {
+    const realName = $(input).val().trim();
+
+    if (realName && realName.length > 50) {
+        showFieldError('#studentRealName', '姓名长度不能超过50个字符');
+        return false;
+    } else {
+        clearFieldError('#studentRealName');
+        return true;
+    }
+}
+
+// 清除单个字段错误
+function clearFieldError(selector) {
+    const field = $(selector);
+    field.removeClass('is-invalid');
+    field.siblings('.invalid-feedback').text('');
 }
 
 // 工具函数

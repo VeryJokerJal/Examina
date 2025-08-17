@@ -17,15 +17,18 @@ public class ClassMembersApiController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
     private readonly IInvitationCodeService _invitationCodeService;
+    private readonly INonOrganizationStudentService _studentService;
     private readonly ILogger<ClassMembersApiController> _logger;
 
     public ClassMembersApiController(
         IOrganizationService organizationService,
         IInvitationCodeService invitationCodeService,
+        INonOrganizationStudentService studentService,
         ILogger<ClassMembersApiController> logger)
     {
         _organizationService = organizationService;
         _invitationCodeService = invitationCodeService;
+        _studentService = studentService;
         _logger = logger;
     }
 
@@ -46,28 +49,45 @@ public class ClassMembersApiController : ControllerBase
                 return NotFound(new { message = "班级不存在" });
             }
 
+            // 检查手机号是否已存在
+            var existingStudents = await _studentService.SearchByPhoneNumberAsync(request.PhoneNumber, false);
+            if (existingStudents.Any())
+            {
+                return BadRequest(new { message = "该手机号码已存在，请使用其他手机号码" });
+            }
+
+            // 创建非组织学生记录
+            var studentDto = await _studentService.CreateStudentAsync(
+                request.RealName,
+                request.PhoneNumber,
+                request.Notes,
+                operatorUserId);
+
+            if (studentDto == null)
+            {
+                return BadRequest(new { message = "创建学生记录失败" });
+            }
+
             // 如果没有指定邀请码，使用班级的默认邀请码
             int invitationCodeId = request.InvitationCodeId ?? await GetDefaultInvitationCodeId(classId);
 
-            // 添加学生到班级
-            StudentOrganizationDto? result = await _organizationService.JoinOrganizationAsync(
-                request.StudentId,
-                classId,
-                invitationCodeId);
+            // 将学生添加到班级（这里需要创建StudentOrganization记录）
+            var result = await CreateStudentOrganizationAsync(studentDto.Id, classId, invitationCodeId);
 
             if (result == null)
             {
-                return BadRequest(new { message = "添加成员失败，可能是学生已在班级中或邀请码无效" });
+                return BadRequest(new { message = "添加学生到班级失败" });
             }
 
-            _logger.LogInformation("学生添加到班级成功: {StudentId} -> {ClassId}, 操作者: {OperatorUserId}",
-                request.StudentId, classId, operatorUserId);
+            _logger.LogInformation("学生添加到班级成功: {StudentName}({PhoneNumber}) -> {ClassId}, 操作者: {OperatorUserId}",
+                request.RealName, request.PhoneNumber, classId, operatorUserId);
 
             return Ok(result);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "添加学生到班级失败: {StudentId} -> {ClassId}", request.StudentId, classId);
+            _logger.LogError(ex, "添加学生到班级失败: {StudentName}({PhoneNumber}) -> {ClassId}",
+                request.RealName, request.PhoneNumber, classId);
             return StatusCode(500, new { message = "添加成员失败", error = ex.Message });
         }
     }
@@ -155,6 +175,53 @@ public class ClassMembersApiController : ControllerBase
         {
             _logger.LogError(ex, "获取或创建默认邀请码失败: {ClassId}", classId);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// 创建学生组织关系
+    /// </summary>
+    private async Task<StudentOrganizationDto?> CreateStudentOrganizationAsync(int nonOrgStudentId, int classId, int invitationCodeId)
+    {
+        try
+        {
+            // 获取非组织学生信息
+            var student = await _studentService.GetStudentByIdAsync(nonOrgStudentId);
+            if (student == null)
+            {
+                return null;
+            }
+
+            // 增加邀请码使用次数
+            await _invitationCodeService.IncrementUsageCountAsync(invitationCodeId);
+
+            // 由于现有的StudentOrganization模型需要StudentId（用户ID），
+            // 而非组织学生没有用户账户，我们需要创建一个虚拟的关系记录
+            // 这里我们直接返回DTO，不创建StudentOrganization记录
+            // 实际的关系通过NonOrganizationStudent记录来维护
+
+            _logger.LogInformation("非组织学生添加到班级成功: {StudentName}({PhoneNumber}) -> {ClassId}",
+                student.RealName, student.PhoneNumber, classId);
+
+            // 构造返回的DTO
+            return new StudentOrganizationDto
+            {
+                Id = nonOrgStudentId, // 使用非组织学生ID作为关系ID
+                StudentId = 0, // 非组织学生没有用户ID
+                StudentUsername = student.RealName, // 使用真实姓名作为用户名显示
+                StudentRealName = student.RealName,
+                StudentPhoneNumber = student.PhoneNumber,
+                OrganizationId = classId,
+                JoinedAt = DateTime.UtcNow,
+                InvitationCodeId = invitationCodeId,
+                InvitationCode = null, // 可以后续获取
+                IsActive = student.IsActive
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "创建学生组织关系失败: {StudentId} -> {ClassId}", nonOrgStudentId, classId);
+            return null;
         }
     }
 

@@ -212,15 +212,23 @@
             <form id="addMemberForm">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="studentSelect" class="glass-form-label">选择学生 <span class="text-danger">*</span></label>
-                        <select class="glass-form-control" id="studentSelect" name="StudentId" required>
-                            <option value="">请选择学生</option>
-                            @foreach (var student in Model.AvailableStudents)
-                            {
-                                <option value="@student.Id">@student.Username (@student.RealName)</option>
-                            }
-                        </select>
+                        <label for="studentRealName" class="glass-form-label">学生姓名 <span class="text-danger">*</span></label>
+                        <input type="text" class="glass-form-control" id="studentRealName" name="RealName"
+                               maxlength="50" placeholder="请输入学生真实姓名" required>
                         <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="studentPhoneNumber" class="glass-form-label">手机号码 <span class="text-danger">*</span></label>
+                        <input type="tel" class="glass-form-control" id="studentPhoneNumber" name="PhoneNumber"
+                               maxlength="11" placeholder="请输入11位手机号码" required>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="studentNotes" class="glass-form-label">备注信息</label>
+                        <textarea class="glass-form-control" id="studentNotes" name="Notes"
+                                  rows="3" maxlength="500" placeholder="请输入备注信息（可选）"></textarea>
+                        <div class="invalid-feedback"></div>
+                        <small class="text-muted">最多500个字符</small>
                     </div>
                     <div class="mb-3">
                         <label for="invitationCodeSelect" class="glass-form-label">邀请码</label>
