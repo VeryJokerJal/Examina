@@ -242,7 +242,9 @@ public class ClassMembersApiController : ControllerBase
                 OrganizationName = "", // 可以后续获取
                 JoinedAt = DateTime.UtcNow,
                 InvitationCode = "", // 不使用邀请码
-                IsActive = student.IsActive
+                IsActive = student.IsActive,
+                CreatedAt = DateTime.UtcNow,
+                CreatorUsername = User.Identity?.Name ?? "未知"
             };
         }
         catch (Exception ex)

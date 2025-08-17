@@ -493,6 +493,7 @@ public class OrganizationService : IOrganizationService
                 IQueryable<NonOrganizationStudentOrganization> nonOrgQuery = _context.NonOrganizationStudentOrganizations
                     .Include(noso => noso.NonOrganizationStudent)
                     .Include(noso => noso.Organization)
+                    .Include(noso => noso.Creator)
                     .Where(noso => noso.OrganizationId == organizationId);
 
                 if (!includeInactive)
@@ -538,7 +539,9 @@ public class OrganizationService : IOrganizationService
                             OrganizationName = "",
                             JoinedAt = student.CreatedAt,
                             InvitationCode = "",
-                            IsActive = student.IsActive
+                            IsActive = student.IsActive,
+                            CreatedAt = student.CreatedAt,
+                            CreatorUsername = student.Creator?.Username ?? "未知"
                         });
                     }
 
@@ -846,7 +849,9 @@ public class OrganizationService : IOrganizationService
                 OrganizationName = studentOrganization.Organization?.Name ?? "未知",
                 JoinedAt = studentOrganization.JoinedAt,
                 InvitationCode = studentOrganization.InvitationCode?.Code ?? "未知",
-                IsActive = studentOrganization.IsActive
+                IsActive = studentOrganization.IsActive,
+                CreatedAt = studentOrganization.JoinedAt, // 对于注册学生，使用加入时间作为创建时间
+                CreatorUsername = "系统" // 注册学生通过邀请码加入，创建者为系统
             };
     }
 
@@ -868,7 +873,9 @@ public class OrganizationService : IOrganizationService
                 OrganizationName = relation.Organization?.Name ?? "未知",
                 JoinedAt = relation.JoinedAt,
                 InvitationCode = "", // 非组织学生不使用邀请码
-                IsActive = relation.IsActive
+                IsActive = relation.IsActive,
+                CreatedAt = relation.CreatedAt,
+                CreatorUsername = relation.Creator?.Username ?? "未知"
             };
     }
 

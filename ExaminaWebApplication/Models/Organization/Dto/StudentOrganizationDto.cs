@@ -56,4 +56,14 @@ public class StudentOrganizationDto
     /// 是否激活
     /// </summary>
     public bool IsActive { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// 创建者用户名
+    /// </summary>
+    public string CreatorUsername { get; set; } = string.Empty;
 }

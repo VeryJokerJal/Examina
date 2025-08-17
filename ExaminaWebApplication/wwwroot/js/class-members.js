@@ -1,4 +1,4 @@
-// 班级成员管理JavaScript功能
+﻿// 班级成员管理JavaScript功能
 
 let currentClassId = null;
 let currentPage = 1;
@@ -97,14 +97,14 @@ function renderMemberTable(members) {
     }
 
     let html = `
-        <div class="table-responsive">
+        <div>
             <table class="table glass-table">
                 <thead>
                     <tr>
                         <th>学生信息</th>
                         <th>联系方式</th>
-                        <th>加入时间</th>
-                        <th>邀请码</th>
+                        <th>创建时间</th>
+                        <th>创建者</th>
                         <th>状态</th>
                         <th>操作</th>
                     </tr>
@@ -132,10 +132,10 @@ function renderMemberTable(members) {
                     </div>
                 </td>
                 <td>
-                    <small>${formatDateTime(member.joinedAt)}</small>
+                    <small>${formatDateTime(member.createdAt)}</small>
                 </td>
                 <td>
-                    ${member.invitationCode ? `<span class="font-monospace text-muted">${escapeHtml(member.invitationCode)}</span>` : '<span class="text-muted">-</span>'}
+                    <small class="text-muted">${escapeHtml(member.creatorUsername)}</small>
                 </td>
                 <td>
                     <span class="badge ${member.isActive ? 'glass-badge-success' : 'glass-badge-danger'}">

@@ -107,14 +107,14 @@
                 <div class="card-body">
                     <div id="membersContainer">
                         <!-- 成员列表将通过JavaScript动态加载 -->
-                        <div class="table-responsive">
+                        <div>
                             <table class="table glass-table">
                                 <thead>
                                     <tr>
                                         <th>学生信息</th>
                                         <th>联系方式</th>
-                                        <th>加入时间</th>
-                                        <th>邀请码</th>
+                                        <th>创建时间</th>
+                                        <th>创建者</th>
                                         <th>状态</th>
                                         <th>操作</th>
                                     </tr>
@@ -150,17 +150,10 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <small>@member.JoinedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                                <small>@member.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
                                             </td>
                                             <td>
-                                                @if (!string.IsNullOrEmpty(member.InvitationCode))
-                                                {
-                                                    <span class="font-monospace text-muted">@member.InvitationCode</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
+                                                <small class="text-muted">@member.CreatorUsername</small>
                                             </td>
                                             <td>
                                                 <span class="badge @(member.IsActive ? "glass-badge-success" : "glass-badge-danger")">
