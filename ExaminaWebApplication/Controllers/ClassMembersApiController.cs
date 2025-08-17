@@ -50,7 +50,7 @@ public class ClassMembersApiController : ControllerBase
             }
 
             // 检查手机号是否已存在
-            var existingStudents = await _studentService.SearchByPhoneNumberAsync(request.PhoneNumber, false);
+            var existingStudents = await _studentService.SearchStudentsByPhoneAsync(request.PhoneNumber, false);
             if (existingStudents.Any())
             {
                 return BadRequest(new { message = "该手机号码已存在，请使用其他手机号码" });
@@ -60,8 +60,8 @@ public class ClassMembersApiController : ControllerBase
             var studentDto = await _studentService.CreateStudentAsync(
                 request.RealName,
                 request.PhoneNumber,
-                request.Notes,
-                operatorUserId);
+                operatorUserId,
+                request.Notes);
 
             if (studentDto == null)
             {
@@ -212,9 +212,9 @@ public class ClassMembersApiController : ControllerBase
                 StudentRealName = student.RealName,
                 StudentPhoneNumber = student.PhoneNumber,
                 OrganizationId = classId,
+                OrganizationName = "", // 可以后续获取
                 JoinedAt = DateTime.UtcNow,
-                InvitationCodeId = invitationCodeId,
-                InvitationCode = null, // 可以后续获取
+                InvitationCode = "", // 可以后续获取
                 IsActive = student.IsActive
             };
         }
