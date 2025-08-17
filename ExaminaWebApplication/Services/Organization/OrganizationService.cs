@@ -467,6 +467,7 @@ public class OrganizationService : IOrganizationService
             _logger.LogInformation("开始获取组织 {OrganizationId} 的成员列表，包含非活跃成员: {IncludeInactive}", organizationId, includeInactive);
 
             List<StudentOrganizationDto> result = new List<StudentOrganizationDto>();
+            int nonOrgStudentCount = 0;
 
             // 1. 获取注册用户学生
             IQueryable<StudentOrganization> userQuery = _context.StudentOrganizations
@@ -504,8 +505,9 @@ public class OrganizationService : IOrganizationService
                     .ToListAsync();
 
                 result.AddRange(nonOrgRelations.Select(MapNonOrgStudentToDto));
+                nonOrgStudentCount = nonOrgRelations.Count;
 
-                _logger.LogInformation("从NonOrganizationStudentOrganization表获取到 {Count} 个非组织学生", nonOrgRelations.Count);
+                _logger.LogInformation("从NonOrganizationStudentOrganization表获取到 {Count} 个非组织学生", nonOrgStudentCount);
             }
             catch (Exception ex)
             {
@@ -540,7 +542,8 @@ public class OrganizationService : IOrganizationService
                         });
                     }
 
-                    _logger.LogInformation("使用备用方案获取到 {Count} 个非组织学生", allNonOrgStudents.Count);
+                    nonOrgStudentCount = allNonOrgStudents.Count;
+                    _logger.LogInformation("使用备用方案获取到 {Count} 个非组织学生", nonOrgStudentCount);
                 }
                 catch (Exception fallbackEx)
                 {
@@ -552,7 +555,7 @@ public class OrganizationService : IOrganizationService
             result = result.OrderByDescending(dto => dto.JoinedAt).ToList();
 
             _logger.LogInformation("从数据库获取到 {UserCount} 个注册学生和 {NonOrgCount} 个非组织学生，总计 {TotalCount} 个成员",
-                userOrganizations.Count, nonOrgRelations.Count, result.Count);
+                userOrganizations.Count, nonOrgStudentCount, result.Count);
 
             return result;
         }
