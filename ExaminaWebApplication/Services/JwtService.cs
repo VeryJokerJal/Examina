@@ -1,8 +1,8 @@
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ExaminaWebApplication.Models;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ExaminaWebApplication.Services;
 
@@ -34,10 +34,10 @@ public class JwtService : IJwtService
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_secretKey);
+            JwtSecurityTokenHandler tokenHandler = new();
+            byte[] key = Encoding.ASCII.GetBytes(_secretKey);
 
-            var claims = new List<Claim>
+            List<Claim> claims = new()
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.Username),
@@ -57,17 +57,12 @@ public class JwtService : IJwtService
                 claims.Add(new Claim("RealName", user.RealName));
             }
 
-            if (!string.IsNullOrEmpty(user.StudentId))
-            {
-                claims.Add(new Claim("StudentId", user.StudentId));
-            }
-
             if (deviceId.HasValue)
             {
                 claims.Add(new Claim("DeviceId", deviceId.Value.ToString()));
             }
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            SecurityTokenDescriptor tokenDescriptor = new()
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(_accessTokenExpirationMinutes),
@@ -76,8 +71,8 @@ public class JwtService : IJwtService
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+            string tokenString = tokenHandler.WriteToken(token);
 
             _logger.LogInformation("生成访问令牌成功，用户ID: {UserId}, 设备ID: {DeviceId}", user.Id, deviceId);
             return tokenString;
@@ -93,10 +88,10 @@ public class JwtService : IJwtService
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_secretKey);
+            JwtSecurityTokenHandler tokenHandler = new();
+            byte[] key = Encoding.ASCII.GetBytes(_secretKey);
 
-            var claims = new List<Claim>
+            List<Claim> claims = new()
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.Username),
@@ -109,7 +104,7 @@ public class JwtService : IJwtService
                 claims.Add(new Claim("DeviceId", deviceId.Value.ToString()));
             }
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            SecurityTokenDescriptor tokenDescriptor = new()
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays),
@@ -118,8 +113,8 @@ public class JwtService : IJwtService
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+            string tokenString = tokenHandler.WriteToken(token);
 
             _logger.LogInformation("生成刷新令牌成功，用户ID: {UserId}, 设备ID: {DeviceId}", user.Id, deviceId);
             return tokenString;
@@ -145,10 +140,10 @@ public class JwtService : IJwtService
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_secretKey);
+            JwtSecurityTokenHandler tokenHandler = new();
+            byte[] key = Encoding.ASCII.GetBytes(_secretKey);
 
-            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            ClaimsPrincipal principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -161,13 +156,8 @@ public class JwtService : IJwtService
             }, out SecurityToken validatedToken);
 
             // 验证令牌类型
-            var tokenTypeClaim = principal.FindFirst("TokenType");
-            if (tokenTypeClaim?.Value != expectedTokenType)
-            {
-                return false;
-            }
-
-            return true;
+            Claim? tokenTypeClaim = principal.FindFirst("TokenType");
+            return (tokenTypeClaim?.Value) == expectedTokenType;
         }
         catch (Exception ex)
         {
@@ -180,13 +170,9 @@ public class JwtService : IJwtService
     {
         try
         {
-            var claims = GetClaimsFromToken(token);
-            var userIdClaim = claims?.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return userId;
-            }
-            return null;
+            ClaimsPrincipal? claims = GetClaimsFromToken(token);
+            Claim? userIdClaim = claims?.FindFirst(ClaimTypes.NameIdentifier);
+            return userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId) ? userId : null;
         }
         catch (Exception ex)
         {
@@ -199,13 +185,9 @@ public class JwtService : IJwtService
     {
         try
         {
-            var claims = GetClaimsFromToken(token);
-            var deviceIdClaim = claims?.FindFirst("DeviceId");
-            if (deviceIdClaim != null && int.TryParse(deviceIdClaim.Value, out int deviceId))
-            {
-                return deviceId;
-            }
-            return null;
+            ClaimsPrincipal? claims = GetClaimsFromToken(token);
+            Claim? deviceIdClaim = claims?.FindFirst("DeviceId");
+            return deviceIdClaim != null && int.TryParse(deviceIdClaim.Value, out int deviceId) ? deviceId : null;
         }
         catch (Exception ex)
         {
@@ -218,13 +200,9 @@ public class JwtService : IJwtService
     {
         try
         {
-            var claims = GetClaimsFromToken(token);
-            var roleClaim = claims?.FindFirst(ClaimTypes.Role);
-            if (roleClaim != null && Enum.TryParse<UserRole>(roleClaim.Value, out var role))
-            {
-                return role;
-            }
-            return null;
+            ClaimsPrincipal? claims = GetClaimsFromToken(token);
+            Claim? roleClaim = claims?.FindFirst(ClaimTypes.Role);
+            return roleClaim != null && Enum.TryParse<UserRole>(roleClaim.Value, out UserRole role) ? role : null;
         }
         catch (Exception ex)
         {
@@ -237,10 +215,10 @@ public class JwtService : IJwtService
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_secretKey);
+            JwtSecurityTokenHandler tokenHandler = new();
+            byte[] key = Encoding.ASCII.GetBytes(_secretKey);
 
-            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            ClaimsPrincipal principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -265,8 +243,8 @@ public class JwtService : IJwtService
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token);
+            JwtSecurityTokenHandler tokenHandler = new();
+            JwtSecurityToken jwtToken = tokenHandler.ReadJwtToken(token);
             return jwtToken.ValidTo;
         }
         catch (Exception ex)
@@ -280,10 +258,10 @@ public class JwtService : IJwtService
     {
         try
         {
-            var expirationTime = GetTokenExpirationTime(token);
+            DateTime? expirationTime = GetTokenExpirationTime(token);
             if (expirationTime.HasValue)
             {
-                var timeUntilExpiry = expirationTime.Value - DateTime.UtcNow;
+                TimeSpan timeUntilExpiry = expirationTime.Value - DateTime.UtcNow;
                 return timeUntilExpiry.TotalMinutes <= minutesBeforeExpiry;
             }
             return true; // 如果无法获取过期时间，认为即将过期

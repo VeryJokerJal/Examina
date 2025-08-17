@@ -1,6 +1,6 @@
 ﻿using ExaminaWebApplication.Models;
-using ExaminaWebApplication.Models.ImportedExam;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
+using ExaminaWebApplication.Models.ImportedExam;
 using ExaminaWebApplication.Models.Organization;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,7 +55,6 @@ public class ApplicationDbContext : DbContext
             _ = entity.HasIndex(e => e.Email).IsUnique();
             _ = entity.HasIndex(e => e.WeChatOpenId).IsUnique();
             _ = entity.HasIndex(e => e.PhoneNumber).IsUnique();
-            _ = entity.HasIndex(e => e.StudentId);
             _ = entity.HasIndex(e => e.Role);
             _ = entity.HasIndex(e => e.IsActive);
             _ = entity.HasIndex(e => e.CreatedAt);
@@ -68,7 +67,6 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(500);
             _ = entity.Property(e => e.WeChatOpenId).HasMaxLength(100);
             _ = entity.Property(e => e.RealName).HasMaxLength(50);
-            _ = entity.Property(e => e.StudentId).HasMaxLength(50);
             _ = entity.Property(e => e.CreatedAt).IsRequired();
             _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
             _ = entity.Property(e => e.IsFirstLogin).HasDefaultValue(true);

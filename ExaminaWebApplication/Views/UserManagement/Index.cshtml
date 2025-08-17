@@ -273,7 +273,7 @@
                         </div>
 
                         <div class="col-md-6" id="schoolSelection" style="display: none;">
-                            <label for="userSchoolId" class="glass-form-label">所属学校 <span class="text-danger">*</span></label>
+                            <label for="userSchoolId" class="glass-form-label">所属学校 <span class="text-danger" id="schoolRequired">*</span></label>
                             <select class="glass-form-control" id="userSchoolId" name="SchoolId">
                                 <option value="">请选择学校</option>
                                 @foreach (var school in Model.Schools)

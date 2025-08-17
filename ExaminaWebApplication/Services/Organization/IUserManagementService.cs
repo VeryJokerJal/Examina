@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models;
+﻿using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization.Dto;
 
 namespace ExaminaWebApplication.Services.Organization;
@@ -19,7 +19,7 @@ public interface IUserManagementService
     /// <param name="studentId">学号</param>
     /// <param name="creatorUserId">创建者用户ID</param>
     /// <returns>创建的用户DTO</returns>
-    Task<UserDto?> CreateStudentUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, string? studentId = null, int? creatorUserId = null);
+    Task<UserDto?> CreateStudentUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, int? creatorUserId = null);
 
     /// <summary>
     /// 创建教师用户
@@ -29,12 +29,11 @@ public interface IUserManagementService
     /// <param name="phoneNumber">手机号</param>
     /// <param name="password">密码</param>
     /// <param name="realName">真实姓名</param>
-    /// <param name="employeeId">工号</param>
     /// <param name="schoolId">所属学校ID</param>
     /// <param name="classIds">所属班级ID列表</param>
     /// <param name="creatorUserId">创建者用户ID</param>
     /// <returns>创建的用户DTO</returns>
-    Task<UserDto?> CreateTeacherUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, string? employeeId = null, int? schoolId = null, List<int>? classIds = null, int? creatorUserId = null);
+    Task<UserDto?> CreateTeacherUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, int? schoolId = null, List<int>? classIds = null, int? creatorUserId = null);
 
     /// <summary>
     /// 更新用户基本信息
@@ -46,7 +45,7 @@ public interface IUserManagementService
     /// <param name="studentId">学号/工号</param>
     /// <param name="updaterUserId">更新者用户ID</param>
     /// <returns>更新后的用户DTO</returns>
-    Task<UserDto?> UpdateUserAsync(int userId, string? email = null, string? phoneNumber = null, string? realName = null, string? studentId = null, int? updaterUserId = null);
+    Task<UserDto?> UpdateUserAsync(int userId, string? email = null, string? phoneNumber = null, string? realName = null, int? updaterUserId = null);
 
     /// <summary>
     /// 停用用户

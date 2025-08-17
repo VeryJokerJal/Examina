@@ -1,4 +1,4 @@
-namespace ExaminaWebApplication.Models.Organization.Dto;
+﻿namespace ExaminaWebApplication.Models.Organization.Dto;
 
 /// <summary>
 /// 学生组织关系DTO
@@ -24,11 +24,6 @@ public class StudentOrganizationDto
     /// 学生真实姓名
     /// </summary>
     public string? StudentRealName { get; set; }
-
-    /// <summary>
-    /// 学生学号
-    /// </summary>
-    public string? StudentId_Number { get; set; }
 
     /// <summary>
     /// 学生手机号

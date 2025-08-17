@@ -1,4 +1,4 @@
-namespace ExaminaWebApplication.Models.Organization.Dto;
+﻿namespace ExaminaWebApplication.Models.Organization.Dto;
 
 /// <summary>
 /// 用户DTO
@@ -34,11 +34,6 @@ public class UserDto
     /// 真实姓名
     /// </summary>
     public string? RealName { get; set; }
-
-    /// <summary>
-    /// 学号（学生）或工号（教师/管理员）
-    /// </summary>
-    public string? StudentId { get; set; }
 
     /// <summary>
     /// 是否首次登录
@@ -78,10 +73,10 @@ public class UserDto
     /// <summary>
     /// 所属学校列表（教师可能属于多个学校）
     /// </summary>
-    public List<OrganizationDto> Schools { get; set; } = new List<OrganizationDto>();
+    public List<OrganizationDto> Schools { get; set; } = [];
 
     /// <summary>
     /// 所属班级列表（教师可能属于多个班级）
     /// </summary>
-    public List<OrganizationDto> Classes { get; set; } = new List<OrganizationDto>();
+    public List<OrganizationDto> Classes { get; set; } = [];
 }

@@ -1,10 +1,10 @@
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Requests;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -46,7 +46,6 @@ public class UserManagementApiController : ControllerBase
                     request.PhoneNumber,
                     request.Password,
                     request.RealName,
-                    null, // StudentId 设为 null
                     creatorUserId);
             }
             else if (request.Role == UserRole.Teacher)
@@ -57,7 +56,6 @@ public class UserManagementApiController : ControllerBase
                     request.PhoneNumber,
                     request.Password,
                     request.RealName,
-                    null, // StudentId 设为 null
                     request.SchoolId,
                     request.ClassIds,
                     creatorUserId);
@@ -72,7 +70,7 @@ public class UserManagementApiController : ControllerBase
                 return BadRequest(new { message = "创建用户失败，可能是用户名或邮箱已存在" });
             }
 
-            _logger.LogInformation("用户创建成功: {Username}, 角色: {Role}, 创建者: {CreatorUserId}", 
+            _logger.LogInformation("用户创建成功: {Username}, 角色: {Role}, 创建者: {CreatorUserId}",
                 request.Username, request.Role, creatorUserId);
             return Ok(user);
         }
@@ -114,12 +112,7 @@ public class UserManagementApiController : ControllerBase
         try
         {
             UserDto? user = await _userManagementService.GetUserByIdAsync(userId);
-            if (user == null)
-            {
-                return NotFound(new { message = "用户不存在" });
-            }
-
-            return Ok(user);
+            return user == null ? (ActionResult<UserDto>)NotFound(new { message = "用户不存在" }) : (ActionResult<UserDto>)Ok(user);
         }
         catch (Exception ex)
         {
@@ -142,7 +135,6 @@ public class UserManagementApiController : ControllerBase
                 request.Email,
                 request.PhoneNumber,
                 request.RealName,
-                null, // StudentId 设为 null
                 updaterUserId);
 
             if (user == null)
@@ -303,10 +295,8 @@ public class UserManagementApiController : ControllerBase
     private int GetCurrentUserId()
     {
         string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-        {
-            throw new UnauthorizedAccessException("无法获取当前用户信息");
-        }
-        return userId;
+        return string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId)
+            ? throw new UnauthorizedAccessException("无法获取当前用户信息")
+            : userId;
     }
 }

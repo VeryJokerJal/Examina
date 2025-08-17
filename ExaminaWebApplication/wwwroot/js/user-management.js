@@ -1,4 +1,4 @@
-// 用户管理JavaScript功能
+﻿// 用户管理JavaScript功能
 
 let currentPage = 1;
 let pageSize = 50;
@@ -59,6 +59,31 @@ function initializeUserManagement() {
     $('#confirmPassword').on('input', function() {
         validatePasswordConfirmation();
     });
+
+    // 绑定创建用户模态框显示事件
+    $('#createUserModal').on('show.bs.modal', function() {
+        resetCreateUserForm();
+    });
+}
+
+// 重置创建用户表单
+function resetCreateUserForm() {
+    // 清空表单
+    $('#createUserForm')[0].reset();
+
+    // 清除错误状态
+    clearFormErrors($('#createUserForm'));
+
+    // 隐藏角色特定字段
+    $('#schoolSelection').hide();
+    $('#classSelection').hide();
+    $('#schoolRequired').hide();
+
+    // 清空班级选择
+    $('#classCheckboxes').empty();
+
+    // 移除学校字段的必填要求
+    $('#userSchoolId').removeAttr('required');
 }
 
 // 切换角色特定字段显示
@@ -66,17 +91,36 @@ function toggleRoleSpecificFields() {
     const role = $('#userRole').val();
     const schoolSelection = $('#schoolSelection');
     const classSelection = $('#classSelection');
-    
-    if (role === 'Teacher' || role === 'Student') {
+    const schoolRequired = $('#schoolRequired');
+
+    // 清空学校和班级选择
+    $('#userSchoolId').val('');
+    $('#classCheckboxes').empty();
+
+    if (role === 'Teacher') {
+        // 教师需要选择学校和班级
         schoolSelection.show();
-        if (role === 'Teacher') {
-            classSelection.show();
-        } else {
-            classSelection.hide();
-        }
-    } else {
+        classSelection.show();
+        schoolRequired.show(); // 显示必填标识
+
+        // 设置学校字段为必填
+        $('#userSchoolId').attr('required', true);
+    } else if (role === 'Student') {
+        // 学生不需要预先指定学校（通过邀请码加入）
         schoolSelection.hide();
         classSelection.hide();
+        schoolRequired.hide(); // 隐藏必填标识
+
+        // 移除学校字段的必填要求
+        $('#userSchoolId').removeAttr('required');
+    } else {
+        // 管理员等其他角色
+        schoolSelection.hide();
+        classSelection.hide();
+        schoolRequired.hide(); // 隐藏必填标识
+
+        // 移除学校字段的必填要求
+        $('#userSchoolId').removeAttr('required');
     }
 }
 
@@ -84,16 +128,42 @@ function toggleRoleSpecificFields() {
 function updateClassOptions() {
     const schoolId = $('#userSchoolId').val();
     const container = $('#classCheckboxes');
-    
-    if (!schoolId || !window.classesData) {
+
+    if (!schoolId) {
         container.empty();
+        container.html('<div class="col-12"><p class="text-muted">请先选择学校</p></div>');
         return;
     }
-    
-    const schoolClasses = window.classesData.filter(c => c.parentOrganizationId == schoolId);
-    
+
+    // 显示加载状态
+    container.html('<div class="col-12"><p class="text-muted"><i class="bi bi-hourglass-split me-2"></i>加载班级列表...</p></div>');
+
+    // 通过API获取指定学校的班级列表
+    $.ajax({
+        url: `/api/SchoolManagementApi/${schoolId}/classes`,
+        method: 'GET',
+        data: {
+            includeInactive: false
+        },
+        success: function(classes) {
+            renderClassCheckboxes(classes, container);
+        },
+        error: function(xhr) {
+            container.html('<div class="col-12"><p class="text-danger"><i class="bi bi-exclamation-triangle me-2"></i>加载班级列表失败</p></div>');
+            console.error('获取班级列表失败：', getErrorMessage(xhr));
+        }
+    });
+}
+
+// 渲染班级复选框
+function renderClassCheckboxes(classes, container) {
+    if (classes.length === 0) {
+        container.html('<div class="col-12"><p class="text-muted">该学校暂无班级</p></div>');
+        return;
+    }
+
     let html = '';
-    schoolClasses.forEach(classOrg => {
+    classes.forEach(classOrg => {
         html += `
             <div class="col-md-6">
                 <div class="glass-form-check">
@@ -105,7 +175,7 @@ function updateClassOptions() {
             </div>
         `;
     });
-    
+
     container.html(html);
 }
 
@@ -179,7 +249,7 @@ function renderUserTable(users) {
     }
 
     let html = `
-        <div class="table-responsive">
+        <div>
             <table class="table glass-table">
                 <thead>
                     <tr>
@@ -312,7 +382,8 @@ function createUser() {
         showFieldError('#userRole', '请选择用户角色');
         return;
     }
-    if ((formData.role === 'Teacher' || formData.role === 'Student') && !formData.schoolId) {
+    // 只有教师角色需要选择学校
+    if (formData.role === 'Teacher' && !formData.schoolId) {
         showFieldError('#userSchoolId', '请选择所属学校');
         return;
     }

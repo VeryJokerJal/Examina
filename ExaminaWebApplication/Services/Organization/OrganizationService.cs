@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Organization.Requests;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Services.Organization;
 
@@ -50,7 +50,7 @@ public class OrganizationService : IOrganizationService
             }
 
             // 创建组织（显式设置 Creator 导航；CreatedBy 作为外键由模型配置映射）
-            Models.Organization.Organization organization = new Models.Organization.Organization
+            Models.Organization.Organization organization = new()
             {
                 Name = request.Name,
                 CreatedAt = DateTime.UtcNow,
@@ -59,13 +59,13 @@ public class OrganizationService : IOrganizationService
                 IsActive = true
             };
 
-            _context.Organizations.Add(organization);
-            await _context.SaveChangesAsync();
+            _ = _context.Organizations.Add(organization);
+            _ = await _context.SaveChangesAsync();
 
             // 如果需要自动生成邀请码
             if (request.GenerateInvitationCode)
             {
-                await _invitationCodeService.CreateInvitationCodeAsync(
+                _ = await _invitationCodeService.CreateInvitationCodeAsync(
                     organization.Id,
                     request.InvitationCodeExpiresAt,
                     request.InvitationCodeMaxUsage);
@@ -109,7 +109,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织列表失败");
-            return new List<OrganizationDto>();
+            return [];
         }
     }
 
@@ -164,7 +164,7 @@ public class OrganizationService : IOrganizationService
 
             organization.Name = name;
 
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("更新组织信息成功: {OrganizationId}, 新名称: {Name}", organizationId, name);
 
@@ -193,7 +193,7 @@ public class OrganizationService : IOrganizationService
             }
 
             organization.IsActive = false;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("停用组织成功: {OrganizationId}, 名称: {Name}", organizationId, organization.Name);
             return true;
@@ -245,15 +245,15 @@ public class OrganizationService : IOrganizationService
                 IsActive = true
             };
 
-            _context.StudentOrganizations.Add(userOrganization);
+            _ = _context.StudentOrganizations.Add(userOrganization);
 
             // 增加邀请码使用次数
-            await _invitationCodeService.IncrementUsageCountAsync(invitation.Id);
+            _ = await _invitationCodeService.IncrementUsageCountAsync(invitation.Id);
 
             // 检查并应用预配置信息
             await ApplyPreConfiguredUserInfo(userId, invitation.OrganizationId);
 
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             string userTypeText = userRole == UserRole.Teacher ? "教师" : "学生";
             _logger.LogInformation("{UserType}加入组织成功: 用户ID: {UserId}, 组织ID: {OrganizationId}, 邀请码: {InvitationCode}",
@@ -288,7 +288,7 @@ public class OrganizationService : IOrganizationService
             }
 
             userOrganization.IsActive = false;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("用户退出组织成功: 用户ID: {UserId}, 组织ID: {OrganizationId}", userId, organizationId);
             return true;
@@ -320,7 +320,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户组织列表失败: 用户ID: {UserId}", userId);
-            return new List<StudentOrganizationDto>();
+            return [];
         }
     }
 
@@ -359,7 +359,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取组织成员列表失败: 组织ID: {OrganizationId}", organizationId);
-            return new List<StudentOrganizationDto>();
+            return [];
         }
     }
 
@@ -392,17 +392,9 @@ public class OrganizationService : IOrganizationService
             return "邀请码已被停用";
         }
 
-        if (invitation.ExpiresAt.HasValue && invitation.ExpiresAt.Value <= DateTime.UtcNow)
-        {
-            return "邀请码已过期";
-        }
-
-        if (invitation.MaxUsage.HasValue && invitation.UsageCount >= invitation.MaxUsage.Value)
-        {
-            return "邀请码使用次数已达上限";
-        }
-
-        return "邀请码不可用";
+        return invitation.ExpiresAt.HasValue && invitation.ExpiresAt.Value <= DateTime.UtcNow
+            ? "邀请码已过期"
+            : invitation.MaxUsage.HasValue && invitation.UsageCount >= invitation.MaxUsage.Value ? "邀请码使用次数已达上限" : "邀请码不可用";
     }
 
     /// <summary>
@@ -461,7 +453,7 @@ public class OrganizationService : IOrganizationService
                 throw new ArgumentException("创建者用户不存在", nameof(creatorUserId));
             }
 
-            Models.Organization.Organization school = new Models.Organization.Organization
+            Models.Organization.Organization school = new()
             {
                 Name = name,
                 Type = OrganizationType.School,
@@ -472,8 +464,8 @@ public class OrganizationService : IOrganizationService
                 IsActive = true
             };
 
-            _context.Organizations.Add(school);
-            await _context.SaveChangesAsync();
+            _ = _context.Organizations.Add(school);
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("创建学校成功: {SchoolName}, ID: {SchoolId}, 创建者: {CreatorUserId}",
                 school.Name, school.Id, creatorUserId);
@@ -507,7 +499,7 @@ public class OrganizationService : IOrganizationService
                 throw new ArgumentException("学校不存在或已停用", nameof(schoolId));
             }
 
-            Models.Organization.Organization classOrg = new Models.Organization.Organization
+            Models.Organization.Organization classOrg = new()
             {
                 Name = name,
                 Type = OrganizationType.Class,
@@ -518,13 +510,13 @@ public class OrganizationService : IOrganizationService
                 IsActive = true
             };
 
-            _context.Organizations.Add(classOrg);
-            await _context.SaveChangesAsync();
+            _ = _context.Organizations.Add(classOrg);
+            _ = await _context.SaveChangesAsync();
 
             // 如果需要自动生成邀请码
             if (generateInvitationCode)
             {
-                await _invitationCodeService.CreateInvitationCodeAsync(classOrg.Id);
+                _ = await _invitationCodeService.CreateInvitationCodeAsync(classOrg.Id);
             }
 
             _logger.LogInformation("创建班级成功: {ClassName}, ID: {ClassId}, 学校ID: {SchoolId}, 创建者: {CreatorUserId}",
@@ -565,7 +557,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取学校列表失败");
-            return new List<OrganizationDto>();
+            return [];
         }
     }
 
@@ -597,7 +589,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取学校班级列表失败: {SchoolId}", schoolId);
-            return new List<OrganizationDto>();
+            return [];
         }
     }
 
@@ -629,7 +621,7 @@ public class OrganizationService : IOrganizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取班级列表失败");
-            return new List<OrganizationDto>();
+            return [];
         }
     }
 
@@ -638,25 +630,21 @@ public class OrganizationService : IOrganizationService
     /// </summary>
     private static StudentOrganizationDto MapToStudentOrganizationDto(StudentOrganization studentOrganization)
     {
-        if (studentOrganization == null)
-        {
-            throw new ArgumentNullException(nameof(studentOrganization));
-        }
-
-        return new StudentOrganizationDto
-        {
-            Id = studentOrganization.Id,
-            StudentId = studentOrganization.StudentId,
-            StudentUsername = studentOrganization.Student?.Username ?? "未知",
-            StudentRealName = studentOrganization.Student?.RealName,
-            StudentId_Number = studentOrganization.Student?.StudentId,
-            StudentPhoneNumber = studentOrganization.Student?.PhoneNumber,
-            OrganizationId = studentOrganization.OrganizationId,
-            OrganizationName = studentOrganization.Organization?.Name ?? "未知",
-            JoinedAt = studentOrganization.JoinedAt,
-            InvitationCode = studentOrganization.InvitationCode?.Code ?? "未知",
-            IsActive = studentOrganization.IsActive
-        };
+        return studentOrganization == null
+            ? throw new ArgumentNullException(nameof(studentOrganization))
+            : new StudentOrganizationDto
+            {
+                Id = studentOrganization.Id,
+                StudentId = studentOrganization.StudentId,
+                StudentUsername = studentOrganization.Student?.Username ?? "未知",
+                StudentRealName = studentOrganization.Student?.RealName,
+                StudentPhoneNumber = studentOrganization.Student?.PhoneNumber,
+                OrganizationId = studentOrganization.OrganizationId,
+                OrganizationName = studentOrganization.Organization?.Name ?? "未知",
+                JoinedAt = studentOrganization.JoinedAt,
+                InvitationCode = studentOrganization.InvitationCode?.Code ?? "未知",
+                IsActive = studentOrganization.IsActive
+            };
     }
 
     /// <summary>
@@ -668,7 +656,10 @@ public class OrganizationService : IOrganizationService
         {
             // 获取用户信息
             User? user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null) return;
+            if (user == null)
+            {
+                return;
+            }
 
             // 查找匹配的预配置记录
             PreConfiguredUser? preConfigured = await _context.PreConfiguredUsers
@@ -690,12 +681,6 @@ public class OrganizationService : IOrganizationService
                 if (!string.IsNullOrEmpty(preConfigured.RealName) && string.IsNullOrEmpty(user.RealName))
                 {
                     user.RealName = preConfigured.RealName;
-                    userUpdated = true;
-                }
-
-                if (!string.IsNullOrEmpty(preConfigured.StudentId) && string.IsNullOrEmpty(user.StudentId))
-                {
-                    user.StudentId = preConfigured.StudentId;
                     userUpdated = true;
                 }
 

@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization.Dto;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +22,7 @@ public class UserManagementService : IUserManagementService
     /// <summary>
     /// 创建学生用户
     /// </summary>
-    public async Task<UserDto?> CreateStudentUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, string? studentId = null, int? creatorUserId = null)
+    public async Task<UserDto?> CreateStudentUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, int? creatorUserId = null)
     {
         try
         {
@@ -35,7 +35,7 @@ public class UserManagementService : IUserManagementService
                 return null;
             }
 
-            User user = new User
+            User user = new()
             {
                 Username = username,
                 Email = email,
@@ -43,7 +43,6 @@ public class UserManagementService : IUserManagementService
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 Role = UserRole.Student,
                 RealName = realName,
-                StudentId = studentId,
                 IsFirstLogin = true,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
@@ -51,8 +50,8 @@ public class UserManagementService : IUserManagementService
                 MaxDeviceCount = 1
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            _ = _context.Users.Add(user);
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("创建学生用户成功: {Username}, 创建者: {CreatorUserId}", username, creatorUserId);
 
@@ -68,7 +67,7 @@ public class UserManagementService : IUserManagementService
     /// <summary>
     /// 创建教师用户
     /// </summary>
-    public async Task<UserDto?> CreateTeacherUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, string? employeeId = null, int? schoolId = null, List<int>? classIds = null, int? creatorUserId = null)
+    public async Task<UserDto?> CreateTeacherUserAsync(string username, string email, string? phoneNumber, string password, string? realName = null, int? schoolId = null, List<int>? classIds = null, int? creatorUserId = null)
     {
         try
         {
@@ -81,7 +80,7 @@ public class UserManagementService : IUserManagementService
                 return null;
             }
 
-            User user = new User
+            User user = new()
             {
                 Username = username,
                 Email = email,
@@ -89,7 +88,6 @@ public class UserManagementService : IUserManagementService
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 Role = UserRole.Teacher,
                 RealName = realName,
-                StudentId = employeeId, // 对于教师，这个字段存储工号
                 IsFirstLogin = true,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
@@ -97,8 +95,8 @@ public class UserManagementService : IUserManagementService
                 MaxDeviceCount = 3
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            _ = _context.Users.Add(user);
+            _ = await _context.SaveChangesAsync();
 
             // 如果指定了班级，建立教师-班级关系
             if (classIds != null && classIds.Count > 0 && creatorUserId.HasValue)
@@ -109,11 +107,11 @@ public class UserManagementService : IUserManagementService
                 ITeacherOrganizationService teacherOrgService = new TeacherOrganizationService(_context, teacherOrgLogger);
                 foreach (int classId in classIds)
                 {
-                    await teacherOrgService.AddTeacherToClassAsync(user.Id, classId, creatorUserId.Value);
+                    _ = await teacherOrgService.AddTeacherToClassAsync(user.Id, classId, creatorUserId.Value);
                 }
             }
 
-            _logger.LogInformation("创建教师用户成功: {Username}, 学校ID: {SchoolId}, 创建者: {CreatorUserId}", 
+            _logger.LogInformation("创建教师用户成功: {Username}, 学校ID: {SchoolId}, 创建者: {CreatorUserId}",
                 username, schoolId, creatorUserId);
 
             return await GetUserDtoAsync(user.Id);
@@ -128,7 +126,7 @@ public class UserManagementService : IUserManagementService
     /// <summary>
     /// 更新用户基本信息
     /// </summary>
-    public async Task<UserDto?> UpdateUserAsync(int userId, string? email = null, string? phoneNumber = null, string? realName = null, string? studentId = null, int? updaterUserId = null)
+    public async Task<UserDto?> UpdateUserAsync(int userId, string? email = null, string? phoneNumber = null, string? realName = null, int? updaterUserId = null)
     {
         try
         {
@@ -154,7 +152,7 @@ public class UserManagementService : IUserManagementService
             // 移除StudentId的更新逻辑，不再处理该字段
 
             user.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("更新用户成功: {UserId}, 更新者: {UpdaterUserId}", userId, updaterUserId);
 
@@ -183,7 +181,7 @@ public class UserManagementService : IUserManagementService
 
             user.IsActive = false;
             user.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("停用用户成功: {UserId}, 操作者: {UpdaterUserId}", userId, updaterUserId);
             return true;
@@ -211,7 +209,7 @@ public class UserManagementService : IUserManagementService
 
             user.IsActive = true;
             user.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("激活用户成功: {UserId}, 操作者: {UpdaterUserId}", userId, updaterUserId);
             return true;
@@ -239,7 +237,7 @@ public class UserManagementService : IUserManagementService
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             user.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("重置用户密码成功: {UserId}, 操作者: {UpdaterUserId}", userId, updaterUserId);
             return true;
@@ -276,7 +274,7 @@ public class UserManagementService : IUserManagementService
                 .Take(pageSize)
                 .ToListAsync();
 
-            List<UserDto> userDtos = new List<UserDto>();
+            List<UserDto> userDtos = [];
             foreach (User user in users)
             {
                 UserDto? dto = await GetUserDtoAsync(user.Id);
@@ -291,7 +289,7 @@ public class UserManagementService : IUserManagementService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户列表失败");
-            return new List<UserDto>();
+            return [];
         }
     }
 
@@ -319,8 +317,8 @@ public class UserManagementService : IUserManagementService
         try
         {
             IQueryable<User> query = _context.Users
-                .Where(u => u.Username.Contains(keyword) || 
-                           u.Email.Contains(keyword) || 
+                .Where(u => u.Username.Contains(keyword) ||
+                           u.Email.Contains(keyword) ||
                            (u.PhoneNumber != null && u.PhoneNumber.Contains(keyword)) ||
                            (u.RealName != null && u.RealName.Contains(keyword)));
 
@@ -338,7 +336,7 @@ public class UserManagementService : IUserManagementService
                 .OrderByDescending(u => u.CreatedAt)
                 .ToListAsync();
 
-            List<UserDto> userDtos = new List<UserDto>();
+            List<UserDto> userDtos = [];
             foreach (User user in users)
             {
                 UserDto? dto = await GetUserDtoAsync(user.Id);
@@ -353,7 +351,7 @@ public class UserManagementService : IUserManagementService
         catch (Exception ex)
         {
             _logger.LogError(ex, "搜索用户失败: {Keyword}", keyword);
-            return new List<UserDto>();
+            return [];
         }
     }
 
@@ -379,29 +377,25 @@ public class UserManagementService : IUserManagementService
     private async Task<UserDto?> GetUserDtoAsync(int userId)
     {
         User? user = await _context.Users.FindAsync(userId);
-        if (user == null)
-        {
-            return null;
-        }
-
-        return new UserDto
-        {
-            Id = user.Id,
-            Username = user.Username,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            Role = user.Role,
-            RealName = user.RealName,
-            StudentId = user.StudentId,
-            IsFirstLogin = user.IsFirstLogin,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt,
-            LastLoginAt = user.LastLoginAt,
-            IsActive = user.IsActive,
-            AllowMultipleDevices = user.AllowMultipleDevices,
-            MaxDeviceCount = user.MaxDeviceCount,
-            Schools = new List<OrganizationDto>(),
-            Classes = new List<OrganizationDto>()
-        };
+        return user == null
+            ? null
+            : new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                RealName = user.RealName,
+                IsFirstLogin = user.IsFirstLogin,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                LastLoginAt = user.LastLoginAt,
+                IsActive = user.IsActive,
+                AllowMultipleDevices = user.AllowMultipleDevices,
+                MaxDeviceCount = user.MaxDeviceCount,
+                Schools = [],
+                Classes = []
+            };
     }
 }

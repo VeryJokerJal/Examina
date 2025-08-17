@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models;
+﻿using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Requests;
 
@@ -9,9 +9,9 @@ namespace ExaminaWebApplication.ViewModels;
 /// </summary>
 public class UserManagementViewModel : ViewModelBase
 {
-    private List<UserDto> _users = new List<UserDto>();
-    private List<OrganizationDto> _schools = new List<OrganizationDto>();
-    private List<OrganizationDto> _classes = new List<OrganizationDto>();
+    private List<UserDto> _users = [];
+    private List<OrganizationDto> _schools = [];
+    private List<OrganizationDto> _classes = [];
     private UserDto? _selectedUser;
     private string _searchKeyword = string.Empty;
     private UserRole? _selectedRole;
@@ -148,39 +148,28 @@ public class UserManagementViewModel : ViewModelBase
     /// <summary>
     /// 用户角色选项
     /// </summary>
-    public List<(UserRole Value, string Text)> UserRoleOptions { get; } = new List<(UserRole, string)>
-    {
+    public List<(UserRole Value, string Text)> UserRoleOptions { get; } =
+    [
         (UserRole.Student, "学生"),
         (UserRole.Teacher, "教师"),
         (UserRole.Administrator, "管理员")
-    };
+    ];
 
     /// <summary>
     /// 角色过滤选项
     /// </summary>
-    public List<(UserRole? Value, string Text)> RoleFilterOptions { get; } = new List<(UserRole?, string)>
-    {
+    public List<(UserRole? Value, string Text)> RoleFilterOptions { get; } =
+    [
         (null, "全部角色"),
         (UserRole.Student, "学生"),
         (UserRole.Teacher, "教师"),
         (UserRole.Administrator, "管理员")
-    };
+    ];
 
     /// <summary>
     /// 可用的班级列表（根据选中的学校过滤）
     /// </summary>
-    public List<OrganizationDto> AvailableClasses
-    {
-        get
-        {
-            if (CreateUserRequest.SchoolId == null)
-            {
-                return new List<OrganizationDto>();
-            }
-
-            return Classes.Where(c => c.ParentOrganizationId == CreateUserRequest.SchoolId).ToList();
-        }
-    }
+    public List<OrganizationDto> AvailableClasses => CreateUserRequest.SchoolId == null ? [] : Classes.Where(c => c.ParentOrganizationId == CreateUserRequest.SchoolId).ToList();
 
     /// <summary>
     /// 清除错误和成功消息
@@ -247,8 +236,7 @@ public class UserManagementViewModel : ViewModelBase
             {
                 Email = SelectedUser.Email,
                 PhoneNumber = SelectedUser.PhoneNumber,
-                RealName = SelectedUser.RealName,
-                StudentId = SelectedUser.StudentId
+                RealName = SelectedUser.RealName
             };
         }
     }

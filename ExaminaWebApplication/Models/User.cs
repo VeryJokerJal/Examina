@@ -64,12 +64,6 @@ public class User
     public string? RealName { get; set; }
 
     /// <summary>
-    /// 学号（学生）或工号（教师/管理员）
-    /// </summary>
-    [StringLength(50)]
-    public string? StudentId { get; set; }
-
-    /// <summary>
     /// 是否首次登录
     /// </summary>
     public bool IsFirstLogin { get; set; } = true;
