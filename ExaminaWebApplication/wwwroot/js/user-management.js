@@ -666,3 +666,55 @@ function getErrorMessage(xhr) {
     }
     return xhr.statusText || '未知错误';
 }
+
+// 切换组织成员身份
+function toggleOrganizationMembership(userId, isJoining) {
+    const action = isJoining ? '加入组织' : '移出组织';
+    const confirmMessage = isJoining
+        ? '确定要将此用户加入组织吗？'
+        : '确定要将此用户从所有组织中移除吗？';
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    // 显示加载状态
+    showLoadingMessage(`正在${action}...`);
+
+    $.ajax({
+        url: `/api/UserManagementApi/${userId}/toggle-organization-membership`,
+        method: 'POST',
+        success: function(response) {
+            // 显示成功消息
+            showSuccessMessage(response.message || `${action}成功！`);
+
+            // 刷新用户列表
+            searchUsers();
+        },
+        error: function(xhr) {
+            const errorMessage = getErrorMessage(xhr);
+            if (xhr.status === 400 && errorMessage.includes('需要通过组织管理界面')) {
+                showErrorMessage('该用户当前不是组织成员，请通过组织管理界面手动添加用户到具体组织。');
+            } else {
+                showErrorMessage(`${action}失败：${errorMessage}`);
+            }
+        }
+    });
+}
+
+// 显示加载消息
+function showLoadingMessage(message) {
+    // 移除现有的消息
+    $('.alert').remove();
+
+    // 创建加载消息
+    const alertHtml = `
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-hourglass-split me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+
+    // 在页面顶部显示
+    $('.container-fluid').prepend(alertHtml);
+}

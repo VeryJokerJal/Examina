@@ -1,5 +1,6 @@
 ﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using Microsoft.EntityFrameworkCore;
 
@@ -377,25 +378,132 @@ public class UserManagementService : IUserManagementService
     private async Task<UserDto?> GetUserDtoAsync(int userId)
     {
         User? user = await _context.Users.FindAsync(userId);
-        return user == null
-            ? null
-            : new UserDto
+        if (user == null)
+        {
+            return null;
+        }
+
+        // 检查用户是否为组织成员
+        bool isOrganizationMember = await IsUserOrganizationMemberAsync(userId);
+
+        return new UserDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role,
+            RealName = user.RealName,
+            IsFirstLogin = user.IsFirstLogin,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
+            LastLoginAt = user.LastLoginAt,
+            IsActive = user.IsActive,
+            AllowMultipleDevices = user.AllowMultipleDevices,
+            MaxDeviceCount = user.MaxDeviceCount,
+            Schools = [],
+            Classes = [],
+            IsOrganizationMember = isOrganizationMember
+        };
+    }
+
+    /// <summary>
+    /// 检查用户是否为组织成员
+    /// </summary>
+    public async Task<bool> IsUserOrganizationMemberAsync(int userId)
+    {
+        try
+        {
+            // 检查学生组织关系
+            bool hasStudentOrganization = await _context.StudentOrganizations
+                .AnyAsync(so => so.StudentId == userId && so.IsActive);
+
+            // 检查教师组织关系
+            bool hasTeacherOrganization = await _context.TeacherOrganizations
+                .AnyAsync(to => to.TeacherId == userId && to.IsActive);
+
+            return hasStudentOrganization || hasTeacherOrganization;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查用户组织成员身份失败: 用户ID: {UserId}", userId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 切换用户的组织成员身份
+    /// </summary>
+    public async Task<bool> ToggleOrganizationMembershipAsync(int userId, int operatorUserId)
+    {
+        try
+        {
+            // 验证用户存在
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive)
             {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Role = user.Role,
-                RealName = user.RealName,
-                IsFirstLogin = user.IsFirstLogin,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt,
-                LastLoginAt = user.LastLoginAt,
-                IsActive = user.IsActive,
-                AllowMultipleDevices = user.AllowMultipleDevices,
-                MaxDeviceCount = user.MaxDeviceCount,
-                Schools = [],
-                Classes = []
-            };
+                _logger.LogWarning("用户不存在或已停用: {UserId}", userId);
+                return false;
+            }
+
+            // 验证操作者权限
+            User? operatorUser = await _context.Users.FindAsync(operatorUserId);
+            if (operatorUser == null || !operatorUser.IsActive ||
+                (operatorUser.Role != UserRole.Administrator && operatorUser.Role != UserRole.Teacher))
+            {
+                _logger.LogWarning("操作者权限不足: {OperatorUserId}", operatorUserId);
+                return false;
+            }
+
+            bool isCurrentlyMember = await IsUserOrganizationMemberAsync(userId);
+
+            if (isCurrentlyMember)
+            {
+                // 移出组织：将用户从所有组织中移除
+                await RemoveUserFromAllOrganizationsAsync(userId);
+                _logger.LogInformation("用户已从所有组织中移除: {UserId}, 操作者: {OperatorUserId}", userId, operatorUserId);
+            }
+            else
+            {
+                // 加入组织：这里暂时不实现自动加入逻辑，需要管理员手动通过组织管理界面添加
+                _logger.LogInformation("用户当前不是组织成员，需要通过组织管理界面手动添加: {UserId}", userId);
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "切换用户组织成员身份失败: 用户ID: {UserId}", userId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 将用户从所有组织中移除
+    /// </summary>
+    private async Task RemoveUserFromAllOrganizationsAsync(int userId)
+    {
+        // 移除学生组织关系
+        List<StudentOrganization> studentOrganizations = await _context.StudentOrganizations
+            .Where(so => so.StudentId == userId && so.IsActive)
+            .ToListAsync();
+
+        foreach (StudentOrganization so in studentOrganizations)
+        {
+            so.IsActive = false;
+        }
+
+        // 移除教师组织关系
+        List<TeacherOrganization> teacherOrganizations = await _context.TeacherOrganizations
+            .Where(to => to.TeacherId == userId && to.IsActive)
+            .ToListAsync();
+
+        foreach (TeacherOrganization to in teacherOrganizations)
+        {
+            to.IsActive = false;
+        }
+
+        await _context.SaveChangesAsync();
     }
 }

@@ -290,6 +290,38 @@ public class UserManagementApiController : ControllerBase
     }
 
     /// <summary>
+    /// 切换用户的组织成员身份
+    /// </summary>
+    [HttpPost("{userId}/toggle-organization-membership")]
+    public async Task<ActionResult> ToggleOrganizationMembership(int userId)
+    {
+        try
+        {
+            int operatorUserId = GetCurrentUserId();
+            bool success = await _userManagementService.ToggleOrganizationMembershipAsync(userId, operatorUserId);
+
+            if (success)
+            {
+                return Ok(new { message = "组织成员身份切换成功" });
+            }
+            else
+            {
+                return BadRequest(new { message = "组织成员身份切换失败，请检查用户状态和权限" });
+            }
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "权限不足: {Message}", ex.Message);
+            return Unauthorized(new { message = "权限不足" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "切换用户组织成员身份失败: 用户ID: {UserId}", userId);
+            return StatusCode(500, new { message = "切换组织成员身份失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     private int GetCurrentUserId()

@@ -79,4 +79,9 @@ public class UserDto
     /// 所属班级列表（教师可能属于多个班级）
     /// </summary>
     public List<OrganizationDto> Classes { get; set; } = [];
+
+    /// <summary>
+    /// 是否为组织成员（是否属于任何组织）
+    /// </summary>
+    public bool IsOrganizationMember { get; set; }
 }

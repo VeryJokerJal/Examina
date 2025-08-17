@@ -111,4 +111,19 @@ public interface IUserManagementService
     /// <param name="includeInactive">是否包含非激活用户</param>
     /// <returns>学生用户DTO列表</returns>
     Task<List<UserDto>> GetStudentsAsync(bool includeInactive = false);
+
+    /// <summary>
+    /// 检查用户是否为组织成员
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>是否为组织成员</returns>
+    Task<bool> IsUserOrganizationMemberAsync(int userId);
+
+    /// <summary>
+    /// 切换用户的组织成员身份
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="operatorUserId">操作者用户ID</param>
+    /// <returns>是否成功</returns>
+    Task<bool> ToggleOrganizationMembershipAsync(int userId, int operatorUserId);
 }

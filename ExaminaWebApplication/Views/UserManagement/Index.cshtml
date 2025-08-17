@@ -187,6 +187,18 @@
                                                 <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="resetPassword(@user.Id)" title="重置密码">
                                                     <i class="bi bi-key"></i>
                                                 </button>
+                                                @if (user.IsOrganizationMember)
+                                                {
+                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="toggleOrganizationMembership(@user.Id, false)" title="移出组织">
+                                                        <i class="bi bi-building-dash"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="toggleOrganizationMembership(@user.Id, true)" title="加入组织">
+                                                        <i class="bi bi-building-add"></i>
+                                                    </button>
+                                                }
                                                 @if (user.IsActive)
                                                 {
                                                     <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-danger" onclick="deactivateUser(@user.Id)" title="停用">
