@@ -166,7 +166,6 @@ public class NonOrganizationStudentService : INonOrganizationStudentService
         try
         {
             IQueryable<NonOrganizationStudent> query = _context.NonOrganizationStudents
-                .Include(s => s.User)
                 .Include(s => s.Creator)
                 .Include(s => s.Updater);
 
@@ -214,7 +213,6 @@ public class NonOrganizationStudentService : INonOrganizationStudentService
         try
         {
             IQueryable<NonOrganizationStudent> query = _context.NonOrganizationStudents
-                .Include(s => s.User)
                 .Include(s => s.Creator)
                 .Include(s => s.Updater)
                 .Where(s => s.PhoneNumber.Contains(phoneNumber));
@@ -245,7 +243,6 @@ public class NonOrganizationStudentService : INonOrganizationStudentService
         try
         {
             IQueryable<NonOrganizationStudent> query = _context.NonOrganizationStudents
-                .Include(s => s.User)
                 .Include(s => s.Creator)
                 .Include(s => s.Updater)
                 .Where(s => s.RealName.Contains(realName));
@@ -268,52 +265,7 @@ public class NonOrganizationStudentService : INonOrganizationStudentService
         }
     }
 
-    /// <summary>
-    /// 关联非组织学生到已注册用户
-    /// </summary>
-    public async Task<bool> LinkStudentToUserAsync(int studentId, int userId, int updaterUserId)
-    {
-        try
-        {
-            NonOrganizationStudent? student = await _context.NonOrganizationStudents
-                .FirstOrDefaultAsync(s => s.Id == studentId && s.IsActive);
-            if (student == null)
-            {
-                _logger.LogWarning("非组织学生不存在: {StudentId}", studentId);
-                return false;
-            }
 
-            User? user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
-            if (user == null)
-            {
-                _logger.LogWarning("用户不存在: {UserId}", userId);
-                return false;
-            }
-
-            // 验证更新者
-            User? updater = await _context.Users.FindAsync(updaterUserId);
-            if (updater == null)
-            {
-                throw new ArgumentException("更新者用户不存在", nameof(updaterUserId));
-            }
-
-            student.UserId = userId;
-            student.UpdatedAt = DateTime.UtcNow;
-            student.UpdatedBy = updaterUserId;
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("关联非组织学生到用户成功: {StudentId} -> {UserId}, 操作者: {UpdaterUserId}", 
-                studentId, userId, updaterUserId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "关联非组织学生到用户失败: {StudentId} -> {UserId}", studentId, userId);
-            return false;
-        }
-    }
 
     /// <summary>
     /// 获取非组织学生总数
@@ -344,7 +296,6 @@ public class NonOrganizationStudentService : INonOrganizationStudentService
     private async Task<NonOrganizationStudentDto?> GetStudentDtoAsync(int studentId)
     {
         NonOrganizationStudent? student = await _context.NonOrganizationStudents
-            .Include(s => s.User)
             .Include(s => s.Creator)
             .Include(s => s.Updater)
             .FirstOrDefaultAsync(s => s.Id == studentId);
@@ -367,8 +318,8 @@ public class NonOrganizationStudentService : INonOrganizationStudentService
             UpdatedAt = student.UpdatedAt,
             UpdaterUsername = student.Updater?.Username ?? "未知",
             IsActive = student.IsActive,
-            UserId = student.UserId,
-            Username = student.User?.Username,
+            UserId = null, // 不再关联用户
+            Username = null, // 不再关联用户
             Notes = student.Notes
         };
     }

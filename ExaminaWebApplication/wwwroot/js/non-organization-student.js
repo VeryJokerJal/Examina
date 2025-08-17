@@ -145,7 +145,6 @@ function renderStudentTable(students) {
                     <tr>
                         <th>姓名</th>
                         <th>手机号码</th>
-                        <th>关联用户</th>
                         <th>创建时间</th>
                         <th>创建者</th>
                         <th>状态</th>
@@ -164,13 +163,6 @@ function renderStudentTable(students) {
                 </td>
                 <td>
                     <span class="font-monospace">${escapeHtml(student.phoneNumber)}</span>
-                </td>
-                <td>
-                    ${student.userId ? `
-                        <span class="badge glass-badge-success">
-                            <i class="bi bi-person-check me-1"></i>${escapeHtml(student.username || '已关联')}
-                        </span>
-                    ` : '<span class="text-muted">未关联</span>'}
                 </td>
                 <td>
                     <small>${formatDateTime(student.createdAt)}</small>
@@ -193,11 +185,7 @@ function renderStudentTable(students) {
                                 <i class="bi bi-trash"></i>
                             </button>
                         ` : ''}
-                        ${!student.userId ? `
-                            <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="linkToUser(${student.id})" title="关联用户">
-                                <i class="bi bi-person-plus"></i>
-                            </button>
-                        ` : ''}
+
                     </div>
                 </td>
             </tr>
@@ -428,27 +416,7 @@ function deleteStudent(studentId) {
     });
 }
 
-// 关联到用户
-function linkToUser(studentId) {
-    const userId = prompt('请输入要关联的用户ID：');
-    if (!userId || isNaN(userId)) {
-        showErrorMessage('请输入有效的用户ID');
-        return;
-    }
 
-    $.ajax({
-        url: `/api/NonOrganizationStudentApi/${studentId}/link-user/${userId}`,
-        method: 'POST',
-        success: function() {
-            showSuccessMessage('用户关联成功');
-            const includeInactive = $('#includeInactive').is(':checked');
-            loadStudents(currentPage, includeInactive);
-        },
-        error: function(xhr) {
-            showErrorMessage('关联用户失败：' + getErrorMessage(xhr));
-        }
-    });
-}
 
 // 工具函数（复用之前的函数）
 function escapeHtml(text) {

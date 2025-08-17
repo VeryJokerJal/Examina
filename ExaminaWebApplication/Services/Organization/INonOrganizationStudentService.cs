@@ -68,14 +68,7 @@ public interface INonOrganizationStudentService
     /// <returns>非组织学生DTO列表</returns>
     Task<List<NonOrganizationStudentDto>> SearchStudentsByNameAsync(string realName, bool includeInactive = false);
 
-    /// <summary>
-    /// 关联非组织学生到已注册用户
-    /// </summary>
-    /// <param name="studentId">学生ID</param>
-    /// <param name="userId">用户ID</param>
-    /// <param name="updaterUserId">更新者用户ID</param>
-    /// <returns>是否成功</returns>
-    Task<bool> LinkStudentToUserAsync(int studentId, int userId, int updaterUserId);
+
 
     /// <summary>
     /// 获取非组织学生总数

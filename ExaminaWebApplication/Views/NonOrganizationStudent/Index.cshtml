@@ -1,328 +1,311 @@
 ﻿@model ExaminaWebApplication.ViewModels.NonOrganizationStudentViewModel
 @{
-    ViewData["Title"] = "非组织学生管理";
+	ViewData["Title"] = "非组织学生管理";
 }
 
 <div class="container-fluid">
-    <!-- 页面标题 -->
-    <div class="glass-card glass-card-primary mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h2 class="mb-0">
-                        <i class="bi bi-person-plus me-2"></i>非组织学生管理
-                    </h2>
-                    <p class="text-muted mb-0">管理未通过组织邀请码加入的学生信息</p>
-                </div>
-                <div class="col-auto">
-                    <button type="button" class="glass-btn glass-btn-primary" data-bs-toggle="modal" data-bs-target="#createStudentModal">
-                        <i class="bi bi-plus-circle me-2"></i>添加学生
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- 页面标题 -->
+	<div class="glass-card glass-card-primary mb-4">
+		<div class="card-body">
+			<div class="row align-items-center">
+				<div class="col">
+					<h2 class="mb-0">
+						<i class="bi bi-person-plus me-2"></i>非组织学生管理
+					</h2>
+					<p class="text-muted mb-0">管理未通过组织邀请码加入的学生信息</p>
+				</div>
+				<div class="col-auto">
+					<button type="button" class="glass-btn glass-btn-primary" data-bs-toggle="modal" data-bs-target="#createStudentModal">
+						<i class="bi bi-plus-circle me-2"></i>添加学生
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <!-- 搜索和筛选 -->
-    <div class="glass-card mb-4">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="glass-form-label">搜索类型</label>
-                    <select class="glass-form-control" id="searchType">
-                        @foreach (var option in Model.SearchTypeOptions)
-                        {
-                            string selected = Model.SearchType == option.Value ? "selected" : "";
-                            <option value="@option.Value" selected="@selected">
-                                @option.Text
-                            </option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="glass-form-label">搜索关键词</label>
-                    <div class="glass-input-group">
-                        <span class="glass-input-group-text">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" class="glass-form-control" id="searchKeyword" placeholder="请输入搜索关键词..." value="@Model.SearchKeyword">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <label class="glass-form-label">&nbsp;</label>
-                    <div class="glass-form-check">
-                        <input class="glass-form-check-input" type="checkbox" id="includeInactive" @(Model.IncludeInactive ? "checked" : "")>
-                        <label class="glass-form-check-label" for="includeInactive">
-                            包含已删除
-                        </label>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <label class="glass-form-label">&nbsp;</label>
-                    <button type="button" class="glass-btn glass-btn-secondary w-100" onclick="searchStudents()">
-                        <i class="bi bi-search me-2"></i>搜索
-                    </button>
-                </div>
-                <div class="col-md-1">
-                    <label class="glass-form-label">&nbsp;</label>
-                    <button type="button" class="glass-btn glass-btn-outline-secondary w-100" onclick="resetSearch()">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- 搜索和筛选 -->
+	<div class="glass-card mb-4">
+		<div class="card-body">
+			<div class="row g-3">
+				<div class="col-md-3">
+					<label class="glass-form-label">搜索类型</label>
+					<select class="glass-form-control" id="searchType">
+						@foreach (var option in Model.SearchTypeOptions)
+						{
+							string selected = Model.SearchType == option.Value ? "selected" : "";
+							<option value="@option.Value" selected="@selected">
+								@option.Text
+							</option>
+						}
+					</select>
+				</div>
+				<div class="col-md-4">
+					<label class="glass-form-label">搜索关键词</label>
+					<div class="glass-input-group">
+						<span class="glass-input-group-text">
+							<i class="bi bi-search"></i>
+						</span>
+						<input type="text" class="glass-form-control" id="searchKeyword" placeholder="请输入搜索关键词..." value="@Model.SearchKeyword">
+					</div>
+				</div>
+				<div class="col-md-2">
+					<label class="glass-form-label">&nbsp;</label>
+					<div class="glass-form-check">
+						<input class="glass-form-check-input" type="checkbox" id="includeInactive" @(Model.IncludeInactive ? "checked" : "")>
+						<label class="glass-form-check-label" for="includeInactive">
+							包含已删除
+						</label>
+					</div>
+				</div>
+				<div class="col-md-2">
+					<label class="glass-form-label">&nbsp;</label>
+					<button type="button" class="glass-btn glass-btn-secondary w-100" onclick="searchStudents()">
+						<i class="bi bi-search me-2"></i>搜索
+					</button>
+				</div>
+				<div class="col-md-1">
+					<label class="glass-form-label">&nbsp;</label>
+					<button type="button" class="glass-btn glass-btn-outline-secondary w-100" onclick="resetSearch()">
+						<i class="bi bi-arrow-clockwise"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <!-- 统计信息 -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="glass-card glass-card-secondary">
-                <div class="card-body text-center">
-                    <div class="glass-stat-number" id="totalStudents">@Model.TotalCount</div>
-                    <div class="glass-stat-label">学生总数</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="glass-card glass-card-secondary">
-                <div class="card-body text-center">
-                    <div class="glass-stat-number" id="currentPageStudents">@Model.Students.Count</div>
-                    <div class="glass-stat-label">当前页数量</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="glass-card glass-card-secondary">
-                <div class="card-body text-center">
-                    <div class="glass-stat-number">@Model.CurrentPage</div>
-                    <div class="glass-stat-label">当前页码</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="glass-card glass-card-secondary">
-                <div class="card-body text-center">
-                    <div class="glass-stat-number">@Model.TotalPages</div>
-                    <div class="glass-stat-label">总页数</div>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- 统计信息 -->
+	<div class="row g-3 mb-4">
+		<div class="col-md-3">
+			<div class="glass-card glass-card-secondary">
+				<div class="card-body text-center">
+					<div class="glass-stat-number" id="totalStudents">@Model.TotalCount</div>
+					<div class="glass-stat-label">学生总数</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="glass-card glass-card-secondary">
+				<div class="card-body text-center">
+					<div class="glass-stat-number" id="currentPageStudents">@Model.Students.Count</div>
+					<div class="glass-stat-label">当前页数量</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="glass-card glass-card-secondary">
+				<div class="card-body text-center">
+					<div class="glass-stat-number">@Model.CurrentPage</div>
+					<div class="glass-stat-label">当前页码</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="glass-card glass-card-secondary">
+				<div class="card-body text-center">
+					<div class="glass-stat-number">@Model.TotalPages</div>
+					<div class="glass-stat-label">总页数</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <!-- 学生列表 -->
-    <div class="glass-card">
-        <div class="card-header glass-card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-list-ul me-2"></i>学生列表
-                <span class="badge glass-badge ms-2" id="studentCount">@Model.Students.Count</span>
-            </h5>
-        </div>
-        <div class="card-body">
-            <div id="studentsContainer">
-                @if (Model.Students.Any())
-                {
-                    <div class="table-responsive">
-                        <table class="table glass-table">
-                            <thead>
-                                <tr>
-                                    <th>姓名</th>
-                                    <th>手机号码</th>
-                                    <th>关联用户</th>
-                                    <th>创建时间</th>
-                                    <th>创建者</th>
-                                    <th>状态</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var student in Model.Students)
-                                {
-                                    <tr>
-                                        <td>
-                                            <strong>@student.RealName</strong>
-                                            @if (!string.IsNullOrEmpty(student.Notes))
-                                            {
-                                                <br><small class="text-muted">@student.Notes</small>
-                                            }
-                                        </td>
-                                        <td>
-                                            <span class="font-monospace">@student.PhoneNumber</span>
-                                        </td>
-                                        <td>
-                                            @if (student.UserId.HasValue)
-                                            {
-                                                <span class="badge glass-badge-success">
-                                                    <i class="bi bi-person-check me-1"></i>@student.Username
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">未关联</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <small>@student.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
-                                        </td>
-                                        <td>
-                                            <small>@student.CreatorUsername</small>
-                                        </td>
-                                        <td>
-                                            <span class="badge @(student.IsActive ? "glass-badge-success" : "glass-badge-danger")">
-                                                @(student.IsActive ? "正常" : "已删除")
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-primary" onclick="editStudent(@student.Id)" title="编辑">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                @if (student.IsActive)
-                                                {
-                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-danger" onclick="deleteStudent(@student.Id)" title="删除">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                }
-                                                @if (!student.UserId.HasValue)
-                                                {
-                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="linkToUser(@student.Id)" title="关联用户">
-                                                        <i class="bi bi-person-plus"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+	<!-- 学生列表 -->
+	<div class="glass-card">
+		<div class="card-header glass-card-header">
+			<h5 class="mb-0">
+				<i class="bi bi-list-ul me-2"></i>学生列表
+				<span class="badge glass-badge ms-2" id="studentCount">@Model.Students.Count</span>
+			</h5>
+		</div>
+		<div class="card-body">
+			<div id="studentsContainer">
+				@if (Model.Students.Any())
+				{
+					<div>
+						<table class="table glass-table">
+							<thead>
+								<tr>
+									<th>姓名</th>
+									<th>手机号码</th>
+									<th>创建时间</th>
+									<th>创建者</th>
+									<th>状态</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var student in Model.Students)
+								{
+									<tr>
+										<td>
+											<strong>@student.RealName</strong>
+											@if (!string.IsNullOrEmpty(student.Notes))
+											{
+												<br>
+												<small class="text-muted">@student.Notes</small>
+											}
+										</td>
+										<td>
+											<span class="font-monospace">@student.PhoneNumber</span>
+										</td>
+										<td>
+											<small>@student.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
+										</td>
+										<td>
+											<small>@student.CreatorUsername</small>
+										</td>
+										<td>
+											<span class="badge @(student.IsActive ? "glass-badge-success" : "glass-badge-danger")">
+												@(student.IsActive ? "正常" : "已删除")
+											</span>
+										</td>
+										<td>
+											<div class="btn-group" role="group">
+												<button type="button" class="glass-btn glass-btn-sm glass-btn-outline-primary" onclick="editStudent(@student.Id)" title="编辑">
+													<i class="bi bi-pencil"></i>
+												</button>
+												@if (student.IsActive)
+												{
+													<button type="button" class="glass-btn glass-btn-sm glass-btn-outline-danger" onclick="deleteStudent(@student.Id)" title="删除">
+														<i class="bi bi-trash"></i>
+													</button>
+												}
 
-                    <!-- 分页 -->
-                    @if (Model.TotalPages > 1)
-                    {
-                        <nav aria-label="学生列表分页" class="mt-4">
-                            <ul class="pagination glass-pagination justify-content-center">
-                                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                                    <a class="page-link glass-page-link" href="#" onclick="changePage(@(Model.CurrentPage - 1))">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </a>
-                                </li>
-                                
-                                @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
-                                {
-                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                        <a class="page-link glass-page-link" href="#" onclick="changePage(@i)">@i</a>
-                                    </li>
-                                }
-                                
-                                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                                    <a class="page-link glass-page-link" href="#" onclick="changePage(@(Model.CurrentPage + 1))">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <i class="bi bi-person-plus display-1 text-muted"></i>
-                        <h5 class="text-muted mt-3">暂无学生数据</h5>
-                        <p class="text-muted">点击上方"添加学生"按钮添加第一个学生</p>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
+											</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+
+					<!-- 分页 -->
+					@if (Model.TotalPages > 1)
+					{
+						<nav aria-label="学生列表分页" class="mt-4">
+							<ul class="pagination glass-pagination justify-content-center">
+								<li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+									<a class="page-link glass-page-link" href="#" onclick="changePage(@(Model.CurrentPage - 1))">
+										<i class="bi bi-chevron-left"></i>
+									</a>
+								</li>
+
+								@for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+								{
+									<li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+										<a class="page-link glass-page-link" href="#" onclick="changePage(@i)">@i</a>
+									</li>
+								}
+
+								<li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+									<a class="page-link glass-page-link" href="#" onclick="changePage(@(Model.CurrentPage + 1))">
+										<i class="bi bi-chevron-right"></i>
+									</a>
+								</li>
+							</ul>
+						</nav>
+					}
+				}
+				else
+				{
+					<div class="text-center py-5">
+						<i class="bi bi-person-plus display-1 text-muted"></i>
+						<h5 class="text-muted mt-3">暂无学生数据</h5>
+						<p class="text-muted">点击上方"添加学生"按钮添加第一个学生</p>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
 </div>
 
 <!-- 创建学生模态框 -->
 <div class="modal fade glass-modal" id="createStudentModal" tabindex="-1" aria-labelledby="createStudentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header glass-modal-header">
-                <h5 class="modal-title" id="createStudentModalLabel">
-                    <i class="bi bi-plus-circle me-2"></i>添加学生
-                </h5>
-                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <form id="createStudentForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="studentRealName" class="glass-form-label">学生姓名 <span class="text-danger">*</span></label>
-                        <input type="text" class="glass-form-control" id="studentRealName" name="RealName" required maxlength="50" placeholder="请输入学生真实姓名">
-                        <div class="invalid-feedback"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="studentPhoneNumber" class="glass-form-label">手机号码 <span class="text-danger">*</span></label>
-                        <input type="tel" class="glass-form-control" id="studentPhoneNumber" name="PhoneNumber" required maxlength="20" placeholder="请输入手机号码">
-                        <div class="invalid-feedback"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="studentNotes" class="glass-form-label">备注信息</label>
-                        <textarea class="glass-form-control" id="studentNotes" name="Notes" rows="3" maxlength="500" placeholder="请输入备注信息（可选）"></textarea>
-                        <div class="invalid-feedback"></div>
-                    </div>
-                </div>
-                <div class="modal-footer glass-modal-footer">
-                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>取消
-                    </button>
-                    <button type="submit" class="glass-btn glass-btn-primary">
-                        <i class="bi bi-check-circle me-2"></i>添加
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header glass-modal-header">
+				<h5 class="modal-title" id="createStudentModalLabel">
+					<i class="bi bi-plus-circle me-2"></i>添加学生
+				</h5>
+				<button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+					<i class="bi bi-x"></i>
+				</button>
+			</div>
+			<form id="createStudentForm">
+				<div class="modal-body">
+					<div class="mb-3">
+						<label for="studentRealName" class="glass-form-label">学生姓名 <span class="text-danger">*</span></label>
+						<input type="text" class="glass-form-control" id="studentRealName" name="RealName" required maxlength="50" placeholder="请输入学生真实姓名">
+						<div class="invalid-feedback"></div>
+					</div>
+					<div class="mb-3">
+						<label for="studentPhoneNumber" class="glass-form-label">手机号码 <span class="text-danger">*</span></label>
+						<input type="tel" class="glass-form-control" id="studentPhoneNumber" name="PhoneNumber" required maxlength="20" placeholder="请输入手机号码">
+						<div class="invalid-feedback"></div>
+					</div>
+					<div class="mb-3">
+						<label for="studentNotes" class="glass-form-label">备注信息</label>
+						<textarea class="glass-form-control" id="studentNotes" name="Notes" rows="3" maxlength="500" placeholder="请输入备注信息（可选）"></textarea>
+						<div class="invalid-feedback"></div>
+					</div>
+				</div>
+				<div class="modal-footer glass-modal-footer">
+					<button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+						<i class="bi bi-x-circle me-2"></i>取消
+					</button>
+					<button type="submit" class="glass-btn glass-btn-primary">
+						<i class="bi bi-check-circle me-2"></i>添加
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
 </div>
 
 <!-- 编辑学生模态框 -->
 <div class="modal fade glass-modal" id="editStudentModal" tabindex="-1" aria-labelledby="editStudentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header glass-modal-header">
-                <h5 class="modal-title" id="editStudentModalLabel">
-                    <i class="bi bi-pencil me-2"></i>编辑学生
-                </h5>
-                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <form id="editStudentForm">
-                <input type="hidden" id="editStudentId" name="Id">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="editStudentRealName" class="glass-form-label">学生姓名 <span class="text-danger">*</span></label>
-                        <input type="text" class="glass-form-control" id="editStudentRealName" name="RealName" required maxlength="50" placeholder="请输入学生真实姓名">
-                        <div class="invalid-feedback"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editStudentPhoneNumber" class="glass-form-label">手机号码 <span class="text-danger">*</span></label>
-                        <input type="tel" class="glass-form-control" id="editStudentPhoneNumber" name="PhoneNumber" required maxlength="20" placeholder="请输入手机号码">
-                        <div class="invalid-feedback"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editStudentNotes" class="glass-form-label">备注信息</label>
-                        <textarea class="glass-form-control" id="editStudentNotes" name="Notes" rows="3" maxlength="500" placeholder="请输入备注信息（可选）"></textarea>
-                        <div class="invalid-feedback"></div>
-                    </div>
-                </div>
-                <div class="modal-footer glass-modal-footer">
-                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>取消
-                    </button>
-                    <button type="submit" class="glass-btn glass-btn-primary">
-                        <i class="bi bi-check-circle me-2"></i>保存
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header glass-modal-header">
+				<h5 class="modal-title" id="editStudentModalLabel">
+					<i class="bi bi-pencil me-2"></i>编辑学生
+				</h5>
+				<button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+					<i class="bi bi-x"></i>
+				</button>
+			</div>
+			<form id="editStudentForm">
+				<input type="hidden" id="editStudentId" name="Id">
+				<div class="modal-body">
+					<div class="mb-3">
+						<label for="editStudentRealName" class="glass-form-label">学生姓名 <span class="text-danger">*</span></label>
+						<input type="text" class="glass-form-control" id="editStudentRealName" name="RealName" required maxlength="50" placeholder="请输入学生真实姓名">
+						<div class="invalid-feedback"></div>
+					</div>
+					<div class="mb-3">
+						<label for="editStudentPhoneNumber" class="glass-form-label">手机号码 <span class="text-danger">*</span></label>
+						<input type="tel" class="glass-form-control" id="editStudentPhoneNumber" name="PhoneNumber" required maxlength="20" placeholder="请输入手机号码">
+						<div class="invalid-feedback"></div>
+					</div>
+					<div class="mb-3">
+						<label for="editStudentNotes" class="glass-form-label">备注信息</label>
+						<textarea class="glass-form-control" id="editStudentNotes" name="Notes" rows="3" maxlength="500" placeholder="请输入备注信息（可选）"></textarea>
+						<div class="invalid-feedback"></div>
+					</div>
+				</div>
+				<div class="modal-footer glass-modal-footer">
+					<button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+						<i class="bi bi-x-circle me-2"></i>取消
+					</button>
+					<button type="submit" class="glass-btn glass-btn-primary">
+						<i class="bi bi-check-circle me-2"></i>保存
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
 </div>
 
 @section Scripts {
-    <script src="~/js/non-organization-student.js" asp-append-version="true"></script>
+	<script src="~/js/non-organization-student.js" asp-append-version="true"></script>
 }

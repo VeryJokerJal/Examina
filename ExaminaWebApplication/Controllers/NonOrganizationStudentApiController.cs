@@ -225,31 +225,7 @@ public class NonOrganizationStudentApiController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// 关联非组织学生到已注册用户
-    /// </summary>
-    [HttpPost("{studentId}/link-user/{userId}")]
-    public async Task<ActionResult> LinkStudentToUser(int studentId, int userId)
-    {
-        try
-        {
-            int updaterUserId = GetCurrentUserId();
-            bool success = await _studentService.LinkStudentToUserAsync(studentId, userId, updaterUserId);
-            if (!success)
-            {
-                return BadRequest(new { message = "关联失败，学生或用户不存在" });
-            }
 
-            _logger.LogInformation("非组织学生关联用户成功: {StudentId} -> {UserId}, 操作者: {UpdaterUserId}", 
-                studentId, userId, updaterUserId);
-            return Ok(new { message = "关联成功" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "关联非组织学生到用户失败: {StudentId} -> {UserId}", studentId, userId);
-            return StatusCode(500, new { message = "关联失败", error = ex.Message });
-        }
-    }
 
     /// <summary>
     /// 获取当前用户ID
