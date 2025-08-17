@@ -668,32 +668,30 @@ function getErrorMessage(xhr) {
 }
 
 // 切换组织成员身份
-function toggleOrganizationMembership(userId, toNonOrgMember) {
-    const action = toNonOrgMember ? '转为非组织成员' : '加入非组织成员名单';
-    const confirmMessage = toNonOrgMember
-        ? '确定要将此用户从所有组织中移除并转为非组织成员吗？'
-        : '确定要将此用户加入非组织成员名单吗？';
+function toggleOrganizationMembership(userId) {
+    // 后端会根据用户当前状态自动决定操作
+    const confirmMessage = '确定要切换此用户的组织成员身份吗？';
 
     if (!confirm(confirmMessage)) {
         return;
     }
 
     // 显示加载状态
-    showLoadingMessage(`正在${action}...`);
+    showLoadingMessage('正在处理...');
 
     $.ajax({
         url: `/api/UserManagementApi/${userId}/toggle-organization-membership`,
         method: 'POST',
         success: function(response) {
             // 显示成功消息
-            showSuccessMessage(response.message || `${action}成功！`);
+            showSuccessMessage(response.message || '操作成功！');
 
             // 刷新用户列表
             searchUsers();
         },
         error: function(xhr) {
             const errorMessage = getErrorMessage(xhr);
-            showErrorMessage(`${action}失败：${errorMessage}`);
+            showErrorMessage(`操作失败：${errorMessage}`);
         }
     });
 }
