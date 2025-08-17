@@ -46,7 +46,7 @@ public class LoginController : Controller
         }
 
         ViewBag.ReturnUrl = returnUrl;
-        return View("~/Views/AdminLogin/Login.cshtml", new AdminLoginViewModel());
+        return View(new AdminLoginViewModel());
     }
 
     /// <summary>

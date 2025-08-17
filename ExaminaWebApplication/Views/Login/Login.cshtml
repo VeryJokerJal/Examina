@@ -1,0 +1,131 @@
+@model AdminLoginViewModel
+@using ExaminaWebApplication.ViewModels
+@{
+    ViewData["Title"] = "系统登录";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-card">
+            <div class="card-body p-4">
+                <!-- 登录标题 -->
+                <div class="text-center mb-4">
+                    <h3 class="card-title">
+                        <i class="bi bi-shield-lock me-2"></i>系统登录
+                    </h3>
+                    <p class="text-muted">请使用手机号或邮箱登录</p>
+                </div>
+
+                <!-- 角色说明 -->
+                <div class="alert alert-info glass-alert-info mb-4">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-info-circle me-1"></i>登录说明
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>使用手机号或邮箱进行登录</li>
+                        <li>管理员和教师登录成功后将进入相应的管理界面</li>
+                        <li>学生用户请使用移动端或学生端 API 登录</li>
+                    </ul>
+                </div>
+
+                <!-- 登录表单 -->
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <!-- 用户名输入 -->
+                    <div class="mb-3">
+                        <label asp-for="Identifier" class="form-label">
+                            <i class="bi bi-person me-1"></i>@Html.DisplayNameFor(m => m.Identifier)
+                        </label>
+                        <input asp-for="Identifier" class="form-control glass-input"
+                               placeholder="请输入手机号或邮箱" autocomplete="username" />
+                        <span asp-validation-for="Identifier" class="text-danger"></span>
+                    </div>
+
+                    <!-- 密码输入 -->
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">
+                            <i class="bi bi-lock me-1"></i>@Html.DisplayNameFor(m => m.Password)
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" class="form-control glass-input"
+                                   placeholder="请输入密码" autocomplete="current-password" />
+                            <button class="btn btn-outline-secondary glass-btn-outline" type="button" id="togglePassword">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- 记住我 -->
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" type="checkbox" class="form-check-input" id="rememberMe" />
+                        <label class="form-check-label" for="rememberMe">
+                            @Html.DisplayNameFor(m => m.RememberMe)
+                        </label>
+                    </div>
+
+                    <!-- 登录按钮 -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn glass-btn glass-btn-primary">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>登录
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 其他选项 -->
+                <div class="text-center mt-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="#" class="text-decoration-none small">
+                                <i class="bi bi-question-circle me-1"></i>忘记密码？
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" class="text-decoration-none small">
+                                <i class="bi bi-headset me-1"></i>联系支持
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>Examina 考试管理系统 v1.0
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- 密码显示/隐藏功能 -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.querySelector('input[name="Password"]');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+
+        if (togglePassword && passwordInput && toggleIcon) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // 切换图标
+                if (type === 'password') {
+                    toggleIcon.className = 'bi bi-eye';
+                } else {
+                    toggleIcon.className = 'bi bi-eye-slash';
+                }
+            });
+        }
+    });
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
