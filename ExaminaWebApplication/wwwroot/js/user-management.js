@@ -668,11 +668,11 @@ function getErrorMessage(xhr) {
 }
 
 // 切换组织成员身份
-function toggleOrganizationMembership(userId, isJoining) {
-    const action = isJoining ? '加入非组织成员名单' : '移出组织';
-    const confirmMessage = isJoining
-        ? '确定要将此用户加入非组织成员名单吗？'
-        : '确定要将此用户从所有组织中移除并转为非组织成员吗？';
+function toggleOrganizationMembership(userId, toNonOrgMember) {
+    const action = toNonOrgMember ? '转为非组织成员' : '加入非组织成员名单';
+    const confirmMessage = toNonOrgMember
+        ? '确定要将此用户从所有组织中移除并转为非组织成员吗？'
+        : '确定要将此用户加入非组织成员名单吗？';
 
     if (!confirm(confirmMessage)) {
         return;

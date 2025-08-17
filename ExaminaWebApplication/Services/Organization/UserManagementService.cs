@@ -531,6 +531,16 @@ public class UserManagementService : IUserManagementService
                 return false;
             }
 
+            // 检查用户是否已在NonOrganizationStudent表中
+            NonOrganizationStudent? existingNonOrgStudent = await _context.NonOrganizationStudents
+                .FirstOrDefaultAsync(nos => nos.UserId == userId && nos.IsActive);
+
+            if (existingNonOrgStudent != null)
+            {
+                _logger.LogInformation("用户已在非组织学生名单中: {UserId}", userId);
+                return false; // 已存在，不需要重复添加
+            }
+
             // 检查用户是否已在OrganizationMember表中
             OrganizationMember? existingMember = await _context.OrganizationMembers
                 .FirstOrDefaultAsync(om => om.UserId == userId && om.IsActive);
@@ -541,7 +551,6 @@ public class UserManagementService : IUserManagementService
                 if (existingMember.OrganizationId == null)
                 {
                     _logger.LogInformation("用户已在非组织成员名单中: {UserId}", userId);
-                    return false; // 已存在，不需要重复添加
                 }
                 else
                 {
@@ -549,28 +558,45 @@ public class UserManagementService : IUserManagementService
                     existingMember.OrganizationId = null;
                     existingMember.UpdatedAt = DateTime.UtcNow;
                     existingMember.UpdatedBy = operatorUserId;
-                    await _context.SaveChangesAsync();
                     _logger.LogInformation("已将现有组织成员记录转为非组织成员: {UserId}", userId);
-                    return true;
                 }
             }
-
-            // 创建新的非组织成员记录
-            OrganizationMember newMember = new OrganizationMember
+            else
             {
-                Username = user.Username,
-                PhoneNumber = user.PhoneNumber,
-                RealName = user.RealName,
-                OrganizationId = null, // 非组织成员
+                // 创建新的非组织成员记录
+                OrganizationMember newMember = new OrganizationMember
+                {
+                    Username = user.Username,
+                    PhoneNumber = user.PhoneNumber,
+                    RealName = user.RealName,
+                    OrganizationId = null, // 非组织成员
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = operatorUserId,
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = operatorUserId,
+                    IsActive = true
+                };
+
+                _context.OrganizationMembers.Add(newMember);
+                _logger.LogInformation("创建新的非组织成员记录: {UserId}", userId);
+            }
+
+            // 同时在NonOrganizationStudent表中创建记录，以便在NonOrganizationStudent页面显示
+            NonOrganizationStudent newNonOrgStudent = new NonOrganizationStudent
+            {
+                RealName = user.RealName ?? user.Username,
+                PhoneNumber = user.PhoneNumber ?? "",
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = operatorUserId,
                 UpdatedAt = DateTime.UtcNow,
                 UpdatedBy = operatorUserId,
-                IsActive = true
+                IsActive = true,
+                Notes = "通过用户管理界面添加的非组织成员"
             };
 
-            _context.OrganizationMembers.Add(newMember);
+            _context.NonOrganizationStudents.Add(newNonOrgStudent);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("成功添加用户到非组织成员名单: {UserId}", userId);

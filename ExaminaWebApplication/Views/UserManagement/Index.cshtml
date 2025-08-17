@@ -192,13 +192,13 @@
                                                 <!-- 第二行：组织成员身份切换和激活/停用 -->
                                                 @if (user.IsOrganizationMember)
                                                 {
-                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="toggleOrganizationMembership(@user.Id, false)" title="移出组织并转为非组织成员">
+                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="toggleOrganizationMembership(@user.Id, true)" title="移出组织并转为非组织成员">
                                                         <i class="bi bi-building-dash"></i>
                                                     </button>
                                                 }
                                                 else
                                                 {
-                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="toggleOrganizationMembership(@user.Id, true)" title="加入非组织成员名单">
+                                                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="toggleOrganizationMembership(@user.Id, false)" title="加入非组织成员名单">
                                                         <i class="bi bi-person-plus"></i>
                                                     </button>
                                                 }
