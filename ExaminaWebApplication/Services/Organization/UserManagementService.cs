@@ -434,7 +434,7 @@ public class UserManagementService : IUserManagementService
     /// <summary>
     /// 切换用户的组织成员身份
     /// </summary>
-    public async Task<bool> ToggleOrganizationMembershipAsync(int userId, int operatorUserId)
+    public async Task<(bool Success, string Message)> ToggleOrganizationMembershipAsync(int userId, int operatorUserId)
     {
         try
         {
@@ -443,7 +443,7 @@ public class UserManagementService : IUserManagementService
             if (user == null || !user.IsActive)
             {
                 _logger.LogWarning("用户不存在或已停用: {UserId}", userId);
-                return false;
+                return (false, "用户不存在或已停用");
             }
 
             // 验证操作者权限
@@ -452,7 +452,7 @@ public class UserManagementService : IUserManagementService
                 (operatorUser.Role != UserRole.Administrator && operatorUser.Role != UserRole.Teacher))
             {
                 _logger.LogWarning("操作者权限不足: {OperatorUserId}", operatorUserId);
-                return false;
+                return (false, "操作者权限不足");
             }
 
             bool isCurrentlyMember = await IsUserOrganizationMemberAsync(userId);
@@ -462,20 +462,19 @@ public class UserManagementService : IUserManagementService
                 // 移出组织：将用户从所有组织中移除
                 await RemoveUserFromAllOrganizationsAsync(userId);
                 _logger.LogInformation("用户已从所有组织中移除: {UserId}, 操作者: {OperatorUserId}", userId, operatorUserId);
+                return (true, "用户已从所有组织中移除");
             }
             else
             {
                 // 加入组织：这里暂时不实现自动加入逻辑，需要管理员手动通过组织管理界面添加
                 _logger.LogInformation("用户当前不是组织成员，需要通过组织管理界面手动添加: {UserId}", userId);
-                return false;
+                return (false, "该用户当前不是组织成员，请通过组织管理界面手动添加用户到具体组织");
             }
-
-            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "切换用户组织成员身份失败: 用户ID: {UserId}", userId);
-            return false;
+            return (false, $"操作失败: {ex.Message}");
         }
     }
 

@@ -13,7 +13,7 @@ namespace ExaminaWebApplication.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = "Administrator,Teacher")]
 public class UserManagementApiController : ControllerBase
 {
     private readonly IUserManagementService _userManagementService;
@@ -297,16 +297,22 @@ public class UserManagementApiController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("开始切换用户组织成员身份: 用户ID: {UserId}", userId);
+
             int operatorUserId = GetCurrentUserId();
-            bool success = await _userManagementService.ToggleOrganizationMembershipAsync(userId, operatorUserId);
+            _logger.LogInformation("操作者用户ID: {OperatorUserId}", operatorUserId);
+
+            (bool success, string message) = await _userManagementService.ToggleOrganizationMembershipAsync(userId, operatorUserId);
 
             if (success)
             {
-                return Ok(new { message = "组织成员身份切换成功" });
+                _logger.LogInformation("组织成员身份切换成功: 用户ID: {UserId}, 操作者: {OperatorUserId}", userId, operatorUserId);
+                return Ok(new { message });
             }
             else
             {
-                return BadRequest(new { message = "组织成员身份切换失败，请检查用户状态和权限" });
+                _logger.LogWarning("组织成员身份切换失败: 用户ID: {UserId}, 操作者: {OperatorUserId}, 原因: {Message}", userId, operatorUserId, message);
+                return BadRequest(new { message });
             }
         }
         catch (UnauthorizedAccessException ex)

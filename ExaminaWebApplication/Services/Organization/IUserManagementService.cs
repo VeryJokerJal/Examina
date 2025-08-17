@@ -124,6 +124,6 @@ public interface IUserManagementService
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <param name="operatorUserId">操作者用户ID</param>
-    /// <returns>是否成功</returns>
-    Task<bool> ToggleOrganizationMembershipAsync(int userId, int operatorUserId);
+    /// <returns>操作结果和消息</returns>
+    Task<(bool Success, string Message)> ToggleOrganizationMembershipAsync(int userId, int operatorUserId);
 }
