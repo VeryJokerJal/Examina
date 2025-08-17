@@ -7,18 +7,15 @@
     <div class="container text-center">
         <h1 class="display-4 fw-bold">
             <i class="bi bi-mortarboard-fill me-3"></i>
-            Examina 考试管理系统
+            河北对口计算机上机考试管理系统
         </h1>
-        <p class="lead mb-4">综合考试管理平台</p>
+        <p class="lead mb-4">专业、安全、高效的考试管理平台</p>
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <p class="mb-4">支持Windows、C#等多种科目的综合考试管理，提供统考和模拟考两种考试类型，包含完整的题库管理、试卷创建、考试监控和成绩分析功能。</p>
-                <a href="@Url.Action("Index", "ExamManagement")" class="glass-btn glass-btn-primary btn-lg me-3">
+                <p class="mb-4">专为河北省对口升学计算机专业上机考试设计，提供完整的考试组织、监控和评估解决方案。支持Windows操作系统和C#编程语言考试，确保考试过程的公平性和准确性。</p>
+                <a href="@Url.Action("Index", "ExamManagement")" class="glass-btn glass-btn-primary btn-lg">
                     <i class="bi bi-clipboard-check me-2"></i>进入管理面板
                 </a>
-                <button class="glass-btn btn-lg" onclick="createSampleData()">
-                    <i class="bi bi-database-add me-2"></i>创建示例数据
-                </button>
             </div>
         </div>
     </div>
@@ -28,8 +25,8 @@
 <div class="container mb-5">
     <div class="row text-center mb-5">
         <div class="col-md-12">
-            <h2 class="fw-bold mb-3">系统功能特性</h2>
-            <p class="text-muted">基于现代化架构设计的全功能考试管理平台</p>
+            <h2 class="fw-bold mb-3">核心功能模块</h2>
+            <p class="text-muted">为河北对口计算机上机考试提供全方位管理解决方案</p>
         </div>
     </div>
 
@@ -40,9 +37,9 @@
                     <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
                         <i class="bi bi-clipboard-check text-primary" style="font-size: 2rem;"></i>
                     </div>
-                    <h5 class="fw-bold">试卷管理</h5>
-                    <p class="text-muted">创建、编辑、发布和管理各类考试试卷，支持多科目综合考试</p>
-                    <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-primary btn-sm">创建试卷</a>
+                    <h5 class="fw-bold">考试管理</h5>
+                    <p class="text-muted">完整的考试生命周期管理，从试卷创建到成绩发布，确保考试过程规范有序</p>
+                    <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-primary btn-sm">创建考试</a>
                 </div>
             </div>
         </div>
@@ -53,9 +50,9 @@
                     <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
                         <i class="bi bi-code-slash text-primary" style="font-size: 2rem;"></i>
                     </div>
-                    <h5 class="fw-bold">编程题目</h5>
-                    <p class="text-muted">支持C#编程题目，包含代码示例、输入输出要求等完整功能</p>
-                    <span class="badge bg-primary">Markdown支持</span>
+                    <h5 class="fw-bold">智能评分</h5>
+                    <p class="text-muted">自动化评分系统，支持Windows操作和C#编程的精确检测与评估</p>
+                    <span class="badge bg-primary">实时评分</span>
                 </div>
             </div>
         </div>
@@ -66,9 +63,9 @@
                     <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
                         <i class="bi bi-question-circle text-info" style="font-size: 2rem;"></i>
                     </div>
-                    <h5 class="fw-bold">题库管理</h5>
-                    <p class="text-muted">智能题目生成，支持参数配置和难度分级</p>
-                    <a href="@Url.Action("QuestionBank", "ExamManagement")" class="glass-btn glass-btn-info btn-sm">管理题库</a>
+                    <h5 class="fw-bold">数据统计</h5>
+                    <p class="text-muted">全面的考试数据分析，提供详细的成绩统计和趋势分析报告</p>
+                    <a href="@Url.Action("Index", "ExamManagement")" class="glass-btn glass-btn-info btn-sm">查看统计</a>
                 </div>
             </div>
         </div>
@@ -80,8 +77,8 @@
     <div class="container">
         <div class="row text-center mb-4">
             <div class="col-md-12">
-                <h2 class="fw-bold mb-3">支持的考试科目</h2>
-                <p class="text-muted">全面覆盖Office应用程序和编程语言</p>
+                <h2 class="fw-bold mb-3">考试科目支持</h2>
+                <p class="text-muted">专业的计算机上机考试科目，确保考试内容与教学目标一致</p>
             </div>
         </div>
 
@@ -106,37 +103,26 @@
             </div>
             <div class="col-md-3 col-6">
                 <div class="text-center">
-                    <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
-                        <i class="bi bi-circle text-secondary" style="font-size: 1.5rem;"></i>
+                    <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="bi bi-hourglass-split text-info" style="font-size: 1.5rem;"></i>
                     </div>
                     <h6 class="fw-bold">PowerPoint</h6>
-                    <small class="text-muted">开发中</small>
+                    <small class="text-muted">即将推出</small>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="text-center">
-                    <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
-                        <i class="bi bi-circle text-secondary" style="font-size: 1.5rem;"></i>
+                    <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="bi bi-hourglass-split text-info" style="font-size: 1.5rem;"></i>
                     </div>
                     <h6 class="fw-bold">Word</h6>
-                    <small class="text-muted">开发中</small>
+                    <small class="text-muted">即将推出</small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 系统统计 -->
-<div class="container mb-5">
-    <div class="row text-center mb-4">
-        <div class="col-md-12">
-            <h2 class="fw-bold mb-3">系统统计</h2>
-            <p class="text-muted">实时系统数据概览</p>
-        </div>
-    </div>
-
-
-</div>
 
 <!-- 快速操作 -->
 <div class="glass-card py-5">
@@ -158,13 +144,13 @@
                     </div>
                     <div class="col-md-4">
                         <a href="@Url.Action("CreateExam", "ExamManagement")" class="glass-btn glass-btn-success btn-lg w-100">
-                            <i class="bi bi-plus-circle me-2"></i>创建试卷
+                            <i class="bi bi-plus-circle me-2"></i>创建考试
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <button onclick="createSampleData()" class="glass-btn glass-btn-secondary btn-lg w-100">
-                            <i class="bi bi-database-add me-2"></i>示例数据
-                        </button>
+                        <a href="@Url.Action("ExamList", "ExamManagement")" class="glass-btn glass-btn-info btn-lg w-100">
+                            <i class="bi bi-list-ul me-2"></i>考试列表
+                        </a>
                     </div>
                 </div>
             </div>
