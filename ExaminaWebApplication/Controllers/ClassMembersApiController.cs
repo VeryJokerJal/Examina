@@ -1,5 +1,4 @@
 using ExaminaWebApplication.Models.Organization.Dto;
-using ExaminaWebApplication.Models.Requests;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,61 +15,17 @@ namespace ExaminaWebApplication.Controllers;
 public class ClassMembersApiController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
-    private readonly IInvitationCodeService _invitationCodeService;
     private readonly ILogger<ClassMembersApiController> _logger;
 
     public ClassMembersApiController(
         IOrganizationService organizationService,
-        IInvitationCodeService invitationCodeService,
         ILogger<ClassMembersApiController> logger)
     {
         _organizationService = organizationService;
-        _invitationCodeService = invitationCodeService;
         _logger = logger;
     }
 
-    /// <summary>
-    /// 添加学生到班级
-    /// </summary>
-    [HttpPost("{classId}/members")]
-    public async Task<ActionResult<StudentOrganizationDto>> AddMemberToClass(int classId, [FromBody] AddClassMemberRequest request)
-    {
-        try
-        {
-            int operatorUserId = GetCurrentUserId();
-            
-            // 验证班级是否存在
-            OrganizationDto? classInfo = await _organizationService.GetOrganizationByIdAsync(classId);
-            if (classInfo == null)
-            {
-                return NotFound(new { message = "班级不存在" });
-            }
 
-            // 如果没有指定邀请码，使用班级的默认邀请码
-            int invitationCodeId = request.InvitationCodeId ?? await GetDefaultInvitationCodeId(classId);
-            
-            // 添加学生到班级
-            StudentOrganizationDto? result = await _organizationService.JoinOrganizationAsync(
-                request.StudentId, 
-                classId, 
-                invitationCodeId);
-
-            if (result == null)
-            {
-                return BadRequest(new { message = "添加成员失败，可能是学生已在班级中或邀请码无效" });
-            }
-
-            _logger.LogInformation("学生添加到班级成功: {StudentId} -> {ClassId}, 操作者: {OperatorUserId}", 
-                request.StudentId, classId, operatorUserId);
-            
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "添加学生到班级失败: {StudentId} -> {ClassId}", request.StudentId, classId);
-            return StatusCode(500, new { message = "添加成员失败", error = ex.Message });
-        }
-    }
 
     /// <summary>
     /// 移除班级成员
@@ -130,31 +85,7 @@ public class ClassMembersApiController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// 获取班级的默认邀请码ID
-    /// </summary>
-    private async Task<int> GetDefaultInvitationCodeId(int classId)
-    {
-        try
-        {
-            var invitationCodes = await _invitationCodeService.GetOrganizationInvitationCodesAsync(classId, false);
-            var activeCode = invitationCodes.FirstOrDefault(c => c.IsActive);
-            
-            if (activeCode != null)
-            {
-                return activeCode.Id;
-            }
 
-            // 如果没有活跃的邀请码，创建一个默认的
-            var newCode = await _invitationCodeService.CreateInvitationCodeAsync(classId);
-            return newCode?.Id ?? throw new InvalidOperationException("无法创建默认邀请码");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "获取或创建默认邀请码失败: {ClassId}", classId);
-            throw;
-        }
-    }
 
     /// <summary>
     /// 获取当前用户ID

@@ -12,16 +12,13 @@ namespace ExaminaWebApplication.Controllers;
 public class ClassMembersController : Controller
 {
     private readonly IOrganizationService _organizationService;
-    private readonly IUserManagementService _userManagementService;
     private readonly ILogger<ClassMembersController> _logger;
 
     public ClassMembersController(
         IOrganizationService organizationService,
-        IUserManagementService userManagementService,
         ILogger<ClassMembersController> logger)
     {
         _organizationService = organizationService;
-        _userManagementService = userManagementService;
         _logger = logger;
     }
 
@@ -62,14 +59,9 @@ public class ClassMembersController : Controller
             };
 
             // 获取班级成员列表
-            List<Models.Organization.Dto.StudentOrganizationDto> members = 
+            List<Models.Organization.Dto.StudentOrganizationDto> members =
                 await _organizationService.GetOrganizationMembersAsync(classId, false);
             viewModel.Members = members;
-
-            // 获取所有学生用户列表（用于添加成员）
-            List<Models.Organization.Dto.UserDto> students = 
-                await _userManagementService.GetStudentsAsync(false);
-            viewModel.AvailableStudents = students;
 
             _logger.LogInformation("班级成员管理页面加载成功: {ClassId}, 成员数量: {MemberCount}", 
                 classId, members.Count);

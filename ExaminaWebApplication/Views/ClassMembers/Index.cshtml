@@ -15,18 +15,11 @@
                     <li class="breadcrumb-item active" aria-current="page">班级成员管理</li>
                 </ol>
             </nav>
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="glass-title">
-                        <i class="bi bi-people me-2"></i>班级成员管理
-                    </h1>
-                    <p class="glass-subtitle">管理 @Model.ClassInfo?.Name 的学生成员</p>
-                </div>
-                <div>
-                    <button type="button" class="glass-btn glass-btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
-                        <i class="bi bi-person-plus me-2"></i>添加成员
-                    </button>
-                </div>
+            <div>
+                <h1 class="glass-title">
+                    <i class="bi bi-people me-2"></i>班级成员管理
+                </h1>
+                <p class="glass-subtitle">查看和管理 @Model.ClassInfo?.Name 的学生成员</p>
             </div>
         </div>
     </div>
@@ -195,52 +188,7 @@
     </div>
 </div>
 
-<!-- 添加成员模态框 -->
-<div class="modal fade glass-modal" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header glass-modal-header">
-                <h5 class="modal-title" id="addMemberModalLabel">
-                    <i class="bi bi-person-plus me-2"></i>添加班级成员
-                </h5>
-                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <form id="addMemberForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="studentSelect" class="glass-form-label">选择学生 <span class="text-danger">*</span></label>
-                        <select class="glass-form-control" id="studentSelect" name="StudentId" required>
-                            <option value="">请选择学生</option>
-                            @foreach (var student in Model.AvailableStudents)
-                            {
-                                <option value="@student.Id">@student.Username (@student.RealName)</option>
-                            }
-                        </select>
-                        <div class="invalid-feedback"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="invitationCodeSelect" class="glass-form-label">邀请码</label>
-                        <select class="glass-form-control" id="invitationCodeSelect" name="InvitationCodeId">
-                            <option value="">选择邀请码（可选）</option>
-                            <!-- 邀请码选项将通过JavaScript动态加载 -->
-                        </select>
-                        <small class="text-muted">如果不选择邀请码，系统将使用默认邀请码</small>
-                    </div>
-                </div>
-                <div class="modal-footer glass-modal-footer">
-                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>取消
-                    </button>
-                    <button type="submit" class="glass-btn glass-btn-primary">
-                        <i class="bi bi-check-circle me-2"></i>添加
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 @section Scripts {
     <script src="~/js/class-members.js"></script>

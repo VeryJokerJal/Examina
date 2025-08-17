@@ -19,11 +19,7 @@ function initializeClassMembers() {
         return;
     }
 
-    // 绑定添加成员表单提交事件
-    $('#addMemberForm').on('submit', function(e) {
-        e.preventDefault();
-        addMember();
-    });
+
 
     // 绑定搜索输入框回车事件
     $('#searchKeyword').on('keypress', function(e) {
@@ -37,11 +33,7 @@ function initializeClassMembers() {
         searchMembers();
     });
 
-    // 绑定添加成员模态框显示事件
-    $('#addMemberModal').on('show.bs.modal', function() {
-        loadInvitationCodes();
-        resetAddMemberForm();
-    });
+
 
     // 初始加载成员列表
     loadMembers();
@@ -77,7 +69,7 @@ function renderMemberTable(members) {
             <div class="text-center py-5">
                 <i class="bi bi-people display-1 text-muted"></i>
                 <h5 class="text-muted mt-3">暂无班级成员</h5>
-                <p class="text-muted">点击"添加成员"按钮开始添加学生到班级</p>
+                <p class="text-muted">当前班级还没有学生成员</p>
             </div>
         `);
         return;
@@ -175,77 +167,9 @@ function searchMembers() {
     }
 }
 
-// 加载邀请码列表
-function loadInvitationCodes() {
-    $.ajax({
-        url: `/api/ClassManagementApi/${currentClassId}/invitation-codes`,
-        method: 'GET',
-        data: {
-            includeInactive: false
-        },
-        success: function(invitationCodes) {
-            const select = $('#invitationCodeSelect');
-            select.empty();
-            select.append('<option value="">选择邀请码（可选）</option>');
-            
-            invitationCodes.forEach(code => {
-                if (code.isActive) {
-                    select.append(`<option value="${code.id}">${code.code}</option>`);
-                }
-            });
-        },
-        error: function(xhr) {
-            console.error('加载邀请码失败：', getErrorMessage(xhr));
-        }
-    });
-}
 
-// 添加班级成员
-function addMember() {
-    const form = $('#addMemberForm');
-    const formData = {
-        studentId: parseInt($('#studentSelect').val()),
-        invitationCodeId: $('#invitationCodeSelect').val() ? parseInt($('#invitationCodeSelect').val()) : null
-    };
 
-    // 验证表单
-    if (!formData.studentId) {
-        showFieldError('#studentSelect', '请选择学生');
-        return;
-    }
 
-    // 清除之前的错误
-    clearFormErrors(form);
-    
-    // 显示加载状态
-    const submitBtn = form.find('button[type="submit"]');
-    const originalText = submitBtn.html();
-    submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>添加中...').prop('disabled', true);
-
-    $.ajax({
-        url: `/api/ClassMembersApi/${currentClassId}/members`,
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(formData),
-        success: function() {
-            // 关闭模态框
-            $('#addMemberModal').modal('hide');
-            
-            // 显示成功消息
-            showSuccessMessage('成员添加成功！');
-            
-            // 刷新成员列表
-            loadMembers();
-        },
-        error: function(xhr) {
-            handleFormError(xhr, form);
-        },
-        complete: function() {
-            // 恢复按钮状态
-            submitBtn.html(originalText).prop('disabled', false);
-        }
-    });
-}
 
 // 移除班级成员
 function removeMember(memberId) {
@@ -285,12 +209,7 @@ function restoreMember(memberId) {
     });
 }
 
-// 重置添加成员表单
-function resetAddMemberForm() {
-    const form = $('#addMemberForm');
-    form[0].reset();
-    clearFormErrors(form);
-}
+
 
 // 更新成员数量显示
 function updateMemberCount(count) {
