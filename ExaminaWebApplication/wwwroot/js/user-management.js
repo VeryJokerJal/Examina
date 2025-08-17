@@ -350,40 +350,40 @@ function updateStatistics(users) {
 function createUser() {
     const form = $('#createUserForm');
     const formData = {
-        Username: $('#userUsername').val().trim(),
-        Email: $('#userEmail').val().trim(),
-        Password: $('#userPassword').val(),
-        Role: $('#userRole').val(),
-        PhoneNumber: $('#userPhoneNumber').val().trim() || null,
-        RealName: $('#userRealName').val().trim() || null,
-        SchoolId: $('#userSchoolId').val() ? parseInt($('#userSchoolId').val()) : null,
-        ClassIds: []
+        username: $('#userUsername').val().trim(),
+        email: $('#userEmail').val().trim(),
+        password: $('#userPassword').val(),
+        role: $('#userRole').val(),
+        phoneNumber: $('#userPhoneNumber').val().trim() || null,
+        realName: $('#userRealName').val().trim() || null,
+        schoolId: $('#userSchoolId').val() ? parseInt($('#userSchoolId').val()) : null,
+        classIds: []
     };
 
     // 获取选中的班级
     $('#classCheckboxes input[type="checkbox"]:checked').each(function() {
-        formData.ClassIds.push(parseInt($(this).val()));
+        formData.classIds.push(parseInt($(this).val()));
     });
 
     // 验证表单
-    if (!formData.Username) {
+    if (!formData.username) {
         showFieldError('#userUsername', '用户名不能为空');
         return;
     }
-    if (!formData.Email) {
+    if (!formData.email) {
         showFieldError('#userEmail', '邮箱不能为空');
         return;
     }
-    if (!formData.Password) {
+    if (!formData.password) {
         showFieldError('#userPassword', '密码不能为空');
         return;
     }
-    if (!formData.Role) {
+    if (!formData.role) {
         showFieldError('#userRole', '请选择用户角色');
         return;
     }
     // 只有教师角色需要选择学校
-    if (formData.Role === 'Teacher' && !formData.SchoolId) {
+    if (formData.role === 'Teacher' && !formData.schoolId) {
         showFieldError('#userSchoolId', '请选择所属学校');
         return;
     }

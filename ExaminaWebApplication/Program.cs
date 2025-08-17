@@ -42,6 +42,7 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.MaxDepth = 32;
 
         // 添加自定义转换器
+        options.JsonSerializerOptions.Converters.Add(new ExaminaWebApplication.Converters.UserRoleJsonConverter());
         //options.JsonSerializerOptions.Converters.Add(new BenchSuite.Converters.ModuleTypeJsonConverter());
     });
 
