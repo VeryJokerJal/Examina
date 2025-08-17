@@ -180,13 +180,16 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="btn-group" role="group">
+                                            <div class="user-actions-grid">
+                                                <!-- 第一行：编辑和重置密码 -->
                                                 <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-primary" onclick="editUser(@user.Id)" title="编辑">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
                                                 <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="resetPassword(@user.Id)" title="重置密码">
                                                     <i class="bi bi-key"></i>
                                                 </button>
+
+                                                <!-- 第二行：组织成员身份切换和激活/停用 -->
                                                 @if (user.IsOrganizationMember)
                                                 {
                                                     <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="toggleOrganizationMembership(@user.Id, false)" title="移出组织并转为非组织成员">
@@ -425,5 +428,55 @@
     body > header > nav > div > div:first-child,
     body > div.container > main > div:first-child > div:first-child {
         display: none !important;
+    }
+
+    /* 用户操作按钮2x2网格布局 */
+    .user-actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 4px;
+        width: fit-content;
+        margin: 0 auto;
+    }
+
+    /* 确保网格中的按钮大小一致 */
+    .user-actions-grid .glass-btn {
+        width: 36px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    /* 按钮悬停效果 */
+    .user-actions-grid .glass-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 确保图标在按钮中居中 */
+    .user-actions-grid .glass-btn i {
+        font-size: 14px;
+        line-height: 1;
+    }
+
+    /* 响应式设计：在小屏幕上保持网格布局 */
+    @@media (max-width: 768px) {
+        .user-actions-grid {
+            gap: 3px;
+        }
+
+        .user-actions-grid .glass-btn {
+            width: 32px;
+            height: 28px;
+        }
+
+        .user-actions-grid .glass-btn i {
+            font-size: 12px;
+        }
     }
 </style>
