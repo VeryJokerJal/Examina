@@ -486,22 +486,67 @@ public class OrganizationService : IOrganizationService
 
             result.AddRange(userOrganizations.Select(MapToStudentOrganizationDto));
 
-            // 2. 获取非组织学生
-            IQueryable<NonOrganizationStudentOrganization> nonOrgQuery = _context.NonOrganizationStudentOrganizations
-                .Include(noso => noso.NonOrganizationStudent)
-                .Include(noso => noso.Organization)
-                .Where(noso => noso.OrganizationId == organizationId);
-
-            if (!includeInactive)
+            // 2. 获取非组织学生（如果关联表存在）
+            try
             {
-                nonOrgQuery = nonOrgQuery.Where(noso => noso.IsActive);
+                IQueryable<NonOrganizationStudentOrganization> nonOrgQuery = _context.NonOrganizationStudentOrganizations
+                    .Include(noso => noso.NonOrganizationStudent)
+                    .Include(noso => noso.Organization)
+                    .Where(noso => noso.OrganizationId == organizationId);
+
+                if (!includeInactive)
+                {
+                    nonOrgQuery = nonOrgQuery.Where(noso => noso.IsActive);
+                }
+
+                List<NonOrganizationStudentOrganization> nonOrgRelations = await nonOrgQuery
+                    .OrderByDescending(noso => noso.JoinedAt)
+                    .ToListAsync();
+
+                result.AddRange(nonOrgRelations.Select(MapNonOrgStudentToDto));
+
+                _logger.LogInformation("从NonOrganizationStudentOrganization表获取到 {Count} 个非组织学生", nonOrgRelations.Count);
             }
+            catch (Exception ex)
+            {
+                // 如果关联表不存在，记录警告并尝试备用方案
+                _logger.LogWarning(ex, "查询非组织学生关联表时出错，可能表尚未创建。组织ID: {OrganizationId}。尝试备用查询方案...", organizationId);
 
-            List<NonOrganizationStudentOrganization> nonOrgRelations = await nonOrgQuery
-                .OrderByDescending(noso => noso.JoinedAt)
-                .ToListAsync();
+                // 备用方案：查询所有非组织学生（临时解决方案）
+                // 注意：这不是最佳方案，但可以在迁移前临时使用
+                try
+                {
+                    List<NonOrganizationStudent> allNonOrgStudents = await _context.NonOrganizationStudents
+                        .Include(s => s.Creator)
+                        .Where(s => s.IsActive)
+                        .OrderByDescending(s => s.CreatedAt)
+                        .ToListAsync();
 
-            result.AddRange(nonOrgRelations.Select(MapNonOrgStudentToDto));
+                    // 将非组织学生转换为StudentOrganizationDto
+                    foreach (NonOrganizationStudent student in allNonOrgStudents)
+                    {
+                        result.Add(new StudentOrganizationDto
+                        {
+                            Id = student.Id,
+                            StudentId = 0,
+                            StudentUsername = student.RealName,
+                            StudentRealName = student.RealName,
+                            StudentPhoneNumber = student.PhoneNumber,
+                            OrganizationId = organizationId,
+                            OrganizationName = "",
+                            JoinedAt = student.CreatedAt,
+                            InvitationCode = "",
+                            IsActive = student.IsActive
+                        });
+                    }
+
+                    _logger.LogInformation("使用备用方案获取到 {Count} 个非组织学生", allNonOrgStudents.Count);
+                }
+                catch (Exception fallbackEx)
+                {
+                    _logger.LogError(fallbackEx, "备用查询方案也失败了。组织ID: {OrganizationId}", organizationId);
+                }
+            }
 
             // 按加入时间排序
             result = result.OrderByDescending(dto => dto.JoinedAt).ToList();

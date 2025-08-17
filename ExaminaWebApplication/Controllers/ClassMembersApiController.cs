@@ -52,11 +52,11 @@ public class ClassMembersApiController : ControllerBase
                 return NotFound(new { message = "班级不存在" });
             }
 
-            // 检查手机号是否已存在
-            List<NonOrganizationStudentDto> existingStudents = await _studentService.SearchStudentsByPhoneAsync(request.PhoneNumber, false);
-            if (existingStudents.Any())
+            // 检查手机号在当前班级中是否已存在
+            bool phoneExistsInClass = await CheckPhoneExistsInClassAsync(request.PhoneNumber, classId);
+            if (phoneExistsInClass)
             {
-                return BadRequest(new { message = "该手机号码已存在，请使用其他手机号码" });
+                return BadRequest(new { message = "该手机号码在当前班级中已存在，请使用其他手机号码" });
             }
 
             // 创建非组织学生记录
@@ -187,31 +187,45 @@ public class ClassMembersApiController : ControllerBase
             // 获取当前用户ID
             int operatorUserId = GetCurrentUserId();
 
-            // 检查是否已存在关联关系
-            bool relationExists = await _context.NonOrganizationStudentOrganizations
-                .AnyAsync(noso => noso.NonOrganizationStudentId == nonOrgStudentId &&
-                                 noso.OrganizationId == classId &&
-                                 noso.IsActive);
-
-            if (relationExists)
+            // 尝试创建关联关系（如果关联表存在）
+            int relationId = nonOrgStudentId; // 默认使用学生ID作为关系ID
+            try
             {
-                _logger.LogWarning("非组织学生已在班级中: {StudentId} -> {ClassId}", nonOrgStudentId, classId);
-                return null;
+                // 检查是否已存在关联关系
+                bool relationExists = await _context.NonOrganizationStudentOrganizations
+                    .AnyAsync(noso => noso.NonOrganizationStudentId == nonOrgStudentId &&
+                                     noso.OrganizationId == classId &&
+                                     noso.IsActive);
+
+                if (relationExists)
+                {
+                    _logger.LogWarning("非组织学生已在班级中: {StudentId} -> {ClassId}", nonOrgStudentId, classId);
+                    return null;
+                }
+
+                // 创建关联关系
+                NonOrganizationStudentOrganization relation = new NonOrganizationStudentOrganization
+                {
+                    NonOrganizationStudentId = nonOrgStudentId,
+                    OrganizationId = classId,
+                    JoinedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = operatorUserId
+                };
+
+                _context.NonOrganizationStudentOrganizations.Add(relation);
+                await _context.SaveChangesAsync();
+
+                relationId = relation.Id;
+                _logger.LogInformation("成功创建非组织学生关联关系: {StudentId} -> {ClassId}, 关系ID: {RelationId}",
+                    nonOrgStudentId, classId, relationId);
             }
-
-            // 创建关联关系
-            NonOrganizationStudentOrganization relation = new NonOrganizationStudentOrganization
+            catch (Exception ex)
             {
-                NonOrganizationStudentId = nonOrgStudentId,
-                OrganizationId = classId,
-                JoinedAt = DateTime.UtcNow,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = operatorUserId
-            };
-
-            _context.NonOrganizationStudentOrganizations.Add(relation);
-            await _context.SaveChangesAsync();
+                // 如果关联表不存在，记录警告但继续执行
+                _logger.LogWarning(ex, "创建非组织学生关联关系时出错，可能表尚未创建: {StudentId} -> {ClassId}", nonOrgStudentId, classId);
+            }
 
             _logger.LogInformation("非组织学生添加到班级成功: {StudentName}({PhoneNumber}) -> {ClassId}",
                 student.RealName, student.PhoneNumber, classId);
@@ -219,14 +233,14 @@ public class ClassMembersApiController : ControllerBase
             // 构造返回的DTO
             return new StudentOrganizationDto
             {
-                Id = relation.Id, // 使用关联关系ID
+                Id = relationId, // 使用关联关系ID或学生ID
                 StudentId = 0, // 非组织学生没有用户ID
                 StudentUsername = student.RealName, // 使用真实姓名作为用户名显示
                 StudentRealName = student.RealName,
                 StudentPhoneNumber = student.PhoneNumber,
                 OrganizationId = classId,
                 OrganizationName = "", // 可以后续获取
-                JoinedAt = relation.JoinedAt,
+                JoinedAt = DateTime.UtcNow,
                 InvitationCode = "", // 不使用邀请码
                 IsActive = student.IsActive
             };
@@ -239,6 +253,50 @@ public class ClassMembersApiController : ControllerBase
     }
 
 
+
+    /// <summary>
+    /// 检查手机号在指定班级中是否已存在
+    /// </summary>
+    private async Task<bool> CheckPhoneExistsInClassAsync(string phoneNumber, int classId)
+    {
+        try
+        {
+            // 检查注册用户学生
+            bool existsInRegisteredStudents = await _context.StudentOrganizations
+                .Include(so => so.Student)
+                .AnyAsync(so => so.OrganizationId == classId &&
+                               so.IsActive &&
+                               so.Student.PhoneNumber == phoneNumber);
+
+            if (existsInRegisteredStudents)
+            {
+                return true;
+            }
+
+            // 检查非组织学生（如果关联表存在）
+            try
+            {
+                bool existsInNonOrgStudents = await _context.NonOrganizationStudentOrganizations
+                    .Include(noso => noso.NonOrganizationStudent)
+                    .AnyAsync(noso => noso.OrganizationId == classId &&
+                                     noso.IsActive &&
+                                     noso.NonOrganizationStudent.PhoneNumber == phoneNumber);
+
+                return existsInNonOrgStudents;
+            }
+            catch (Exception ex)
+            {
+                // 如果关联表不存在，记录警告但不影响主流程
+                _logger.LogWarning(ex, "检查非组织学生关联表时出错，可能表尚未创建: {PhoneNumber}, 班级: {ClassId}", phoneNumber, classId);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查手机号在班级中是否存在时出错: {PhoneNumber}, 班级: {ClassId}", phoneNumber, classId);
+            return false;
+        }
+    }
 
     /// <summary>
     /// 获取当前用户ID
