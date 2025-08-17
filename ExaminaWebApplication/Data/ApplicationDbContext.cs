@@ -38,6 +38,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<StudentOrganization> StudentOrganizations { get; set; }
     public DbSet<TeacherOrganization> TeacherOrganizations { get; set; }
     public DbSet<NonOrganizationStudent> NonOrganizationStudents { get; set; }
+    public DbSet<NonOrganizationStudentOrganization> NonOrganizationStudentOrganizations { get; set; }
     public DbSet<PreConfiguredUser> PreConfiguredUsers { get; set; }
     public DbSet<OrganizationMember> OrganizationMembers { get; set; }
 
@@ -251,6 +252,39 @@ public class ApplicationDbContext : DbContext
             _ = entity.HasOne(e => e.Updater)
                   .WithMany()
                   .HasForeignKey(e => e.UpdatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置NonOrganizationStudentOrganization实体
+        _ = modelBuilder.Entity<NonOrganizationStudentOrganization>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 索引与属性
+            _ = entity.HasIndex(e => new { e.NonOrganizationStudentId, e.OrganizationId }).IsUnique();
+            _ = entity.HasIndex(e => e.NonOrganizationStudentId);
+            _ = entity.HasIndex(e => e.OrganizationId);
+            _ = entity.HasIndex(e => e.IsActive);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.Property(e => e.JoinedAt).IsRequired();
+            _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.Notes).HasMaxLength(500);
+
+            // 外键关系
+            _ = entity.HasOne(e => e.NonOrganizationStudent)
+                  .WithMany()
+                  .HasForeignKey(e => e.NonOrganizationStudentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Organization)
+                  .WithMany()
+                  .HasForeignKey(e => e.OrganizationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 

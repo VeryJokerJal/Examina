@@ -466,7 +466,10 @@ public class OrganizationService : IOrganizationService
         {
             _logger.LogInformation("开始获取组织 {OrganizationId} 的成员列表，包含非活跃成员: {IncludeInactive}", organizationId, includeInactive);
 
-            IQueryable<StudentOrganization> query = _context.StudentOrganizations
+            List<StudentOrganizationDto> result = new List<StudentOrganizationDto>();
+
+            // 1. 获取注册用户学生
+            IQueryable<StudentOrganization> userQuery = _context.StudentOrganizations
                 .Include(so => so.Student)
                 .Include(so => so.Organization)
                 .Include(so => so.InvitationCode)
@@ -474,18 +477,37 @@ public class OrganizationService : IOrganizationService
 
             if (!includeInactive)
             {
-                query = query.Where(so => so.IsActive);
+                userQuery = userQuery.Where(so => so.IsActive);
             }
 
-            List<StudentOrganization> userOrganizations = await query
+            List<StudentOrganization> userOrganizations = await userQuery
                 .OrderByDescending(so => so.JoinedAt)
                 .ToListAsync();
 
-            _logger.LogInformation("从数据库获取到 {Count} 个成员记录", userOrganizations.Count);
+            result.AddRange(userOrganizations.Select(MapToStudentOrganizationDto));
 
-            List<StudentOrganizationDto> result = userOrganizations.Select(MapToStudentOrganizationDto).ToList();
+            // 2. 获取非组织学生
+            IQueryable<NonOrganizationStudentOrganization> nonOrgQuery = _context.NonOrganizationStudentOrganizations
+                .Include(noso => noso.NonOrganizationStudent)
+                .Include(noso => noso.Organization)
+                .Where(noso => noso.OrganizationId == organizationId);
 
-            _logger.LogInformation("成功映射 {Count} 个成员DTO", result.Count);
+            if (!includeInactive)
+            {
+                nonOrgQuery = nonOrgQuery.Where(noso => noso.IsActive);
+            }
+
+            List<NonOrganizationStudentOrganization> nonOrgRelations = await nonOrgQuery
+                .OrderByDescending(noso => noso.JoinedAt)
+                .ToListAsync();
+
+            result.AddRange(nonOrgRelations.Select(MapNonOrgStudentToDto));
+
+            // 按加入时间排序
+            result = result.OrderByDescending(dto => dto.JoinedAt).ToList();
+
+            _logger.LogInformation("从数据库获取到 {UserCount} 个注册学生和 {NonOrgCount} 个非组织学生，总计 {TotalCount} 个成员",
+                userOrganizations.Count, nonOrgRelations.Count, result.Count);
 
             return result;
         }
@@ -777,6 +799,28 @@ public class OrganizationService : IOrganizationService
                 JoinedAt = studentOrganization.JoinedAt,
                 InvitationCode = studentOrganization.InvitationCode?.Code ?? "未知",
                 IsActive = studentOrganization.IsActive
+            };
+    }
+
+    /// <summary>
+    /// 将非组织学生组织关系实体映射为DTO
+    /// </summary>
+    private static StudentOrganizationDto MapNonOrgStudentToDto(NonOrganizationStudentOrganization relation)
+    {
+        return relation == null
+            ? throw new ArgumentNullException(nameof(relation))
+            : new StudentOrganizationDto
+            {
+                Id = relation.Id,
+                StudentId = 0, // 非组织学生没有用户ID
+                StudentUsername = relation.NonOrganizationStudent?.RealName ?? "未知",
+                StudentRealName = relation.NonOrganizationStudent?.RealName,
+                StudentPhoneNumber = relation.NonOrganizationStudent?.PhoneNumber,
+                OrganizationId = relation.OrganizationId,
+                OrganizationName = relation.Organization?.Name ?? "未知",
+                JoinedAt = relation.JoinedAt,
+                InvitationCode = "", // 非组织学生不使用邀请码
+                IsActive = relation.IsActive
             };
     }
 

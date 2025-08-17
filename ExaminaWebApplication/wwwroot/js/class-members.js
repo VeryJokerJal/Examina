@@ -65,7 +65,7 @@ function loadMembers(includeInactive = false) {
     showLoading('#membersContainer');
 
     $.ajax({
-        url: `/api/ClassManagementApi/${currentClassId}/members`,
+        url: `/api/ClassMembersApi/${currentClassId}/members`,
         method: 'GET',
         data: {
             includeInactive: includeInactive

@@ -1,9 +1,12 @@
+﻿using System.Security.Claims;
+using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Requests;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -17,15 +20,18 @@ public class ClassMembersApiController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
     private readonly INonOrganizationStudentService _studentService;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<ClassMembersApiController> _logger;
 
     public ClassMembersApiController(
         IOrganizationService organizationService,
         INonOrganizationStudentService studentService,
+        ApplicationDbContext context,
         ILogger<ClassMembersApiController> logger)
     {
         _organizationService = organizationService;
         _studentService = studentService;
+        _context = context;
         _logger = logger;
     }
 
@@ -47,14 +53,14 @@ public class ClassMembersApiController : ControllerBase
             }
 
             // 检查手机号是否已存在
-            var existingStudents = await _studentService.SearchStudentsByPhoneAsync(request.PhoneNumber, false);
+            List<NonOrganizationStudentDto> existingStudents = await _studentService.SearchStudentsByPhoneAsync(request.PhoneNumber, false);
             if (existingStudents.Any())
             {
                 return BadRequest(new { message = "该手机号码已存在，请使用其他手机号码" });
             }
 
             // 创建非组织学生记录
-            var studentDto = await _studentService.CreateStudentAsync(
+            NonOrganizationStudentDto? studentDto = await _studentService.CreateStudentAsync(
                 request.RealName,
                 request.PhoneNumber,
                 operatorUserId,
@@ -66,7 +72,7 @@ public class ClassMembersApiController : ControllerBase
             }
 
             // 将学生添加到班级
-            var result = await CreateStudentOrganizationAsync(studentDto.Id, classId);
+            StudentOrganizationDto? result = await CreateStudentOrganizationAsync(studentDto.Id, classId);
 
             if (result == null)
             {
@@ -97,7 +103,7 @@ public class ClassMembersApiController : ControllerBase
         try
         {
             int operatorUserId = GetCurrentUserId();
-            
+
             // 移除成员（软删除）
             bool success = await _organizationService.RemoveOrganizationMemberAsync(memberId, operatorUserId);
             if (!success)
@@ -105,9 +111,9 @@ public class ClassMembersApiController : ControllerBase
                 return NotFound(new { message = "成员不存在或移除失败" });
             }
 
-            _logger.LogInformation("班级成员移除成功: {MemberId}, 班级: {ClassId}, 操作者: {OperatorUserId}", 
+            _logger.LogInformation("班级成员移除成功: {MemberId}, 班级: {ClassId}, 操作者: {OperatorUserId}",
                 memberId, classId, operatorUserId);
-            
+
             return Ok(new { message = "成员移除成功" });
         }
         catch (Exception ex)
@@ -126,7 +132,7 @@ public class ClassMembersApiController : ControllerBase
         try
         {
             int operatorUserId = GetCurrentUserId();
-            
+
             // 恢复成员
             bool success = await _organizationService.RestoreOrganizationMemberAsync(memberId, operatorUserId);
             if (!success)
@@ -134,15 +140,33 @@ public class ClassMembersApiController : ControllerBase
                 return NotFound(new { message = "成员不存在或恢复失败" });
             }
 
-            _logger.LogInformation("班级成员恢复成功: {MemberId}, 班级: {ClassId}, 操作者: {OperatorUserId}", 
+            _logger.LogInformation("班级成员恢复成功: {MemberId}, 班级: {ClassId}, 操作者: {OperatorUserId}",
                 memberId, classId, operatorUserId);
-            
+
             return Ok(new { message = "成员恢复成功" });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "恢复班级成员失败: {MemberId}, 班级: {ClassId}", memberId, classId);
             return StatusCode(500, new { message = "恢复成员失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 获取班级成员列表
+    /// </summary>
+    [HttpGet("{classId}/members")]
+    public async Task<ActionResult<List<StudentOrganizationDto>>> GetClassMembers(int classId, [FromQuery] bool includeInactive = false)
+    {
+        try
+        {
+            List<StudentOrganizationDto> members = await _organizationService.GetOrganizationMembersAsync(classId, includeInactive);
+            return Ok(members);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取班级成员列表失败: {ClassId}", classId);
+            return StatusCode(500, new { message = "获取班级成员列表失败", error = ex.Message });
         }
     }
 
@@ -154,15 +178,40 @@ public class ClassMembersApiController : ControllerBase
         try
         {
             // 获取非组织学生信息
-            var student = await _studentService.GetStudentByIdAsync(nonOrgStudentId);
+            NonOrganizationStudentDto? student = await _studentService.GetStudentByIdAsync(nonOrgStudentId);
             if (student == null)
             {
                 return null;
             }
 
-            // 由于现有的StudentOrganization模型需要StudentId（用户ID），
-            // 而非组织学生没有用户账户，我们直接返回DTO
-            // 实际的关系通过NonOrganizationStudent记录来维护
+            // 获取当前用户ID
+            int operatorUserId = GetCurrentUserId();
+
+            // 检查是否已存在关联关系
+            bool relationExists = await _context.NonOrganizationStudentOrganizations
+                .AnyAsync(noso => noso.NonOrganizationStudentId == nonOrgStudentId &&
+                                 noso.OrganizationId == classId &&
+                                 noso.IsActive);
+
+            if (relationExists)
+            {
+                _logger.LogWarning("非组织学生已在班级中: {StudentId} -> {ClassId}", nonOrgStudentId, classId);
+                return null;
+            }
+
+            // 创建关联关系
+            NonOrganizationStudentOrganization relation = new NonOrganizationStudentOrganization
+            {
+                NonOrganizationStudentId = nonOrgStudentId,
+                OrganizationId = classId,
+                JoinedAt = DateTime.UtcNow,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = operatorUserId
+            };
+
+            _context.NonOrganizationStudentOrganizations.Add(relation);
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("非组织学生添加到班级成功: {StudentName}({PhoneNumber}) -> {ClassId}",
                 student.RealName, student.PhoneNumber, classId);
@@ -170,14 +219,14 @@ public class ClassMembersApiController : ControllerBase
             // 构造返回的DTO
             return new StudentOrganizationDto
             {
-                Id = nonOrgStudentId, // 使用非组织学生ID作为关系ID
+                Id = relation.Id, // 使用关联关系ID
                 StudentId = 0, // 非组织学生没有用户ID
                 StudentUsername = student.RealName, // 使用真实姓名作为用户名显示
                 StudentRealName = student.RealName,
                 StudentPhoneNumber = student.PhoneNumber,
                 OrganizationId = classId,
                 OrganizationName = "", // 可以后续获取
-                JoinedAt = DateTime.UtcNow,
+                JoinedAt = relation.JoinedAt,
                 InvitationCode = "", // 不使用邀请码
                 IsActive = student.IsActive
             };
