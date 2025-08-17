@@ -10,6 +10,9 @@ $(document).ready(function() {
 
 // 初始化用户管理功能
 function initializeUserManagement() {
+    // 确保角色过滤器默认为空（显示所有角色）
+    $('#roleFilter').val('');
+
     // 绑定创建用户表单提交事件
     $('#createUserForm').on('submit', function(e) {
         e.preventDefault();

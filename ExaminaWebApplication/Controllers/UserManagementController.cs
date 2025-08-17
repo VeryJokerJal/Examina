@@ -35,7 +35,8 @@ public class UserManagementController : Controller
             UserManagementViewModel viewModel = new UserManagementViewModel
             {
                 CurrentPage = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+                SelectedRole = null // 确保默认显示所有角色
             };
             
             // 获取用户列表
