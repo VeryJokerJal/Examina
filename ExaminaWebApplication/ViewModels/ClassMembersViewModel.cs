@@ -23,6 +23,11 @@ public class ClassMembersViewModel : ViewModelBase
     public List<StudentOrganizationDto> Members { get; set; } = new List<StudentOrganizationDto>();
 
     /// <summary>
+    /// 可添加的学生列表
+    /// </summary>
+    public List<UserDto> AvailableStudents { get; set; } = new List<UserDto>();
+
+    /// <summary>
     /// 当前页码
     /// </summary>
     public int CurrentPage { get; set; } = 1;
