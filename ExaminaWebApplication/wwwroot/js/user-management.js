@@ -199,30 +199,55 @@ function searchUsers() {
     const role = $('#roleFilter').val();
     const keyword = $('#searchKeyword').val().trim();
     const includeInactive = $('#includeInactive').is(':checked');
-    
+
     currentPage = 1; // 重置到第一页
-    
+
     showLoading('#usersContainer');
-    
-    $.ajax({
-        url: '/api/UserManagementApi',
-        method: 'GET',
-        data: {
-            role: role || null,
-            keyword: keyword || null,
-            includeInactive: includeInactive,
-            pageNumber: currentPage,
-            pageSize: pageSize
-        },
-        success: function(users) {
-            renderUserTable(users);
-            updateStatistics(users);
-        },
-        error: function(xhr) {
-            hideLoading('#usersContainer');
-            showErrorMessage('获取用户列表失败：' + getErrorMessage(xhr));
-        }
-    });
+
+    // 构建请求参数，只包含有效值
+    const requestData = {
+        includeInactive: includeInactive,
+        pageNumber: currentPage,
+        pageSize: pageSize
+    };
+
+    // 只有在明确选择角色时才添加role参数
+    if (role && role !== '') {
+        requestData.role = role;
+    }
+
+    // 如果有搜索关键词，使用搜索API
+    if (keyword) {
+        requestData.keyword = keyword;
+        $.ajax({
+            url: '/api/UserManagementApi/search',
+            method: 'GET',
+            data: requestData,
+            success: function(users) {
+                renderUserTable(users);
+                updateStatistics(users);
+            },
+            error: function(xhr) {
+                hideLoading('#usersContainer');
+                showErrorMessage('搜索用户失败：' + getErrorMessage(xhr));
+            }
+        });
+    } else {
+        // 没有关键词时使用普通的获取用户列表API
+        $.ajax({
+            url: '/api/UserManagementApi',
+            method: 'GET',
+            data: requestData,
+            success: function(users) {
+                renderUserTable(users);
+                updateStatistics(users);
+            },
+            error: function(xhr) {
+                hideLoading('#usersContainer');
+                showErrorMessage('获取用户列表失败：' + getErrorMessage(xhr));
+            }
+        });
+    }
 }
 
 // 重置搜索
@@ -301,13 +326,25 @@ function renderUserTable(users) {
                     </div>
                 </td>
                 <td>
-                    <div class="btn-group" role="group">
+                    <div class="user-actions-grid">
+                        <!-- 第一行：编辑和重置密码 -->
                         <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-primary" onclick="editUser(${user.id})" title="编辑">
                             <i class="bi bi-pencil"></i>
                         </button>
                         <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="resetPassword(${user.id})" title="重置密码">
                             <i class="bi bi-key"></i>
                         </button>
+
+                        <!-- 第二行：组织成员身份切换和激活/停用 -->
+                        ${user.isOrganizationMember ? `
+                            <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-warning" onclick="toggleOrganizationMembership(${user.id})" title="移出组织并转为非组织成员">
+                                <i class="bi bi-building-dash"></i>
+                            </button>
+                        ` : `
+                            <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="toggleOrganizationMembership(${user.id})" title="加入非组织成员名单">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                        `}
                         ${user.isActive ? `
                             <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-danger" onclick="deactivateUser(${user.id})" title="停用">
                                 <i class="bi bi-person-x"></i>
