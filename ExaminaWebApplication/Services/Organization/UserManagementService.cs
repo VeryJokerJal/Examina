@@ -459,16 +459,26 @@ public class UserManagementService : IUserManagementService
 
             if (isCurrentlyMember)
             {
-                // 移出组织：将用户从所有组织中移除
+                // 移出组织：将用户从所有组织中移除，并添加到非组织成员名单
                 await RemoveUserFromAllOrganizationsAsync(userId);
-                _logger.LogInformation("用户已从所有组织中移除: {UserId}, 操作者: {OperatorUserId}", userId, operatorUserId);
-                return (true, "用户已从所有组织中移除");
+                await AddUserToNonOrganizationMembersAsync(userId, operatorUserId);
+                _logger.LogInformation("用户已从所有组织中移除并转为非组织成员: {UserId}, 操作者: {OperatorUserId}", userId, operatorUserId);
+                return (true, "用户已从所有组织中移除并转为非组织成员");
             }
             else
             {
-                // 加入组织：这里暂时不实现自动加入逻辑，需要管理员手动通过组织管理界面添加
-                _logger.LogInformation("用户当前不是组织成员，需要通过组织管理界面手动添加: {UserId}", userId);
-                return (false, "该用户当前不是组织成员，请通过组织管理界面手动添加用户到具体组织");
+                // 加入非组织成员名单：将用户添加到OrganizationMember表中，OrganizationId为null
+                bool addResult = await AddUserToNonOrganizationMembersAsync(userId, operatorUserId);
+                if (addResult)
+                {
+                    _logger.LogInformation("用户已添加到非组织成员名单: {UserId}, 操作者: {OperatorUserId}", userId, operatorUserId);
+                    return (true, "用户已添加到非组织成员名单");
+                }
+                else
+                {
+                    _logger.LogWarning("用户已在非组织成员名单中: {UserId}", userId);
+                    return (true, "用户已在非组织成员名单中");
+                }
             }
         }
         catch (Exception ex)
@@ -504,5 +514,72 @@ public class UserManagementService : IUserManagementService
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// 将用户添加到非组织成员名单
+    /// </summary>
+    private async Task<bool> AddUserToNonOrganizationMembersAsync(int userId, int operatorUserId)
+    {
+        try
+        {
+            // 获取用户信息
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("用户不存在，无法添加到非组织成员名单: {UserId}", userId);
+                return false;
+            }
+
+            // 检查用户是否已在OrganizationMember表中
+            OrganizationMember? existingMember = await _context.OrganizationMembers
+                .FirstOrDefaultAsync(om => om.UserId == userId && om.IsActive);
+
+            if (existingMember != null)
+            {
+                // 如果已存在，确保OrganizationId为null（非组织成员状态）
+                if (existingMember.OrganizationId == null)
+                {
+                    _logger.LogInformation("用户已在非组织成员名单中: {UserId}", userId);
+                    return false; // 已存在，不需要重复添加
+                }
+                else
+                {
+                    // 将现有记录转为非组织成员
+                    existingMember.OrganizationId = null;
+                    existingMember.UpdatedAt = DateTime.UtcNow;
+                    existingMember.UpdatedBy = operatorUserId;
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("已将现有组织成员记录转为非组织成员: {UserId}", userId);
+                    return true;
+                }
+            }
+
+            // 创建新的非组织成员记录
+            OrganizationMember newMember = new OrganizationMember
+            {
+                Username = user.Username,
+                PhoneNumber = user.PhoneNumber,
+                RealName = user.RealName,
+                OrganizationId = null, // 非组织成员
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = operatorUserId,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = operatorUserId,
+                IsActive = true
+            };
+
+            _context.OrganizationMembers.Add(newMember);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("成功添加用户到非组织成员名单: {UserId}", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "添加用户到非组织成员名单失败: {UserId}", userId);
+            return false;
+        }
     }
 }

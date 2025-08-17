@@ -669,10 +669,10 @@ function getErrorMessage(xhr) {
 
 // 切换组织成员身份
 function toggleOrganizationMembership(userId, isJoining) {
-    const action = isJoining ? '加入组织' : '移出组织';
+    const action = isJoining ? '加入非组织成员名单' : '移出组织';
     const confirmMessage = isJoining
-        ? '确定要将此用户加入组织吗？'
-        : '确定要将此用户从所有组织中移除吗？';
+        ? '确定要将此用户加入非组织成员名单吗？'
+        : '确定要将此用户从所有组织中移除并转为非组织成员吗？';
 
     if (!confirm(confirmMessage)) {
         return;
@@ -693,11 +693,7 @@ function toggleOrganizationMembership(userId, isJoining) {
         },
         error: function(xhr) {
             const errorMessage = getErrorMessage(xhr);
-            if (xhr.status === 400 && errorMessage.includes('需要通过组织管理界面')) {
-                showErrorMessage('该用户当前不是组织成员，请通过组织管理界面手动添加用户到具体组织。');
-            } else {
-                showErrorMessage(`${action}失败：${errorMessage}`);
-            }
+            showErrorMessage(`${action}失败：${errorMessage}`);
         }
     });
 }
