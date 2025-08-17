@@ -80,6 +80,31 @@ public interface IOrganizationService
     Task<List<StudentOrganizationDto>> GetOrganizationMembersAsync(int organizationId, bool includeInactive = false);
 
     /// <summary>
+    /// 移除组织成员（软删除）
+    /// </summary>
+    /// <param name="membershipId">成员关系ID</param>
+    /// <param name="operatorUserId">操作者用户ID</param>
+    /// <returns>是否成功</returns>
+    Task<bool> RemoveOrganizationMemberAsync(int membershipId, int operatorUserId);
+
+    /// <summary>
+    /// 恢复组织成员
+    /// </summary>
+    /// <param name="membershipId">成员关系ID</param>
+    /// <param name="operatorUserId">操作者用户ID</param>
+    /// <returns>是否成功</returns>
+    Task<bool> RestoreOrganizationMemberAsync(int membershipId, int operatorUserId);
+
+    /// <summary>
+    /// 通过邀请码ID加入组织
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="organizationId">组织ID</param>
+    /// <param name="invitationCodeId">邀请码ID</param>
+    /// <returns>学生组织关系DTO</returns>
+    Task<StudentOrganizationDto?> JoinOrganizationAsync(int userId, int organizationId, int invitationCodeId);
+
+    /// <summary>
     /// 创建学校
     /// </summary>
     /// <param name="name">学校名称</param>

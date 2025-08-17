@@ -301,6 +301,139 @@ public class OrganizationService : IOrganizationService
     }
 
     /// <summary>
+    /// 移除组织成员（软删除）
+    /// </summary>
+    public async Task<bool> RemoveOrganizationMemberAsync(int membershipId, int operatorUserId)
+    {
+        try
+        {
+            StudentOrganization? membership = await _context.StudentOrganizations
+                .FirstOrDefaultAsync(so => so.Id == membershipId && so.IsActive);
+
+            if (membership == null)
+            {
+                _logger.LogWarning("成员关系不存在或已移除: {MembershipId}", membershipId);
+                return false;
+            }
+
+            membership.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("组织成员移除成功: {MembershipId}, 操作者: {OperatorUserId}",
+                membershipId, operatorUserId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "移除组织成员失败: {MembershipId}", membershipId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 恢复组织成员
+    /// </summary>
+    public async Task<bool> RestoreOrganizationMemberAsync(int membershipId, int operatorUserId)
+    {
+        try
+        {
+            StudentOrganization? membership = await _context.StudentOrganizations
+                .FirstOrDefaultAsync(so => so.Id == membershipId && !so.IsActive);
+
+            if (membership == null)
+            {
+                _logger.LogWarning("成员关系不存在或已激活: {MembershipId}", membershipId);
+                return false;
+            }
+
+            membership.IsActive = true;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("组织成员恢复成功: {MembershipId}, 操作者: {OperatorUserId}",
+                membershipId, operatorUserId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "恢复组织成员失败: {MembershipId}", membershipId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 通过邀请码ID加入组织
+    /// </summary>
+    public async Task<StudentOrganizationDto?> JoinOrganizationAsync(int userId, int organizationId, int invitationCodeId)
+    {
+        try
+        {
+            // 验证用户
+            User? user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+            if (user == null)
+            {
+                _logger.LogWarning("用户不存在或已停用: {UserId}", userId);
+                return null;
+            }
+
+            // 验证组织
+            Models.Organization.Organization? organization = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == organizationId && o.IsActive);
+            if (organization == null)
+            {
+                _logger.LogWarning("组织不存在或已停用: {OrganizationId}", organizationId);
+                return null;
+            }
+
+            // 验证邀请码
+            InvitationCode? invitationCode = await _context.InvitationCodes
+                .FirstOrDefaultAsync(ic => ic.Id == invitationCodeId && ic.IsActive);
+            if (invitationCode == null)
+            {
+                _logger.LogWarning("邀请码不存在或已停用: {InvitationCodeId}", invitationCodeId);
+                return null;
+            }
+
+            // 检查用户是否已在组织中
+            bool alreadyInOrganization = await _context.StudentOrganizations
+                .AnyAsync(so => so.StudentId == userId && so.OrganizationId == organizationId && so.IsActive);
+            if (alreadyInOrganization)
+            {
+                _logger.LogWarning("用户已在组织中: {UserId}, {OrganizationId}", userId, organizationId);
+                return null;
+            }
+
+            // 创建用户组织关系
+            StudentOrganization userOrganization = new()
+            {
+                StudentId = userId,
+                OrganizationId = organizationId,
+                JoinedAt = DateTime.UtcNow,
+                InvitationCodeId = invitationCodeId,
+                IsActive = true
+            };
+
+            _context.StudentOrganizations.Add(userOrganization);
+
+            // 增加邀请码使用次数
+            await _invitationCodeService.IncrementUsageCountAsync(invitationCodeId);
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("用户加入组织成功: {UserId} -> {OrganizationId}, 邀请码: {InvitationCodeId}",
+                userId, organizationId, invitationCodeId);
+
+            // 获取完整的用户组织关系信息
+            return await GetUserOrganizationDtoAsync(userOrganization.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "用户加入组织失败: {UserId} -> {OrganizationId}", userId, organizationId);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// 获取用户已加入的组织列表
     /// </summary>
     public async Task<List<StudentOrganizationDto>> GetUserOrganizationsAsync(int userId)

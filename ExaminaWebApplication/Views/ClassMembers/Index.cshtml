@@ -1,0 +1,251 @@
+@model ClassMembersViewModel
+@{
+    ViewData["Title"] = $"班级成员管理 - {Model.ClassInfo?.Name}";
+}
+
+<div class="container-fluid">
+    <!-- 页面标题和面包屑 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb glass-breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">首页</a></li>
+                    <li class="breadcrumb-item"><a href="/ClassManagement">班级管理</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">班级成员管理</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="glass-title">
+                        <i class="bi bi-people me-2"></i>班级成员管理
+                    </h1>
+                    <p class="glass-subtitle">管理 @Model.ClassInfo?.Name 的学生成员</p>
+                </div>
+                <div>
+                    <button type="button" class="glass-btn glass-btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                        <i class="bi bi-person-plus me-2"></i>添加成员
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 班级信息卡片 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="glass-info-item">
+                                <div class="glass-info-label">班级名称</div>
+                                <div class="glass-info-value">@Model.ClassInfo?.Name</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-info-item">
+                                <div class="glass-info-label">所属学校</div>
+                                <div class="glass-info-value">@Model.ClassInfo?.ParentOrganizationName</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-info-item">
+                                <div class="glass-info-label">创建时间</div>
+                                <div class="glass-info-value">@Model.ClassInfo?.CreatedAt.ToString("yyyy-MM-dd")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-info-item">
+                                <div class="glass-info-label">成员数量</div>
+                                <div class="glass-info-value">
+                                    <span class="badge glass-badge-primary" id="memberCount">@Model.Members.Count</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索和筛选 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="glass-search-box">
+                                <i class="bi bi-search"></i>
+                                <input type="text" class="glass-form-control" id="searchKeyword" placeholder="搜索学生姓名、用户名或邮箱...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-form-check">
+                                <input class="glass-form-check-input" type="checkbox" id="includeInactive">
+                                <label class="glass-form-check-label" for="includeInactive">
+                                    包含已移除成员
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="glass-btn glass-btn-outline-primary w-100" onclick="searchMembers()">
+                                <i class="bi bi-search me-2"></i>搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成员列表 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-body">
+                    <div id="membersContainer">
+                        <!-- 成员列表将通过JavaScript动态加载 -->
+                        <div class="table-responsive">
+                            <table class="table glass-table">
+                                <thead>
+                                    <tr>
+                                        <th>学生信息</th>
+                                        <th>联系方式</th>
+                                        <th>加入时间</th>
+                                        <th>邀请码</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var member in Model.Members)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="glass-avatar glass-avatar-sm me-3">
+                                                        <i class="bi bi-person"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium">@member.StudentUsername</div>
+                                                        @if (!string.IsNullOrEmpty(member.StudentRealName))
+                                                        {
+                                                            <small class="text-muted">@member.StudentRealName</small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    @if (!string.IsNullOrEmpty(member.StudentPhoneNumber))
+                                                    {
+                                                        <small class="text-muted font-monospace">@member.StudentPhoneNumber</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <small>@member.JoinedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(member.InvitationCode))
+                                                {
+                                                    <span class="font-monospace text-muted">@member.InvitationCode</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge @(member.IsActive ? "glass-badge-success" : "glass-badge-danger")">
+                                                    @(member.IsActive ? "正常" : "已移除")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="glass-btn-group">
+                                                    @if (member.IsActive)
+                                                    {
+                                                        <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-danger" onclick="removeMember(@member.Id)" title="移除成员">
+                                                            <i class="bi bi-person-dash"></i>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-success" onclick="restoreMember(@member.Id)" title="恢复成员">
+                                                            <i class="bi bi-person-check"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加成员模态框 -->
+<div class="modal fade glass-modal" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header glass-modal-header">
+                <h5 class="modal-title" id="addMemberModalLabel">
+                    <i class="bi bi-person-plus me-2"></i>添加班级成员
+                </h5>
+                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <form id="addMemberForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="studentSelect" class="glass-form-label">选择学生 <span class="text-danger">*</span></label>
+                        <select class="glass-form-control" id="studentSelect" name="StudentId" required>
+                            <option value="">请选择学生</option>
+                            @foreach (var student in Model.AvailableStudents)
+                            {
+                                <option value="@student.Id">@student.Username (@student.RealName)</option>
+                            }
+                        </select>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="invitationCodeSelect" class="glass-form-label">邀请码</label>
+                        <select class="glass-form-control" id="invitationCodeSelect" name="InvitationCodeId">
+                            <option value="">选择邀请码（可选）</option>
+                            <!-- 邀请码选项将通过JavaScript动态加载 -->
+                        </select>
+                        <small class="text-muted">如果不选择邀请码，系统将使用默认邀请码</small>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="submit" class="glass-btn glass-btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>添加
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/class-members.js"></script>
+    <script>
+        // 初始化页面数据
+        window.classId = @Model.ClassId;
+        window.membersData = @Html.Raw(Json.Serialize(Model.Members));
+    </script>
+}

@@ -1,4 +1,4 @@
-// 非组织学生管理JavaScript功能
+﻿// 非组织学生管理JavaScript功能
 
 let currentPage = 1;
 let pageSize = 50;
@@ -139,7 +139,7 @@ function renderStudentTable(students) {
     }
 
     let html = `
-        <div class="table-responsive">
+        <div>
             <table class="table glass-table">
                 <thead>
                     <tr>
