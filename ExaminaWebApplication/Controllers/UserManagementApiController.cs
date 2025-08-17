@@ -35,6 +35,20 @@ public class UserManagementApiController : ControllerBase
     {
         try
         {
+            // 验证模型
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                _logger.LogWarning("创建用户请求模型验证失败: {Errors}", System.Text.Json.JsonSerializer.Serialize(errors));
+                return BadRequest(new { message = "请求数据验证失败", errors });
+            }
+
             int creatorUserId = GetCurrentUserId();
             UserDto? user = null;
 

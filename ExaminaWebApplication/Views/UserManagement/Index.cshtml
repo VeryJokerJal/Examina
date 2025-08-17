@@ -408,3 +408,22 @@
     </script>
     <script src="~/js/user-management.js" asp-append-version="true"></script>
 }
+
+<style>
+    /* 隐藏重复的提示信息 */
+    /* 导航栏中的提示元素 */
+    header nav div div:first-child {
+        display: none !important;
+    }
+
+    /* 主内容区域中的第一个提示元素 */
+    .container > main > div:first-child > div:first-child {
+        display: none !important;
+    }
+
+    /* 更精确的选择器 - 如果上面的不够精确 */
+    body > header > nav > div > div:first-child,
+    body > div.container > main > div:first-child > div:first-child {
+        display: none !important;
+    }
+</style>
