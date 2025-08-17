@@ -41,7 +41,6 @@ function initializeClassMembers() {
 
     // 绑定添加成员模态框显示事件
     $('#addMemberModal').on('show.bs.modal', function() {
-        loadInvitationCodes();
         resetAddMemberForm();
     });
 
@@ -189,30 +188,7 @@ function searchMembers() {
     }
 }
 
-// 加载邀请码列表
-function loadInvitationCodes() {
-    $.ajax({
-        url: `/api/ClassManagementApi/${currentClassId}/invitation-codes`,
-        method: 'GET',
-        data: {
-            includeInactive: false
-        },
-        success: function(invitationCodes) {
-            const select = $('#invitationCodeSelect');
-            select.empty();
-            select.append('<option value="">选择邀请码（可选）</option>');
 
-            invitationCodes.forEach(code => {
-                if (code.isActive) {
-                    select.append(`<option value="${code.id}">${code.code}</option>`);
-                }
-            });
-        },
-        error: function(xhr) {
-            console.error('加载邀请码失败：', getErrorMessage(xhr));
-        }
-    });
-}
 
 // 添加班级成员
 function addMember() {
@@ -220,8 +196,7 @@ function addMember() {
     const formData = {
         realName: $('#studentRealName').val().trim(),
         phoneNumber: $('#studentPhoneNumber').val().trim(),
-        notes: $('#studentNotes').val().trim() || null,
-        invitationCodeId: $('#invitationCodeSelect').val() ? parseInt($('#invitationCodeSelect').val()) : null
+        notes: $('#studentNotes').val().trim() || null
     };
 
     // 验证表单

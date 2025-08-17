@@ -16,18 +16,15 @@ namespace ExaminaWebApplication.Controllers;
 public class ClassMembersApiController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
-    private readonly IInvitationCodeService _invitationCodeService;
     private readonly INonOrganizationStudentService _studentService;
     private readonly ILogger<ClassMembersApiController> _logger;
 
     public ClassMembersApiController(
         IOrganizationService organizationService,
-        IInvitationCodeService invitationCodeService,
         INonOrganizationStudentService studentService,
         ILogger<ClassMembersApiController> logger)
     {
         _organizationService = organizationService;
-        _invitationCodeService = invitationCodeService;
         _studentService = studentService;
         _logger = logger;
     }
@@ -68,11 +65,8 @@ public class ClassMembersApiController : ControllerBase
                 return BadRequest(new { message = "创建学生记录失败" });
             }
 
-            // 如果没有指定邀请码，使用班级的默认邀请码
-            int invitationCodeId = request.InvitationCodeId ?? await GetDefaultInvitationCodeId(classId);
-
-            // 将学生添加到班级（这里需要创建StudentOrganization记录）
-            var result = await CreateStudentOrganizationAsync(studentDto.Id, classId, invitationCodeId);
+            // 将学生添加到班级
+            var result = await CreateStudentOrganizationAsync(studentDto.Id, classId);
 
             if (result == null)
             {
@@ -181,7 +175,7 @@ public class ClassMembersApiController : ControllerBase
     /// <summary>
     /// 创建学生组织关系
     /// </summary>
-    private async Task<StudentOrganizationDto?> CreateStudentOrganizationAsync(int nonOrgStudentId, int classId, int invitationCodeId)
+    private async Task<StudentOrganizationDto?> CreateStudentOrganizationAsync(int nonOrgStudentId, int classId)
     {
         try
         {
@@ -192,12 +186,8 @@ public class ClassMembersApiController : ControllerBase
                 return null;
             }
 
-            // 增加邀请码使用次数
-            await _invitationCodeService.IncrementUsageCountAsync(invitationCodeId);
-
             // 由于现有的StudentOrganization模型需要StudentId（用户ID），
-            // 而非组织学生没有用户账户，我们需要创建一个虚拟的关系记录
-            // 这里我们直接返回DTO，不创建StudentOrganization记录
+            // 而非组织学生没有用户账户，我们直接返回DTO
             // 实际的关系通过NonOrganizationStudent记录来维护
 
             _logger.LogInformation("非组织学生添加到班级成功: {StudentName}({PhoneNumber}) -> {ClassId}",
@@ -214,7 +204,7 @@ public class ClassMembersApiController : ControllerBase
                 OrganizationId = classId,
                 OrganizationName = "", // 可以后续获取
                 JoinedAt = DateTime.UtcNow,
-                InvitationCode = "", // 可以后续获取
+                InvitationCode = "", // 不使用邀请码
                 IsActive = student.IsActive
             };
         }

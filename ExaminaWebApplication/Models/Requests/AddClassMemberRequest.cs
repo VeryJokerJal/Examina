@@ -26,9 +26,4 @@ public class AddClassMemberRequest
     /// </summary>
     [StringLength(500, ErrorMessage = "备注信息长度不能超过500个字符")]
     public string? Notes { get; set; }
-
-    /// <summary>
-    /// 邀请码ID（可选，如果不指定则使用默认邀请码）
-    /// </summary>
-    public int? InvitationCodeId { get; set; }
 }
