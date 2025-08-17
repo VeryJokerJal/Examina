@@ -72,7 +72,7 @@ function resetCreateUserForm() {
     $('#createUserForm')[0].reset();
 
     // 清除错误状态
-    clearFormErrors($('#createUserForm'));
+    clearFieldErrors($('#createUserForm'));
 
     // 隐藏角色特定字段
     $('#schoolSelection').hide();
