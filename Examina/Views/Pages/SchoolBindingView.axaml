@@ -3,25 +3,22 @@
     <ScrollViewer>
         <StackPanel MaxWidth="1000" Margin="24" Spacing="24">
 
-            <!--  调试信息：静态内容测试  -->
-            <Border Padding="20" Background="Red" CornerRadius="8">
-                <TextBlock FontFamily="Microsoft YaHei" FontSize="24" FontWeight="Bold" Foreground="White" Text="SchoolBindingView 已加载 - 调试信息" />
-            </Border>
-
             <!--  页面标题  -->
-            <TextBlock FontFamily="Microsoft YaHei" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding PageTitle}" />
+            <TextBlock FontFamily="Microsoft YaHei" FontSize="28" FontWeight="Bold" Text="{Binding PageTitle, FallbackValue='加入学校'}" />
 
-            <!--  当前绑定状态（简化版）  -->
-            <Border Padding="20" Background="LightGreen" CornerRadius="8">
+            <!--  当前绑定状态  -->
+            <Border Padding="20" Background="#E8F5E8" CornerRadius="8" BorderBrush="#4CAF50" BorderThickness="1">
                 <StackPanel Spacing="12">
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="SemiBold" Text="当前绑定学校" />
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Text="{Binding CurrentSchool, FallbackValue='未绑定学校'}" />
-                    <Button Padding="16,8" HorizontalAlignment="Left" Content="解绑学校" FontFamily="Microsoft YaHei" />
+                    <Button Padding="16,8" HorizontalAlignment="Left" Content="解绑学校" FontFamily="Microsoft YaHei"
+                            Command="{Binding UnbindSchoolCommand}"
+                            IsEnabled="{Binding !IsProcessing}" />
                 </StackPanel>
             </Border>
 
-            <!--  加入学校表单（简化版）  -->
-            <Border Padding="20" Background="LightYellow" CornerRadius="8">
+            <!--  加入学校表单  -->
+            <Border Padding="20" Background="#FFF8E1" CornerRadius="8" BorderBrush="#FF9800" BorderThickness="1">
                 <StackPanel Spacing="16">
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="18" FontWeight="SemiBold" Text="加入学校" />
 
@@ -32,16 +29,25 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Button Padding="16,8" Content="加入学校" FontFamily="Microsoft YaHei" />
-                        <TextBlock Text="⟳" FontSize="16" />
+                        <Button Padding="16,8" Content="加入学校" FontFamily="Microsoft YaHei"
+                                Command="{Binding JoinOrganizationCommand}"
+                                IsEnabled="{Binding !IsProcessing}" />
+                        <Border Width="24" Height="24" IsVisible="{Binding IsProcessing}">
+                            <TextBlock Text="⟳" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
                     </StackPanel>
 
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Text="{Binding OrganizationName, FallbackValue='组织名称'}" />
+
+                    <!-- 状态消息 -->
+                    <TextBlock FontFamily="Microsoft YaHei" FontSize="14"
+                               Text="{Binding StatusMessage, FallbackValue=''}"
+                               TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
-            <!--  已加入学校状态（简化版）  -->
-            <Border Padding="20" Background="LightCyan" CornerRadius="8">
+            <!--  已加入学校状态  -->
+            <Border Padding="20" Background="#E3F2FD" CornerRadius="8" BorderBrush="#2196F3" BorderThickness="1">
                 <StackPanel Spacing="16">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="✓" Foreground="Green" FontSize="24" />
@@ -55,7 +61,9 @@
 
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="Green" Text="您已成功加入学校，现在可以使用所有功能！" />
 
-                    <Button Padding="16,8" Content="退出学校" FontFamily="Microsoft YaHei" />
+                    <Button Padding="16,8" Content="退出学校" FontFamily="Microsoft YaHei"
+                            Command="{Binding UnbindSchoolCommand}"
+                            IsEnabled="{Binding !IsProcessing}" />
                 </StackPanel>
             </Border>
 

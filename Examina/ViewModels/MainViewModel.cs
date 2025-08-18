@@ -310,10 +310,6 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         System.Diagnostics.Debug.WriteLine("MainViewModel.InitializeAsync called");
         await LoadCurrentUserAsync();
-
-        // 测试：强制导航到SchoolBindingView
-        System.Diagnostics.Debug.WriteLine("MainViewModel: 测试导航到SchoolBindingView");
-        TestNavigateToSchoolBinding();
     }
 
     /// <summary>
