@@ -1,4 +1,4 @@
-using Examina.Models;
+﻿using Examina.Models;
 
 namespace Examina.Services;
 
@@ -15,37 +15,37 @@ public interface IDeviceService
     /// </summary>
     /// <returns>设备序列号格式的指纹，如：A1B2-C3D4-E5F6</returns>
     string GenerateDeviceFingerprint();
-    
+
     /// <summary>
     /// 获取设备信息
     /// </summary>
     /// <returns>设备绑定请求信息</returns>
     DeviceBindRequest GetDeviceInfo();
-    
+
     /// <summary>
     /// 获取设备名称
     /// </summary>
     /// <returns>设备名称</returns>
     string GetDeviceName();
-    
+
     /// <summary>
     /// 获取设备类型
     /// </summary>
     /// <returns>设备类型</returns>
     string GetDeviceType();
-    
+
     /// <summary>
     /// 获取操作系统信息
     /// </summary>
     /// <returns>操作系统信息</returns>
     string GetOperatingSystem();
-    
+
     /// <summary>
     /// 获取应用程序信息（模拟浏览器信息）
     /// </summary>
     /// <returns>应用程序信息</returns>
     string GetApplicationInfo();
-    
+
     /// <summary>
     /// 保存设备序列号到本地
     /// </summary>

@@ -1,6 +1,4 @@
-using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Prism.Commands;
 using ReactiveUI.Fody.Helpers;
@@ -180,7 +178,7 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     private void SelectStatisticType(object? parameter)
     {
-        if (parameter is string typeString && Enum.TryParse<StatisticType>(typeString, out var type))
+        if (parameter is string typeString && Enum.TryParse<StatisticType>(typeString, out StatisticType type))
         {
             SelectedStatisticType = type;
             FilterRecordsByType();
@@ -194,9 +192,9 @@ public class OverviewViewModel : ViewModelBase
     {
         DisplayedRecords.Clear();
 
-        var filteredRecords = _allRecords.Where(r => r.Type == SelectedStatisticType).ToList();
+        List<TrainingRecord> filteredRecords = _allRecords.Where(r => r.Type == SelectedStatisticType).ToList();
 
-        foreach (var record in filteredRecords)
+        foreach (TrainingRecord? record in filteredRecords)
         {
             DisplayedRecords.Add(record);
         }

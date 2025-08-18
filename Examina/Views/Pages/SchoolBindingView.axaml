@@ -28,7 +28,32 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Button Padding="16,8" Classes="accent" Command="{Binding JoinOrganizationCommand}" Content="加入学校" FontFamily="Microsoft YaHei" IsEnabled="{Binding !IsProcessing}" />
-                        <ProgressRing Width="24" Height="24" IsVisible="{Binding IsProcessing}" />
+                        <Border Width="24" Height="24" IsVisible="{Binding IsProcessing}">
+                            <TextBlock Text="⟳" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform />
+                                </TextBlock.RenderTransform>
+                                <TextBlock.Styles>
+                                    <Style Selector="TextBlock">
+                                        <Style.Animations>
+                                            <Animation Duration="0:0:1" IterationCount="Infinite">
+                                                <KeyFrame Cue="0%">
+                                                    <Setter Property="RenderTransform">
+                                                        <RotateTransform Angle="0" />
+                                                    </Setter>
+                                                </KeyFrame>
+                                                <KeyFrame Cue="100%">
+                                                    <Setter Property="RenderTransform">
+                                                        <RotateTransform Angle="360" />
+                                                    </Setter>
+                                                </KeyFrame>
+                                            </Animation>
+                                        </Style.Animations>
+                                    </Style>
+                                </TextBlock.Styles>
+                            </TextBlock>
+                        </Border>
                     </StackPanel>
 
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" IsVisible="{Binding OrganizationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding OrganizationName}" />

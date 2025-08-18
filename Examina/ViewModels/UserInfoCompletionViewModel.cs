@@ -1,6 +1,4 @@
-using System;
-using System.Threading.Tasks;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
 using Examina.Services;
@@ -127,7 +125,10 @@ public class UserInfoCompletionViewModel : ViewModelBase
     /// </summary>
     private async Task CompleteInfoAsync()
     {
-        if (IsProcessing) return;
+        if (IsProcessing)
+        {
+            return;
+        }
 
         if (_authenticationService == null)
         {
@@ -277,10 +278,7 @@ public class UserInfoCompletionViewModel : ViewModelBase
             mainWindow.Show();
 
             // 关闭当前窗口
-            if (desktop.MainWindow != null)
-            {
-                desktop.MainWindow.Close();
-            }
+            desktop.MainWindow?.Close();
 
             desktop.MainWindow = mainWindow;
         }

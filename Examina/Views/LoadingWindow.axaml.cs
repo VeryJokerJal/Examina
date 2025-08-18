@@ -1,5 +1,4 @@
-using System.Threading.Tasks;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Examina.ViewModels;
 
 namespace Examina.Views;

@@ -1,7 +1,4 @@
-using System;
-using System.Reactive.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Reactive.Linq;
 using System.Windows.Input;
 using Examina.Models;
 using Examina.Services;
@@ -110,29 +107,29 @@ public class ChangePasswordViewModel : ViewModelBase
         CancelCommand = new DelegateCommand(Cancel);
 
         // 监听属性变化进行验证
-        this.WhenAnyValue(x => x.CurrentPassword)
-            .Subscribe(_ => 
+        _ = this.WhenAnyValue(x => x.CurrentPassword)
+            .Subscribe(_ =>
             {
                 ValidateCurrentPassword();
                 RaiseCanExecuteChanged();
             });
 
-        this.WhenAnyValue(x => x.NewPassword)
-            .Subscribe(_ => 
+        _ = this.WhenAnyValue(x => x.NewPassword)
+            .Subscribe(_ =>
             {
                 ValidateNewPassword();
                 ValidateConfirmPassword(); // 重新验证确认密码
                 RaiseCanExecuteChanged();
             });
 
-        this.WhenAnyValue(x => x.ConfirmPassword)
-            .Subscribe(_ => 
+        _ = this.WhenAnyValue(x => x.ConfirmPassword)
+            .Subscribe(_ =>
             {
                 ValidateConfirmPassword();
                 RaiseCanExecuteChanged();
             });
 
-        this.WhenAnyValue(x => x.IsSaving)
+        _ = this.WhenAnyValue(x => x.IsSaving)
             .Subscribe(_ => RaiseCanExecuteChanged());
     }
 
@@ -190,8 +187,8 @@ public class ChangePasswordViewModel : ViewModelBase
     /// </summary>
     private bool CanSavePassword()
     {
-        return !IsSaving && 
-               !HasValidationErrors && 
+        return !IsSaving &&
+               !HasValidationErrors &&
                !string.IsNullOrWhiteSpace(CurrentPassword) &&
                !string.IsNullOrWhiteSpace(NewPassword) &&
                !string.IsNullOrWhiteSpace(ConfirmPassword);
@@ -291,8 +288,8 @@ public class ChangePasswordViewModel : ViewModelBase
     /// </summary>
     private void UpdateValidationState()
     {
-        HasValidationErrors = !string.IsNullOrEmpty(CurrentPasswordError) || 
-                             !string.IsNullOrEmpty(NewPasswordError) || 
+        HasValidationErrors = !string.IsNullOrEmpty(CurrentPasswordError) ||
+                             !string.IsNullOrEmpty(NewPasswordError) ||
                              !string.IsNullOrEmpty(ConfirmPasswordError);
     }
 

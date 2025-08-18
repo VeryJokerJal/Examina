@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Examina.ViewModels;
 
 namespace Examina.Views;
@@ -9,7 +9,7 @@ public partial class LoginWindow : Window
     {
         InitializeComponent();
     }
-    
+
     public LoginWindow(LoginViewModel viewModel) : this()
     {
         DataContext = viewModel;

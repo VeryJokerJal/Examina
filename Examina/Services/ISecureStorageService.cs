@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
-
-namespace Examina.Services;
+﻿namespace Examina.Services;
 
 /// <summary>
 /// 安全存储服务接口

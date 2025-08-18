@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Examina.Services;
 
@@ -29,7 +24,7 @@ public class SecureStorageService : ISecureStorageService
         _encryptionKey = GetOrCreateEncryptionKey();
 
         // 确保目录存在
-        Directory.CreateDirectory(_storageDirectory);
+        _ = Directory.CreateDirectory(_storageDirectory);
     }
 
     public async Task<bool> SetAsync(string key, string value)
@@ -123,7 +118,7 @@ public class SecureStorageService : ISecureStorageService
         {
             byte[] encryptedData = await File.ReadAllBytesAsync(_storageFilePath);
             string decryptedJson = DecryptData(encryptedData);
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson) 
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson)
                    ?? [];
         }
         catch
@@ -215,7 +210,7 @@ public class SecureStorageService : ISecureStorageService
 
         try
         {
-            Directory.CreateDirectory(_storageDirectory);
+            _ = Directory.CreateDirectory(_storageDirectory);
             File.WriteAllBytes(keyFilePath, key);
         }
         catch (Exception ex)

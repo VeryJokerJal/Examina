@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Timers;
+﻿using System.Timers;
 using System.Windows.Input;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
@@ -380,7 +378,7 @@ public class LoginViewModel : ViewModelBase
     {
         // 如果用户之前有登录信息但现在显示登录页面，说明自动登录失败
         // 可以显示一个友好的提示信息
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             try
             {
@@ -391,7 +389,7 @@ public class LoginViewModel : ViewModelBase
                     ErrorMessage = "自动登录失败，请重新登录";
 
                     // 清除可能已过期的本地数据
-                    await _authenticationService.ClearLoginDataAsync();
+                    _ = await _authenticationService.ClearLoginDataAsync();
                 }
             }
             catch (Exception ex)

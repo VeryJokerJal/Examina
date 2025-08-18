@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Examina.Models;
+﻿using Examina.Models;
 
 namespace Examina.Services;
 

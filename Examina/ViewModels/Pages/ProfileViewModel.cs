@@ -1,8 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
+﻿using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -103,7 +99,7 @@ public class ProfileViewModel : ViewModelBase
     /// <summary>
     /// 用户名首字母（用于头像显示）
     /// </summary>
-    public string FirstLetter => string.IsNullOrEmpty(Username) ? "U" : Username.Substring(0, 1).ToUpper();
+    public string FirstLetter => string.IsNullOrEmpty(Username) ? "U" : Username[..1].ToUpper();
 
     #endregion
 
@@ -155,7 +151,7 @@ public class ProfileViewModel : ViewModelBase
         UploadAvatarCommand = new DelegateCommand(UploadAvatar);
 
         // 监听属性变化进行验证和命令状态更新
-        this.WhenAnyValue(x => x.Username)
+        _ = this.WhenAnyValue(x => x.Username)
             .Subscribe(_ =>
             {
                 ValidateUsername();
@@ -166,11 +162,11 @@ public class ProfileViewModel : ViewModelBase
 
 
         // 监听编辑状态变化
-        this.WhenAnyValue(x => x.IsEditing)
+        _ = this.WhenAnyValue(x => x.IsEditing)
             .Subscribe(_ => RaiseCanExecuteChanged());
 
         // 监听保存状态变化
-        this.WhenAnyValue(x => x.IsSaving)
+        _ = this.WhenAnyValue(x => x.IsSaving)
             .Subscribe(_ => RaiseCanExecuteChanged());
 
         LoadUserProfile();
@@ -333,7 +329,7 @@ public class ProfileViewModel : ViewModelBase
             bool dialogClosed = false;
 
             // 监听密码修改成功事件
-            changePasswordViewModel.WhenAnyValue(x => x.StatusMessage)
+            _ = changePasswordViewModel.WhenAnyValue(x => x.StatusMessage)
                 .Where(msg => msg == "密码修改成功")
                 .Subscribe(_ =>
                 {
@@ -346,7 +342,7 @@ public class ProfileViewModel : ViewModelBase
                 });
 
             // 监听取消事件
-            changePasswordViewModel.WhenAnyValue(x => x.IsCancelled)
+            _ = changePasswordViewModel.WhenAnyValue(x => x.IsCancelled)
                 .Where(cancelled => cancelled)
                 .Subscribe(_ =>
                 {

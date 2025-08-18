@@ -1,6 +1,4 @@
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
+﻿using System.Net.Http;
 using Examina.Models;
 using Examina.Models.Organization;
 
@@ -67,7 +65,7 @@ public class OrganizationService : IOrganizationService
             else
             {
                 string errorContent = await response.Content.ReadAsStringAsync();
-                
+
                 // 尝试解析错误响应
                 try
                 {
@@ -178,7 +176,7 @@ public class OrganizationService : IOrganizationService
         string? accessToken = await _authService.GetAccessTokenAsync();
         if (!string.IsNullOrEmpty(accessToken))
         {
-            _httpClient.DefaultRequestHeaders.Authorization = 
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         }
     }

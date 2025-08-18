@@ -1,10 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
 using System.Windows.Input;
+using Examina.Models.Organization;
+using Examina.Services;
 using Prism.Commands;
 using ReactiveUI.Fody.Helpers;
-using Examina.Services;
-using Examina.Models.Organization;
 
 namespace Examina.ViewModels.Pages;
 
@@ -331,18 +330,9 @@ public class SchoolBindingViewModel : ViewModelBase
     /// </summary>
     private void ShowUserGuidance(string errorMessage)
     {
-        if (errorMessage.Contains("完善个人信息"))
-        {
-            StatusMessage = errorMessage + "\n\n请点击底部的"个人信息"完善您的真实姓名和手机号码后再尝试加入学校。";
-        }
-        else if (errorMessage.Contains("邀请码"))
-        {
-            StatusMessage = errorMessage + "\n\n请向您的老师获取正确的7位班级邀请码。";
-        }
-        else
-        {
-            StatusMessage = errorMessage;
-        }
+        StatusMessage = errorMessage.Contains("完善个人信息")
+            ? errorMessage + "\n\n请点击底部的\"个人信息\"完善您的真实姓名和手机号码后再尝试加入学校。"
+            : errorMessage.Contains("邀请码") ? errorMessage + "\n\n请向您的老师获取正确的7位班级邀请码。" : errorMessage;
     }
 
     #endregion

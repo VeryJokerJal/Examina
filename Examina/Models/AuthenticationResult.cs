@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Examina.Models;
+﻿namespace Examina.Models;
 
 /// <summary>
 /// 认证结果模型

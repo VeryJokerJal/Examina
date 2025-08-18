@@ -1,4 +1,4 @@
-namespace Examina.Models.Organization;
+﻿namespace Examina.Models.Organization;
 
 /// <summary>
 /// 学生组织关系DTO

@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
@@ -26,18 +24,16 @@ public class StatisticTypeToDisplayNameConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is StatisticType statisticType)
-        {
-            return statisticType switch
+        return value is StatisticType statisticType
+            ? statisticType switch
             {
                 StatisticType.MockExam => "模拟考试",
                 StatisticType.ComprehensiveTraining => "综合实训",
                 StatisticType.SpecialPractice => "专项练习",
                 StatisticType.OnlineExam => "上机统考",
                 _ => "未知类型"
-            };
-        }
-        return "未知类型";
+            }
+            : "未知类型";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -57,7 +53,7 @@ public class StatisticTypeToBackgroundConverter : IValueConverter
     {
         if (value is StatisticType selectedType && parameter is string targetTypeString)
         {
-            if (Enum.TryParse<StatisticType>(targetTypeString, out var parsedTargetType))
+            if (Enum.TryParse<StatisticType>(targetTypeString, out StatisticType parsedTargetType))
             {
                 // 只有选中状态才显示背景色，未选中状态返回透明
                 if (selectedType == parsedTargetType)
@@ -73,7 +69,7 @@ public class StatisticTypeToBackgroundConverter : IValueConverter
                     };
 
                     if (!string.IsNullOrEmpty(selectedKey) &&
-                        Application.Current?.TryGetResource(selectedKey, null, out var brush) == true &&
+                        Application.Current?.TryGetResource(selectedKey, null, out object? brush) == true &&
                         brush is IBrush colorBrush)
                     {
                         return colorBrush;

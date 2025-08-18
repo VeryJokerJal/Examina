@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Avalonia.Controls.ApplicationLifetimes;
+﻿using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
 using Examina.Services;
 using ReactiveUI.Fody.Helpers;

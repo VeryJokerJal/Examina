@@ -1,7 +1,7 @@
-﻿using ReactiveUI.Fody.Helpers;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Prism.Commands;
+using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
 
@@ -59,7 +59,7 @@ public class PracticeViewModel : ViewModelBase
     private void InitializePracticeTypes()
     {
         PracticeTypes.Clear();
-        
+
         PracticeTypes.Add(new PracticeTypeItem
         {
             Id = "mock-exam",
@@ -93,7 +93,10 @@ public class PracticeViewModel : ViewModelBase
     /// </summary>
     private void StartPractice(PracticeTypeItem? practiceType)
     {
-        if (practiceType == null) return;
+        if (practiceType == null)
+        {
+            return;
+        }
 
         // TODO: 实现开始练习逻辑
         // 根据练习类型导航到相应的练习页面

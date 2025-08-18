@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Examina.Models;
 
 namespace Examina.Services;
@@ -320,7 +315,7 @@ public class AuthenticationService : IAuthenticationService
             System.Diagnostics.Debug.WriteLine($"响应内容: {responseContent}");
 
             // 如果收到重定向响应，手动处理重定向到HTTPS
-            if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)
+            if ((int)response.StatusCode is >= 300 and < 400)
             {
                 string? location = response.Headers.Location?.ToString();
                 System.Diagnostics.Debug.WriteLine($"收到重定向: {response.StatusCode} -> {location}");
@@ -571,7 +566,7 @@ public class AuthenticationService : IAuthenticationService
             {
                 try
                 {
-                    await SaveLoginDataAsync(loginResponse);
+                    _ = await SaveLoginDataAsync(loginResponse);
                 }
                 catch (Exception ex)
                 {
@@ -878,7 +873,7 @@ public class AuthenticationService : IAuthenticationService
             // 检查数据是否过期（保存时间超过30天则认为无效）
             if (DateTime.UtcNow.Subtract(loginData.SavedAt).TotalDays > 30)
             {
-                await ClearLoginDataAsync();
+                _ = await ClearLoginDataAsync();
                 return null;
             }
 
@@ -934,13 +929,13 @@ public class AuthenticationService : IAuthenticationService
                 if (refreshResult.IsSuccess && refreshResult.LoginResponse != null)
                 {
                     // 刷新成功，保存新的登录信息
-                    await SaveLoginDataAsync(refreshResult.LoginResponse);
+                    _ = await SaveLoginDataAsync(refreshResult.LoginResponse);
                     return SetAuthenticationState(refreshResult.LoginResponse);
                 }
                 else
                 {
                     // 刷新失败，清除本地数据
-                    await ClearLoginDataAsync();
+                    _ = await ClearLoginDataAsync();
                     return new AuthenticationResult
                     {
                         IsSuccess = false,
@@ -1010,7 +1005,7 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"自动认证失败: {ex.Message}");
-            await ClearLoginDataAsync();
+            _ = await ClearLoginDataAsync();
             return new AuthenticationResult
             {
                 IsSuccess = false,

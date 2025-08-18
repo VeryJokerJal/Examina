@@ -1,5 +1,4 @@
-using Examina.Models;
-using Examina.Models.Organization;
+﻿using Examina.Models.Organization;
 
 namespace Examina.Services;
 
