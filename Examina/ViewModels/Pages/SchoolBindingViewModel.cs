@@ -68,11 +68,6 @@ public class SchoolBindingViewModel : ViewModelBase
     /// </summary>
     public ICommand JoinOrganizationCommand { get; }
 
-    /// <summary>
-    /// 解绑学校命令
-    /// </summary>
-    public ICommand UnbindSchoolCommand { get; }
-
     #endregion
 
     #region 构造函数
@@ -87,7 +82,6 @@ public class SchoolBindingViewModel : ViewModelBase
         _authenticationService = authenticationService;
 
         JoinOrganizationCommand = new DelegateCommand(async () => await JoinOrganizationAsync(), CanJoinOrganization);
-        UnbindSchoolCommand = new DelegateCommand(async () => await UnbindSchoolAsync(), CanUnbindSchool);
 
         System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 开始加载当前学校绑定状态");
         _ = LoadCurrentSchoolBindingAsync();
@@ -224,46 +218,7 @@ public class SchoolBindingViewModel : ViewModelBase
         return !string.IsNullOrWhiteSpace(InvitationCode) && !IsSchoolBound && !IsProcessing;
     }
 
-    /// <summary>
-    /// 解绑学校
-    /// </summary>
-    private async Task UnbindSchoolAsync()
-    {
-        IsProcessing = true;
-        StatusMessage = "正在退出学校...";
 
-        try
-        {
-            // TODO: 实现学校退出逻辑（需要后端API支持）
-            // 目前只是模拟退出操作
-            await Task.Delay(1000); // 模拟网络请求
-
-            IsSchoolBound = false;
-            CurrentSchool = string.Empty;
-            OrganizationName = string.Empty;
-            StatusMessage = "已退出学校";
-
-            // 刷新用户权限状态
-            bool refreshSuccess = await RefreshUserPermissionsAsync();
-            if (!refreshSuccess)
-            {
-                StatusMessage += " 但权限状态更新失败，请重新登录以获取最新权限。";
-            }
-
-            System.Diagnostics.Debug.WriteLine("用户已退出学校");
-        }
-        catch (Exception ex)
-        {
-            string errorMessage = HandleNetworkError(ex);
-            StatusMessage = $"退出失败: {errorMessage}";
-
-            System.Diagnostics.Debug.WriteLine($"退出学校异常: {ex}");
-        }
-        finally
-        {
-            IsProcessing = false;
-        }
-    }
 
     /// <summary>
     /// 刷新用户权限状态
@@ -292,13 +247,7 @@ public class SchoolBindingViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 是否可以解绑学校
-    /// </summary>
-    private bool CanUnbindSchool()
-    {
-        return IsSchoolBound && !IsProcessing;
-    }
+
 
     /// <summary>
     /// 处理网络错误

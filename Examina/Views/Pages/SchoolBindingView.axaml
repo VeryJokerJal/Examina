@@ -8,22 +8,6 @@
                        Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
                        Text="{Binding PageTitle, FallbackValue='加入学校'}" />
 
-            <!--  当前绑定状态  -->
-            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    CornerRadius="8" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1">
-                <StackPanel Spacing="12">
-                    <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                               Text="当前绑定学校" />
-                    <TextBlock FontFamily="Microsoft YaHei" FontSize="14"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               Text="{Binding CurrentSchool, FallbackValue='未绑定学校'}" />
-                    <Button Padding="16,8" HorizontalAlignment="Left" Content="解绑学校" FontFamily="Microsoft YaHei"
-                            Command="{Binding UnbindSchoolCommand}"
-                            IsEnabled="{Binding !IsProcessing}" />
-                </StackPanel>
-            </Border>
-
             <!--  加入学校表单  -->
             <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="8" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1">
@@ -87,10 +71,6 @@
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="14"
                                Foreground="{DynamicResource SystemControlForegroundAccentBrush}"
                                Text="您已成功加入学校，现在可以使用所有功能！" />
-
-                    <Button Padding="16,8" Content="退出学校" FontFamily="Microsoft YaHei"
-                            Command="{Binding UnbindSchoolCommand}"
-                            IsEnabled="{Binding !IsProcessing}" />
                 </StackPanel>
             </Border>
 
