@@ -146,5 +146,8 @@
         <DataTemplate DataType="{x:Type vm:ComprehensiveTrainingListViewModel}">
             <views:ComprehensiveTrainingListView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MockExamListViewModel}">
+            <views:MockExamListView />
+        </DataTemplate>
     </Application.DataTemplates>
 </Application>

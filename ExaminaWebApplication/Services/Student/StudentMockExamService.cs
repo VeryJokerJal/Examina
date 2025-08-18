@@ -1,0 +1,519 @@
+using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models.Api.Student;
+using ExaminaWebApplication.Models.MockExam;
+using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ExaminaWebApplication.Services.Student;
+
+/// <summary>
+/// 学生端模拟考试服务实现
+/// </summary>
+public class StudentMockExamService : IStudentMockExamService
+{
+    private readonly ApplicationDbContext _context;
+    private readonly ILogger<StudentMockExamService> _logger;
+    private readonly Random _random = new();
+
+    /// <summary>
+    /// 统一的JSON序列化选项配置
+    /// </summary>
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    public StudentMockExamService(ApplicationDbContext context, ILogger<StudentMockExamService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// 创建模拟考试
+    /// </summary>
+    public async Task<StudentMockExamDto?> CreateMockExamAsync(CreateMockExamRequestDto request, int studentUserId)
+    {
+        try
+        {
+            // 验证学生用户存在且为学生角色
+            Models.User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
+
+            if (student == null)
+            {
+                _logger.LogWarning("用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
+                return null;
+            }
+
+            // 验证抽取规则的总分值是否匹配
+            int totalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
+            if (totalScoreFromRules != request.TotalScore)
+            {
+                _logger.LogWarning("抽取规则的总分值({TotalFromRules})与请求的总分值({RequestTotal})不匹配", 
+                    totalScoreFromRules, request.TotalScore);
+                return null;
+            }
+
+            // 从综合训练中抽取题目
+            List<ExtractedQuestionInfo> extractedQuestions = await ExtractQuestionsAsync(request.ExtractionRules);
+            if (extractedQuestions.Count == 0)
+            {
+                _logger.LogWarning("无法从综合训练中抽取到足够的题目");
+                return null;
+            }
+
+            // 如果需要随机排序
+            if (request.RandomizeQuestions)
+            {
+                extractedQuestions = extractedQuestions.OrderBy(x => _random.Next()).ToList();
+            }
+
+            // 重新设置排序顺序
+            for (int i = 0; i < extractedQuestions.Count; i++)
+            {
+                extractedQuestions[i].SortOrder = i + 1;
+            }
+
+            // 创建模拟考试实例
+            MockExam mockExam = new()
+            {
+                StudentId = studentUserId,
+                Name = request.Name,
+                Description = request.Description,
+                DurationMinutes = request.DurationMinutes,
+                TotalScore = request.TotalScore,
+                PassingScore = request.PassingScore,
+                RandomizeQuestions = request.RandomizeQuestions,
+                ExtractedQuestions = JsonSerializer.Serialize(extractedQuestions, JsonOptions),
+                Status = "Created",
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(7) // 7天后过期
+            };
+
+            _context.MockExams.Add(mockExam);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("成功创建模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 题目数量: {QuestionCount}", 
+                studentUserId, mockExam.Id, extractedQuestions.Count);
+
+            return MapToStudentMockExamDto(mockExam, extractedQuestions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "创建模拟考试失败，学生ID: {StudentId}", studentUserId);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 获取学生的模拟考试列表
+    /// </summary>
+    public async Task<List<StudentMockExamDto>> GetStudentMockExamsAsync(int studentUserId, int pageNumber = 1, int pageSize = 50)
+    {
+        try
+        {
+            List<MockExam> mockExams = await _context.MockExams
+                .Where(me => me.StudentId == studentUserId)
+                .OrderByDescending(me => me.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            List<StudentMockExamDto> result = [];
+            foreach (MockExam mockExam in mockExams)
+            {
+                List<ExtractedQuestionInfo> questions = [];
+                if (!string.IsNullOrEmpty(mockExam.ExtractedQuestions))
+                {
+                    questions = JsonSerializer.Deserialize<List<ExtractedQuestionInfo>>(mockExam.ExtractedQuestions, JsonOptions) ?? [];
+                }
+
+                result.Add(MapToStudentMockExamDto(mockExam, questions));
+            }
+
+            _logger.LogInformation("获取学生模拟考试列表成功，学生ID: {StudentId}, 返回数量: {Count}", 
+                studentUserId, result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生模拟考试列表失败，学生ID: {StudentId}", studentUserId);
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// 获取模拟考试详情
+    /// </summary>
+    public async Task<StudentMockExamDto?> GetMockExamDetailsAsync(int mockExamId, int studentUserId)
+    {
+        try
+        {
+            // 检查权限
+            if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
+            {
+                _logger.LogWarning("学生无权限访问模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                    studentUserId, mockExamId);
+                return null;
+            }
+
+            MockExam? mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId);
+
+            if (mockExam == null)
+            {
+                _logger.LogWarning("模拟考试不存在，模拟考试ID: {MockExamId}", mockExamId);
+                return null;
+            }
+
+            List<ExtractedQuestionInfo> questions = [];
+            if (!string.IsNullOrEmpty(mockExam.ExtractedQuestions))
+            {
+                questions = JsonSerializer.Deserialize<List<ExtractedQuestionInfo>>(mockExam.ExtractedQuestions, JsonOptions) ?? [];
+            }
+
+            _logger.LogInformation("获取模拟考试详情成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+
+            return MapToStudentMockExamDto(mockExam, questions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取模拟考试详情失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 开始模拟考试
+    /// </summary>
+    public async Task<bool> StartMockExamAsync(int mockExamId, int studentUserId)
+    {
+        try
+        {
+            // 检查权限
+            if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
+            {
+                return false;
+            }
+
+            MockExam? mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
+
+            if (mockExam == null || mockExam.Status != "Created")
+            {
+                return false;
+            }
+
+            // 检查是否已过期
+            if (mockExam.ExpiresAt.HasValue && mockExam.ExpiresAt.Value < DateTime.UtcNow)
+            {
+                mockExam.Status = "Expired";
+                await _context.SaveChangesAsync();
+                return false;
+            }
+
+            mockExam.Status = "InProgress";
+            mockExam.StartedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("学生开始模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "开始模拟考试失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 完成模拟考试
+    /// </summary>
+    public async Task<bool> CompleteMockExamAsync(int mockExamId, int studentUserId)
+    {
+        try
+        {
+            // 检查权限
+            if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
+            {
+                return false;
+            }
+
+            MockExam? mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
+
+            if (mockExam == null || mockExam.Status != "InProgress")
+            {
+                return false;
+            }
+
+            mockExam.Status = "Completed";
+            mockExam.CompletedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("学生完成模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "完成模拟考试失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 删除模拟考试
+    /// </summary>
+    public async Task<bool> DeleteMockExamAsync(int mockExamId, int studentUserId)
+    {
+        try
+        {
+            // 检查权限
+            if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
+            {
+                return false;
+            }
+
+            MockExam? mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
+
+            if (mockExam == null)
+            {
+                return false;
+            }
+
+            _context.MockExams.Remove(mockExam);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("学生删除模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "删除模拟考试失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取学生可访问的模拟考试总数
+    /// </summary>
+    public async Task<int> GetStudentMockExamCountAsync(int studentUserId)
+    {
+        try
+        {
+            int count = await _context.MockExams
+                .CountAsync(me => me.StudentId == studentUserId);
+
+            _logger.LogInformation("获取学生模拟考试总数成功，学生ID: {StudentId}, 总数: {Count}", 
+                studentUserId, count);
+
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生模拟考试总数失败，学生ID: {StudentId}", studentUserId);
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 检查是否有权限访问指定模拟考试
+    /// </summary>
+    public async Task<bool> HasAccessToMockExamAsync(int mockExamId, int studentUserId)
+    {
+        try
+        {
+            // 验证学生用户存在且为学生角色
+            Models.User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
+
+            if (student == null)
+            {
+                return false;
+            }
+
+            // 验证模拟考试存在且属于该学生
+            bool hasAccess = await _context.MockExams
+                .AnyAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
+
+            return hasAccess;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查模拟考试访问权限失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+                studentUserId, mockExamId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 从综合训练中抽取题目
+    /// </summary>
+    private async Task<List<ExtractedQuestionInfo>> ExtractQuestionsAsync(List<QuestionExtractionRuleDto> rules)
+    {
+        List<ExtractedQuestionInfo> extractedQuestions = [];
+
+        foreach (QuestionExtractionRuleDto rule in rules)
+        {
+            // 构建查询条件
+            IQueryable<ImportedComprehensiveTrainingQuestion> query = _context.ImportedComprehensiveTrainingQuestions
+                .Include(q => q.OperationPoints)
+                    .ThenInclude(op => op.Parameters)
+                .Include(q => q.Subject)
+                .Include(q => q.Module)
+                .Where(q => q.IsEnabled);
+
+            // 按科目类型过滤
+            if (!string.IsNullOrEmpty(rule.SubjectType))
+            {
+                query = query.Where(q => q.Subject != null && q.Subject.SubjectType == rule.SubjectType);
+            }
+
+            // 按题目类型过滤
+            if (!string.IsNullOrEmpty(rule.QuestionType))
+            {
+                query = query.Where(q => q.QuestionType == rule.QuestionType);
+            }
+
+            // 按难度等级过滤
+            if (!string.IsNullOrEmpty(rule.DifficultyLevel))
+            {
+                query = query.Where(q => q.DifficultyLevel == rule.DifficultyLevel);
+            }
+
+            // 获取符合条件的题目
+            List<ImportedComprehensiveTrainingQuestion> availableQuestions = await query.ToListAsync();
+
+            // 随机抽取指定数量的题目
+            List<ImportedComprehensiveTrainingQuestion> selectedQuestions = availableQuestions
+                .OrderBy(x => _random.Next())
+                .Take(rule.Count)
+                .ToList();
+
+            // 转换为ExtractedQuestionInfo
+            foreach (ImportedComprehensiveTrainingQuestion question in selectedQuestions)
+            {
+                ExtractedQuestionInfo extractedQuestion = new()
+                {
+                    OriginalQuestionId = question.Id,
+                    ComprehensiveTrainingId = question.ComprehensiveTrainingId,
+                    SubjectId = question.SubjectId,
+                    ModuleId = question.ModuleId,
+                    Title = question.Title,
+                    Content = question.Content,
+                    QuestionType = question.QuestionType,
+                    Score = rule.ScorePerQuestion, // 使用规则中指定的分值
+                    DifficultyLevel = question.DifficultyLevel,
+                    EstimatedMinutes = question.EstimatedMinutes,
+                    SortOrder = question.SortOrder,
+                    QuestionConfig = question.QuestionConfig,
+                    AnswerValidationRules = question.AnswerValidationRules,
+                    Tags = question.Tags,
+                    Remarks = question.Remarks,
+                    ProgramInput = question.ProgramInput,
+                    ExpectedOutput = question.ExpectedOutput,
+                    OperationPoints = question.OperationPoints.Select(op => new ExtractedOperationPointInfo
+                    {
+                        Id = op.Id,
+                        Name = op.Name,
+                        Description = op.Description,
+                        ModuleType = op.ModuleType,
+                        Score = op.Score,
+                        Order = op.Order,
+                        Parameters = op.Parameters.Select(p => new ExtractedParameterInfo
+                        {
+                            Id = p.Id,
+                            Name = p.Name,
+                            Description = p.Description,
+                            ParameterType = p.ParameterType,
+                            DefaultValue = p.DefaultValue,
+                            MinValue = p.MinValue,
+                            MaxValue = p.MaxValue
+                        }).ToList()
+                    }).ToList()
+                };
+
+                extractedQuestions.Add(extractedQuestion);
+            }
+
+            _logger.LogInformation("抽取题目完成，规则: {Rule}, 可用题目数: {Available}, 抽取数量: {Selected}",
+                JsonSerializer.Serialize(rule, JsonOptions), availableQuestions.Count, selectedQuestions.Count);
+        }
+
+        return extractedQuestions;
+    }
+
+    /// <summary>
+    /// 将MockExam和题目信息映射为StudentMockExamDto
+    /// </summary>
+    private static StudentMockExamDto MapToStudentMockExamDto(MockExam mockExam, List<ExtractedQuestionInfo> questions)
+    {
+        return new StudentMockExamDto
+        {
+            Id = mockExam.Id,
+            Name = mockExam.Name,
+            Description = mockExam.Description,
+            DurationMinutes = mockExam.DurationMinutes,
+            TotalScore = mockExam.TotalScore,
+            PassingScore = mockExam.PassingScore,
+            RandomizeQuestions = mockExam.RandomizeQuestions,
+            Status = mockExam.Status,
+            CreatedAt = mockExam.CreatedAt,
+            StartedAt = mockExam.StartedAt,
+            CompletedAt = mockExam.CompletedAt,
+            ExpiresAt = mockExam.ExpiresAt,
+            Questions = questions.Select(q => new StudentMockExamQuestionDto
+            {
+                OriginalQuestionId = q.OriginalQuestionId,
+                Title = q.Title,
+                Content = q.Content,
+                QuestionType = q.QuestionType,
+                Score = q.Score,
+                DifficultyLevel = q.DifficultyLevel,
+                EstimatedMinutes = q.EstimatedMinutes,
+                SortOrder = q.SortOrder,
+                QuestionConfig = q.QuestionConfig,
+                AnswerValidationRules = q.AnswerValidationRules,
+                Tags = q.Tags,
+                Remarks = q.Remarks,
+                ProgramInput = q.ProgramInput,
+                ExpectedOutput = q.ExpectedOutput,
+                OperationPoints = q.OperationPoints.Select(op => new StudentMockExamOperationPointDto
+                {
+                    Id = op.Id,
+                    Name = op.Name,
+                    Description = op.Description,
+                    ModuleType = op.ModuleType,
+                    Score = op.Score,
+                    Order = op.Order,
+                    Parameters = op.Parameters.Select(p => new StudentMockExamParameterDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        ParameterType = p.ParameterType,
+                        DefaultValue = p.DefaultValue,
+                        MinValue = p.MinValue,
+                        MaxValue = p.MaxValue
+                    }).ToList()
+                }).ToList()
+            }).ToList()
+        };
+    }

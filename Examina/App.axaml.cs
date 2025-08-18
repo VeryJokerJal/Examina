@@ -119,6 +119,24 @@ public partial class App : Application
             };
         });
 
+        // 为学生端模拟考试服务配置HttpClient
+        _ = services.AddHttpClient<IStudentMockExamService, StudentMockExamService>(client =>
+        {
+            client.BaseAddress = new Uri("https://qiuzhenbd.com");
+            client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            return new HttpClientHandler()
+            {
+                AllowAutoRedirect = false,
+                UseProxy = true,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+            };
+        });
+
         // 确保AuthenticationService为单例
         _ = services.AddSingleton<IAuthenticationService>(provider =>
         {
@@ -146,6 +164,7 @@ public partial class App : Application
         _ = services.AddTransient<SchoolBindingViewModel>();
         _ = services.AddTransient<ExamListViewModel>();
         _ = services.AddTransient<ComprehensiveTrainingListViewModel>();
+        _ = services.AddTransient<MockExamListViewModel>();
 
         _serviceProvider = services.BuildServiceProvider();
     }

@@ -2,6 +2,7 @@
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using ExaminaWebApplication.Models.ImportedExam;
 using ExaminaWebApplication.Models.Organization;
+using ExaminaWebApplication.Models.MockExam;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Data;
@@ -41,6 +42,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<NonOrganizationStudentOrganization> NonOrganizationStudentOrganizations { get; set; }
     public DbSet<PreConfiguredUser> PreConfiguredUsers { get; set; }
     public DbSet<OrganizationMember> OrganizationMembers { get; set; }
+
+    // 模拟考试相关实体
+    public DbSet<MockExamConfiguration> MockExamConfigurations { get; set; }
+    public DbSet<MockExam> MockExams { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -295,6 +300,9 @@ public class ApplicationDbContext : DbContext
         // 配置导入综合训练相关实体
         ConfigureImportedComprehensiveTrainingEntities(modelBuilder);
         ConfigureImportedComprehensiveTrainingQuestionEntities(modelBuilder);
+
+        // 配置模拟考试相关实体
+        ConfigureMockExamEntities(modelBuilder);
     }
 
     /// <summary>
@@ -868,6 +876,82 @@ public class ApplicationDbContext : DbContext
             _ = entity.HasOne(e => e.OperationPoint)
                   .WithMany(op => op.Parameters)
                   .HasForeignKey(e => e.OperationPointId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    /// <summary>
+    /// 配置模拟考试相关实体
+    /// </summary>
+    private static void ConfigureMockExamEntities(ModelBuilder modelBuilder)
+    {
+        // 配置MockExamConfiguration实体
+        _ = modelBuilder.Entity<MockExamConfiguration>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.CreatedBy);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.HasIndex(e => e.IsEnabled);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            _ = entity.Property(e => e.Description).HasMaxLength(1000);
+            _ = entity.Property(e => e.DurationMinutes).IsRequired().HasDefaultValue(120);
+            _ = entity.Property(e => e.TotalScore).IsRequired().HasDefaultValue(100);
+            _ = entity.Property(e => e.PassingScore).IsRequired().HasDefaultValue(60);
+            _ = entity.Property(e => e.RandomizeQuestions).HasDefaultValue(true);
+            _ = entity.Property(e => e.ExtractionRules).HasColumnType("json");
+            _ = entity.Property(e => e.CreatedBy).IsRequired();
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置MockExam实体
+        _ = modelBuilder.Entity<MockExam>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.ConfigurationId);
+            _ = entity.HasIndex(e => e.StudentId);
+            _ = entity.HasIndex(e => e.Status);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.HasIndex(e => e.StartedAt);
+            _ = entity.HasIndex(e => e.CompletedAt);
+            _ = entity.HasIndex(e => e.ExpiresAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.ConfigurationId).IsRequired();
+            _ = entity.Property(e => e.StudentId).IsRequired();
+            _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            _ = entity.Property(e => e.Description).HasMaxLength(1000);
+            _ = entity.Property(e => e.DurationMinutes).IsRequired();
+            _ = entity.Property(e => e.TotalScore).IsRequired();
+            _ = entity.Property(e => e.PassingScore).IsRequired();
+            _ = entity.Property(e => e.RandomizeQuestions).IsRequired();
+            _ = entity.Property(e => e.ExtractedQuestions).IsRequired().HasColumnType("json");
+            _ = entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Created");
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Configuration)
+                  .WithMany()
+                  .HasForeignKey(e => e.ConfigurationId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            _ = entity.HasOne(e => e.Student)
+                  .WithMany()
+                  .HasForeignKey(e => e.StudentId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

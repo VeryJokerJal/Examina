@@ -381,7 +381,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "overview" => new OverviewViewModel(),
                 "exam" => CreateExamListViewModel(),
                 "practice" => new PracticeViewModel(),
-                "mock-exam" => new PracticeViewModel(), // 可以传递参数区分类型
+                "mock-exam" => CreateMockExamListViewModel(),
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
                 "special-practice" => new PracticeViewModel(),
                 "leaderboard" => new LeaderboardViewModel(),
@@ -543,6 +543,41 @@ public class MainViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ComprehensiveTrainingListViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 创建MockExamListViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateMockExamListViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            MockExamListViewModel? viewModel = ((App)Application.Current!).GetService<MockExamListViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取MockExamListViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            IStudentMockExamService? mockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
+            if (mockExamService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建MockExamListViewModel");
+                return new MockExamListViewModel(mockExamService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentMockExamService，无法创建MockExamListViewModel");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建MockExamListViewModel时发生异常: {ex.Message}");
         }
 
         return null;
