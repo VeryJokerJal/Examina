@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ExamLab.Models;
+using ExamLab.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -48,11 +50,34 @@ public sealed partial class OperationPointEditPage : Page
         DescriptionTextBox.Text = operationPoint.Description;
         ScoreNumberBox.Value = (double)operationPoint.Score;
 
+        // 初始化位置参数控制器
+        if (IsPositionKnowledgePoint(operationPoint))
+        {
+            PositionParameterController.InitializePositionParameters(operationPoint.Parameters);
+        }
+
         // 创建所有参数的编辑控件
         foreach (ConfigurationParameter parameter in operationPoint.Parameters)
         {
             CreateParameterControl(parameter);
         }
+    }
+
+    /// <summary>
+    /// 判断是否为位置相关的知识点
+    /// </summary>
+    /// <param name="operationPoint">操作点</param>
+    /// <returns>是否为位置知识点</returns>
+    private static bool IsPositionKnowledgePoint(OperationPoint operationPoint)
+    {
+        string[] positionKnowledgePoints =
+        [
+            "设置文本框位置",
+            "设置自选图形位置",
+            "设置图片位置"
+        ];
+
+        return positionKnowledgePoints.Contains(operationPoint.Name);
     }
 
     /// <summary>
@@ -66,6 +91,14 @@ public sealed partial class OperationPointEditPage : Page
         {
             Margin = new Thickness(0, 0, 0, 16)
         };
+
+        // 绑定可见性到参数的 IsVisible 属性
+        parameterGrid.SetBinding(UIElement.VisibilityProperty, new Microsoft.UI.Xaml.Data.Binding
+        {
+            Source = parameter,
+            Path = new PropertyPath("IsVisible"),
+            Converter = (Microsoft.UI.Xaml.Data.IValueConverter)Application.Current.Resources["ParameterVisibilityConverter"]
+        });
 
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) });
@@ -100,6 +133,15 @@ public sealed partial class OperationPointEditPage : Page
 
         // 根据参数类型创建编辑控件
         FrameworkElement editControl = CreateEditControlByType(parameter);
+
+        // 绑定启用状态到参数的 IsVisible 属性
+        editControl.SetBinding(Control.IsEnabledProperty, new Microsoft.UI.Xaml.Data.Binding
+        {
+            Source = parameter,
+            Path = new PropertyPath("IsVisible"),
+            Converter = (Microsoft.UI.Xaml.Data.IValueConverter)Application.Current.Resources["ParameterEnabledConverter"]
+        });
+
         _parameterControls[parameter.Name] = editControl;
         contentPanel.Children.Add(editControl);
 
@@ -272,6 +314,23 @@ public sealed partial class OperationPointEditPage : Page
         else if (!string.IsNullOrWhiteSpace(parameter.DefaultValue))
         {
             comboBox.SelectedItem = parameter.DefaultValue;
+        }
+
+        // 为位置类型参数添加选择变更事件处理
+        if (parameter.Name == "HorizontalPositionType" || parameter.Name == "VerticalPositionType")
+        {
+            comboBox.SelectionChanged += (sender, e) =>
+            {
+                if (sender is ComboBox cb && cb.SelectedItem is string selectedValue)
+                {
+                    parameter.Value = selectedValue;
+                    // 触发位置参数可见性更新
+                    if (OperationPoint != null)
+                    {
+                        PositionParameterController.UpdateParameterVisibility(OperationPoint.Parameters, parameter.Name, selectedValue);
+                    }
+                }
+            };
         }
 
         return comboBox;

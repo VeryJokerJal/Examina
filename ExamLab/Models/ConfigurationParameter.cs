@@ -101,6 +101,26 @@ public class ConfigurationParameter : ReactiveObject
     [Reactive] public bool IsEnabled { get; set; } = true;
 
     /// <summary>
+    /// 参数依赖关系 - 依赖的参数名称
+    /// </summary>
+    [Reactive] public string? DependsOn { get; set; }
+
+    /// <summary>
+    /// 参数依赖值 - 当依赖参数的值等于此值时，该参数才可见
+    /// </summary>
+    [Reactive] public string? DependsOnValue { get; set; }
+
+    /// <summary>
+    /// 是否可见（基于依赖关系计算）
+    /// </summary>
+    [Reactive] public bool IsVisible { get; set; } = true;
+
+    /// <summary>
+    /// 参数分组 - 用于位置参数的分组显示
+    /// </summary>
+    [Reactive] public string? Group { get; set; }
+
+    /// <summary>
     /// 枚举选项列表（从EnumOptions解析而来）
     /// </summary>
     public List<string> EnumOptionsList => string.IsNullOrEmpty(EnumOptions) ? [] : ParseEnumOptions(EnumOptions);

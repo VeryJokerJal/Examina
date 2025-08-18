@@ -99,4 +99,19 @@ public class ConfigurationParameterTemplate : ReactiveObject
     /// 最大值
     /// </summary>
     [Reactive] public double? MaxValue { get; set; }
+
+    /// <summary>
+    /// 参数依赖关系 - 依赖的参数名称
+    /// </summary>
+    [Reactive] public string? DependsOn { get; set; }
+
+    /// <summary>
+    /// 参数依赖值 - 当依赖参数的值等于此值时，该参数才可见
+    /// </summary>
+    [Reactive] public string? DependsOnValue { get; set; }
+
+    /// <summary>
+    /// 参数分组 - 用于位置参数的分组显示
+    /// </summary>
+    [Reactive] public string? Group { get; set; }
 }

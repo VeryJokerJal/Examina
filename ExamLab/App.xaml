@@ -13,6 +13,8 @@
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
             <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
             <converters:ParameterTypeToVisibilityConverter x:Key="ParameterTypeToVisibilityConverter" />
+            <converters:ParameterVisibilityConverter x:Key="ParameterVisibilityConverter" />
+            <converters:ParameterEnabledConverter x:Key="ParameterEnabledConverter" />
             <converters:StringFormatConverter x:Key="StringFormatConverter" />
             <converters:ScoreFormatConverter x:Key="ScoreFormatConverter" />
             <converters:OrderFormatConverter x:Key="OrderFormatConverter" />
