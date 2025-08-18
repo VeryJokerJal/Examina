@@ -17,8 +17,7 @@ public enum ParameterType
     Enum,           // 枚举
     Color,          // 颜色
     File,           // 文件路径
-    MultipleChoice, // 多选
-    Position        // 位置参数
+    MultipleChoice  // 多选
 }
 
 /// <summary>
@@ -102,11 +101,6 @@ public class ConfigurationParameter : ReactiveObject
     [Reactive] public bool IsEnabled { get; set; } = true;
 
     /// <summary>
-    /// 位置参数（当Type为Position时使用）
-    /// </summary>
-    [Reactive] public PositionParameter? PositionValue { get; set; }
-
-    /// <summary>
     /// 枚举选项列表（从EnumOptions解析而来）
     /// </summary>
     public List<string> EnumOptionsList => string.IsNullOrEmpty(EnumOptions) ? [] : ParseEnumOptions(EnumOptions);
@@ -185,89 +179,5 @@ public class ConfigurationParameter : ReactiveObject
         }
 
         return options;
-    }
-
-    /// <summary>
-    /// 获取位置参数的字符串表示（用于Value属性）
-    /// </summary>
-    /// <returns>位置参数的JSON字符串</returns>
-    public string GetPositionValueString()
-    {
-        if (Type != ParameterType.Position || PositionValue == null)
-            return string.Empty;
-
-        return PositionValue.ToJson();
-    }
-
-    /// <summary>
-    /// 从字符串设置位置参数值
-    /// </summary>
-    /// <param name="positionJson">位置参数的JSON字符串</param>
-    public void SetPositionValueFromString(string positionJson)
-    {
-        if (Type != ParameterType.Position)
-            return;
-
-        PositionValue = PositionParameter.FromJson(positionJson);
-
-        // 同步更新Value属性
-        Value = GetPositionValueString();
-    }
-
-    /// <summary>
-    /// 创建绝对位置参数
-    /// </summary>
-    /// <param name="x">X坐标</param>
-    /// <param name="y">Y坐标</param>
-    /// <param name="coordinateSystem">坐标系统</param>
-    public void SetAbsolutePosition(double x, double y, CoordinateSystem coordinateSystem = CoordinateSystem.Points)
-    {
-        if (Type != ParameterType.Position)
-            return;
-
-        PositionValue = PositionParameter.CreateAbsolute(x, y, coordinateSystem);
-        Value = GetPositionValueString();
-    }
-
-    /// <summary>
-    /// 创建对齐位置参数
-    /// </summary>
-    /// <param name="horizontal">水平对齐</param>
-    /// <param name="vertical">垂直对齐</param>
-    public void SetAlignmentPosition(HorizontalAlignment horizontal, VerticalAlignment vertical)
-    {
-        if (Type != ParameterType.Position)
-            return;
-
-        PositionValue = PositionParameter.CreateAlignment(horizontal, vertical);
-        Value = GetPositionValueString();
-    }
-
-    /// <summary>
-    /// 创建相对位置参数
-    /// </summary>
-    /// <param name="reference">参考点</param>
-    /// <param name="x">相对X坐标</param>
-    /// <param name="y">相对Y坐标</param>
-    /// <param name="coordinateSystem">坐标系统</param>
-    public void SetRelativePosition(RelativeReference reference, double x, double y, CoordinateSystem coordinateSystem = CoordinateSystem.Points)
-    {
-        if (Type != ParameterType.Position)
-            return;
-
-        PositionValue = PositionParameter.CreateRelative(reference, x, y, coordinateSystem);
-        Value = GetPositionValueString();
-    }
-
-    /// <summary>
-    /// 获取位置参数的描述
-    /// </summary>
-    /// <returns>位置描述字符串</returns>
-    public string GetPositionDescription()
-    {
-        if (Type != ParameterType.Position || PositionValue == null)
-            return "无位置信息";
-
-        return PositionValue.GetDescription();
     }
 }

@@ -152,8 +152,6 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Number => "数字",
             ParameterType.Enum => "选择项",
             ParameterType.Boolean => "布尔值",
-            ParameterType.Position => "位置参数",
-            ParameterType.Color => "颜色",
             _ => "文本"
         };
         constraints.Add($"类型：{typeInfo}");
@@ -203,7 +201,6 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Enum => CreateEnumControl(parameter),
             ParameterType.Boolean => CreateBooleanControl(parameter),
             ParameterType.Color => CreateColorControl(parameter),
-            ParameterType.Position => CreatePositionControl(parameter),
             _ => CreateTextControl(parameter)
         };
     }
@@ -437,51 +434,6 @@ public sealed partial class OperationPointEditPage : Page
     }
 
     /// <summary>
-    /// 创建位置参数编辑控件
-    /// </summary>
-    /// <param name="parameter">参数</param>
-    /// <returns>位置编辑控件</returns>
-    private FrameworkElement CreatePositionControl(ConfigurationParameter parameter)
-    {
-        // 创建位置参数编辑器
-        Views.Controls.PositionParameterEditor positionEditor = new();
-
-        // 如果参数有值，尝试解析位置参数
-        if (!string.IsNullOrEmpty(parameter.Value))
-        {
-            PositionParameter? position = PositionParameter.FromJson(parameter.Value);
-            if (position != null)
-            {
-                positionEditor.PositionParameter = position;
-            }
-        }
-
-        // 如果没有位置参数，创建默认的绝对位置
-        if (positionEditor.PositionParameter == null)
-        {
-            positionEditor.PositionParameter = new PositionParameter
-            {
-                Type = PositionType.Absolute,
-                CoordinateSystem = CoordinateSystem.Points,
-                X = 0,
-                Y = 0
-            };
-        }
-
-        // 监听位置参数变化
-        positionEditor.PositionParameterChanged += (sender, newPosition) =>
-        {
-            if (newPosition != null)
-            {
-                parameter.PositionValue = newPosition;
-                parameter.Value = newPosition.ToJson();
-            }
-        };
-
-        return positionEditor;
-    }
-
-    /// <summary>
     /// 获取参数值
     /// </summary>
     /// <param name="parameter">参数</param>
@@ -497,7 +449,6 @@ public sealed partial class OperationPointEditPage : Page
                 CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
                 TextBox textBox => textBox.Text,
                 ColorPicker colorPicker => $"#{colorPicker.Color.R:X2}{colorPicker.Color.G:X2}{colorPicker.Color.B:X2}",
-                Views.Controls.PositionParameterEditor positionEditor => positionEditor.PositionParameter?.ToJson() ?? "",
                 _ => parameter.Value ?? ""
             };
     }

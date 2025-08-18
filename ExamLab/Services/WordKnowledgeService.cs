@@ -717,10 +717,9 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "Position", DisplayName = "表格位置", Description = "表格位置参数", Type = ParameterType.Position, IsRequired = true, Order = 1 },
-                new() { Name = "TableAlignment", DisplayName = "表格对齐", Description = "表格对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 2,
+                new() { Name = "TableAlignment", DisplayName = "表格对齐", Description = "表格对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
                     EnumOptions = "左对齐,居中对齐,右对齐" },
-                new() { Name = "LeftIndent", DisplayName = "左缩进", Description = "表格左缩进（磅）", Type = ParameterType.Number, IsRequired = false, Order = 3, MinValue = 0, MaxValue = 100 }
+                new() { Name = "LeftIndent", DisplayName = "左缩进", Description = "表格左缩进（磅）", Type = ParameterType.Number, IsRequired = false, Order = 2, MinValue = 0, MaxValue = 100 }
             ]
         };
 
@@ -890,15 +889,31 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "Position", DisplayName = "位置设置", Description = "图形位置参数", Type = ParameterType.Position, IsRequired = true, Order = 1 },
-                new() { Name = "PositionType", DisplayName = "位置类型", Description = "选择位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "绝对位置,相对位置,对齐位置" },
-                new() { Name = "PositionX", DisplayName = "水平位置", Description = "水平位置（磅）", Type = ParameterType.Number, IsRequired = false, Order = 3 },
-                new() { Name = "PositionY", DisplayName = "垂直位置", Description = "垂直位置（磅）", Type = ParameterType.Number, IsRequired = false, Order = 4 },
-                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 5,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" },
-                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 6,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐,基线对齐" }
+                // 水平位置设置
+                new() { Name = "HorizontalPositionType", DisplayName = "水平位置类型", Description = "选择水平位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置" },
+                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐方式", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 2,
+                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐" },
+                new() { Name = "HorizontalRelativeTo", DisplayName = "水平相对于", Description = "水平位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 3,
+                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距" },
+                new() { Name = "HorizontalAbsolutePosition", DisplayName = "水平绝对位置", Description = "水平绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 4, MinValue = -50, MaxValue = 50 },
+                new() { Name = "HorizontalRelativePosition", DisplayName = "水平相对位置", Description = "水平相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = -999, MaxValue = 999 },
+
+                // 垂直位置设置
+                new() { Name = "VerticalPositionType", DisplayName = "垂直位置类型", Description = "选择垂直位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 6,
+                    EnumOptions = "对齐方式,绝对位置,相对位置" },
+                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 7,
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端" },
+                new() { Name = "VerticalRelativeTo", DisplayName = "垂直相对于", Description = "垂直位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 8,
+                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距" },
+                new() { Name = "VerticalAbsolutePosition", DisplayName = "垂直绝对位置", Description = "垂直绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 9, MinValue = -50, MaxValue = 50 },
+                new() { Name = "VerticalRelativePosition", DisplayName = "垂直相对位置", Description = "垂直相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 10, MinValue = -999, MaxValue = 999 },
+
+                // 选项设置
+                new() { Name = "MoveWithText", DisplayName = "对象随文字移动", Description = "对象是否随文字移动", Type = ParameterType.Boolean, IsRequired = false, Order = 11 },
+                new() { Name = "LockAnchor", DisplayName = "锁定锚点", Description = "是否锁定锚点", Type = ParameterType.Boolean, IsRequired = false, Order = 12 },
+                new() { Name = "AllowOverlap", DisplayName = "允许重叠", Description = "是否允许与其他对象重叠", Type = ParameterType.Boolean, IsRequired = false, Order = 13 },
+                new() { Name = "LayoutInTableCell", DisplayName = "在表格单元格中的版式", Description = "在表格单元格中的版式设置", Type = ParameterType.Boolean, IsRequired = false, Order = 14 }
             ]
         };
 
@@ -994,15 +1009,31 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "Position", DisplayName = "位置设置", Description = "图片位置参数", Type = ParameterType.Position, IsRequired = true, Order = 1 },
-                new() { Name = "PositionType", DisplayName = "位置类型", Description = "选择位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "绝对位置,相对位置,对齐位置" },
-                new() { Name = "PositionX", DisplayName = "水平位置", Description = "水平位置（磅）", Type = ParameterType.Number, IsRequired = false, Order = 3 },
-                new() { Name = "PositionY", DisplayName = "垂直位置", Description = "垂直位置（磅）", Type = ParameterType.Number, IsRequired = false, Order = 4 },
-                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 5,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" },
-                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 6,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐,基线对齐" }
+                // 水平位置设置
+                new() { Name = "HorizontalPositionType", DisplayName = "水平位置类型", Description = "选择水平位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置" },
+                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐方式", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 2,
+                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐" },
+                new() { Name = "HorizontalRelativeTo", DisplayName = "水平相对于", Description = "水平位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 3,
+                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距" },
+                new() { Name = "HorizontalAbsolutePosition", DisplayName = "水平绝对位置", Description = "水平绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 4, MinValue = -50, MaxValue = 50 },
+                new() { Name = "HorizontalRelativePosition", DisplayName = "水平相对位置", Description = "水平相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = -999, MaxValue = 999 },
+
+                // 垂直位置设置
+                new() { Name = "VerticalPositionType", DisplayName = "垂直位置类型", Description = "选择垂直位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 6,
+                    EnumOptions = "对齐方式,绝对位置,相对位置" },
+                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 7,
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端" },
+                new() { Name = "VerticalRelativeTo", DisplayName = "垂直相对于", Description = "垂直位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 8,
+                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距" },
+                new() { Name = "VerticalAbsolutePosition", DisplayName = "垂直绝对位置", Description = "垂直绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 9, MinValue = -50, MaxValue = 50 },
+                new() { Name = "VerticalRelativePosition", DisplayName = "垂直相对位置", Description = "垂直相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 10, MinValue = -999, MaxValue = 999 },
+
+                // 选项设置
+                new() { Name = "MoveWithText", DisplayName = "对象随文字移动", Description = "对象是否随文字移动", Type = ParameterType.Boolean, IsRequired = false, Order = 11 },
+                new() { Name = "LockAnchor", DisplayName = "锁定锚点", Description = "是否锁定锚点", Type = ParameterType.Boolean, IsRequired = false, Order = 12 },
+                new() { Name = "AllowOverlap", DisplayName = "允许重叠", Description = "是否允许与其他对象重叠", Type = ParameterType.Boolean, IsRequired = false, Order = 13 },
+                new() { Name = "LayoutInTableCell", DisplayName = "在表格单元格中的版式", Description = "在表格单元格中的版式设置", Type = ParameterType.Boolean, IsRequired = false, Order = 14 }
             ]
         };
     }
@@ -1057,17 +1088,31 @@ public class WordKnowledgeService
             Category = "文本框设置",
             ParameterTemplates =
             [
-                new() { Name = "Position", DisplayName = "位置设置", Description = "文本框位置参数", Type = ParameterType.Position, IsRequired = true, Order = 1 },
-                new() { Name = "PositionType", DisplayName = "位置类型", Description = "选择位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "绝对位置,相对位置,对齐位置" },
-                new() { Name = "PositionX", DisplayName = "水平位置", Description = "水平位置（磅）", Type = ParameterType.Number, IsRequired = false, Order = 3 },
-                new() { Name = "PositionY", DisplayName = "垂直位置", Description = "垂直位置（磅）", Type = ParameterType.Number, IsRequired = false, Order = 4 },
-                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 5,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" },
-                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 6,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐,基线对齐" },
-                new() { Name = "RelativeReference", DisplayName = "相对参考", Description = "相对位置参考点", Type = ParameterType.Enum, IsRequired = false, Order = 7,
-                    EnumOptions = "页面,页边距,段落,列,字符" }
+                // 水平位置设置
+                new() { Name = "HorizontalPositionType", DisplayName = "水平位置类型", Description = "选择水平位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置" },
+                new() { Name = "HorizontalAlignment", DisplayName = "水平对齐方式", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 2,
+                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐" },
+                new() { Name = "HorizontalRelativeTo", DisplayName = "水平相对于", Description = "水平位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 3,
+                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距" },
+                new() { Name = "HorizontalAbsolutePosition", DisplayName = "水平绝对位置", Description = "水平绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 4, MinValue = -50, MaxValue = 50 },
+                new() { Name = "HorizontalRelativePosition", DisplayName = "水平相对位置", Description = "水平相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = -999, MaxValue = 999 },
+
+                // 垂直位置设置
+                new() { Name = "VerticalPositionType", DisplayName = "垂直位置类型", Description = "选择垂直位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 6,
+                    EnumOptions = "对齐方式,绝对位置,相对位置" },
+                new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 7,
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端" },
+                new() { Name = "VerticalRelativeTo", DisplayName = "垂直相对于", Description = "垂直位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 8,
+                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距" },
+                new() { Name = "VerticalAbsolutePosition", DisplayName = "垂直绝对位置", Description = "垂直绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 9, MinValue = -50, MaxValue = 50 },
+                new() { Name = "VerticalRelativePosition", DisplayName = "垂直相对位置", Description = "垂直相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 10, MinValue = -999, MaxValue = 999 },
+
+                // 选项设置
+                new() { Name = "MoveWithText", DisplayName = "对象随文字移动", Description = "对象是否随文字移动", Type = ParameterType.Boolean, IsRequired = false, Order = 11 },
+                new() { Name = "LockAnchor", DisplayName = "锁定锚点", Description = "是否锁定锚点", Type = ParameterType.Boolean, IsRequired = false, Order = 12 },
+                new() { Name = "AllowOverlap", DisplayName = "允许重叠", Description = "是否允许与其他对象重叠", Type = ParameterType.Boolean, IsRequired = false, Order = 13 },
+                new() { Name = "LayoutInTableCell", DisplayName = "在表格单元格中的版式", Description = "在表格单元格中的版式设置", Type = ParameterType.Boolean, IsRequired = false, Order = 14 }
             ]
         };
 
