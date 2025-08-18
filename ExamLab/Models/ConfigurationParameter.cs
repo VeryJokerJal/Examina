@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -102,5 +103,81 @@ public class ConfigurationParameter : ReactiveObject
     /// <summary>
     /// 枚举选项列表（从EnumOptions解析而来）
     /// </summary>
-    public List<string> EnumOptionsList => string.IsNullOrEmpty(EnumOptions) ? [] : EnumOptions.Split(',').Select(s => s.Trim()).ToList();
+    public List<string> EnumOptionsList => string.IsNullOrEmpty(EnumOptions) ? [] : ParseEnumOptions(EnumOptions);
+
+    /// <summary>
+    /// 解析枚举选项，特殊处理页码格式等包含逗号的选项
+    /// </summary>
+    /// <param name="enumOptions">枚举选项字符串</param>
+    /// <returns>解析后的选项列表</returns>
+    private static List<string> ParseEnumOptions(string enumOptions)
+    {
+        if (string.IsNullOrEmpty(enumOptions))
+            return [];
+
+        // 特殊处理页码格式：识别 "数字,数字,数字..." 这样的模式
+        if (IsPageNumberFormatOptions(enumOptions))
+        {
+            return ParsePageNumberFormatOptions(enumOptions);
+        }
+
+        // 默认按逗号分割
+        return enumOptions.Split(',').Select(s => s.Trim()).ToList();
+    }
+
+    /// <summary>
+    /// 判断是否为页码格式选项
+    /// </summary>
+    /// <param name="enumOptions">枚举选项字符串</param>
+    /// <returns>是否为页码格式选项</returns>
+    private static bool IsPageNumberFormatOptions(string enumOptions)
+    {
+        // 检查是否包含页码格式的特征模式
+        return enumOptions.Contains("1,2,3...") ||
+               enumOptions.Contains("a,b,c...") ||
+               enumOptions.Contains("A,B,C...") ||
+               enumOptions.Contains("i,ii,iii...") ||
+               enumOptions.Contains("I,II,III...");
+    }
+
+    /// <summary>
+    /// 解析页码格式选项
+    /// </summary>
+    /// <param name="enumOptions">页码格式选项字符串</param>
+    /// <returns>解析后的页码格式选项列表</returns>
+    private static List<string> ParsePageNumberFormatOptions(string enumOptions)
+    {
+        List<string> options = [];
+
+        // 定义页码格式模式
+        string[] patterns = ["1,2,3...", "a,b,c...", "A,B,C...", "i,ii,iii...", "I,II,III..."];
+
+        string remaining = enumOptions;
+
+        foreach (string pattern in patterns)
+        {
+            if (remaining.Contains(pattern))
+            {
+                options.Add(pattern);
+                // 从剩余字符串中移除已处理的模式
+                remaining = remaining.Replace(pattern, "").Replace(",,", ",");
+            }
+        }
+
+        // 处理剩余的选项（如果有的话）
+        if (!string.IsNullOrEmpty(remaining))
+        {
+            string[] remainingOptions = remaining.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string option in remainingOptions)
+            {
+                string trimmed = option.Trim();
+                if (!string.IsNullOrEmpty(trimmed) && !options.Contains(trimmed))
+                {
+                    options.Add(trimmed);
+                }
+            }
+        }
+
+        return options;
+    }
 }
