@@ -1829,7 +1829,145 @@ public class WordScoringService : IWordScoringService
 
     private KnowledgePointResult DetectPageNumber(Word.Document document, Dictionary<string, string> parameters)
     {
-        return CreateNotImplementedResult("SetPageNumber", parameters);
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetPageNumber",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!parameters.TryGetValue("PageNumberPosition", out string? expectedPosition) ||
+                !parameters.TryGetValue("PageNumberFormat", out string? expectedFormat))
+            {
+                result.ErrorMessage = "缺少必要参数: PageNumberPosition 或 PageNumberFormat";
+                return result;
+            }
+
+            // 检查文档是否有页码
+            bool hasPageNumber = false;
+            string actualPosition = "未设置";
+            string actualFormat = "未设置";
+
+            // 检查页眉和页脚中的页码
+            foreach (Word.Section section in document.Sections)
+            {
+                // 检查页眉
+                foreach (Word.HeaderFooter header in section.Headers)
+                {
+                    if (header.Range.Text.Contains("PAGE") || header.Range.Fields.Count > 0)
+                    {
+                        hasPageNumber = true;
+                        actualPosition = GetPageNumberPosition(header, true);
+                        actualFormat = GetPageNumberFormat(header);
+                        break;
+                    }
+                }
+
+                // 检查页脚
+                if (!hasPageNumber)
+                {
+                    foreach (Word.HeaderFooter footer in section.Footers)
+                    {
+                        if (footer.Range.Text.Contains("PAGE") || footer.Range.Fields.Count > 0)
+                        {
+                            hasPageNumber = true;
+                            actualPosition = GetPageNumberPosition(footer, false);
+                            actualFormat = GetPageNumberFormat(footer);
+                            break;
+                        }
+                    }
+                }
+
+                if (hasPageNumber) break;
+            }
+
+            // 验证页码位置和格式
+            bool positionCorrect = string.Equals(actualPosition, expectedPosition, StringComparison.OrdinalIgnoreCase);
+            bool formatCorrect = string.Equals(actualFormat, expectedFormat, StringComparison.OrdinalIgnoreCase);
+
+            result.IsCorrect = hasPageNumber && positionCorrect && formatCorrect;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ExpectedValue = $"位置: {expectedPosition}, 格式: {expectedFormat}";
+            result.ActualValue = $"位置: {actualPosition}, 格式: {actualFormat}";
+            result.Details = $"页码检测: 存在页码={hasPageNumber}, 位置匹配={positionCorrect}, 格式匹配={formatCorrect}";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测页码失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 获取页码位置描述
+    /// </summary>
+    /// <param name="headerFooter">页眉或页脚对象</param>
+    /// <param name="isHeader">是否为页眉</param>
+    /// <returns>页码位置描述</returns>
+    private static string GetPageNumberPosition(Word.HeaderFooter headerFooter, bool isHeader)
+    {
+        try
+        {
+            // 简化的位置检测逻辑
+            string basePosition = isHeader ? "页面顶端" : "页面底端";
+
+            // 检查对齐方式
+            Word.ParagraphFormat format = headerFooter.Range.ParagraphFormat;
+            return format.Alignment switch
+            {
+                Word.WdParagraphAlignment.wdAlignParagraphLeft => $"{basePosition}左侧",
+                Word.WdParagraphAlignment.wdAlignParagraphCenter => $"{basePosition}居中",
+                Word.WdParagraphAlignment.wdAlignParagraphRight => $"{basePosition}右侧",
+                _ => $"{basePosition}居中"
+            };
+        }
+        catch
+        {
+            return isHeader ? "页面顶端居中" : "页面底端居中";
+        }
+    }
+
+    /// <summary>
+    /// 获取页码格式描述
+    /// </summary>
+    /// <param name="headerFooter">页眉或页脚对象</param>
+    /// <returns>页码格式描述</returns>
+    private static string GetPageNumberFormat(Word.HeaderFooter headerFooter)
+    {
+        try
+        {
+            // 检查页码字段的格式
+            foreach (Word.Field field in headerFooter.Range.Fields)
+            {
+                if (field.Type == Word.WdFieldType.wdFieldPage)
+                {
+                    // 根据字段代码判断格式
+                    string fieldCode = field.Code.Text;
+
+                    if (fieldCode.Contains("\\* Arabic"))
+                        return "1,2,3...";
+                    else if (fieldCode.Contains("\\* alphabetic"))
+                        return "a,b,c...";
+                    else if (fieldCode.Contains("\\* ALPHABETIC"))
+                        return "A,B,C...";
+                    else if (fieldCode.Contains("\\* roman"))
+                        return "i,ii,iii...";
+                    else if (fieldCode.Contains("\\* ROMAN"))
+                        return "I,II,III...";
+                    else
+                        return "1,2,3..."; // 默认格式
+                }
+            }
+
+            return "1,2,3..."; // 默认格式
+        }
+        catch
+        {
+            return "1,2,3..."; // 默认格式
+        }
     }
 
     private KnowledgePointResult DetectPageBackground(Word.Document document, Dictionary<string, string> parameters)

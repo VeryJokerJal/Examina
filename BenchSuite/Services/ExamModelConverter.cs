@@ -335,7 +335,14 @@ public static class ExamModelConverter
             // 解析选项列表
             if (paramElement.TryGetProperty("options", out var options) && options.ValueKind == JsonValueKind.Array)
             {
+                // 处理 JSON 数组格式的选项
                 parameter.Options = options.EnumerateArray().Select(o => o.GetString() ?? string.Empty).ToList();
+            }
+            else if (paramElement.TryGetProperty("enumOptions", out var enumOptions) && enumOptions.ValueKind == JsonValueKind.String)
+            {
+                // 处理 ExamLab 的 EnumOptions 字符串格式，应用智能解析逻辑
+                string enumOptionsString = enumOptions.GetString() ?? string.Empty;
+                parameter.Options = ParseEnumOptionsString(enumOptionsString);
             }
 
             yield return parameter;
@@ -446,6 +453,7 @@ public static class ExamModelConverter
             validationRules = param.ValidationRules,
             description = param.Description,
             options = param.Options.ToArray(),
+            enumOptions = ConvertOptionsToEnumString(param.Options), // 为 ExamLab 兼容性添加
             order = param.Order,
             isVisible = param.IsVisible
         }).ToArray();
@@ -521,5 +529,95 @@ public static class ExamModelConverter
             return DateTime.TryParse(dateString, out var result) ? result : null;
         }
         return null;
+    }
+
+    /// <summary>
+    /// 解析 ExamLab 的 EnumOptions 字符串，特殊处理页码格式等包含逗号的选项
+    /// </summary>
+    /// <param name="enumOptions">枚举选项字符串</param>
+    /// <returns>解析后的选项列表</returns>
+    private static List<string> ParseEnumOptionsString(string enumOptions)
+    {
+        if (string.IsNullOrEmpty(enumOptions))
+            return [];
+
+        // 特殊处理页码格式：识别 "数字,数字,数字..." 这样的模式
+        if (IsPageNumberFormatOptions(enumOptions))
+        {
+            return ParsePageNumberFormatOptions(enumOptions);
+        }
+
+        // 默认按逗号分割
+        return enumOptions.Split(',').Select(s => s.Trim()).ToList();
+    }
+
+    /// <summary>
+    /// 判断是否为页码格式选项
+    /// </summary>
+    /// <param name="enumOptions">枚举选项字符串</param>
+    /// <returns>是否为页码格式选项</returns>
+    private static bool IsPageNumberFormatOptions(string enumOptions)
+    {
+        // 检查是否包含页码格式的特征模式
+        return enumOptions.Contains("1,2,3...") ||
+               enumOptions.Contains("a,b,c...") ||
+               enumOptions.Contains("A,B,C...") ||
+               enumOptions.Contains("i,ii,iii...") ||
+               enumOptions.Contains("I,II,III...");
+    }
+
+    /// <summary>
+    /// 解析页码格式选项
+    /// </summary>
+    /// <param name="enumOptions">页码格式选项字符串</param>
+    /// <returns>解析后的页码格式选项列表</returns>
+    private static List<string> ParsePageNumberFormatOptions(string enumOptions)
+    {
+        List<string> options = [];
+
+        // 定义页码格式模式
+        string[] patterns = ["1,2,3...", "a,b,c...", "A,B,C...", "i,ii,iii...", "I,II,III..."];
+
+        string remaining = enumOptions;
+
+        foreach (string pattern in patterns)
+        {
+            if (remaining.Contains(pattern))
+            {
+                options.Add(pattern);
+                // 从剩余字符串中移除已处理的模式
+                remaining = remaining.Replace(pattern, "").Replace(",,", ",");
+            }
+        }
+
+        // 处理剩余的选项（如果有的话）
+        if (!string.IsNullOrEmpty(remaining))
+        {
+            string[] remainingOptions = remaining.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string option in remainingOptions)
+            {
+                string trimmed = option.Trim();
+                if (!string.IsNullOrEmpty(trimmed) && !options.Contains(trimmed))
+                {
+                    options.Add(trimmed);
+                }
+            }
+        }
+
+        return options;
+    }
+
+    /// <summary>
+    /// 将选项列表转换为 ExamLab 兼容的 EnumOptions 字符串
+    /// </summary>
+    /// <param name="options">选项列表</param>
+    /// <returns>逗号分隔的选项字符串</returns>
+    private static string ConvertOptionsToEnumString(List<string> options)
+    {
+        if (options == null || options.Count == 0)
+            return string.Empty;
+
+        // 直接用逗号连接，因为选项已经是正确解析的格式
+        return string.Join(",", options);
     }
 }
