@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using Examina.Models;
+using Examina.Converters;
 
 namespace Examina.Services;
 
@@ -12,6 +13,23 @@ public class AuthenticationService : IAuthenticationService
     private readonly HttpClient _httpClient;
     private readonly IDeviceService _deviceService;
     private readonly ISecureStorageService _secureStorage;
+
+    /// <summary>
+    /// 统一的JSON序列化选项配置
+    /// </summary>
+    private static JsonSerializerOptions CreateJsonOptions()
+    {
+        JsonSerializerOptions options = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        // 添加UserRole转换器
+        options.Converters.Add(new UserRoleJsonConverter());
+
+        return options;
+    }
 
     /// <summary>
     /// 用户信息更新事件
@@ -148,10 +166,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (response.IsSuccessStatusCode)
             {
-                LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, CreateJsonOptions());
 
                 if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.AccessToken))
                 {
@@ -200,10 +215,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (response.IsSuccessStatusCode)
             {
-                LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, CreateJsonOptions());
 
                 if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.AccessToken))
                 {
@@ -251,10 +263,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (response.IsSuccessStatusCode)
             {
-                LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, CreateJsonOptions());
 
                 if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.AccessToken))
                 {
@@ -453,10 +462,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (response.IsSuccessStatusCode)
             {
-                RefreshTokenResponse? refreshResponse = JsonSerializer.Deserialize<RefreshTokenResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                RefreshTokenResponse? refreshResponse = JsonSerializer.Deserialize<RefreshTokenResponse>(responseContent, CreateJsonOptions());
 
                 if (refreshResponse != null && !string.IsNullOrEmpty(refreshResponse.AccessToken))
                 {
@@ -541,10 +547,7 @@ public class AuthenticationService : IAuthenticationService
             if (response.IsSuccessStatusCode)
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
-                List<DeviceInfo>? devices = JsonSerializer.Deserialize<List<DeviceInfo>>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                List<DeviceInfo>? devices = JsonSerializer.Deserialize<List<DeviceInfo>>(responseContent, CreateJsonOptions());
                 return devices ?? [];
             }
         }
@@ -686,10 +689,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (response.IsSuccessStatusCode)
             {
-                UserInfo? userInfo = JsonSerializer.Deserialize<UserInfo>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                UserInfo? userInfo = JsonSerializer.Deserialize<UserInfo>(responseContent, CreateJsonOptions());
 
                 if (userInfo != null)
                 {
@@ -782,10 +782,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (response.IsSuccessStatusCode)
             {
-                UserInfo? updatedUser = JsonSerializer.Deserialize<UserInfo>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                UserInfo? updatedUser = JsonSerializer.Deserialize<UserInfo>(responseContent, CreateJsonOptions());
 
                 if (updatedUser != null)
                 {
@@ -1010,10 +1007,7 @@ public class AuthenticationService : IAuthenticationService
                     if (response.IsSuccessStatusCode)
                     {
                         string responseContent = await response.Content.ReadAsStringAsync();
-                        UserInfo? latestUserInfo = JsonSerializer.Deserialize<UserInfo>(responseContent, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
+                        UserInfo? latestUserInfo = JsonSerializer.Deserialize<UserInfo>(responseContent, CreateJsonOptions());
 
                         if (latestUserInfo != null)
                         {
@@ -1095,10 +1089,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (response.IsSuccessStatusCode)
             {
-                RefreshTokenResponse? refreshResponse = JsonSerializer.Deserialize<RefreshTokenResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                RefreshTokenResponse? refreshResponse = JsonSerializer.Deserialize<RefreshTokenResponse>(responseContent, CreateJsonOptions());
 
                 if (refreshResponse != null && !string.IsNullOrEmpty(refreshResponse.AccessToken))
                 {
@@ -1176,10 +1167,7 @@ public class AuthenticationService : IAuthenticationService
             if (response.IsSuccessStatusCode)
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
-                UserInfo? userInfo = System.Text.Json.JsonSerializer.Deserialize<UserInfo>(responseContent, new System.Text.Json.JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                UserInfo? userInfo = JsonSerializer.Deserialize<UserInfo>(responseContent, CreateJsonOptions());
 
                 if (userInfo != null)
                 {
