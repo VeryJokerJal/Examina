@@ -34,7 +34,12 @@
                             <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Red" IsVisible="{Binding UsernameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding UsernameError}" />
                         </StackPanel>
 
-
+                        <!--  真实姓名字段  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="真实姓名" />
+                            <TextBox Height="40" Padding="12,8" VerticalContentAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" IsReadOnly="{Binding !IsEditing}" Text="{Binding RealName}" Watermark="请输入真实姓名" />
+                            <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Red" IsVisible="{Binding RealNameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding RealNameError}" />
+                        </StackPanel>
 
                         <!--  手机号字段  -->
                         <StackPanel Spacing="8">
@@ -43,17 +48,7 @@
                             <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="手机号码用于账户安全验证，如需修改请联系客服" />
                         </StackPanel>
 
-                        <!--  功能说明  -->
-                        <Border Margin="0,8,0,0" Padding="16" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8">
-                            <StackPanel Spacing="8">
-                                <TextBlock FontFamily="Microsoft YaHei" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="📋 功能说明" />
-                                <StackPanel Spacing="4">
-                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Green" Text="✅ 支持修改：用户名" />
-                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Orange" Text="⚠️ 暂不支持：手机号修改（如需修改请联系客服）" />
-                                    <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="Green" Text="🔒 密码修改：支持当前密码验证，确保账户安全" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
+
 
                         <!--  操作按钮区域  -->
                         <Border Margin="0,8,0,0" Padding="20" Background="{DynamicResource SystemControlBackgroundAltMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8">
@@ -62,16 +57,16 @@
 
                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                     <!--  编辑模式按钮  -->
-                                    <Button Padding="16,10" Command="{Binding EditProfileCommand}" Content="✏️ 编辑信息" FontFamily="Microsoft YaHei" FontSize="14" IsVisible="{Binding !IsEditing}" />
+                                    <Button Padding="16,10" Command="{Binding EditProfileCommand}" Content="编辑信息" FontFamily="Microsoft YaHei" FontSize="14" IsVisible="{Binding !IsEditing}" />
 
                                     <!--  保存按钮  -->
-                                    <Button Padding="16,10" Classes="accent" Command="{Binding SaveProfileCommand}" Content="💾 保存更改" FontFamily="Microsoft YaHei" FontSize="14" IsEnabled="{Binding !IsSaving}" IsVisible="{Binding IsEditing}" />
+                                    <Button Padding="16,10" Classes="accent" Command="{Binding SaveProfileCommand}" Content="保存更改" FontFamily="Microsoft YaHei" FontSize="14" IsEnabled="{Binding !IsSaving}" IsVisible="{Binding IsEditing}" />
 
                                     <!--  取消按钮  -->
-                                    <Button Padding="16,10" Command="{Binding CancelEditCommand}" Content="❌ 取消" FontFamily="Microsoft YaHei" FontSize="14" IsEnabled="{Binding !IsSaving}" IsVisible="{Binding IsEditing}" />
+                                    <Button Padding="16,10" Command="{Binding CancelEditCommand}" Content="取消" FontFamily="Microsoft YaHei" FontSize="14" IsEnabled="{Binding !IsSaving}" IsVisible="{Binding IsEditing}" />
 
                                     <!--  修改密码按钮  -->
-                                    <Button Padding="16,10" Command="{Binding ChangePasswordCommand}" Content="🔒 修改密码" FontFamily="Microsoft YaHei" FontSize="14" />
+                                    <Button Padding="16,10" Command="{Binding ChangePasswordCommand}" Content="修改密码" FontFamily="Microsoft YaHei" FontSize="14" />
                                 </StackPanel>
 
                                 <!--  状态消息  -->
@@ -102,7 +97,7 @@
                             </StackPanel>
 
                             <!--  刷新按钮  -->
-                            <Button Padding="12,8" HorizontalAlignment="Stretch" Command="{Binding RefreshProfileCommand}" Content="🔄 刷新信息" FontFamily="Microsoft YaHei" FontSize="12" />
+                            <Button Padding="12,8" HorizontalAlignment="Stretch" Command="{Binding RefreshProfileCommand}" Content="刷新信息" FontFamily="Microsoft YaHei" FontSize="12" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

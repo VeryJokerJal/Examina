@@ -45,6 +45,12 @@ public class ProfileViewModel : ViewModelBase
     public string PhoneNumber { get; set; } = string.Empty;
 
     /// <summary>
+    /// 真实姓名
+    /// </summary>
+    [Reactive]
+    public string RealName { get; set; } = string.Empty;
+
+    /// <summary>
     /// 注册时间
     /// </summary>
     [Reactive]
@@ -86,6 +92,11 @@ public class ProfileViewModel : ViewModelBase
     [Reactive]
     public string UsernameError { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 真实姓名验证错误消息
+    /// </summary>
+    [Reactive]
+    public string RealNameError { get; set; } = string.Empty;
 
 
 
@@ -159,6 +170,13 @@ public class ProfileViewModel : ViewModelBase
                 RaiseCanExecuteChanged();
             });
 
+        _ = this.WhenAnyValue(x => x.RealName)
+            .Subscribe(_ =>
+            {
+                ValidateRealName();
+                RaiseCanExecuteChanged();
+            });
+
 
 
         // 监听编辑状态变化
@@ -192,6 +210,7 @@ public class ProfileViewModel : ViewModelBase
                 _originalUserInfo = currentUser;
                 Username = currentUser.Username;
                 PhoneNumber = currentUser.PhoneNumber;
+                RealName = currentUser.RealName ?? string.Empty;
 
                 // 注册时间和最后登录时间从服务端获取
                 RegistrationDate = DateTime.Now.AddDays(-30); // 临时数据
@@ -248,7 +267,8 @@ public class ProfileViewModel : ViewModelBase
             // 调用AuthenticationService更新用户信息
             bool success = await _authenticationService.UpdateUserProfileAsync(new UpdateUserProfileRequest
             {
-                Username = Username
+                Username = Username,
+                RealName = RealName
             });
 
             if (success)
@@ -412,6 +432,28 @@ public class ProfileViewModel : ViewModelBase
         UpdateValidationState();
     }
 
+    /// <summary>
+    /// 验证真实姓名
+    /// </summary>
+    private void ValidateRealName()
+    {
+        RealNameError = string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(RealName))
+        {
+            if (RealName.Length < 2)
+            {
+                RealNameError = "真实姓名至少需要2个字符";
+            }
+            else if (RealName.Length > 50)
+            {
+                RealNameError = "真实姓名不能超过50个字符";
+            }
+        }
+
+        UpdateValidationState();
+    }
+
 
 
     /// <summary>
@@ -420,6 +462,7 @@ public class ProfileViewModel : ViewModelBase
     private bool ValidateForm()
     {
         ValidateUsername();
+        ValidateRealName();
         return !HasValidationErrors;
     }
 
@@ -428,7 +471,7 @@ public class ProfileViewModel : ViewModelBase
     /// </summary>
     private void UpdateValidationState()
     {
-        HasValidationErrors = !string.IsNullOrEmpty(UsernameError);
+        HasValidationErrors = !string.IsNullOrEmpty(UsernameError) || !string.IsNullOrEmpty(RealNameError);
     }
 
     /// <summary>

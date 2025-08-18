@@ -78,6 +78,11 @@ public class UserInfo
     public int MaxDeviceCount { get; set; }
 
     /// <summary>
+    /// 真实姓名
+    /// </summary>
+    public string? RealName { get; set; }
+
+    /// <summary>
     /// 是否拥有完整功能权限
     /// </summary>
     public bool HasFullAccess { get; set; }
@@ -123,6 +128,11 @@ public class UpdateUserProfileRequest
     /// 用户名（后端支持）
     /// </summary>
     public string Username { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 真实姓名（后端支持）
+    /// </summary>
+    public string? RealName { get; set; }
 
     /// <summary>
     /// 邮箱（后端暂不支持更新）
