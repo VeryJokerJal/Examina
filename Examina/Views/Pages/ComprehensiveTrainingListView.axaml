@@ -18,7 +18,7 @@
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="🎯" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <TextBlock Text="综合实训" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding TotalCount, StringFormat='共 {0} 个训练项目'}" 
+                <TextBlock Text="{Binding TotalCount, StringFormat={}共 {0} 个训练项目}"
                           FontSize="14" Foreground="White" Opacity="0.8" 
                           VerticalAlignment="Center" Margin="20,0,0,0"/>
             </StackPanel>
@@ -84,22 +84,22 @@
                                         <StackPanel Orientation="Horizontal" Spacing="20">
                                             <StackPanel Orientation="Horizontal" Spacing="5">
                                                 <TextBlock Text="📊" FontSize="14"/>
-                                                <TextBlock Text="{Binding TotalScore, StringFormat='{0} 分'}" FontSize="14"/>
+                                                <TextBlock Text="{Binding TotalScore, StringFormat={}{0} 分}" FontSize="14"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="5">
                                                 <TextBlock Text="⏱️" FontSize="14"/>
-                                                <TextBlock Text="{Binding DurationMinutes, StringFormat='{0} 分钟'}" FontSize="14"/>
+                                                <TextBlock Text="{Binding DurationMinutes, StringFormat={}{0} 分钟}" FontSize="14"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="5">
                                                 <TextBlock Text="✅" FontSize="14"/>
-                                                <TextBlock Text="{Binding PassingScore, StringFormat='及格线 {0} 分'}" FontSize="14"/>
+                                                <TextBlock Text="{Binding PassingScore, StringFormat={}及格线 {0} 分}" FontSize="14"/>
                                             </StackPanel>
                                         </StackPanel>
 
                                         <!-- 训练类型 -->
                                         <StackPanel Orientation="Horizontal" Spacing="5">
                                             <TextBlock Text="🏷️" FontSize="14"/>
-                                            <TextBlock Text="{Binding TrainingType, StringFormat='类型: {0}'}" FontSize="14"/>
+                                            <TextBlock Text="{Binding TrainingType, StringFormat={}类型: {0}}" FontSize="14"/>
                                         </StackPanel>
 
                                         <!-- 时间信息 -->
@@ -107,13 +107,13 @@
                                                    IsVisible="{Binding StartTime, Converter={x:Static ObjectConverters.IsNotNull}}">
                                             <StackPanel Orientation="Horizontal" Spacing="5">
                                                 <TextBlock Text="🕐" FontSize="14"/>
-                                                <TextBlock Text="{Binding StartTime, StringFormat='开始时间: {0:yyyy-MM-dd HH:mm}'}"
+                                                <TextBlock Text="{Binding StartTime, StringFormat={}开始时间: {0:yyyy-MM-dd HH:mm}}"
                                                           FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="5"
                                                        IsVisible="{Binding EndTime, Converter={x:Static ObjectConverters.IsNotNull}}">
                                                 <TextBlock Text="🕕" FontSize="14"/>
-                                                <TextBlock Text="{Binding EndTime, StringFormat='结束时间: {0:yyyy-MM-dd HH:mm}'}"
+                                                <TextBlock Text="{Binding EndTime, StringFormat={}结束时间: {0:yyyy-MM-dd HH:mm}}"
                                                           FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
@@ -121,7 +121,7 @@
                                         <!-- 重做信息 -->
                                         <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding AllowRetake}">
                                             <TextBlock Text="🔄" FontSize="14"/>
-                                            <TextBlock Text="{Binding MaxRetakeCount, StringFormat='允许重做，最多 {0} 次'}" 
+                                            <TextBlock Text="{Binding MaxRetakeCount, StringFormat={}允许重做，最多 {0} 次}"
                                                       FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                                         </StackPanel>
                                     </StackPanel>
@@ -188,7 +188,7 @@
                     </Button.Content>
                 </Button>
 
-                <TextBlock Text="{Binding Trainings.Count, StringFormat='已显示 {0} 项'}" 
+                <TextBlock Text="{Binding Trainings.Count, StringFormat={}已显示 {0} 项}"
                           VerticalAlignment="Center" 
                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
             </StackPanel>
