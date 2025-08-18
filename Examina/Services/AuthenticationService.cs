@@ -26,11 +26,16 @@ public class AuthenticationService : IAuthenticationService
     public bool IsAuthenticated { get; private set; }
     public UserInfo? CurrentUser
     {
-        get => _currentUser;
+        get
+        {
+            System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser getter called, value: {(_currentUser?.Username ?? "null")}");
+            return _currentUser;
+        }
         private set
         {
             if (_currentUser != value)
             {
+                System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser setter: {(_currentUser?.Username ?? "null")} -> {(value?.Username ?? "null")}");
                 _currentUser = value;
                 UserInfoUpdated?.Invoke(this, value);
             }

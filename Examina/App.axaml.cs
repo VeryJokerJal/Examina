@@ -84,6 +84,15 @@ public partial class App : Application
         _ = services.AddSingleton<IDeviceService, DeviceService>();
         _ = services.AddSingleton<ISecureStorageService, SecureStorageService>();
 
+        // 确保AuthenticationService为单例
+        _ = services.AddSingleton<IAuthenticationService>(provider =>
+        {
+            HttpClient httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(AuthenticationService));
+            IDeviceService deviceService = provider.GetRequiredService<IDeviceService>();
+            ISecureStorageService secureStorage = provider.GetRequiredService<ISecureStorageService>();
+            return new AuthenticationService(httpClient, deviceService, secureStorage);
+        });
+
         // 注册ViewModels
         _ = services.AddTransient<LoginViewModel>();
         _ = services.AddTransient<MainViewModel>();

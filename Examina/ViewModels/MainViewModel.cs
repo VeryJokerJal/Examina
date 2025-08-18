@@ -16,7 +16,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 {
     #region 字段
 
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IAuthenticationService? _authenticationService;
 
     #endregion
 
@@ -81,7 +81,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
     }
 
-    public MainViewModel(IAuthenticationService authenticationService)
+    public MainViewModel(IAuthenticationService? authenticationService = null)
     {
         _authenticationService = authenticationService;
 
@@ -89,7 +89,6 @@ public class MainViewModel : ViewModelBase, IDisposable
         UnlockAdsCommand = new DelegateCommand(UnlockAds);
 
         InitializeNavigation();
-        LoadCurrentUser();
 
         // 监听用户信息更新事件
         if (_authenticationService != null)
@@ -101,6 +100,9 @@ public class MainViewModel : ViewModelBase, IDisposable
         _ = this.WhenAnyValue(x => x.SelectedNavigationItem)
             .Where(item => item != null)
             .Subscribe(item => OnNavigationSelectionChanged(item!));
+
+        // 异步加载用户信息
+        _ = LoadCurrentUserAsync();
     }
 
     private void UnlockAds()
@@ -234,11 +236,72 @@ public class MainViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// 加载当前用户信息
+    /// 异步加载当前用户信息
+    /// </summary>
+    private async Task LoadCurrentUserAsync()
+    {
+        try
+        {
+            if (_authenticationService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: AuthenticationService为null");
+                return;
+            }
+
+            // 首先尝试从AuthenticationService获取当前用户
+            CurrentUser = _authenticationService.CurrentUser;
+
+            // 如果CurrentUser为null，尝试从本地存储加载
+            if (CurrentUser == null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: CurrentUser为null，尝试从本地存储加载");
+
+                // 检查是否有本地登录数据
+                PersistentLoginData? loginData = await _authenticationService.LoadLoginDataAsync();
+                if (loginData != null && loginData.User != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"MainViewModel: 从本地存储加载到用户信息: {loginData.User.Username}");
+                    CurrentUser = loginData.User;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 本地存储中没有用户信息");
+                }
+            }
+
+            if (CurrentUser != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"MainViewModel: 成功加载用户信息: {CurrentUser.Username}, HasFullAccess: {CurrentUser.HasFullAccess}");
+
+                // 重新初始化底部导航以反映用户权限状态
+                InitializeFooterNavigation();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法加载用户信息");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 加载用户信息时发生异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 加载当前用户信息（同步版本，保留向后兼容性）
     /// </summary>
     private void LoadCurrentUser()
     {
-        CurrentUser = _authenticationService.CurrentUser;
+        CurrentUser = _authenticationService?.CurrentUser;
+    }
+
+    /// <summary>
+    /// 初始化MainViewModel（在导航到MainWindow时调用）
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("MainViewModel.InitializeAsync called");
+        await LoadCurrentUserAsync();
     }
 
     /// <summary>
@@ -291,8 +354,8 @@ public class MainViewModel : ViewModelBase, IDisposable
             "exam-ranking" => new LeaderboardViewModel(),
             "mock-exam-ranking" => new LeaderboardViewModel(),
             "training-ranking" => new LeaderboardViewModel(),
-            "school-binding" => ((App)Application.Current!).GetService<SchoolBindingViewModel>() ?? new SchoolBindingViewModel(null!, _authenticationService),
-            "profile" => ((App)Application.Current!).GetService<ProfileViewModel>() ?? new ProfileViewModel(_authenticationService),
+            "school-binding" => ((App)Application.Current!).GetService<SchoolBindingViewModel>() ?? (_authenticationService != null ? new SchoolBindingViewModel(null!, _authenticationService) : null),
+            "profile" => ((App)Application.Current!).GetService<ProfileViewModel>() ?? (_authenticationService != null ? new ProfileViewModel(_authenticationService) : null),
             _ => new OverviewViewModel()
         };
     }
@@ -304,7 +367,10 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            await _authenticationService.LogoutAsync();
+            if (_authenticationService != null)
+            {
+                await _authenticationService.LogoutAsync();
+            }
 
             // TODO: 导航回登录页面
             // 这里需要通过应用程序的主窗口管理器来切换窗口
@@ -325,7 +391,11 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// </summary>
     public void Dispose()
     {
-        _authenticationService.UserInfoUpdated -= OnUserInfoUpdated;
+        if (_authenticationService != null)
+        {
+            _authenticationService.UserInfoUpdated -= OnUserInfoUpdated;
+        }
+        GC.SuppressFinalize(this);
     }
 
     #endregion

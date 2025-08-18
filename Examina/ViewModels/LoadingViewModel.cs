@@ -185,7 +185,7 @@ public class LoadingViewModel : ViewModelBase
     /// <summary>
     /// 导航到主窗口
     /// </summary>
-    private static void NavigateToMainWindow()
+    private static async void NavigateToMainWindow()
     {
         if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -201,6 +201,17 @@ public class LoadingViewModel : ViewModelBase
                     if (mainWindow.Content is Views.MainView mainView)
                     {
                         mainView.DataContext = mainViewModel;
+                    }
+
+                    // 异步初始化MainViewModel
+                    try
+                    {
+                        await mainViewModel.InitializeAsync();
+                        System.Diagnostics.Debug.WriteLine("MainViewModel初始化完成");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"MainViewModel初始化失败: {ex.Message}");
                     }
                 }
             }
