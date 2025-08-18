@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +38,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
 
             List<StudentComprehensiveTrainingDto> result = trainings.Select(MapToStudentComprehensiveTrainingDto).ToList();
 
-            _logger.LogInformation("获取学生可访问综合训练列表成功，学生ID: {StudentUserId}, 返回数量: {Count}", 
+            _logger.LogInformation("获取学生可访问综合训练列表成功，学生ID: {StudentUserId}, 返回数量: {Count}",
                 studentUserId, result.Count);
 
             return result;
@@ -60,7 +60,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             // 检查权限
             if (!await HasAccessToTrainingAsync(trainingId, studentUserId))
             {
-                _logger.LogWarning("学生无权限访问综合训练，学生ID: {StudentUserId}, 训练ID: {TrainingId}", 
+                _logger.LogWarning("学生无权限访问综合训练，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
                     studentUserId, trainingId);
                 return null;
             }
@@ -84,14 +84,14 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
 
             StudentComprehensiveTrainingDto result = MapToStudentComprehensiveTrainingDtoWithDetails(training);
 
-            _logger.LogInformation("获取综合训练详情成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}", 
+            _logger.LogInformation("获取综合训练详情成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
                 studentUserId, trainingId);
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "获取综合训练详情失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}", 
+            _logger.LogError(ex, "获取综合训练详情失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
                 studentUserId, trainingId);
             throw;
         }
@@ -130,7 +130,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "检查综合训练访问权限失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}", 
+            _logger.LogError(ex, "检查综合训练访问权限失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
                 studentUserId, trainingId);
             return false;
         }
@@ -147,7 +147,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             int count = await _context.ImportedComprehensiveTrainings
                 .CountAsync(t => t.IsEnabled);
 
-            _logger.LogInformation("获取学生可访问综合训练总数成功，学生ID: {StudentUserId}, 总数: {Count}", 
+            _logger.LogInformation("获取学生可访问综合训练总数成功，学生ID: {StudentUserId}, 总数: {Count}",
                 studentUserId, count);
 
             return count;
@@ -169,7 +169,6 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Id = training.Id,
             Name = training.Name,
             Description = training.Description,
-            TrainingType = training.TrainingType,
             Status = training.Status,
             TotalScore = (int)training.TotalScore,
             DurationMinutes = training.DurationMinutes,

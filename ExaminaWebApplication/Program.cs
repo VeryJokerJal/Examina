@@ -17,22 +17,21 @@ builder.WebHost.ConfigureKestrel(options =>
     {
         // 开发环境使用launchSettings.json中的配置
         options.ListenLocalhost(5117); // HTTP
-        options.ListenLocalhost(7125, listenOptions =>
-        {
-            listenOptions.UseHttps(); // HTTPS
-        });
+        // 开发环境的HTTPS配置由launchSettings.json处理
     }
     else
     {
-        // 生产环境明确配置端口
+        // 生产环境只配置HTTP端口，避免HTTPS证书问题
         options.ListenAnyIP(5000); // HTTP - 监听所有IP地址
-        options.ListenAnyIP(5001, listenOptions =>
-        {
-            listenOptions.UseHttps(); // HTTPS - 监听所有IP地址
-        });
-
-        // 也可以监听localhost
         options.ListenLocalhost(8080); // HTTP localhost备用端口
+
+        // 如果需要HTTPS，请先配置证书：
+        // dotnet dev-certs https --trust
+        // 然后取消注释下面的代码：
+        // options.ListenAnyIP(5001, listenOptions =>
+        // {
+        //     listenOptions.UseHttps(); // HTTPS
+        // });
     }
 });
 
@@ -357,9 +356,9 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// 对API请求完全禁用HTTPS重定向，对非API请求使用标准HTTPS重定向
-app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"),
-    appBuilder => appBuilder.UseHttpsRedirection());
+// 完全禁用HTTPS重定向以避免重定向循环问题
+// 如果需要HTTPS，请在生产环境中通过反向代理（如Nginx）处理
+// app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseRouting();
@@ -435,6 +434,22 @@ app.MapControllerRoute(
     name: "userManagement",
     pattern: "UserManagement/{action=Index}/{id?}",
     defaults: new { controller = "UserManagement" });
+
+// 添加根路径重定向到登录页面
+app.MapGet("/", context =>
+{
+    // 如果用户已登录，重定向到首页；否则重定向到登录页面
+    if (context.User?.Identity?.IsAuthenticated == true)
+    {
+        context.Response.Redirect("/Home");
+        return Task.CompletedTask;
+    }
+    else
+    {
+        context.Response.Redirect("/Login");
+        return Task.CompletedTask;
+    }
+});
 
 app.MapControllerRoute(
     name: "default",

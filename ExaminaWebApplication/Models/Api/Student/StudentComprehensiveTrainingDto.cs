@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace ExaminaWebApplication.Models.Api.Student;
+﻿namespace ExaminaWebApplication.Models.Api.Student;
 
 /// <summary>
 /// 学生端综合训练DTO
@@ -21,11 +19,6 @@ public class StudentComprehensiveTrainingDto
     /// 综合训练描述
     /// </summary>
     public string? Description { get; set; }
-
-    /// <summary>
-    /// 训练类型
-    /// </summary>
-    public string TrainingType { get; set; } = string.Empty;
 
     /// <summary>
     /// 训练状态
