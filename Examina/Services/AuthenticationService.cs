@@ -497,22 +497,31 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task LogoutAsync()
     {
+        System.Diagnostics.Debug.WriteLine("开始执行退出登录流程");
+
         try
         {
+            // 如果有访问令牌，通知服务器退出登录
             if (!string.IsNullOrEmpty(CurrentAccessToken))
             {
+                System.Diagnostics.Debug.WriteLine("向服务器发送退出登录请求");
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CurrentAccessToken);
                 _ = await _httpClient.PostAsync(BuildApiUrl("logout"), null);
+                System.Diagnostics.Debug.WriteLine("服务器退出登录请求完成");
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 忽略登出错误
+            // 忽略登出错误，但记录日志
+            System.Diagnostics.Debug.WriteLine($"服务器退出登录请求失败: {ex.Message}");
         }
         finally
         {
+            // 无论服务器请求是否成功，都要清除本地状态
+            System.Diagnostics.Debug.WriteLine("开始清除本地认证状态");
             ClearAuthenticationState();
+            System.Diagnostics.Debug.WriteLine("退出登录流程完成");
         }
     }
 
@@ -596,12 +605,37 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     private void ClearAuthenticationState()
     {
+        System.Diagnostics.Debug.WriteLine("开始清除认证状态");
+
+        // 清除内存中的认证信息
         CurrentAccessToken = null;
         CurrentRefreshToken = null;
         TokenExpiresAt = null;
         CurrentUser = null;
         IsAuthenticated = false;
         _httpClient.DefaultRequestHeaders.Authorization = null;
+
+        System.Diagnostics.Debug.WriteLine("内存中的认证信息已清除");
+
+        // 异步清除本地存储的数据（不等待结果，避免阻塞UI）
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                // 清除登录数据
+                bool loginDataCleared = await ClearLoginDataAsync();
+                System.Diagnostics.Debug.WriteLine($"本地登录数据清除结果: {loginDataCleared}");
+
+                // 可以在这里添加其他缓存清除逻辑
+                // 例如：清除用户偏好设置、临时文件等
+
+                System.Diagnostics.Debug.WriteLine("所有本地数据清除完成");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"清除本地数据失败: {ex.Message}");
+            }
+        });
     }
 
     /// <summary>

@@ -17,6 +17,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     #region 字段
 
     private readonly IAuthenticationService? _authenticationService;
+    private readonly IWindowManagerService? _windowManagerService;
 
     #endregion
 
@@ -89,9 +90,10 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
     }
 
-    public MainViewModel(IAuthenticationService? authenticationService = null)
+    public MainViewModel(IAuthenticationService? authenticationService = null, IWindowManagerService? windowManagerService = null)
     {
         _authenticationService = authenticationService;
+        _windowManagerService = windowManagerService;
 
         LogoutCommand = new DelegateCommand(Logout);
         UnlockAdsCommand = new DelegateCommand(UnlockAds);
@@ -483,18 +485,39 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine("开始退出登录流程");
+
+            // 调用认证服务退出登录
             if (_authenticationService != null)
             {
                 await _authenticationService.LogoutAsync();
+                System.Diagnostics.Debug.WriteLine("认证服务退出登录完成");
             }
 
-            // TODO: 导航回登录页面
-            // 这里需要通过应用程序的主窗口管理器来切换窗口
+            // 使用窗口管理服务导航回登录页面
+            if (_windowManagerService != null)
+            {
+                _windowManagerService.NavigateToLogin();
+                System.Diagnostics.Debug.WriteLine("已导航到登录窗口");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("窗口管理服务未注入，无法导航到登录窗口");
+            }
         }
         catch (Exception ex)
         {
-            // TODO: 显示错误消息
             System.Diagnostics.Debug.WriteLine($"退出登录失败: {ex.Message}");
+
+            // 即使出现错误，也尝试导航到登录窗口
+            try
+            {
+                _windowManagerService?.NavigateToLogin();
+            }
+            catch (Exception navEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"导航到登录窗口失败: {navEx.Message}");
+            }
         }
     }
 

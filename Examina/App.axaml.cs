@@ -93,9 +93,17 @@ public partial class App : Application
             return new AuthenticationService(httpClient, deviceService, secureStorage);
         });
 
+        // 注册窗口管理服务
+        _ = services.AddSingleton<IWindowManagerService, WindowManagerService>();
+
         // 注册ViewModels
         _ = services.AddTransient<LoginViewModel>();
-        _ = services.AddTransient<MainViewModel>();
+        _ = services.AddTransient<MainViewModel>(provider =>
+        {
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            IWindowManagerService windowManager = provider.GetRequiredService<IWindowManagerService>();
+            return new MainViewModel(authService, windowManager);
+        });
         _ = services.AddTransient<UserInfoCompletionViewModel>();
         _ = services.AddTransient<LoadingViewModel>();
         _ = services.AddTransient<ProfileViewModel>();
