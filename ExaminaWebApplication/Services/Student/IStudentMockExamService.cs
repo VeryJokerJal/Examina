@@ -8,6 +8,13 @@ namespace ExaminaWebApplication.Services.Student;
 public interface IStudentMockExamService
 {
     /// <summary>
+    /// 快速开始模拟考试（使用预设规则自动生成并开始）
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <returns>创建并开始的模拟考试</returns>
+    Task<StudentMockExamDto?> QuickStartMockExamAsync(int studentUserId);
+
+    /// <summary>
     /// 创建模拟考试
     /// </summary>
     /// <param name="request">创建请求</param>

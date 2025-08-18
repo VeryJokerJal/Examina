@@ -33,6 +33,87 @@ public class StudentMockExamService : IStudentMockExamService
     }
 
     /// <summary>
+    /// 快速开始模拟考试（使用预设规则自动生成并开始）
+    /// </summary>
+    public async Task<StudentMockExamDto?> QuickStartMockExamAsync(int studentUserId)
+    {
+        try
+        {
+            // 验证学生用户存在且为学生角色
+            Models.User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
+
+            if (student == null)
+            {
+                _logger.LogWarning("用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
+                return null;
+            }
+
+            // 使用预设的抽取规则
+            CreateMockExamRequestDto request = CreateDefaultMockExamRequest();
+
+            // 验证抽取规则的总分值是否匹配
+            int totalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
+            if (totalScoreFromRules != request.TotalScore)
+            {
+                _logger.LogWarning("预设抽取规则的总分值({TotalFromRules})与请求的总分值({RequestTotal})不匹配",
+                    totalScoreFromRules, request.TotalScore);
+                return null;
+            }
+
+            // 从综合训练中抽取题目
+            List<ExtractedQuestionInfo> extractedQuestions = await ExtractQuestionsAsync(request.ExtractionRules);
+            if (extractedQuestions.Count == 0)
+            {
+                _logger.LogWarning("无法从综合训练中抽取到足够的题目");
+                return null;
+            }
+
+            // 如果需要随机排序
+            if (request.RandomizeQuestions)
+            {
+                extractedQuestions = extractedQuestions.OrderBy(x => _random.Next()).ToList();
+            }
+
+            // 重新设置排序顺序
+            for (int i = 0; i < extractedQuestions.Count; i++)
+            {
+                extractedQuestions[i].SortOrder = i + 1;
+            }
+
+            // 创建模拟考试实例并立即开始
+            MockExam mockExam = new()
+            {
+                StudentId = studentUserId,
+                Name = request.Name,
+                Description = request.Description,
+                DurationMinutes = request.DurationMinutes,
+                TotalScore = request.TotalScore,
+                PassingScore = request.PassingScore,
+                RandomizeQuestions = request.RandomizeQuestions,
+                ExtractedQuestions = JsonSerializer.Serialize(extractedQuestions, JsonOptions),
+                Status = "InProgress", // 直接设置为进行中
+                CreatedAt = DateTime.UtcNow,
+                StartedAt = DateTime.UtcNow, // 立即开始
+                ExpiresAt = DateTime.UtcNow.AddHours(request.DurationMinutes / 60.0 + 1) // 考试时长+1小时缓冲
+            };
+
+            _context.MockExams.Add(mockExam);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("成功快速开始模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 题目数量: {QuestionCount}",
+                studentUserId, mockExam.Id, extractedQuestions.Count);
+
+            return MapToStudentMockExamDto(mockExam, extractedQuestions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "快速开始模拟考试失败，学生ID: {StudentId}", studentUserId);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// 创建模拟考试
     /// </summary>
     public async Task<StudentMockExamDto?> CreateMockExamAsync(CreateMockExamRequestDto request, int studentUserId)
@@ -515,5 +596,42 @@ public class StudentMockExamService : IStudentMockExamService
                     }).ToList()
                 }).ToList()
             }).ToList()
+        };
+    }
+
+    /// <summary>
+    /// 创建默认的模拟考试请求
+    /// </summary>
+    private static CreateMockExamRequestDto CreateDefaultMockExamRequest()
+    {
+        return new CreateMockExamRequestDto
+        {
+            Name = $"模拟考试 - {DateTime.Now:yyyy年MM月dd日 HH:mm}",
+            Description = "系统自动生成的模拟考试，从综合训练题库中随机抽取题目组成。",
+            DurationMinutes = 120, // 2小时
+            TotalScore = 100,
+            PassingScore = 60,
+            RandomizeQuestions = true,
+            ExtractionRules = new List<QuestionExtractionRuleDto>
+            {
+                // C#编程题 - 5道，每道15分
+                new()
+                {
+                    QuestionType = "编程题",
+                    DifficultyLevel = "中等",
+                    Count = 5,
+                    ScorePerQuestion = 15,
+                    IsRequired = true
+                },
+                // 操作题 - 5道，每道5分
+                new()
+                {
+                    QuestionType = "操作题",
+                    DifficultyLevel = "简单",
+                    Count = 5,
+                    ScorePerQuestion = 5,
+                    IsRequired = true
+                }
+            }
         };
     }

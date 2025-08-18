@@ -1,6 +1,4 @@
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+﻿using System.Net.Http.Headers;
 using Examina.Models.MockExam;
 
 namespace Examina.Services;
@@ -31,6 +29,45 @@ public class StudentMockExamService : IStudentMockExamService
         _httpClient = httpClient;
         _authenticationService = authenticationService;
         _configurationService = configurationService;
+    }
+
+    /// <summary>
+    /// 快速开始模拟考试（使用预设规则自动生成并开始）
+    /// </summary>
+    public async Task<StudentMockExamDto?> QuickStartMockExamAsync()
+    {
+        try
+        {
+            // 设置认证头
+            await SetAuthenticationHeaderAsync();
+
+            string apiUrl = BuildApiUrl("mock-exams/quick-start");
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送快速开始模拟考试请求到 {apiUrl}");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应内容: {responseContent}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                StudentMockExamDto? mockExam = JsonSerializer.Deserialize<StudentMockExamDto>(responseContent, JsonOptions);
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功快速开始模拟考试，ID: {mockExam?.Id}");
+                return mockExam;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试失败，状态码: {response.StatusCode}");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试异常: {ex.Message}");
+            return null;
+        }
     }
 
     /// <summary>
@@ -348,3 +385,4 @@ public class StudentMockExamService : IStudentMockExamService
         string studentEndpoint = _configurationService.StudentAuthEndpoint.TrimEnd('/');
         return $"{baseUrl}/{studentEndpoint}/{endpoint}";
     }
+}

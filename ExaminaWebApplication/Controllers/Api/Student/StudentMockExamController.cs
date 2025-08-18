@@ -27,6 +27,37 @@ public class StudentMockExamController : ControllerBase
     }
 
     /// <summary>
+    /// 快速开始模拟考试（使用预设规则自动生成）
+    /// </summary>
+    /// <returns>创建并开始的模拟考试</returns>
+    [HttpPost("quick-start")]
+    public async Task<ActionResult<StudentMockExamDto>> QuickStartMockExam()
+    {
+        try
+        {
+            // 获取当前学生用户ID
+            int studentUserId = GetCurrentUserId();
+
+            StudentMockExamDto? mockExam = await _mockExamService.QuickStartMockExamAsync(studentUserId);
+            if (mockExam == null)
+            {
+                _logger.LogWarning("快速开始模拟考试失败，学生ID: {StudentId}", studentUserId);
+                return BadRequest(new { message = "快速开始模拟考试失败，请检查题库或稍后重试" });
+            }
+
+            _logger.LogInformation("学生成功快速开始模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                studentUserId, mockExam.Id);
+
+            return Ok(mockExam);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "快速开始模拟考试时发生异常");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
     /// 创建模拟考试
     /// </summary>
     /// <param name="request">创建请求</param>
