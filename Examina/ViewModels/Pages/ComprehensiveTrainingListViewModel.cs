@@ -1,7 +1,8 @@
-using System.Collections.ObjectModel;
-using ReactiveUI;
+﻿using System.Collections.ObjectModel;
+using System.Reactive;
 using Examina.Models.Exam;
 using Examina.Services;
+using ReactiveUI;
 
 namespace Examina.ViewModels.Pages;
 
@@ -88,7 +89,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         ViewDetailsCommand = ReactiveCommand.CreateFromTask<StudentComprehensiveTrainingDto>(ViewDetailsAsync);
 
         // 初始加载
-        _ = Task.Run(async () => await RefreshAsync());
+        _ = Task.Run(RefreshAsync);
     }
 
     /// <summary>

@@ -38,11 +38,11 @@
                 </Border>
 
                 <!-- 加载指示器 -->
-                <Border IsVisible="{Binding IsLoading}" 
+                <Border IsVisible="{Binding IsLoading}"
                         Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                         CornerRadius="5" Padding="20">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <ProgressRing IsActive="True" Width="20" Height="20" Margin="0,0,10,0"/>
+                        <TextBlock Text="🔄" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
                         <TextBlock Text="正在加载综合训练列表..." VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
@@ -107,13 +107,13 @@
                                                    IsVisible="{Binding StartTime, Converter={x:Static ObjectConverters.IsNotNull}}">
                                             <StackPanel Orientation="Horizontal" Spacing="5">
                                                 <TextBlock Text="🕐" FontSize="14"/>
-                                                <TextBlock Text="{Binding StartTime, StringFormat='开始时间: {0:yyyy-MM-dd HH:mm}'}" 
+                                                <TextBlock Text="{Binding StartTime, StringFormat='开始时间: {0:yyyy-MM-dd HH:mm}'}"
                                                           FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="5"
                                                        IsVisible="{Binding EndTime, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                                <TextBlock Text="🕐" FontSize="14"/>
-                                                <TextBlock Text="{Binding EndTime, StringFormat='结束时间: {0:yyyy-MM-dd HH:mm}'}" 
+                                                <TextBlock Text="🕕" FontSize="14"/>
+                                                <TextBlock Text="{Binding EndTime, StringFormat='结束时间: {0:yyyy-MM-dd HH:mm}'}"
                                                           FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
