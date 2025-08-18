@@ -1,0 +1,27 @@
+<UserControl x:Class="Examina.Views.Pages.TestSchoolBindingView" 
+             xmlns="https://github.com/avaloniaui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+             xmlns:vm="clr-namespace:Examina.ViewModels.Pages"
+             x:DataType="vm:SchoolBindingViewModel">
+
+    <Border Background="LightBlue" Padding="20" CornerRadius="8">
+        <StackPanel Spacing="16">
+            <TextBlock Text="测试 SchoolBindingView - 简化版本" 
+                       FontSize="24" FontWeight="Bold" 
+                       Foreground="DarkBlue" />
+            
+            <TextBlock Text="{Binding PageTitle, FallbackValue='页面标题加载中...'}" 
+                       FontSize="18" />
+            
+            <TextBlock Text="{Binding IsSchoolBound, StringFormat='IsSchoolBound: {0}'}" 
+                       FontSize="14" />
+            
+            <TextBox Text="{Binding InvitationCode}" 
+                     Watermark="邀请码" />
+            
+            <Button Content="测试按钮" 
+                    Padding="12,6" />
+        </StackPanel>
+    </Border>
+
+</UserControl>

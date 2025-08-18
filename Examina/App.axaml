@@ -135,7 +135,7 @@
             <views:LeaderboardView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SchoolBindingViewModel}">
-            <views:SchoolBindingView />
+            <views:TestSchoolBindingView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
             <views:ProfileView />

@@ -327,6 +327,16 @@ public class MainViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// 测试方法：设置简单的测试ViewModel
+    /// </summary>
+    public void TestSetSimpleViewModel()
+    {
+        System.Diagnostics.Debug.WriteLine("MainViewModel: TestSetSimpleViewModel called");
+        CurrentPageViewModel = new OverviewViewModel();
+        System.Diagnostics.Debug.WriteLine($"MainViewModel: CurrentPageViewModel set to = {CurrentPageViewModel?.GetType().Name ?? "null"}");
+    }
+
+    /// <summary>
     /// 用户信息更新事件处理
     /// </summary>
     /// <param name="sender">事件发送者</param>

@@ -84,6 +84,12 @@
             <!--  主内容区域  -->
             <ui:NavigationView.Content>
                 <Grid>
+                    <!-- 添加调试信息 -->
+                    <TextBlock Text="{Binding CurrentPageViewModel, StringFormat='Debug: CurrentPageViewModel = {0}'}"
+                               VerticalAlignment="Top" HorizontalAlignment="Left"
+                               Background="Yellow" Padding="5" Margin="10"
+                               FontSize="12" ZIndex="1000" />
+
                     <ContentControl HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Content="{Binding CurrentPageViewModel}" />
                 </Grid>
             </ui:NavigationView.Content>
