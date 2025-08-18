@@ -1008,96 +1008,83 @@ public class StudentAuthController : ControllerBase
         _logger.LogInformation("未找到现有用户，开始自动注册流程，手机号: {PhoneNumber}", phoneNumber);
 
         // 用户不存在，自动注册
-        // 使用数据库事务确保用户创建的原子性
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        // 使用 EF Core 的执行策略来处理重试逻辑
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            // 生成用户名：考生+手机号后四位
-            string baseUsername = $"考生{phoneNumber[^4..]}";
-            _logger.LogInformation("生成基础用户名: {BaseUsername}", baseUsername);
-
-            string username = await GenerateUniqueUsernameAsync(baseUsername);
-            _logger.LogInformation("生成唯一用户名: {Username}", username);
-
-            // 生成临时邮箱
-            string email = $"{phoneNumber}@temp.examina.com";
-            _logger.LogInformation("生成临时邮箱: {Email}", email);
-
-            // 创建新用户
-            user = new User
-            {
-                Username = username,
-                Email = email,
-                PhoneNumber = phoneNumber,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()), // 随机密码
-                Role = UserRole.Student,
-                IsFirstLogin = true,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true,
-                AllowMultipleDevices = false,
-                MaxDeviceCount = 1
-            };
-
-            _logger.LogInformation("创建新用户对象，用户名: {Username}, 邮箱: {Email}, 手机号: {PhoneNumber}, 角色: {Role}, 是否激活: {IsActive}",
-                user.Username, user.Email, user.PhoneNumber, user.Role, user.IsActive);
-
-            _ = _context.Users.Add(user);
-            _logger.LogInformation("用户对象已添加到数据库上下文，准备保存到数据库");
-
-            int changedRows = await _context.SaveChangesAsync();
-            _logger.LogInformation("数据库保存完成，影响行数: {ChangedRows}, 用户ID: {UserId}", changedRows, user.Id);
-
-            // 确保用户ID已正确设置
-            if (user.Id <= 0)
-            {
-                _logger.LogError("用户ID未正确设置，用户ID: {UserId}", user.Id);
-                await transaction.RollbackAsync();
-                return null;
-            }
-
-            // 提交事务
-            await transaction.CommitAsync();
-            _logger.LogInformation("数据库事务已提交，用户创建成功");
-
-            // 验证用户是否真正保存到数据库（使用新的数据库上下文查询）
-            User? savedUser = await _context.Users.FindAsync(user.Id);
-            if (savedUser != null)
-            {
-                _logger.LogInformation("验证成功：用户已保存到数据库，用户ID: {UserId}, 用户名: {Username}, 角色: {Role}, 是否激活: {IsActive}",
-                    savedUser.Id, savedUser.Username, savedUser.Role, savedUser.IsActive);
-
-                // 返回从数据库重新查询的用户对象，确保所有属性都是最新的
-                return savedUser;
-            }
-            else
-            {
-                _logger.LogError("验证失败：用户未能保存到数据库，用户ID: {UserId}", user.Id);
-                return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "自动注册用户失败，手机号: {PhoneNumber}, 错误详情: {ErrorMessage}", phoneNumber, ex.Message);
-
-            // 检查是否是数据库连接问题
-            if (ex.InnerException != null)
-            {
-                _logger.LogError("内部异常: {InnerException}", ex.InnerException.Message);
-            }
-
-            // 尝试回滚事务
             try
             {
-                await transaction.RollbackAsync();
-                _logger.LogInformation("数据库事务已回滚");
-            }
-            catch (Exception rollbackEx)
-            {
-                _logger.LogError(rollbackEx, "回滚事务时发生错误");
-            }
+                // 生成用户名：考生+手机号后四位
+                string baseUsername = $"考生{phoneNumber[^4..]}";
+                _logger.LogInformation("生成基础用户名: {BaseUsername}", baseUsername);
 
-            return null;
-        }
+                string username = await GenerateUniqueUsernameAsync(baseUsername);
+                _logger.LogInformation("生成唯一用户名: {Username}", username);
+
+                // 生成临时邮箱
+                string email = $"{phoneNumber}@temp.examina.com";
+                _logger.LogInformation("生成临时邮箱: {Email}", email);
+
+                // 创建新用户
+                user = new User
+                {
+                    Username = username,
+                    Email = email,
+                    PhoneNumber = phoneNumber,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()), // 随机密码
+                    Role = UserRole.Student,
+                    IsFirstLogin = true,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    AllowMultipleDevices = false,
+                    MaxDeviceCount = 1
+                };
+
+                _logger.LogInformation("创建新用户对象，用户名: {Username}, 邮箱: {Email}, 手机号: {PhoneNumber}, 角色: {Role}, 是否激活: {IsActive}",
+                    user.Username, user.Email, user.PhoneNumber, user.Role, user.IsActive);
+
+                _ = _context.Users.Add(user);
+                _logger.LogInformation("用户对象已添加到数据库上下文，准备保存到数据库");
+
+                int changedRows = await _context.SaveChangesAsync();
+                _logger.LogInformation("数据库保存完成，影响行数: {ChangedRows}, 用户ID: {UserId}", changedRows, user.Id);
+
+                // 确保用户ID已正确设置
+                if (user.Id <= 0)
+                {
+                    _logger.LogError("用户ID未正确设置，用户ID: {UserId}", user.Id);
+                    return null;
+                }
+
+                // 验证用户是否真正保存到数据库
+                User? savedUser = await _context.Users.FindAsync(user.Id);
+                if (savedUser != null)
+                {
+                    _logger.LogInformation("验证成功：用户已保存到数据库，用户ID: {UserId}, 用户名: {Username}, 角色: {Role}, 是否激活: {IsActive}",
+                        savedUser.Id, savedUser.Username, savedUser.Role, savedUser.IsActive);
+
+                    // 返回从数据库重新查询的用户对象，确保所有属性都是最新的
+                    return savedUser;
+                }
+                else
+                {
+                    _logger.LogError("验证失败：用户未能保存到数据库，用户ID: {UserId}", user.Id);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "自动注册用户失败，手机号: {PhoneNumber}, 错误详情: {ErrorMessage}", phoneNumber, ex.Message);
+
+                // 检查是否是数据库连接问题
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError("内部异常: {InnerException}", ex.InnerException.Message);
+                }
+
+                return null;
+            }
+        });
     }
 
     /// <summary>
