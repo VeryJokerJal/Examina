@@ -535,8 +535,9 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "Duration", DisplayName = "动画持续时间（秒为单位）", Description = "动画持续时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0.1, MaxValue = 10 },
-                new() { Name = "DelayTime", DisplayName = "动画延迟时间（秒为单位）", Description = "动画延迟时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 10 }
+                new() { Name = "ElementOrder", DisplayName = "元素顺序", Description = "第几个元素", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "Duration", DisplayName = "动画持续时间（秒为单位）", Description = "动画持续时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0.1, MaxValue = 10 },
+                new() { Name = "DelayTime", DisplayName = "动画延迟时间（秒为单位）", Description = "动画延迟时间（秒）", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0, MaxValue = 10 }
             ]
         };
 
