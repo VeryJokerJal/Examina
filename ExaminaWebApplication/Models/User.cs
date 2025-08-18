@@ -211,6 +211,11 @@ public class UserInfo
     public int MaxDeviceCount { get; set; }
 
     /// <summary>
+    /// 真实姓名
+    /// </summary>
+    public string? RealName { get; set; }
+
+    /// <summary>
     /// 是否拥有完整功能权限
     /// </summary>
     public bool HasFullAccess { get; set; }
@@ -294,6 +299,12 @@ public class UpdateProfileRequest
     /// </summary>
     [StringLength(50)]
     public string? Username { get; set; }
+
+    /// <summary>
+    /// 真实姓名
+    /// </summary>
+    [StringLength(50)]
+    public string? RealName { get; set; }
 }
 
 /// <summary>

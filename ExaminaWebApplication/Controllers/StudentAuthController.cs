@@ -150,6 +150,7 @@ public class StudentAuthController : ControllerBase
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
                     MaxDeviceCount = user.MaxDeviceCount,
+                    RealName = user.RealName,
                     HasFullAccess = hasFullAccess
                 },
                 RequireDeviceBinding = device == null && request.DeviceInfo == null
@@ -264,6 +265,7 @@ public class StudentAuthController : ControllerBase
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
                     MaxDeviceCount = user.MaxDeviceCount,
+                    RealName = user.RealName,
                     HasFullAccess = hasFullAccess
                 },
                 RequireDeviceBinding = device == null && request.DeviceInfo == null
@@ -467,6 +469,7 @@ public class StudentAuthController : ControllerBase
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
                 MaxDeviceCount = user.MaxDeviceCount,
+                RealName = user.RealName,
                 HasFullAccess = hasFullAccess
             };
 
@@ -567,6 +570,7 @@ public class StudentAuthController : ControllerBase
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
                 MaxDeviceCount = user.MaxDeviceCount,
+                RealName = user.RealName,
                 HasFullAccess = hasFullAccess
             };
 
@@ -626,6 +630,13 @@ public class StudentAuthController : ControllerBase
                 hasChanges = true;
             }
 
+            // 更新真实姓名
+            if (request.RealName != user.RealName)
+            {
+                user.RealName = request.RealName;
+                hasChanges = true;
+            }
+
 
 
             // 保存更改
@@ -653,6 +664,7 @@ public class StudentAuthController : ControllerBase
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
                 MaxDeviceCount = user.MaxDeviceCount,
+                RealName = user.RealName,
                 HasFullAccess = hasFullAccess
             };
 

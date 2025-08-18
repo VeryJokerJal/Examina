@@ -717,10 +717,11 @@ public class AuthenticationService : IAuthenticationService
             }
 
             // 使用专门的update-profile端点
-            // 只发送后端支持的字段：Username
+            // 发送后端支持的字段：Username 和 RealName
             UpdateProfileRequest updateProfileRequest = new()
             {
-                Username = request.Username
+                Username = request.Username,
+                RealName = request.RealName
                 // 注意：Email和PhoneNumber暂不支持更新
             };
 
@@ -736,7 +737,8 @@ public class AuthenticationService : IAuthenticationService
 
             System.Diagnostics.Debug.WriteLine($"UpdateUserProfileAsync: 发送更新用户资料请求到 {BuildApiUrl("update-profile")}");
             System.Diagnostics.Debug.WriteLine($"请求内容: {requestJson}");
-            System.Diagnostics.Debug.WriteLine("注意：当前支持更新用户名和头像，Email和PhoneNumber暂不支持");
+            System.Diagnostics.Debug.WriteLine($"Authorization头: Bearer {CurrentAccessToken?[..Math.Min(10, CurrentAccessToken.Length)]}...");
+            System.Diagnostics.Debug.WriteLine("注意：当前支持更新用户名和真实姓名，Email和PhoneNumber暂不支持");
 
             HttpResponseMessage response = await _httpClient.PostAsync(BuildApiUrl("update-profile"), content);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -754,9 +756,19 @@ public class AuthenticationService : IAuthenticationService
                 if (updatedUser != null)
                 {
                     System.Diagnostics.Debug.WriteLine("UpdateUserProfileAsync: 更新成功，更新本地用户信息");
+                    System.Diagnostics.Debug.WriteLine($"更新后的用户信息: Username={updatedUser.Username}, RealName={updatedUser.RealName}");
                     CurrentUser = updatedUser;
                     return true;
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("UpdateUserProfileAsync: 反序列化用户信息失败");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateUserProfileAsync: 请求失败，状态码={response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"错误响应: {responseContent}");
             }
 
             return false;

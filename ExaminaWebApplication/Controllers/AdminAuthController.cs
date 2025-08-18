@@ -128,7 +128,8 @@ public class AdminAuthController : ControllerBase
                     Role = user.Role,
                     IsFirstLogin = user.IsFirstLogin,
                     AllowMultipleDevices = user.AllowMultipleDevices,
-                    MaxDeviceCount = user.MaxDeviceCount
+                    MaxDeviceCount = user.MaxDeviceCount,
+                    RealName = user.RealName
                 },
                 ExpiresAt = expiresAt
             };
@@ -210,7 +211,8 @@ public class AdminAuthController : ControllerBase
                 Role = user.Role,
                 IsFirstLogin = user.IsFirstLogin,
                 AllowMultipleDevices = user.AllowMultipleDevices,
-                MaxDeviceCount = user.MaxDeviceCount
+                MaxDeviceCount = user.MaxDeviceCount,
+                RealName = user.RealName
             };
 
             return Ok(userInfo);
