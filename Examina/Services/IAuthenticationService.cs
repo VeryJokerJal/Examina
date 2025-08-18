@@ -109,6 +109,18 @@ public interface IAuthenticationService
     Task<bool> ChangePasswordAsync(ChangePasswordRequest request);
 
     /// <summary>
+    /// 获取当前访问令牌
+    /// </summary>
+    /// <returns>访问令牌</returns>
+    Task<string?> GetAccessTokenAsync();
+
+    /// <summary>
+    /// 刷新用户信息
+    /// </summary>
+    /// <returns>是否刷新成功</returns>
+    Task<bool> RefreshUserInfoAsync();
+
+    /// <summary>
     /// 保存登录信息到本地存储
     /// </summary>
     /// <param name="loginResponse">登录响应</param>

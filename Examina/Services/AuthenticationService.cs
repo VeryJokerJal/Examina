@@ -1088,4 +1088,65 @@ public class AuthenticationService : IAuthenticationService
             };
         }
     }
+
+    /// <summary>
+    /// 获取当前访问令牌
+    /// </summary>
+    public async Task<string?> GetAccessTokenAsync()
+    {
+        // 如果需要刷新令牌，先尝试刷新
+        if (NeedsTokenRefresh)
+        {
+            AuthenticationResult refreshResult = await RefreshTokenAsync();
+            if (!refreshResult.IsSuccess)
+            {
+                // 刷新失败，返回当前令牌（可能已过期）
+                return CurrentAccessToken;
+            }
+        }
+
+        return CurrentAccessToken;
+    }
+
+    /// <summary>
+    /// 刷新用户信息
+    /// </summary>
+    public async Task<bool> RefreshUserInfoAsync()
+    {
+        try
+        {
+            // 获取最新的用户信息
+            string apiUrl = BuildApiUrl("profile");
+
+            // 设置认证头
+            if (!string.IsNullOrEmpty(CurrentAccessToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CurrentAccessToken);
+            }
+
+            HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                UserInfo? userInfo = System.Text.Json.JsonSerializer.Deserialize<UserInfo>(responseContent, new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (userInfo != null)
+                {
+                    CurrentUser = userInfo;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

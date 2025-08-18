@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Prism.Commands;
 using ReactiveUI.Fody.Helpers;
+using Examina.Services;
+using Examina.Models.Organization;
 
 namespace Examina.ViewModels.Pages;
 
@@ -11,6 +13,9 @@ namespace Examina.ViewModels.Pages;
 /// </summary>
 public class SchoolBindingViewModel : ViewModelBase
 {
+    private readonly IOrganizationService _organizationService;
+    private readonly IAuthenticationService _authenticationService;
+
     #region 属性
 
     /// <summary>
@@ -20,16 +25,16 @@ public class SchoolBindingViewModel : ViewModelBase
     public string PageTitle { get; set; } = "加入学校";
 
     /// <summary>
-    /// 学校代码
+    /// 邀请码
     /// </summary>
     [Reactive]
-    public string SchoolCode { get; set; } = string.Empty;
+    public string InvitationCode { get; set; } = string.Empty;
 
     /// <summary>
-    /// 学校名称
+    /// 组织名称
     /// </summary>
     [Reactive]
-    public string SchoolName { get; set; } = string.Empty;
+    public string OrganizationName { get; set; } = string.Empty;
 
     /// <summary>
     /// 是否已绑定学校
@@ -60,14 +65,9 @@ public class SchoolBindingViewModel : ViewModelBase
     #region 命令
 
     /// <summary>
-    /// 搜索学校命令
+    /// 加入组织命令
     /// </summary>
-    public ICommand SearchSchoolCommand { get; }
-
-    /// <summary>
-    /// 绑定学校命令
-    /// </summary>
-    public ICommand BindSchoolCommand { get; }
+    public ICommand JoinOrganizationCommand { get; }
 
     /// <summary>
     /// 解绑学校命令
@@ -78,13 +78,15 @@ public class SchoolBindingViewModel : ViewModelBase
 
     #region 构造函数
 
-    public SchoolBindingViewModel()
+    public SchoolBindingViewModel(IOrganizationService organizationService, IAuthenticationService authenticationService)
     {
-        SearchSchoolCommand = new DelegateCommand(SearchSchool, CanSearchSchool);
-        BindSchoolCommand = new DelegateCommand(BindSchool, CanBindSchool);
-        UnbindSchoolCommand = new DelegateCommand(UnbindSchool, CanUnbindSchool);
+        _organizationService = organizationService;
+        _authenticationService = authenticationService;
 
-        LoadCurrentSchoolBinding();
+        JoinOrganizationCommand = new DelegateCommand(async () => await JoinOrganizationAsync(), CanJoinOrganization);
+        UnbindSchoolCommand = new DelegateCommand(async () => await UnbindSchoolAsync(), CanUnbindSchool);
+
+        _ = LoadCurrentSchoolBindingAsync();
     }
 
     #endregion
@@ -94,39 +96,103 @@ public class SchoolBindingViewModel : ViewModelBase
     /// <summary>
     /// 加载当前学校绑定状态
     /// </summary>
-    private void LoadCurrentSchoolBinding()
+    private async Task LoadCurrentSchoolBindingAsync()
     {
-        // TODO: 从服务加载实际绑定状态
-        IsSchoolBound = false;
-        CurrentSchool = string.Empty;
+        try
+        {
+            IsProcessing = true;
+            StatusMessage = "正在检查学校绑定状态...";
+
+            // 检查用户是否已加入组织
+            bool isInOrganization = await _organizationService.IsUserInOrganizationAsync();
+
+            if (isInOrganization)
+            {
+                // 获取组织信息
+                StudentOrganizationDto? organization = await _organizationService.GetUserOrganizationAsync();
+                if (organization != null)
+                {
+                    IsSchoolBound = true;
+                    CurrentSchool = organization.OrganizationName;
+                    StatusMessage = "已成功加入学校";
+                }
+                else
+                {
+                    IsSchoolBound = false;
+                    StatusMessage = "获取学校信息失败";
+                }
+            }
+            else
+            {
+                IsSchoolBound = false;
+                StatusMessage = "尚未加入任何学校";
+            }
+        }
+        catch (Exception ex)
+        {
+            IsSchoolBound = false;
+            StatusMessage = $"检查绑定状态失败: {ex.Message}";
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
     }
 
     /// <summary>
-    /// 搜索学校
+    /// 加入组织
     /// </summary>
-    private async void SearchSchool()
+    private async Task JoinOrganizationAsync()
     {
-        if (string.IsNullOrWhiteSpace(SchoolCode))
+        // 验证邀请码格式
+        if (!ValidateInvitationCode(InvitationCode, out string validationError))
         {
+            ShowUserGuidance(validationError);
             return;
         }
 
         IsProcessing = true;
-        StatusMessage = "正在搜索学校...";
+        StatusMessage = "正在加入学校...";
 
         try
         {
-            // TODO: 实现学校搜索逻辑
-            await Task.Delay(1000); // 模拟网络请求
+            JoinOrganizationResult result = await _organizationService.JoinOrganizationAsync(InvitationCode);
 
-            // 模拟搜索结果
-            SchoolName = $"示例学校 ({SchoolCode})";
-            StatusMessage = "找到学校，请确认后点击绑定";
+            if (result.Success && result.StudentOrganization != null)
+            {
+                // 加入成功
+                IsSchoolBound = true;
+                CurrentSchool = result.StudentOrganization.OrganizationName;
+                OrganizationName = result.StudentOrganization.OrganizationName;
+                StatusMessage = "成功加入学校！";
+
+                // 清空邀请码
+                InvitationCode = string.Empty;
+
+                // 刷新用户权限状态
+                bool refreshSuccess = await RefreshUserPermissionsAsync();
+                if (!refreshSuccess)
+                {
+                    StatusMessage += " 但权限状态更新失败，请重新登录以获取最新权限。";
+                }
+
+                System.Diagnostics.Debug.WriteLine($"用户成功加入学校: {CurrentSchool}");
+            }
+            else
+            {
+                // 加入失败
+                string errorMessage = result.ErrorMessage ?? "加入学校失败";
+                ShowUserGuidance(errorMessage);
+
+                System.Diagnostics.Debug.WriteLine($"加入学校失败: {errorMessage}");
+            }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"搜索失败: {ex.Message}";
-            SchoolName = string.Empty;
+            string errorMessage = HandleNetworkError(ex);
+            StatusMessage = $"加入失败: {errorMessage}";
+
+            System.Diagnostics.Debug.WriteLine($"加入学校异常: {ex}");
         }
         finally
         {
@@ -135,76 +201,78 @@ public class SchoolBindingViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 是否可以搜索学校
+    /// 是否可以加入组织
     /// </summary>
-    private bool CanSearchSchool()
+    private bool CanJoinOrganization()
     {
-        return !string.IsNullOrWhiteSpace(SchoolCode) && !IsProcessing;
-    }
-
-    /// <summary>
-    /// 绑定学校
-    /// </summary>
-    private async void BindSchool()
-    {
-        IsProcessing = true;
-        StatusMessage = "正在绑定学校...";
-
-        try
-        {
-            // TODO: 实现学校绑定逻辑
-            await Task.Delay(1000); // 模拟网络请求
-
-            IsSchoolBound = true;
-            CurrentSchool = SchoolName;
-            StatusMessage = "学校绑定成功";
-
-            // 清空输入
-            SchoolCode = string.Empty;
-            SchoolName = string.Empty;
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"绑定失败: {ex.Message}";
-        }
-        finally
-        {
-            IsProcessing = false;
-        }
-    }
-
-    /// <summary>
-    /// 是否可以绑定学校
-    /// </summary>
-    private bool CanBindSchool()
-    {
-        return !string.IsNullOrWhiteSpace(SchoolName) && !IsSchoolBound && !IsProcessing;
+        return !string.IsNullOrWhiteSpace(InvitationCode) && !IsSchoolBound && !IsProcessing;
     }
 
     /// <summary>
     /// 解绑学校
     /// </summary>
-    private async void UnbindSchool()
+    private async Task UnbindSchoolAsync()
     {
         IsProcessing = true;
-        StatusMessage = "正在解绑学校...";
+        StatusMessage = "正在退出学校...";
 
         try
         {
-            // TODO: 实现学校解绑逻辑
+            // TODO: 实现学校退出逻辑（需要后端API支持）
+            // 目前只是模拟退出操作
             await Task.Delay(1000); // 模拟网络请求
 
             IsSchoolBound = false;
             CurrentSchool = string.Empty;
-            StatusMessage = "学校解绑成功";
+            OrganizationName = string.Empty;
+            StatusMessage = "已退出学校";
+
+            // 刷新用户权限状态
+            bool refreshSuccess = await RefreshUserPermissionsAsync();
+            if (!refreshSuccess)
+            {
+                StatusMessage += " 但权限状态更新失败，请重新登录以获取最新权限。";
+            }
+
+            System.Diagnostics.Debug.WriteLine("用户已退出学校");
         }
         catch (Exception ex)
         {
-            StatusMessage = $"解绑失败: {ex.Message}";
+            string errorMessage = HandleNetworkError(ex);
+            StatusMessage = $"退出失败: {errorMessage}";
+
+            System.Diagnostics.Debug.WriteLine($"退出学校异常: {ex}");
         }
         finally
         {
             IsProcessing = false;
+        }
+    }
+
+    /// <summary>
+    /// 刷新用户权限状态
+    /// </summary>
+    private async Task<bool> RefreshUserPermissionsAsync()
+    {
+        try
+        {
+            // 刷新用户信息以更新权限状态
+            bool success = await _authenticationService.RefreshUserInfoAsync();
+            if (success)
+            {
+                System.Diagnostics.Debug.WriteLine("用户权限状态刷新成功");
+                return true;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("用户权限状态刷新失败");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"刷新用户权限状态异常: {ex.Message}");
+            return false;
         }
     }
 
@@ -214,6 +282,67 @@ public class SchoolBindingViewModel : ViewModelBase
     private bool CanUnbindSchool()
     {
         return IsSchoolBound && !IsProcessing;
+    }
+
+    /// <summary>
+    /// 处理网络错误
+    /// </summary>
+    private string HandleNetworkError(Exception ex)
+    {
+        return ex switch
+        {
+            HttpRequestException => "网络连接失败，请检查网络设置",
+            TaskCanceledException => "请求超时，请稍后重试",
+            System.Net.Sockets.SocketException => "网络连接错误，请检查网络连接",
+            _ => $"网络错误: {ex.Message}"
+        };
+    }
+
+    /// <summary>
+    /// 验证邀请码格式
+    /// </summary>
+    private bool ValidateInvitationCode(string invitationCode, out string errorMessage)
+    {
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(invitationCode))
+        {
+            errorMessage = "请输入邀请码";
+            return false;
+        }
+
+        if (invitationCode.Length != 7)
+        {
+            errorMessage = "邀请码必须为7位字符";
+            return false;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(invitationCode, @"^[A-Za-z0-9]{7}$"))
+        {
+            errorMessage = "邀请码只能包含字母和数字";
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 显示用户引导信息
+    /// </summary>
+    private void ShowUserGuidance(string errorMessage)
+    {
+        if (errorMessage.Contains("完善个人信息"))
+        {
+            StatusMessage = errorMessage + "\n\n请点击底部的"个人信息"完善您的真实姓名和手机号码后再尝试加入学校。";
+        }
+        else if (errorMessage.Contains("邀请码"))
+        {
+            StatusMessage = errorMessage + "\n\n请向您的老师获取正确的7位班级邀请码。";
+        }
+        else
+        {
+            StatusMessage = errorMessage;
+        }
     }
 
     #endregion

@@ -214,13 +214,17 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         FooterNavigationItems.Clear();
 
-        // 加入学校
-        FooterNavigationItems.Add(new NavigationViewItem
+        // 根据用户权限状态决定是否显示"加入学校"
+        if (CurrentUser?.HasFullAccess != true)
         {
-            Content = "加入学校",
-            IconSource = new SymbolIconSource { Symbol = Symbol.Library },
-            Tag = "school-binding"
-        });
+            // 用户没有完整权限，显示"加入学校"选项
+            FooterNavigationItems.Add(new NavigationViewItem
+            {
+                Content = "加入学校",
+                IconSource = new SymbolIconSource { Symbol = Symbol.Library },
+                Tag = "school-binding"
+            });
+        }
 
         // 个人信息
         FooterNavigationItems.Add(new NavigationViewItem
@@ -246,8 +250,18 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// <param name="userInfo">更新后的用户信息</param>
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
+        bool previousHasFullAccess = CurrentUser?.HasFullAccess ?? false;
         CurrentUser = userInfo;
-        System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户信息已更新，用户名={userInfo?.Username}");
+        bool currentHasFullAccess = userInfo?.HasFullAccess ?? false;
+
+        System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户信息已更新，用户名={userInfo?.Username}，权限状态={currentHasFullAccess}");
+
+        // 如果用户权限状态发生变化，重新初始化底部导航
+        if (previousHasFullAccess != currentHasFullAccess)
+        {
+            InitializeFooterNavigation();
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户权限状态变化，重新初始化底部导航");
+        }
     }
 
     /// <summary>
@@ -279,7 +293,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             "exam-ranking" => new LeaderboardViewModel(),
             "mock-exam-ranking" => new LeaderboardViewModel(),
             "training-ranking" => new LeaderboardViewModel(),
-            "school-binding" => new SchoolBindingViewModel(),
+            "school-binding" => ((App)Application.Current!).GetService<SchoolBindingViewModel>() ?? new SchoolBindingViewModel(null!, _authenticationService),
             "profile" => ((App)Application.Current!).GetService<ProfileViewModel>() ?? new ProfileViewModel(_authenticationService),
             _ => new OverviewViewModel()
         };

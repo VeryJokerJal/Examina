@@ -58,11 +58,32 @@ public partial class App : Application
             };
         });
 
+        // 为OrganizationService配置HttpClient
+        _ = services.AddHttpClient<IOrganizationService, OrganizationService>(client =>
+        {
+            client.BaseAddress = new Uri("https://qiuzhenbd.com");
+            client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            return new HttpClientHandler()
+            {
+                AllowAutoRedirect = false,
+                UseProxy = true,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    System.Diagnostics.Debug.WriteLine($"SSL证书验证: {message.RequestUri}");
+                    return true;
+                }
+            };
+        });
+
         // 注册其他服务
         _ = services.AddSingleton<IConfigurationService, ConfigurationService>();
         _ = services.AddSingleton<IDeviceService, DeviceService>();
         _ = services.AddSingleton<ISecureStorageService, SecureStorageService>();
-        _ = services.AddSingleton<IAuthenticationService, AuthenticationService>();
 
         // 注册ViewModels
         _ = services.AddTransient<LoginViewModel>();
@@ -71,6 +92,7 @@ public partial class App : Application
         _ = services.AddTransient<LoadingViewModel>();
         _ = services.AddTransient<ProfileViewModel>();
         _ = services.AddTransient<ChangePasswordViewModel>();
+        _ = services.AddTransient<SchoolBindingViewModel>();
 
         _serviceProvider = services.BuildServiceProvider();
     }

@@ -1,96 +1,68 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:Examina.ViewModels.Pages"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-             x:Class="Examina.Views.Pages.SchoolBindingView"
-             x:DataType="vm:SchoolBindingViewModel">
+﻿<UserControl x:Class="Examina.Views.Pages.SchoolBindingView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:SchoolBindingViewModel" mc:Ignorable="d">
 
-  <ScrollViewer>
-    <StackPanel Margin="24" Spacing="24" MaxWidth="600">
-      
-      <!-- 页面标题 -->
-      <TextBlock Text="{Binding PageTitle}" 
-                 FontSize="28" 
-                 FontWeight="Bold"
-                 FontFamily="Microsoft YaHei"
-                 Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-      
-      <!-- 当前绑定状态 -->
-      <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              CornerRadius="8"
-              Padding="20"
-              IsVisible="{Binding IsSchoolBound}">
-        <StackPanel Spacing="12">
-          <TextBlock Text="当前绑定学校" 
-                     FontSize="16" 
-                     FontWeight="SemiBold"
-                     FontFamily="Microsoft YaHei"
-                     Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-          <TextBlock Text="{Binding CurrentSchool}" 
-                     FontSize="14"
-                     FontFamily="Microsoft YaHei"
-                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-          <Button Content="解绑学校" 
-                  Command="{Binding UnbindSchoolCommand}"
-                  Classes="danger"
-                  HorizontalAlignment="Left"
-                  Padding="16,8"
-                  FontFamily="Microsoft YaHei"/>
+    <ScrollViewer>
+        <StackPanel MaxWidth="1000" Margin="24" Spacing="24">
+
+            <!--  页面标题  -->
+            <TextBlock FontFamily="Microsoft YaHei" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding PageTitle}" />
+
+            <!--  当前绑定状态  -->
+            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" IsVisible="{Binding IsSchoolBound}">
+                <StackPanel Spacing="12">
+                    <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="当前绑定学校" />
+                    <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding CurrentSchool}" />
+                    <Button Padding="16,8" HorizontalAlignment="Left" Classes="danger" Command="{Binding UnbindSchoolCommand}" Content="解绑学校" FontFamily="Microsoft YaHei" />
+                </StackPanel>
+            </Border>
+
+            <!--  加入学校表单  -->
+            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" IsVisible="{Binding !IsSchoolBound}">
+                <StackPanel Spacing="16">
+                    <TextBlock FontFamily="Microsoft YaHei" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="加入学校" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="邀请码" />
+                        <TextBox FontFamily="Microsoft YaHei" Text="{Binding InvitationCode}" Watermark="请输入7位邀请码" MaxLength="7" />
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="请向老师获取班级邀请码" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Padding="16,8" Classes="accent" Command="{Binding JoinOrganizationCommand}" Content="加入学校" FontFamily="Microsoft YaHei" IsEnabled="{Binding !IsProcessing}" />
+                        <ProgressRing Width="24" Height="24" IsVisible="{Binding IsProcessing}" />
+                    </StackPanel>
+
+                    <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" IsVisible="{Binding OrganizationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding OrganizationName}" />
+                </StackPanel>
+            </Border>
+
+            <!--  已加入学校状态  -->
+            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" IsVisible="{Binding IsSchoolBound}">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"
+                                  Foreground="Green" Width="24" Height="24" />
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="已加入学校" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="14"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="当前学校" />
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding CurrentSchool}" />
+                    </StackPanel>
+
+                    <TextBlock FontFamily="Microsoft YaHei" FontSize="14"
+                               Foreground="Green" Text="您已成功加入学校，现在可以使用所有功能！" />
+
+                    <Button Padding="16,8" Classes="danger" Command="{Binding UnbindSchoolCommand}"
+                            Content="退出学校" FontFamily="Microsoft YaHei" IsEnabled="{Binding !IsProcessing}" />
+                </StackPanel>
+            </Border>
+
+            <!--  状态消息  -->
+            <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding StatusMessage}" />
+
         </StackPanel>
-      </Border>
-      
-      <!-- 绑定学校表单 -->
-      <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              CornerRadius="8"
-              Padding="20"
-              IsVisible="{Binding !IsSchoolBound}">
-        <StackPanel Spacing="16">
-          <TextBlock Text="绑定学校" 
-                     FontSize="18" 
-                     FontWeight="SemiBold"
-                     FontFamily="Microsoft YaHei"
-                     Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-          
-          <StackPanel Spacing="8">
-            <TextBlock Text="学校代码" 
-                       FontSize="14"
-                       FontFamily="Microsoft YaHei"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-            <TextBox Text="{Binding SchoolCode}" 
-                     Watermark="请输入学校代码"
-                     FontFamily="Microsoft YaHei"/>
-          </StackPanel>
-          
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <Button Content="搜索学校" 
-                    Command="{Binding SearchSchoolCommand}"
-                    Padding="16,8"
-                    FontFamily="Microsoft YaHei"/>
-            <Button Content="绑定学校" 
-                    Command="{Binding BindSchoolCommand}"
-                    Classes="accent"
-                    IsVisible="{Binding !IsSchoolBound}"
-                    Padding="16,8"
-                    FontFamily="Microsoft YaHei"/>
-          </StackPanel>
-          
-          <TextBlock Text="{Binding SchoolName}" 
-                     FontSize="14"
-                     FontFamily="Microsoft YaHei"
-                     Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                     IsVisible="{Binding SchoolName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-        </StackPanel>
-      </Border>
-      
-      <!-- 状态消息 -->
-      <TextBlock Text="{Binding StatusMessage}" 
-                 FontSize="14"
-                 FontFamily="Microsoft YaHei"
-                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                 IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-      
-    </StackPanel>
-  </ScrollViewer>
+    </ScrollViewer>
 </UserControl>
