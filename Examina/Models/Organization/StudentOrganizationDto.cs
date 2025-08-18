@@ -64,4 +64,24 @@ public class StudentOrganizationDto
     /// 创建者用户名
     /// </summary>
     public string CreatorUsername { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 组织类型
+    /// </summary>
+    public string OrganizationType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 组织描述
+    /// </summary>
+    public string? OrganizationDescription { get; set; }
+
+    /// <summary>
+    /// 用户ID
+    /// </summary>
+    public int UserId { get; set; }
+
+    /// <summary>
+    /// 角色
+    /// </summary>
+    public string Role { get; set; } = string.Empty;
 }

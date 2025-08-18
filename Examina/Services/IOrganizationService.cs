@@ -25,4 +25,16 @@ public interface IOrganizationService
     /// </summary>
     /// <returns>用户组织信息，如果未加入则返回null</returns>
     Task<StudentOrganizationDto?> GetUserOrganizationAsync();
+
+    /// <summary>
+    /// 获取用户已加入的组织列表
+    /// </summary>
+    /// <returns>用户组织列表</returns>
+    Task<List<StudentOrganizationDto>> GetUserOrganizationsAsync();
+
+    /// <summary>
+    /// 获取学校绑定状态
+    /// </summary>
+    /// <returns>学校绑定状态信息</returns>
+    Task<SchoolBindingStatus> GetSchoolBindingStatusAsync();
 }
