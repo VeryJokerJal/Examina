@@ -10,6 +10,32 @@ using Microsoft.IdentityModel.Tokens;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// 配置服务器端口 - 解决发布后无法访问的问题
+builder.WebHost.ConfigureKestrel(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        // 开发环境使用launchSettings.json中的配置
+        options.ListenLocalhost(5117); // HTTP
+        options.ListenLocalhost(7125, listenOptions =>
+        {
+            listenOptions.UseHttps(); // HTTPS
+        });
+    }
+    else
+    {
+        // 生产环境明确配置端口
+        options.ListenAnyIP(5000); // HTTP - 监听所有IP地址
+        options.ListenAnyIP(5001, listenOptions =>
+        {
+            listenOptions.UseHttps(); // HTTPS - 监听所有IP地址
+        });
+
+        // 也可以监听localhost
+        options.ListenLocalhost(8080); // HTTP localhost备用端口
+    }
+});
+
 // 配置日志记录
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
