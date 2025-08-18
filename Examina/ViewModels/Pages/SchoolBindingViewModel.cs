@@ -79,13 +79,19 @@ public class SchoolBindingViewModel : ViewModelBase
 
     public SchoolBindingViewModel(IOrganizationService organizationService, IAuthenticationService authenticationService)
     {
+        System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 构造函数开始");
+        System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: OrganizationService = {(organizationService != null ? "已提供" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: AuthenticationService = {(authenticationService != null ? "已提供" : "null")}");
+
         _organizationService = organizationService;
         _authenticationService = authenticationService;
 
         JoinOrganizationCommand = new DelegateCommand(async () => await JoinOrganizationAsync(), CanJoinOrganization);
         UnbindSchoolCommand = new DelegateCommand(async () => await UnbindSchoolAsync(), CanUnbindSchool);
 
+        System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 开始加载当前学校绑定状态");
         _ = LoadCurrentSchoolBindingAsync();
+        System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 构造函数完成");
     }
 
     #endregion
@@ -99,11 +105,22 @@ public class SchoolBindingViewModel : ViewModelBase
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: LoadCurrentSchoolBindingAsync 开始");
+
+            if (_organizationService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: OrganizationService为null，无法加载绑定状态");
+                StatusMessage = "服务未初始化，无法检查学校绑定状态";
+                return;
+            }
+
             IsProcessing = true;
             StatusMessage = "正在检查学校绑定状态...";
+            System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 开始检查用户是否已加入组织");
 
             // 检查用户是否已加入组织
             bool isInOrganization = await _organizationService.IsUserInOrganizationAsync();
+            System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: 用户是否已加入组织: {isInOrganization}");
 
             if (isInOrganization)
             {

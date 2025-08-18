@@ -342,22 +342,110 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// </summary>
     private void NavigateToPage(string pageTag)
     {
-        CurrentPageViewModel = pageTag switch
+        try
         {
-            "overview" => new OverviewViewModel(),
-            "exam" => new ExamViewModel(),
-            "practice" => new PracticeViewModel(),
-            "mock-exam" => new PracticeViewModel(), // 可以传递参数区分类型
-            "comprehensive-training" => new PracticeViewModel(),
-            "special-practice" => new PracticeViewModel(),
-            "leaderboard" => new LeaderboardViewModel(),
-            "exam-ranking" => new LeaderboardViewModel(),
-            "mock-exam-ranking" => new LeaderboardViewModel(),
-            "training-ranking" => new LeaderboardViewModel(),
-            "school-binding" => ((App)Application.Current!).GetService<SchoolBindingViewModel>() ?? (_authenticationService != null ? new SchoolBindingViewModel(null!, _authenticationService) : null),
-            "profile" => ((App)Application.Current!).GetService<ProfileViewModel>() ?? (_authenticationService != null ? new ProfileViewModel(_authenticationService) : null),
-            _ => new OverviewViewModel()
-        };
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 导航到页面 {pageTag}");
+
+            CurrentPageViewModel = pageTag switch
+            {
+                "overview" => new OverviewViewModel(),
+                "exam" => new ExamViewModel(),
+                "practice" => new PracticeViewModel(),
+                "mock-exam" => new PracticeViewModel(), // 可以传递参数区分类型
+                "comprehensive-training" => new PracticeViewModel(),
+                "special-practice" => new PracticeViewModel(),
+                "leaderboard" => new LeaderboardViewModel(),
+                "exam-ranking" => new LeaderboardViewModel(),
+                "mock-exam-ranking" => new LeaderboardViewModel(),
+                "training-ranking" => new LeaderboardViewModel(),
+                "school-binding" => CreateSchoolBindingViewModel(),
+                "profile" => CreateProfileViewModel(),
+                _ => new OverviewViewModel()
+            };
+
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 成功创建页面ViewModel: {CurrentPageViewModel?.GetType().Name ?? "null"}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 导航到页面 {pageTag} 时发生异常: {ex.Message}");
+            CurrentPageViewModel = new OverviewViewModel(); // 回退到概览页面
+        }
+    }
+
+    /// <summary>
+    /// 创建SchoolBindingViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateSchoolBindingViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            SchoolBindingViewModel? viewModel = ((App)Application.Current!).GetService<SchoolBindingViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取SchoolBindingViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            if (_authenticationService != null)
+            {
+                IOrganizationService? organizationService = ((App)Application.Current!).GetService<IOrganizationService>();
+                if (organizationService != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建SchoolBindingViewModel");
+                    return new SchoolBindingViewModel(organizationService, _authenticationService);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IOrganizationService，无法创建SchoolBindingViewModel");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: AuthenticationService为null，无法创建SchoolBindingViewModel");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建SchoolBindingViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 创建ProfileViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateProfileViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            ProfileViewModel? viewModel = ((App)Application.Current!).GetService<ProfileViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ProfileViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            if (_authenticationService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ProfileViewModel");
+                return new ProfileViewModel(_authenticationService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: AuthenticationService为null，无法创建ProfileViewModel");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ProfileViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
     }
 
     /// <summary>
