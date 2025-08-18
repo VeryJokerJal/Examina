@@ -1,6 +1,8 @@
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
+using ExaminaWebApplication.Models.Organization;
+using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -67,9 +69,9 @@ public class StudentOrganizationController : ControllerBase
             // 检查学生是否已经加入其他学校组织
             bool hasJoinedSchool = await _context.StudentOrganizations
                 .Include(so => so.Organization)
-                .AnyAsync(so => so.UserId == userId && 
-                               so.IsActive && 
-                               so.Organization.Type == OrganizationType.School && 
+                .AnyAsync(so => so.StudentId == userId &&
+                               so.IsActive &&
+                               so.Organization.Type == OrganizationType.School &&
                                so.Organization.IsActive);
 
             if (hasJoinedSchool)
@@ -105,7 +107,7 @@ public class StudentOrganizationController : ControllerBase
 
             // 检查是否已经在该组织中
             bool alreadyInOrganization = await _context.StudentOrganizations
-                .AnyAsync(so => so.UserId == userId && so.OrganizationId == organization.Id && so.IsActive);
+                .AnyAsync(so => so.StudentId == userId && so.OrganizationId == organization.Id && so.IsActive);
 
             if (alreadyInOrganization)
             {
@@ -194,7 +196,7 @@ public class StudentOrganizationController : ControllerBase
             // 查找学生加入的学校组织
             var schoolOrganization = await _context.StudentOrganizations
                 .Include(so => so.Organization)
-                .FirstOrDefaultAsync(so => so.UserId == userId &&
+                .FirstOrDefaultAsync(so => so.StudentId == userId &&
                                           so.IsActive &&
                                           so.Organization.Type == OrganizationType.School &&
                                           so.Organization.IsActive);
