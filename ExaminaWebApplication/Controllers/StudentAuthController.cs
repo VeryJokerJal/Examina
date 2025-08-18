@@ -538,6 +538,34 @@ public class StudentAuthController : ControllerBase
     }
 
     /// <summary>
+    /// 调试：获取当前用户的所有声明信息
+    /// </summary>
+    [HttpGet("debug-claims")]
+    [Authorize]
+    public ActionResult GetDebugClaims()
+    {
+        try
+        {
+            var claims = User.Claims.Select(c => new { Type = c.Type, Value = c.Value }).ToList();
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            return Ok(new
+            {
+                message = "当前用户声明信息",
+                userIdClaim = userIdClaim?.Value,
+                allClaims = claims,
+                isAuthenticated = User.Identity?.IsAuthenticated,
+                authType = User.Identity?.AuthenticationType
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取调试声明信息失败");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户信息
     /// </summary>
     [HttpGet("profile")]
@@ -597,16 +625,37 @@ public class StudentAuthController : ControllerBase
         {
             // 获取当前用户ID
             string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            _logger.LogInformation("UpdateProfile: 获取到的用户ID声明: {UserIdClaim}", userIdClaim ?? "null");
+
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
+                _logger.LogWarning("UpdateProfile: 用户身份验证失败，无法解析用户ID");
                 return Unauthorized(new { message = "用户身份验证失败" });
             }
 
+            _logger.LogInformation("UpdateProfile: 解析的用户ID: {UserId}", userId);
+
             // 查找用户
             User? user = await _context.Users.FindAsync(userId);
-            if (user == null || !user.IsActive || user.Role != UserRole.Student)
+            _logger.LogInformation("UpdateProfile: 查找用户结果 - 用户存在: {UserExists}, 用户活跃: {IsActive}, 用户角色: {Role}",
+                user != null, user?.IsActive, user?.Role);
+
+            if (user == null)
             {
-                return NotFound(new { message = "用户不存在或无权限" });
+                _logger.LogWarning("UpdateProfile: 用户不存在，用户ID: {UserId}", userId);
+                return NotFound(new { message = "用户不存在" });
+            }
+
+            if (!user.IsActive)
+            {
+                _logger.LogWarning("UpdateProfile: 用户已被禁用，用户ID: {UserId}", userId);
+                return NotFound(new { message = "用户已被禁用" });
+            }
+
+            if (user.Role != UserRole.Student)
+            {
+                _logger.LogWarning("UpdateProfile: 用户角色不正确，期望: Student, 实际: {Role}, 用户ID: {UserId}", user.Role, userId);
+                return NotFound(new { message = "用户角色不正确，此接口仅限学生使用" });
             }
 
             // 验证模型状态
