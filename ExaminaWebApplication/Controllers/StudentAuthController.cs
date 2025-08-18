@@ -187,15 +187,34 @@ public class StudentAuthController : ControllerBase
             }
 
             // 验证短信验证码并获取或创建用户
+            _logger.LogInformation("开始验证短信验证码并获取或创建用户，手机号: {PhoneNumber}", request.PhoneNumber);
             User? user = await AuthenticateWithSmsCodeAndAutoRegister(request.PhoneNumber, request.SmsCode);
             if (user == null)
             {
+                _logger.LogWarning("短信验证码认证失败，手机号: {PhoneNumber}", request.PhoneNumber);
                 return Unauthorized(new { message = "验证码错误或已过期" });
+            }
+
+            _logger.LogInformation("短信验证码认证成功，用户ID: {UserId}, 用户名: {Username}, 角色: {Role}, 是否激活: {IsActive}",
+                user.Id, user.Username, user.Role, user.IsActive);
+
+            // 如果是新创建的用户，再次验证用户是否真的存在于数据库中
+            if (user.IsFirstLogin)
+            {
+                _logger.LogInformation("检测到首次登录用户，验证用户是否真正存在于数据库中，用户ID: {UserId}", user.Id);
+                User? verifyUser = await _context.Users.FindAsync(user.Id);
+                if (verifyUser == null)
+                {
+                    _logger.LogError("严重错误：新创建的用户在数据库中不存在，用户ID: {UserId}", user.Id);
+                    return Unauthorized(new { message = "用户创建失败，请重试" });
+                }
+                _logger.LogInformation("用户验证成功，用户确实存在于数据库中，用户ID: {UserId}", user.Id);
             }
 
             // 检查用户角色（只允许学生登录）
             if (user.Role != UserRole.Student)
             {
+                _logger.LogWarning("用户角色不正确，用户ID: {UserId}, 角色: {Role}", user.Id, user.Role);
                 return Unauthorized(new { message = "此接口仅限学生使用" });
             }
 
@@ -227,10 +246,16 @@ public class StudentAuthController : ControllerBase
             }
 
             // 生成JWT令牌
+            _logger.LogInformation("开始生成JWT令牌，用户ID: {UserId}, 用户名: {Username}, 设备ID: {DeviceId}",
+                user.Id, user.Username, device?.Id);
+
             string accessToken = _jwtService.GenerateAccessToken(user, device?.Id);
             string refreshToken = _jwtService.GenerateRefreshToken(user, device?.Id);
             DateTime expiresAt = DateTime.UtcNow.AddMinutes(
                 int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "10080"));
+
+            _logger.LogInformation("JWT令牌生成成功，用户ID: {UserId}, AccessToken前10位: {AccessTokenPrefix}, 过期时间: {ExpiresAt}",
+                user.Id, accessToken[..Math.Min(10, accessToken.Length)], expiresAt);
 
             // 创建会话记录
             _ = await _sessionService.CreateSessionAsync(
@@ -538,34 +563,6 @@ public class StudentAuthController : ControllerBase
     }
 
     /// <summary>
-    /// 调试：获取当前用户的所有声明信息
-    /// </summary>
-    [HttpGet("debug-claims")]
-    [Authorize]
-    public ActionResult GetDebugClaims()
-    {
-        try
-        {
-            var claims = User.Claims.Select(c => new { Type = c.Type, Value = c.Value }).ToList();
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-
-            return Ok(new
-            {
-                message = "当前用户声明信息",
-                userIdClaim = userIdClaim?.Value,
-                allClaims = claims,
-                isAuthenticated = User.Identity?.IsAuthenticated,
-                authType = User.Identity?.AuthenticationType
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "获取调试声明信息失败");
-            return StatusCode(500, new { message = "服务器内部错误" });
-        }
-    }
-
-    /// <summary>
     /// 获取当前用户信息
     /// </summary>
     [HttpGet("profile")]
@@ -624,57 +621,69 @@ public class StudentAuthController : ControllerBase
         try
         {
             // 获取当前用户ID
+            _logger.LogInformation("开始处理用户资料更新请求");
             string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            _logger.LogInformation("UpdateProfile: 获取到的用户ID声明: {UserIdClaim}", userIdClaim ?? "null");
+            _logger.LogInformation("从JWT token获取用户ID声明: {UserIdClaim}", userIdClaim);
 
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
-                _logger.LogWarning("UpdateProfile: 用户身份验证失败，无法解析用户ID");
+                _logger.LogWarning("用户ID声明无效或解析失败，UserIdClaim: {UserIdClaim}", userIdClaim);
                 return Unauthorized(new { message = "用户身份验证失败" });
             }
 
-            _logger.LogInformation("UpdateProfile: 解析的用户ID: {UserId}", userId);
+            _logger.LogInformation("解析用户ID成功: {UserId}", userId);
 
             // 查找用户
+            _logger.LogInformation("开始查找用户，用户ID: {UserId}", userId);
             User? user = await _context.Users.FindAsync(userId);
-            _logger.LogInformation("UpdateProfile: 查找用户结果 - 用户存在: {UserExists}, 用户活跃: {IsActive}, 用户角色: {Role}",
-                user != null, user?.IsActive, user?.Role);
-
             if (user == null)
             {
-                _logger.LogWarning("UpdateProfile: 用户不存在，用户ID: {UserId}", userId);
-                return NotFound(new { message = "用户不存在" });
+                _logger.LogWarning("用户不存在，用户ID: {UserId}", userId);
+                return NotFound(new { message = "用户不存在或无权限" });
             }
 
             if (!user.IsActive)
             {
-                _logger.LogWarning("UpdateProfile: 用户已被禁用，用户ID: {UserId}", userId);
-                return NotFound(new { message = "用户已被禁用" });
+                _logger.LogWarning("用户未激活，用户ID: {UserId}, IsActive: {IsActive}", userId, user.IsActive);
+                return NotFound(new { message = "用户不存在或无权限" });
             }
 
             if (user.Role != UserRole.Student)
             {
-                _logger.LogWarning("UpdateProfile: 用户角色不正确，期望: Student, 实际: {Role}, 用户ID: {UserId}", user.Role, userId);
-                return NotFound(new { message = "用户角色不正确，此接口仅限学生使用" });
+                _logger.LogWarning("用户角色不正确，用户ID: {UserId}, Role: {Role}", userId, user.Role);
+                return NotFound(new { message = "用户不存在或无权限" });
             }
+
+            _logger.LogInformation("用户验证成功，用户ID: {UserId}, 用户名: {Username}, 角色: {Role}, 是否激活: {IsActive}",
+                user.Id, user.Username, user.Role, user.IsActive);
 
             // 验证模型状态
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("模型状态验证失败，用户ID: {UserId}", userId);
                 return BadRequest(new { message = "输入数据格式不正确" });
             }
+
+            _logger.LogInformation("开始处理用户资料更新，用户ID: {UserId}, 请求用户名: {RequestUsername}, 请求真实姓名: {RequestRealName}",
+                userId, request.Username, request.RealName);
 
             bool hasChanges = false;
 
             // 更新用户名（需要检查唯一性）
             if (!string.IsNullOrEmpty(request.Username) && request.Username != user.Username)
             {
+                _logger.LogInformation("检查用户名唯一性，新用户名: {NewUsername}, 当前用户名: {CurrentUsername}",
+                    request.Username, user.Username);
+
                 bool usernameExists = await _context.Users
                     .AnyAsync(u => u.Username == request.Username && u.Id != userId);
                 if (usernameExists)
                 {
+                    _logger.LogWarning("用户名已存在，用户名: {Username}", request.Username);
                     return BadRequest(new { message = "用户名已存在，请选择其他用户名" });
                 }
+
+                _logger.LogInformation("更新用户名，从 {OldUsername} 到 {NewUsername}", user.Username, request.Username);
                 user.Username = request.Username;
                 hasChanges = true;
             }
@@ -682,6 +691,7 @@ public class StudentAuthController : ControllerBase
             // 更新真实姓名
             if (request.RealName != user.RealName)
             {
+                _logger.LogInformation("更新真实姓名，从 {OldRealName} 到 {NewRealName}", user.RealName, request.RealName);
                 user.RealName = request.RealName;
                 hasChanges = true;
             }
@@ -965,18 +975,25 @@ public class StudentAuthController : ControllerBase
     /// </summary>
     private async Task<User?> AuthenticateWithSmsCodeAndAutoRegister(string phoneNumber, string smsCode)
     {
+        _logger.LogInformation("开始短信验证码认证并自动注册流程，手机号: {PhoneNumber}", phoneNumber);
+
         if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(smsCode))
         {
+            _logger.LogWarning("手机号或验证码为空，手机号: {PhoneNumber}, 验证码为空: {SmsCodeEmpty}", phoneNumber, string.IsNullOrEmpty(smsCode));
             return null;
         }
 
         // 验证短信验证码
+        _logger.LogInformation("开始验证短信验证码，手机号: {PhoneNumber}", phoneNumber);
         if (!await _smsService.VerifyCodeAsync(phoneNumber, smsCode))
         {
+            _logger.LogWarning("短信验证码验证失败，手机号: {PhoneNumber}", phoneNumber);
             return null;
         }
+        _logger.LogInformation("短信验证码验证成功，手机号: {PhoneNumber}", phoneNumber);
 
         // 查找现有用户
+        _logger.LogInformation("查找现有用户，手机号: {PhoneNumber}", phoneNumber);
         User? user = await _context.Users
             .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber
                 && u.IsActive
@@ -984,18 +1001,27 @@ public class StudentAuthController : ControllerBase
 
         if (user != null)
         {
+            _logger.LogInformation("找到现有用户，用户ID: {UserId}, 用户名: {Username}", user.Id, user.Username);
             return user;
         }
 
+        _logger.LogInformation("未找到现有用户，开始自动注册流程，手机号: {PhoneNumber}", phoneNumber);
+
         // 用户不存在，自动注册
+        // 使用数据库事务确保用户创建的原子性
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             // 生成用户名：考生+手机号后四位
             string baseUsername = $"考生{phoneNumber[^4..]}";
+            _logger.LogInformation("生成基础用户名: {BaseUsername}", baseUsername);
+
             string username = await GenerateUniqueUsernameAsync(baseUsername);
+            _logger.LogInformation("生成唯一用户名: {Username}", username);
 
             // 生成临时邮箱
             string email = $"{phoneNumber}@temp.examina.com";
+            _logger.LogInformation("生成临时邮箱: {Email}", email);
 
             // 创建新用户
             user = new User
@@ -1012,15 +1038,64 @@ public class StudentAuthController : ControllerBase
                 MaxDeviceCount = 1
             };
 
-            _ = _context.Users.Add(user);
-            _ = await _context.SaveChangesAsync();
+            _logger.LogInformation("创建新用户对象，用户名: {Username}, 邮箱: {Email}, 手机号: {PhoneNumber}, 角色: {Role}, 是否激活: {IsActive}",
+                user.Username, user.Email, user.PhoneNumber, user.Role, user.IsActive);
 
-            _logger.LogInformation("自动注册新学生用户成功，手机号: {PhoneNumber}, 用户名: {Username}", phoneNumber, username);
-            return user;
+            _ = _context.Users.Add(user);
+            _logger.LogInformation("用户对象已添加到数据库上下文，准备保存到数据库");
+
+            int changedRows = await _context.SaveChangesAsync();
+            _logger.LogInformation("数据库保存完成，影响行数: {ChangedRows}, 用户ID: {UserId}", changedRows, user.Id);
+
+            // 确保用户ID已正确设置
+            if (user.Id <= 0)
+            {
+                _logger.LogError("用户ID未正确设置，用户ID: {UserId}", user.Id);
+                await transaction.RollbackAsync();
+                return null;
+            }
+
+            // 提交事务
+            await transaction.CommitAsync();
+            _logger.LogInformation("数据库事务已提交，用户创建成功");
+
+            // 验证用户是否真正保存到数据库（使用新的数据库上下文查询）
+            User? savedUser = await _context.Users.FindAsync(user.Id);
+            if (savedUser != null)
+            {
+                _logger.LogInformation("验证成功：用户已保存到数据库，用户ID: {UserId}, 用户名: {Username}, 角色: {Role}, 是否激活: {IsActive}",
+                    savedUser.Id, savedUser.Username, savedUser.Role, savedUser.IsActive);
+
+                // 返回从数据库重新查询的用户对象，确保所有属性都是最新的
+                return savedUser;
+            }
+            else
+            {
+                _logger.LogError("验证失败：用户未能保存到数据库，用户ID: {UserId}", user.Id);
+                return null;
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "自动注册用户失败，手机号: {PhoneNumber}", phoneNumber);
+            _logger.LogError(ex, "自动注册用户失败，手机号: {PhoneNumber}, 错误详情: {ErrorMessage}", phoneNumber, ex.Message);
+
+            // 检查是否是数据库连接问题
+            if (ex.InnerException != null)
+            {
+                _logger.LogError("内部异常: {InnerException}", ex.InnerException.Message);
+            }
+
+            // 尝试回滚事务
+            try
+            {
+                await transaction.RollbackAsync();
+                _logger.LogInformation("数据库事务已回滚");
+            }
+            catch (Exception rollbackEx)
+            {
+                _logger.LogError(rollbackEx, "回滚事务时发生错误");
+            }
+
             return null;
         }
     }
