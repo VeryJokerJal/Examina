@@ -1,8 +1,9 @@
 ﻿using System.Net.Http;
+using System.Reactive;
 using System.Windows.Input;
 using Examina.Models.Organization;
 using Examina.Services;
-using Prism.Commands;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
@@ -66,7 +67,7 @@ public class SchoolBindingViewModel : ViewModelBase
     /// <summary>
     /// 加入组织命令
     /// </summary>
-    public ICommand JoinOrganizationCommand { get; }
+    public ReactiveCommand<Unit, Unit> JoinOrganizationCommand { get; }
 
     #endregion
 
@@ -81,7 +82,14 @@ public class SchoolBindingViewModel : ViewModelBase
         _organizationService = organizationService;
         _authenticationService = authenticationService;
 
-        JoinOrganizationCommand = new DelegateCommand(async () => await JoinOrganizationAsync(), CanJoinOrganization);
+        // 创建响应式命令，自动响应相关属性变化
+        var canJoinOrganization = this.WhenAnyValue(
+            x => x.InvitationCode,
+            x => x.IsSchoolBound,
+            x => x.IsProcessing,
+            (code, bound, processing) => !string.IsNullOrWhiteSpace(code) && !bound && !processing);
+
+        JoinOrganizationCommand = ReactiveCommand.CreateFromTask(JoinOrganizationAsync, canJoinOrganization);
 
         System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 开始加载当前学校绑定状态");
         _ = LoadCurrentSchoolBindingAsync();
@@ -210,13 +218,7 @@ public class SchoolBindingViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 是否可以加入组织
-    /// </summary>
-    private bool CanJoinOrganization()
-    {
-        return !string.IsNullOrWhiteSpace(InvitationCode) && !IsSchoolBound && !IsProcessing;
-    }
+
 
 
 
