@@ -3,6 +3,11 @@
     <ScrollViewer>
         <StackPanel MaxWidth="1000" Margin="24" Spacing="24">
 
+            <!--  调试信息：静态内容测试  -->
+            <Border Padding="20" Background="Red" CornerRadius="8">
+                <TextBlock FontFamily="Microsoft YaHei" FontSize="24" FontWeight="Bold" Foreground="White" Text="SchoolBindingView 已加载 - 调试信息" />
+            </Border>
+
             <!--  页面标题  -->
             <TextBlock FontFamily="Microsoft YaHei" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding PageTitle}" />
 

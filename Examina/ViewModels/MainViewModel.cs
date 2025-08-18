@@ -41,8 +41,16 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 当前页面视图模型
     /// </summary>
-    [Reactive]
-    public ViewModelBase? CurrentPageViewModel { get; set; }
+    public ViewModelBase? CurrentPageViewModel
+    {
+        get => _currentPageViewModel;
+        set
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: CurrentPageViewModel setter called, old: {_currentPageViewModel?.GetType().Name ?? "null"}, new: {value?.GetType().Name ?? "null"}");
+            this.RaiseAndSetIfChanged(ref _currentPageViewModel, value);
+        }
+    }
+    private ViewModelBase? _currentPageViewModel;
 
     /// <summary>
     /// 当前用户
@@ -302,6 +310,20 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         System.Diagnostics.Debug.WriteLine("MainViewModel.InitializeAsync called");
         await LoadCurrentUserAsync();
+
+        // 测试：强制导航到SchoolBindingView
+        System.Diagnostics.Debug.WriteLine("MainViewModel: 测试导航到SchoolBindingView");
+        TestNavigateToSchoolBinding();
+    }
+
+    /// <summary>
+    /// 测试方法：导航到SchoolBindingView
+    /// </summary>
+    public void TestNavigateToSchoolBinding()
+    {
+        System.Diagnostics.Debug.WriteLine("MainViewModel: TestNavigateToSchoolBinding called");
+        NavigateToPage("school-binding");
+        System.Diagnostics.Debug.WriteLine($"MainViewModel: CurrentPageViewModel after navigation = {CurrentPageViewModel?.GetType().Name ?? "null"}");
     }
 
     /// <summary>

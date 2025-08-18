@@ -12,8 +12,8 @@ namespace Examina.ViewModels.Pages;
 /// </summary>
 public class SchoolBindingViewModel : ViewModelBase
 {
-    private readonly IOrganizationService _organizationService;
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IOrganizationService? _organizationService;
+    private readonly IAuthenticationService? _authenticationService;
 
     #region 属性
 
@@ -172,7 +172,7 @@ public class SchoolBindingViewModel : ViewModelBase
 
         try
         {
-            JoinOrganizationResult result = await _organizationService.JoinOrganizationAsync(InvitationCode);
+            JoinOrganizationResult? result = await _organizationService?.JoinOrganizationAsync(InvitationCode);
 
             if (result.Success && result.StudentOrganization != null)
             {
@@ -273,8 +273,8 @@ public class SchoolBindingViewModel : ViewModelBase
         try
         {
             // 刷新用户信息以更新权限状态
-            bool success = await _authenticationService.RefreshUserInfoAsync();
-            if (success)
+            bool? success = await _authenticationService?.RefreshUserInfoAsync();
+            if (success == true)
             {
                 System.Diagnostics.Debug.WriteLine("用户权限状态刷新成功");
                 return true;
