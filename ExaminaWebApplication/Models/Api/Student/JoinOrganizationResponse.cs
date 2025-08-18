@@ -1,4 +1,5 @@
-using ExaminaWebApplication.Models.Organization;
+﻿using ExaminaWebApplication.Models.Organization;
+using ExaminaWebApplication.Models.Organization.Dto;
 
 namespace ExaminaWebApplication.Models.Api.Student;
 

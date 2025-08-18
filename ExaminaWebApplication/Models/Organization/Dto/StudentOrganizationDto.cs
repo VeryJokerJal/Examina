@@ -1,4 +1,6 @@
-﻿namespace ExaminaWebApplication.Models.Organization.Dto;
+﻿using ExaminaWebApplication.Models;
+
+namespace ExaminaWebApplication.Models.Organization.Dto;
 
 /// <summary>
 /// 学生组织关系DTO
@@ -40,7 +42,15 @@ public class StudentOrganizationDto
     /// </summary>
     public string OrganizationName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 组织类型
+    /// </summary>
+    public OrganizationType OrganizationType { get; set; }
 
+    /// <summary>
+    /// 组织描述
+    /// </summary>
+    public string? OrganizationDescription { get; set; }
 
     /// <summary>
     /// 加入时间
@@ -56,6 +66,11 @@ public class StudentOrganizationDto
     /// 是否激活
     /// </summary>
     public bool IsActive { get; set; }
+
+    /// <summary>
+    /// 用户角色
+    /// </summary>
+    public UserRole Role { get; set; }
 
     /// <summary>
     /// 创建时间
