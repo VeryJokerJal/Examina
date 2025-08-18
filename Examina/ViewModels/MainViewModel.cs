@@ -379,10 +379,10 @@ public class MainViewModel : ViewModelBase, IDisposable
             CurrentPageViewModel = pageTag switch
             {
                 "overview" => new OverviewViewModel(),
-                "exam" => new ExamViewModel(),
+                "exam" => CreateExamListViewModel(),
                 "practice" => new PracticeViewModel(),
                 "mock-exam" => new PracticeViewModel(), // 可以传递参数区分类型
-                "comprehensive-training" => new PracticeViewModel(),
+                "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
                 "special-practice" => new PracticeViewModel(),
                 "leaderboard" => new LeaderboardViewModel(),
                 "exam-ranking" => new LeaderboardViewModel(),
@@ -473,6 +473,76 @@ public class MainViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ProfileViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 创建ExamListViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateExamListViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            ExamListViewModel? viewModel = ((App)Application.Current!).GetService<ExamListViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ExamListViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            IStudentExamService? examService = ((App)Application.Current!).GetService<IStudentExamService>();
+            if (examService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ExamListViewModel");
+                return new ExamListViewModel(examService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentExamService，无法创建ExamListViewModel");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ExamListViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 创建ComprehensiveTrainingListViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateComprehensiveTrainingListViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            ComprehensiveTrainingListViewModel? viewModel = ((App)Application.Current!).GetService<ComprehensiveTrainingListViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ComprehensiveTrainingListViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            IStudentComprehensiveTrainingService? trainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
+            if (trainingService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ComprehensiveTrainingListViewModel");
+                return new ComprehensiveTrainingListViewModel(trainingService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentComprehensiveTrainingService，无法创建ComprehensiveTrainingListViewModel");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ComprehensiveTrainingListViewModel时发生异常: {ex.Message}");
         }
 
         return null;

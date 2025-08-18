@@ -1,0 +1,184 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Examina.ViewModels.Pages"
+             xmlns:models="using:Examina.Models.Exam"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Examina.Views.Pages.ExamListView"
+             x:DataType="vm:ExamListViewModel">
+
+    <Design.DataContext>
+        <vm:ExamListViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" Background="{DynamicResource SystemAccentColor}" Padding="20,15">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="📝" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="上机统考" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding TotalCount, StringFormat='共 {0} 场考试'}" 
+                          FontSize="14" Foreground="White" Opacity="0.8" 
+                          VerticalAlignment="Center" Margin="20,0,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <ScrollViewer Grid.Row="1" Padding="20">
+            <StackPanel Spacing="15">
+                <!-- 错误消息 -->
+                <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#FFEBEE" BorderBrush="#F44336" BorderThickness="1" 
+                        CornerRadius="5" Padding="15">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#D32F2F" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 加载指示器 -->
+                <Border IsVisible="{Binding IsLoading}" 
+                        Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                        CornerRadius="5" Padding="20">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <ProgressRing IsActive="True" Width="20" Height="20" Margin="0,0,10,0"/>
+                        <TextBlock Text="正在加载考试列表..." VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 考试列表 -->
+                <ItemsControl ItemsSource="{Binding Exams}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:StudentExamDto">
+                            <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                                    CornerRadius="8" Padding="20" Margin="0,0,0,10"
+                                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                    BorderThickness="1">
+                                <Border.Styles>
+                                    <Style Selector="Border:pointerover">
+                                        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
+                                    </Style>
+                                </Border.Styles>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <!-- 考试信息 -->
+                                    <StackPanel Grid.Column="0" Spacing="8">
+                                        <!-- 考试名称和状态 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold"/>
+                                            <Border Background="{DynamicResource SystemAccentColor}"
+                                                    CornerRadius="12" Padding="8,4">
+                                                <TextBlock Text="{Binding Status}" FontSize="12" Foreground="White"/>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- 考试描述 -->
+                                        <TextBlock Text="{Binding Description}" 
+                                                  TextWrapping="Wrap" 
+                                                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                  IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                        <!-- 考试详情 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="20">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="📊" FontSize="14"/>
+                                                <TextBlock Text="{Binding TotalScore, StringFormat='{0} 分'}" FontSize="14"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="⏱️" FontSize="14"/>
+                                                <TextBlock Text="{Binding DurationMinutes, StringFormat='{0} 分钟'}" FontSize="14"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="✅" FontSize="14"/>
+                                                <TextBlock Text="{Binding PassingScore, StringFormat='及格线 {0} 分'}" FontSize="14"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- 时间信息 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="20"
+                                                   IsVisible="{Binding StartTime, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="🕐" FontSize="14"/>
+                                                <TextBlock Text="{Binding StartTime, StringFormat='开始时间: {0:yyyy-MM-dd HH:mm}'}" 
+                                                          FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5"
+                                                       IsVisible="{Binding EndTime, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <TextBlock Text="🕐" FontSize="14"/>
+                                                <TextBlock Text="{Binding EndTime, StringFormat='结束时间: {0:yyyy-MM-dd HH:mm}'}" 
+                                                          FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- 操作按钮 -->
+                                    <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="10" VerticalAlignment="Center">
+                                        <Button Content="查看详情" 
+                                                Command="{Binding $parent[UserControl].((vm:ExamListViewModel)DataContext).ViewDetailsCommand}"
+                                                CommandParameter="{Binding}"
+                                                Classes="accent"/>
+                                        <Button Content="开始考试"
+                                                IsEnabled="True"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 空状态 -->
+                <Border IsVisible="{Binding !IsLoading}"
+                        Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                        CornerRadius="5" Padding="40"
+                        HorizontalAlignment="Center">
+                    <Border.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="!IsLoading"/>
+                            <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNullOrEmpty}"/>
+                        </MultiBinding>
+                    </Border.IsVisible>
+                    <StackPanel HorizontalAlignment="Center" Spacing="10">
+                        <TextBlock Text="📝" FontSize="48" HorizontalAlignment="Center" Opacity="0.5"/>
+                        <TextBlock Text="暂无可用的考试" FontSize="16" HorizontalAlignment="Center" 
+                                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        <TextBlock Text="请联系老师安排考试或稍后再试" FontSize="14" HorizontalAlignment="Center" 
+                                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部操作栏 -->
+        <Border Grid.Row="2" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" 
+                BorderThickness="0,1,0,0" Padding="20,15">
+            <StackPanel Orientation="Horizontal" Spacing="15">
+                <Button Content="刷新" Command="{Binding RefreshCommand}">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="🔄" FontSize="14"/>
+                            <TextBlock Text="刷新"/>
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+                
+                <Button Content="加载更多" 
+                        Command="{Binding LoadMoreCommand}"
+                        IsVisible="{Binding HasMoreData}">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="⬇️" FontSize="14"/>
+                            <TextBlock Text="加载更多"/>
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+
+                <TextBlock Text="{Binding Exams.Count, StringFormat='已显示 {0} 项'}" 
+                          VerticalAlignment="Center" 
+                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

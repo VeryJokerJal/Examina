@@ -140,5 +140,11 @@
         <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
             <views:ProfileView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ExamListViewModel}">
+            <views:ExamListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ComprehensiveTrainingListViewModel}">
+            <views:ComprehensiveTrainingListView />
+        </DataTemplate>
     </Application.DataTemplates>
 </Application>
