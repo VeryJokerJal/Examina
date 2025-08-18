@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Examina.Models;
+using Examina.Models.Position;
 using Examina.Services;
 using Examina.ViewModels.Pages;
 using FluentAvalonia.UI.Controls;
@@ -18,6 +19,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
     private readonly IAuthenticationService? _authenticationService;
     private readonly IWindowManagerService? _windowManagerService;
+    private readonly CompatibilityValidator _compatibilityValidator;
 
     #endregion
 
@@ -60,6 +62,34 @@ public class MainViewModel : ViewModelBase, IDisposable
     public UserInfo? CurrentUser { get; set; }
 
     /// <summary>
+    /// 操作点配置集合
+    /// </summary>
+    public ObservableCollection<OperationPointConfiguration> OperationPointConfigurations { get; } = [];
+
+    /// <summary>
+    /// 图形元素位置集合
+    /// </summary>
+    public ObservableCollection<GraphicElementPosition> GraphicElements { get; } = [];
+
+    /// <summary>
+    /// 选中的操作点配置
+    /// </summary>
+    [Reactive]
+    public OperationPointConfiguration? SelectedOperationPointConfiguration { get; set; }
+
+    /// <summary>
+    /// 选中的图形元素
+    /// </summary>
+    [Reactive]
+    public GraphicElementPosition? SelectedGraphicElement { get; set; }
+
+    /// <summary>
+    /// 是否显示位置设置面板
+    /// </summary>
+    [Reactive]
+    public bool IsPositionPanelVisible { get; set; } = false;
+
+    /// <summary>
     /// NavigationView是否展开
     /// </summary>
     [Reactive]
@@ -73,6 +103,46 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// 退出登录命令
     /// </summary>
     public ICommand LogoutCommand { get; }
+
+    /// <summary>
+    /// 添加操作点配置命令
+    /// </summary>
+    public ICommand AddOperationPointConfigurationCommand { get; }
+
+    /// <summary>
+    /// 删除操作点配置命令
+    /// </summary>
+    public ICommand DeleteOperationPointConfigurationCommand { get; }
+
+    /// <summary>
+    /// 编辑操作点配置命令
+    /// </summary>
+    public ICommand EditOperationPointConfigurationCommand { get; }
+
+    /// <summary>
+    /// 添加图形元素命令
+    /// </summary>
+    public ICommand AddGraphicElementCommand { get; }
+
+    /// <summary>
+    /// 删除图形元素命令
+    /// </summary>
+    public ICommand DeleteGraphicElementCommand { get; }
+
+    /// <summary>
+    /// 设置元素位置命令
+    /// </summary>
+    public ICommand SetElementPositionCommand { get; }
+
+    /// <summary>
+    /// 显示位置设置面板命令
+    /// </summary>
+    public ICommand ShowPositionPanelCommand { get; }
+
+    /// <summary>
+    /// 隐藏位置设置面板命令
+    /// </summary>
+    public ICommand HidePositionPanelCommand { get; }
 
     /// <summary>
     /// 解锁广告命令
@@ -94,9 +164,21 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         _authenticationService = authenticationService;
         _windowManagerService = windowManagerService;
+        _compatibilityValidator = new CompatibilityValidator();
+        _compatibilityValidator = new CompatibilityValidator();
 
         LogoutCommand = new DelegateCommand(Logout);
         UnlockAdsCommand = new DelegateCommand(UnlockAds);
+
+        // 初始化位置参数相关命令
+        AddOperationPointConfigurationCommand = new DelegateCommand(AddOperationPointConfiguration);
+        DeleteOperationPointConfigurationCommand = new DelegateCommand<OperationPointConfiguration>(DeleteOperationPointConfiguration);
+        EditOperationPointConfigurationCommand = new DelegateCommand<OperationPointConfiguration>(EditOperationPointConfiguration);
+        AddGraphicElementCommand = new DelegateCommand(AddGraphicElement);
+        DeleteGraphicElementCommand = new DelegateCommand<GraphicElementPosition>(DeleteGraphicElement);
+        SetElementPositionCommand = new DelegateCommand<GraphicElementPosition>(SetElementPosition);
+        ShowPositionPanelCommand = new DelegateCommand(() => IsPositionPanelVisible = true);
+        HidePositionPanelCommand = new DelegateCommand(() => IsPositionPanelVisible = false);
 
         InitializeNavigation();
 
@@ -623,6 +705,139 @@ public class MainViewModel : ViewModelBase, IDisposable
             {
                 System.Diagnostics.Debug.WriteLine($"导航到登录窗口失败: {navEx.Message}");
             }
+        }
+    }
+
+    #endregion
+
+    #region 位置参数处理方法
+
+    /// <summary>
+    /// 添加操作点配置
+    /// </summary>
+    private void AddOperationPointConfiguration()
+    {
+        var config = new OperationPointConfiguration
+        {
+            Name = $"操作点配置 {OperationPointConfigurations.Count + 1}",
+            Description = "新的操作点配置",
+            Type = OperationPointType.SetGraphicPosition
+        };
+
+        // 添加默认参数
+        config.AddParameter(new ConfigurationParameter
+        {
+            Name = "PositionX",
+            DisplayName = "水平位置",
+            Description = "元素的水平位置（磅）",
+            Type = ParameterType.Number,
+            IsRequired = true,
+            Order = 1,
+            DefaultValue = "0"
+        });
+
+        config.AddParameter(new ConfigurationParameter
+        {
+            Name = "PositionY",
+            DisplayName = "垂直位置",
+            Description = "元素的垂直位置（磅）",
+            Type = ParameterType.Number,
+            IsRequired = true,
+            Order = 2,
+            DefaultValue = "0"
+        });
+
+        // 验证兼容性
+        var validationResult = _compatibilityValidator.ValidatePositionParametersCompatibility(config.Parameters);
+        if (!validationResult.IsCompatible)
+        {
+            // 记录兼容性问题（在实际应用中可能需要显示给用户）
+            System.Diagnostics.Debug.WriteLine($"位置参数兼容性警告: {validationResult.ErrorCount} 个错误, {validationResult.WarningCount} 个警告");
+        }
+
+        OperationPointConfigurations.Add(config);
+        SelectedOperationPointConfiguration = config;
+    }
+
+    /// <summary>
+    /// 删除操作点配置
+    /// </summary>
+    /// <param name="config">要删除的配置</param>
+    private void DeleteOperationPointConfiguration(OperationPointConfiguration? config)
+    {
+        if (config != null && OperationPointConfigurations.Contains(config))
+        {
+            OperationPointConfigurations.Remove(config);
+            if (SelectedOperationPointConfiguration == config)
+            {
+                SelectedOperationPointConfiguration = OperationPointConfigurations.FirstOrDefault();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 编辑操作点配置
+    /// </summary>
+    /// <param name="config">要编辑的配置</param>
+    private void EditOperationPointConfiguration(OperationPointConfiguration? config)
+    {
+        if (config != null)
+        {
+            SelectedOperationPointConfiguration = config;
+            IsPositionPanelVisible = true;
+        }
+    }
+
+    /// <summary>
+    /// 添加图形元素
+    /// </summary>
+    private void AddGraphicElement()
+    {
+        var element = new GraphicElementPosition
+        {
+            ElementName = $"图形元素 {GraphicElements.Count + 1}",
+            ElementType = GraphicElementType.Shape,
+            Position = new PositionParameter
+            {
+                Type = PositionType.Absolute,
+                X = 100,
+                Y = 100,
+                Unit = PositionUnit.Point
+            },
+            Width = 100,
+            Height = 100
+        };
+
+        GraphicElements.Add(element);
+        SelectedGraphicElement = element;
+    }
+
+    /// <summary>
+    /// 删除图形元素
+    /// </summary>
+    /// <param name="element">要删除的元素</param>
+    private void DeleteGraphicElement(GraphicElementPosition? element)
+    {
+        if (element != null && GraphicElements.Contains(element))
+        {
+            GraphicElements.Remove(element);
+            if (SelectedGraphicElement == element)
+            {
+                SelectedGraphicElement = GraphicElements.FirstOrDefault();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 设置元素位置
+    /// </summary>
+    /// <param name="element">要设置位置的元素</param>
+    private void SetElementPosition(GraphicElementPosition? element)
+    {
+        if (element != null)
+        {
+            SelectedGraphicElement = element;
+            IsPositionPanelVisible = true;
         }
     }
 
