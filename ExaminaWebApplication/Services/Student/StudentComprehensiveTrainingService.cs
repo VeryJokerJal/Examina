@@ -2,6 +2,7 @@ using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using Microsoft.EntityFrameworkCore;
+using ImportedComprehensiveTrainingEntity = ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining;
 
 namespace ExaminaWebApplication.Services.Student;
 
@@ -28,7 +29,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
         {
             // 目前简化权限验证：所有启用的综合训练都对学生可见
             // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
-            List<ImportedComprehensiveTraining> trainings = await _context.ImportedComprehensiveTrainings
+            List<ImportedComprehensiveTrainingEntity> trainings = await _context.ImportedComprehensiveTrainings
                 .Where(t => t.IsEnabled)
                 .OrderByDescending(t => t.ImportedAt)
                 .Skip((pageNumber - 1) * pageSize)
@@ -64,7 +65,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 return null;
             }
 
-            ImportedComprehensiveTraining? training = await _context.ImportedComprehensiveTrainings
+            ImportedComprehensiveTrainingEntity? training = await _context.ImportedComprehensiveTrainings
                 .Include(t => t.Subjects)
                     .ThenInclude(s => s.Questions)
                         .ThenInclude(q => q.OperationPoints)
@@ -161,7 +162,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     /// <summary>
     /// 映射到学生端综合训练DTO（不包含详细信息）
     /// </summary>
-    private static StudentComprehensiveTrainingDto MapToStudentComprehensiveTrainingDto(ImportedComprehensiveTraining training)
+    private static StudentComprehensiveTrainingDto MapToStudentComprehensiveTrainingDto(ImportedComprehensiveTrainingEntity training)
     {
         return new StudentComprehensiveTrainingDto
         {
@@ -170,13 +171,13 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Description = training.Description,
             TrainingType = training.TrainingType,
             Status = training.Status,
-            TotalScore = training.TotalScore,
+            TotalScore = (int)training.TotalScore,
             DurationMinutes = training.DurationMinutes,
             StartTime = training.StartTime,
             EndTime = training.EndTime,
             AllowRetake = training.AllowRetake,
             MaxRetakeCount = training.MaxRetakeCount,
-            PassingScore = training.PassingScore,
+            PassingScore = (int)training.PassingScore,
             RandomizeQuestions = training.RandomizeQuestions,
             ShowScore = training.ShowScore,
             ShowAnswers = training.ShowAnswers,
@@ -189,7 +190,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     /// <summary>
     /// 映射到学生端综合训练DTO（包含完整详细信息）
     /// </summary>
-    private static StudentComprehensiveTrainingDto MapToStudentComprehensiveTrainingDtoWithDetails(ImportedComprehensiveTraining training)
+    private static StudentComprehensiveTrainingDto MapToStudentComprehensiveTrainingDtoWithDetails(ImportedComprehensiveTrainingEntity training)
     {
         StudentComprehensiveTrainingDto dto = MapToStudentComprehensiveTrainingDto(training);
 
@@ -200,11 +201,11 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             SubjectType = subject.SubjectType,
             SubjectName = subject.SubjectName,
             Description = subject.Description,
-            Score = subject.Score,
+            Score = (int)subject.Score,
             DurationMinutes = subject.DurationMinutes,
             SortOrder = subject.SortOrder,
             IsRequired = subject.IsRequired,
-            MinScore = subject.MinScore,
+            MinScore = subject.MinScore.HasValue ? (int)subject.MinScore.Value : 0,
             Weight = subject.Weight,
             QuestionCount = subject.QuestionCount,
             Questions = subject.Questions.Select(MapToStudentComprehensiveTrainingQuestionDto).ToList()
@@ -236,7 +237,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Title = question.Title,
             Content = question.Content,
             QuestionType = question.QuestionType,
-            Score = question.Score,
+            Score = (int)question.Score,
             DifficultyLevel = question.DifficultyLevel,
             EstimatedMinutes = question.EstimatedMinutes,
             SortOrder = question.SortOrder,
@@ -253,17 +254,17 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 Name = op.Name,
                 Description = op.Description,
                 ModuleType = op.ModuleType,
-                Score = op.Score,
+                Score = (int)op.Score,
                 Order = op.Order,
                 Parameters = op.Parameters.Select(param => new StudentComprehensiveTrainingParameterDto
                 {
                     Id = param.Id,
                     Name = param.Name,
                     Description = param.Description,
-                    ParameterType = param.ParameterType,
+                    ParameterType = param.Type,
                     DefaultValue = param.DefaultValue,
-                    MinValue = param.MinValue,
-                    MaxValue = param.MaxValue
+                    MinValue = param.MinValue?.ToString(),
+                    MaxValue = param.MaxValue?.ToString()
                 }).ToList()
             }).ToList()
         };

@@ -2,6 +2,7 @@ using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedExam;
 using Microsoft.EntityFrameworkCore;
+using ImportedExamEntity = ExaminaWebApplication.Models.ImportedExam.ImportedExam;
 
 namespace ExaminaWebApplication.Services.Student;
 
@@ -28,7 +29,7 @@ public class StudentExamService : IStudentExamService
         {
             // 目前简化权限验证：所有启用的考试都对学生可见
             // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
-            List<ImportedExam> exams = await _context.ImportedExams
+            List<ImportedExamEntity> exams = await _context.ImportedExams
                 .Where(e => e.IsEnabled)
                 .OrderByDescending(e => e.ImportedAt)
                 .Skip((pageNumber - 1) * pageSize)
@@ -64,7 +65,7 @@ public class StudentExamService : IStudentExamService
                 return null;
             }
 
-            ImportedExam? exam = await _context.ImportedExams
+            ImportedExamEntity? exam = await _context.ImportedExams
                 .Include(e => e.Subjects)
                     .ThenInclude(s => s.Questions)
                         .ThenInclude(q => q.OperationPoints)
@@ -161,7 +162,7 @@ public class StudentExamService : IStudentExamService
     /// <summary>
     /// 映射到学生端考试DTO（不包含详细信息）
     /// </summary>
-    private static StudentExamDto MapToStudentExamDto(ImportedExam exam)
+    private static StudentExamDto MapToStudentExamDto(ImportedExamEntity exam)
     {
         return new StudentExamDto
         {
@@ -170,13 +171,13 @@ public class StudentExamService : IStudentExamService
             Description = exam.Description,
             ExamType = exam.ExamType,
             Status = exam.Status,
-            TotalScore = exam.TotalScore,
+            TotalScore = (int)exam.TotalScore,
             DurationMinutes = exam.DurationMinutes,
             StartTime = exam.StartTime,
             EndTime = exam.EndTime,
             AllowRetake = exam.AllowRetake,
             MaxRetakeCount = exam.MaxRetakeCount,
-            PassingScore = exam.PassingScore,
+            PassingScore = (int)exam.PassingScore,
             RandomizeQuestions = exam.RandomizeQuestions,
             ShowScore = exam.ShowScore,
             ShowAnswers = exam.ShowAnswers,
@@ -189,7 +190,7 @@ public class StudentExamService : IStudentExamService
     /// <summary>
     /// 映射到学生端考试DTO（包含完整详细信息）
     /// </summary>
-    private static StudentExamDto MapToStudentExamDtoWithDetails(ImportedExam exam)
+    private static StudentExamDto MapToStudentExamDtoWithDetails(ImportedExamEntity exam)
     {
         StudentExamDto dto = MapToStudentExamDto(exam);
 
@@ -200,11 +201,11 @@ public class StudentExamService : IStudentExamService
             SubjectType = subject.SubjectType,
             SubjectName = subject.SubjectName,
             Description = subject.Description,
-            Score = subject.Score,
+            Score = (int)subject.Score,
             DurationMinutes = subject.DurationMinutes,
             SortOrder = subject.SortOrder,
             IsRequired = subject.IsRequired,
-            MinScore = subject.MinScore,
+            MinScore = subject.MinScore.HasValue ? (int)subject.MinScore.Value : 0,
             Weight = subject.Weight,
             QuestionCount = subject.QuestionCount,
             Questions = subject.Questions.Select(MapToStudentQuestionDto).ToList()
@@ -236,7 +237,7 @@ public class StudentExamService : IStudentExamService
             Title = question.Title,
             Content = question.Content,
             QuestionType = question.QuestionType,
-            Score = question.Score,
+            Score = (int)question.Score,
             DifficultyLevel = question.DifficultyLevel,
             EstimatedMinutes = question.EstimatedMinutes,
             SortOrder = question.SortOrder,
@@ -253,17 +254,17 @@ public class StudentExamService : IStudentExamService
                 Name = op.Name,
                 Description = op.Description,
                 ModuleType = op.ModuleType,
-                Score = op.Score,
+                Score = (int)op.Score,
                 Order = op.Order,
                 Parameters = op.Parameters.Select(param => new StudentParameterDto
                 {
                     Id = param.Id,
                     Name = param.Name,
                     Description = param.Description,
-                    ParameterType = param.ParameterType,
+                    ParameterType = param.Type,
                     DefaultValue = param.DefaultValue,
-                    MinValue = param.MinValue,
-                    MaxValue = param.MaxValue
+                    MinValue = param.MinValue?.ToString(),
+                    MaxValue = param.MaxValue?.ToString()
                 }).ToList()
             }).ToList()
         };
