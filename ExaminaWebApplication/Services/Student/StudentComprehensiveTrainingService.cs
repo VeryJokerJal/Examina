@@ -238,7 +238,6 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Content = question.Content,
             QuestionType = question.QuestionType,
             Score = (int)question.Score,
-            DifficultyLevel = question.DifficultyLevel,
             EstimatedMinutes = question.EstimatedMinutes,
             SortOrder = question.SortOrder,
             IsRequired = question.IsRequired,

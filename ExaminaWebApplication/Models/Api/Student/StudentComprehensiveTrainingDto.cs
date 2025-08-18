@@ -236,11 +236,6 @@ public class StudentComprehensiveTrainingQuestionDto
     public int Score { get; set; }
 
     /// <summary>
-    /// 难度等级
-    /// </summary>
-    public string DifficultyLevel { get; set; } = string.Empty;
-
-    /// <summary>
     /// 预计用时（分钟）
     /// </summary>
     public int EstimatedMinutes { get; set; }
