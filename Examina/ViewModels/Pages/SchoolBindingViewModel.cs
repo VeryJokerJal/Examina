@@ -132,7 +132,7 @@ public class SchoolBindingViewModel : ViewModelBase
                 {
                     IsSchoolBound = true;
                     CurrentSchool = organization.OrganizationName;
-                    StatusMessage = "已成功加入学校";
+                    StatusMessage = string.Empty; // 已加入学校时不显示状态消息，由界面的成功区域显示
                 }
                 else
                 {
@@ -143,7 +143,7 @@ public class SchoolBindingViewModel : ViewModelBase
             else
             {
                 IsSchoolBound = false;
-                StatusMessage = "尚未加入任何学校";
+                StatusMessage = "请输入邀请码加入学校";
             }
         }
         catch (Exception ex)
@@ -182,16 +182,19 @@ public class SchoolBindingViewModel : ViewModelBase
                 IsSchoolBound = true;
                 CurrentSchool = result.StudentOrganization.OrganizationName;
                 OrganizationName = result.StudentOrganization.OrganizationName;
-                StatusMessage = "成功加入学校！";
 
                 // 清空邀请码
                 InvitationCode = string.Empty;
 
                 // 刷新用户权限状态
                 bool refreshSuccess = await RefreshUserPermissionsAsync();
-                if (!refreshSuccess)
+                if (refreshSuccess)
                 {
-                    StatusMessage += " 但权限状态更新失败，请重新登录以获取最新权限。";
+                    StatusMessage = string.Empty; // 成功后清空状态消息，由成功区域显示
+                }
+                else
+                {
+                    StatusMessage = "加入成功，但权限状态更新失败，请重新登录以获取最新权限。";
                 }
 
                 System.Diagnostics.Debug.WriteLine($"用户成功加入学校: {CurrentSchool}");

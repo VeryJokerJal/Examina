@@ -10,7 +10,8 @@
 
             <!--  加入学校表单  -->
             <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    CornerRadius="8" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1">
+                    CornerRadius="8" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1"
+                    IsVisible="{Binding !IsSchoolBound}">
                 <StackPanel Spacing="16">
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="18" FontWeight="SemiBold"
                                Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
@@ -36,21 +37,19 @@
                         </Border>
                     </StackPanel>
 
-                    <TextBlock FontFamily="Microsoft YaHei" FontSize="14"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                               Text="{Binding OrganizationName, FallbackValue='组织名称'}" />
-
                     <!-- 状态消息 -->
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="14"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                Text="{Binding StatusMessage, FallbackValue=''}"
-                               TextWrapping="Wrap" />
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </StackPanel>
             </Border>
 
             <!--  已加入学校状态  -->
             <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    CornerRadius="8" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1">
+                    CornerRadius="8" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1"
+                    IsVisible="{Binding IsSchoolBound}">
                 <StackPanel Spacing="16">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="✓" Foreground="{DynamicResource SystemControlForegroundAccentBrush}" FontSize="24" />
@@ -74,8 +73,7 @@
                 </StackPanel>
             </Border>
 
-            <!--  状态消息  -->
-            <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding StatusMessage}" />
+
 
         </StackPanel>
     </ScrollViewer>
