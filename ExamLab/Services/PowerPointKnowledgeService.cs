@@ -176,7 +176,7 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumbers", DisplayName = "幻灯片张数（可配置多个）", Description = "以逗号分隔，举例：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "TransitionEffect", DisplayName = "切换方式", Description = "选择切换效果", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "无切换效果,剪切,黑色剪切,平滑淡出,淡出,推动向左,推动向右,推动向上,推动向下,覆盖向左,覆盖向右,覆盖向上,覆盖向下,揭开向左,揭开向右,揭开向上,揭开向下,擦除向左,擦除向右,擦除向上,擦除向下,水平中间向外展开,水平两边向中间合拢,垂直中间向外展开,垂直两边向中间合拢,条纹左上角弹出,条纹右上角弹出,条纹左下角弹出,条纹右下角弹出,水平随机条纹,垂直随机条纹,棋盘交错横向,棋盘交错纵向,闪光灯效果,摩天轮向右旋转,轮状反向1辐射,平移向左,平移向右" }
+                    EnumOptions = "无,平滑,淡入淡出,擦入,推入,覆盖,切入,随机条纹,形状,显示,切出,变换,突出,帘式,布式,风,上拉帘幕,折叠,压碎,到达,页面卷曲,飞机,日式折纸,泡沫,蜂巢,百叶窗,时钟,涟漪,翻转,剥转,库,立方体,门,程,转盘,缩放,随机,平移,传送系统,传送,旋转,宫口,轨道,飞过" }
             ]
         };
 
@@ -191,9 +191,9 @@ public class PowerPointKnowledgeService
             [
                 new() { Name = "SlideNumbers", DisplayName = "幻灯片张数（可配置多个）", Description = "以逗号分隔，举例：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "TransitionScheme", DisplayName = "幻灯片切换方案", Description = "选择切换方案", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "无效果,推入,淡出,覆盖,随机条纹,棋盘格,摩天轮,闪光灯,平移" },
+                    EnumOptions = "细微,华丽,动感内容" },
                 new() { Name = "TransitionDirection", DisplayName = "幻灯片切换效果", Description = "选择切换方向", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "推入向左,推入向右,推入向上,推入向下,淡出,平滑淡出,覆盖向左,覆盖向右,覆盖向上,覆盖向下,棋盘交错纵向,棋盘交错横向,水平随机条纹,垂直随机条纹,摩天轮向右,闪光灯,平移向左,平移向右,轮状反向1辐射" }
+                    EnumOptions = "向左,向右,向上,向下,从左上角,从右上角,从左下角,从右下角,水平向内,水平向外,垂直向内,垂直向外,顺时针,逆时针,从中心向外,从外向中心,随机方向" }
             ]
         };
 
