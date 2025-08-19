@@ -1,9 +1,7 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
-using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Services;
 
@@ -36,11 +34,11 @@ public class UserImportService
     /// <param name="creatorUserId">创建者用户ID</param>
     /// <returns>导入结果</returns>
     public async Task<UserImportProcessResult> ImportNonOrganizationUsersAsync(
-        List<UserImportData> userDataList, 
+        List<UserImportData> userDataList,
         int creatorUserId)
     {
-        UserImportProcessResult result = new UserImportProcessResult();
-        
+        UserImportProcessResult result = new();
+
         try
         {
             // 验证创建者
@@ -52,11 +50,11 @@ public class UserImportService
                 return result;
             }
 
-            List<UserImportResultItem> importResults = new List<UserImportResultItem>();
+            List<UserImportResultItem> importResults = [];
 
             foreach (UserImportData userData in userDataList)
             {
-                UserImportResultItem importResult = new UserImportResultItem
+                UserImportResultItem importResult = new()
                 {
                     RealName = userData.RealName,
                     PhoneNumber = userData.PhoneNumber,
@@ -68,7 +66,7 @@ public class UserImportService
                     // 检查手机号是否已存在于用户表
                     bool userExists = await _context.Users
                         .AnyAsync(u => u.PhoneNumber == userData.PhoneNumber);
-                    
+
                     if (userExists)
                     {
                         importResult.IsSuccess = false;
@@ -80,7 +78,7 @@ public class UserImportService
                     // 检查手机号是否已存在于非组织学生表
                     bool nonOrgStudentExists = await _context.NonOrganizationStudents
                         .AnyAsync(s => s.PhoneNumber == userData.PhoneNumber && s.IsActive);
-                    
+
                     if (nonOrgStudentExists)
                     {
                         importResult.IsSuccess = false;
@@ -90,11 +88,11 @@ public class UserImportService
                     }
 
                     // 创建非组织学生
-                    Models.Organization.Dto.NonOrganizationStudentDto? studentDto = 
+                    Models.Organization.Dto.NonOrganizationStudentDto? studentDto =
                         await _nonOrganizationStudentService.CreateStudentAsync(
-                            userData.RealName, 
-                            userData.PhoneNumber, 
-                            creatorUserId, 
+                            userData.RealName,
+                            userData.PhoneNumber,
+                            creatorUserId,
                             "通过Excel导入创建");
 
                     if (studentDto != null)
@@ -112,7 +110,7 @@ public class UserImportService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "导入非组织学生失败: {RealName}, {PhoneNumber}", 
+                    _logger.LogError(ex, "导入非组织学生失败: {RealName}, {PhoneNumber}",
                         userData.RealName, userData.PhoneNumber);
                     importResult.IsSuccess = false;
                     importResult.ErrorMessage = $"导入失败: {ex.Message}";
@@ -125,7 +123,7 @@ public class UserImportService
             result.ImportResults = importResults;
             result.TotalCount = userDataList.Count;
             result.IsSuccess = result.FailureCount == 0;
-            result.ErrorMessage = result.FailureCount > 0 ? 
+            result.ErrorMessage = result.FailureCount > 0 ?
                 $"导入完成，成功{result.SuccessCount}条，失败{result.FailureCount}条" : null;
 
             _logger.LogInformation("非组织用户导入完成: 总数{TotalCount}, 成功{SuccessCount}, 失败{FailureCount}",
@@ -150,12 +148,12 @@ public class UserImportService
     /// <param name="creatorUserId">创建者用户ID</param>
     /// <returns>导入结果</returns>
     public async Task<UserImportProcessResult> ImportOrganizationUsersAsync(
-        List<UserImportData> userDataList, 
+        List<UserImportData> userDataList,
         int organizationId,
         int creatorUserId)
     {
-        UserImportProcessResult result = new UserImportProcessResult();
-        
+        UserImportProcessResult result = new();
+
         try
         {
             // 验证组织是否存在
@@ -177,11 +175,11 @@ public class UserImportService
                 return result;
             }
 
-            List<UserImportResultItem> importResults = new List<UserImportResultItem>();
+            List<UserImportResultItem> importResults = [];
 
             foreach (UserImportData userData in userDataList)
             {
-                UserImportResultItem importResult = new UserImportResultItem
+                UserImportResultItem importResult = new()
                 {
                     RealName = userData.RealName,
                     PhoneNumber = userData.PhoneNumber,
@@ -196,7 +194,7 @@ public class UserImportService
                     // 检查用户名是否已存在于预配置用户表中
                     bool preConfiguredUserExists = await _context.PreConfiguredUsers
                         .AnyAsync(p => p.Username == username && p.OrganizationId == organizationId);
-                    
+
                     if (preConfiguredUserExists)
                     {
                         importResult.IsSuccess = false;
@@ -206,7 +204,7 @@ public class UserImportService
                     }
 
                     // 创建预配置用户
-                    PreConfiguredUser preConfiguredUser = new PreConfiguredUser
+                    PreConfiguredUser preConfiguredUser = new()
                     {
                         Username = username,
                         PhoneNumber = userData.PhoneNumber,
@@ -218,8 +216,8 @@ public class UserImportService
                         Notes = "通过Excel导入创建"
                     };
 
-                    _context.PreConfiguredUsers.Add(preConfiguredUser);
-                    await _context.SaveChangesAsync();
+                    _ = _context.PreConfiguredUsers.Add(preConfiguredUser);
+                    _ = await _context.SaveChangesAsync();
 
                     importResult.IsSuccess = true;
                     importResult.CreatedId = preConfiguredUser.Id;
@@ -227,7 +225,7 @@ public class UserImportService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "导入预配置用户失败: {RealName}, {PhoneNumber}", 
+                    _logger.LogError(ex, "导入预配置用户失败: {RealName}, {PhoneNumber}",
                         userData.RealName, userData.PhoneNumber);
                     importResult.IsSuccess = false;
                     importResult.ErrorMessage = $"导入失败: {ex.Message}";
@@ -240,7 +238,7 @@ public class UserImportService
             result.ImportResults = importResults;
             result.TotalCount = userDataList.Count;
             result.IsSuccess = result.FailureCount == 0;
-            result.ErrorMessage = result.FailureCount > 0 ? 
+            result.ErrorMessage = result.FailureCount > 0 ?
                 $"导入完成，成功{result.SuccessCount}条，失败{result.FailureCount}条" : null;
 
             _logger.LogInformation("组织用户导入完成: 总数{TotalCount}, 成功{SuccessCount}, 失败{FailureCount}",
@@ -291,7 +289,7 @@ public class UserImportProcessResult
     /// <summary>
     /// 导入结果详情
     /// </summary>
-    public List<UserImportResultItem> ImportResults { get; set; } = new List<UserImportResultItem>();
+    public List<UserImportResultItem> ImportResults { get; set; } = [];
 }
 
 /// <summary>

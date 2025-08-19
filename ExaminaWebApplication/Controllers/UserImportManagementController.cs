@@ -1,5 +1,6 @@
-using ExaminaWebApplication.Attributes;
+using ExaminaWebApplication.Filters;
 using ExaminaWebApplication.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExaminaWebApplication.Controllers;
@@ -8,7 +9,7 @@ namespace ExaminaWebApplication.Controllers;
 /// 用户导入管理控制器
 /// </summary>
 [RequireLogin]
-[RequireRole(UserRole.Administrator, UserRole.Teacher)]
+[Authorize(Roles = "Administrator,Teacher")]
 public class UserImportManagementController : Controller
 {
     private readonly ILogger<UserImportManagementController> _logger;

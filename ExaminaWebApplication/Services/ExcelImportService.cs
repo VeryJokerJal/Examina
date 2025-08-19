@@ -1,6 +1,6 @@
-using OfficeOpenXml;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using OfficeOpenXml;
 
 namespace ExaminaWebApplication.Services;
 
@@ -24,15 +24,15 @@ public class ExcelImportService
     /// <returns>用户数据列表和导入结果</returns>
     public async Task<ExcelImportResult> ReadUserDataFromExcelAsync(Stream fileStream, string fileName)
     {
-        ExcelImportResult result = new ExcelImportResult();
-        
+        ExcelImportResult result = new();
+
         try
         {
             // 设置EPPlus许可证上下文
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage.License.SetNonCommercialOrganization("ExaminaWebApplication");
 
-            using ExcelPackage package = new ExcelPackage(fileStream);
-            
+            using ExcelPackage package = new(fileStream);
+
             if (package.Workbook.Worksheets.Count == 0)
             {
                 result.IsSuccess = false;
@@ -50,62 +50,66 @@ public class ExcelImportService
                 return result;
             }
 
-            List<UserImportData> userDataList = new List<UserImportData>();
-            List<string> errors = new List<string>();
+            List<UserImportData> userDataList = [];
+            List<string> errors = [];
 
-            // 从第2行开始读取数据（第1行通常是标题）
-            for (int row = 2; row <= rowCount; row++)
-            {
-                string? realName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
-                string? phoneNumber = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+            await Task.Run(() =>
+             {
+                 // 从第2行开始读取数据（第1行通常是标题）
+                 for (int row = 2; row <= rowCount; row++)
+                 {
+                     string? realName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                     string? phoneNumber = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
 
-                // 跳过空行
-                if (string.IsNullOrWhiteSpace(realName) && string.IsNullOrWhiteSpace(phoneNumber))
-                {
-                    continue;
-                }
+                     // 跳过空行
+                     if (string.IsNullOrWhiteSpace(realName) && string.IsNullOrWhiteSpace(phoneNumber))
+                     {
+                         continue;
+                     }
 
-                UserImportData userData = new UserImportData
-                {
-                    RealName = realName ?? string.Empty,
-                    PhoneNumber = phoneNumber ?? string.Empty,
-                    RowNumber = row
-                };
+                     UserImportData userData = new()
+                     {
+                         RealName = realName ?? string.Empty,
+                         PhoneNumber = phoneNumber ?? string.Empty,
+                         RowNumber = row
+                     };
 
-                // 验证数据
-                List<ValidationResult> validationResults = new List<ValidationResult>();
-                ValidationContext validationContext = new ValidationContext(userData);
-                
-                if (!Validator.TryValidateObject(userData, validationContext, validationResults, true))
-                {
-                    foreach (ValidationResult validationResult in validationResults)
-                    {
-                        errors.Add($"第{row}行: {validationResult.ErrorMessage}");
-                    }
-                    continue;
-                }
+                     // 验证数据
+                     List<ValidationResult> validationResults = [];
+                     ValidationContext validationContext = new(userData);
 
-                // 额外的手机号格式验证
-                if (!IsValidPhoneNumber(userData.PhoneNumber))
-                {
-                    errors.Add($"第{row}行: 手机号格式不正确 ({userData.PhoneNumber})");
-                    continue;
-                }
+                     if (!Validator.TryValidateObject(userData, validationContext, validationResults, true))
+                     {
+                         foreach (ValidationResult validationResult in validationResults)
+                         {
+                             errors.Add($"第{row}行: {validationResult.ErrorMessage}");
+                         }
+                         continue;
+                     }
 
-                userDataList.Add(userData);
-            }
+                     // 额外的手机号格式验证
+                     if (!IsValidPhoneNumber(userData.PhoneNumber))
+                     {
+                         errors.Add($"第{row}行: 手机号格式不正确 ({userData.PhoneNumber})");
+                         continue;
+                     }
 
-            // 检查重复的手机号
-            Dictionary<string, List<int>> phoneNumberGroups = userDataList
-                .GroupBy(u => u.PhoneNumber)
-                .Where(g => g.Count() > 1)
-                .ToDictionary(g => g.Key, g => g.Select(u => u.RowNumber).ToList());
+                     userDataList.Add(userData);
+                 }
 
-            foreach (KeyValuePair<string, List<int>> group in phoneNumberGroups)
-            {
-                string rowNumbers = string.Join(", ", group.Value);
-                errors.Add($"手机号重复: {group.Key} (出现在第{rowNumbers}行)");
-            }
+                 // 检查重复的手机号
+                 Dictionary<string, List<int>> phoneNumberGroups = userDataList
+                    .GroupBy(u => u.PhoneNumber)
+                    .Where(g => g.Count() > 1)
+                    .ToDictionary(g => g.Key, g => g.Select(u => u.RowNumber).ToList());
+
+                 foreach (KeyValuePair<string, List<int>> group in phoneNumberGroups)
+                 {
+                     string rowNumbers = string.Join(", ", group.Value);
+                     errors.Add($"手机号重复: {group.Key} (出现在第{rowNumbers}行)");
+                 }
+
+             });
 
             result.UserDataList = userDataList;
             result.TotalRows = rowCount - 1; // 减去标题行
@@ -189,7 +193,7 @@ public class ExcelImportResult
     /// <summary>
     /// 用户数据列表
     /// </summary>
-    public List<UserImportData> UserDataList { get; set; } = new List<UserImportData>();
+    public List<UserImportData> UserDataList { get; set; } = [];
 
     /// <summary>
     /// 总行数（不包括标题行）
@@ -204,5 +208,5 @@ public class ExcelImportResult
     /// <summary>
     /// 错误列表
     /// </summary>
-    public List<string> Errors { get; set; } = new List<string>();
+    public List<string> Errors { get; set; } = [];
 }

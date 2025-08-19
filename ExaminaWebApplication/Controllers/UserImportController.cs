@@ -1,7 +1,8 @@
-using ExaminaWebApplication.Attributes;
 using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Filters;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -39,7 +40,7 @@ public class UserImportController : ControllerBase
     /// <param name="file">Excel文件</param>
     /// <returns>导入结果</returns>
     [HttpPost("import-non-organization-users")]
-    [RequireRole(UserRole.Administrator, UserRole.Teacher)]
+    [Authorize(Roles = "Administrator,Teacher")]
     public async Task<ActionResult<UserImportApiResponse>> ImportNonOrganizationUsers(IFormFile file)
     {
         try
@@ -110,7 +111,7 @@ public class UserImportController : ControllerBase
     /// <param name="request">导入请求</param>
     /// <returns>导入结果</returns>
     [HttpPost("import-organization-users")]
-    [RequireRole(UserRole.Administrator, UserRole.Teacher)]
+    [Authorize(Roles = "Administrator,Teacher")]
     public async Task<ActionResult<UserImportApiResponse>> ImportOrganizationUsers([FromForm] ImportOrganizationUsersRequest request)
     {
         try
@@ -203,7 +204,7 @@ public class UserImportController : ControllerBase
     /// </summary>
     /// <returns>组织列表</returns>
     [HttpGet("organizations")]
-    [RequireRole(UserRole.Administrator, UserRole.Teacher)]
+    [Authorize(Roles = "Administrator,Teacher")]
     public async Task<ActionResult<List<OrganizationOption>>> GetOrganizations()
     {
         try
