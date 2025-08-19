@@ -214,7 +214,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
         // 默认选择第一个项目
         SelectedNavigationItem = NavigationItems.FirstOrDefault();
-        NavigateToPage("overview");
+        NavigateToPageInternal("overview");
     }
 
     /// <summary>
@@ -320,7 +320,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     public void TestNavigateToSchoolBinding()
     {
         System.Diagnostics.Debug.WriteLine("MainViewModel: TestNavigateToSchoolBinding called");
-        NavigateToPage("school-binding");
+        NavigateToPageInternal("school-binding");
         System.Diagnostics.Debug.WriteLine($"MainViewModel: CurrentPageViewModel after navigation = {CurrentPageViewModel?.GetType().Name ?? "null"}");
     }
 
@@ -363,14 +363,23 @@ public class MainViewModel : ViewModelBase, IDisposable
         string? tag = selectedItem.Tag?.ToString();
         if (!string.IsNullOrEmpty(tag))
         {
-            NavigateToPage(tag);
+            NavigateToPageInternal(tag);
         }
     }
 
     /// <summary>
-    /// 导航到指定页面
+    /// 导航到指定页面（公共方法）
     /// </summary>
-    private void NavigateToPage(string pageTag)
+    /// <param name="pageTag">页面标签</param>
+    public void NavigateToPage(string pageTag)
+    {
+        NavigateToPageInternal(pageTag);
+    }
+
+    /// <summary>
+    /// 导航到指定页面（内部实现）
+    /// </summary>
+    private void NavigateToPageInternal(string pageTag)
     {
         try
         {

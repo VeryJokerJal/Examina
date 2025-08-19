@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Examina.Services;
+using Examina.ViewModels;
 
 namespace Examina.Views.Pages;
 
@@ -37,17 +38,24 @@ public partial class SchoolBindingView : UserControl
         {
             System.Diagnostics.Debug.WriteLine("SchoolBindingView: 用户点击返回主页按钮");
 
-            // 获取导航服务
-            var navigationService = App.ServiceProvider?.GetService(typeof(INavigationService)) as INavigationService;
-            if (navigationService != null)
+            // 通过MainViewModel导航到概览页面
+            if (Avalonia.Application.Current is App app)
             {
-                // 导航到主页面
-                navigationService.NavigateToMainPage();
-                System.Diagnostics.Debug.WriteLine("SchoolBindingView: 成功导航到主页面");
+                MainViewModel? mainViewModel = app.GetService<MainViewModel>();
+                if (mainViewModel != null)
+                {
+                    // 导航到概览页面（主页面）
+                    mainViewModel.NavigateToPage("overview");
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingView: 成功导航到概览页面");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingView: 无法获取MainViewModel");
+                }
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("SchoolBindingView: 无法获取导航服务");
+                System.Diagnostics.Debug.WriteLine("SchoolBindingView: 无法获取App实例");
             }
         }
         catch (Exception ex)
