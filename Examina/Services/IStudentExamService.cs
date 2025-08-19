@@ -68,4 +68,10 @@ public interface IStudentComprehensiveTrainingService
     /// </summary>
     /// <returns>综合训练总数</returns>
     Task<int> GetAvailableTrainingCountAsync();
+
+    /// <summary>
+    /// 获取学生综合训练进度统计
+    /// </summary>
+    /// <returns>综合训练进度统计</returns>
+    Task<ComprehensiveTrainingProgressDto> GetTrainingProgressAsync();
 }

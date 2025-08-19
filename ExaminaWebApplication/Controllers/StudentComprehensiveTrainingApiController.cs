@@ -144,6 +144,31 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
     }
 
     /// <summary>
+    /// 获取学生综合训练进度统计
+    /// </summary>
+    /// <returns>综合训练进度统计</returns>
+    [HttpGet("progress")]
+    public async Task<ActionResult<ComprehensiveTrainingProgressDto>> GetTrainingProgress()
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            ComprehensiveTrainingProgressDto progress = await _studentComprehensiveTrainingService.GetTrainingProgressAsync(studentUserId);
+
+            _logger.LogInformation("学生获取综合训练进度统计成功，学生ID: {StudentUserId}, 总数: {TotalCount}, 完成数: {CompletedCount}",
+                studentUserId, progress.TotalCount, progress.CompletedCount);
+
+            return Ok(progress);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生综合训练进度统计失败");
+            return StatusCode(500, new { message = "获取综合训练进度统计失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     /// <returns>用户ID</returns>

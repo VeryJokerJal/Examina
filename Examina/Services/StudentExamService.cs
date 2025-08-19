@@ -317,6 +317,35 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     }
 
     /// <summary>
+    /// 获取学生综合训练进度统计
+    /// </summary>
+    public async Task<ComprehensiveTrainingProgressDto> GetTrainingProgressAsync()
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = "/api/student/comprehensive-trainings/progress";
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                ComprehensiveTrainingProgressDto? progress = JsonSerializer.Deserialize<ComprehensiveTrainingProgressDto>(content, JsonOptions);
+                return progress ?? new ComprehensiveTrainingProgressDto();
+            }
+
+            System.Diagnostics.Debug.WriteLine($"获取综合训练进度失败，状态码: {response.StatusCode}");
+            return new ComprehensiveTrainingProgressDto();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取综合训练进度异常: {ex.Message}");
+            return new ComprehensiveTrainingProgressDto();
+        }
+    }
+
+    /// <summary>
     /// 确保用户已认证并设置Authorization头
     /// </summary>
     private async Task EnsureAuthenticatedAsync()

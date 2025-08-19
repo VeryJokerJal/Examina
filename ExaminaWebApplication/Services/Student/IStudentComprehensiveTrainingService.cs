@@ -38,4 +38,11 @@ public interface IStudentComprehensiveTrainingService
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>综合训练总数</returns>
     Task<int> GetAvailableTrainingCountAsync(int studentUserId);
+
+    /// <summary>
+    /// 获取学生综合训练进度统计
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <returns>综合训练进度统计</returns>
+    Task<ComprehensiveTrainingProgressDto> GetTrainingProgressAsync(int studentUserId);
 }

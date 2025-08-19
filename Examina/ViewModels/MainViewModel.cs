@@ -387,7 +387,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
             CurrentPageViewModel = pageTag switch
             {
-                "overview" => new OverviewViewModel(),
+                "overview" => CreateOverviewViewModel(),
                 "exam" => CreateExamListViewModel(),
                 "practice" => new PracticeViewModel(),
                 "mock-exam" => CreateMockExamListViewModel(),
@@ -400,7 +400,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "school-binding" => CreateSchoolBindingViewModel(),
                 "profile" => CreateProfileViewModel(),
                 "exam-view" => CreateExamViewModel(),
-                _ => new OverviewViewModel()
+                _ => CreateOverviewViewModel()
             };
 
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 成功创建页面ViewModel: {CurrentPageViewModel?.GetType().Name ?? "null"}");
@@ -409,6 +409,36 @@ public class MainViewModel : ViewModelBase, IDisposable
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 导航到页面 {pageTag} 时发生异常: {ex.Message}");
             CurrentPageViewModel = new OverviewViewModel(); // 回退到概览页面
+        }
+    }
+
+    /// <summary>
+    /// 创建OverviewViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateOverviewViewModel()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MainViewModel: 开始创建OverviewViewModel");
+
+            // 获取综合实训服务
+            IStudentComprehensiveTrainingService? comprehensiveTrainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
+
+            if (comprehensiveTrainingService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取综合实训服务，创建带服务注入的OverviewViewModel");
+                return new OverviewViewModel(comprehensiveTrainingService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取综合实训服务，创建默认OverviewViewModel");
+                return new OverviewViewModel();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建OverviewViewModel失败: {ex.Message}");
+            return new OverviewViewModel();
         }
     }
 

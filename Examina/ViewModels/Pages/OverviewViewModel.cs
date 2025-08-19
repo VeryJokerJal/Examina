@@ -2,6 +2,8 @@
 using System.Windows.Input;
 using Prism.Commands;
 using ReactiveUI.Fody.Helpers;
+using Examina.Models;
+using Examina.Services;
 
 namespace Examina.ViewModels.Pages;
 
@@ -10,6 +12,8 @@ namespace Examina.ViewModels.Pages;
 /// </summary>
 public class OverviewViewModel : ViewModelBase
 {
+    private readonly IStudentComprehensiveTrainingService? _comprehensiveTrainingService;
+
     #region 属性
 
     /// <summary>
@@ -65,6 +69,36 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     private readonly ObservableCollection<TrainingRecord> _allRecords = [];
 
+    /// <summary>
+    /// 综合实训总数
+    /// </summary>
+    [Reactive]
+    public int ComprehensiveTrainingTotalCount { get; set; } = 0;
+
+    /// <summary>
+    /// 综合实训已完成数量
+    /// </summary>
+    [Reactive]
+    public int ComprehensiveTrainingCompletedCount { get; set; } = 0;
+
+    /// <summary>
+    /// 综合实训完成百分比
+    /// </summary>
+    [Reactive]
+    public double ComprehensiveTrainingCompletionPercentage { get; set; } = 0;
+
+    /// <summary>
+    /// 综合实训进度文本
+    /// </summary>
+    [Reactive]
+    public string ComprehensiveTrainingProgressText { get; set; } = "0/0";
+
+    /// <summary>
+    /// 是否正在加载综合实训进度
+    /// </summary>
+    [Reactive]
+    public bool IsLoadingComprehensiveTrainingProgress { get; set; } = false;
+
     #endregion
 
     #region 命令
@@ -82,6 +116,14 @@ public class OverviewViewModel : ViewModelBase
     {
         SelectStatisticTypeCommand = new DelegateCommand<object>(SelectStatisticType);
         LoadOverviewData();
+    }
+
+    public OverviewViewModel(IStudentComprehensiveTrainingService comprehensiveTrainingService)
+    {
+        _comprehensiveTrainingService = comprehensiveTrainingService;
+        SelectStatisticTypeCommand = new DelegateCommand<object>(SelectStatisticType);
+        LoadOverviewData();
+        _ = LoadComprehensiveTrainingProgressAsync();
     }
 
     #endregion
@@ -104,6 +146,47 @@ public class OverviewViewModel : ViewModelBase
 
         // 根据默认选择筛选显示数据
         FilterRecordsByType();
+    }
+
+    /// <summary>
+    /// 加载综合实训进度数据
+    /// </summary>
+    private async Task LoadComprehensiveTrainingProgressAsync()
+    {
+        if (_comprehensiveTrainingService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 综合实训服务未注入，跳过进度加载");
+            return;
+        }
+
+        try
+        {
+            IsLoadingComprehensiveTrainingProgress = true;
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始加载综合实训进度");
+
+            ComprehensiveTrainingProgressDto progress = await _comprehensiveTrainingService.GetTrainingProgressAsync();
+
+            ComprehensiveTrainingTotalCount = progress.TotalCount;
+            ComprehensiveTrainingCompletedCount = progress.CompletedCount;
+            ComprehensiveTrainingCompletionPercentage = progress.CompletionPercentage;
+            ComprehensiveTrainingProgressText = $"{progress.CompletedCount}/{progress.TotalCount}";
+
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 综合实训进度加载成功 - 总数: {progress.TotalCount}, 完成: {progress.CompletedCount}, 百分比: {progress.CompletionPercentage}%");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载综合实训进度失败: {ex.Message}");
+
+            // 设置默认值
+            ComprehensiveTrainingTotalCount = 0;
+            ComprehensiveTrainingCompletedCount = 0;
+            ComprehensiveTrainingCompletionPercentage = 0;
+            ComprehensiveTrainingProgressText = "0/0";
+        }
+        finally
+        {
+            IsLoadingComprehensiveTrainingProgress = false;
+        }
     }
 
     /// <summary>

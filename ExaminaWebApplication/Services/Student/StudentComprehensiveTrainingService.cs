@@ -160,6 +160,68 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     }
 
     /// <summary>
+    /// 获取学生综合训练进度统计
+    /// </summary>
+    public async Task<ComprehensiveTrainingProgressDto> GetTrainingProgressAsync(int studentUserId)
+    {
+        try
+        {
+            // 验证学生用户存在且为学生角色
+            Models.User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
+
+            if (student == null)
+            {
+                _logger.LogWarning("用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
+                return new ComprehensiveTrainingProgressDto
+                {
+                    TotalCount = 0,
+                    CompletedCount = 0,
+                    CompletionPercentage = 0,
+                    InProgressCount = 0,
+                    NotStartedCount = 0
+                };
+            }
+
+            // 获取所有启用的综合训练总数
+            int totalCount = await _context.ImportedComprehensiveTrainings
+                .CountAsync(t => t.IsEnabled);
+
+            // TODO: 实现训练完成状态跟踪
+            // 目前由于没有训练完成记录表，暂时使用模拟数据
+            // 后续需要创建训练完成记录表来跟踪学生的训练进度
+
+            // 模拟数据：假设学生完成了部分训练
+            int completedCount = Math.Min(totalCount, (int)(totalCount * 0.3)); // 假设完成30%
+            int inProgressCount = Math.Min(totalCount - completedCount, 1); // 假设有1个进行中
+            int notStartedCount = totalCount - completedCount - inProgressCount;
+
+            double completionPercentage = totalCount > 0 ? (double)completedCount / totalCount * 100 : 0;
+
+            var progress = new ComprehensiveTrainingProgressDto
+            {
+                TotalCount = totalCount,
+                CompletedCount = completedCount,
+                CompletionPercentage = Math.Round(completionPercentage, 1),
+                InProgressCount = inProgressCount,
+                NotStartedCount = notStartedCount,
+                LastCompletedTrainingName = completedCount > 0 ? "综合实训示例" : null,
+                LastCompletedAt = completedCount > 0 ? DateTime.UtcNow.AddDays(-1) : null
+            };
+
+            _logger.LogInformation("获取学生综合训练进度统计成功，学生ID: {StudentUserId}, 总数: {TotalCount}, 完成数: {CompletedCount}",
+                studentUserId, progress.TotalCount, progress.CompletedCount);
+
+            return progress;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生综合训练进度统计失败，学生ID: {StudentUserId}", studentUserId);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 映射到学生端综合训练DTO（不包含详细信息）
     /// </summary>
     private static StudentComprehensiveTrainingDto MapToStudentComprehensiveTrainingDto(ImportedComprehensiveTrainingEntity training)

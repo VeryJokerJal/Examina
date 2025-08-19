@@ -44,11 +44,29 @@
                         </Button.Styles>
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="综合实训" />
-                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ComprehensiveTrainingTextColorPrimary}" Text="{Binding ComprehensiveTrainingCount}" />
-                                <TextBlock Margin="2,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="/60" />
+
+                            <!-- 加载状态 -->
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingComprehensiveTrainingProgress}">
+                                <TextBlock FontSize="14" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="加载中..." HorizontalAlignment="Center" />
                             </StackPanel>
-                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource ComprehensiveTrainingTextColorSecondary}" Text="综合实训练习度" />
+
+                            <!-- 进度显示 -->
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding !IsLoadingComprehensiveTrainingProgress}">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ComprehensiveTrainingTextColorPrimary}" Text="{Binding ComprehensiveTrainingProgressText}" />
+                                </StackPanel>
+
+                                <!-- 进度条 -->
+                                <ProgressBar Margin="0,8,0,0" Width="120" Height="6"
+                                           Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                                           Foreground="{DynamicResource ComprehensiveTrainingTextColorPrimary}"
+                                           Value="{Binding ComprehensiveTrainingCompletionPercentage}"
+                                           Maximum="100" />
+
+                                <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12"
+                                         Foreground="{DynamicResource ComprehensiveTrainingTextColorSecondary}"
+                                         Text="{Binding ComprehensiveTrainingCompletionPercentage, StringFormat='{}{0:F1}% 完成'}" />
+                            </StackPanel>
                         </StackPanel>
                     </Button>
 
