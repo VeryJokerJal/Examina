@@ -1009,7 +1009,7 @@ public class StudentAuthController : ControllerBase
 
         // 用户不存在，自动注册
         // 使用 EF Core 的执行策略来处理重试逻辑
-        var strategy = _context.Database.CreateExecutionStrategy();
+        Microsoft.EntityFrameworkCore.Storage.IExecutionStrategy strategy = _context.Database.CreateExecutionStrategy();
         return await strategy.ExecuteAsync(async () =>
         {
             try

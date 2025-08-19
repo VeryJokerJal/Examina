@@ -1171,7 +1171,26 @@ public class AuthenticationService : IAuthenticationService
 
                 if (userInfo != null)
                 {
-                    CurrentUser = userInfo;
+                    // 检查用户信息是否真的有变化，避免不必要的事件触发
+                    bool hasChanges = _currentUser == null ||
+                                     _currentUser.Username != userInfo.Username ||
+                                     _currentUser.HasFullAccess != userInfo.HasFullAccess ||
+                                     _currentUser.RealName != userInfo.RealName ||
+                                     _currentUser.PhoneNumber != userInfo.PhoneNumber ||
+                                     _currentUser.Role != userInfo.Role ||
+                                     _currentUser.IsFirstLogin != userInfo.IsFirstLogin;
+
+                    if (hasChanges)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"AuthenticationService.RefreshUserInfoAsync: 用户信息有变化，更新CurrentUser");
+                        CurrentUser = userInfo;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"AuthenticationService.RefreshUserInfoAsync: 用户信息无变化，跳过CurrentUser更新");
+                        // 直接更新内部字段，不触发事件
+                        _currentUser = userInfo;
+                    }
                     return true;
                 }
             }

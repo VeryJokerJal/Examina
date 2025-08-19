@@ -109,7 +109,7 @@ public class ExamListViewModel : ViewModelBase
         StartExamCommand = ReactiveCommand.CreateFromTask<StudentExamDto>(StartExamAsync);
 
         // 初始化用户权限状态
-        _ = Task.Run(UpdateUserPermissionsAsync);
+        _ = UpdateUserPermissionsAsync();
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
@@ -120,7 +120,7 @@ public class ExamListViewModel : ViewModelBase
 
     private void OnUserInfoUpdated(object? sender, UserInfo? e)
     {
-        _ = Task.Run(UpdateUserPermissionsAsync);
+        _ = UpdateUserPermissionsAsync();
     }
 
     /// <summary>
