@@ -1198,51 +1198,89 @@ public class StudentAuthController : ControllerBase
     {
         try
         {
+            // 获取用户信息
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive)
+            {
+                _logger.LogDebug("用户 {UserId} 不存在或已禁用", userId);
+                return false;
+            }
+
+            string? userRealName = user.RealName;
+            string? userPhone = user.PhoneNumber ?? userPhoneNumber;
+
+            // 如果用户没有填写姓名或手机号，无法进行权限验证
+            if (string.IsNullOrEmpty(userRealName) || string.IsNullOrEmpty(userPhone))
+            {
+                _logger.LogDebug("用户 {UserId} 缺少姓名或手机号信息，无法进行权限验证。姓名: {RealName}, 手机号: {PhoneNumber}",
+                    userId, userRealName, userPhone);
+                return false;
+            }
+
             // 1. 检查用户是否属于学校组织（学生组织关系）
+            // 对于组织成员，需要验证用户的姓名和手机号是否与组织中的学生信息匹配
             bool hasStudentOrganization = await _context.StudentOrganizations
-                .AnyAsync(so => so.StudentId == userId && so.IsActive);
+                .Include(so => so.Student)
+                .AnyAsync(so => so.StudentId == userId &&
+                               so.IsActive &&
+                               so.Student.RealName == userRealName &&
+                               so.Student.PhoneNumber == userPhone);
 
             if (hasStudentOrganization)
             {
-                _logger.LogDebug("用户 {UserId} 属于学生组织，拥有完整权限", userId);
+                _logger.LogDebug("用户 {UserId} 属于学生组织且姓名手机号匹配，拥有完整权限。姓名: {RealName}, 手机号: {PhoneNumber}",
+                    userId, userRealName, userPhone);
                 return true;
             }
 
             // 2. 检查用户是否属于学校组织（教师组织关系）
+            // 对于教师，同样需要验证姓名和手机号匹配
             bool hasTeacherOrganization = await _context.TeacherOrganizations
-                .AnyAsync(to => to.TeacherId == userId && to.IsActive);
+                .Include(to => to.Teacher)
+                .AnyAsync(to => to.TeacherId == userId &&
+                               to.IsActive &&
+                               to.Teacher.RealName == userRealName &&
+                               to.Teacher.PhoneNumber == userPhone);
 
             if (hasTeacherOrganization)
             {
-                _logger.LogDebug("用户 {UserId} 属于教师组织，拥有完整权限", userId);
+                _logger.LogDebug("用户 {UserId} 属于教师组织且姓名手机号匹配，拥有完整权限。姓名: {RealName}, 手机号: {PhoneNumber}",
+                    userId, userRealName, userPhone);
                 return true;
             }
 
             // 3. 检查用户是否在非组织学生名单中（通过UserId直接关联）
+            // 需要验证关联的用户信息与非组织学生记录的姓名手机号匹配
             bool isNonOrgStudentByUserId = await _context.NonOrganizationStudents
-                .AnyAsync(nos => nos.UserId == userId && nos.IsActive);
+                .AnyAsync(nos => nos.UserId == userId &&
+                                nos.IsActive &&
+                                nos.RealName == userRealName &&
+                                nos.PhoneNumber == userPhone);
 
             if (isNonOrgStudentByUserId)
             {
-                _logger.LogDebug("用户 {UserId} 在非组织学生名单中（通过UserId），拥有完整权限", userId);
+                _logger.LogDebug("用户 {UserId} 在非组织学生名单中（通过UserId）且姓名手机号匹配，拥有完整权限。姓名: {RealName}, 手机号: {PhoneNumber}",
+                    userId, userRealName, userPhone);
                 return true;
             }
 
-            // 4. 检查用户是否在非组织学生名单中（通过手机号关联）
-            if (!string.IsNullOrEmpty(userPhoneNumber))
-            {
-                bool isNonOrgStudentByPhone = await _context.NonOrganizationStudents
-                    .AnyAsync(nos => nos.PhoneNumber == userPhoneNumber && nos.IsActive);
+            // 4. 检查用户是否在非组织学生名单中（通过姓名+手机号匹配）
+            // 统一使用姓名+手机号的匹配标准
+            bool isNonOrgStudentByNameAndPhone = await _context.NonOrganizationStudents
+                .AnyAsync(nos => nos.RealName == userRealName &&
+                                nos.PhoneNumber == userPhone &&
+                                nos.IsActive);
 
-                if (isNonOrgStudentByPhone)
-                {
-                    _logger.LogDebug("用户 {UserId} 在非组织学生名单中（通过手机号 {PhoneNumber}），拥有完整权限", userId, userPhoneNumber);
-                    return true;
-                }
+            if (isNonOrgStudentByNameAndPhone)
+            {
+                _logger.LogDebug("用户 {UserId} 在非组织学生名单中（通过姓名+手机号匹配），拥有完整权限。姓名: {RealName}, 手机号: {PhoneNumber}",
+                    userId, userRealName, userPhone);
+                return true;
             }
 
-            // 5. 用户既不属于组织也不在非组织名单中，无完整权限
-            _logger.LogDebug("用户 {UserId} 既不属于组织也不在非组织学生名单中，无完整权限", userId);
+            // 5. 用户不满足任何权限条件，无完整权限
+            _logger.LogDebug("用户 {UserId} 不满足任何权限条件，无完整权限。姓名: {RealName}, 手机号: {PhoneNumber}",
+                userId, userRealName, userPhone);
             return false;
         }
         catch (Exception ex)
