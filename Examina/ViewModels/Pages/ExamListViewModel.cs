@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
+using Examina.Models;
 using Examina.Models.Exam;
-using Examina.Models.User;
 using Examina.Services;
 using ReactiveUI;
 
@@ -115,6 +115,11 @@ public class ExamListViewModel : ViewModelBase
 
         // 初始加载
         _ = Task.Run(RefreshAsync);
+    }
+
+    private void OnUserInfoUpdated(object? sender, UserInfo? e)
+    {
+        UpdateUserPermissions();
     }
 
     /// <summary>
@@ -261,13 +266,5 @@ public class ExamListViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(StartButtonText));
 
         System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}");
-    }
-
-    /// <summary>
-    /// 用户信息更新事件处理
-    /// </summary>
-    private void OnUserInfoUpdated()
-    {
-        UpdateUserPermissions();
     }
 }

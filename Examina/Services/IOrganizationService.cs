@@ -21,6 +21,13 @@ public interface IOrganizationService
     Task<bool> IsUserInOrganizationAsync();
 
     /// <summary>
+    /// 检查用户是否已经是指定组织的成员
+    /// </summary>
+    /// <param name="invitationCode">组织邀请码</param>
+    /// <returns>是否已是该组织成员</returns>
+    Task<bool> IsUserMemberOfOrganizationAsync(string invitationCode);
+
+    /// <summary>
     /// 获取用户的组织信息
     /// </summary>
     /// <returns>用户组织信息，如果未加入则返回null</returns>

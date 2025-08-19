@@ -152,6 +152,64 @@ public class OrganizationService : IOrganizationService
     }
 
     /// <summary>
+    /// 检查用户是否已经是指定组织的成员
+    /// </summary>
+    public async Task<bool> IsUserMemberOfOrganizationAsync(string invitationCode)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"OrganizationService: 检查用户是否已是组织成员，邀请码: {invitationCode}");
+
+            // 确保用户已登录
+            UserInfo? currentUser = _authService.CurrentUser;
+            if (currentUser == null)
+            {
+                System.Diagnostics.Debug.WriteLine("OrganizationService: 用户未登录");
+                return false;
+            }
+
+            // 构建API URL - 使用邀请码检查成员状态
+            string apiUrl = $"{BaseUrl}/{StudentOrganizationApiPath}/check-membership?invitationCode={Uri.EscapeDataString(invitationCode)}";
+            System.Diagnostics.Debug.WriteLine($"OrganizationService: API URL: {apiUrl}");
+
+            // 设置认证头
+            await SetAuthorizationHeaderAsync();
+
+            // 发送请求
+            HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"OrganizationService: 响应状态码: {response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"OrganizationService: 响应内容: {responseContent}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                // 解析响应
+                JsonSerializerOptions options = new()
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                MembershipCheckResult? result = JsonSerializer.Deserialize<MembershipCheckResult>(responseContent, options);
+                bool isMember = result?.IsMember ?? false;
+
+                System.Diagnostics.Debug.WriteLine($"OrganizationService: 用户是否已是组织成员: {isMember}");
+                return isMember;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"OrganizationService: 检查成员状态失败，状态码: {response.StatusCode}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OrganizationService: 检查组织成员状态异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 获取用户的组织信息
     /// </summary>
     public async Task<StudentOrganizationDto?> GetUserOrganizationAsync()

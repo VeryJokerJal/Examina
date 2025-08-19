@@ -180,6 +180,43 @@ public class SchoolBindingViewModel : ViewModelBase
                 return;
             }
 
+            // 首先检查用户是否已经是该组织的成员
+            StatusMessage = "正在检查组织成员状态...";
+            System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: 检查用户是否已是组织成员，邀请码: {InvitationCode}");
+
+            bool isAlreadyMember = await _organizationService.IsUserMemberOfOrganizationAsync(InvitationCode);
+            System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: 用户是否已是组织成员: {isAlreadyMember}");
+
+            if (isAlreadyMember)
+            {
+                // 用户已经是该组织的成员
+                StatusMessage = "您已经是该组织的成员，无需重复加入";
+                System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 用户已是组织成员，阻止重复加入");
+
+                // 更新UI状态
+                IsSchoolBound = true;
+
+                // 获取组织信息并更新显示
+                var userOrganization = await _organizationService.GetUserOrganizationAsync();
+                if (userOrganization != null)
+                {
+                    CurrentSchool = userOrganization.OrganizationName;
+                    OrganizationName = userOrganization.OrganizationName;
+                }
+
+                // 刷新用户信息以更新权限状态
+                if (_authenticationService != null)
+                {
+                    await _authenticationService.RefreshUserInfoAsync();
+                }
+
+                return;
+            }
+
+            // 用户不是成员，继续执行加入流程
+            StatusMessage = "正在加入学校...";
+            System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 用户不是组织成员，继续加入流程");
+
             JoinOrganizationResult? result = await _organizationService.JoinOrganizationAsync(InvitationCode);
 
             if (result.Success && result.StudentOrganization != null)
