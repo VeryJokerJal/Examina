@@ -145,6 +145,18 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             });
 
             System.Diagnostics.Debug.WriteLine($"刷新综合训练列表成功，共 {TotalCount} 项，当前显示 {Trainings.Count} 项");
+
+            // 数据刷新完成后，强制更新用户权限状态
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 刷新完成，开始更新用户权限状态");
+                _ = Task.Run(UpdateUserPermissionsAsync);
+            }
+            catch (Exception permissionEx)
+            {
+                // 权限更新失败不应影响数据刷新的成功状态
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 权限状态更新失败: {permissionEx.Message}");
+            }
         }
         catch (UnauthorizedAccessException)
         {

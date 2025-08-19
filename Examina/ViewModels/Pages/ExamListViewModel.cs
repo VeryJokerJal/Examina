@@ -109,7 +109,7 @@ public class ExamListViewModel : ViewModelBase
         StartExamCommand = ReactiveCommand.CreateFromTask<StudentExamDto>(StartExamAsync);
 
         // 初始化用户权限状态
-        _ = UpdateUserPermissionsAsync();
+        _ = Task.Run(UpdateUserPermissionsAsync);
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
@@ -120,7 +120,7 @@ public class ExamListViewModel : ViewModelBase
 
     private void OnUserInfoUpdated(object? sender, UserInfo? e)
     {
-        _ = UpdateUserPermissionsAsync();
+        _ = Task.Run(UpdateUserPermissionsAsync);
     }
 
     /// <summary>
@@ -151,6 +151,18 @@ public class ExamListViewModel : ViewModelBase
             });
 
             System.Diagnostics.Debug.WriteLine($"刷新考试列表成功，共 {TotalCount} 项，当前显示 {Exams.Count} 项");
+
+            // 数据刷新完成后，强制更新用户权限状态
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 刷新完成，开始更新用户权限状态");
+                _ = Task.Run(UpdateUserPermissionsAsync);
+            }
+            catch (Exception permissionEx)
+            {
+                // 权限更新失败不应影响数据刷新的成功状态
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 权限状态更新失败: {permissionEx.Message}");
+            }
         }
         catch (UnauthorizedAccessException)
         {
