@@ -26,6 +26,9 @@
     </div>
 </div>
 
+<!-- 防伪令牌 -->
+@Html.AntiForgeryToken()
+
 <!-- 主要内容区域 -->
 <div class="container">
     <!-- 考试基本信息 -->
@@ -298,12 +301,19 @@
     <script>
         function deleteExam(examId, examName) {
             if (confirm(`确定要删除考试"${examName}"吗？此操作不可撤销。`)) {
+                // 获取防伪令牌
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (!tokenElement) {
+                    alert('页面配置错误，请刷新页面重试');
+                    return;
+                }
+
                 $.ajax({
                     url: '@Url.Action("DeleteExam")',
                     type: 'POST',
                     data: {
                         id: examId,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        __RequestVerificationToken: tokenElement.value
                     },
                     success: function(result) {
                         if (result.success) {
@@ -324,11 +334,20 @@
             const radioButtons = document.querySelectorAll('input[name="examCategory"]');
             radioButtons.forEach(radio => radio.disabled = true);
 
+            // 获取防伪令牌
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!tokenElement) {
+                console.error('防伪令牌未找到');
+                showToast('error', '页面配置错误，请刷新页面重试');
+                radioButtons.forEach(radio => radio.disabled = false);
+                return;
+            }
+
             // 创建表单数据
             const formData = new FormData();
             formData.append('id', examId);
             formData.append('examCategory', categoryValue);
-            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+            formData.append('__RequestVerificationToken', tokenElement.value);
 
             // 发送AJAX请求
             fetch('@Url.Action("UpdateExamCategory")', {
