@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Examina.Services;
 
 namespace Examina.Views.Pages;
 
@@ -24,5 +26,33 @@ public partial class SchoolBindingView : UserControl
             System.Diagnostics.Debug.WriteLine($"SchoolBindingView: IsVisible = {IsVisible}");
             System.Diagnostics.Debug.WriteLine($"SchoolBindingView: Bounds = {Bounds}");
         };
+    }
+
+    /// <summary>
+    /// 返回主页按钮点击事件
+    /// </summary>
+    private void ReturnToMainPage_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("SchoolBindingView: 用户点击返回主页按钮");
+
+            // 获取导航服务
+            var navigationService = App.ServiceProvider?.GetService(typeof(INavigationService)) as INavigationService;
+            if (navigationService != null)
+            {
+                // 导航到主页面
+                navigationService.NavigateToMainPage();
+                System.Diagnostics.Debug.WriteLine("SchoolBindingView: 成功导航到主页面");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SchoolBindingView: 无法获取导航服务");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SchoolBindingView: 返回主页失败: {ex.Message}");
+        }
     }
 }

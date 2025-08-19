@@ -6,6 +6,22 @@
             <!--  页面标题  -->
             <TextBlock FontFamily="Microsoft YaHei" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding PageTitle, FallbackValue='加入学校'}" />
 
+            <!--  权限状态提示  -->
+            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1" CornerRadius="8" IsVisible="{Binding HasFullAccess}">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock FontSize="24" Foreground="{DynamicResource SystemControlForegroundAccentBrush}" Text="✓" />
+                        <TextBlock FontFamily="Microsoft YaHei" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="权限状态" />
+                    </StackPanel>
+
+                    <TextBlock FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundAccentBrush}" Text="{Binding PermissionStatusMessage}" TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Padding="16,8" Content="返回主页" FontFamily="Microsoft YaHei" Click="ReturnToMainPage_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!--  加入学校表单  -->
             <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1" CornerRadius="8" IsVisible="{Binding !IsSchoolBound}">
                 <StackPanel Spacing="16">

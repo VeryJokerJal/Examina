@@ -60,6 +60,18 @@ public class SchoolBindingViewModel : ViewModelBase
     [Reactive]
     public string StatusMessage { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 用户是否拥有完整功能权限
+    /// </summary>
+    [Reactive]
+    public bool HasFullAccess { get; set; } = false;
+
+    /// <summary>
+    /// 权限状态提示消息
+    /// </summary>
+    [Reactive]
+    public string PermissionStatusMessage { get; set; } = string.Empty;
+
     #endregion
 
     #region 命令
@@ -91,6 +103,9 @@ public class SchoolBindingViewModel : ViewModelBase
 
         JoinOrganizationCommand = ReactiveCommand.CreateFromTask(JoinOrganizationAsync, canJoinOrganization);
 
+        System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 开始刷新用户权限状态");
+        _ = RefreshUserPermissionStatusAsync();
+
         System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 开始加载当前学校绑定状态");
         _ = LoadCurrentSchoolBindingAsync();
         System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 构造函数完成");
@@ -99,6 +114,61 @@ public class SchoolBindingViewModel : ViewModelBase
     #endregion
 
     #region 方法
+
+    /// <summary>
+    /// 刷新用户权限状态
+    /// </summary>
+    private async Task RefreshUserPermissionStatusAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 开始刷新用户权限状态");
+
+            if (_authenticationService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: AuthenticationService为null，无法刷新权限状态");
+                PermissionStatusMessage = "服务未初始化，无法检查权限状态";
+                return;
+            }
+
+            // 强制刷新用户信息以获取最新的权限状态
+            bool refreshSuccess = await _authenticationService.RefreshUserInfoAsync();
+
+            if (refreshSuccess)
+            {
+                // 获取最新的用户信息
+                var currentUser = _authenticationService.CurrentUser;
+                HasFullAccess = currentUser?.HasFullAccess ?? false;
+
+                if (HasFullAccess)
+                {
+                    PermissionStatusMessage = "您已拥有完整功能权限，可以正常使用所有功能。";
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 用户已拥有完整权限");
+                }
+                else
+                {
+                    PermissionStatusMessage = string.Empty;
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 用户权限受限，需要绑定学校");
+                }
+            }
+            else
+            {
+                // 刷新失败，使用当前缓存的用户信息
+                var currentUser = _authenticationService.CurrentUser;
+                HasFullAccess = currentUser?.HasFullAccess ?? false;
+                PermissionStatusMessage = HasFullAccess ? "您已拥有完整功能权限，可以正常使用所有功能。" : string.Empty;
+
+                System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: 权限状态刷新失败，使用缓存信息 - HasFullAccess: {HasFullAccess}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: 刷新用户权限状态异常: {ex.Message}");
+            // 异常时使用默认值
+            HasFullAccess = false;
+            PermissionStatusMessage = string.Empty;
+        }
+    }
 
     /// <summary>
     /// 加载当前学校绑定状态
