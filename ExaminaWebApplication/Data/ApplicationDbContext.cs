@@ -1,6 +1,7 @@
 ﻿using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using ExaminaWebApplication.Models.ImportedExam;
+using ExaminaWebApplication.Models.ImportedSpecializedTraining;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.MockExam;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,13 @@ public class ApplicationDbContext : DbContext
     public DbSet<ImportedComprehensiveTrainingQuestion> ImportedComprehensiveTrainingQuestions { get; set; }
     public DbSet<ImportedComprehensiveTrainingOperationPoint> ImportedComprehensiveTrainingOperationPoints { get; set; }
     public DbSet<ImportedComprehensiveTrainingParameter> ImportedComprehensiveTrainingParameters { get; set; }
+
+    // 导入专项训练相关实体
+    public DbSet<ImportedSpecializedTraining> ImportedSpecializedTrainings { get; set; }
+    public DbSet<ImportedSpecializedTrainingModule> ImportedSpecializedTrainingModules { get; set; }
+    public DbSet<ImportedSpecializedTrainingQuestion> ImportedSpecializedTrainingQuestions { get; set; }
+    public DbSet<ImportedSpecializedTrainingOperationPoint> ImportedSpecializedTrainingOperationPoints { get; set; }
+    public DbSet<ImportedSpecializedTrainingParameter> ImportedSpecializedTrainingParameters { get; set; }
 
     // 综合训练完成记录
     public DbSet<ComprehensiveTrainingCompletion> ComprehensiveTrainingCompletions { get; set; }

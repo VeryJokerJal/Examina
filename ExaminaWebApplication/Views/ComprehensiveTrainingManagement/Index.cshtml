@@ -8,18 +8,52 @@
     <div class="container text-center">
         <h1 class="display-4 fw-bold">
             <i class="bi bi-target me-3"></i>
-            综合训练管理中心
+            训练管理中心
         </h1>
-        <p class="lead mb-4">导入和管理来自 ExamLab 的综合训练数据</p>
+        <p class="lead mb-4">导入和管理来自 ExamLab 的训练数据</p>
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <p class="mb-4">支持从 ExamLab 项目导入的 JSON 和 XML 格式综合训练文件，提供完整的训练查看、管理和统计功能。</p>
-                <a asp-action="ImportComprehensiveTraining" class="glass-btn glass-btn-primary btn-lg me-3">
-                    <i class="bi bi-upload me-2"></i>导入综合训练
-                </a>
-                <a asp-action="ComprehensiveTrainingList" class="glass-btn btn-lg">
-                    <i class="bi bi-list-ul me-2"></i>查看所有综合训练
-                </a>
+            <div class="col-md-10">
+                <p class="mb-4">支持从 ExamLab 项目导入的 JSON 和 XML 格式训练文件，提供完整的训练查看、管理和统计功能。</p>
+
+                <!-- 综合训练管理 -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="glass-card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-collection display-4 text-primary mb-3"></i>
+                                <h5 class="card-title">综合训练管理</h5>
+                                <p class="card-text text-muted">管理多科目、多模块的综合训练</p>
+                                <div class="d-grid gap-2">
+                                    <a asp-action="ImportComprehensiveTraining" class="glass-btn glass-btn-primary">
+                                        <i class="bi bi-upload me-1"></i>导入综合训练
+                                    </a>
+                                    <a asp-action="ComprehensiveTrainingList" class="glass-btn">
+                                        <i class="bi bi-list-ul me-1"></i>查看综合训练
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 专项训练管理 -->
+                    <div class="col-md-6">
+                        <div class="glass-card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-bullseye display-4 text-success mb-3"></i>
+                                <h5 class="card-title">专项训练管理</h5>
+                                <p class="card-text text-muted">管理单一模块的专项训练</p>
+                                <div class="d-grid gap-2">
+                                    <a asp-action="ImportSpecializedTraining" class="glass-btn glass-btn-success">
+                                        <i class="bi bi-upload me-1"></i>导入专项训练
+                                    </a>
+                                    <a asp-action="SpecializedTraining" class="glass-btn">
+                                        <i class="bi bi-list-ul me-1"></i>查看专项训练
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

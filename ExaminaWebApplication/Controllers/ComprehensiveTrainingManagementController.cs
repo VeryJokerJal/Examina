@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Services.ImportedComprehensiveTraining;
+using ExaminaWebApplication.Services.ImportedSpecializedTraining;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
+using ExaminaWebApplication.Models.ImportedSpecializedTraining;
 using ImportedComprehensiveTrainingEntity = ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining;
+using ImportedSpecializedTrainingEntity = ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -13,13 +16,16 @@ namespace ExaminaWebApplication.Controllers;
 public class ComprehensiveTrainingManagementController : Controller
 {
     private readonly ComprehensiveTrainingImportService _comprehensiveTrainingImportService;
+    private readonly SpecializedTrainingImportService _specializedTrainingImportService;
     private readonly ILogger<ComprehensiveTrainingManagementController> _logger;
 
     public ComprehensiveTrainingManagementController(
         ComprehensiveTrainingImportService comprehensiveTrainingImportService,
+        SpecializedTrainingImportService specializedTrainingImportService,
         ILogger<ComprehensiveTrainingManagementController> logger)
     {
         _comprehensiveTrainingImportService = comprehensiveTrainingImportService;
+        _specializedTrainingImportService = specializedTrainingImportService;
         _logger = logger;
     }
 
@@ -232,4 +238,138 @@ public class ComprehensiveTrainingManagementController : Controller
             return Json(new { success = false, message = "更新失败，请稍后重试" });
         }
     }
+
+    #region 专项训练管理
+
+    /// <summary>
+    /// 专项训练管理页面
+    /// </summary>
+    public async Task<IActionResult> SpecializedTraining()
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            List<ImportedSpecializedTrainingEntity> specializedTrainings = await _specializedTrainingImportService.GetImportedSpecializedTrainingsAsync(userId);
+            return View(specializedTrainings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取专项训练列表失败");
+            TempData["ErrorMessage"] = "获取专项训练列表失败，请稍后重试";
+            return View(new List<ImportedSpecializedTrainingEntity>());
+        }
+    }
+
+    /// <summary>
+    /// 专项训练导入页面
+    /// </summary>
+    public IActionResult ImportSpecializedTraining()
+    {
+        return View();
+    }
+
+    /// <summary>
+    /// 处理专项训练文件上传和导入
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> ImportSpecializedTraining(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            TempData["ErrorMessage"] = "请选择要导入的文件";
+            return View();
+        }
+
+        if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["ErrorMessage"] = "只支持 JSON 格式的文件";
+            return View();
+        }
+
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            using Stream fileStream = file.OpenReadStream();
+            SpecializedTrainingImportResult result = await _specializedTrainingImportService.ImportSpecializedTrainingAsync(
+                fileStream, file.FileName, userId);
+
+            if (result.IsSuccess)
+            {
+                TempData["SuccessMessage"] = $"专项训练导入成功！训练名称：{result.ImportedSpecializedTrainingName}";
+                return RedirectToAction(nameof(SpecializedTraining));
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"导入失败：{result.ErrorMessage}";
+                return View();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "专项训练导入过程发生异常");
+            TempData["ErrorMessage"] = "导入过程发生异常，请稍后重试";
+            return View();
+        }
+    }
+
+    /// <summary>
+    /// 专项训练详情页面
+    /// </summary>
+    public async Task<IActionResult> SpecializedTrainingDetails(int id)
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            ImportedSpecializedTrainingEntity? specializedTraining = await _specializedTrainingImportService.GetSpecializedTrainingByIdAsync(id, userId);
+            if (specializedTraining == null)
+            {
+                TempData["ErrorMessage"] = "专项训练不存在或您没有权限查看";
+                return RedirectToAction(nameof(SpecializedTraining));
+            }
+
+            return View(specializedTraining);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取专项训练详情失败: {Id}", id);
+            TempData["ErrorMessage"] = "获取专项训练详情失败，请稍后重试";
+            return RedirectToAction(nameof(SpecializedTraining));
+        }
+    }
+
+    /// <summary>
+    /// 删除专项训练
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> DeleteSpecializedTraining(int id)
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            bool success = await _specializedTrainingImportService.DeleteSpecializedTrainingAsync(id, userId);
+            if (success)
+            {
+                return Json(new { success = true, message = "专项训练删除成功" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "删除失败，专项训练不存在或您没有权限" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "删除专项训练失败: {Id}", id);
+            return Json(new { success = false, message = "删除失败，请稍后重试" });
+        }
+    }
+
+    #endregion
 }

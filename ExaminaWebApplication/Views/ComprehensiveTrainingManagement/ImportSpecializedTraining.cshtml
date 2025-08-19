@@ -1,0 +1,279 @@
+@{
+    ViewData["Title"] = "导入专项训练";
+}
+
+<!-- 页面标题横幅 -->
+<div class="glass-card glass-card-primary py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    <i class="bi bi-upload me-3"></i>导入专项训练
+                </h1>
+                <p class="lead mb-0">从 ExamLab 项目导入专项训练数据</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a asp-action="SpecializedTraining" class="glass-btn me-2">
+                    <i class="bi bi-list-ul me-1"></i>专项训练列表
+                </a>
+                <a asp-action="Index" class="glass-btn">
+                    <i class="bi bi-speedometer2 me-1"></i>管理面板
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 主要内容区域 -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- 导入说明 -->
+            <div class="glass-card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>导入说明
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-check-circle text-success me-1"></i>支持的文件格式</h6>
+                            <ul class="list-unstyled ms-3">
+                                <li><i class="bi bi-file-earmark-code me-1"></i>JSON 格式 (.json)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-exclamation-triangle text-warning me-1"></i>注意事项</h6>
+                            <ul class="list-unstyled ms-3">
+                                <li><i class="bi bi-arrow-right me-1"></i>不支持重复导入相同训练</li>
+                                <li><i class="bi bi-arrow-right me-1"></i>文件大小限制：50MB</li>
+                                <li><i class="bi bi-arrow-right me-1"></i>仅支持专项试卷格式</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>提示：</strong>专项训练是针对单一模块类型的专项练习，与综合训练不同，专项训练专注于特定技能的深度练习。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件上传表单 -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-cloud-upload me-2"></i>选择文件
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 显示消息 -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="ImportSpecializedTraining" method="post" enctype="multipart/form-data" id="uploadForm">
+                        <div class="mb-4">
+                            <label for="file" class="form-label">选择专项训练文件</label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <input type="file" class="form-control" id="file" name="file" accept=".json" required>
+                                <div class="file-upload-hint mt-2">
+                                    <i class="bi bi-cloud-upload-fill text-muted me-1"></i>
+                                    <span class="text-muted">点击选择文件或拖拽文件到此处</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="file-info" id="fileInfo" style="display: none;">
+                            <div class="alert alert-light">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-file-earmark-code text-primary me-2"></i>
+                                    <div>
+                                        <strong id="fileName"></strong>
+                                        <br>
+                                        <small class="text-muted">大小: <span id="fileSize"></span></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="glass-btn glass-btn-secondary me-md-2" onclick="resetForm()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>重置
+                            </button>
+                            <button type="submit" class="glass-btn glass-btn-primary" id="submitBtn">
+                                <i class="bi bi-upload me-1"></i>开始导入
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 导入进度 -->
+            <div class="glass-card mt-4" id="progressCard" style="display: none;">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-hourglass-split me-2"></i>导入进度
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 0%" id="progressBar">
+                            <span id="progressText">0%</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="spinner-border text-primary me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span id="statusText">正在处理文件...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.file-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.file-upload-area:hover {
+    border-color: #0d6efd;
+    background: rgba(13, 110, 253, 0.1);
+}
+
+.file-upload-area.dragover {
+    border-color: #0d6efd;
+    background: rgba(13, 110, 253, 0.2);
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const uploadForm = document.getElementById('uploadForm');
+    const progressCard = document.getElementById('progressCard');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const statusText = document.getElementById('statusText');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // 文件选择事件
+    fileInput.addEventListener('change', function(e) {
+        handleFileSelect(e.target.files[0]);
+    });
+
+    // 拖拽事件
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+    });
+
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(files[0]);
+        }
+    });
+
+    // 表单提交事件
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (fileInput.files.length === 0) {
+            alert('请选择要导入的文件');
+            return;
+        }
+        
+        showProgress();
+        simulateProgress();
+        
+        // 延迟提交表单以显示进度
+        setTimeout(() => {
+            uploadForm.submit();
+        }, 1000);
+    });
+
+    function handleFileSelect(file) {
+        if (file) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'block';
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function showProgress() {
+        progressCard.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>导入中...';
+    }
+
+    function simulateProgress() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+            
+            if (progress >= 90) {
+                clearInterval(interval);
+                statusText.textContent = '正在保存数据...';
+            }
+        }, 200);
+    }
+
+    window.resetForm = function() {
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        progressCard.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-upload me-1"></i>开始导入';
+    };
+});
+</script>
