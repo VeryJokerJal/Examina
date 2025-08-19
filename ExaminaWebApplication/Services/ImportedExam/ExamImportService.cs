@@ -233,6 +233,7 @@ public class ExamImportService
                 ShowScore = examExportDto.Exam.ShowScore,
                 ShowAnswers = examExportDto.Exam.ShowAnswers,
                 IsEnabled = examExportDto.Exam.IsEnabled,
+                ExamCategory = ExamCategory.School, // 导入时默认为学校统考
                 Tags = examExportDto.Exam.Tags,
                 ExtendedConfig = examExportDto.Exam.ExtendedConfig != null ?
                     JsonSerializer.Serialize(examExportDto.Exam.ExtendedConfig) : null,
@@ -476,5 +477,40 @@ public class ExamImportService
         _context.ImportedExams.Remove(exam);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    /// <summary>
+    /// 更新考试类型
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="examCategory">考试类型</param>
+    /// <param name="userId">操作用户ID</param>
+    /// <returns>更新是否成功</returns>
+    public async Task<bool> UpdateExamCategoryAsync(int examId, ExamCategory examCategory, int userId)
+    {
+        try
+        {
+            Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在或用户无权限，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+                return false;
+            }
+
+            exam.ExamCategory = examCategory;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("用户 {UserId} 更新了考试 {ExamName} (ID: {ExamId}) 的类型为: {ExamCategory}",
+                userId, exam.Name, examId, examCategory);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试类型失败，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+            return false;
+        }
     }
 }

@@ -59,6 +59,7 @@ public class ImportedExam
             ShowScore = export.Exam.ShowScore,
             ShowAnswers = export.Exam.ShowAnswers,
             IsEnabled = export.Exam.IsEnabled,
+            ExamCategory = ExamCategory.School, // 导入时默认为学校统考
             Tags = export.Exam.Tags,
             ExtendedConfig = SerializeToJsonOrNull(export.Exam.ExtendedConfig),
             ImportedBy = importedBy,
@@ -388,6 +389,11 @@ public class ImportedExam
     /// 是否启用
     /// </summary>
     public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 考试类型
+    /// </summary>
+    public ExamCategory ExamCategory { get; set; } = ExamCategory.School;
 
     /// <summary>
     /// 考试标签

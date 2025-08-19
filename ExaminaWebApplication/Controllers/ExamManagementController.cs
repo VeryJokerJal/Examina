@@ -193,5 +193,37 @@ public class ExamManagementController : Controller
         }
     }
 
+    /// <summary>
+    /// 更新考试类型
+    /// </summary>
+    /// <param name="id">考试ID</param>
+    /// <param name="examCategory">考试类型</param>
+    /// <returns>更新结果</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateExamCategory(int id, ExamCategory examCategory)
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
 
+            bool success = await _examImportService.UpdateExamCategoryAsync(id, examCategory, userId);
+
+            if (success)
+            {
+                string categoryName = examCategory == ExamCategory.Provincial ? "全省统考" : "学校统考";
+                return Json(new { success = true, message = $"考试类型已更新为：{categoryName}" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "更新失败，考试不存在或您没有权限" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试类型失败: {ExamId}", id);
+            return Json(new { success = false, message = "更新失败，请稍后重试" });
+        }
+    }
 }
