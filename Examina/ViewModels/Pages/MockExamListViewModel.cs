@@ -21,6 +21,7 @@ public class MockExamListViewModel : ViewModelBase
     private bool _isLoading;
     private string? _errorMessage;
     private bool _hasFullAccess;
+    private bool _isUpdatingPermissions = false;
 
     /// <summary>
     /// 是否正在加载
@@ -161,8 +162,16 @@ public class MockExamListViewModel : ViewModelBase
     /// </summary>
     private async Task UpdateUserPermissionsAsync()
     {
+        // 防重入机制：如果正在更新权限状态，则跳过
+        if (_isUpdatingPermissions)
+        {
+            System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 权限状态正在更新中，跳过重复调用");
+            return;
+        }
+
         try
         {
+            _isUpdatingPermissions = true;
             System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 开始更新用户权限状态");
 
             // 主动刷新用户信息以获取最新状态
@@ -195,6 +204,11 @@ public class MockExamListViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(StartButtonText));
 
             System.Diagnostics.Debug.WriteLine($"MockExamListViewModel: 更新用户权限状态异常: {ex.Message}");
+        }
+        finally
+        {
+            _isUpdatingPermissions = false;
+            System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 权限状态更新完成");
         }
     }
 
