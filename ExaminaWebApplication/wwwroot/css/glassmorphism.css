@@ -3464,6 +3464,69 @@ select.glass-select-native.glass-select-danger {
     opacity: 0.6;
 }
 
+/* ===== GLASS BUTTON GROUP ===== */
+.glass-btn-group {
+    display: inline-flex;
+    vertical-align: middle;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.glass-btn-group .glass-btn {
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 0;
+    position: relative;
+}
+
+.glass-btn-group .glass-btn:last-child {
+    border-right: none;
+}
+
+.glass-btn-group .glass-btn:first-child {
+    border-top-left-radius: var(--border-radius-md);
+    border-bottom-left-radius: var(--border-radius-md);
+}
+
+.glass-btn-group .glass-btn:last-child {
+    border-top-right-radius: var(--border-radius-md);
+    border-bottom-right-radius: var(--border-radius-md);
+}
+
+.glass-btn-group .btn-check:checked + .glass-btn {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.2) 100%);
+    color: var(--text-primary);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: none;
+}
+
+.glass-btn-group .btn-check:checked + .glass-btn:hover {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.35) 0%,
+        rgba(255, 255, 255, 0.25) 100%);
+}
+
+.glass-btn-outline {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     .glass-card {
@@ -3504,6 +3567,30 @@ select.glass-select-native.glass-select-danger {
         background-image: linear-gradient(135deg,
             rgba(255, 255, 255, 1) 0%,
             rgba(255, 255, 255, 0.95) 100%);
+    }
+
+    /* 移动端按钮组优化 */
+    .glass-btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .glass-btn-group .glass-btn {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0;
+    }
+
+    .glass-btn-group .glass-btn:last-child {
+        border-bottom: none;
+    }
+
+    .glass-btn-group .glass-btn:first-child {
+        border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    }
+
+    .glass-btn-group .glass-btn:last-child {
+        border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
     }
 
     .glass-dropdown-item {

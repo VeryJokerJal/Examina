@@ -490,20 +490,26 @@ public class ExamImportService
     {
         try
         {
+            // 先检查考试是否存在（暂时不检查权限）
             Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
-                .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
+                .FirstOrDefaultAsync(e => e.Id == examId);
 
             if (exam == null)
             {
-                _logger.LogWarning("考试不存在或用户无权限，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+                _logger.LogWarning("考试不存在，考试ID: {ExamId}", examId);
                 return false;
             }
 
+            // 记录操作信息（包含导入者信息以便调试）
+            _logger.LogInformation("用户 {UserId} 尝试更新考试 {ExamName} (ID: {ExamId}) 的类型为: {ExamCategory}，考试导入者: {ImportedBy}",
+                userId, exam.Name, examId, examCategory, exam.ImportedBy);
+
+            // 更新考试类型
             exam.ExamCategory = examCategory;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("用户 {UserId} 更新了考试 {ExamName} (ID: {ExamId}) 的类型为: {ExamCategory}",
-                userId, exam.Name, examId, examCategory);
+            _logger.LogInformation("考试类型更新成功，考试 {ExamName} (ID: {ExamId}) 的类型已更新为: {ExamCategory}",
+                exam.Name, examId, examCategory);
 
             return true;
         }

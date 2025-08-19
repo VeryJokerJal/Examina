@@ -143,24 +143,28 @@
                     <!-- 考试类型设置 -->
                     <div class="row">
                         <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
-                                <div>
-                                    <h6 class="mb-1">
-                                        <i class="bi bi-building me-2"></i>考试类型
-                                    </h6>
-                                    <small class="text-muted">设置考试的组织级别</small>
-                                </div>
-                                <div>
-                                    <div class="btn-group" role="group" aria-label="考试类型选择">
-                                        <input type="radio" class="btn-check" name="examCategory" id="examCategorySchool"
-                                               value="0" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School ? "checked" : "")
-                                               onchange="updateExamCategory(@Model.Id, this.value)">
-                                        <label class="btn btn-outline-primary" for="examCategorySchool">学校统考</label>
+                            <div class="glass-card glass-card-secondary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 text-white">
+                                                <i class="bi bi-building me-2"></i>考试类型
+                                            </h6>
+                                            <small class="text-white-50">设置考试的组织级别</small>
+                                        </div>
+                                        <div>
+                                            <div class="btn-group glass-btn-group" role="group" aria-label="考试类型选择">
+                                                <input type="radio" class="btn-check" name="examCategory" id="examCategorySchool"
+                                                       value="0" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School ? "checked" : "")
+                                                       onchange="updateExamCategory(@Model.Id, this.value)">
+                                                <label class="glass-btn glass-btn-outline" for="examCategorySchool">学校统考</label>
 
-                                        <input type="radio" class="btn-check" name="examCategory" id="examCategoryProvincial"
-                                               value="1" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "checked" : "")
-                                               onchange="updateExamCategory(@Model.Id, this.value)">
-                                        <label class="btn btn-outline-primary" for="examCategoryProvincial">全省统考</label>
+                                                <input type="radio" class="btn-check" name="examCategory" id="examCategoryProvincial"
+                                                       value="1" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "checked" : "")
+                                                       onchange="updateExamCategory(@Model.Id, this.value)">
+                                                <label class="glass-btn glass-btn-outline" for="examCategoryProvincial">全省统考</label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -362,23 +366,58 @@
         }
 
         function showToast(type, message) {
-            // 创建简单的提示框
-            const toast = document.createElement('div');
-            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-            toast.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
+            // 使用玻璃拟态通知系统
+            if (typeof showNotification === 'function') {
+                showNotification(message, type);
+            } else if (typeof glassNotification !== 'undefined') {
+                glassNotification.show(message, type);
+            } else {
+                // 降级到简单的提示框
+                const toast = document.createElement('div');
+                toast.className = `glass-notification glass-alert-${type} alert-dismissible fade show position-fixed`;
+                toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                toast.innerHTML = `
+                    <div class="glass-notification-content">
+                        <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="glass-btn-close" aria-label="Close">
+                        <i class="bi bi-x"></i>
+                    </button>
+                `;
 
-            document.body.appendChild(toast);
+                document.body.appendChild(toast);
 
-            // 3秒后自动移除
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
+                // 添加显示动画
+                requestAnimationFrame(() => {
+                    toast.classList.add('show');
+                });
+
+                // 添加关闭事件
+                const closeBtn = toast.querySelector('.glass-btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        toast.classList.add('fade-out');
+                        setTimeout(() => {
+                            if (toast.parentNode) {
+                                toast.parentNode.removeChild(toast);
+                            }
+                        }, 300);
+                    });
                 }
-            }, 3000);
+
+                // 3秒后自动移除
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.classList.add('fade-out');
+                        setTimeout(() => {
+                            if (toast.parentNode) {
+                                toast.parentNode.removeChild(toast);
+                            }
+                        }, 300);
+                    }
+                }, 3000);
+            }
         }
     </script>
 }

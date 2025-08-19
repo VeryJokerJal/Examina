@@ -11,29 +11,29 @@ using Microsoft.IdentityModel.Tokens;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // 配置服务器端口 - 解决发布后无法访问的问题
-builder.WebHost.ConfigureKestrel(options =>
-{
-    if (builder.Environment.IsDevelopment())
-    {
-        // 开发环境使用launchSettings.json中的配置
-        options.ListenLocalhost(5117); // HTTP
-        // 开发环境的HTTPS配置由launchSettings.json处理
-    }
-    else
-    {
-        // 生产环境只配置HTTP端口，避免HTTPS证书问题
-        options.ListenAnyIP(5000); // HTTP - 监听所有IP地址
-        options.ListenLocalhost(8080); // HTTP localhost备用端口
+//builder.WebHost.ConfigureKestrel(options =>
+//{
+//    if (builder.Environment.IsDevelopment())
+//    {
+//        // 开发环境使用launchSettings.json中的配置
+//        options.ListenLocalhost(5117); // HTTP
+//        // 开发环境的HTTPS配置由launchSettings.json处理
+//    }
+//    else
+//    {
+//        // 生产环境只配置HTTP端口，避免HTTPS证书问题
+//        options.ListenAnyIP(5000); // HTTP - 监听所有IP地址
+//        options.ListenLocalhost(8080); // HTTP localhost备用端口
 
-        // 如果需要HTTPS，请先配置证书：
-        // dotnet dev-certs https --trust
-        // 然后取消注释下面的代码：
-        // options.ListenAnyIP(5001, listenOptions =>
-        // {
-        //     listenOptions.UseHttps(); // HTTPS
-        // });
-    }
-});
+//        // 如果需要HTTPS，请先配置证书：
+//        // dotnet dev-certs https --trust
+//        // 然后取消注释下面的代码：
+//        // options.ListenAnyIP(5001, listenOptions =>
+//        // {
+//        //     listenOptions.UseHttps(); // HTTPS
+//        // });
+//    }
+//});
 
 // 配置日志记录
 builder.Logging.ClearProviders();
@@ -112,8 +112,6 @@ builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentExamService, ExaminaWebApplication.Services.Student.StudentExamService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentComprehensiveTrainingService, ExaminaWebApplication.Services.Student.StudentComprehensiveTrainingService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentMockExamService, ExaminaWebApplication.Services.Student.StudentMockExamService>();
-
-
 
 // 添加后台服务
 builder.Services.AddHostedService<SessionCleanupService>();
@@ -250,24 +248,6 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-// 配置HTTPS重定向
-builder.Services.AddHttpsRedirection(options =>
-{
-    if (builder.Environment.IsDevelopment())
-    {
-        // 开发环境配置 - 使用launchSettings.json中的HTTPS端口
-        options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-        options.HttpsPort = 7125; // 开发环境HTTPS端口
-    }
-    else
-    {
-        // 生产环境配置 - 使用307临时重定向而不是308永久重定向
-        // 这样可以避免客户端缓存重定向导致的问题
-        options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-        options.HttpsPort = 443; // 生产环境标准HTTPS端口
-    }
-});
-
 // 配置CORS
 builder.Services.AddCors(options =>
 {
@@ -280,7 +260,7 @@ builder.Services.AddCors(options =>
 
     options.AddPolicy("StudentFrontend", policy =>
     {
-        _ = policy.WithOrigins("http://localhost:3000", "https://qiuzhenbd.com")
+        _ = policy.WithOrigins("http://localhost:5000", "https://qiuzhenbd.com")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -288,21 +268,6 @@ builder.Services.AddCors(options =>
 });
 
 WebApplication app = builder.Build();
-
-// 配置静态Web资产处理
-try
-{
-    // 尝试使用静态Web资产，如果失败则跳过
-    if (app.Environment.IsDevelopment())
-    {
-        // 在开发环境中，静态Web资产可能不存在，这是正常的
-        app.Logger.LogInformation("开发环境：跳过静态Web资产配置");
-    }
-}
-catch (Exception ex)
-{
-    app.Logger.LogWarning(ex, "静态Web资产配置失败，继续运行");
-}
 
 // 获取日志记录器
 ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
