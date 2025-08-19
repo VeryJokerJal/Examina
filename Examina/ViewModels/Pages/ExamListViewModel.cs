@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using Examina.Models.Exam;
+using Examina.Models.User;
 using Examina.Services;
 using ReactiveUI;
 
@@ -12,10 +13,12 @@ namespace Examina.ViewModels.Pages;
 public class ExamListViewModel : ViewModelBase
 {
     private readonly IStudentExamService _studentExamService;
+    private readonly IAuthenticationService _authenticationService;
     private bool _isLoading;
     private string _errorMessage = string.Empty;
     private int _totalCount;
     private int _currentPage = 1;
+    private bool _hasFullAccess;
     private const int PageSize = 20;
 
     /// <summary>
@@ -65,6 +68,20 @@ public class ExamListViewModel : ViewModelBase
     public bool HasMoreData => Exams.Count < TotalCount;
 
     /// <summary>
+    /// 用户是否拥有完整功能权限
+    /// </summary>
+    public bool HasFullAccess
+    {
+        get => _hasFullAccess;
+        set => this.RaiseAndSetIfChanged(ref _hasFullAccess, value);
+    }
+
+    /// <summary>
+    /// 开始考试按钮文本
+    /// </summary>
+    public string StartButtonText => HasFullAccess ? "开始考试" : "解锁";
+
+    /// <summary>
     /// 刷新命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
@@ -74,15 +91,27 @@ public class ExamListViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> LoadMoreCommand { get; }
 
+    /// <summary>
+    /// 开始考试命令
+    /// </summary>
+    public ReactiveCommand<StudentExamDto, Unit> StartExamCommand { get; }
 
 
-    public ExamListViewModel(IStudentExamService studentExamService)
+    public ExamListViewModel(IStudentExamService studentExamService, IAuthenticationService authenticationService)
     {
         _studentExamService = studentExamService;
+        _authenticationService = authenticationService;
 
         // 创建命令
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
         LoadMoreCommand = ReactiveCommand.CreateFromTask(LoadMoreAsync, this.WhenAnyValue(x => x.HasMoreData, x => x.IsLoading, (hasMore, loading) => hasMore && !loading));
+        StartExamCommand = ReactiveCommand.CreateFromTask<StudentExamDto>(StartExamAsync);
+
+        // 初始化用户权限状态
+        UpdateUserPermissions();
+
+        // 监听用户信息更新事件
+        _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
 
         // 初始加载
         _ = Task.Run(RefreshAsync);
@@ -177,5 +206,68 @@ public class ExamListViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 开始考试
+    /// </summary>
+    private async Task StartExamAsync(StudentExamDto exam)
+    {
+        try
+        {
+            if (HasFullAccess)
+            {
+                // 用户有完整权限，开始考试
+                System.Diagnostics.Debug.WriteLine($"开始考试: {exam.Name} (ID: {exam.Id})");
 
+                // 检查权限
+                bool hasAccess = await _studentExamService.HasAccessToExamAsync(exam.Id);
+                if (!hasAccess)
+                {
+                    ErrorMessage = "您没有权限访问此考试";
+                    return;
+                }
+
+                // TODO: 实现开始考试逻辑
+                // 这里应该导航到考试页面或启动考试
+                System.Diagnostics.Debug.WriteLine($"考试 {exam.Name} 已开始");
+            }
+            else
+            {
+                // 用户没有完整权限，显示解锁提示
+                ErrorMessage = "您需要解锁权限才能开始考试。请加入学校组织或联系管理员进行解锁。";
+                System.Diagnostics.Debug.WriteLine("用户尝试开始考试但没有完整权限");
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            ErrorMessage = "认证失败，请重新登录";
+            System.Diagnostics.Debug.WriteLine("开始考试失败：用户未认证");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "开始考试失败，请稍后重试";
+            System.Diagnostics.Debug.WriteLine($"开始考试失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 更新用户权限状态
+    /// </summary>
+    private void UpdateUserPermissions()
+    {
+        UserInfo? currentUser = _authenticationService.CurrentUser;
+        HasFullAccess = currentUser?.HasFullAccess ?? false;
+
+        // 通知UI更新按钮文本
+        this.RaisePropertyChanged(nameof(StartButtonText));
+
+        System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}");
+    }
+
+    /// <summary>
+    /// 用户信息更新事件处理
+    /// </summary>
+    private void OnUserInfoUpdated()
+    {
+        UpdateUserPermissions();
+    }
 }

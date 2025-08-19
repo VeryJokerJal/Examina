@@ -496,10 +496,10 @@ public class MainViewModel : ViewModelBase, IDisposable
 
             // 如果DI容器无法提供，手动创建
             IStudentExamService? examService = ((App)Application.Current!).GetService<IStudentExamService>();
-            if (examService != null)
+            if (examService != null && _authenticationService != null)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ExamListViewModel");
-                return new ExamListViewModel(examService);
+                return new ExamListViewModel(examService, _authenticationService);
             }
             else
             {
