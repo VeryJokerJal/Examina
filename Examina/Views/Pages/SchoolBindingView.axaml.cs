@@ -1,7 +1,9 @@
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Examina.Services;
 using Examina.ViewModels;
+using Examina.Views;
 
 namespace Examina.Views.Pages;
 
@@ -38,19 +40,43 @@ public partial class SchoolBindingView : UserControl
         {
             System.Diagnostics.Debug.WriteLine("SchoolBindingView: 用户点击返回主页按钮");
 
-            // 通过MainViewModel导航到概览页面
+            // 方法1：通过当前窗口查找MainView和MainViewModel
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                if (desktop.MainWindow?.Content is MainView mainView)
+                {
+                    if (mainView.DataContext is MainViewModel mainViewModel)
+                    {
+                        System.Diagnostics.Debug.WriteLine("SchoolBindingView: 找到当前MainViewModel实例");
+                        mainViewModel.NavigateToPage("overview");
+                        System.Diagnostics.Debug.WriteLine("SchoolBindingView: 成功导航到概览页面");
+                        return;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"SchoolBindingView: MainView的DataContext不是MainViewModel，实际类型: {mainView.DataContext?.GetType().Name ?? "null"}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"SchoolBindingView: MainWindow的Content不是MainView，实际类型: {desktop.MainWindow?.Content?.GetType().Name ?? "null"}");
+                }
+            }
+
+            // 方法2：通过App服务获取MainViewModel（备用方案）
+            System.Diagnostics.Debug.WriteLine("SchoolBindingView: 尝试备用方案 - 通过App服务获取MainViewModel");
             if (Avalonia.Application.Current is App app)
             {
                 MainViewModel? mainViewModel = app.GetService<MainViewModel>();
                 if (mainViewModel != null)
                 {
-                    // 导航到概览页面（主页面）
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingView: 通过App服务获取到MainViewModel");
                     mainViewModel.NavigateToPage("overview");
-                    System.Diagnostics.Debug.WriteLine("SchoolBindingView: 成功导航到概览页面");
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingView: 备用方案成功导航到概览页面");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("SchoolBindingView: 无法获取MainViewModel");
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingView: 无法通过App服务获取MainViewModel");
                 }
             }
             else
@@ -61,6 +87,7 @@ public partial class SchoolBindingView : UserControl
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"SchoolBindingView: 返回主页失败: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"SchoolBindingView: 异常堆栈: {ex.StackTrace}");
         }
     }
 }

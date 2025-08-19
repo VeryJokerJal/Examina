@@ -138,18 +138,24 @@ public class SchoolBindingViewModel : ViewModelBase
             {
                 // 获取最新的用户信息
                 var currentUser = _authenticationService.CurrentUser;
-                HasFullAccess = currentUser?.HasFullAccess ?? false;
+                bool newHasFullAccess = currentUser?.HasFullAccess ?? false;
+
+                System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: 权限状态检查 - 用户名: {currentUser?.Username ?? "null"}, HasFullAccess: {newHasFullAccess}");
+
+                HasFullAccess = newHasFullAccess;
 
                 if (HasFullAccess)
                 {
                     PermissionStatusMessage = "您已拥有完整功能权限，可以正常使用所有功能。";
-                    System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 用户已拥有完整权限");
+                    System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 用户已拥有完整权限，设置权限提示消息");
                 }
                 else
                 {
                     PermissionStatusMessage = string.Empty;
                     System.Diagnostics.Debug.WriteLine("SchoolBindingViewModel: 用户权限受限，需要绑定学校");
                 }
+
+                System.Diagnostics.Debug.WriteLine($"SchoolBindingViewModel: 最终状态 - HasFullAccess: {HasFullAccess}, PermissionStatusMessage: '{PermissionStatusMessage}'");
             }
             else
             {

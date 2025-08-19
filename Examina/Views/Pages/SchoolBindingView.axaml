@@ -23,7 +23,7 @@
             </Border>
 
             <!--  加入学校表单  -->
-            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1" CornerRadius="8" IsVisible="{Binding !IsSchoolBound}">
+            <Border Padding="20" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}" BorderThickness="1" CornerRadius="8" IsVisible="{Binding !HasFullAccess}">
                 <StackPanel Spacing="16">
                     <TextBlock FontFamily="Microsoft YaHei" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="加入学校" />
 
