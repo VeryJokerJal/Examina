@@ -56,6 +56,12 @@ public sealed partial class OperationPointEditPage : Page
             PositionParameterController.InitializePositionParameters(operationPoint.Parameters);
         }
 
+        // 初始化背景填充参数可见性
+        if (IsBackgroundFillKnowledgePoint(operationPoint))
+        {
+            InitializeBackgroundFillParameters(operationPoint.Parameters);
+        }
+
         // 创建所有参数的编辑控件
         foreach (ConfigurationParameter parameter in operationPoint.Parameters)
         {
@@ -78,6 +84,40 @@ public sealed partial class OperationPointEditPage : Page
         ];
 
         return positionKnowledgePoints.Contains(operationPoint.Name);
+    }
+
+    /// <summary>
+    /// 判断是否为背景填充相关的知识点
+    /// </summary>
+    /// <param name="operationPoint">操作点</param>
+    /// <returns>是否为背景填充知识点</returns>
+    private static bool IsBackgroundFillKnowledgePoint(OperationPoint operationPoint)
+    {
+        return operationPoint.Name == "设置幻灯片背景";
+    }
+
+    /// <summary>
+    /// 初始化背景填充参数
+    /// </summary>
+    /// <param name="parameters">参数列表</param>
+    private static void InitializeBackgroundFillParameters(ObservableCollection<ConfigurationParameter> parameters)
+    {
+        // 获取填充类型参数
+        ConfigurationParameter? fillTypeParam = parameters.FirstOrDefault(p => p.Name == "FillType");
+
+        // 初始化依赖参数的可见性
+        List<ConfigurationParameter> dependentParameters = parameters
+            .Where(p => p.DependsOn == "FillType")
+            .ToList();
+
+        foreach (ConfigurationParameter parameter in dependentParameters)
+        {
+            // 初始状态根据当前填充类型值设置可见性
+            bool shouldBeVisible = !string.IsNullOrEmpty(fillTypeParam?.Value) &&
+                                   !string.IsNullOrEmpty(parameter.DependsOnValue) &&
+                                   parameter.DependsOnValue == fillTypeParam.Value;
+            parameter.IsVisible = shouldBeVisible;
+        }
     }
 
     /// <summary>
@@ -333,7 +373,55 @@ public sealed partial class OperationPointEditPage : Page
             };
         }
 
+        // 为填充类型参数添加选择变更事件处理
+        if (parameter.Name == "FillType")
+        {
+            comboBox.SelectionChanged += (sender, e) =>
+            {
+                if (sender is ComboBox cb && cb.SelectedItem is string selectedValue)
+                {
+                    parameter.Value = selectedValue;
+                    // 触发背景填充参数可见性更新
+                    if (OperationPoint != null)
+                    {
+                        UpdateBackgroundFillParameterVisibility(OperationPoint.Parameters, selectedValue);
+                    }
+                }
+            };
+        }
+
         return comboBox;
+    }
+
+    /// <summary>
+    /// 更新背景填充参数可见性
+    /// </summary>
+    /// <param name="parameters">参数列表</param>
+    /// <param name="fillTypeValue">填充类型值</param>
+    private static void UpdateBackgroundFillParameterVisibility(ObservableCollection<ConfigurationParameter> parameters, string? fillTypeValue)
+    {
+        // 获取依赖于FillType的所有参数
+        List<ConfigurationParameter> dependentParameters = parameters
+            .Where(p => p.DependsOn == "FillType")
+            .ToList();
+
+        foreach (ConfigurationParameter parameter in dependentParameters)
+        {
+            bool shouldBeVisible = !string.IsNullOrEmpty(fillTypeValue) &&
+                                   !string.IsNullOrEmpty(parameter.DependsOnValue) &&
+                                   parameter.DependsOnValue == fillTypeValue;
+
+            if (parameter.IsVisible != shouldBeVisible)
+            {
+                parameter.IsVisible = shouldBeVisible;
+
+                // 如果参数变为不可见，清空其值
+                if (!shouldBeVisible)
+                {
+                    parameter.Value = null;
+                }
+            }
+        }
     }
 
     /// <summary>

@@ -603,9 +603,19 @@ public class PowerPointKnowledgeService
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "FillType", DisplayName = "填充类型", Description = "选择填充类型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "实心颜色填充,图案填充,纹理填充,渐变填充,背景自动填充" },
-                new() { Name = "TextureType", DisplayName = "预设纹理类型", Description = "选择纹理类型", Type = ParameterType.Enum, IsRequired = false, Order = 3,
-                    EnumOptions = "混合（不唯一/多个）,莎草纸,画布,牛仔布,编织垫,水珠,纸袋纹理,鱼化石,沙粒,绿色大理石,白色大理石,棕色大理石,花岗岩,报纸纹理,再生纸,羊皮纸,信纸纹理,蓝色薄纸,粉色薄纸,紫色网格,花束纹理,软木纹理,白色花岗岩,胡桃木纹理" },
-                new() { Name = "ApplyToMaster", DisplayName = "是否应用于母版", Description = "是否应用于母版", Type = ParameterType.Boolean, IsRequired = false, Order = 4 }
+                new() { Name = "PatternType", DisplayName = "图案类型", Description = "选择图案填充类型", Type = ParameterType.Enum, IsRequired = false, Order = 3,
+                    EnumOptions = "5%,10%,15%,20%,25%,30%,35%,40%,45%,50%,55%,60%,65%,70%,75%,80%,85%,90%,浅色下对角线,浅色上对角线,深色下对角线,深色上对角线,宽上对角线,宽下对角线,浅色竖线,浅色横线,深色竖线,深色横线,窄竖线,窄横线,横虚线,竖虚线,上对角虚线,下对角虚线,大纸屑,小纸屑,之字形,波浪线,对角砖形,横向砖形,苏格兰方格呢,编织物,球体,棚架,瓦形,点式菱形,虚线网格,草皮,小网格,大网格,小棋盘,大棋盘,轮廓式菱形,实心菱形",
+                    DependsOn = "FillType", DependsOnValue = "图案填充" },
+                new() { Name = "TextureType", DisplayName = "纹理类型", Description = "选择纹理类型", Type = ParameterType.Enum, IsRequired = false, Order = 4,
+                    EnumOptions = "纸莎草纸,画布,斜纹布,编织物,水滴,纸袋,鱼类化石,沙滩,绿色大理石,白色大理石,褐色大理石,花岗岩,新闻纸,再生纸,羊皮纸,信纸,蓝色面巾纸,粉色面巾纸,紫色网格,花束,软木塞,胡桃,栎木,深色木质",
+                    DependsOn = "FillType", DependsOnValue = "纹理填充" },
+                new() { Name = "PresetGradientType", DisplayName = "预设渐变类型", Description = "选择预设渐变样式", Type = ParameterType.Enum, IsRequired = false, Order = 5,
+                    EnumOptions = "红日西斜,金乌坠地,暮霭沉沉,雨后初晴,极目远眺,漫漫黄沙,碧海青天,心如止水,熊熊火焰,薄雾浓云,茵茵绿原,孔雀开屏,麦浪滚滚,羊皮纸,红木,彩虹出岫,彩虹出岫II,金色年华,金色年华II,铜黄色,铬色,铬色II,银波荡漾,宝石蓝",
+                    DependsOn = "FillType", DependsOnValue = "渐变填充" },
+                new() { Name = "LinearGradientDirection", DisplayName = "线性渐变方向", Description = "选择线性渐变方向", Type = ParameterType.Enum, IsRequired = false, Order = 6,
+                    EnumOptions = "线性对角-左上到右下,线性对角-左下到右上,线性对角-右上到左下,线性对角-右下到左上,线性向上,线性向下,线性向左,线性向右",
+                    DependsOn = "FillType", DependsOnValue = "渐变填充" },
+                new() { Name = "ApplyToMaster", DisplayName = "是否应用于母版", Description = "是否应用于母版", Type = ParameterType.Boolean, IsRequired = false, Order = 7 }
             ]
         };
     }

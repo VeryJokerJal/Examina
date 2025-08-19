@@ -6,6 +6,7 @@
         <converters:ParameterTypeToVisibilityConverter x:Key="ParameterTypeToVisibilityConverter" />
         <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:ParameterVisibilityConverter x:Key="ParameterVisibilityConverter" />
     </UserControl.Resources>
 
     <Grid>
@@ -32,7 +33,7 @@
                 <ItemsControl ItemsSource="{Binding SelectedOperationPoint.Parameters}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="0,0,0,12" Padding="16" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8">
+                            <Border Margin="0,0,0,12" Padding="16" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" Visibility="{Binding IsVisible, Converter={StaticResource ParameterVisibilityConverter}}">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
                                     <TextBlock FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" />
