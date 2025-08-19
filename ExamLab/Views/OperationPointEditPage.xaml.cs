@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using ExamLab.Models;
 using ExamLab.Services;
@@ -357,7 +358,7 @@ public sealed partial class OperationPointEditPage : Page
         }
 
         // 为位置类型参数添加选择变更事件处理
-        if (parameter.Name == "HorizontalPositionType" || parameter.Name == "VerticalPositionType")
+        if (parameter.Name is "HorizontalPositionType" or "VerticalPositionType")
         {
             comboBox.SelectionChanged += (sender, e) =>
             {

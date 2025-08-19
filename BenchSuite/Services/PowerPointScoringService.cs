@@ -1446,40 +1446,79 @@ public class PowerPointScoringService : IPowerPointScoringService
         bool allOptionsCorrect = true;
         List<string> detailsList = [];
 
-        // 检测图案类型
+        // 获取当前的填充类型
+        string actualFillType = DetectActualFillType(slide);
+
+        // 检测图案类型（仅当填充类型为图案填充时）
         if (parameters.TryGetValue("PatternType", out string? expectedPattern))
         {
-            string actualPattern = DetectPatternType(slide);
-            bool patternCorrect = string.Equals(actualPattern, expectedPattern, StringComparison.OrdinalIgnoreCase);
-            allOptionsCorrect &= patternCorrect;
-            detailsList.Add($"图案类型: 期望 {expectedPattern}, 实际 {actualPattern}");
+            if (actualFillType == "图案填充")
+            {
+                string actualPattern = DetectPatternType(slide);
+                bool patternCorrect = string.Equals(actualPattern, expectedPattern, StringComparison.OrdinalIgnoreCase);
+                allOptionsCorrect &= patternCorrect;
+                detailsList.Add($"图案类型: 期望 {expectedPattern}, 实际 {actualPattern}");
+            }
+            else
+            {
+                // 如果不是图案填充，但期望有图案类型，则认为不正确
+                allOptionsCorrect = false;
+                detailsList.Add($"图案类型: 期望 {expectedPattern}, 但当前填充类型为 {actualFillType}");
+            }
         }
 
-        // 检测纹理类型
+        // 检测纹理类型（仅当填充类型为纹理填充时）
         if (parameters.TryGetValue("TextureType", out string? expectedTexture))
         {
-            string actualTexture = DetectTextureType(slide);
-            bool textureCorrect = string.Equals(actualTexture, expectedTexture, StringComparison.OrdinalIgnoreCase);
-            allOptionsCorrect &= textureCorrect;
-            detailsList.Add($"纹理类型: 期望 {expectedTexture}, 实际 {actualTexture}");
+            if (actualFillType == "纹理填充")
+            {
+                string actualTexture = DetectTextureType(slide);
+                bool textureCorrect = string.Equals(actualTexture, expectedTexture, StringComparison.OrdinalIgnoreCase);
+                allOptionsCorrect &= textureCorrect;
+                detailsList.Add($"纹理类型: 期望 {expectedTexture}, 实际 {actualTexture}");
+            }
+            else
+            {
+                // 如果不是纹理填充，但期望有纹理类型，则认为不正确
+                allOptionsCorrect = false;
+                detailsList.Add($"纹理类型: 期望 {expectedTexture}, 但当前填充类型为 {actualFillType}");
+            }
         }
 
-        // 检测预设渐变类型
+        // 检测预设渐变类型（仅当填充类型为渐变填充时）
         if (parameters.TryGetValue("PresetGradientType", out string? expectedGradient))
         {
-            string actualGradient = DetectPresetGradientType(slide);
-            bool gradientCorrect = string.Equals(actualGradient, expectedGradient, StringComparison.OrdinalIgnoreCase);
-            allOptionsCorrect &= gradientCorrect;
-            detailsList.Add($"预设渐变: 期望 {expectedGradient}, 实际 {actualGradient}");
+            if (actualFillType == "渐变填充")
+            {
+                string actualGradient = DetectPresetGradientType(slide);
+                bool gradientCorrect = string.Equals(actualGradient, expectedGradient, StringComparison.OrdinalIgnoreCase);
+                allOptionsCorrect &= gradientCorrect;
+                detailsList.Add($"预设渐变: 期望 {expectedGradient}, 实际 {actualGradient}");
+            }
+            else
+            {
+                // 如果不是渐变填充，但期望有预设渐变，则认为不正确
+                allOptionsCorrect = false;
+                detailsList.Add($"预设渐变: 期望 {expectedGradient}, 但当前填充类型为 {actualFillType}");
+            }
         }
 
-        // 检测线性渐变方向
+        // 检测线性渐变方向（仅当填充类型为渐变填充时）
         if (parameters.TryGetValue("LinearGradientDirection", out string? expectedDirection))
         {
-            string actualDirection = DetectLinearGradientDirection(slide);
-            bool directionCorrect = string.Equals(actualDirection, expectedDirection, StringComparison.OrdinalIgnoreCase);
-            allOptionsCorrect &= directionCorrect;
-            detailsList.Add($"渐变方向: 期望 {expectedDirection}, 实际 {actualDirection}");
+            if (actualFillType == "渐变填充")
+            {
+                string actualDirection = DetectLinearGradientDirection(slide);
+                bool directionCorrect = string.Equals(actualDirection, expectedDirection, StringComparison.OrdinalIgnoreCase);
+                allOptionsCorrect &= directionCorrect;
+                detailsList.Add($"渐变方向: 期望 {expectedDirection}, 实际 {actualDirection}");
+            }
+            else
+            {
+                // 如果不是渐变填充，但期望有渐变方向，则认为不正确
+                allOptionsCorrect = false;
+                detailsList.Add($"渐变方向: 期望 {expectedDirection}, 但当前填充类型为 {actualFillType}");
+            }
         }
 
         if (detailsList.Count > 0)
@@ -1528,9 +1567,25 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillPatterned)
             {
-                // 这里需要根据实际的PowerPoint API来检测图案类型
-                // 由于PowerPoint COM API的限制，这里返回一个通用的检测结果
-                return "图案填充已应用";
+                try
+                {
+                    // 尝试获取图案类型
+                    var pattern = fill.Pattern;
+                    string patternName = GetPatternTypeName(pattern);
+
+                    if (!string.IsNullOrEmpty(patternName))
+                    {
+                        return patternName;
+                    }
+
+                    // 如果无法获取具体图案类型，返回通用结果
+                    return "图案填充已应用";
+                }
+                catch
+                {
+                    // 如果获取图案属性失败，返回通用结果
+                    return "图案填充已应用";
+                }
             }
 
             return "无图案填充";
@@ -1539,6 +1594,77 @@ public class PowerPointScoringService : IPowerPointScoringService
         {
             return "检测失败";
         }
+    }
+
+    /// <summary>
+    /// 根据图案枚举值获取图案类型名称
+    /// </summary>
+    /// <param name="pattern">图案枚举值</param>
+    /// <returns>图案类型名称</returns>
+    private string GetPatternTypeName(Microsoft.Office.Core.MsoPatternType pattern)
+    {
+        return pattern switch
+        {
+            // 百分比图案
+            Microsoft.Office.Core.MsoPatternType.msoPattern5Percent => "5%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern10Percent => "10%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern20Percent => "20%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern25Percent => "25%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern30Percent => "30%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern40Percent => "40%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern50Percent => "50%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern60Percent => "60%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern70Percent => "70%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern75Percent => "75%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern80Percent => "80%",
+            Microsoft.Office.Core.MsoPatternType.msoPattern90Percent => "90%",
+
+            // 对角线图案
+            Microsoft.Office.Core.MsoPatternType.msoPatternLightDownwardDiagonal => "浅色下对角线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternLightUpwardDiagonal => "浅色上对角线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDarkDownwardDiagonal => "深色下对角线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDarkUpwardDiagonal => "深色上对角线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternWideDownwardDiagonal => "宽下对角线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternWideUpwardDiagonal => "宽上对角线",
+
+            // 线条图案
+            Microsoft.Office.Core.MsoPatternType.msoPatternLightVertical => "浅色竖线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternLightHorizontal => "浅色横线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDarkVertical => "深色竖线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDarkHorizontal => "深色横线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternNarrowVertical => "窄竖线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternNarrowHorizontal => "窄横线",
+
+            // 虚线图案
+            Microsoft.Office.Core.MsoPatternType.msoPatternDashedDownwardDiagonal => "下对角虚线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDashedUpwardDiagonal => "上对角虚线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDashedHorizontal => "横虚线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDashedVertical => "竖虚线",
+
+            // 特殊图案
+            Microsoft.Office.Core.MsoPatternType.msoPatternSmallConfetti => "小纸屑",
+            Microsoft.Office.Core.MsoPatternType.msoPatternLargeConfetti => "大纸屑",
+            Microsoft.Office.Core.MsoPatternType.msoPatternZigZag => "之字形",
+            Microsoft.Office.Core.MsoPatternType.msoPatternWave => "波浪线",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDiagonalBrick => "对角砖形",
+            Microsoft.Office.Core.MsoPatternType.msoPatternHorizontalBrick => "横向砖形",
+            Microsoft.Office.Core.MsoPatternType.msoPatternPlaid => "苏格兰方格呢",
+            Microsoft.Office.Core.MsoPatternType.msoPatternWeave => "编织物",
+            Microsoft.Office.Core.MsoPatternType.msoPatternSphere => "球体",
+            Microsoft.Office.Core.MsoPatternType.msoPatternTrellis => "棚架",
+            Microsoft.Office.Core.MsoPatternType.msoPatternShingle => "瓦形",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDottedDiamond => "点式菱形",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDottedGrid => "虚线网格",
+            Microsoft.Office.Core.MsoPatternType.msoPatternDivot => "草皮",
+            Microsoft.Office.Core.MsoPatternType.msoPatternSmallGrid => "小网格",
+            Microsoft.Office.Core.MsoPatternType.msoPatternLargeGrid => "大网格",
+            Microsoft.Office.Core.MsoPatternType.msoPatternSmallCheckerBoard => "小棋盘",
+            Microsoft.Office.Core.MsoPatternType.msoPatternLargeCheckerBoard => "大棋盘",
+            Microsoft.Office.Core.MsoPatternType.msoPatternOutlinedDiamond => "轮廓式菱形",
+            Microsoft.Office.Core.MsoPatternType.msoPatternSolidDiamond => "实心菱形",
+
+            _ => "未知图案类型"
+        };
     }
 
     /// <summary>
@@ -1553,9 +1679,25 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillTextured)
             {
-                // 这里需要根据实际的PowerPoint API来检测纹理类型
-                // 由于PowerPoint COM API的限制，这里返回一个通用的检测结果
-                return "纹理填充已应用";
+                try
+                {
+                    // 尝试获取纹理类型
+                    var texture = fill.TextureType;
+                    string textureName = GetTextureTypeName(texture);
+
+                    if (!string.IsNullOrEmpty(textureName))
+                    {
+                        return textureName;
+                    }
+
+                    // 如果无法获取具体纹理类型，返回通用结果
+                    return "纹理填充已应用";
+                }
+                catch
+                {
+                    // 如果获取纹理属性失败，返回通用结果
+                    return "纹理填充已应用";
+                }
             }
 
             return "无纹理填充";
@@ -1564,6 +1706,44 @@ public class PowerPointScoringService : IPowerPointScoringService
         {
             return "检测失败";
         }
+    }
+
+    /// <summary>
+    /// 根据纹理枚举值获取纹理类型名称
+    /// </summary>
+    /// <param name="texture">纹理枚举值</param>
+    /// <returns>纹理类型名称</returns>
+    private string GetTextureTypeName(Microsoft.Office.Core.MsoTextureType texture)
+    {
+        return texture switch
+        {
+            Microsoft.Office.Core.MsoTextureType.msoTexturePapyrus => "纸莎草纸",
+            Microsoft.Office.Core.MsoTextureType.msoTextureCanvas => "画布",
+            Microsoft.Office.Core.MsoTextureType.msoTextureDenim => "斜纹布",
+            Microsoft.Office.Core.MsoTextureType.msoTextureWovenMat => "编织物",
+            Microsoft.Office.Core.MsoTextureType.msoTextureWaterDroplets => "水滴",
+            Microsoft.Office.Core.MsoTextureType.msoTexturePaperBag => "纸袋",
+            Microsoft.Office.Core.MsoTextureType.msoTextureFishFossil => "鱼类化石",
+            Microsoft.Office.Core.MsoTextureType.msoTextureSand => "沙滩",
+            Microsoft.Office.Core.MsoTextureType.msoTextureGreenMarble => "绿色大理石",
+            Microsoft.Office.Core.MsoTextureType.msoTextureWhiteMarble => "白色大理石",
+            Microsoft.Office.Core.MsoTextureType.msoTextureBrownMarble => "褐色大理石",
+            Microsoft.Office.Core.MsoTextureType.msoTextureGranite => "花岗岩",
+            Microsoft.Office.Core.MsoTextureType.msoTextureNewsprint => "新闻纸",
+            Microsoft.Office.Core.MsoTextureType.msoTextureRecycledPaper => "再生纸",
+            Microsoft.Office.Core.MsoTextureType.msoTextureParchment => "羊皮纸",
+            Microsoft.Office.Core.MsoTextureType.msoTextureStationery => "信纸",
+            Microsoft.Office.Core.MsoTextureType.msoTextureBlueTissuePaper => "蓝色面巾纸",
+            Microsoft.Office.Core.MsoTextureType.msoTexturePinkTissuePaper => "粉色面巾纸",
+            Microsoft.Office.Core.MsoTextureType.msoTexturePurpleMesh => "紫色网格",
+            Microsoft.Office.Core.MsoTextureType.msoTextureBouquet => "花束",
+            Microsoft.Office.Core.MsoTextureType.msoTextureCork => "软木塞",
+            Microsoft.Office.Core.MsoTextureType.msoTextureWalnut => "胡桃",
+            Microsoft.Office.Core.MsoTextureType.msoTextureOak => "栎木",
+            Microsoft.Office.Core.MsoTextureType.msoTextureMediumWood => "深色木质",
+
+            _ => "未知纹理类型"
+        };
     }
 
     /// <summary>
@@ -1578,9 +1758,32 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillGradient)
             {
-                // 这里需要根据实际的PowerPoint API来检测预设渐变类型
-                // 由于PowerPoint COM API的限制，这里返回一个通用的检测结果
-                return "渐变填充已应用";
+                try
+                {
+                    // 尝试获取预设渐变类型
+                    var presetGradient = fill.PresetGradientType;
+                    string gradientName = GetPresetGradientTypeName(presetGradient);
+
+                    if (!string.IsNullOrEmpty(gradientName))
+                    {
+                        return gradientName;
+                    }
+
+                    // 如果无法获取具体预设渐变类型，检查是否为自定义渐变
+                    var gradientStyle = fill.GradientStyle;
+                    if (gradientStyle != Microsoft.Office.Core.MsoGradientStyle.msoGradientMixed)
+                    {
+                        return "自定义渐变填充";
+                    }
+
+                    // 返回通用结果
+                    return "渐变填充已应用";
+                }
+                catch
+                {
+                    // 如果获取渐变属性失败，返回通用结果
+                    return "渐变填充已应用";
+                }
             }
 
             return "无渐变填充";
@@ -1589,6 +1792,44 @@ public class PowerPointScoringService : IPowerPointScoringService
         {
             return "检测失败";
         }
+    }
+
+    /// <summary>
+    /// 根据预设渐变枚举值获取渐变类型名称
+    /// </summary>
+    /// <param name="presetGradient">预设渐变枚举值</param>
+    /// <returns>渐变类型名称</returns>
+    private string GetPresetGradientTypeName(Microsoft.Office.Core.MsoPresetGradientType presetGradient)
+    {
+        return presetGradient switch
+        {
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientEarlySunset => "红日西斜",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientLateSunset => "金乌坠地",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientNightfall => "暮霭沉沉",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientDaybreak => "雨后初晴",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientHorizon => "极目远眺",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientDesert => "漫漫黄沙",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientOcean => "碧海青天",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientCalmWater => "心如止水",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientFire => "熊熊火焰",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientFog => "薄雾浓云",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientMoss => "茵茵绿原",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientPeacock => "孔雀开屏",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientWheat => "麦浪滚滚",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientParchment => "羊皮纸",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientMahogany => "红木",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientRainbow => "彩虹出岫",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientRainbow2 => "彩虹出岫II",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientGold => "金色年华",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientGold2 => "金色年华II",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientBrass => "铜黄色",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientChrome => "铬色",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientChrome2 => "铬色II",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientSilver => "银波荡漾",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientSapphire => "宝石蓝",
+
+            _ => "未知预设渐变"
+        };
     }
 
     /// <summary>
@@ -1603,17 +1844,94 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillGradient)
             {
-                // 这里需要根据实际的PowerPoint API来检测渐变方向
-                // 由于PowerPoint COM API的限制，这里返回一个通用的检测结果
-                return "线性渐变已应用";
+                try
+                {
+                    // 检查渐变样式是否为线性
+                    var gradientStyle = fill.GradientStyle;
+                    if (gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientHorizontal ||
+                        gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientVertical ||
+                        gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalUp ||
+                        gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalDown)
+                    {
+                        // 尝试获取渐变角度来确定具体方向
+                        try
+                        {
+                            float angle = fill.GradientAngle;
+                            string directionName = GetLinearGradientDirectionName(gradientStyle, angle);
+
+                            if (!string.IsNullOrEmpty(directionName))
+                            {
+                                return directionName;
+                            }
+                        }
+                        catch
+                        {
+                            // 如果无法获取角度，根据样式返回基本方向
+                            return GetBasicGradientDirectionName(gradientStyle);
+                        }
+                    }
+
+                    // 如果不是线性渐变，返回相应信息
+                    return gradientStyle switch
+                    {
+                        Microsoft.Office.Core.MsoGradientStyle.msoGradientFromCenter => "径向渐变",
+                        Microsoft.Office.Core.MsoGradientStyle.msoGradientFromCorner => "角落渐变",
+                        Microsoft.Office.Core.MsoGradientStyle.msoGradientFromTitle => "标题渐变",
+                        _ => "非线性渐变"
+                    };
+                }
+                catch
+                {
+                    // 如果获取渐变属性失败，返回通用结果
+                    return "渐变填充已应用";
+                }
             }
 
-            return "无线性渐变";
+            return "无渐变填充";
         }
         catch
         {
             return "检测失败";
         }
+    }
+
+    /// <summary>
+    /// 根据渐变样式和角度获取线性渐变方向名称
+    /// </summary>
+    /// <param name="gradientStyle">渐变样式</param>
+    /// <param name="angle">渐变角度</param>
+    /// <returns>渐变方向名称</returns>
+    private string GetLinearGradientDirectionName(Microsoft.Office.Core.MsoGradientStyle gradientStyle, float angle)
+    {
+        // 根据角度判断具体方向
+        float normalizedAngle = angle % 360;
+        if (normalizedAngle < 0) normalizedAngle += 360;
+
+        return normalizedAngle switch
+        {
+            >= 315 or < 45 => "线性向右",
+            >= 45 and < 135 => gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalUp ? "线性对角-左下到右上" : "线性向上",
+            >= 135 and < 225 => "线性向左",
+            >= 225 and < 315 => gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalDown ? "线性对角-左上到右下" : "线性向下",
+            _ => GetBasicGradientDirectionName(gradientStyle)
+        };
+    }
+
+    /// <summary>
+    /// 根据渐变样式获取基本方向名称
+    /// </summary>
+    /// <param name="gradientStyle">渐变样式</param>
+    /// <returns>基本方向名称</returns>
+    private string GetBasicGradientDirectionName(Microsoft.Office.Core.MsoGradientStyle gradientStyle)
+    {
+        return gradientStyle switch
+        {
+            Microsoft.Office.Core.MsoGradientStyle.msoGradientHorizontal => "线性水平方向",
+            Microsoft.Office.Core.MsoGradientStyle.msoGradientVertical => "线性垂直方向",
+            Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalUp => "线性对角向上",
+            Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalDown => "线性对角向下",
+            _ => "线性渐变已应用"
+        };
     }
 
     /// <summary>
