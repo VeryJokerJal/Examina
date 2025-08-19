@@ -88,12 +88,13 @@
                                     </StackPanel>
 
                                     <!--  操作按钮  -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Vertical" Spacing="10">
-                                        <Button Classes="accent" Command="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).ViewDetailsCommand}" CommandParameter="{Binding}" Content="查看详情" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                                         <Button Command="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartTrainingCommand}"
                                                 CommandParameter="{Binding}"
                                                 Content="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartButtonText}"
-                                                Classes="accent" />
+                                                Classes="accent"
+                                                Padding="20,10"
+                                                MinWidth="120" />
                                     </StackPanel>
                                 </Grid>
                             </Border>

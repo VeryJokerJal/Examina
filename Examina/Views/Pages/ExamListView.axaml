@@ -89,9 +89,12 @@
                                     </StackPanel>
 
                                     <!--  操作按钮  -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Vertical" Spacing="10">
-                                        <Button Classes="accent" Command="{Binding $parent[UserControl].((vm:ExamListViewModel)DataContext).ViewDetailsCommand}" CommandParameter="{Binding}" Content="查看详情" />
-                                        <Button Content="开始考试" IsEnabled="True" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <Button Content="开始考试"
+                                                Classes="accent"
+                                                IsEnabled="True"
+                                                Padding="20,10"
+                                                MinWidth="120" />
                                     </StackPanel>
                                 </Grid>
                             </Border>

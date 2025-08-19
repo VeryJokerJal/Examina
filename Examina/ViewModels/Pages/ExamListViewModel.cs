@@ -74,10 +74,7 @@ public class ExamListViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> LoadMoreCommand { get; }
 
-    /// <summary>
-    /// 查看详情命令
-    /// </summary>
-    public ReactiveCommand<StudentExamDto, Unit> ViewDetailsCommand { get; }
+
 
     public ExamListViewModel(IStudentExamService studentExamService)
     {
@@ -86,7 +83,6 @@ public class ExamListViewModel : ViewModelBase
         // 创建命令
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
         LoadMoreCommand = ReactiveCommand.CreateFromTask(LoadMoreAsync, this.WhenAnyValue(x => x.HasMoreData, x => x.IsLoading, (hasMore, loading) => hasMore && !loading));
-        ViewDetailsCommand = ReactiveCommand.CreateFromTask<StudentExamDto>(ViewDetailsAsync);
 
         // 初始加载
         _ = Task.Run(RefreshAsync);
@@ -181,44 +177,5 @@ public class ExamListViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 查看考试详情
-    /// </summary>
-    private async Task ViewDetailsAsync(StudentExamDto exam)
-    {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine($"查看考试详情: {exam.Name} (ID: {exam.Id})");
 
-            // 检查权限
-            bool hasAccess = await _studentExamService.HasAccessToExamAsync(exam.Id);
-            if (!hasAccess)
-            {
-                ErrorMessage = "您没有权限访问此考试";
-                return;
-            }
-
-            // 获取详细信息
-            StudentExamDto? details = await _studentExamService.GetExamDetailsAsync(exam.Id);
-            if (details == null)
-            {
-                ErrorMessage = "无法获取考试详情";
-                return;
-            }
-
-            // TODO: 导航到考试详情页面
-            // 这里可以通过导航服务或事件来通知主窗口切换到详情页面
-            System.Diagnostics.Debug.WriteLine($"考试详情加载成功: {details.Name}，包含 {details.Subjects.Count} 个科目，{details.Modules.Count} 个模块");
-        }
-        catch (UnauthorizedAccessException)
-        {
-            ErrorMessage = "认证失败，请重新登录";
-            System.Diagnostics.Debug.WriteLine("查看考试详情失败：用户未认证");
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = "获取考试详情失败，请稍后重试";
-            System.Diagnostics.Debug.WriteLine($"查看考试详情失败: {ex.Message}");
-        }
-    }
 }
