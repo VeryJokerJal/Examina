@@ -531,7 +531,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
             // 如果DI容器无法提供，手动创建
             IStudentComprehensiveTrainingService? trainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
-            if (trainingService != null)
+            if (trainingService != null && _authenticationService != null)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ComprehensiveTrainingListViewModel");
                 return new ComprehensiveTrainingListViewModel(trainingService, _authenticationService);
@@ -566,7 +566,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
             // 如果DI容器无法提供，手动创建
             IStudentMockExamService? mockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
-            if (mockExamService != null)
+            if (mockExamService != null && _authenticationService != null)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建MockExamListViewModel");
                 return new MockExamListViewModel(mockExamService, _authenticationService);

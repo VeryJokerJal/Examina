@@ -92,13 +92,8 @@
                                         <Button Classes="accent" Command="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).ViewDetailsCommand}" CommandParameter="{Binding}" Content="查看详情" />
                                         <Button Command="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartTrainingCommand}"
                                                 CommandParameter="{Binding}"
-                                                Content="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartButtonText}">
-                                            <Button.Classes>
-                                                <Classes>
-                                                    <Class Name="accent" IsActive="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).HasFullAccess}" />
-                                                </Classes>
-                                            </Button.Classes>
-                                        </Button>
+                                                Content="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartButtonText}"
+                                                Classes="accent" />
                                     </StackPanel>
                                 </Grid>
                             </Border>

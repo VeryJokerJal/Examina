@@ -174,7 +174,13 @@ public class SchoolBindingViewModel : ViewModelBase
 
         try
         {
-            JoinOrganizationResult? result = await _organizationService?.JoinOrganizationAsync(InvitationCode);
+            if (_organizationService == null)
+            {
+                StatusMessage = "服务未初始化，请重试";
+                return;
+            }
+
+            JoinOrganizationResult? result = await _organizationService.JoinOrganizationAsync(InvitationCode);
 
             if (result.Success && result.StudentOrganization != null)
             {
@@ -232,8 +238,14 @@ public class SchoolBindingViewModel : ViewModelBase
     {
         try
         {
+            if (_authenticationService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("认证服务未初始化");
+                return false;
+            }
+
             // 刷新用户信息以更新权限状态
-            bool? success = await _authenticationService?.RefreshUserInfoAsync();
+            bool? success = await _authenticationService.RefreshUserInfoAsync();
             if (success == true)
             {
                 System.Diagnostics.Debug.WriteLine("用户权限状态刷新成功");

@@ -109,15 +109,11 @@
                 <!-- 开始按钮 -->
                 <StackPanel Spacing="15" HorizontalAlignment="Center">
                     <Button Command="{Binding StartMockExamCommand}"
+                            Classes="accent"
                             FontSize="18"
                             Padding="40,15"
                             MinWidth="200"
                             IsEnabled="{Binding !IsLoading}">
-                        <Button.Classes>
-                            <Classes>
-                                <Class Name="accent" IsActive="{Binding HasFullAccess}" />
-                            </Classes>
-                        </Button.Classes>
                         <Button.Content>
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="🚀" FontSize="20" IsVisible="{Binding HasFullAccess}"/>
