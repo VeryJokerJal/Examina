@@ -696,12 +696,12 @@ public class SpecializedExamViewModel : ViewModelBase
             clonedExam.LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             // 为克隆的模块生成新的ID
-            if (clonedExam.Module != null)
+            foreach (ExamModule module in clonedExam.Modules)
             {
-                clonedExam.Module.Id = IdGeneratorService.GenerateModuleId();
+                module.Id = IdGeneratorService.GenerateModuleId();
 
                 // 为克隆的题目生成新的ID
-                foreach (Question question in clonedExam.Module.Questions)
+                foreach (Question question in module.Questions)
                 {
                     question.Id = IdGeneratorService.GenerateQuestionId();
 
