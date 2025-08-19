@@ -390,6 +390,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "training-ranking" => new LeaderboardViewModel(),
                 "school-binding" => CreateSchoolBindingViewModel(),
                 "profile" => CreateProfileViewModel(),
+                "exam-view" => CreateExamViewModel(),
                 _ => new OverviewViewModel()
             };
 
@@ -533,7 +534,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             if (trainingService != null)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ComprehensiveTrainingListViewModel");
-                return new ComprehensiveTrainingListViewModel(trainingService);
+                return new ComprehensiveTrainingListViewModel(trainingService, _authenticationService);
             }
             else
             {
@@ -568,7 +569,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             if (mockExamService != null)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建MockExamListViewModel");
-                return new MockExamListViewModel(mockExamService);
+                return new MockExamListViewModel(mockExamService, _authenticationService);
             }
             else
             {
@@ -624,6 +625,33 @@ public class MainViewModel : ViewModelBase, IDisposable
                 System.Diagnostics.Debug.WriteLine($"导航到登录窗口失败: {navEx.Message}");
             }
         }
+    }
+
+    /// <summary>
+    /// 创建ExamViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateExamViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            ExamViewModel? viewModel = ((App)Application.Current!).GetService<ExamViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ExamViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ExamViewModel");
+            return new ExamViewModel(_authenticationService);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ExamViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
     }
 
     #endregion

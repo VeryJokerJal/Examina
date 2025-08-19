@@ -163,8 +163,23 @@ public partial class App : Application
         _ = services.AddTransient<ChangePasswordViewModel>();
         _ = services.AddTransient<SchoolBindingViewModel>();
         _ = services.AddTransient<ExamListViewModel>();
-        _ = services.AddTransient<ComprehensiveTrainingListViewModel>();
-        _ = services.AddTransient<MockExamListViewModel>();
+        _ = services.AddTransient<ComprehensiveTrainingListViewModel>(provider =>
+        {
+            IStudentComprehensiveTrainingService trainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new ComprehensiveTrainingListViewModel(trainingService, authService);
+        });
+        _ = services.AddTransient<MockExamListViewModel>(provider =>
+        {
+            IStudentMockExamService mockExamService = provider.GetRequiredService<IStudentMockExamService>();
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new MockExamListViewModel(mockExamService, authService);
+        });
+        _ = services.AddTransient<ExamViewModel>(provider =>
+        {
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new ExamViewModel(authService);
+        });
 
         _serviceProvider = services.BuildServiceProvider();
     }

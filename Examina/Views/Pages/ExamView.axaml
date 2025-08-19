@@ -79,21 +79,26 @@
           
           <!-- 操作按钮 -->
           <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
-            <Button Content="开始考试" 
-                    Classes="accent"
+            <Button Content="{Binding StartExamButtonText}"
                     Command="{Binding StartExamCommand}"
                     IsVisible="{Binding !HasActiveExam}"
                     Padding="20,10"
-                    FontFamily="Microsoft YaHei"/>
-            
-            <Button Content="继续考试" 
+                    FontFamily="Microsoft YaHei">
+                <Button.Classes>
+                    <Classes>
+                        <Class Name="accent" IsActive="{Binding HasFullAccess}" />
+                    </Classes>
+                </Button.Classes>
+            </Button>
+
+            <Button Content="继续考试"
                     Classes="accent"
                     Command="{Binding ContinueExamCommand}"
                     IsVisible="{Binding HasActiveExam}"
                     Padding="20,10"
                     FontFamily="Microsoft YaHei"/>
-            
-            <Button Content="刷新状态" 
+
+            <Button Content="刷新状态"
                     Command="{Binding RefreshExamStatusCommand}"
                     Padding="20,10"
                     FontFamily="Microsoft YaHei"/>

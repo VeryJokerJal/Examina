@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using Examina.Models.MockExam;
+using Examina.Models;
 using Examina.Services;
 using Examina.Views.Dialogs;
 using Examina.ViewModels.Dialogs;
@@ -15,9 +16,11 @@ namespace Examina.ViewModels.Pages;
 public class MockExamListViewModel : ViewModelBase
 {
     private readonly IStudentMockExamService _mockExamService;
+    private readonly IAuthenticationService _authenticationService;
 
     private bool _isLoading;
     private string? _errorMessage;
+    private bool _hasFullAccess;
 
     /// <summary>
     /// 是否正在加载
@@ -38,16 +41,37 @@ public class MockExamListViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 用户是否拥有完整功能权限
+    /// </summary>
+    public bool HasFullAccess
+    {
+        get => _hasFullAccess;
+        set => this.RaiseAndSetIfChanged(ref _hasFullAccess, value);
+    }
+
+    /// <summary>
+    /// 开始按钮文本
+    /// </summary>
+    public string StartButtonText => HasFullAccess ? "开始模拟考试" : "解锁";
+
+    /// <summary>
     /// 开始模拟考试命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> StartMockExamCommand { get; }
 
-    public MockExamListViewModel(IStudentMockExamService mockExamService)
+    public MockExamListViewModel(IStudentMockExamService mockExamService, IAuthenticationService authenticationService)
     {
         _mockExamService = mockExamService;
+        _authenticationService = authenticationService;
 
         // 初始化命令
         StartMockExamCommand = ReactiveCommand.CreateFromTask(StartMockExamAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
+
+        // 初始化用户权限状态
+        UpdateUserPermissions();
+
+        // 监听用户信息更新事件
+        _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
     }
 
     /// <summary>
@@ -57,6 +81,14 @@ public class MockExamListViewModel : ViewModelBase
     {
         try
         {
+            if (!HasFullAccess)
+            {
+                // 用户没有完整权限，显示解锁提示
+                ErrorMessage = "您需要加入学校组织才能开始模拟考试。请前往个人资料页面绑定学校。";
+                System.Diagnostics.Debug.WriteLine("用户尝试开始模拟考试但没有完整权限");
+                return;
+            }
+
             System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 准备开始模拟考试");
 
             // 显示规则说明对话框
@@ -122,5 +154,27 @@ public class MockExamListViewModel : ViewModelBase
         {
             IsLoading = false;
         }
+    }
+
+    /// <summary>
+    /// 更新用户权限状态
+    /// </summary>
+    private void UpdateUserPermissions()
+    {
+        UserInfo? currentUser = _authenticationService.CurrentUser;
+        HasFullAccess = currentUser?.HasFullAccess ?? false;
+
+        // 通知UI更新按钮文本
+        this.RaisePropertyChanged(nameof(StartButtonText));
+
+        System.Diagnostics.Debug.WriteLine($"MockExamListViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}");
+    }
+
+    /// <summary>
+    /// 用户信息更新事件处理
+    /// </summary>
+    private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
+    {
+        UpdateUserPermissions();
     }
 }

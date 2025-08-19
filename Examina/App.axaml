@@ -2,9 +2,9 @@
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Resources>
-        <!-- 统计卡片自定义颜色方案 -->
+        <!--  统计卡片自定义颜色方案  -->
 
-        <!-- 浅色模式颜色 -->
+        <!--  浅色模式颜色  -->
         <Color x:Key="MockExamColorLight">#E3F2FD</Color>
         <Color x:Key="MockExamColorLightHover">#BBDEFB</Color>
         <Color x:Key="MockExamColorLightSelected">#90CAF9</Color>
@@ -21,7 +21,7 @@
         <Color x:Key="OnlineExamColorLightHover">#E1BEE7</Color>
         <Color x:Key="OnlineExamColorLightSelected">#CE93D8</Color>
 
-        <!-- 深色模式颜色 -->
+        <!--  深色模式颜色  -->
         <Color x:Key="MockExamColorDark">#1A237E</Color>
         <Color x:Key="MockExamColorDarkHover">#283593</Color>
         <Color x:Key="MockExamColorDarkSelected">#3949AB</Color>
@@ -38,7 +38,7 @@
         <Color x:Key="OnlineExamColorDarkHover">#6A1B9A</Color>
         <Color x:Key="OnlineExamColorDarkSelected">#8E24AA</Color>
 
-        <!-- 动态画刷资源 -->
+        <!--  动态画刷资源  -->
         <SolidColorBrush x:Key="MockExamBackgroundBrush" Color="{DynamicResource MockExamColorLight}" />
         <SolidColorBrush x:Key="MockExamHoverBrush" Color="{DynamicResource MockExamColorLightHover}" />
         <SolidColorBrush x:Key="MockExamSelectedBrush" Color="{DynamicResource MockExamColorLightSelected}" />
@@ -55,7 +55,7 @@
         <SolidColorBrush x:Key="OnlineExamHoverBrush" Color="{DynamicResource OnlineExamColorLightHover}" />
         <SolidColorBrush x:Key="OnlineExamSelectedBrush" Color="{DynamicResource OnlineExamColorLightSelected}" />
 
-        <!-- 文字颜色资源 -->
+        <!--  文字颜色资源  -->
         <Color x:Key="MockExamTextColor">#1565C0</Color>
         <Color x:Key="MockExamTextColorPrimary">#0D47A1</Color>
         <Color x:Key="MockExamTextColorSecondary">#1976D2</Color>
@@ -81,7 +81,7 @@
             <Setter Property="FontFamily" Value="Microsoft YaHei" />
         </Style>
 
-        <!-- 深色主题颜色覆盖 -->
+        <!--  深色主题颜色覆盖  -->
         <Style Selector=":is(Application)[RequestedThemeVariant=Dark]">
             <Style.Resources>
                 <Color x:Key="MockExamColorLight">#1A237E</Color>
@@ -100,7 +100,7 @@
                 <Color x:Key="OnlineExamColorLightHover">#6A1B9A</Color>
                 <Color x:Key="OnlineExamColorLightSelected">#8E24AA</Color>
 
-                <!-- 深色模式下的文字颜色 -->
+                <!--  深色模式下的文字颜色  -->
                 <Color x:Key="MockExamTextColor">#90CAF9</Color>
                 <Color x:Key="MockExamTextColorPrimary">#BBDEFB</Color>
                 <Color x:Key="MockExamTextColorSecondary">#64B5F6</Color>
