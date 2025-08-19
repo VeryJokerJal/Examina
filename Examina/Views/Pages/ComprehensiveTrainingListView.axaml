@@ -103,11 +103,12 @@
                 </ItemsControl>
 
                 <!--  空状态  -->
-                <Border Padding="40" HorizontalAlignment="Center" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5" IsVisible="{Binding !IsLoading}">
+                <Border Padding="40" HorizontalAlignment="Center" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5">
                     <Border.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
                             <Binding Path="!IsLoading" />
                             <Binding Converter="{x:Static StringConverters.IsNullOrEmpty}" Path="ErrorMessage" />
+                            <Binding Path="Trainings.Count" Converter="{x:Static ObjectConverters.Equal}" ConverterParameter="0" />
                         </MultiBinding>
                     </Border.IsVisible>
                     <StackPanel HorizontalAlignment="Center" Spacing="10">

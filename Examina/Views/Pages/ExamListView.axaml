@@ -103,16 +103,17 @@
                 </ItemsControl>
 
                 <!--  空状态  -->
-                <Border Padding="40" HorizontalAlignment="Center" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5" IsVisible="{Binding !IsLoading}">
+                <Border Padding="40" HorizontalAlignment="Center" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5">
                     <Border.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
                             <Binding Path="!IsLoading" />
                             <Binding Converter="{x:Static StringConverters.IsNullOrEmpty}" Path="ErrorMessage" />
+                            <Binding Path="Exams.Count" Converter="{x:Static ObjectConverters.Equal}" ConverterParameter="0" />
                         </MultiBinding>
                     </Border.IsVisible>
                     <StackPanel HorizontalAlignment="Center" Spacing="10">
                         <TextBlock HorizontalAlignment="Center" FontSize="48" Opacity="0.5" Text="📝" />
-                        <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="暂无可用的考试" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="暂无可用的上机统考" />
                         <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="请联系老师安排考试或稍后再试" />
                     </StackPanel>
                 </Border>
