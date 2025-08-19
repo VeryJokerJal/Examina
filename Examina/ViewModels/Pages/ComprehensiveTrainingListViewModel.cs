@@ -234,7 +234,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             else
             {
                 // 用户没有完整权限，显示解锁提示
-                ErrorMessage = "您需要加入学校组织才能开始训练。请前往个人资料页面绑定学校。";
+                ErrorMessage = "您需要解锁权限才能开始训练。请加入学校组织或联系管理员进行解锁。";
                 System.Diagnostics.Debug.WriteLine("用户尝试开始训练但没有完整权限");
             }
         }

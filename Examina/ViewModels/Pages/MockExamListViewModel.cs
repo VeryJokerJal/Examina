@@ -84,7 +84,7 @@ public class MockExamListViewModel : ViewModelBase
             if (!HasFullAccess)
             {
                 // 用户没有完整权限，显示解锁提示
-                ErrorMessage = "您需要加入学校组织才能开始模拟考试。请前往个人资料页面绑定学校。";
+                ErrorMessage = "您需要解锁权限才能开始模拟考试。请加入学校组织或联系管理员进行解锁。";
                 System.Diagnostics.Debug.WriteLine("用户尝试开始模拟考试但没有完整权限");
                 return;
             }

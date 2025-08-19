@@ -98,9 +98,26 @@
                     Padding="20,10"
                     FontFamily="Microsoft YaHei"/>
           </StackPanel>
+
+          <!-- 错误消息显示 -->
+          <Border Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                  CornerRadius="6"
+                  Padding="15,10"
+                  Margin="0,10,0,0"
+                  IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding ErrorMessage}"
+                         FontSize="14"
+                         FontFamily="Microsoft YaHei"
+                         Foreground="White"
+                         TextWrapping="Wrap"
+                         VerticalAlignment="Center"/>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </Border>
-      
+
       <!-- 考试说明 -->
       <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
               CornerRadius="8"

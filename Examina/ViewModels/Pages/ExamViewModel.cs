@@ -68,6 +68,12 @@ public class ExamViewModel : ViewModelBase
     /// </summary>
     public string StartExamButtonText => HasFullAccess ? "开始考试" : "解锁";
 
+    /// <summary>
+    /// 错误消息
+    /// </summary>
+    [Reactive]
+    public string? ErrorMessage { get; set; }
+
     #endregion
 
     #region 命令
@@ -133,8 +139,8 @@ public class ExamViewModel : ViewModelBase
         if (!HasFullAccess)
         {
             // 用户没有完整权限，显示解锁提示
+            ErrorMessage = "您需要解锁权限才能开始考试。请加入学校组织或联系管理员进行解锁。";
             System.Diagnostics.Debug.WriteLine("用户尝试开始考试但没有完整权限");
-            // TODO: 显示权限提示对话框或导航到绑定页面
             return;
         }
 
