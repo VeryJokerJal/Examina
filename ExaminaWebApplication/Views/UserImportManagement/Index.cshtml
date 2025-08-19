@@ -1,0 +1,176 @@
+@{
+    ViewData["Title"] = "用户导入管理";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="bi bi-people-fill me-2"></i>用户导入管理
+                </h1>
+                <p class="page-subtitle">批量导入用户数据，支持Excel文件格式</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 非组织用户导入 -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person-plus me-2"></i>非组织用户导入
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        导入不属于任何组织的学生用户。这些用户将被添加到非组织学生列表中，可以独立管理。
+                    </p>
+                    <div class="mb-3">
+                        <h6>功能特点：</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success me-2"></i>支持Excel文件导入</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>自动验证数据格式</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>重复数据检查</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>详细导入报告</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Excel格式要求：</h6>
+                        <ul class="list-unstyled text-muted">
+                            <li><i class="bi bi-arrow-right me-2"></i>第一列：姓名（必填）</li>
+                            <li><i class="bi bi-arrow-right me-2"></i>第二列：手机号码（必填）</li>
+                            <li><i class="bi bi-arrow-right me-2"></i>支持.xlsx和.xls格式</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("ImportNonOrganizationUsers")" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>开始导入
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 组织用户导入 -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-building me-2"></i>组织用户导入
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        导入属于特定组织的用户。这些用户将被创建为预配置用户，等待用户注册时自动关联。
+                    </p>
+                    <div class="mb-3">
+                        <h6>功能特点：</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success me-2"></i>关联到指定组织</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>预配置用户信息</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>自动用户名生成</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>注册时自动匹配</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Excel格式要求：</h6>
+                        <ul class="list-unstyled text-muted">
+                            <li><i class="bi bi-arrow-right me-2"></i>第一列：姓名（必填）</li>
+                            <li><i class="bi bi-arrow-right me-2"></i>第二列：手机号码（必填）</li>
+                            <li><i class="bi bi-arrow-right me-2"></i>支持.xlsx和.xls格式</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("ImportOrganizationUsers")" class="btn btn-success">
+                        <i class="bi bi-upload me-2"></i>开始导入
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用说明 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>使用说明
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Excel文件准备：</h6>
+                            <ol>
+                                <li>创建Excel文件（.xlsx或.xls格式）</li>
+                                <li>第一行可以是标题行（将被忽略）</li>
+                                <li>第一列填写用户真实姓名</li>
+                                <li>第二列填写用户手机号码</li>
+                                <li>确保手机号码格式正确（11位数字，以1开头）</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>注意事项：</h6>
+                            <ul>
+                                <li>文件大小不能超过10MB</li>
+                                <li>手机号码不能重复</li>
+                                <li>姓名和手机号码都是必填项</li>
+                                <li>导入前会进行数据验证</li>
+                                <li>导入过程中会显示详细的结果报告</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: box-shadow 0.15s ease-in-out;
+    }
+
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        border-bottom: none;
+        font-weight: 600;
+    }
+
+    .list-unstyled li {
+        margin-bottom: 0.25rem;
+    }
+
+    .btn {
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+    }
+</style>

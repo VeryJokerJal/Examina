@@ -147,6 +147,9 @@
                                         <li><a class="dropdown-item glass-dropdown-item" asp-controller="UserManagement" asp-action="Index">
                                             <i class="bi bi-people-fill me-2"></i>用户管理
                                         </a></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="UserImportManagement" asp-action="Index">
+                                            <i class="bi bi-cloud-upload me-2"></i>用户导入管理
+                                        </a></li>
                                         <li><hr class="dropdown-divider"></li>
                                     }
                                     @if (User.IsInRole("Teacher"))

@@ -121,6 +121,10 @@ builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentExamSe
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentComprehensiveTrainingService, ExaminaWebApplication.Services.Student.StudentComprehensiveTrainingService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentMockExamService, ExaminaWebApplication.Services.Student.StudentMockExamService>();
 
+// 注册用户导入相关服务
+builder.Services.AddScoped<ExcelImportService>();
+builder.Services.AddScoped<UserImportService>();
+
 // 添加后台服务
 builder.Services.AddHostedService<SessionCleanupService>();
 
