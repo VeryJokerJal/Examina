@@ -562,13 +562,12 @@ public class PowerPointKnowledgeService
         {
             KnowledgeType = PowerPointKnowledgeType.SetAnimationOrder,
             Name = "动画顺序",
-            Description = "设置动画播放的顺序",
+            Description = "设置多个元素的动画播放顺序",
             Category = "文字与字体设置",
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "ElementOrder", DisplayName = "元素顺序", Description = "第几个元素", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "AnimationOrder", DisplayName = "动画顺序", Description = "动画播放顺序，序号：1、2", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 2 }
+                new() { Name = "AnimationOrderSettings", DisplayName = "动画顺序设置", Description = "多个元素的动画顺序配置，格式：元素1:顺序1,元素2:顺序2，例如：1:2,2:1,3:3", Type = ParameterType.Text, IsRequired = true, Order = 2 }
             ]
         };
     }
