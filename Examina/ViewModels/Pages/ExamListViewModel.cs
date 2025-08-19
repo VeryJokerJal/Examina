@@ -108,7 +108,7 @@ public class ExamListViewModel : ViewModelBase
         StartExamCommand = ReactiveCommand.CreateFromTask<StudentExamDto>(StartExamAsync);
 
         // 初始化用户权限状态
-        UpdateUserPermissions();
+        _ = Task.Run(UpdateUserPermissionsAsync);
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
@@ -119,7 +119,7 @@ public class ExamListViewModel : ViewModelBase
 
     private void OnUserInfoUpdated(object? sender, UserInfo? e)
     {
-        UpdateUserPermissions();
+        _ = Task.Run(UpdateUserPermissionsAsync);
     }
 
     /// <summary>
@@ -257,14 +257,42 @@ public class ExamListViewModel : ViewModelBase
     /// <summary>
     /// 更新用户权限状态
     /// </summary>
-    private void UpdateUserPermissions()
+    private async Task UpdateUserPermissionsAsync()
     {
-        UserInfo? currentUser = _authenticationService.CurrentUser;
-        HasFullAccess = currentUser?.HasFullAccess ?? false;
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("ExamListViewModel: 开始更新用户权限状态");
 
-        // 通知UI更新按钮文本
-        this.RaisePropertyChanged(nameof(StartButtonText));
+            // 主动刷新用户信息以获取最新状态
+            bool refreshSuccess = await _authenticationService.RefreshUserInfoAsync();
 
-        System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}");
+            if (refreshSuccess)
+            {
+                // 刷新成功，获取最新的用户信息
+                UserInfo? currentUser = _authenticationService.CurrentUser;
+                HasFullAccess = currentUser?.HasFullAccess ?? false;
+
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 用户信息刷新成功 - HasFullAccess: {HasFullAccess}");
+            }
+            else
+            {
+                // 刷新失败，使用当前缓存的用户信息
+                UserInfo? currentUser = _authenticationService.CurrentUser;
+                HasFullAccess = currentUser?.HasFullAccess ?? false;
+
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 用户信息刷新失败，使用缓存信息 - HasFullAccess: {HasFullAccess}");
+            }
+
+            // 通知UI更新按钮文本
+            this.RaisePropertyChanged(nameof(StartButtonText));
+        }
+        catch (Exception ex)
+        {
+            // 异常处理：使用默认值
+            HasFullAccess = false;
+            this.RaisePropertyChanged(nameof(StartButtonText));
+
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 更新用户权限状态异常: {ex.Message}");
+        }
     }
 }
