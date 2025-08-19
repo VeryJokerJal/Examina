@@ -1,5 +1,9 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ExamLab.ViewModels;
+using ExamLab.Models;
+using System;
+using System.Reactive.Linq;
 
 namespace ExamLab.Views;
 
@@ -28,5 +32,27 @@ public sealed partial class SpecializedExamPage : UserControl
     public SpecializedExamPage(SpecializedExamViewModel viewModel) : this()
     {
         DataContext = viewModel;
+    }
+
+    /// <summary>
+    /// 克隆专项试卷点击事件
+    /// </summary>
+    private void CloneSpecializedExam_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem menuItem && menuItem.Tag is SpecializedExam exam && ViewModel != null)
+        {
+            _ = ViewModel.CloneSpecializedExamCommand.Execute(exam).Subscribe(_ => { });
+        }
+    }
+
+    /// <summary>
+    /// 删除专项试卷点击事件
+    /// </summary>
+    private void DeleteSpecializedExam_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem menuItem && menuItem.Tag is SpecializedExam exam && ViewModel != null)
+        {
+            _ = ViewModel.DeleteSpecializedExamCommand.Execute(exam).Subscribe(_ => { });
+        }
     }
 }

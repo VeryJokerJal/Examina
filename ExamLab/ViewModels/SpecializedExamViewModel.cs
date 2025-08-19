@@ -634,6 +634,20 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     private async Task DeleteSpecializedExamAsync(SpecializedExam exam)
     {
+        if (exam == null)
+        {
+            return;
+        }
+
+        bool confirmed = await NotificationService.ShowConfirmationAsync(
+            "确认删除",
+            $"确定要删除专项试卷\"{exam.Name}\"吗？此操作不可撤销。");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
         try
         {
             _ = SpecializedExams.Remove(exam);
@@ -643,6 +657,8 @@ public class SpecializedExamViewModel : ViewModelBase
             {
                 SelectedSpecializedExam = SpecializedExams.FirstOrDefault();
             }
+
+            await NotificationService.ShowSuccessAsync("删除成功", $"专项试卷\"{exam.Name}\"已删除");
         }
         catch (Exception ex)
         {
@@ -655,13 +671,53 @@ public class SpecializedExamViewModel : ViewModelBase
     /// </summary>
     private async Task CloneSpecializedExamAsync(SpecializedExam exam)
     {
+        if (exam == null)
+        {
+            return;
+        }
+
+        string? newName = await NotificationService.ShowInputDialogAsync(
+            "克隆专项试卷",
+            "请输入新试卷名称",
+            $"{exam.Name} - 副本");
+
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+
         try
         {
             // 创建克隆
             SpecializedExam clonedExam = exam.Clone();
+            clonedExam.Name = newName;
+            clonedExam.Id = IdGeneratorService.GenerateExamId();
+            clonedExam.CreatedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            clonedExam.LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // 为克隆的模块生成新的ID
+            if (clonedExam.Module != null)
+            {
+                clonedExam.Module.Id = IdGeneratorService.GenerateModuleId();
+
+                // 为克隆的题目生成新的ID
+                foreach (Question question in clonedExam.Module.Questions)
+                {
+                    question.Id = IdGeneratorService.GenerateQuestionId();
+
+                    // 为克隆的操作点生成新的ID
+                    foreach (OperationPoint operationPoint in question.OperationPoints)
+                    {
+                        operationPoint.Id = IdGeneratorService.GenerateOperationId();
+                    }
+                }
+            }
+
             SpecializedExams.Add(clonedExam);
             SelectedSpecializedExam = clonedExam;
             SpecializedExamCount = SpecializedExams.Count;
+
+            await NotificationService.ShowSuccessAsync("克隆成功", $"专项试卷\"{newName}\"已创建");
         }
         catch (Exception ex)
         {

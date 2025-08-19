@@ -27,12 +27,12 @@
             <!--  导航栏  -->
             <NavigationView x:Name="MainNavigationView" Grid.Row="0" Background="{ThemeResource CardBackgroundFillColorDefault}" IsBackButtonVisible="Collapsed" IsHitTestVisible="True" IsSettingsVisible="False" PaneDisplayMode="Top" SelectionChanged="MainNavigationView_SelectionChanged">
                 <NavigationView.MenuItems>
-                    <NavigationViewItem Content="考试试卷" Tag="ExamPage">
+                    <NavigationViewItem Content="考试试卷" IsHitTestVisible="True" Tag="ExamPage">
                         <NavigationViewItem.Icon>
                             <SymbolIcon Symbol="Document" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="专项试卷" Tag="SpecializedPage">
+                    <NavigationViewItem Content="专项试卷" IsHitTestVisible="True" Tag="SpecializedPage">
                         <NavigationViewItem.Icon>
                             <SymbolIcon Symbol="Paste" />
                         </NavigationViewItem.Icon>
@@ -64,16 +64,16 @@
 
                     <!--  考试试卷特定工具栏  -->
                     <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding IsExamTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Button Command="{Binding CreateExamCommand}" Content="新建考试试卷" IsHitTestVisible="False" />
-                        <Button Command="{Binding ImportExamCommand}" Content="导入" IsHitTestVisible="False" />
-                        <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" IsHitTestVisible="False" />
+                        <Button Command="{Binding CreateExamCommand}" Content="新建考试试卷" IsHitTestVisible="True" />
+                        <Button Command="{Binding ImportExamCommand}" Content="导入" IsHitTestVisible="True" />
+                        <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" IsHitTestVisible="True" />
                     </StackPanel>
 
                     <!--  专项试卷特定工具栏  -->
                     <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding IsSpecializedTabSelected, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Button Command="{Binding SpecializedExamViewModel.CreateSpecializedExamCommand}" Content="新建专项试卷" IsHitTestVisible="False" />
-                        <Button Command="{Binding SpecializedExamViewModel.ImportExamCommand}" Content="导入" IsHitTestVisible="False" />
-                        <Button Command="{Binding SpecializedExamViewModel.ExportSpecializedExamCommand}" CommandParameter="{Binding SpecializedExamViewModel.SelectedSpecializedExam}" Content="导出" IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}" IsHitTestVisible="False" />
+                        <Button Command="{Binding SpecializedExamViewModel.CreateSpecializedExamCommand}" Content="新建专项试卷" IsHitTestVisible="True" />
+                        <Button Command="{Binding SpecializedExamViewModel.ImportExamCommand}" Content="导入" IsHitTestVisible="True" />
+                        <Button Command="{Binding SpecializedExamViewModel.ExportSpecializedExamCommand}" CommandParameter="{Binding SpecializedExamViewModel.SelectedSpecializedExam}" Content="导出" IsEnabled="{Binding SpecializedExamViewModel.SelectedSpecializedExam, Converter={StaticResource NullToBooleanConverter}}" IsHitTestVisible="True" />
                     </StackPanel>
                 </StackPanel>
             </Border>

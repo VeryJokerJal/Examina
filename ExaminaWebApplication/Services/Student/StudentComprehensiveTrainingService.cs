@@ -190,7 +190,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 .CountAsync(t => t.IsEnabled);
 
             // 获取学生的训练完成记录
-            var completionRecords = await _context.ComprehensiveTrainingCompletions
+            List<ComprehensiveTrainingCompletion> completionRecords = await _context.ComprehensiveTrainingCompletions
                 .Where(c => c.StudentUserId == studentUserId && c.IsActive)
                 .ToListAsync();
 
@@ -202,7 +202,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             double completionPercentage = totalCount > 0 ? (double)completedCount / totalCount * 100 : 0;
 
             // 获取最近完成的训练信息
-            var lastCompletedRecord = completionRecords
+            ComprehensiveTrainingCompletion? lastCompletedRecord = completionRecords
                 .Where(c => c.Status == ComprehensiveTrainingCompletionStatus.Completed && c.CompletedAt.HasValue)
                 .OrderByDescending(c => c.CompletedAt)
                 .FirstOrDefault();
@@ -213,7 +213,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             if (lastCompletedRecord != null)
             {
                 // 获取训练名称
-                var training = await _context.ImportedComprehensiveTrainings
+                ImportedComprehensiveTrainingEntity? training = await _context.ImportedComprehensiveTrainings
                     .FirstOrDefaultAsync(t => t.Id == lastCompletedRecord.TrainingId);
                 lastCompletedTrainingName = training?.Name;
                 lastCompletedAt = lastCompletedRecord.CompletedAt;
@@ -369,7 +369,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             }
 
             // 验证训练存在且启用
-            var training = await _context.ImportedComprehensiveTrainings
+            ImportedComprehensiveTrainingEntity? training = await _context.ImportedComprehensiveTrainings
                 .FirstOrDefaultAsync(t => t.Id == trainingId && t.IsEnabled);
 
             if (training == null)
@@ -379,7 +379,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             }
 
             // 查找现有的完成记录
-            var existingRecord = await _context.ComprehensiveTrainingCompletions
+            ComprehensiveTrainingCompletion? existingRecord = await _context.ComprehensiveTrainingCompletions
                 .FirstOrDefaultAsync(c => c.StudentUserId == studentUserId && c.TrainingId == trainingId && c.IsActive);
 
             DateTime now = DateTime.UtcNow;
@@ -398,7 +398,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 // 计算完成百分比
                 if (score.HasValue && maxScore.HasValue && maxScore.Value > 0)
                 {
-                    existingRecord.CompletionPercentage = Math.Round((score.Value / maxScore.Value) * 100, 2);
+                    existingRecord.CompletionPercentage = Math.Round(score.Value / maxScore.Value * 100, 2);
                 }
 
                 _logger.LogInformation("更新综合训练完成记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
@@ -406,7 +406,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             else
             {
                 // 创建新的完成记录
-                var newRecord = new ComprehensiveTrainingCompletion
+                ComprehensiveTrainingCompletion newRecord = new()
                 {
                     StudentUserId = studentUserId,
                     TrainingId = trainingId,
@@ -425,14 +425,14 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 // 计算完成百分比
                 if (score.HasValue && maxScore.HasValue && maxScore.Value > 0)
                 {
-                    newRecord.CompletionPercentage = Math.Round((score.Value / maxScore.Value) * 100, 2);
+                    newRecord.CompletionPercentage = Math.Round(score.Value / maxScore.Value * 100, 2);
                 }
 
-                _context.ComprehensiveTrainingCompletions.Add(newRecord);
+                _ = _context.ComprehensiveTrainingCompletions.Add(newRecord);
                 _logger.LogInformation("创建新的综合训练完成记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
             }
 
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -460,7 +460,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             }
 
             // 验证训练存在且启用
-            var training = await _context.ImportedComprehensiveTrainings
+            ImportedComprehensiveTrainingEntity? training = await _context.ImportedComprehensiveTrainings
                 .FirstOrDefaultAsync(t => t.Id == trainingId && t.IsEnabled);
 
             if (training == null)
@@ -470,7 +470,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             }
 
             // 查找现有的完成记录
-            var existingRecord = await _context.ComprehensiveTrainingCompletions
+            ComprehensiveTrainingCompletion? existingRecord = await _context.ComprehensiveTrainingCompletions
                 .FirstOrDefaultAsync(c => c.StudentUserId == studentUserId && c.TrainingId == trainingId && c.IsActive);
 
             DateTime now = DateTime.UtcNow;
@@ -486,7 +486,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
 
                 // 更新为进行中状态
                 existingRecord.Status = ComprehensiveTrainingCompletionStatus.InProgress;
-                existingRecord.StartedAt = existingRecord.StartedAt ?? now; // 如果没有开始时间则设置
+                existingRecord.StartedAt ??= now; // 如果没有开始时间则设置
                 existingRecord.UpdatedAt = now;
 
                 _logger.LogInformation("更新综合训练为进行中状态，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
@@ -494,7 +494,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             else
             {
                 // 创建新的开始记录
-                var newRecord = new ComprehensiveTrainingCompletion
+                ComprehensiveTrainingCompletion newRecord = new()
                 {
                     StudentUserId = studentUserId,
                     TrainingId = trainingId,
@@ -505,11 +505,11 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                     IsActive = true
                 };
 
-                _context.ComprehensiveTrainingCompletions.Add(newRecord);
+                _ = _context.ComprehensiveTrainingCompletions.Add(newRecord);
                 _logger.LogInformation("创建新的综合训练开始记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
             }
 
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

@@ -41,6 +41,20 @@
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Border Padding="12" CornerRadius="8">
+                                <Border.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Click="CloneSpecializedExam_Click" Tag="{Binding}" Text="克隆试卷">
+                                            <MenuFlyoutItem.Icon>
+                                                <SymbolIcon Symbol="Copy" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Click="DeleteSpecializedExam_Click" Tag="{Binding}" Text="删除试卷">
+                                            <MenuFlyoutItem.Icon>
+                                                <SymbolIcon Symbol="Delete" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Border.ContextFlyout>
                                 <!--  试卷内容  -->
                                 <StackPanel>
                                     <!--  试卷名称  -->

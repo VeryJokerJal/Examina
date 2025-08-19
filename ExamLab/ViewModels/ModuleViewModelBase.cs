@@ -1,8 +1,11 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ExamLab.Models;
+using ExamLab.Services;
+using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Threading.Tasks;
 
 namespace ExamLab.ViewModels;
 
@@ -58,10 +61,10 @@ public abstract class ModuleViewModelBase : ViewModelBase
 
         // 初始化命令
         AddQuestionCommand = ReactiveCommand.Create(AddQuestion);
-        DeleteQuestionCommand = ReactiveCommand.Create<Question>(DeleteQuestion);
+        DeleteQuestionCommand = ReactiveCommand.CreateFromTask<Question>(DeleteQuestionAsync);
         CopyQuestionCommand = ReactiveCommand.Create<Question>(CopyQuestion);
         AddOperationPointCommand = ReactiveCommand.Create(AddOperationPoint);
-        DeleteOperationPointCommand = ReactiveCommand.Create<OperationPoint>(DeleteOperationPoint);
+        DeleteOperationPointCommand = ReactiveCommand.CreateFromTask<OperationPoint>(DeleteOperationPointAsync);
     }
 
     protected virtual void AddQuestion()
@@ -83,6 +86,39 @@ public abstract class ModuleViewModelBase : ViewModelBase
         if (SelectedQuestion == question)
         {
             SelectedQuestion = Module.Questions.Count > 0 ? Module.Questions[0] : null;
+        }
+    }
+
+    /// <summary>
+    /// 异步删除题目（带确认对话框）
+    /// </summary>
+    protected virtual async Task DeleteQuestionAsync(Question question)
+    {
+        if (question == null)
+        {
+            return;
+        }
+
+        bool confirmed = await NotificationService.ShowConfirmationAsync(
+            "确认删除",
+            $"确定要删除题目\"{question.Title}\"吗？此操作不可撤销。");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        Module.Questions.Remove(question);
+
+        if (SelectedQuestion == question)
+        {
+            SelectedQuestion = Module.Questions.Count > 0 ? Module.Questions[0] : null;
+        }
+
+        // 重新排序
+        for (int i = 0; i < Module.Questions.Count; i++)
+        {
+            Module.Questions[i].Order = i + 1;
         }
     }
 
@@ -177,6 +213,39 @@ public abstract class ModuleViewModelBase : ViewModelBase
         if (SelectedOperationPoint == operationPoint)
         {
             SelectedOperationPoint = SelectedQuestion?.OperationPoints.Count > 0 ? SelectedQuestion.OperationPoints[0] : null;
+        }
+    }
+
+    /// <summary>
+    /// 异步删除操作点（带确认对话框）
+    /// </summary>
+    protected virtual async Task DeleteOperationPointAsync(OperationPoint operationPoint)
+    {
+        if (operationPoint == null || SelectedQuestion == null)
+        {
+            return;
+        }
+
+        bool confirmed = await NotificationService.ShowConfirmationAsync(
+            "确认删除",
+            $"确定要删除操作点\"{operationPoint.Name}\"吗？此操作不可撤销。");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        SelectedQuestion.OperationPoints.Remove(operationPoint);
+
+        if (SelectedOperationPoint == operationPoint)
+        {
+            SelectedOperationPoint = SelectedQuestion.OperationPoints.Count > 0 ? SelectedQuestion.OperationPoints[0] : null;
+        }
+
+        // 重新排序
+        for (int i = 0; i < SelectedQuestion.OperationPoints.Count; i++)
+        {
+            SelectedQuestion.OperationPoints[i].Order = i + 1;
         }
     }
 }
