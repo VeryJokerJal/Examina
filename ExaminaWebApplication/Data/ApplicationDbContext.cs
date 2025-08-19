@@ -33,6 +33,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<ImportedComprehensiveTrainingOperationPoint> ImportedComprehensiveTrainingOperationPoints { get; set; }
     public DbSet<ImportedComprehensiveTrainingParameter> ImportedComprehensiveTrainingParameters { get; set; }
 
+    // 综合训练完成记录
+    public DbSet<ComprehensiveTrainingCompletion> ComprehensiveTrainingCompletions { get; set; }
+
     // 组织相关实体
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<InvitationCode> InvitationCodes { get; set; }

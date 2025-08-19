@@ -1,8 +1,9 @@
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Models.Api.Student;
+using ExaminaWebApplication.Models.Dto;
 using ExaminaWebApplication.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -39,10 +40,17 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
         try
         {
             int studentUserId = GetCurrentUserId();
-            
+
             // 验证分页参数
-            if (pageNumber < 1) pageNumber = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 50;
+            if (pageNumber < 1)
+            {
+                pageNumber = 1;
+            }
+
+            if (pageSize is < 1 or > 100)
+            {
+                pageSize = 50;
+            }
 
             List<StudentComprehensiveTrainingDto> trainings = await _studentComprehensiveTrainingService.GetAvailableTrainingsAsync(
                 studentUserId, pageNumber, pageSize);
@@ -169,6 +177,79 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
     }
 
     /// <summary>
+    /// 标记综合训练为开始状态
+    /// </summary>
+    /// <param name="id">训练ID</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{id}/start")]
+    public async Task<ActionResult> StartTraining(int id)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentComprehensiveTrainingService.MarkTrainingAsStartedAsync(studentUserId, id);
+
+            if (success)
+            {
+                _logger.LogInformation("学生开始综合训练成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
+                    studentUserId, id);
+
+                return Ok(new { message = "训练开始标记成功" });
+            }
+            else
+            {
+                return BadRequest(new { message = "训练开始标记失败，请检查训练是否存在或已完成" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "标记综合训练开始失败，训练ID: {TrainingId}", id);
+            return StatusCode(500, new { message = "标记训练开始失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 标记综合训练为已完成
+    /// </summary>
+    /// <param name="id">训练ID</param>
+    /// <param name="request">完成信息</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{id}/complete")]
+    public async Task<ActionResult> CompleteTraining(int id, [FromBody] CompleteTrainingRequest request)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentComprehensiveTrainingService.MarkTrainingAsCompletedAsync(
+                studentUserId,
+                id,
+                request.Score,
+                request.MaxScore,
+                request.DurationSeconds,
+                request.Notes);
+
+            if (success)
+            {
+                _logger.LogInformation("学生完成综合训练成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 得分: {Score}",
+                    studentUserId, id, request.Score);
+
+                return Ok(new { message = "训练完成标记成功" });
+            }
+            else
+            {
+                return BadRequest(new { message = "训练完成标记失败，请检查训练是否存在" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "标记综合训练完成失败，训练ID: {TrainingId}", id);
+            return StatusCode(500, new { message = "标记训练完成失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     /// <returns>用户ID</returns>
@@ -176,10 +257,34 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
     private int GetCurrentUserId()
     {
         string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-        {
-            throw new UnauthorizedAccessException("无法获取当前用户信息");
-        }
-        return userId;
+        return string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId)
+            ? throw new UnauthorizedAccessException("无法获取当前用户信息")
+            : userId;
     }
+}
+
+/// <summary>
+/// 完成训练请求DTO
+/// </summary>
+public class CompleteTrainingRequest
+{
+    /// <summary>
+    /// 得分（可选）
+    /// </summary>
+    public decimal? Score { get; set; }
+
+    /// <summary>
+    /// 最大得分（可选）
+    /// </summary>
+    public decimal? MaxScore { get; set; }
+
+    /// <summary>
+    /// 用时（秒，可选）
+    /// </summary>
+    public int? DurationSeconds { get; set; }
+
+    /// <summary>
+    /// 备注（可选）
+    /// </summary>
+    public string? Notes { get; set; }
 }
