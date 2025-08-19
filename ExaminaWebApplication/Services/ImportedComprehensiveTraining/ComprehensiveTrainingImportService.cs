@@ -253,6 +253,7 @@ public class ComprehensiveTrainingImportService
             .Include(e => e.Importer)
             .Include(e => e.Subjects)
             .Include(e => e.Modules)
+            .AsSplitQuery() // 使用分割查询提升性能
             .OrderByDescending(e => e.ImportedAt);
 
         if (importedBy.HasValue)
@@ -278,6 +279,7 @@ public class ComprehensiveTrainingImportService
                 .ThenInclude(m => m.Questions)
                     .ThenInclude(q => q.OperationPoints)
                         .ThenInclude(op => op.Parameters)
+            .AsSplitQuery() // 使用分割查询提升性能
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 

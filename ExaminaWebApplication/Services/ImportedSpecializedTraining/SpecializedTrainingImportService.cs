@@ -116,39 +116,44 @@ public class SpecializedTrainingImportService
             ImportedSpecializedTrainingEntity importedSpecializedTraining = ImportedSpecializedTrainingEntity.FromSpecializedTrainingExportDto(
                 exportDto, importedBy, fileName, fileSize);
 
-            // 保存到数据库
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // 保存到数据库 - 使用执行策略处理 MySQL 重试机制
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                _context.ImportedSpecializedTrainings.Add(importedSpecializedTraining);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    _context.ImportedSpecializedTrainings.Add(importedSpecializedTraining);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
 
-                // 统计信息
-                result.Statistics.ModuleCount = importedSpecializedTraining.Modules.Count;
-                result.Statistics.QuestionCount = importedSpecializedTraining.Questions.Count;
-                result.Statistics.OperationPointCount = importedSpecializedTraining.Questions.Sum(q => q.OperationPoints.Count);
-                result.Statistics.ParameterCount = importedSpecializedTraining.Questions
-                    .SelectMany(q => q.OperationPoints)
-                    .Sum(op => op.Parameters.Count);
-                result.Statistics.FileSize = fileSize;
+                    // 统计信息
+                    result.Statistics.ModuleCount = importedSpecializedTraining.Modules.Count;
+                    result.Statistics.QuestionCount = importedSpecializedTraining.Questions.Count;
+                    result.Statistics.OperationPointCount = importedSpecializedTraining.Questions.Sum(q => q.OperationPoints.Count);
+                    result.Statistics.ParameterCount = importedSpecializedTraining.Questions
+                        .SelectMany(q => q.OperationPoints)
+                        .Sum(op => op.Parameters.Count);
+                    result.Statistics.FileSize = fileSize;
 
-                result.IsSuccess = true;
-                result.ImportedSpecializedTrainingId = importedSpecializedTraining.Id;
-                result.ImportedSpecializedTrainingName = importedSpecializedTraining.Name;
-                result.EndTime = DateTime.UtcNow;
+                    result.IsSuccess = true;
+                    result.ImportedSpecializedTrainingId = importedSpecializedTraining.Id;
+                    result.ImportedSpecializedTrainingName = importedSpecializedTraining.Name;
+                    result.EndTime = DateTime.UtcNow;
 
-                _logger.LogInformation("专项训练导入成功：{Name}，ID：{Id}，导入者：{ImportedBy}",
-                    importedSpecializedTraining.Name, importedSpecializedTraining.Id, importedBy);
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                result.IsSuccess = false;
-                result.ErrorMessage = $"数据库保存失败：{ex.Message}";
-                result.EndTime = DateTime.UtcNow;
-                _logger.LogError(ex, "专项训练导入失败，数据库保存错误");
-            }
+                    _logger.LogInformation("专项训练导入成功：{Name}，ID：{Id}，导入者：{ImportedBy}",
+                        importedSpecializedTraining.Name, importedSpecializedTraining.Id, importedBy);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    result.IsSuccess = false;
+                    result.ErrorMessage = $"数据库保存失败：{ex.Message}";
+                    result.EndTime = DateTime.UtcNow;
+                    _logger.LogError(ex, "专项训练导入失败，数据库保存错误");
+                    throw; // 重新抛出异常以便执行策略处理
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -172,6 +177,7 @@ public class SpecializedTrainingImportService
             .Where(st => st.ImportedBy == userId)
             .Include(st => st.Modules)
             .Include(st => st.Questions)
+            .AsSplitQuery() // 使用分割查询提升性能
             .OrderByDescending(st => st.ImportedAt)
             .ToListAsync();
     }
@@ -190,6 +196,7 @@ public class SpecializedTrainingImportService
                 .ThenInclude(m => m.Questions)
                     .ThenInclude(q => q.OperationPoints)
                         .ThenInclude(op => op.Parameters)
+            .AsSplitQuery() // 使用分割查询提升性能
             .FirstOrDefaultAsync();
     }
 

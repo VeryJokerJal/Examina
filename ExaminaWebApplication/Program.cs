@@ -76,7 +76,8 @@ string? connectionString = builder.Configuration.GetConnectionString("MySqlConne
                     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(
+{
+    _ = options.UseMySql(
         connectionString,
         ServerVersion.Parse("8.0.0-mysql"),
         mysqlOptions =>
@@ -86,7 +87,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(5),
                 errorNumbersToAdd: null);
         }
-    ));
+    );
+
+    // 配置查询分割行为以提升多集合导航查询性能
+    // 注意：全局配置可能影响所有查询，建议在具体查询中使用 AsSplitQuery()
+});
 
 // 注册服务
 builder.Services.AddScoped<IJwtService, JwtService>();
