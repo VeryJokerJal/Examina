@@ -69,7 +69,7 @@ public class MockExamListViewModel : ViewModelBase
         StartMockExamCommand = ReactiveCommand.CreateFromTask(StartMockExamAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
 
         // 初始化用户权限状态
-        _ = Task.Run(UpdateUserPermissionsAsync);
+        _ = UpdateUserPermissionsAsync();
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
@@ -217,6 +217,6 @@ public class MockExamListViewModel : ViewModelBase
     /// </summary>
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
-        _ = Task.Run(UpdateUserPermissionsAsync);
+        _ = UpdateUserPermissionsAsync();
     }
 }

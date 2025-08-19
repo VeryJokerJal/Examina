@@ -108,13 +108,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         StartTrainingCommand = ReactiveCommand.CreateFromTask<StudentComprehensiveTrainingDto>(StartTrainingAsync);
 
         // 初始化用户权限状态
-        _ = Task.Run(UpdateUserPermissionsAsync);
+        _ = UpdateUserPermissionsAsync();
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
 
         // 初始加载
-        _ = Task.Run(RefreshAsync);
+        _ = RefreshAsync();
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             try
             {
                 System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 刷新完成，开始更新用户权限状态");
-                _ = Task.Run(UpdateUserPermissionsAsync);
+                _ = UpdateUserPermissionsAsync();
             }
             catch (Exception permissionEx)
             {
@@ -323,6 +323,6 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// </summary>
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
-        _ = Task.Run(UpdateUserPermissionsAsync);
+        _ = UpdateUserPermissionsAsync();
     }
 }
