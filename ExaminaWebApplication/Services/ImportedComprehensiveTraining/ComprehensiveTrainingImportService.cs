@@ -302,4 +302,39 @@ public class ComprehensiveTrainingImportService
 
         return true;
     }
+
+    /// <summary>
+    /// 更新综合训练的试用设置
+    /// </summary>
+    /// <param name="id">综合训练ID</param>
+    /// <param name="enableTrial">是否启用试用</param>
+    /// <param name="userId">操作用户ID</param>
+    /// <returns>更新是否成功</returns>
+    public async Task<bool> UpdateTrialSettingAsync(int id, bool enableTrial, int userId)
+    {
+        try
+        {
+            ImportedComprehensiveTrainingEntity? comprehensiveTraining = await _context.ImportedComprehensiveTrainings
+                .FirstOrDefaultAsync(e => e.Id == id && e.ImportedBy == userId);
+
+            if (comprehensiveTraining == null)
+            {
+                _logger.LogWarning("综合训练不存在或用户无权限，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+                return false;
+            }
+
+            comprehensiveTraining.EnableTrial = enableTrial;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("用户 {UserId} 更新了综合训练 {TrainingName} (ID: {TrainingId}) 的试用设置为: {EnableTrial}",
+                userId, comprehensiveTraining.Name, id, enableTrial);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新综合训练试用设置失败，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+            return false;
+        }
+    }
 }

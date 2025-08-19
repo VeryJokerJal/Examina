@@ -476,7 +476,8 @@ public class StudentMockExamService : IStudentMockExamService
             // 按难度等级过滤
             if (!string.IsNullOrEmpty(rule.DifficultyLevel))
             {
-                query = query.Where(q => q.DifficultyLevel == rule.DifficultyLevel);
+                int difficultyLevelInt = ConvertDifficultyLevelToInt(rule.DifficultyLevel);
+                query = query.Where(q => q.DifficultyLevel == difficultyLevelInt);
             }
 
             // 获取符合条件的题目
@@ -501,7 +502,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Content = question.Content,
                     QuestionType = question.QuestionType,
                     Score = rule.ScorePerQuestion, // 使用规则中指定的分值
-                    DifficultyLevel = question.DifficultyLevel,
+                    DifficultyLevel = ConvertDifficultyLevelToString(question.DifficultyLevel),
                     EstimatedMinutes = question.EstimatedMinutes,
                     SortOrder = question.SortOrder,
                     QuestionConfig = question.QuestionConfig,
@@ -516,17 +517,17 @@ public class StudentMockExamService : IStudentMockExamService
                         Name = op.Name,
                         Description = op.Description,
                         ModuleType = op.ModuleType,
-                        Score = op.Score,
+                        Score = (int)op.Score,
                         Order = op.Order,
                         Parameters = op.Parameters.Select(p => new ExtractedParameterInfo
                         {
                             Id = p.Id,
                             Name = p.Name,
                             Description = p.Description,
-                            ParameterType = p.ParameterType,
-                            DefaultValue = p.DefaultValue,
-                            MinValue = p.MinValue,
-                            MaxValue = p.MaxValue
+                            ParameterType = p.Type,
+                            DefaultValue = p.DefaultValue?.ToString() ?? string.Empty,
+                            MinValue = p.MinValue?.ToString() ?? string.Empty,
+                            MaxValue = p.MaxValue?.ToString() ?? string.Empty
                         }).ToList()
                     }).ToList()
                 };
@@ -635,3 +636,36 @@ public class StudentMockExamService : IStudentMockExamService
             }
         };
     }
+
+    /// <summary>
+    /// 将难度级别字符串转换为整数
+    /// </summary>
+    private static int ConvertDifficultyLevelToInt(string difficultyLevel)
+    {
+        return difficultyLevel?.ToLower() switch
+        {
+            "简单" or "easy" => 1,
+            "中等" or "medium" => 2,
+            "困难" or "hard" => 3,
+            "很难" or "very hard" => 4,
+            "极难" or "extreme" => 5,
+            _ => 1 // 默认为简单
+        };
+    }
+
+    /// <summary>
+    /// 将难度级别整数转换为字符串
+    /// </summary>
+    private static string ConvertDifficultyLevelToString(int difficultyLevel)
+    {
+        return difficultyLevel switch
+        {
+            1 => "简单",
+            2 => "中等",
+            3 => "困难",
+            4 => "很难",
+            5 => "极难",
+            _ => "简单" // 默认为简单
+        };
+    }
+}

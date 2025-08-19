@@ -59,6 +59,7 @@ public class ImportedComprehensiveTraining
             ShowScore = export.ComprehensiveTraining.ShowScore,
             ShowAnswers = export.ComprehensiveTraining.ShowAnswers,
             IsEnabled = export.ComprehensiveTraining.IsEnabled,
+            EnableTrial = true, // 导入时默认启用试用功能
             Tags = export.ComprehensiveTraining.Tags,
             ExtendedConfig = SerializeToJsonOrNull(export.ComprehensiveTraining.ExtendedConfig),
             ImportedBy = importedBy,
@@ -391,6 +392,11 @@ public class ImportedComprehensiveTraining
     /// 是否启用
     /// </summary>
     public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 是否启用试用功能
+    /// </summary>
+    public bool EnableTrial { get; set; } = true;
 
     /// <summary>
     /// 训练标签

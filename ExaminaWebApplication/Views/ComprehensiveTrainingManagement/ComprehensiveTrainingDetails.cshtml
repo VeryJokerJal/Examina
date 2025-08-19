@@ -106,6 +106,28 @@
 								<small class="text-muted">状态</small>
 							</div>
 						</div>
+
+						<!-- 试用设置 -->
+						<div class="row mt-4">
+							<div class="col-12">
+								<div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+									<div>
+										<h6 class="mb-1">
+											<i class="bi bi-play-circle me-2"></i>试用功能
+										</h6>
+										<small class="text-muted">允许学生在正式考试前进行试用</small>
+									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" id="enableTrialSwitch"
+											   @(Model.EnableTrial ? "checked" : "")
+											   onchange="updateTrialSetting(@Model.Id, this.checked)">
+										<label class="form-check-label" for="enableTrialSwitch">
+											<span id="trialStatusText">@(Model.EnableTrial ? "已启用" : "已禁用")</span>
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -310,6 +332,79 @@
 			document.getElementById('comprehensiveTrainingName').textContent = name;
 			document.getElementById('deleteForm').action = '@Url.Action("DeleteComprehensiveTraining")/' + id;
 			new bootstrap.Modal(document.getElementById('deleteModal')).show();
+		}
+
+		function updateTrialSetting(id, enableTrial) {
+			// 显示加载状态
+			const switchElement = document.getElementById('enableTrialSwitch');
+			const statusText = document.getElementById('trialStatusText');
+			const originalText = statusText.textContent;
+
+			switchElement.disabled = true;
+			statusText.textContent = '更新中...';
+
+			// 创建表单数据
+			const formData = new FormData();
+			formData.append('id', id);
+			formData.append('enableTrial', enableTrial);
+			formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+			// 发送AJAX请求
+			fetch('@Url.Action("UpdateTrialSetting")', {
+				method: 'POST',
+				body: formData
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					// 更新成功
+					statusText.textContent = enableTrial ? '已启用' : '已禁用';
+
+					// 显示成功提示
+					showToast('success', data.message);
+				} else {
+					// 更新失败，恢复开关状态
+					switchElement.checked = !enableTrial;
+					statusText.textContent = originalText;
+
+					// 显示错误提示
+					showToast('error', data.message || '更新失败');
+				}
+			})
+			.catch(error => {
+				console.error('更新试用设置失败:', error);
+
+				// 恢复开关状态
+				switchElement.checked = !enableTrial;
+				statusText.textContent = originalText;
+
+				// 显示错误提示
+				showToast('error', '网络错误，请稍后重试');
+			})
+			.finally(() => {
+				// 恢复开关可用状态
+				switchElement.disabled = false;
+			});
+		}
+
+		function showToast(type, message) {
+			// 创建简单的提示框
+			const toast = document.createElement('div');
+			toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+			toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+			toast.innerHTML = `
+				${message}
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			`;
+
+			document.body.appendChild(toast);
+
+			// 3秒后自动移除
+			setTimeout(() => {
+				if (toast.parentNode) {
+					toast.parentNode.removeChild(toast);
+				}
+			}, 3000);
 		}
 	</script>
 }

@@ -199,4 +199,37 @@ public class ComprehensiveTrainingManagementController : Controller
 
         return RedirectToAction(nameof(ComprehensiveTrainingList));
     }
+
+    /// <summary>
+    /// 更新综合训练的试用设置
+    /// </summary>
+    /// <param name="id">综合训练ID</param>
+    /// <param name="enableTrial">是否启用试用</param>
+    /// <returns>更新结果</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateTrialSetting(int id, bool enableTrial)
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            bool success = await _comprehensiveTrainingImportService.UpdateTrialSettingAsync(id, enableTrial, userId);
+
+            if (success)
+            {
+                return Json(new { success = true, message = $"试用设置已{(enableTrial ? "启用" : "禁用")}" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "更新失败，综合训练不存在或您没有权限" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新综合训练试用设置失败: {ComprehensiveTrainingId}", id);
+            return Json(new { success = false, message = "更新失败，请稍后重试" });
+        }
+    }
 }
