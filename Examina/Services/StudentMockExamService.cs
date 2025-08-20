@@ -411,7 +411,7 @@ public class StudentMockExamService : IStudentMockExamService
     private string BuildApiUrl(string endpoint)
     {
         string baseUrl = _configurationService.ApiBaseUrl.TrimEnd('/');
-        string studentEndpoint = _configurationService.StudentAuthEndpoint.TrimEnd('/');
-        return $"{baseUrl}/{studentEndpoint}/{endpoint}";
+        // 使用学生API端点，而不是认证端点
+        return $"{baseUrl}/student/{endpoint}";
     }
 }
