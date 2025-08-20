@@ -1,5 +1,7 @@
 ﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Models.Organization;
+using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Services.Organization;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,14 +14,14 @@ public class UserImportService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<UserImportService> _logger;
-    private readonly UserManagementService _userManagementService;
-    private readonly NonOrganizationStudentService _nonOrganizationStudentService;
+    private readonly IUserManagementService _userManagementService;
+    private readonly INonOrganizationStudentService _nonOrganizationStudentService;
 
     public UserImportService(
         ApplicationDbContext context,
         ILogger<UserImportService> logger,
-        UserManagementService userManagementService,
-        NonOrganizationStudentService nonOrganizationStudentService)
+        IUserManagementService userManagementService,
+        INonOrganizationStudentService nonOrganizationStudentService)
     {
         _context = context;
         _logger = logger;
