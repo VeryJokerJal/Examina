@@ -29,8 +29,17 @@ public class MockExamRulesViewModel : ViewModelBase
         RulesInfo = new MockExamRulesInfo();
 
         // 初始化命令
-        ConfirmCommand = ReactiveCommand.Create(() => true);
-        CancelCommand = ReactiveCommand.Create(() => false);
+        ConfirmCommand = ReactiveCommand.Create(() =>
+        {
+            System.Diagnostics.Debug.WriteLine("MockExamRulesViewModel: 确认命令被执行");
+            return true;
+        });
+
+        CancelCommand = ReactiveCommand.Create(() =>
+        {
+            System.Diagnostics.Debug.WriteLine("MockExamRulesViewModel: 取消命令被执行");
+            return false;
+        });
     }
 }
 

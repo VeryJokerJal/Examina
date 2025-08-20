@@ -141,7 +141,7 @@
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" 
                 BorderThickness="0,1,0,0" Padding="20,15">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="15">
-                <Button Content="取消" Command="{Binding CancelCommand}" MinWidth="100">
+                <Button Name="CancelButton" Command="{Binding CancelCommand}" MinWidth="100" Click="CancelButton_Click">
                     <Button.Content>
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <TextBlock Text="❌" FontSize="14"/>
@@ -149,8 +149,8 @@
                         </StackPanel>
                     </Button.Content>
                 </Button>
-                
-                <Button Content="确认开始" Command="{Binding ConfirmCommand}" Classes="accent" MinWidth="120">
+
+                <Button Name="ConfirmButton" Command="{Binding ConfirmCommand}" Classes="accent" MinWidth="120" Click="ConfirmButton_Click">
                     <Button.Content>
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <TextBlock Text="🚀" FontSize="14"/>

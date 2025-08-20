@@ -97,12 +97,18 @@ public class MockExamListViewModel : ViewModelBase
             MockExamRulesDialog dialog = new(rulesViewModel);
 
             // 设置对话框的父窗口
-            if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
             {
+                System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 准备显示规则对话框");
+
                 bool? result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
+
+                System.Diagnostics.Debug.WriteLine($"MockExamListViewModel: 对话框返回结果: {result}");
 
                 if (result == true)
                 {
+                    System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 用户确认开始模拟考试");
                     // 用户确认开始，调用快速开始API
                     await QuickStartMockExamAsync();
                 }
@@ -110,6 +116,10 @@ public class MockExamListViewModel : ViewModelBase
                 {
                     System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 用户取消了模拟考试");
                 }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamListViewModel: 无法获取主窗口");
             }
         }
         catch (Exception ex)
