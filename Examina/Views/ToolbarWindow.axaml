@@ -1,0 +1,137 @@
+<Window x:Class="Examina.Views.ToolbarWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Examina.ViewModels"
+        Title="{Binding ToolbarTitle}"
+        Width="{Binding ToolbarWidth}"
+        Height="{Binding ToolbarHeight}"
+        d:DesignHeight="50"
+        d:DesignWidth="1920"
+        x:DataType="vm:ToolbarWindowViewModel"
+        CanResize="False"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        IsVisible="{Binding IsVisible}"
+        Opacity="{Binding Opacity}"
+        SystemDecorations="None"
+        Topmost="{Binding IsTopmost}"
+        TransparencyLevelHint="AcrylicBlur"
+        WindowStartupLocation="Manual"
+        mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:ToolbarWindowViewModel />
+    </Design.DataContext>
+
+    <!-- 工具栏主容器 -->
+    <Border Background="{DynamicResource ToolbarBackgroundBrush}"
+            BorderBrush="{DynamicResource ToolbarBorderBrush}"
+            BorderThickness="0,0,0,1"
+            CornerRadius="0">
+        
+        <!-- 主要内容区域 -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧区域 - 标题和图标 -->
+            <StackPanel Grid.Column="0"
+                        Margin="10,0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                
+                <!-- 应用图标 -->
+                <Image Width="24"
+                       Height="24"
+                       Margin="0,0,8,0"
+                       Source="/Assets/icon.ico"
+                       VerticalAlignment="Center" />
+                
+                <!-- 工具栏标题 -->
+                <TextBlock Text="{Binding ToolbarTitle}"
+                           FontSize="14"
+                           FontWeight="Medium"
+                           Foreground="{DynamicResource ToolbarForegroundBrush}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- 中间区域 - 可扩展的内容区域 -->
+            <ContentPresenter Grid.Column="1"
+                              Name="ToolbarContentPresenter"
+                              Margin="10,5"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center" />
+
+            <!-- 右侧区域 - 控制按钮 -->
+            <StackPanel Grid.Column="2"
+                        Margin="10,0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                
+                <!-- 切换可见性按钮 -->
+                <Button Width="32"
+                        Height="32"
+                        Margin="2"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding ToggleVisibilityCommand}"
+                        ToolTip.Tip="切换可见性">
+                    <Path Width="16"
+                          Height="16"
+                          Data="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"
+                          Fill="{DynamicResource ToolbarForegroundBrush}"
+                          Stretch="Uniform" />
+                </Button>
+
+                <!-- 关闭按钮 -->
+                <Button Width="32"
+                        Height="32"
+                        Margin="2"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding CloseCommand}"
+                        ToolTip.Tip="关闭工具栏">
+                    <Path Width="16"
+                          Height="16"
+                          Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                          Fill="{DynamicResource ToolbarForegroundBrush}"
+                          Stretch="Uniform" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+
+    <!-- 样式资源 -->
+    <Window.Styles>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource ToolbarButtonHoverBrush}" />
+        </Style>
+        
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="{DynamicResource ToolbarButtonPressedBrush}" />
+        </Style>
+    </Window.Styles>
+
+    <!-- 资源字典 -->
+    <Window.Resources>
+        <!-- 工具栏背景色 -->
+        <SolidColorBrush x:Key="ToolbarBackgroundBrush" Color="#3C3C3C3C" />
+        
+        <!-- 工具栏边框色 -->
+        <SolidColorBrush x:Key="ToolbarBorderBrush" Color="#66666666" />
+        
+        <!-- 工具栏前景色 -->
+        <SolidColorBrush x:Key="ToolbarForegroundBrush" Color="#FFFFFF" />
+        
+        <!-- 按钮悬停背景色 -->
+        <SolidColorBrush x:Key="ToolbarButtonHoverBrush" Color="#40FFFFFF" />
+        
+        <!-- 按钮按下背景色 -->
+        <SolidColorBrush x:Key="ToolbarButtonPressedBrush" Color="#60FFFFFF" />
+    </Window.Resources>
+</Window>
