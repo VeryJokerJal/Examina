@@ -109,6 +109,25 @@ public partial class OverviewView : UserControl
             System.Diagnostics.Debug.WriteLine($"刷新所有进度异常: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// 刷新成绩记录
+    /// </summary>
+    private async void RefreshRecords_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OverviewViewModel viewModel)
+            return;
+
+        try
+        {
+            await viewModel.RefreshRecordsAsync();
+            System.Diagnostics.Debug.WriteLine("成绩记录刷新完成");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"刷新成绩记录异常: {ex.Message}");
+        }
+    }
 }
 
 /// <summary>

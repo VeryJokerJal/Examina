@@ -275,6 +275,35 @@ public class StudentExamService : IStudentExamService
             return false;
         }
     }
+
+    /// <summary>
+    /// 获取专项练习完成记录
+    /// </summary>
+    public async Task<List<SpecialPracticeCompletionDto>> GetSpecialPracticeCompletionsAsync(int pageNumber = 1, int pageSize = 20)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/special-practices/completions?pageNumber={pageNumber}&pageSize={pageSize}";
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                List<SpecialPracticeCompletionDto>? completions = JsonSerializer.Deserialize<List<SpecialPracticeCompletionDto>>(content, JsonOptions);
+                return completions ?? new List<SpecialPracticeCompletionDto>();
+            }
+
+            System.Diagnostics.Debug.WriteLine($"获取专项练习完成记录失败，状态码: {response.StatusCode}");
+            return new List<SpecialPracticeCompletionDto>();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取专项练习完成记录异常: {ex.Message}");
+            return new List<SpecialPracticeCompletionDto>();
+        }
+    }
 }
 
 /// <summary>
@@ -574,6 +603,35 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
         {
             System.Diagnostics.Debug.WriteLine($"提交综合训练成绩异常: {ex.Message}");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取综合训练完成记录
+    /// </summary>
+    public async Task<List<ComprehensiveTrainingCompletionDto>> GetComprehensiveTrainingCompletionsAsync(int pageNumber = 1, int pageSize = 20)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/comprehensive-trainings/completions?pageNumber={pageNumber}&pageSize={pageSize}";
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                List<ComprehensiveTrainingCompletionDto>? completions = JsonSerializer.Deserialize<List<ComprehensiveTrainingCompletionDto>>(content, JsonOptions);
+                return completions ?? [];
+            }
+
+            System.Diagnostics.Debug.WriteLine($"获取综合训练完成记录失败，状态码: {response.StatusCode}");
+            return [];
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取综合训练完成记录异常: {ex.Message}");
+            return [];
         }
     }
 }

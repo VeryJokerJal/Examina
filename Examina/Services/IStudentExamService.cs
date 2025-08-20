@@ -62,6 +62,14 @@ public interface IStudentExamService
     /// <param name="request">完成信息</param>
     /// <returns>是否成功</returns>
     Task<bool> CompleteSpecialPracticeAsync(int practiceId, CompletePracticeRequest request);
+
+    /// <summary>
+    /// 获取专项练习完成记录
+    /// </summary>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>专项练习完成记录列表</returns>
+    Task<List<SpecialPracticeCompletionDto>> GetSpecialPracticeCompletionsAsync(int pageNumber = 1, int pageSize = 20);
 }
 
 /// <summary>
@@ -117,4 +125,12 @@ public interface IStudentComprehensiveTrainingService
     /// <param name="request">完成信息</param>
     /// <returns>是否成功</returns>
     Task<bool> CompleteComprehensiveTrainingAsync(int trainingId, CompleteTrainingRequest request);
+
+    /// <summary>
+    /// 获取综合训练完成记录
+    /// </summary>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>综合训练完成记录列表</returns>
+    Task<List<ComprehensiveTrainingCompletionDto>> GetComprehensiveTrainingCompletionsAsync(int pageNumber = 1, int pageSize = 20);
 }

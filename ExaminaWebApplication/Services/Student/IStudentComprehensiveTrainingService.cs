@@ -66,4 +66,13 @@ public interface IStudentComprehensiveTrainingService
     /// <param name="trainingId">训练ID</param>
     /// <returns>是否标记成功</returns>
     Task<bool> MarkTrainingAsStartedAsync(int studentUserId, int trainingId);
+
+    /// <summary>
+    /// 获取学生综合训练完成记录
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>综合训练完成记录列表</returns>
+    Task<List<ComprehensiveTrainingCompletionDto>> GetTrainingCompletionsAsync(int studentUserId, int pageNumber = 1, int pageSize = 20);
 }

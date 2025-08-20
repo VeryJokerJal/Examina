@@ -293,4 +293,48 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
             return false;
         }
     }
+
+    /// <summary>
+    /// 获取学生专项练习完成记录
+    /// </summary>
+    public async Task<List<SpecialPracticeCompletionDto>> GetPracticeCompletionsAsync(int studentUserId, int pageNumber = 1, int pageSize = 20)
+    {
+        try
+        {
+            List<SpecialPracticeCompletionDto> completions = await _context.SpecialPracticeCompletions
+                .Where(c => c.StudentUserId == studentUserId && c.IsActive)
+                .Include(c => c.Practice)
+                .OrderByDescending(c => c.UpdatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new SpecialPracticeCompletionDto
+                {
+                    Id = c.Id,
+                    PracticeId = c.PracticeId,
+                    PracticeName = c.Practice!.Title,
+                    PracticeDescription = c.Practice.Description,
+                    Status = c.Status,
+                    Score = c.Score,
+                    MaxScore = c.MaxScore,
+                    CompletionPercentage = c.CompletionPercentage,
+                    DurationSeconds = c.DurationSeconds,
+                    Notes = c.Notes,
+                    StartedAt = c.StartedAt,
+                    CompletedAt = c.CompletedAt,
+                    CreatedAt = c.CreatedAt,
+                    UpdatedAt = c.UpdatedAt
+                })
+                .ToListAsync();
+
+            _logger.LogInformation("获取学生专项练习完成记录成功，学生ID: {StudentUserId}, 页码: {PageNumber}, 页大小: {PageSize}, 记录数: {Count}",
+                studentUserId, pageNumber, pageSize, completions.Count);
+
+            return completions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生专项练习完成记录失败，学生ID: {StudentUserId}", studentUserId);
+            return new List<SpecialPracticeCompletionDto>();
+        }
+    }
 }

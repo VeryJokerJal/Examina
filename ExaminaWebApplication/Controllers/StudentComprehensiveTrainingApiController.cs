@@ -177,6 +177,46 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
     }
 
     /// <summary>
+    /// 获取学生综合训练完成记录
+    /// </summary>
+    /// <param name="pageNumber">页码，默认为1</param>
+    /// <param name="pageSize">页大小，默认为20</param>
+    /// <returns>综合训练完成记录列表</returns>
+    [HttpGet("completions")]
+    public async Task<ActionResult<List<ComprehensiveTrainingCompletionDto>>> GetTrainingCompletions(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            // 验证分页参数
+            if (pageNumber < 1)
+            {
+                pageNumber = 1;
+            }
+
+            if (pageSize is < 1 or > 100)
+            {
+                pageSize = 20;
+            }
+
+            List<ComprehensiveTrainingCompletionDto> completions = await _studentComprehensiveTrainingService.GetTrainingCompletionsAsync(studentUserId, pageNumber, pageSize);
+
+            _logger.LogInformation("学生获取综合训练完成记录成功，学生ID: {StudentUserId}, 页码: {PageNumber}, 页大小: {PageSize}, 记录数: {Count}",
+                studentUserId, pageNumber, pageSize, completions.Count);
+
+            return Ok(completions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生综合训练完成记录失败");
+            return StatusCode(500, new { message = "获取综合训练完成记录失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// 标记综合训练为开始状态
     /// </summary>
     /// <param name="id">训练ID</param>

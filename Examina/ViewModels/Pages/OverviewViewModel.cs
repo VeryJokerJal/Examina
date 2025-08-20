@@ -154,6 +154,12 @@ public class OverviewViewModel : ViewModelBase
     [Reactive]
     public bool? LastSubmissionSuccess { get; set; }
 
+    /// <summary>
+    /// 是否正在加载成绩记录
+    /// </summary>
+    [Reactive]
+    public bool IsLoadingRecords { get; set; } = false;
+
     #endregion
 
     #region 命令
@@ -208,11 +214,17 @@ public class OverviewViewModel : ViewModelBase
         SpecialPracticeCount = 60;
         OnlineExamCount = 0;
 
-        // 加载所有成绩数据
-        LoadAllRecords();
+        // 异步加载所有成绩数据
+        _ = Task.Run(async () =>
+        {
+            await LoadAllRecordsAsync();
 
-        // 根据默认选择筛选显示数据
-        FilterRecordsByType();
+            // 在UI线程上更新显示数据
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                FilterRecordsByType();
+            });
+        });
     }
 
     /// <summary>
@@ -332,6 +344,31 @@ public class OverviewViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 刷新成绩记录
+    /// </summary>
+    public async Task RefreshRecordsAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新成绩记录");
+
+        IsLoadingRecords = true;
+
+        try
+        {
+            await LoadAllRecordsAsync();
+            FilterRecordsByType();
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 成绩记录刷新完成");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 刷新成绩记录异常: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingRecords = false;
+        }
+    }
+
+    /// <summary>
     /// 提交专项练习成绩并刷新进度
     /// </summary>
     /// <param name="practiceId">练习ID</param>
@@ -371,8 +408,9 @@ public class OverviewViewModel : ViewModelBase
                 LastSubmissionMessage = "专项练习成绩提交成功！";
                 LastSubmissionSuccess = true;
                 System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 专项练习成绩提交成功，练习ID: {practiceId}");
-                // 刷新专项练习进度
+                // 刷新专项练习进度和成绩记录
                 await RefreshSpecialPracticeProgressAsync();
+                await RefreshRecordsAsync();
             }
             else
             {
@@ -436,8 +474,9 @@ public class OverviewViewModel : ViewModelBase
                 LastSubmissionMessage = "综合训练成绩提交成功！";
                 LastSubmissionSuccess = true;
                 System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 综合训练成绩提交成功，训练ID: {trainingId}");
-                // 刷新综合训练进度
+                // 刷新综合训练进度和成绩记录
                 await RefreshComprehensiveTrainingProgressAsync();
+                await RefreshRecordsAsync();
             }
             else
             {
@@ -464,68 +503,103 @@ public class OverviewViewModel : ViewModelBase
     /// <summary>
     /// 加载所有成绩数据
     /// </summary>
-    private void LoadAllRecords()
+    private async Task LoadAllRecordsAsync()
     {
         _allRecords.Clear();
 
-        // 综合实训数据
-        _allRecords.Add(new TrainingRecord
+        try
         {
-            Name = "综合实训十二",
-            Duration = "1小时23分钟",
-            CompletionTime = new DateTime(2025, 7, 28, 17, 23, 13),
-            Score = 134,
-            Type = StatisticType.ComprehensiveTraining
-        });
+            // 加载综合训练完成记录
+            await LoadComprehensiveTrainingRecordsAsync();
 
-        _allRecords.Add(new TrainingRecord
+            // 加载专项练习完成记录
+            await LoadSpecialPracticeRecordsAsync();
+
+            // 模拟考试数据（暂无API）
+            // 上机统考数据（暂无API）
+
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 成功加载 {_allRecords.Count} 条成绩记录");
+        }
+        catch (Exception ex)
         {
-            Name = "综合实训五",
-            Duration = "1小时23分钟",
-            CompletionTime = new DateTime(2025, 7, 29, 17, 23, 13),
-            Score = 123,
-            Type = StatisticType.ComprehensiveTraining
-        });
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载成绩记录异常: {ex.Message}");
+        }
+    }
 
-        _allRecords.Add(new TrainingRecord
+    /// <summary>
+    /// 加载综合训练完成记录
+    /// </summary>
+    private async Task LoadComprehensiveTrainingRecordsAsync()
+    {
+        if (_comprehensiveTrainingService == null)
         {
-            Name = "综合实训六",
-            Duration = "1小时23分钟",
-            CompletionTime = new DateTime(2025, 7, 30, 17, 23, 13),
-            Score = 146,
-            Type = StatisticType.ComprehensiveTraining
-        });
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 综合训练服务未注入，无法加载记录");
+            return;
+        }
 
-        _allRecords.Add(new TrainingRecord
+        try
         {
-            Name = "综合实训三",
-            Duration = "1小时23分钟",
-            CompletionTime = new DateTime(2025, 7, 31, 17, 23, 13),
-            Score = 125,
-            Type = StatisticType.ComprehensiveTraining
-        });
+            List<ComprehensiveTrainingCompletionDto> completions = await _comprehensiveTrainingService.GetComprehensiveTrainingCompletionsAsync(1, 50);
 
-        // 专项练习数据
-        _allRecords.Add(new TrainingRecord
+            foreach (ComprehensiveTrainingCompletionDto completion in completions)
+            {
+                if (completion.Status == ComprehensiveTrainingCompletionStatus.Completed)
+                {
+                    _allRecords.Add(new TrainingRecord
+                    {
+                        Name = completion.TrainingName,
+                        Duration = completion.DurationText,
+                        CompletionTime = completion.CompletedAt ?? completion.UpdatedAt,
+                        Score = (int)(completion.Score ?? 0),
+                        Type = StatisticType.ComprehensiveTraining
+                    });
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载了 {completions.Count} 条综合训练记录");
+        }
+        catch (Exception ex)
         {
-            Name = "Word操作练习",
-            Duration = "45分钟",
-            CompletionTime = new DateTime(2025, 7, 25, 14, 30, 0),
-            Score = 89,
-            Type = StatisticType.SpecialPractice
-        });
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载综合训练记录异常: {ex.Message}");
+        }
+    }
 
-        _allRecords.Add(new TrainingRecord
+    /// <summary>
+    /// 加载专项练习完成记录
+    /// </summary>
+    private async Task LoadSpecialPracticeRecordsAsync()
+    {
+        if (_studentExamService == null)
         {
-            Name = "Excel函数练习",
-            Duration = "52分钟",
-            CompletionTime = new DateTime(2025, 7, 26, 16, 15, 30),
-            Score = 92,
-            Type = StatisticType.SpecialPractice
-        });
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 学生考试服务未注入，无法加载记录");
+            return;
+        }
 
-        // 模拟考试数据（暂无）
-        // 上机统考数据（暂无）
+        try
+        {
+            List<SpecialPracticeCompletionDto> completions = await _studentExamService.GetSpecialPracticeCompletionsAsync(1, 50);
+
+            foreach (SpecialPracticeCompletionDto completion in completions)
+            {
+                if (completion.Status == SpecialPracticeCompletionStatus.Completed)
+                {
+                    _allRecords.Add(new TrainingRecord
+                    {
+                        Name = completion.PracticeName,
+                        Duration = completion.DurationText,
+                        CompletionTime = completion.CompletedAt ?? completion.UpdatedAt,
+                        Score = (int)(completion.Score ?? 0),
+                        Type = StatisticType.SpecialPractice
+                    });
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载了 {completions.Count} 条专项练习记录");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载专项练习记录异常: {ex.Message}");
+        }
     }
 
     /// <summary>

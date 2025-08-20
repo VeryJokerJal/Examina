@@ -256,6 +256,15 @@
                                 FontSize="13"
                                 Padding="16,8"
                                 CornerRadius="4" />
+
+                        <Button Content="📋 刷新成绩记录"
+                                Click="RefreshRecords_Click"
+                                IsEnabled="{Binding !IsLoadingRecords}"
+                                Background="Orange"
+                                Foreground="White"
+                                FontSize="13"
+                                Padding="16,8"
+                                CornerRadius="4" />
                     </StackPanel>
                 </StackPanel>
             </Border>

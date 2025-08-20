@@ -40,4 +40,13 @@ public interface IStudentSpecialPracticeService
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>专项练习总数</returns>
     Task<int> GetAvailablePracticeCountAsync(int studentUserId);
+
+    /// <summary>
+    /// 获取学生专项练习完成记录
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>专项练习完成记录列表</returns>
+    Task<List<SpecialPracticeCompletionDto>> GetPracticeCompletionsAsync(int studentUserId, int pageNumber = 1, int pageSize = 20);
 }
