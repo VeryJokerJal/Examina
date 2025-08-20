@@ -1,5 +1,4 @@
-﻿using System.Timers;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Examina.Models;
@@ -7,6 +6,7 @@ using Examina.Services;
 using Prism.Commands;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Timer = System.Timers.Timer;
 
 namespace Examina.ViewModels;
 
