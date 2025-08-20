@@ -100,9 +100,13 @@ public class StudentMockExamService : IStudentMockExamService
                 extractedQuestions[i].SortOrder = i + 1;
             }
 
+            // 创建或获取默认配置
+            MockExamConfiguration configuration = await GetOrCreateDefaultConfigurationAsync(request, studentUserId);
+
             // 创建模拟考试实例并立即开始
             MockExam mockExam = new()
             {
+                ConfigurationId = configuration.Id,
                 StudentId = studentUserId,
                 Name = request.Name,
                 Description = request.Description,
@@ -178,9 +182,13 @@ public class StudentMockExamService : IStudentMockExamService
                 extractedQuestions[i].SortOrder = i + 1;
             }
 
+            // 创建或获取默认配置
+            MockExamConfiguration configuration = await GetOrCreateDefaultConfigurationAsync(request, studentUserId);
+
             // 创建模拟考试实例
             MockExam mockExam = new()
             {
+                ConfigurationId = configuration.Id,
                 StudentId = studentUserId,
                 Name = request.Name,
                 Description = request.Description,
@@ -727,6 +735,59 @@ public class StudentMockExamService : IStudentMockExamService
                 }).ToList()
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// 获取或创建默认的模拟考试配置
+    /// </summary>
+    private async Task<MockExamConfiguration> GetOrCreateDefaultConfigurationAsync(CreateMockExamRequestDto request, int createdBy)
+    {
+        try
+        {
+            // 查找是否已存在相同的默认配置
+            string extractionRulesJson = JsonSerializer.Serialize(request.ExtractionRules, JsonOptions);
+
+            MockExamConfiguration? existingConfig = await _context.MockExamConfigurations
+                .FirstOrDefaultAsync(c =>
+                    c.Name == request.Name &&
+                    c.DurationMinutes == request.DurationMinutes &&
+                    c.TotalScore == request.TotalScore &&
+                    c.PassingScore == request.PassingScore &&
+                    c.RandomizeQuestions == request.RandomizeQuestions &&
+                    c.IsEnabled);
+
+            if (existingConfig != null)
+            {
+                _logger.LogInformation("使用现有的模拟考试配置，配置ID: {ConfigurationId}", existingConfig.Id);
+                return existingConfig;
+            }
+
+            // 创建新的配置
+            MockExamConfiguration newConfig = new()
+            {
+                Name = request.Name,
+                Description = request.Description,
+                DurationMinutes = request.DurationMinutes,
+                TotalScore = request.TotalScore,
+                PassingScore = request.PassingScore,
+                RandomizeQuestions = request.RandomizeQuestions,
+                ExtractionRules = extractionRulesJson,
+                CreatedBy = createdBy,
+                CreatedAt = DateTime.UtcNow,
+                IsEnabled = true
+            };
+
+            _context.MockExamConfigurations.Add(newConfig);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("创建新的模拟考试配置，配置ID: {ConfigurationId}", newConfig.Id);
+            return newConfig;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取或创建默认配置失败");
+            throw;
+        }
     }
 
     /// <summary>
