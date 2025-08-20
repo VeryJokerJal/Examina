@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Examina.ViewModels.Pages;
 
@@ -12,6 +13,101 @@ public partial class OverviewView : UserControl
     public OverviewView()
     {
         InitializeComponent();
+    }
+
+    /// <summary>
+    /// 提交专项练习成绩
+    /// </summary>
+    private async void SubmitSpecialPracticeScore_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OverviewViewModel viewModel)
+            return;
+
+        try
+        {
+            // 获取输入值
+            if (!int.TryParse(PracticeIdTextBox.Text, out int practiceId))
+            {
+                viewModel.LastSubmissionMessage = "请输入有效的练习ID";
+                viewModel.LastSubmissionSuccess = false;
+                return;
+            }
+
+            decimal? score = decimal.TryParse(PracticeScoreTextBox.Text, out decimal s) ? s : null;
+            decimal? maxScore = decimal.TryParse(PracticeMaxScoreTextBox.Text, out decimal ms) ? ms : null;
+            int? duration = int.TryParse(PracticeDurationTextBox.Text, out int d) ? d : null;
+
+            // 提交成绩
+            bool success = await viewModel.SubmitSpecialPracticeScoreAsync(practiceId, score, maxScore, duration, "首页快速提交");
+
+            System.Diagnostics.Debug.WriteLine($"专项练习成绩提交结果: {success}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"提交专项练习成绩异常: {ex.Message}");
+            if (DataContext is OverviewViewModel vm)
+            {
+                vm.LastSubmissionMessage = $"提交时发生错误: {ex.Message}";
+                vm.LastSubmissionSuccess = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 提交综合训练成绩
+    /// </summary>
+    private async void SubmitComprehensiveTrainingScore_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OverviewViewModel viewModel)
+            return;
+
+        try
+        {
+            // 获取输入值
+            if (!int.TryParse(TrainingIdTextBox.Text, out int trainingId))
+            {
+                viewModel.LastSubmissionMessage = "请输入有效的训练ID";
+                viewModel.LastSubmissionSuccess = false;
+                return;
+            }
+
+            decimal? score = decimal.TryParse(TrainingScoreTextBox.Text, out decimal s) ? s : null;
+            decimal? maxScore = decimal.TryParse(TrainingMaxScoreTextBox.Text, out decimal ms) ? ms : null;
+            int? duration = int.TryParse(TrainingDurationTextBox.Text, out int d) ? d : null;
+
+            // 提交成绩
+            bool success = await viewModel.SubmitComprehensiveTrainingScoreAsync(trainingId, score, maxScore, duration, "首页快速提交");
+
+            System.Diagnostics.Debug.WriteLine($"综合训练成绩提交结果: {success}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"提交综合训练成绩异常: {ex.Message}");
+            if (DataContext is OverviewViewModel vm)
+            {
+                vm.LastSubmissionMessage = $"提交时发生错误: {ex.Message}";
+                vm.LastSubmissionSuccess = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 刷新所有进度
+    /// </summary>
+    private async void RefreshAllProgress_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OverviewViewModel viewModel)
+            return;
+
+        try
+        {
+            await viewModel.RefreshAllProgressAsync();
+            System.Diagnostics.Debug.WriteLine("所有进度刷新完成");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"刷新所有进度异常: {ex.Message}");
+        }
     }
 }
 
