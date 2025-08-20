@@ -15,6 +15,7 @@ public class ExamToolbarService : IDisposable
 {
     private readonly IStudentExamService _studentExamService;
     private readonly IStudentMockExamService _studentMockExamService;
+    private readonly IStudentComprehensiveTrainingService _studentComprehensiveTrainingService;
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<ExamToolbarService> _logger;
     private bool _disposed;
@@ -25,11 +26,13 @@ public class ExamToolbarService : IDisposable
     public ExamToolbarService(
         IStudentExamService studentExamService,
         IStudentMockExamService studentMockExamService,
+        IStudentComprehensiveTrainingService studentComprehensiveTrainingService,
         IAuthenticationService authenticationService,
         ILogger<ExamToolbarService> logger)
     {
         _studentExamService = studentExamService ?? throw new ArgumentNullException(nameof(studentExamService));
         _studentMockExamService = studentMockExamService ?? throw new ArgumentNullException(nameof(studentMockExamService));
+        _studentComprehensiveTrainingService = studentComprehensiveTrainingService ?? throw new ArgumentNullException(nameof(studentComprehensiveTrainingService));
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -113,7 +116,7 @@ public class ExamToolbarService : IDisposable
         {
             _logger.LogInformation("开始综合实训，实训ID: {TrainingId}", trainingId);
 
-            StudentComprehensiveTrainingDto? trainingDetails = await _studentExamService.GetTrainingDetailsAsync(trainingId);
+            StudentComprehensiveTrainingDto? trainingDetails = await _studentComprehensiveTrainingService.GetTrainingDetailsAsync(trainingId);
             if (trainingDetails == null)
             {
                 _logger.LogWarning("无法获取综合实训详情，实训ID: {TrainingId}", trainingId);
@@ -200,7 +203,7 @@ public class ExamToolbarService : IDisposable
         {
             _logger.LogInformation("提交综合实训，实训ID: {TrainingId}", trainingId);
 
-            bool result = await _studentExamService.MarkTrainingAsCompletedAsync(trainingId);
+            bool result = await _studentComprehensiveTrainingService.MarkTrainingAsCompletedAsync(trainingId);
 
             if (result)
             {

@@ -49,6 +49,7 @@ public static class ExamToolbarWindowTestExample
         ExamToolbarService examService = new ExamToolbarService(
             null!, // IStudentExamService
             mockExamService,
+            null!, // IStudentComprehensiveTrainingService
             authenticationService,
             serviceLogger);
         
@@ -70,6 +71,7 @@ public static class ExamToolbarWindowTestExample
     public static ExamToolbarWindow CreateComprehensiveTrainingToolbar(
         IAuthenticationService authenticationService,
         IStudentExamService examService,
+        IStudentComprehensiveTrainingService trainingService,
         ILogger<ExamToolbarViewModel> viewModelLogger,
         ILogger<ExamToolbarWindow> windowLogger,
         ILogger<ExamToolbarService> serviceLogger)
@@ -81,6 +83,7 @@ public static class ExamToolbarWindowTestExample
         ExamToolbarService toolbarService = new ExamToolbarService(
             examService,
             null!, // IStudentMockExamService
+            trainingService,
             authenticationService,
             serviceLogger);
 
