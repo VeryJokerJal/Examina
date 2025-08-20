@@ -231,7 +231,7 @@ public class StudentMockExamController : ControllerBase
         {
             int studentUserId = GetCurrentUserId();
 
-            bool success = await _mockExamService.CompleteMockExamAsync(id, studentUserId);
+            bool success = await _mockExamService.SubmitMockExamAsync(id, studentUserId);
             if (!success)
             {
                 _logger.LogWarning("提交模拟考试失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",

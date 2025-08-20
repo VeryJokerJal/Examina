@@ -356,6 +356,40 @@ public class StudentMockExamService : IStudentMockExamService
     }
 
     /// <summary>
+    /// 提交模拟考试（与完成模拟考试功能相同，但语义更明确）
+    /// </summary>
+    public async Task<bool> SubmitMockExamAsync(int mockExamId, int studentUserId)
+    {
+        try
+        {
+            _logger.LogInformation("开始提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                mockExamId, studentUserId);
+
+            // 提交模拟考试实际上就是完成模拟考试
+            bool result = await CompleteMockExamAsync(mockExamId, studentUserId);
+
+            if (result)
+            {
+                _logger.LogInformation("模拟考试提交成功，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                    mockExamId, studentUserId);
+            }
+            else
+            {
+                _logger.LogWarning("模拟考试提交失败，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                    mockExamId, studentUserId);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "提交模拟考试异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                mockExamId, studentUserId);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     public async Task<bool> DeleteMockExamAsync(int mockExamId, int studentUserId)
