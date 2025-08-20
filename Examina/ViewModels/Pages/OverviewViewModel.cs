@@ -13,6 +13,7 @@ namespace Examina.ViewModels.Pages;
 public class OverviewViewModel : ViewModelBase
 {
     private readonly IStudentComprehensiveTrainingService? _comprehensiveTrainingService;
+    private readonly IStudentExamService? _studentExamService;
 
     #region 属性
 
@@ -151,6 +152,17 @@ public class OverviewViewModel : ViewModelBase
     public OverviewViewModel(IStudentComprehensiveTrainingService comprehensiveTrainingService)
     {
         _comprehensiveTrainingService = comprehensiveTrainingService;
+        _studentExamService = null;
+        SelectStatisticTypeCommand = new DelegateCommand<object>(SelectStatisticType);
+        LoadOverviewData();
+        _ = LoadComprehensiveTrainingProgressAsync();
+        _ = LoadSpecialPracticeProgressAsync();
+    }
+
+    public OverviewViewModel(IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService)
+    {
+        _comprehensiveTrainingService = comprehensiveTrainingService;
+        _studentExamService = studentExamService;
         SelectStatisticTypeCommand = new DelegateCommand<object>(SelectStatisticType);
         LoadOverviewData();
         _ = LoadComprehensiveTrainingProgressAsync();
@@ -225,9 +237,9 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     private async Task LoadSpecialPracticeProgressAsync()
     {
-        if (_comprehensiveTrainingService == null)
+        if (_studentExamService == null)
         {
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 综合实训服务未注入，跳过专项练习进度加载");
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 学生考试服务未注入，跳过专项练习进度加载");
             return;
         }
 
@@ -236,7 +248,7 @@ public class OverviewViewModel : ViewModelBase
             IsLoadingSpecialPracticeProgress = true;
             System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始加载专项练习进度");
 
-            SpecialPracticeProgressDto progress = await _comprehensiveTrainingService.GetSpecialPracticeProgressAsync();
+            SpecialPracticeProgressDto progress = await _studentExamService.GetSpecialPracticeProgressAsync();
 
             SpecialPracticeTotalCount = progress.TotalCount;
             SpecialPracticeCompletedCount = progress.CompletedCount;

@@ -424,14 +424,22 @@ public class MainViewModel : ViewModelBase, IDisposable
             // 获取综合实训服务
             IStudentComprehensiveTrainingService? comprehensiveTrainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
 
-            if (comprehensiveTrainingService != null)
+            // 获取学生考试服务（用于专项练习）
+            IStudentExamService? studentExamService = ((App)Application.Current!).GetService<IStudentExamService>();
+
+            if (comprehensiveTrainingService != null && studentExamService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取综合实训服务，创建带服务注入的OverviewViewModel");
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取所有服务，创建带服务注入的OverviewViewModel");
+                return new OverviewViewModel(comprehensiveTrainingService, studentExamService);
+            }
+            else if (comprehensiveTrainingService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 仅获取到综合实训服务，创建部分服务注入的OverviewViewModel");
                 return new OverviewViewModel(comprehensiveTrainingService);
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取综合实训服务，创建默认OverviewViewModel");
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取服务，创建默认OverviewViewModel");
                 return new OverviewViewModel();
             }
         }
