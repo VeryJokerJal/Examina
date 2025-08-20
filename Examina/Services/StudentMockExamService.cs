@@ -247,6 +247,35 @@ public class StudentMockExamService : IStudentMockExamService
     }
 
     /// <summary>
+    /// 提交模拟考试
+    /// </summary>
+    public async Task<bool> SubmitMockExamAsync(int mockExamId)
+    {
+        try
+        {
+            // 设置认证头
+            await SetAuthenticationHeaderAsync();
+
+            string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/submit");
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送提交模拟考试请求到 {apiUrl}");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
+
+            bool success = response.IsSuccessStatusCode;
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试结果: {success}");
+            return success;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     public async Task<bool> DeleteMockExamAsync(int mockExamId)

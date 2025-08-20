@@ -627,6 +627,40 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     }
 
     /// <summary>
+    /// 标记综合训练为已完成
+    /// </summary>
+    public async Task<bool> MarkTrainingAsCompletedAsync(int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            object requestData = new
+            {
+                score,
+                maxScore,
+                durationSeconds,
+                notes
+            };
+
+            string endpoint = $"/api/student/comprehensive-trainings/{trainingId}/mark-completed";
+            string jsonContent = JsonSerializer.Serialize(requestData, JsonOptions);
+            StringContent content = new(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
+
+            bool success = response.IsSuccessStatusCode;
+            System.Diagnostics.Debug.WriteLine($"标记综合训练为已完成结果: {success}, 训练ID: {trainingId}, 得分: {score}");
+            return success;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"标记综合训练为已完成异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 获取综合训练完成记录
     /// </summary>
     public async Task<List<ComprehensiveTrainingCompletionDto>> GetComprehensiveTrainingCompletionsAsync(int pageNumber = 1, int pageSize = 20)

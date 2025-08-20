@@ -303,6 +303,46 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
     }
 
     /// <summary>
+    /// 标记综合训练为已完成（简化版本）
+    /// </summary>
+    /// <param name="id">训练ID</param>
+    /// <param name="request">完成信息</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{id}/mark-completed")]
+    public async Task<ActionResult> MarkTrainingCompleted(int id, [FromBody] CompleteTrainingRequest request)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentComprehensiveTrainingService.MarkTrainingAsCompletedAsync(
+                studentUserId,
+                id,
+                request.Score,
+                request.MaxScore,
+                request.DurationSeconds,
+                request.Notes);
+
+            if (success)
+            {
+                _logger.LogInformation("学生标记综合训练完成成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 得分: {Score}",
+                    studentUserId, id, request.Score);
+
+                return Ok(new { message = "训练完成标记成功" });
+            }
+            else
+            {
+                return BadRequest(new { message = "训练完成标记失败，请检查训练是否存在" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "标记综合训练完成失败，训练ID: {TrainingId}", id);
+            return StatusCode(500, new { message = "标记训练完成失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     /// <returns>用户ID</returns>

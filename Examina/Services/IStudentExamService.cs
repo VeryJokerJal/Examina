@@ -127,6 +127,17 @@ public interface IStudentComprehensiveTrainingService
     Task<bool> CompleteComprehensiveTrainingAsync(int trainingId, CompleteTrainingRequest request);
 
     /// <summary>
+    /// 标记综合训练为已完成
+    /// </summary>
+    /// <param name="trainingId">训练ID</param>
+    /// <param name="score">得分（可选）</param>
+    /// <param name="maxScore">最大得分（可选）</param>
+    /// <param name="durationSeconds">用时（秒，可选）</param>
+    /// <param name="notes">备注（可选）</param>
+    /// <returns>是否标记成功</returns>
+    Task<bool> MarkTrainingAsCompletedAsync(int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
+
+    /// <summary>
     /// 获取综合训练完成记录
     /// </summary>
     /// <param name="pageNumber">页码</param>

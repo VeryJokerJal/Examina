@@ -49,7 +49,6 @@ public static class ExamToolbarWindowTestExample
         ExamToolbarService examService = new ExamToolbarService(
             null!, // IStudentExamService
             mockExamService,
-            null!, // IStudentComprehensiveTrainingService
             authenticationService,
             serviceLogger);
         
@@ -70,25 +69,24 @@ public static class ExamToolbarWindowTestExample
     /// </summary>
     public static ExamToolbarWindow CreateComprehensiveTrainingToolbar(
         IAuthenticationService authenticationService,
-        IStudentComprehensiveTrainingService trainingService,
+        IStudentExamService examService,
         ILogger<ExamToolbarViewModel> viewModelLogger,
         ILogger<ExamToolbarWindow> windowLogger,
         ILogger<ExamToolbarService> serviceLogger)
     {
         // 创建ViewModel
         ExamToolbarViewModel viewModel = new ExamToolbarViewModel(authenticationService, viewModelLogger);
-        
+
         // 创建考试服务
-        ExamToolbarService examService = new ExamToolbarService(
-            null!, // IStudentExamService
+        ExamToolbarService toolbarService = new ExamToolbarService(
+            examService,
             null!, // IStudentMockExamService
-            trainingService,
             authenticationService,
             serviceLogger);
-        
+
         // 创建屏幕预留服务
         ScreenReservationService screenService = new ScreenReservationService();
-        
+
         // 创建窗口
         ExamToolbarWindow toolbarWindow = new ExamToolbarWindow(viewModel, screenService, windowLogger);
 
