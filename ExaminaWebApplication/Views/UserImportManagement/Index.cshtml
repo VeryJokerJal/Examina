@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "用户导入管理";
 }
 
@@ -17,8 +17,8 @@
     <div class="row">
         <!-- 非组织用户导入 -->
         <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
+            <div class="glass-card glass-glow h-100">
+                <div class="card-header glass-card-header-primary">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-person-plus me-2"></i>非组织用户导入
                     </h5>
@@ -28,25 +28,25 @@
                         导入不属于任何组织的学生用户。这些用户将被添加到非组织学生列表中，可以独立管理。
                     </p>
                     <div class="mb-3">
-                        <h6>功能特点：</h6>
-                        <ul class="list-unstyled">
-                            <li><i class="bi bi-check-circle text-success me-2"></i>支持Excel文件导入</li>
-                            <li><i class="bi bi-check-circle text-success me-2"></i>自动验证数据格式</li>
-                            <li><i class="bi bi-check-circle text-success me-2"></i>重复数据检查</li>
-                            <li><i class="bi bi-check-circle text-success me-2"></i>详细导入报告</li>
+                        <h6 class="text-primary">功能特点：</h6>
+                        <ul class="glass-list-group">
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>支持Excel文件导入</li>
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>自动验证数据格式</li>
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>重复数据检查</li>
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>详细导入报告</li>
                         </ul>
                     </div>
                     <div class="mb-3">
-                        <h6>Excel格式要求：</h6>
-                        <ul class="list-unstyled text-muted">
-                            <li><i class="bi bi-arrow-right me-2"></i>第一列：姓名（必填）</li>
-                            <li><i class="bi bi-arrow-right me-2"></i>第二列：手机号码（必填）</li>
-                            <li><i class="bi bi-arrow-right me-2"></i>支持.xlsx和.xls格式</li>
+                        <h6 class="text-secondary">Excel格式要求：</h6>
+                        <ul class="glass-list-group">
+                            <li class="glass-list-item"><i class="bi bi-arrow-right me-2 text-info"></i>第一列：姓名（必填）</li>
+                            <li class="glass-list-item"><i class="bi bi-arrow-right me-2 text-info"></i>第二列：手机号码（必填）</li>
+                            <li class="glass-list-item"><i class="bi bi-arrow-right me-2 text-info"></i>支持.xlsx和.xls格式</li>
                         </ul>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <a href="@Url.Action("ImportNonOrganizationUsers")" class="btn btn-primary">
+                <div class="card-footer bg-transparent border-0">
+                    <a href="@Url.Action("ImportNonOrganizationUsers")" class="glass-btn glass-btn-primary w-100">
                         <i class="bi bi-upload me-2"></i>开始导入
                     </a>
                 </div>
@@ -55,8 +55,8 @@
 
         <!-- 组织用户导入 -->
         <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
+            <div class="glass-card glass-glow h-100">
+                <div class="card-header glass-card-header-success">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-building me-2"></i>组织用户导入
                     </h5>
@@ -66,25 +66,25 @@
                         导入属于特定组织的用户。这些用户将被创建为预配置用户，等待用户注册时自动关联。
                     </p>
                     <div class="mb-3">
-                        <h6>功能特点：</h6>
-                        <ul class="list-unstyled">
-                            <li><i class="bi bi-check-circle text-success me-2"></i>关联到指定组织</li>
-                            <li><i class="bi bi-check-circle text-success me-2"></i>预配置用户信息</li>
-                            <li><i class="bi bi-check-circle text-success me-2"></i>自动用户名生成</li>
-                            <li><i class="bi bi-check-circle text-success me-2"></i>注册时自动匹配</li>
+                        <h6 class="text-success">功能特点：</h6>
+                        <ul class="glass-list-group">
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>关联到指定组织</li>
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>预配置用户信息</li>
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>自动用户名生成</li>
+                            <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>注册时自动匹配</li>
                         </ul>
                     </div>
                     <div class="mb-3">
-                        <h6>Excel格式要求：</h6>
-                        <ul class="list-unstyled text-muted">
-                            <li><i class="bi bi-arrow-right me-2"></i>第一列：姓名（必填）</li>
-                            <li><i class="bi bi-arrow-right me-2"></i>第二列：手机号码（必填）</li>
-                            <li><i class="bi bi-arrow-right me-2"></i>支持.xlsx和.xls格式</li>
+                        <h6 class="text-secondary">Excel格式要求：</h6>
+                        <ul class="glass-list-group">
+                            <li class="glass-list-item"><i class="bi bi-arrow-right me-2 text-info"></i>第一列：姓名（必填）</li>
+                            <li class="glass-list-item"><i class="bi bi-arrow-right me-2 text-info"></i>第二列：手机号码（必填）</li>
+                            <li class="glass-list-item"><i class="bi bi-arrow-right me-2 text-info"></i>支持.xlsx和.xls格式</li>
                         </ul>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <a href="@Url.Action("ImportOrganizationUsers")" class="btn btn-success">
+                <div class="card-footer bg-transparent border-0">
+                    <a href="@Url.Action("ImportOrganizationUsers")" class="glass-btn glass-btn-success w-100">
                         <i class="bi bi-upload me-2"></i>开始导入
                     </a>
                 </div>
@@ -95,8 +95,8 @@
     <!-- 使用说明 -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+            <div class="glass-card glass-validation-card">
+                <div class="card-header glass-card-header-info">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-info-circle me-2"></i>使用说明
                     </h5>
@@ -104,23 +104,23 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Excel文件准备：</h6>
-                            <ol>
-                                <li>创建Excel文件（.xlsx或.xls格式）</li>
-                                <li>第一行可以是标题行（将被忽略）</li>
-                                <li>第一列填写用户真实姓名</li>
-                                <li>第二列填写用户手机号码</li>
-                                <li>确保手机号码格式正确（11位数字，以1开头）</li>
+                            <h6 class="text-info">Excel文件准备：</h6>
+                            <ol class="glass-list-group">
+                                <li class="glass-list-item">创建Excel文件（.xlsx或.xls格式）</li>
+                                <li class="glass-list-item">第一行可以是标题行（将被忽略）</li>
+                                <li class="glass-list-item">第一列填写用户真实姓名</li>
+                                <li class="glass-list-item">第二列填写用户手机号码</li>
+                                <li class="glass-list-item">确保手机号码格式正确（11位数字，以1开头）</li>
                             </ol>
                         </div>
                         <div class="col-md-6">
-                            <h6>注意事项：</h6>
-                            <ul>
-                                <li>文件大小不能超过10MB</li>
-                                <li>手机号码不能重复</li>
-                                <li>姓名和手机号码都是必填项</li>
-                                <li>导入前会进行数据验证</li>
-                                <li>导入过程中会显示详细的结果报告</li>
+                            <h6 class="text-warning">注意事项：</h6>
+                            <ul class="glass-list-group">
+                                <li class="glass-list-item">文件大小不能超过10MB</li>
+                                <li class="glass-list-item">手机号码不能重复</li>
+                                <li class="glass-list-item">姓名和手机号码都是必填项</li>
+                                <li class="glass-list-item">导入前会进行数据验证</li>
+                                <li class="glass-list-item">导入过程中会显示详细的结果报告</li>
                             </ul>
                         </div>
                     </div>
@@ -134,43 +134,81 @@
     .page-header {
         margin-bottom: 2rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+    }
+
+    .page-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 20%;
+        right: 20%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
     }
 
     .page-title {
         font-size: 2rem;
         font-weight: 600;
-        color: #495057;
+        color: var(--text-primary);
         margin-bottom: 0.5rem;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .page-subtitle {
-        color: #6c757d;
+        color: var(--text-secondary);
         font-size: 1.1rem;
         margin-bottom: 0;
     }
 
-    .card {
-        border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        transition: box-shadow 0.15s ease-in-out;
+    /* 增强卡片头部样式 */
+    .glass-card-header-primary {
+        background: linear-gradient(135deg,
+            rgba(102, 126, 234, 0.9) 0%,
+            rgba(118, 75, 162, 0.8) 100%);
+        backdrop-filter: var(--blur-sm);
+        -webkit-backdrop-filter: var(--blur-sm);
+        border-bottom: 1px solid rgba(102, 126, 234, 0.3);
     }
 
-    .card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    .glass-card-header-success {
+        background: linear-gradient(135deg,
+            rgba(25, 135, 84, 0.9) 0%,
+            rgba(40, 167, 69, 0.8) 100%);
+        backdrop-filter: var(--blur-sm);
+        -webkit-backdrop-filter: var(--blur-sm);
+        border-bottom: 1px solid rgba(25, 135, 84, 0.3);
     }
 
-    .card-header {
-        border-bottom: none;
-        font-weight: 600;
+    .glass-card-header-info {
+        background: linear-gradient(135deg,
+            rgba(13, 202, 240, 0.9) 0%,
+            rgba(11, 172, 204, 0.8) 100%);
+        backdrop-filter: var(--blur-sm);
+        -webkit-backdrop-filter: var(--blur-sm);
+        border-bottom: 1px solid rgba(13, 202, 240, 0.3);
     }
 
-    .list-unstyled li {
-        margin-bottom: 0.25rem;
+    /* 增强列表项悬停效果 */
+    .glass-list-item {
+        transition: all 0.3s ease;
+        padding: 0.5rem 0;
+        border-radius: var(--border-radius-sm);
+        margin: 0.25rem 0;
     }
 
-    .btn {
-        font-weight: 500;
-        padding: 0.5rem 1.5rem;
+    .glass-list-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateX(8px);
+        padding-left: 1rem;
+    }
+
+    /* 卡片悬停增强 */
+    .glass-glow:hover {
+        transform: translateY(-8px);
+        box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.2),
+            0 10px 30px rgba(0, 0, 0, 0.15);
     }
 </style>

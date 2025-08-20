@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "非组织用户导入";
 }
 
@@ -23,8 +23,8 @@
     <div class="row">
         <div class="col-lg-8">
             <!-- 文件上传区域 -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="glass-card glass-glow mb-4">
+                <div class="card-header glass-card-header-primary">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-cloud-upload me-2"></i>选择Excel文件
                     </h5>
@@ -32,17 +32,17 @@
                 <div class="card-body">
                     <form id="uploadForm" enctype="multipart/form-data">
                         <div class="mb-4">
-                            <div class="file-upload-area" id="fileUploadArea">
-                                <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
+                            <div class="glass-file-upload-area" id="fileUploadArea">
+                                <input type="file" class="glass-form-control" id="file" name="file" accept=".xlsx,.xls" required>
                                 <div class="file-upload-hint mt-2">
-                                    <i class="bi bi-cloud-upload-fill text-muted me-1"></i>
-                                    <span class="text-muted">点击选择Excel文件或拖拽文件到此处</span>
+                                    <i class="bi bi-cloud-upload-fill me-1"></i>
+                                    <span>点击选择Excel文件或拖拽文件到此处</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 文件信息显示 -->
-                        <div id="fileInfo" class="file-info mb-3" style="display: none;">
+                        <div id="fileInfo" class="glass-file-info mb-3" style="display: none;">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-file-earmark-excel text-success me-2"></i>
                                 <div>
@@ -54,10 +54,10 @@
 
                         <!-- 上传按钮 -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-secondary me-md-2" onclick="resetForm()">
+                            <button type="button" class="glass-btn glass-btn-secondary me-md-2" onclick="resetForm()">
                                 <i class="bi bi-arrow-clockwise me-2"></i>重置
                             </button>
-                            <button type="submit" class="btn btn-primary" id="uploadBtn">
+                            <button type="submit" class="glass-btn glass-btn-primary" id="uploadBtn">
                                 <i class="bi bi-upload me-2"></i>开始导入
                             </button>
                         </div>
@@ -66,24 +66,24 @@
             </div>
 
             <!-- 进度显示 -->
-            <div id="progressCard" class="card mb-4" style="display: none;">
-                <div class="card-header">
+            <div id="progressCard" class="glass-card glass-pulse mb-4" style="display: none;">
+                <div class="card-header glass-card-header-info">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-hourglass-split me-2"></i>导入进度
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="progress mb-3">
-                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                    <div class="glass-progress mb-3">
+                        <div id="progressBar" class="glass-progress-bar glass-progress-bar-striped glass-progress-bar-animated"
                              role="progressbar" style="width: 0%"></div>
                     </div>
-                    <div id="progressText" class="text-center text-muted">准备导入...</div>
+                    <div id="progressText" class="text-center">准备导入...</div>
                 </div>
             </div>
 
             <!-- 结果显示 -->
-            <div id="resultCard" class="card" style="display: none;">
-                <div class="card-header">
+            <div id="resultCard" class="glass-card glass-shimmer" style="display: none;">
+                <div class="card-header glass-card-header-success">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-clipboard-check me-2"></i>导入结果
                     </h5>
@@ -97,34 +97,36 @@
 
         <!-- 侧边栏 -->
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
+            <div class="glass-card glass-validation-card">
+                <div class="card-header glass-card-header-info">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-info-circle me-2"></i>格式要求
                     </h5>
                 </div>
                 <div class="card-body">
-                    <h6>Excel文件格式：</h6>
-                    <ul class="list-unstyled">
-                        <li><i class="bi bi-check-circle text-success me-2"></i>第一列：姓名（必填）</li>
-                        <li><i class="bi bi-check-circle text-success me-2"></i>第二列：手机号码（必填）</li>
-                        <li><i class="bi bi-check-circle text-success me-2"></i>支持.xlsx和.xls格式</li>
-                        <li><i class="bi bi-check-circle text-success me-2"></i>文件大小不超过10MB</li>
+                    <h6 class="text-success">Excel文件格式：</h6>
+                    <ul class="glass-list-group">
+                        <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>第一列：姓名（必填）</li>
+                        <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>第二列：手机号码（必填）</li>
+                        <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>支持.xlsx和.xls格式</li>
+                        <li class="glass-list-item"><i class="bi bi-check-circle text-success me-2"></i>文件大小不超过10MB</li>
                     </ul>
 
-                    <h6 class="mt-4">数据要求：</h6>
-                    <ul class="list-unstyled">
-                        <li><i class="bi bi-exclamation-triangle text-warning me-2"></i>姓名不能为空</li>
-                        <li><i class="bi bi-exclamation-triangle text-warning me-2"></i>手机号必须是11位数字</li>
-                        <li><i class="bi bi-exclamation-triangle text-warning me-2"></i>手机号不能重复</li>
-                        <li><i class="bi bi-exclamation-triangle text-warning me-2"></i>手机号不能已存在系统中</li>
+                    <hr class="glass-divider">
+
+                    <h6 class="text-warning">数据要求：</h6>
+                    <ul class="glass-list-group">
+                        <li class="glass-list-item"><i class="bi bi-exclamation-triangle text-warning me-2"></i>姓名不能为空</li>
+                        <li class="glass-list-item"><i class="bi bi-exclamation-triangle text-warning me-2"></i>手机号必须是11位数字</li>
+                        <li class="glass-list-item"><i class="bi bi-exclamation-triangle text-warning me-2"></i>手机号不能重复</li>
+                        <li class="glass-list-item"><i class="bi bi-exclamation-triangle text-warning me-2"></i>手机号不能已存在系统中</li>
                     </ul>
 
                     <div class="mt-4">
-                        <h6>示例格式：</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead class="table-light">
+                        <h6 class="text-info">示例格式：</h6>
+                        <div class="glass-info-section">
+                            <table class="glass-table table-sm">
+                                <thead>
                                     <tr>
                                         <th>姓名</th>
                                         <th>手机号码</th>
@@ -277,14 +279,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (data.isSuccess) {
             resultSummary.innerHTML = `
-                <div class="alert alert-success">
+                <div class="glass-alert glass-alert-success">
                     <i class="bi bi-check-circle me-2"></i>
                     <strong>导入成功！</strong> 共导入 ${data.successCount} 条记录
                 </div>
             `;
         } else {
             resultSummary.innerHTML = `
-                <div class="alert alert-danger">
+                <div class="glass-alert glass-alert-danger">
                     <i class="bi bi-exclamation-triangle me-2"></i>
                     <strong>导入失败！</strong> ${data.errorMessage}
                 </div>
@@ -340,8 +342,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 detailsHtml += `
                     <div class="mb-3">
                         <h6>导入失败的记录：</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm">
+                        <div class="glass-info-section">
+                            <table class="glass-table table-sm">
                                 <thead>
                                     <tr>
                                         <th>行号</th>
@@ -373,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showError(message) {
         resultCard.style.display = 'block';
         resultSummary.innerHTML = `
-            <div class="alert alert-danger">
+            <div class="glass-alert glass-alert-error">
                 <i class="bi bi-exclamation-triangle me-2"></i>
                 <strong>错误！</strong> ${message}
             </div>
@@ -392,54 +394,192 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-    .file-upload-area {
-        border: 2px dashed #dee2e6;
-        border-radius: 0.375rem;
-        padding: 2rem;
+    /* 玻璃拟态文件上传区域 */
+    .glass-file-upload-area {
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+        border-radius: var(--border-radius-lg);
+        padding: 3rem 2rem;
         text-align: center;
-        transition: border-color 0.15s ease-in-out;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        position: relative;
+        overflow: hidden;
     }
 
-    .file-upload-area:hover,
-    .file-upload-area.drag-over {
-        border-color: #0d6efd;
-        background-color: #f8f9fa;
+    .glass-file-upload-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.6s ease;
     }
 
-    .file-info {
-        padding: 1rem;
-        background-color: #f8f9fa;
-        border-radius: 0.375rem;
-        border: 1px solid #dee2e6;
+    .glass-file-upload-area:hover::before {
+        left: 100%;
     }
 
+    .glass-file-upload-area:hover,
+    .glass-file-upload-area.drag-over {
+        border-color: rgba(102, 126, 234, 0.6);
+        background: rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+    }
+
+    .glass-file-upload-area .file-upload-hint {
+        color: var(--text-secondary);
+        transition: color 0.3s ease;
+    }
+
+    .glass-file-upload-area:hover .file-upload-hint {
+        color: var(--text-primary);
+    }
+
+    /* 玻璃拟态文件信息显示 */
+    .glass-file-info {
+        padding: 1.5rem;
+        background: linear-gradient(135deg,
+            rgba(25, 135, 84, 0.15) 0%,
+            rgba(40, 167, 69, 0.08) 100%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: var(--border-radius-md);
+        border: 1px solid rgba(25, 135, 84, 0.3);
+        box-shadow: 0 4px 16px rgba(25, 135, 84, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .glass-file-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(25, 135, 84, 0.2);
+    }
+
+    /* 玻璃拟态进度条 */
+    .glass-progress {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+        height: 12px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .glass-progress-bar {
+        background: linear-gradient(90deg,
+            rgba(102, 126, 234, 0.8) 0%,
+            rgba(118, 75, 162, 0.8) 50%,
+            rgba(102, 126, 234, 0.8) 100%);
+        height: 100%;
+        transition: width 0.6s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-progress-bar-striped {
+        background-image: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.15) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.15) 75%,
+            transparent 75%,
+            transparent);
+        background-size: 1rem 1rem;
+    }
+
+    .glass-progress-bar-animated {
+        animation: glass-progress-bar-stripes 1s linear infinite;
+    }
+
+    @@keyframes glass-progress-bar-stripes {
+        0% { background-position-x: 1rem; }
+    }
+
+    /* 页面头部样式 */
     .page-header {
         margin-bottom: 2rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+    }
+
+    .page-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 20%;
+        right: 20%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
     }
 
     .page-title {
         font-size: 2rem;
         font-weight: 600;
-        color: #495057;
+        color: var(--text-primary);
         margin-bottom: 0.5rem;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .page-subtitle {
-        color: #6c757d;
+        color: var(--text-secondary);
         font-size: 1.1rem;
         margin-bottom: 0;
     }
 
-    .card {
-        border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    /* 增强按钮效果 */
+    .glass-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .card-header {
-        border-bottom: none;
-        font-weight: 600;
+    .glass-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .glass-btn:hover::before {
+        left: 100%;
+    }
+
+    .glass-btn:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 面包屑导航增强 */
+    .breadcrumb {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: var(--border-radius-md);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .breadcrumb-item a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: var(--text-primary);
+    }
+
+    .breadcrumb-item.active {
+        color: var(--text-primary);
     }
 </style>
