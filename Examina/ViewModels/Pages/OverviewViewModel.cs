@@ -369,6 +369,48 @@ public class OverviewViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 测试API连接
+    /// </summary>
+    public async Task TestApiConnectionAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("=== OverviewViewModel: 开始测试API连接 ===");
+
+        try
+        {
+            // 测试专项练习进度API（已知工作的API）
+            System.Diagnostics.Debug.WriteLine("测试专项练习进度API...");
+            await RefreshSpecialPracticeProgressAsync();
+
+            // 测试综合训练进度API（已知工作的API）
+            System.Diagnostics.Debug.WriteLine("测试综合训练进度API...");
+            await RefreshComprehensiveTrainingProgressAsync();
+
+            // 测试专项练习完成记录API（新的API）
+            System.Diagnostics.Debug.WriteLine("测试专项练习完成记录API...");
+            if (_studentExamService != null)
+            {
+                List<SpecialPracticeCompletionDto> specialPracticeCompletions = await _studentExamService.GetSpecialPracticeCompletionsAsync(1, 5);
+                System.Diagnostics.Debug.WriteLine($"专项练习完成记录数量: {specialPracticeCompletions.Count}");
+            }
+
+            // 测试综合训练完成记录API（新的API）
+            System.Diagnostics.Debug.WriteLine("测试综合训练完成记录API...");
+            if (_comprehensiveTrainingService != null)
+            {
+                List<ComprehensiveTrainingCompletionDto> comprehensiveTrainingCompletions = await _comprehensiveTrainingService.GetComprehensiveTrainingCompletionsAsync(1, 5);
+                System.Diagnostics.Debug.WriteLine($"综合训练完成记录数量: {comprehensiveTrainingCompletions.Count}");
+            }
+
+            System.Diagnostics.Debug.WriteLine("=== OverviewViewModel: API连接测试完成 ===");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: API连接测试异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
+        }
+    }
+
+    /// <summary>
     /// 提交专项练习成绩并刷新进度
     /// </summary>
     /// <param name="practiceId">练习ID</param>

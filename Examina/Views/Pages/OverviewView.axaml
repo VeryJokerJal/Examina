@@ -265,6 +265,14 @@
                                 FontSize="13"
                                 Padding="16,8"
                                 CornerRadius="4" />
+
+                        <Button Content="🔍 测试API连接"
+                                Click="TestApiConnection_Click"
+                                Background="Purple"
+                                Foreground="White"
+                                FontSize="13"
+                                Padding="16,8"
+                                CornerRadius="4" />
                     </StackPanel>
                 </StackPanel>
             </Border>

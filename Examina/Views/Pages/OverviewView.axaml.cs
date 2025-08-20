@@ -128,6 +128,25 @@ public partial class OverviewView : UserControl
             System.Diagnostics.Debug.WriteLine($"刷新成绩记录异常: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// 测试API连接
+    /// </summary>
+    private async void TestApiConnection_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OverviewViewModel viewModel)
+            return;
+
+        try
+        {
+            await viewModel.TestApiConnectionAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"API连接测试异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
+        }
+    }
 }
 
 /// <summary>

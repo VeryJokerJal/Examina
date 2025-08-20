@@ -189,18 +189,26 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("开始获取综合训练完成记录，页码: {PageNumber}, 页大小: {PageSize}", pageNumber, pageSize);
+
             int studentUserId = GetCurrentUserId();
+            _logger.LogInformation("获取到当前用户ID: {StudentUserId}", studentUserId);
 
             // 验证分页参数
             if (pageNumber < 1)
             {
+                _logger.LogWarning("页码参数无效: {PageNumber}，重置为1", pageNumber);
                 pageNumber = 1;
             }
 
             if (pageSize is < 1 or > 100)
             {
+                _logger.LogWarning("页大小参数无效: {PageSize}，重置为20", pageSize);
                 pageSize = 20;
             }
+
+            _logger.LogInformation("调用服务层获取综合训练完成记录，学生ID: {StudentUserId}, 页码: {PageNumber}, 页大小: {PageSize}",
+                studentUserId, pageNumber, pageSize);
 
             List<ComprehensiveTrainingCompletionDto> completions = await _studentComprehensiveTrainingService.GetTrainingCompletionsAsync(studentUserId, pageNumber, pageSize);
 
@@ -208,6 +216,11 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
                 studentUserId, pageNumber, pageSize, completions.Count);
 
             return Ok(completions);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogError(ex, "获取综合训练完成记录时用户认证失败");
+            return Unauthorized(new { message = "用户认证失败", error = ex.Message });
         }
         catch (Exception ex)
         {

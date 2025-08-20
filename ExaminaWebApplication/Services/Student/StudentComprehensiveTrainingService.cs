@@ -526,6 +526,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     {
         try
         {
+            // 由于ComprehensiveTrainingCompletion有Training导航属性，我们可以直接使用
             List<ComprehensiveTrainingCompletionDto> completions = await _context.ComprehensiveTrainingCompletions
                 .Where(c => c.StudentUserId == studentUserId && c.IsActive)
                 .Include(c => c.Training)
@@ -536,7 +537,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 {
                     Id = c.Id,
                     TrainingId = c.TrainingId,
-                    TrainingName = c.Training!.Title,
+                    TrainingName = c.Training!.Name, // 使用Name而不是Title
                     TrainingDescription = c.Training.Description,
                     Status = c.Status,
                     Score = c.Score,

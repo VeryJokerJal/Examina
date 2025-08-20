@@ -155,6 +155,8 @@ public class StudentExamService : IStudentExamService
     /// </summary>
     private async Task EnsureAuthenticatedAsync()
     {
+        System.Diagnostics.Debug.WriteLine($"StudentExamService: 检查认证状态，IsAuthenticated: {_authenticationService.IsAuthenticated}");
+
         if (!_authenticationService.IsAuthenticated)
         {
             throw new UnauthorizedAccessException("用户未认证");
@@ -164,11 +166,15 @@ public class StudentExamService : IStudentExamService
         string? accessToken = await _authenticationService.GetAccessTokenAsync();
         if (string.IsNullOrEmpty(accessToken))
         {
+            System.Diagnostics.Debug.WriteLine("StudentExamService: 无法获取访问令牌");
             throw new UnauthorizedAccessException("无法获取访问令牌");
         }
 
+        System.Diagnostics.Debug.WriteLine($"StudentExamService: 成功获取访问令牌，长度: {accessToken.Length}");
+
         // 设置Authorization头
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        System.Diagnostics.Debug.WriteLine("StudentExamService: 已设置Authorization头");
     }
 
     /// <summary>
@@ -292,16 +298,24 @@ public class StudentExamService : IStudentExamService
             {
                 string content = await response.Content.ReadAsStringAsync();
                 List<SpecialPracticeCompletionDto>? completions = JsonSerializer.Deserialize<List<SpecialPracticeCompletionDto>>(content, JsonOptions);
-                return completions ?? new List<SpecialPracticeCompletionDto>();
+                System.Diagnostics.Debug.WriteLine($"成功获取专项练习完成记录，数量: {completions?.Count ?? 0}");
+                return completions ?? [];
             }
 
-            System.Diagnostics.Debug.WriteLine($"获取专项练习完成记录失败，状态码: {response.StatusCode}");
-            return new List<SpecialPracticeCompletionDto>();
+            // 读取详细错误信息
+            string errorContent = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"获取专项练习完成记录失败");
+            System.Diagnostics.Debug.WriteLine($"状态码: {response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"请求URL: {endpoint}");
+            System.Diagnostics.Debug.WriteLine($"错误内容: {errorContent}");
+            System.Diagnostics.Debug.WriteLine($"响应头: {response.Headers}");
+            return [];
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"获取专项练习完成记录异常: {ex.Message}");
-            return new List<SpecialPracticeCompletionDto>();
+            System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
+            return [];
         }
     }
 }
@@ -541,6 +555,8 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     /// </summary>
     private async Task EnsureAuthenticatedAsync()
     {
+        System.Diagnostics.Debug.WriteLine($"StudentComprehensiveTrainingService: 检查认证状态，IsAuthenticated: {_authenticationService.IsAuthenticated}");
+
         if (!_authenticationService.IsAuthenticated)
         {
             throw new UnauthorizedAccessException("用户未认证");
@@ -550,11 +566,15 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
         string? accessToken = await _authenticationService.GetAccessTokenAsync();
         if (string.IsNullOrEmpty(accessToken))
         {
+            System.Diagnostics.Debug.WriteLine("StudentComprehensiveTrainingService: 无法获取访问令牌");
             throw new UnauthorizedAccessException("无法获取访问令牌");
         }
 
+        System.Diagnostics.Debug.WriteLine($"StudentComprehensiveTrainingService: 成功获取访问令牌，长度: {accessToken.Length}");
+
         // 设置Authorization头
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        System.Diagnostics.Debug.WriteLine("StudentComprehensiveTrainingService: 已设置Authorization头");
     }
 
     /// <summary>
@@ -622,15 +642,23 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             {
                 string content = await response.Content.ReadAsStringAsync();
                 List<ComprehensiveTrainingCompletionDto>? completions = JsonSerializer.Deserialize<List<ComprehensiveTrainingCompletionDto>>(content, JsonOptions);
+                System.Diagnostics.Debug.WriteLine($"成功获取综合训练完成记录，数量: {completions?.Count ?? 0}");
                 return completions ?? [];
             }
 
-            System.Diagnostics.Debug.WriteLine($"获取综合训练完成记录失败，状态码: {response.StatusCode}");
+            // 读取详细错误信息
+            string errorContent = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"获取综合训练完成记录失败");
+            System.Diagnostics.Debug.WriteLine($"状态码: {response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"请求URL: {endpoint}");
+            System.Diagnostics.Debug.WriteLine($"错误内容: {errorContent}");
+            System.Diagnostics.Debug.WriteLine($"响应头: {response.Headers}");
             return [];
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"获取综合训练完成记录异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
             return [];
         }
     }

@@ -301,30 +301,38 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
     {
         try
         {
-            List<SpecialPracticeCompletionDto> completions = await _context.SpecialPracticeCompletions
+            // 由于SpecialPracticeCompletion没有直接的Practice导航属性，我们需要手动关联
+            List<SpecialPracticeCompletion> completionEntities = await _context.SpecialPracticeCompletions
                 .Where(c => c.StudentUserId == studentUserId && c.IsActive)
-                .Include(c => c.Practice)
                 .OrderByDescending(c => c.UpdatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(c => new SpecialPracticeCompletionDto
-                {
-                    Id = c.Id,
-                    PracticeId = c.PracticeId,
-                    PracticeName = c.Practice!.Title,
-                    PracticeDescription = c.Practice.Description,
-                    Status = c.Status,
-                    Score = c.Score,
-                    MaxScore = c.MaxScore,
-                    CompletionPercentage = c.CompletionPercentage,
-                    DurationSeconds = c.DurationSeconds,
-                    Notes = c.Notes,
-                    StartedAt = c.StartedAt,
-                    CompletedAt = c.CompletedAt,
-                    CreatedAt = c.CreatedAt,
-                    UpdatedAt = c.UpdatedAt
-                })
                 .ToListAsync();
+
+            // 获取所有相关的专项训练信息
+            List<int> practiceIds = completionEntities.Select(c => c.PracticeId).Distinct().ToList();
+            Dictionary<int, Models.ImportedSpecializedTraining.ImportedSpecializedTraining> practiceDict = await _context.ImportedSpecializedTrainings
+                .Where(p => practiceIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p);
+
+            // 构建DTO
+            List<SpecialPracticeCompletionDto> completions = completionEntities.Select(c => new SpecialPracticeCompletionDto
+            {
+                Id = c.Id,
+                PracticeId = c.PracticeId,
+                PracticeName = practiceDict.ContainsKey(c.PracticeId) ? practiceDict[c.PracticeId].Name : $"专项练习 {c.PracticeId}",
+                PracticeDescription = practiceDict.ContainsKey(c.PracticeId) ? practiceDict[c.PracticeId].Description : null,
+                Status = c.Status,
+                Score = c.Score,
+                MaxScore = c.MaxScore,
+                CompletionPercentage = c.CompletionPercentage,
+                DurationSeconds = c.DurationSeconds,
+                Notes = c.Notes,
+                StartedAt = c.StartedAt,
+                CompletedAt = c.CompletedAt,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt
+            }).ToList();
 
             _logger.LogInformation("获取学生专项练习完成记录成功，学生ID: {StudentUserId}, 页码: {PageNumber}, 页大小: {PageSize}, 记录数: {Count}",
                 studentUserId, pageNumber, pageSize, completions.Count);
