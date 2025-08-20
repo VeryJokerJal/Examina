@@ -119,7 +119,7 @@ builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 // 注册学生端服务
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentExamService, ExaminaWebApplication.Services.Student.StudentExamService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentComprehensiveTrainingService, ExaminaWebApplication.Services.Student.StudentComprehensiveTrainingService>();
-// builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecializedTrainingService, ExaminaWebApplication.Services.Student.StudentSpecializedTrainingService>();
+builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecializedTrainingService, ExaminaWebApplication.Services.Student.StudentSpecializedTrainingService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecialPracticeService, ExaminaWebApplication.Services.Student.StudentSpecialPracticeService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentMockExamService, ExaminaWebApplication.Services.Student.StudentMockExamService>();
 

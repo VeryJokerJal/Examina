@@ -2,6 +2,7 @@ using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedSpecializedTraining;
 using Microsoft.EntityFrameworkCore;
+using ImportedSpecializedTrainingEntity = ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining;
 
 namespace ExaminaWebApplication.Services.Student;
 
@@ -30,7 +31,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
         {
             // 目前简化权限验证：所有启用的专项训练都对学生可见
             // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
-            List<ImportedSpecializedTraining> trainings = await _context.ImportedSpecializedTrainings
+            List<ImportedSpecializedTrainingEntity> trainings = await _context.ImportedSpecializedTrainings
                 .Where(t => t.IsEnabled)
                 .OrderByDescending(t => t.ImportedAt)
                 .Skip((pageNumber - 1) * pageSize)
@@ -68,7 +69,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                 return null;
             }
 
-            ImportedSpecializedTraining? training = await _context.ImportedSpecializedTrainings
+            ImportedSpecializedTrainingEntity? training = await _context.ImportedSpecializedTrainings
                 .Include(t => t.Modules)
                     .ThenInclude(m => m.Questions)
                         .ThenInclude(q => q.OperationPoints)
@@ -117,7 +118,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             }
 
             // 验证训练存在且启用
-            ImportedSpecializedTraining? training = await _context.ImportedSpecializedTrainings
+            ImportedSpecializedTrainingEntity? training = await _context.ImportedSpecializedTrainings
                 .FirstOrDefaultAsync(t => t.Id == trainingId && t.IsEnabled);
 
             if (training == null)
@@ -168,7 +169,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     {
         try
         {
-            List<ImportedSpecializedTraining> trainings = await _context.ImportedSpecializedTrainings
+            List<ImportedSpecializedTrainingEntity> trainings = await _context.ImportedSpecializedTrainings
                 .Where(t => t.IsEnabled && t.ModuleType == moduleType)
                 .OrderByDescending(t => t.ImportedAt)
                 .Skip((pageNumber - 1) * pageSize)
@@ -199,7 +200,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     {
         try
         {
-            List<ImportedSpecializedTraining> trainings = await _context.ImportedSpecializedTrainings
+            List<ImportedSpecializedTrainingEntity> trainings = await _context.ImportedSpecializedTrainings
                 .Where(t => t.IsEnabled && t.DifficultyLevel == difficultyLevel)
                 .OrderByDescending(t => t.ImportedAt)
                 .Skip((pageNumber - 1) * pageSize)
@@ -230,7 +231,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     {
         try
         {
-            List<ImportedSpecializedTraining> trainings = await _context.ImportedSpecializedTrainings
+            List<ImportedSpecializedTrainingEntity> trainings = await _context.ImportedSpecializedTrainings
                 .Where(t => t.IsEnabled && 
                     (t.Name.Contains(searchKeyword) || 
                      (t.Description != null && t.Description.Contains(searchKeyword)) ||
@@ -286,7 +287,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     /// <summary>
     /// 将ImportedSpecializedTraining映射为StudentSpecializedTrainingDto（基本信息）
     /// </summary>
-    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDto(Models.ImportedSpecializedTraining.ImportedSpecializedTraining training)
+    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDto(ImportedSpecializedTrainingEntity training)
     {
         return new StudentSpecializedTrainingDto
         {
@@ -310,7 +311,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     /// <summary>
     /// 将ImportedSpecializedTraining映射为StudentSpecializedTrainingDto（包含详细信息）
     /// </summary>
-    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDtoWithDetails(Models.ImportedSpecializedTraining.ImportedSpecializedTraining training)
+    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDtoWithDetails(ImportedSpecializedTrainingEntity training)
     {
         StudentSpecializedTrainingDto dto = MapToStudentSpecializedTrainingDto(training);
 
@@ -362,12 +363,12 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             EstimatedMinutes = question.EstimatedMinutes,
             Order = question.Order,
             IsRequired = question.IsRequired,
-            QuestionConfig = question.QuestionConfig,
-            AnswerValidationRules = question.AnswerValidationRules,
+            QuestionConfig = null, // 专项训练题目没有QuestionConfig属性
+            AnswerValidationRules = null, // 专项训练题目没有AnswerValidationRules属性
             Tags = question.Tags,
-            Remarks = question.Remarks,
-            ProgramInput = question.ProgramInput,
-            ExpectedOutput = question.ExpectedOutput,
+            Remarks = null, // 专项训练题目没有Remarks属性
+            ProgramInput = null, // 专项训练题目没有ProgramInput属性
+            ExpectedOutput = null, // 专项训练题目没有ExpectedOutput属性
             OperationPoints = question.OperationPoints?.Select(MapToStudentSpecializedTrainingOperationPointDto).ToList() ?? []
         };
     }
@@ -399,10 +400,10 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             Id = parameter.Id,
             Name = parameter.Name,
             Description = parameter.Description,
-            ParameterType = parameter.ParameterType,
-            DefaultValue = parameter.DefaultValue,
-            MinValue = parameter.MinValue,
-            MaxValue = parameter.MaxValue
+            ParameterType = parameter.Type, // 使用Type属性而不是ParameterType
+            DefaultValue = parameter.DefaultValue?.ToString(), // 转换为字符串
+            MinValue = parameter.MinValue?.ToString(), // 转换为字符串
+            MaxValue = parameter.MaxValue?.ToString() // 转换为字符串
         };
     }
 }

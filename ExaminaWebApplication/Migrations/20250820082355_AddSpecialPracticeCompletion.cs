@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -37,12 +37,6 @@ namespace ExaminaWebApplication.Migrations
                 {
                     table.PrimaryKey("PK_SpecialPracticeCompletions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SpecialPracticeCompletions_ImportedSpecializedTrainings_Pra~",
-                        column: x => x.PracticeId,
-                        principalTable: "ImportedSpecializedTrainings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_SpecialPracticeCompletions_Users_StudentUserId",
                         column: x => x.StudentUserId,
                         principalTable: "Users",
@@ -50,11 +44,6 @@ namespace ExaminaWebApplication.Migrations
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SpecialPracticeCompletions_PracticeId",
-                table: "SpecialPracticeCompletions",
-                column: "PracticeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SpecialPracticeCompletions_StudentUserId",
