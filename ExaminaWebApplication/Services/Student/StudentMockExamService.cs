@@ -63,9 +63,28 @@ public class StudentMockExamService : IStudentMockExamService
 
             // 从综合训练中抽取题目
             List<ExtractedQuestionInfo> extractedQuestions = await ExtractQuestionsAsync(request.ExtractionRules);
+
+            _logger.LogInformation("题目抽取结果：抽取到 {ExtractedCount} 道题目，需要 {RequiredCount} 道题目",
+                extractedQuestions.Count, request.ExtractionRules.Sum(r => r.Count));
+
+            // 如果抽取的题目数量不足，尝试使用备用策略
+            int requiredQuestionCount = request.ExtractionRules.Sum(r => r.Count);
+            if (extractedQuestions.Count < requiredQuestionCount)
+            {
+                _logger.LogWarning("抽取的题目数量不足，尝试使用备用策略。当前抽取：{ExtractedCount}道，需要：{RequiredCount}道",
+                    extractedQuestions.Count, requiredQuestionCount);
+
+                // 尝试备用抽取策略：不限制题目类型和难度
+                List<ExtractedQuestionInfo> fallbackQuestions = await ExtractQuestionsWithFallbackAsync(requiredQuestionCount - extractedQuestions.Count);
+                extractedQuestions.AddRange(fallbackQuestions);
+
+                _logger.LogInformation("备用策略抽取了 {FallbackCount} 道题目，总计：{TotalCount}道",
+                    fallbackQuestions.Count, extractedQuestions.Count);
+            }
+
             if (extractedQuestions.Count == 0)
             {
-                _logger.LogWarning("无法从综合训练中抽取到足够的题目");
+                _logger.LogWarning("无法从综合训练中抽取到任何题目，请检查题库是否为空");
                 return null;
             }
 
@@ -517,11 +536,17 @@ public class StudentMockExamService : IStudentMockExamService
             // 获取符合条件的题目
             List<ImportedComprehensiveTrainingQuestion> availableQuestions = await query.ToListAsync();
 
+            _logger.LogInformation("抽取规则 {QuestionType}({DifficultyLevel})：找到 {AvailableCount} 道可用题目，需要 {RequiredCount} 道",
+                rule.QuestionType, rule.DifficultyLevel, availableQuestions.Count, rule.Count);
+
             // 随机抽取指定数量的题目
             List<ImportedComprehensiveTrainingQuestion> selectedQuestions = availableQuestions
                 .OrderBy(x => _random.Next())
                 .Take(rule.Count)
                 .ToList();
+
+            _logger.LogInformation("抽取规则 {QuestionType}({DifficultyLevel})：成功抽取 {SelectedCount} 道题目",
+                rule.QuestionType, rule.DifficultyLevel, selectedQuestions.Count);
 
             // 转换为ExtractedQuestionInfo
             foreach (ImportedComprehensiveTrainingQuestion question in selectedQuestions)
@@ -574,6 +599,76 @@ public class StudentMockExamService : IStudentMockExamService
         }
 
         return extractedQuestions;
+    }
+
+    /// <summary>
+    /// 备用题目抽取策略：不限制题目类型和难度
+    /// </summary>
+    private async Task<List<ExtractedQuestionInfo>> ExtractQuestionsWithFallbackAsync(int count)
+    {
+        try
+        {
+            _logger.LogInformation("执行备用抽取策略，需要抽取 {Count} 道题目", count);
+
+            // 查询所有可用的题目，不限制类型和难度
+            List<ImportedComprehensiveTrainingQuestion> availableQuestions = await _context.ImportedComprehensiveTrainingQuestions
+                .Include(q => q.OperationPoints)
+                    .ThenInclude(op => op.Parameters)
+                .Include(q => q.Subject)
+                .Include(q => q.Module)
+                .Where(q => q.IsEnabled)
+                .ToListAsync();
+
+            _logger.LogInformation("备用策略找到 {AvailableCount} 道可用题目", availableQuestions.Count);
+
+            if (availableQuestions.Count == 0)
+            {
+                _logger.LogWarning("备用策略：数据库中没有可用的题目");
+                return [];
+            }
+
+            // 随机抽取指定数量的题目
+            List<ImportedComprehensiveTrainingQuestion> selectedQuestions = availableQuestions
+                .OrderBy(x => _random.Next())
+                .Take(count)
+                .ToList();
+
+            List<ExtractedQuestionInfo> extractedQuestions = [];
+
+            // 使用现有的转换逻辑
+            foreach (ImportedComprehensiveTrainingQuestion question in selectedQuestions)
+            {
+                ExtractedQuestionInfo extractedQuestion = new()
+                {
+                    OriginalQuestionId = question.Id,
+                    ComprehensiveTrainingId = question.ComprehensiveTrainingId,
+                    SubjectId = question.SubjectId,
+                    ModuleId = question.ModuleId,
+                    Title = question.Title,
+                    Content = question.Content,
+                    QuestionType = question.QuestionType,
+                    Score = 10, // 备用策略使用固定分值
+                    DifficultyLevel = ConvertDifficultyLevelToString(question.DifficultyLevel),
+                    EstimatedMinutes = question.EstimatedMinutes,
+                    SortOrder = question.SortOrder,
+                    QuestionConfig = question.QuestionConfig,
+                    AnswerValidationRules = question.AnswerValidationRules,
+                    Tags = question.Tags,
+                    Remarks = question.Remarks,
+                    OperationPoints = [] // 简化：不包含操作点
+                };
+
+                extractedQuestions.Add(extractedQuestion);
+            }
+
+            _logger.LogInformation("备用策略成功抽取 {ExtractedCount} 道题目", extractedQuestions.Count);
+            return extractedQuestions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "备用抽取策略执行失败");
+            return [];
+        }
     }
 
     /// <summary>
@@ -649,20 +744,20 @@ public class StudentMockExamService : IStudentMockExamService
             RandomizeQuestions = true,
             ExtractionRules = new List<QuestionExtractionRuleDto>
             {
-                // C#编程题 - 5道，每道15分
+                // 编程题 - 5道，每道15分（不限制难度）
                 new()
                 {
                     QuestionType = "编程题",
-                    DifficultyLevel = "中等",
+                    DifficultyLevel = "", // 不限制难度
                     Count = 5,
                     ScorePerQuestion = 15,
                     IsRequired = true
                 },
-                // 操作题 - 5道，每道5分
+                // 操作题 - 5道，每道5分（不限制难度）
                 new()
                 {
                     QuestionType = "操作题",
-                    DifficultyLevel = "简单",
+                    DifficultyLevel = "", // 不限制难度
                     Count = 5,
                     ScorePerQuestion = 5,
                     IsRequired = true
