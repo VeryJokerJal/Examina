@@ -47,6 +47,21 @@ public interface IStudentExamService
     /// </summary>
     /// <returns>专项练习总数</returns>
     Task<int> GetAvailableSpecialPracticeCountAsync();
+
+    /// <summary>
+    /// 标记专项练习为开始状态
+    /// </summary>
+    /// <param name="practiceId">练习ID</param>
+    /// <returns>是否成功</returns>
+    Task<bool> StartSpecialPracticeAsync(int practiceId);
+
+    /// <summary>
+    /// 提交专项练习成绩并标记为完成
+    /// </summary>
+    /// <param name="practiceId">练习ID</param>
+    /// <param name="request">完成信息</param>
+    /// <returns>是否成功</returns>
+    Task<bool> CompleteSpecialPracticeAsync(int practiceId, CompletePracticeRequest request);
 }
 
 /// <summary>
@@ -87,4 +102,19 @@ public interface IStudentComprehensiveTrainingService
     /// </summary>
     /// <returns>综合训练进度统计</returns>
     Task<ComprehensiveTrainingProgressDto> GetTrainingProgressAsync();
+
+    /// <summary>
+    /// 标记综合训练为开始状态
+    /// </summary>
+    /// <param name="trainingId">训练ID</param>
+    /// <returns>是否成功</returns>
+    Task<bool> StartComprehensiveTrainingAsync(int trainingId);
+
+    /// <summary>
+    /// 提交综合训练成绩并标记为完成
+    /// </summary>
+    /// <param name="trainingId">训练ID</param>
+    /// <param name="request">完成信息</param>
+    /// <returns>是否成功</returns>
+    Task<bool> CompleteComprehensiveTrainingAsync(int trainingId, CompleteTrainingRequest request);
 }

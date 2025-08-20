@@ -226,6 +226,55 @@ public class StudentExamService : IStudentExamService
             return 0;
         }
     }
+
+    /// <summary>
+    /// 标记专项练习为开始状态
+    /// </summary>
+    public async Task<bool> StartSpecialPracticeAsync(int practiceId)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/special-practices/{practiceId}/start";
+            HttpResponseMessage response = await _httpClient.PostAsync(endpoint, null);
+
+            bool success = response.IsSuccessStatusCode;
+            System.Diagnostics.Debug.WriteLine($"标记专项练习开始结果: {success}, 练习ID: {practiceId}");
+            return success;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"标记专项练习开始异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 提交专项练习成绩并标记为完成
+    /// </summary>
+    public async Task<bool> CompleteSpecialPracticeAsync(int practiceId, CompletePracticeRequest request)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/special-practices/{practiceId}/complete";
+            string jsonContent = JsonSerializer.Serialize(request, JsonOptions);
+            StringContent content = new(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
+
+            bool success = response.IsSuccessStatusCode;
+            System.Diagnostics.Debug.WriteLine($"提交专项练习成绩结果: {success}, 练习ID: {practiceId}, 得分: {request.Score}");
+            return success;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"提交专项练习成绩异常: {ex.Message}");
+            return false;
+        }
+    }
 }
 
 /// <summary>
@@ -477,5 +526,54 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
 
         // 设置Authorization头
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    }
+
+    /// <summary>
+    /// 标记综合训练为开始状态
+    /// </summary>
+    public async Task<bool> StartComprehensiveTrainingAsync(int trainingId)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/comprehensive-trainings/{trainingId}/start";
+            HttpResponseMessage response = await _httpClient.PostAsync(endpoint, null);
+
+            bool success = response.IsSuccessStatusCode;
+            System.Diagnostics.Debug.WriteLine($"标记综合训练开始结果: {success}, 训练ID: {trainingId}");
+            return success;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"标记综合训练开始异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 提交综合训练成绩并标记为完成
+    /// </summary>
+    public async Task<bool> CompleteComprehensiveTrainingAsync(int trainingId, CompleteTrainingRequest request)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/comprehensive-trainings/{trainingId}/complete";
+            string jsonContent = JsonSerializer.Serialize(request, JsonOptions);
+            StringContent content = new(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
+
+            bool success = response.IsSuccessStatusCode;
+            System.Diagnostics.Debug.WriteLine($"提交综合训练成绩结果: {success}, 训练ID: {trainingId}, 得分: {request.Score}");
+            return success;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"提交综合训练成绩异常: {ex.Message}");
+            return false;
+        }
     }
 }

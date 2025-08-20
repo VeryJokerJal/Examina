@@ -1,0 +1,130 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Examina.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Examina.Views.Pages.TestScoreSubmissionView"
+             x:DataType="vm:OverviewViewModel">
+    
+    <ScrollViewer>
+        <StackPanel Margin="20" Spacing="20">
+            
+            <!-- 页面标题 -->
+            <TextBlock Text="成绩提交功能测试" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" />
+            
+            <!-- 提交状态显示 -->
+            <Border Background="LightBlue" Padding="10" CornerRadius="5" IsVisible="{Binding LastSubmissionMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <StackPanel>
+                    <TextBlock Text="提交状态:" FontWeight="Bold" />
+                    <TextBlock Text="{Binding LastSubmissionMessage}" />
+                    <TextBlock Text="✅ 成功" Foreground="Green" IsVisible="{Binding LastSubmissionSuccess}" />
+                    <TextBlock Text="❌ 失败" Foreground="Red" IsVisible="{Binding !LastSubmissionSuccess}" />
+                </StackPanel>
+            </Border>
+            
+            <!-- 专项练习成绩提交测试 -->
+            <Border Background="LightGray" Padding="15" CornerRadius="5">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="专项练习成绩提交测试" FontSize="18" FontWeight="Bold" />
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="练习ID:" VerticalAlignment="Center" />
+                        <TextBox x:Name="PracticeIdTextBox" Text="1" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="得分:" VerticalAlignment="Center" />
+                        <TextBox x:Name="PracticeScoreTextBox" Text="85" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="最大得分:" VerticalAlignment="Center" />
+                        <TextBox x:Name="PracticeMaxScoreTextBox" Text="100" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="用时(秒):" VerticalAlignment="Center" />
+                        <TextBox x:Name="PracticeDurationTextBox" Text="1800" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="备注:" VerticalAlignment="Center" />
+                        <TextBox x:Name="PracticeNotesTextBox" Text="测试提交" Width="200" />
+                    </StackPanel>
+                    
+                    <Button Content="提交专项练习成绩" 
+                            Click="SubmitSpecialPracticeScore_Click"
+                            IsEnabled="{Binding !IsSubmittingSpecialPracticeScore}"
+                            Background="LightBlue" />
+                    
+                    <ProgressBar IsIndeterminate="True" 
+                                 IsVisible="{Binding IsSubmittingSpecialPracticeScore}" 
+                                 Height="4" />
+                </StackPanel>
+            </Border>
+            
+            <!-- 综合训练成绩提交测试 -->
+            <Border Background="LightGreen" Padding="15" CornerRadius="5">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="综合训练成绩提交测试" FontSize="18" FontWeight="Bold" />
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="训练ID:" VerticalAlignment="Center" />
+                        <TextBox x:Name="TrainingIdTextBox" Text="1" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="得分:" VerticalAlignment="Center" />
+                        <TextBox x:Name="TrainingScoreTextBox" Text="92" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="最大得分:" VerticalAlignment="Center" />
+                        <TextBox x:Name="TrainingMaxScoreTextBox" Text="100" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="用时(秒):" VerticalAlignment="Center" />
+                        <TextBox x:Name="TrainingDurationTextBox" Text="3600" Width="100" />
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="备注:" VerticalAlignment="Center" />
+                        <TextBox x:Name="TrainingNotesTextBox" Text="测试提交" Width="200" />
+                    </StackPanel>
+                    
+                    <Button Content="提交综合训练成绩" 
+                            Click="SubmitComprehensiveTrainingScore_Click"
+                            IsEnabled="{Binding !IsSubmittingComprehensiveTrainingScore}"
+                            Background="LightGreen" />
+                    
+                    <ProgressBar IsIndeterminate="True" 
+                                 IsVisible="{Binding IsSubmittingComprehensiveTrainingScore}" 
+                                 Height="4" />
+                </StackPanel>
+            </Border>
+            
+            <!-- 进度刷新测试 -->
+            <Border Background="LightYellow" Padding="15" CornerRadius="5">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="进度刷新测试" FontSize="18" FontWeight="Bold" />
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="刷新所有进度" Click="RefreshAllProgress_Click" Background="Orange" />
+                        <Button Content="刷新专项练习进度" Click="RefreshSpecialPracticeProgress_Click" Background="LightBlue" />
+                        <Button Content="刷新综合训练进度" Click="RefreshComprehensiveTrainingProgress_Click" Background="LightGreen" />
+                    </StackPanel>
+                    
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="当前进度状态:" FontWeight="Bold" />
+                        <TextBlock Text="{Binding SpecialPracticeProgressText, StringFormat='专项练习: {0}'}" />
+                        <TextBlock Text="{Binding ComprehensiveTrainingProgressText, StringFormat='综合训练: {0}'}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+        </StackPanel>
+    </ScrollViewer>
+    
+</UserControl>
