@@ -1,9 +1,9 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Examina.Services;
-using Examina.ViewModels;
 
 namespace Examina.Views;
 
@@ -12,30 +12,127 @@ namespace Examina.Views;
 /// </summary>
 public partial class ToolbarWindow : Window
 {
-    private readonly ScreenReservationService _screenReservation = new();
-    private ToolbarWindowViewModel? _viewModel;
+    private readonly ScreenReservationService _screenReservation;
+
+    // 工具栏属性
+    private bool _isToolbarVisible = true;
+    private double _toolbarOpacity = 0.8;
+    private double _toolbarHeight = 50;
+    private double _toolbarWidth = 1920;
+    private bool _isTopmost = true;
+    private bool _isScreenReservationEnabled = true;
+    private string _toolbarTitle = "工具栏";
+
+    /// <summary>
+    /// 工具栏是否可见
+    /// </summary>
+    public bool IsToolbarVisible
+    {
+        get => _isToolbarVisible;
+        set
+        {
+            _isToolbarVisible = value;
+            IsVisible = value;
+        }
+    }
+
+    /// <summary>
+    /// 工具栏透明度
+    /// </summary>
+    public double ToolbarOpacity
+    {
+        get => _toolbarOpacity;
+        set
+        {
+            _toolbarOpacity = value;
+            Opacity = value;
+        }
+    }
+
+    /// <summary>
+    /// 工具栏高度
+    /// </summary>
+    public double ToolbarHeight
+    {
+        get => _toolbarHeight;
+        set
+        {
+            _toolbarHeight = value;
+            Height = value;
+        }
+    }
+
+    /// <summary>
+    /// 工具栏宽度
+    /// </summary>
+    public double ToolbarWidth
+    {
+        get => _toolbarWidth;
+        set
+        {
+            _toolbarWidth = value;
+            Width = value;
+        }
+    }
+
+    /// <summary>
+    /// 是否置顶
+    /// </summary>
+    public bool IsToolbarTopmost
+    {
+        get => _isTopmost;
+        set
+        {
+            _isTopmost = value;
+            Topmost = value;
+        }
+    }
+
+    /// <summary>
+    /// 是否启用屏幕预留
+    /// </summary>
+    public bool IsScreenReservationEnabled
+    {
+        get => _isScreenReservationEnabled;
+        set => _isScreenReservationEnabled = value;
+    }
+
+    /// <summary>
+    /// 工具栏标题
+    /// </summary>
+    public string ToolbarTitle
+    {
+        get => _toolbarTitle;
+        set
+        {
+            _toolbarTitle = value;
+            Title = value;
+            TextBlock? titleTextBlock = this.FindControl<TextBlock>("ToolbarTitleTextBlock");
+            if (titleTextBlock != null)
+            {
+                titleTextBlock.Text = value;
+            }
+        }
+    }
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ToolbarWindow()
+    public ToolbarWindow() : this(new ScreenReservationService())
     {
-        InitializeComponent();
-        InitializeWindow();
-        SetupEventHandlers();
     }
 
     /// <summary>
-    /// 带ViewModel的构造函数
+    /// 带依赖注入的构造函数
     /// </summary>
-    /// <param name="viewModel">工具栏窗口的ViewModel</param>
-    public ToolbarWindow(ToolbarWindowViewModel viewModel) : this()
+    /// <param name="screenReservationService">屏幕预留服务</param>
+    public ToolbarWindow(ScreenReservationService screenReservationService)
     {
-        DataContext = viewModel;
-        _viewModel = viewModel;
-        
-        // 订阅ViewModel的关闭请求事件
-        _viewModel.CloseRequested += OnCloseRequested;
+        _screenReservation = screenReservationService ?? throw new ArgumentNullException(nameof(screenReservationService));
+
+        InitializeComponent();
+        InitializeWindow();
+        SetupEventHandlers();
     }
 
     /// <summary>
@@ -61,12 +158,25 @@ public partial class ToolbarWindow : Window
     {
         // 防止窗口最小化
         PropertyChanged += ToolbarWindow_PropertyChanged;
-        
+
         // 窗口打开时的处理
         Opened += ToolbarWindow_Opened;
-        
+
         // 窗口关闭时的处理
         Closing += ToolbarWindow_Closing;
+
+        // 设置按钮事件处理
+        Button? toggleButton = this.FindControl<Button>("ToggleVisibilityButton");
+        if (toggleButton != null)
+        {
+            toggleButton.Click += ToggleVisibilityButton_Click;
+        }
+
+        Button? closeButton = this.FindControl<Button>("CloseButton");
+        if (closeButton != null)
+        {
+            closeButton.Click += CloseButton_Click;
+        }
     }
 
     /// <summary>
@@ -100,12 +210,22 @@ public partial class ToolbarWindow : Window
     {
         // 释放屏幕预留区域
         _screenReservation.Dispose();
-        
-        // 取消订阅ViewModel事件
-        if (_viewModel != null)
-        {
-            _viewModel.CloseRequested -= OnCloseRequested;
-        }
+    }
+
+    /// <summary>
+    /// 切换可见性按钮点击事件
+    /// </summary>
+    private void ToggleVisibilityButton_Click(object? sender, RoutedEventArgs e)
+    {
+        ToggleToolbarVisibility();
+    }
+
+    /// <summary>
+    /// 关闭按钮点击事件
+    /// </summary>
+    private void CloseButton_Click(object? sender, RoutedEventArgs e)
+    {
+        Close();
     }
 
     /// <summary>
@@ -118,33 +238,22 @@ public partial class ToolbarWindow : Window
         if (screenSize.HasValue)
         {
             double screenWidth = screenSize.Value.Width;
-            double toolbarHeight = _viewModel?.ToolbarHeight ?? 50;
-            
-            Width = screenWidth;
-            Height = toolbarHeight;
+            double toolbarHeight = ToolbarHeight;
 
-            // 更新ViewModel中的尺寸信息
-            _viewModel?.UpdateSize(screenWidth, toolbarHeight);
+            ToolbarWidth = screenWidth;
+            ToolbarHeight = toolbarHeight;
 
             // 预留屏幕区域（如果启用）
-            if (_viewModel?.IsScreenReservationEnabled == true)
+            if (IsScreenReservationEnabled)
             {
                 bool reservationResult = _screenReservation.ReserveAreaOnSide((int)toolbarHeight, DockPosition.Top);
-                
+
                 if (!reservationResult)
                 {
                     System.Diagnostics.Debug.WriteLine("ToolbarWindow: 屏幕区域预留失败");
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// 处理ViewModel的关闭请求
-    /// </summary>
-    private void OnCloseRequested()
-    {
-        Close();
     }
 
     /// <summary>
@@ -165,8 +274,8 @@ public partial class ToolbarWindow : Window
     /// </summary>
     public void ShowToolbar()
     {
+        IsToolbarVisible = true;
         Show();
-        _viewModel?.ShowCommand.Execute().Subscribe();
     }
 
     /// <summary>
@@ -174,8 +283,8 @@ public partial class ToolbarWindow : Window
     /// </summary>
     public void HideToolbar()
     {
+        IsToolbarVisible = false;
         Hide();
-        _viewModel?.HideCommand.Execute().Subscribe();
     }
 
     /// <summary>
@@ -183,7 +292,7 @@ public partial class ToolbarWindow : Window
     /// </summary>
     public void ToggleToolbarVisibility()
     {
-        if (IsVisible)
+        if (IsToolbarVisible)
         {
             HideToolbar();
         }
@@ -210,9 +319,8 @@ public partial class ToolbarWindow : Window
     /// <param name="height">新的高度</param>
     public void UpdateSize(double width, double height)
     {
-        Width = width;
-        Height = height;
-        _viewModel?.UpdateSize(width, height);
+        ToolbarWidth = width;
+        ToolbarHeight = height;
     }
 
     /// <summary>
@@ -221,20 +329,35 @@ public partial class ToolbarWindow : Window
     /// <param name="enabled">是否启用屏幕预留</param>
     public void SetScreenReservationEnabled(bool enabled)
     {
-        if (_viewModel != null)
+        IsScreenReservationEnabled = enabled;
+
+        if (enabled)
         {
-            _viewModel.IsScreenReservationEnabled = enabled;
-            
-            if (enabled)
-            {
-                // 重新设置屏幕预留
-                SetupWindowArea();
-            }
-            else
-            {
-                // 释放屏幕预留
-                _screenReservation.Dispose();
-            }
+            // 重新设置屏幕预留
+            SetupWindowArea();
         }
+        else
+        {
+            // 释放屏幕预留
+            _screenReservation.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 设置工具栏透明度
+    /// </summary>
+    /// <param name="opacity">透明度值（0.0-1.0）</param>
+    public void SetToolbarOpacity(double opacity)
+    {
+        ToolbarOpacity = Math.Clamp(opacity, 0.0, 1.0);
+    }
+
+    /// <summary>
+    /// 设置工具栏置顶状态
+    /// </summary>
+    /// <param name="topmost">是否置顶</param>
+    public void SetToolbarTopmost(bool topmost)
+    {
+        IsToolbarTopmost = topmost;
     }
 }

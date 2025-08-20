@@ -2,7 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Examina.ViewModels;
+using Examina.Services;
 
 namespace Examina.Views;
 
@@ -17,17 +17,14 @@ public static class ToolbarWindowTestExample
     /// <returns>配置好的工具栏窗口</returns>
     public static ToolbarWindow CreateBasicToolbar()
     {
-        // 创建ViewModel
-        ToolbarWindowViewModel viewModel = new ToolbarWindowViewModel
-        {
-            ToolbarTitle = "测试工具栏",
-            ToolbarHeight = 50,
-            Opacity = 0.8,
-            IsScreenReservationEnabled = true
-        };
-
         // 创建窗口
-        ToolbarWindow toolbarWindow = new ToolbarWindow(viewModel);
+        ToolbarWindow toolbarWindow = new ToolbarWindow();
+
+        // 配置工具栏属性
+        toolbarWindow.ToolbarTitle = "测试工具栏";
+        toolbarWindow.ToolbarHeight = 50;
+        toolbarWindow.ToolbarOpacity = 0.8;
+        toolbarWindow.IsScreenReservationEnabled = true;
 
         return toolbarWindow;
     }
@@ -38,21 +35,37 @@ public static class ToolbarWindowTestExample
     /// <returns>配置好的工具栏窗口</returns>
     public static ToolbarWindow CreateToolbarWithCustomContent()
     {
-        // 创建ViewModel
-        ToolbarWindowViewModel viewModel = new ToolbarWindowViewModel
-        {
-            ToolbarTitle = "考试系统工具栏",
-            ToolbarHeight = 60,
-            Opacity = 0.9,
-            IsScreenReservationEnabled = true
-        };
-
         // 创建窗口
-        ToolbarWindow toolbarWindow = new ToolbarWindow(viewModel);
+        ToolbarWindow toolbarWindow = new ToolbarWindow();
+
+        // 配置工具栏属性
+        toolbarWindow.ToolbarTitle = "考试系统工具栏";
+        toolbarWindow.ToolbarHeight = 60;
+        toolbarWindow.ToolbarOpacity = 0.9;
+        toolbarWindow.IsScreenReservationEnabled = true;
 
         // 创建自定义内容
         Grid customContent = CreateCustomToolbarContent();
         toolbarWindow.SetToolbarContent(customContent);
+
+        return toolbarWindow;
+    }
+
+    /// <summary>
+    /// 创建带依赖注入的工具栏测试
+    /// </summary>
+    /// <param name="screenReservationService">屏幕预留服务</param>
+    /// <returns>配置好的工具栏窗口</returns>
+    public static ToolbarWindow CreateToolbarWithDependencyInjection(ScreenReservationService screenReservationService)
+    {
+        // 创建窗口（使用依赖注入）
+        ToolbarWindow toolbarWindow = new ToolbarWindow(screenReservationService);
+
+        // 配置工具栏属性
+        toolbarWindow.ToolbarTitle = "依赖注入工具栏";
+        toolbarWindow.ToolbarHeight = 55;
+        toolbarWindow.ToolbarOpacity = 0.85;
+        toolbarWindow.IsScreenReservationEnabled = true;
 
         return toolbarWindow;
     }
@@ -223,10 +236,77 @@ public static class ToolbarWindowTestExample
     {
         // 创建带自定义内容的工具栏
         ToolbarWindow toolbarWindow = CreateToolbarWithCustomContent();
-        
+
         // 执行功能测试
         TestToolbarFunctionality(toolbarWindow);
-        
+
         return toolbarWindow;
+    }
+
+    /// <summary>
+    /// 创建完整的依赖注入测试场景
+    /// </summary>
+    /// <param name="screenReservationService">屏幕预留服务</param>
+    /// <returns>配置好的工具栏窗口</returns>
+    public static ToolbarWindow CreateCompleteTestScenarioWithDI(ScreenReservationService screenReservationService)
+    {
+        // 创建带依赖注入的工具栏
+        ToolbarWindow toolbarWindow = CreateToolbarWithDependencyInjection(screenReservationService);
+
+        // 添加自定义内容
+        Grid customContent = CreateCustomToolbarContent();
+        toolbarWindow.SetToolbarContent(customContent);
+
+        // 执行功能测试
+        TestToolbarFunctionality(toolbarWindow);
+
+        return toolbarWindow;
+    }
+
+    /// <summary>
+    /// 验证重构后的功能
+    /// </summary>
+    /// <returns>验证是否成功</returns>
+    public static bool ValidateRefactoredFunctionality()
+    {
+        try
+        {
+            Console.WriteLine("开始验证重构后的ToolbarWindow功能...");
+
+            // 测试1: 基本实例化
+            ToolbarWindow basicWindow = new ToolbarWindow();
+            Console.WriteLine("✓ 基本实例化成功");
+
+            // 测试2: 依赖注入实例化
+            ScreenReservationService service = new ScreenReservationService();
+            ToolbarWindow diWindow = new ToolbarWindow(service);
+            Console.WriteLine("✓ 依赖注入实例化成功");
+
+            // 测试3: 属性设置
+            diWindow.ToolbarTitle = "测试标题";
+            diWindow.ToolbarHeight = 60;
+            diWindow.ToolbarOpacity = 0.9;
+            diWindow.IsScreenReservationEnabled = true;
+            Console.WriteLine("✓ 属性设置成功");
+
+            // 测试4: 方法调用
+            diWindow.UpdateSize(1920, 70);
+            diWindow.SetToolbarOpacity(0.8);
+            diWindow.SetToolbarTopmost(true);
+            Console.WriteLine("✓ 方法调用成功");
+
+            // 测试5: 内容设置
+            TextBlock testContent = new TextBlock { Text = "测试内容" };
+            diWindow.SetToolbarContent(testContent);
+            Console.WriteLine("✓ 内容设置成功");
+
+            Console.WriteLine("所有功能验证通过！重构成功。");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ 验证失败: {ex.Message}");
+            return false;
+        }
     }
 }
