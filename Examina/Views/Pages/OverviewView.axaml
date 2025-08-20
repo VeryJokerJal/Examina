@@ -79,11 +79,29 @@
                         </Button.Styles>
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="专项练习" />
-                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SpecialPracticeTextColorPrimary}" Text="{Binding SpecialPracticeCount}" />
-                                <TextBlock Margin="2,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="/237" />
+
+                            <!-- 加载状态 -->
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingSpecialPracticeProgress}">
+                                <TextBlock FontSize="14" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="加载中..." HorizontalAlignment="Center" />
                             </StackPanel>
-                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource SpecialPracticeTextColorSecondary}" Text="专项练习练习度" />
+
+                            <!-- 进度显示 -->
+                            <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding !IsLoadingSpecialPracticeProgress}">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SpecialPracticeTextColorPrimary}" Text="{Binding SpecialPracticeProgressText}" />
+                                </StackPanel>
+
+                                <!-- 进度条 -->
+                                <ProgressBar Margin="0,8,0,0" Width="120" Height="6"
+                                           Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                                           Foreground="{DynamicResource SpecialPracticeTextColorPrimary}"
+                                           Value="{Binding SpecialPracticeCompletionPercentage}"
+                                           Maximum="100" />
+
+                                <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12"
+                                         Foreground="{DynamicResource SpecialPracticeTextColorSecondary}"
+                                         Text="{Binding SpecialPracticeCompletionPercentage, StringFormat='{}{0:F1}% 完成'}" />
+                            </StackPanel>
                         </StackPanel>
                     </Button>
 

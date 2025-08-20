@@ -44,6 +44,9 @@ public class ApplicationDbContext : DbContext
     // 综合训练完成记录
     public DbSet<ComprehensiveTrainingCompletion> ComprehensiveTrainingCompletions { get; set; }
 
+    // 专项练习完成记录
+    public DbSet<SpecialPracticeCompletion> SpecialPracticeCompletions { get; set; }
+
     // 组织相关实体
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<InvitationCode> InvitationCodes { get; set; }

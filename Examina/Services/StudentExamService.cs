@@ -346,6 +346,62 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     }
 
     /// <summary>
+    /// 获取学生专项练习进度统计
+    /// </summary>
+    public async Task<SpecialPracticeProgressDto> GetSpecialPracticeProgressAsync()
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = "/api/student/special-practices/progress";
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                SpecialPracticeProgressDto? progress = JsonSerializer.Deserialize<SpecialPracticeProgressDto>(content, JsonOptions);
+                return progress ?? new SpecialPracticeProgressDto();
+            }
+
+            System.Diagnostics.Debug.WriteLine($"获取专项练习进度失败，状态码: {response.StatusCode}");
+            return new SpecialPracticeProgressDto();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取专项练习进度异常: {ex.Message}");
+            return new SpecialPracticeProgressDto();
+        }
+    }
+
+    /// <summary>
+    /// 获取学生可访问的专项练习总数
+    /// </summary>
+    public async Task<int> GetAvailableSpecialPracticeCountAsync()
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = "/api/student/special-practices/count";
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<int>(content, JsonOptions);
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取专项练习总数异常: {ex.Message}");
+            return 0;
+        }
+    }
+
+    /// <summary>
     /// 确保用户已认证并设置Authorization头
     /// </summary>
     private async Task EnsureAuthenticatedAsync()

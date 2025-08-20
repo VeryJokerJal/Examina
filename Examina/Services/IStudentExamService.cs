@@ -75,4 +75,16 @@ public interface IStudentComprehensiveTrainingService
     /// </summary>
     /// <returns>综合训练进度统计</returns>
     Task<ComprehensiveTrainingProgressDto> GetTrainingProgressAsync();
+
+    /// <summary>
+    /// 获取学生专项练习进度统计
+    /// </summary>
+    /// <returns>专项练习进度统计</returns>
+    Task<SpecialPracticeProgressDto> GetSpecialPracticeProgressAsync();
+
+    /// <summary>
+    /// 获取学生可访问的专项练习总数
+    /// </summary>
+    /// <returns>专项练习总数</returns>
+    Task<int> GetAvailableSpecialPracticeCountAsync();
 }

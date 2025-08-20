@@ -99,6 +99,36 @@ public class OverviewViewModel : ViewModelBase
     [Reactive]
     public bool IsLoadingComprehensiveTrainingProgress { get; set; } = false;
 
+    /// <summary>
+    /// 专项练习总数
+    /// </summary>
+    [Reactive]
+    public int SpecialPracticeTotalCount { get; set; } = 0;
+
+    /// <summary>
+    /// 专项练习已完成数量
+    /// </summary>
+    [Reactive]
+    public int SpecialPracticeCompletedCount { get; set; } = 0;
+
+    /// <summary>
+    /// 专项练习完成百分比
+    /// </summary>
+    [Reactive]
+    public double SpecialPracticeCompletionPercentage { get; set; } = 0;
+
+    /// <summary>
+    /// 专项练习进度文本
+    /// </summary>
+    [Reactive]
+    public string SpecialPracticeProgressText { get; set; } = "0/0";
+
+    /// <summary>
+    /// 是否正在加载专项练习进度
+    /// </summary>
+    [Reactive]
+    public bool IsLoadingSpecialPracticeProgress { get; set; } = false;
+
     #endregion
 
     #region 命令
@@ -124,6 +154,7 @@ public class OverviewViewModel : ViewModelBase
         SelectStatisticTypeCommand = new DelegateCommand<object>(SelectStatisticType);
         LoadOverviewData();
         _ = LoadComprehensiveTrainingProgressAsync();
+        _ = LoadSpecialPracticeProgressAsync();
     }
 
     #endregion
@@ -186,6 +217,47 @@ public class OverviewViewModel : ViewModelBase
         finally
         {
             IsLoadingComprehensiveTrainingProgress = false;
+        }
+    }
+
+    /// <summary>
+    /// 加载专项练习进度数据
+    /// </summary>
+    private async Task LoadSpecialPracticeProgressAsync()
+    {
+        if (_comprehensiveTrainingService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 综合实训服务未注入，跳过专项练习进度加载");
+            return;
+        }
+
+        try
+        {
+            IsLoadingSpecialPracticeProgress = true;
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始加载专项练习进度");
+
+            SpecialPracticeProgressDto progress = await _comprehensiveTrainingService.GetSpecialPracticeProgressAsync();
+
+            SpecialPracticeTotalCount = progress.TotalCount;
+            SpecialPracticeCompletedCount = progress.CompletedCount;
+            SpecialPracticeCompletionPercentage = progress.CompletionPercentage;
+            SpecialPracticeProgressText = $"{progress.CompletedCount}/{progress.TotalCount}";
+
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 专项练习进度加载成功 - 总数: {progress.TotalCount}, 完成: {progress.CompletedCount}, 百分比: {progress.CompletionPercentage}%");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载专项练习进度失败: {ex.Message}");
+
+            // 设置默认值
+            SpecialPracticeTotalCount = 0;
+            SpecialPracticeCompletedCount = 0;
+            SpecialPracticeCompletionPercentage = 0;
+            SpecialPracticeProgressText = "0/0";
+        }
+        finally
+        {
+            IsLoadingSpecialPracticeProgress = false;
         }
     }
 

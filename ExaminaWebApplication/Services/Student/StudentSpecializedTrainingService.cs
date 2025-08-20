@@ -286,7 +286,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     /// <summary>
     /// 将ImportedSpecializedTraining映射为StudentSpecializedTrainingDto（基本信息）
     /// </summary>
-    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDto(ImportedSpecializedTraining training)
+    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDto(Models.ImportedSpecializedTraining.ImportedSpecializedTraining training)
     {
         return new StudentSpecializedTrainingDto
         {
@@ -310,7 +310,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     /// <summary>
     /// 将ImportedSpecializedTraining映射为StudentSpecializedTrainingDto（包含详细信息）
     /// </summary>
-    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDtoWithDetails(ImportedSpecializedTraining training)
+    private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDtoWithDetails(Models.ImportedSpecializedTraining.ImportedSpecializedTraining training)
     {
         StudentSpecializedTrainingDto dto = MapToStudentSpecializedTrainingDto(training);
 
@@ -405,3 +405,4 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             MaxValue = parameter.MaxValue
         };
     }
+}
