@@ -73,6 +73,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
             _viewModel.ExamAutoSubmitted -= OnExamAutoSubmitted;
             _viewModel.ExamManualSubmitted -= OnExamManualSubmitted;
             _viewModel.ViewQuestionsRequested -= OnViewQuestionsRequested;
+            _viewModel.WindowCloseRequested -= OnWindowCloseRequested;
         }
 
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
@@ -82,6 +83,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
         _viewModel.ExamAutoSubmitted += OnExamAutoSubmitted;
         _viewModel.ExamManualSubmitted += OnExamManualSubmitted;
         _viewModel.ViewQuestionsRequested += OnViewQuestionsRequested;
+        _viewModel.WindowCloseRequested += OnWindowCloseRequested;
 
         _logger.LogInformation("ExamToolbarWindow ViewModel已设置");
     }
@@ -205,17 +207,14 @@ public partial class ExamToolbarWindow : Window, IDisposable
     /// <summary>
     /// 考试自动提交事件处理
     /// </summary>
-    private async void OnExamAutoSubmitted(object? sender, EventArgs e)
+    private void OnExamAutoSubmitted(object? sender, EventArgs e)
     {
         _logger.LogWarning("考试时间到，执行自动提交");
 
         try
         {
-            // 触发外部事件
+            // 触发外部事件（自动提交逻辑已在ViewModel中处理）
             ExamAutoSubmitted?.Invoke(this, EventArgs.Empty);
-
-            // 显示自动提交通知
-            await ShowAutoSubmitNotification();
         }
         catch (Exception ex)
         {
@@ -226,32 +225,14 @@ public partial class ExamToolbarWindow : Window, IDisposable
     /// <summary>
     /// 考试手动提交事件处理
     /// </summary>
-    private async void OnExamManualSubmitted(object? sender, EventArgs e)
+    private void OnExamManualSubmitted(object? sender, EventArgs e)
     {
         _logger.LogInformation("用户手动提交考试");
 
         try
         {
-            // 显示确认对话框
-            bool confirmed = await ShowSubmitConfirmationDialog("确定要提交考试吗？提交后将无法继续答题。");
-
-            if (confirmed)
-            {
-                // 触发外部事件
-                ExamManualSubmitted?.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                // 用户取消提交，恢复ViewModel状态
-                if (_viewModel != null)
-                {
-                    _viewModel.IsSubmitting = false;
-                    if (_viewModel.RemainingTimeSeconds > 0)
-                    {
-                        _viewModel.StartCountdown(_viewModel.RemainingTimeSeconds);
-                    }
-                }
-            }
+            // 触发外部事件（提交逻辑已在ViewModel中处理）
+            ExamManualSubmitted?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
@@ -269,47 +250,24 @@ public partial class ExamToolbarWindow : Window, IDisposable
     }
 
     /// <summary>
-    /// 显示提交确认对话框
+    /// 窗口关闭请求事件处理
     /// </summary>
-    private async Task<bool> ShowSubmitConfirmationDialog(string message)
+    private void OnWindowCloseRequested(object? sender, EventArgs e)
     {
+        _logger.LogInformation("收到窗口关闭请求");
+
         try
         {
-            // 这里应该显示一个确认对话框
-            // 暂时简化处理，直接返回true
-            // 在实际实现中，应该使用Avalonia的对话框或自定义对话框
-            _logger.LogInformation("显示提交确认对话框: {Message}", message);
-
-            // TODO: 实现实际的对话框
-            await Task.Delay(100); // 模拟对话框显示时间
-            return true;
+            // 关闭窗口
+            Close();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "显示提交确认对话框时发生错误");
-            return false;
+            _logger.LogError(ex, "关闭窗口时发生错误");
         }
     }
 
-    /// <summary>
-    /// 显示自动提交通知
-    /// </summary>
-    private async Task ShowAutoSubmitNotification()
-    {
-        try
-        {
-            // 这里应该显示一个自动提交的通知
-            // 暂时简化处理
-            _logger.LogInformation("显示自动提交通知");
 
-            // TODO: 实现实际的通知
-            await Task.Delay(100);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "显示自动提交通知时发生错误");
-        }
-    }
 
     /// <summary>
     /// 开始考试
@@ -356,6 +314,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
                 _viewModel.ExamAutoSubmitted -= OnExamAutoSubmitted;
                 _viewModel.ExamManualSubmitted -= OnExamManualSubmitted;
                 _viewModel.ViewQuestionsRequested -= OnViewQuestionsRequested;
+                _viewModel.WindowCloseRequested -= OnWindowCloseRequested;
                 _viewModel.Dispose();
             }
 

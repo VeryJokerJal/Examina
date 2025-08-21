@@ -1,14 +1,12 @@
-using System.Reactive;
+﻿using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
-using Examina.Models.Exam;
 using Examina.Models.MockExam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
 using Examina.Views;
 using Examina.Views.Dialogs;
-using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
 namespace Examina.ViewModels.Pages;
@@ -92,7 +90,7 @@ public class MockExamViewModel : ViewModelBase
         StartMockExamCommand = ReactiveCommand.CreateFromTask(StartMockExamAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
 
         // 初始化用户权限状态
-        _ = UpdateUserPermissionsAsync();
+        UpdateUserPermissions();
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
@@ -200,7 +198,7 @@ public class MockExamViewModel : ViewModelBase
     /// <summary>
     /// 更新用户权限状态
     /// </summary>
-    private async Task UpdateUserPermissionsAsync()
+    private void UpdateUserPermissions()
     {
         if (_isUpdatingPermissions)
         {
@@ -248,7 +246,7 @@ public class MockExamViewModel : ViewModelBase
     /// </summary>
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
-        _ = UpdateUserPermissionsAsync();
+        UpdateUserPermissions();
     }
 
     /// <summary>
@@ -341,7 +339,7 @@ public class MockExamViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {module.Name} - {module.Description}");
                 foreach (MockExamQuestionDto question in module.Questions)
                 {
-                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 题目 {question.Id} - {question.Title} ({question.QuestionType})");
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 题目 {question.Id} - {question.Title}");
                 }
             }
 
@@ -500,7 +498,7 @@ public class MockExamViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交成功，ID: {examId}");
 
                 // 关闭考试工具栏窗口并显示主窗口
-                await CloseExamAndShowMainWindowAsync();
+                CloseExamAndShowMainWindow();
             }
             else
             {
@@ -516,7 +514,7 @@ public class MockExamViewModel : ViewModelBase
     /// <summary>
     /// 关闭考试并显示主窗口
     /// </summary>
-    private async Task CloseExamAndShowMainWindowAsync()
+    private void CloseExamAndShowMainWindow()
     {
         try
         {
@@ -530,7 +528,7 @@ public class MockExamViewModel : ViewModelBase
             }
 
             // 刷新数据
-            await UpdateUserPermissionsAsync();
+            UpdateUserPermissions();
         }
         catch (Exception ex)
         {

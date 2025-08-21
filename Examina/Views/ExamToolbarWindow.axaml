@@ -104,6 +104,68 @@
         </Grid>
     </Border>
 
+    <!--  提交确认对话框  -->
+    <Border Background="#80000000" IsVisible="{Binding ShowSubmitConfirmDialog}" ZIndex="1000">
+        <Border Width="400" Height="200" Background="{DynamicResource ExamDialogBackgroundBrush}" BorderBrush="{DynamicResource ExamDialogBorderBrush}" BorderThickness="1" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  对话框标题  -->
+                <TextBlock Grid.Row="0" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ExamDialogForegroundBrush}" Text="提交确认" />
+
+                <!--  对话框内容  -->
+                <TextBlock Grid.Row="1" Margin="0,15" FontSize="14" Foreground="{DynamicResource ExamDialogForegroundBrush}" Text="{Binding SubmitMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+
+                <!--  对话框按钮  -->
+                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
+                    <Button Padding="15,8" Background="{DynamicResource ExamDialogCancelButtonBackgroundBrush}" BorderThickness="1" BorderBrush="{DynamicResource ExamDialogCancelButtonBorderBrush}" Command="{Binding CancelSubmitCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamDialogCancelButtonForegroundBrush}">
+                        取消
+                    </Button>
+                    <Button Padding="15,8" Background="{DynamicResource ExamSubmitButtonBackgroundBrush}" BorderThickness="0" Command="{Binding ConfirmSubmitCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamSubmitButtonForegroundBrush}">
+                        确认提交
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+
+    <!--  提交结果对话框  -->
+    <Border Background="#80000000" IsVisible="{Binding ShowSubmitResultDialog}" ZIndex="1000">
+        <Border Width="400" Height="250" Background="{DynamicResource ExamDialogBackgroundBrush}" BorderBrush="{DynamicResource ExamDialogBorderBrush}" BorderThickness="1" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  对话框标题  -->
+                <TextBlock Grid.Row="0" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ExamDialogForegroundBrush}" Text="提交结果" />
+
+                <!--  进度条  -->
+                <ProgressBar Grid.Row="1" Margin="0,15,0,10" Height="8" Background="{DynamicResource ExamProgressBackgroundBrush}" Foreground="{DynamicResource ExamProgressForegroundBrush}" IsVisible="{Binding IsSubmitting}" Value="{Binding SubmitProgress}" />
+
+                <!--  对话框内容  -->
+                <TextBlock Grid.Row="2" FontSize="14" Foreground="{DynamicResource ExamDialogForegroundBrush}" Text="{Binding SubmitMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+
+                <!--  对话框按钮  -->
+                <StackPanel Grid.Row="3" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
+                    <Button Padding="15,8" Background="{DynamicResource ExamDialogCancelButtonBackgroundBrush}" BorderThickness="1" BorderBrush="{DynamicResource ExamDialogCancelButtonBorderBrush}" Command="{Binding RetrySubmitCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamDialogCancelButtonForegroundBrush}" IsVisible="{Binding CanRetrySubmit}">
+                        重试
+                    </Button>
+                    <Button Padding="15,8" Background="{DynamicResource ExamSubmitButtonBackgroundBrush}" BorderThickness="0" Command="{Binding CloseResultDialogCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamSubmitButtonForegroundBrush}">
+                        确定
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+
     <!--  样式资源  -->
     <Window.Styles>
         <Style Selector="Button:pointerover">
@@ -169,5 +231,29 @@
 
         <!--  网络断开颜色  -->
         <SolidColorBrush x:Key="NetworkDisconnectedBrush" Color="#FFFF4444" />
+
+        <!--  对话框背景色  -->
+        <SolidColorBrush x:Key="ExamDialogBackgroundBrush" Color="#FF2D2D30" />
+
+        <!--  对话框边框色  -->
+        <SolidColorBrush x:Key="ExamDialogBorderBrush" Color="#FF007ACC" />
+
+        <!--  对话框前景色  -->
+        <SolidColorBrush x:Key="ExamDialogForegroundBrush" Color="#FFFFFF" />
+
+        <!--  对话框取消按钮背景色  -->
+        <SolidColorBrush x:Key="ExamDialogCancelButtonBackgroundBrush" Color="#FF3C3C3C" />
+
+        <!--  对话框取消按钮前景色  -->
+        <SolidColorBrush x:Key="ExamDialogCancelButtonForegroundBrush" Color="#FFFFFF" />
+
+        <!--  对话框取消按钮边框色  -->
+        <SolidColorBrush x:Key="ExamDialogCancelButtonBorderBrush" Color="#FF666666" />
+
+        <!--  进度条背景色  -->
+        <SolidColorBrush x:Key="ExamProgressBackgroundBrush" Color="#FF3C3C3C" />
+
+        <!--  进度条前景色  -->
+        <SolidColorBrush x:Key="ExamProgressForegroundBrush" Color="#FF007ACC" />
     </Window.Resources>
 </Window>

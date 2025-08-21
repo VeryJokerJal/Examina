@@ -7,6 +7,8 @@ using ReactiveUI.Fody.Helpers;
 using Examina.Models;
 using Examina.Services;
 using Microsoft.Extensions.Logging;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia;
 
 namespace Examina.ViewModels;
 
@@ -19,26 +21,57 @@ public enum ExamStatus
     /// 准备中
     /// </summary>
     Preparing,
-    
+
     /// <summary>
     /// 进行中
     /// </summary>
     InProgress,
-    
+
     /// <summary>
     /// 即将结束（最后5分钟）
     /// </summary>
     AboutToEnd,
-    
+
     /// <summary>
     /// 已结束
     /// </summary>
     Ended,
-    
+
     /// <summary>
     /// 已提交
     /// </summary>
     Submitted
+}
+
+/// <summary>
+/// 提交状态枚举
+/// </summary>
+public enum SubmitStatus
+{
+    /// <summary>
+    /// 准备提交
+    /// </summary>
+    Ready,
+
+    /// <summary>
+    /// 等待确认
+    /// </summary>
+    WaitingConfirmation,
+
+    /// <summary>
+    /// 提交中
+    /// </summary>
+    Submitting,
+
+    /// <summary>
+    /// 提交成功
+    /// </summary>
+    Success,
+
+    /// <summary>
+    /// 提交失败
+    /// </summary>
+    Failed
 }
 
 /// <summary>
@@ -122,6 +155,41 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     [Reactive] public bool IsNetworkConnected { get; set; } = true;
 
     /// <summary>
+    /// 提交状态
+    /// </summary>
+    [Reactive] public SubmitStatus CurrentSubmitStatus { get; set; } = SubmitStatus.Ready;
+
+    /// <summary>
+    /// 提交进度（0-100）
+    /// </summary>
+    [Reactive] public double SubmitProgress { get; set; } = 0;
+
+    /// <summary>
+    /// 提交消息
+    /// </summary>
+    [Reactive] public string SubmitMessage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 是否显示提交确认对话框
+    /// </summary>
+    [Reactive] public bool ShowSubmitConfirmDialog { get; set; } = false;
+
+    /// <summary>
+    /// 是否显示提交结果对话框
+    /// </summary>
+    [Reactive] public bool ShowSubmitResultDialog { get; set; } = false;
+
+    /// <summary>
+    /// 是否可以重试提交
+    /// </summary>
+    [Reactive] public bool CanRetrySubmit { get; set; } = false;
+
+    /// <summary>
+    /// 所有题目是否已完成
+    /// </summary>
+    [Reactive] public bool AllQuestionsCompleted { get; set; } = false;
+
+    /// <summary>
     /// 查看题目命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> ViewQuestionsCommand { get; }
@@ -132,6 +200,26 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     public ReactiveCommand<Unit, Unit> SubmitExamCommand { get; }
 
     /// <summary>
+    /// 确认提交命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ConfirmSubmitCommand { get; }
+
+    /// <summary>
+    /// 取消提交命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> CancelSubmitCommand { get; }
+
+    /// <summary>
+    /// 重试提交命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RetrySubmitCommand { get; }
+
+    /// <summary>
+    /// 关闭结果对话框命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> CloseResultDialogCommand { get; }
+
+    /// <summary>
     /// 考试自动提交事件
     /// </summary>
     public event EventHandler? ExamAutoSubmitted;
@@ -140,6 +228,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// 考试手动提交事件
     /// </summary>
     public event EventHandler? ExamManualSubmitted;
+
+    /// <summary>
+    /// 提交完成后窗口关闭事件
+    /// </summary>
+    public event EventHandler? WindowCloseRequested;
 
     /// <summary>
     /// 查看题目请求事件
@@ -156,7 +249,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         // 初始化命令
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
-        SubmitExamCommand = ReactiveCommand.CreateFromTask(SubmitExamAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
+        SubmitExamCommand = ReactiveCommand.CreateFromTask(ShowSubmitConfirmationAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
+        ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
+        CancelSubmitCommand = ReactiveCommand.Create(CancelSubmit);
+        RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
+        CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
         this.WhenAnyValue(x => x.RemainingTimeSeconds)
@@ -216,14 +313,14 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         RemainingTimeSeconds--;
 
-        if (RemainingTimeSeconds <= 0)
+        // 检查自动提交条件
+        if (CheckAutoSubmitConditions())
         {
-            // 时间到，自动提交
             CurrentExamStatus = ExamStatus.Ended;
             StopCountdown();
-            
-            _logger.LogWarning("考试时间到，触发自动提交");
-            ExamAutoSubmitted?.Invoke(this, EventArgs.Empty);
+
+            _logger.LogWarning("满足自动提交条件，触发自动提交");
+            _ = Task.Run(async () => await TriggerAutoSubmitAsync());
         }
         else if (RemainingTimeSeconds <= TimeWarningThreshold && CurrentExamStatus != ExamStatus.AboutToEnd)
         {
@@ -231,6 +328,28 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             CurrentExamStatus = ExamStatus.AboutToEnd;
             _logger.LogInformation("考试进入即将结束状态，剩余时间: {RemainingTime}秒", RemainingTimeSeconds);
         }
+    }
+
+    /// <summary>
+    /// 检查自动提交条件
+    /// </summary>
+    private bool CheckAutoSubmitConditions()
+    {
+        // 时间到期
+        if (RemainingTimeSeconds <= 0)
+        {
+            _logger.LogInformation("自动提交条件：时间到期");
+            return true;
+        }
+
+        // 所有题目已完成且剩余时间少于30秒
+        if (AllQuestionsCompleted && RemainingTimeSeconds <= 30)
+        {
+            _logger.LogInformation("自动提交条件：所有题目已完成且剩余时间少于30秒");
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -252,35 +371,273 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// 提交考试
+    /// 显示提交确认对话框
     /// </summary>
-    private async Task SubmitExamAsync()
+    private async Task ShowSubmitConfirmationAsync()
     {
         try
         {
-            IsSubmitting = true;
-            _logger.LogInformation("开始手动提交考试，考试ID: {ExamId}", ExamId);
-
-            // 停止倒计时
-            StopCountdown();
-            CurrentExamStatus = ExamStatus.Submitted;
-
-            // 触发提交事件
-            ExamManualSubmitted?.Invoke(this, EventArgs.Empty);
+            _logger.LogInformation("显示手动提交确认对话框");
+            CurrentSubmitStatus = SubmitStatus.WaitingConfirmation;
+            SubmitMessage = "确定要提交考试吗？提交后将无法继续答题。";
+            ShowSubmitConfirmDialog = true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "提交考试失败");
+            _logger.LogError(ex, "显示提交确认对话框失败");
+        }
+    }
+
+    /// <summary>
+    /// 执行提交操作
+    /// </summary>
+    private async Task PerformSubmitAsync()
+    {
+        try
+        {
+            _logger.LogInformation("开始执行考试提交，考试ID: {ExamId}", ExamId);
+
+            // 隐藏确认对话框
+            ShowSubmitConfirmDialog = false;
+
+            // 设置提交状态
+            CurrentSubmitStatus = SubmitStatus.Submitting;
+            IsSubmitting = true;
+            CanSubmitExam = false;
+            SubmitProgress = 0;
+            SubmitMessage = "正在提交考试，请稍候...";
+
+            // 停止倒计时
+            StopCountdown();
+
+            // 模拟提交进度
+            for (int i = 0; i <= 100; i += 10)
+            {
+                SubmitProgress = i;
+                await Task.Delay(200); // 模拟网络延迟
+            }
+
+            // 触发提交事件
+            ExamManualSubmitted?.Invoke(this, EventArgs.Empty);
+
+            // 设置成功状态
+            await HandleSubmitSuccessAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleSubmitFailureAsync(ex);
+        }
+    }
+
+    /// <summary>
+    /// 处理提交成功
+    /// </summary>
+    private async Task HandleSubmitSuccessAsync()
+    {
+        try
+        {
+            _logger.LogInformation("考试提交成功");
+
+            CurrentSubmitStatus = SubmitStatus.Success;
+            CurrentExamStatus = ExamStatus.Submitted;
             IsSubmitting = false;
-            // 恢复倒计时
+            SubmitProgress = 100;
+            SubmitMessage = "考试提交成功！";
+            ShowSubmitResultDialog = true;
+
+            // 延迟3秒后自动关闭窗口
+            await Task.Delay(3000);
+            await CloseWindowAfterSubmitAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "处理提交成功状态时发生错误");
+        }
+    }
+
+    /// <summary>
+    /// 处理提交失败
+    /// </summary>
+    private async Task HandleSubmitFailureAsync(Exception exception)
+    {
+        try
+        {
+            _logger.LogError(exception, "考试提交失败");
+
+            CurrentSubmitStatus = SubmitStatus.Failed;
+            IsSubmitting = false;
+            CanSubmitExam = true;
+            CanRetrySubmit = true;
+            SubmitMessage = $"提交失败：{exception.Message}";
+            ShowSubmitResultDialog = true;
+
+            // 恢复倒计时（如果还有时间）
             if (RemainingTimeSeconds > 0)
             {
                 StartCountdown(RemainingTimeSeconds);
             }
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "处理提交失败状态时发生错误");
+        }
     }
 
+    /// <summary>
+    /// 触发自动提交
+    /// </summary>
+    private async Task TriggerAutoSubmitAsync()
+    {
+        try
+        {
+            _logger.LogWarning("触发自动提交");
 
+            CurrentSubmitStatus = SubmitStatus.Submitting;
+            IsSubmitting = true;
+            SubmitMessage = "考试时间到，正在自动提交...";
+
+            // 触发自动提交事件
+            ExamAutoSubmitted?.Invoke(this, EventArgs.Empty);
+
+            // 设置成功状态
+            await HandleSubmitSuccessAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleSubmitFailureAsync(ex);
+        }
+    }
+
+    /// <summary>
+    /// 取消提交
+    /// </summary>
+    private void CancelSubmit()
+    {
+        try
+        {
+            _logger.LogInformation("用户取消提交");
+
+            ShowSubmitConfirmDialog = false;
+            CurrentSubmitStatus = SubmitStatus.Ready;
+            SubmitMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消提交时发生错误");
+        }
+    }
+
+    /// <summary>
+    /// 关闭结果对话框
+    /// </summary>
+    private void CloseResultDialog()
+    {
+        try
+        {
+            ShowSubmitResultDialog = false;
+
+            if (CurrentSubmitStatus == SubmitStatus.Success)
+            {
+                _ = Task.Run(CloseWindowAfterSubmitAsync);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "关闭结果对话框时发生错误");
+        }
+    }
+
+    /// <summary>
+    /// 提交完成后关闭窗口
+    /// </summary>
+    private async Task CloseWindowAfterSubmitAsync()
+    {
+        try
+        {
+            _logger.LogInformation("准备关闭考试工具栏窗口");
+
+            // 保存考试数据
+            await SaveExamDataAsync();
+
+            // 清理资源
+            await CleanupResourcesAsync();
+
+            // 触发窗口关闭事件
+            WindowCloseRequested?.Invoke(this, EventArgs.Empty);
+
+            // 恢复主窗口
+            await RestoreMainWindowAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "关闭窗口时发生错误");
+        }
+    }
+
+    /// <summary>
+    /// 保存考试数据
+    /// </summary>
+    private async Task SaveExamDataAsync()
+    {
+        try
+        {
+            _logger.LogInformation("保存考试数据");
+            // TODO: 实现考试数据保存逻辑
+            await Task.Delay(100);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "保存考试数据失败");
+        }
+    }
+
+    /// <summary>
+    /// 清理资源
+    /// </summary>
+    private async Task CleanupResourcesAsync()
+    {
+        try
+        {
+            _logger.LogInformation("清理考试资源");
+
+            // 停止倒计时
+            StopCountdown();
+
+            // 清理临时文件
+            // TODO: 实现临时文件清理逻辑
+
+            await Task.Delay(100);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "清理资源失败");
+        }
+    }
+
+    /// <summary>
+    /// 恢复主窗口
+    /// </summary>
+    private async Task RestoreMainWindowAsync()
+    {
+        try
+        {
+            _logger.LogInformation("恢复主窗口显示");
+
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                desktop.MainWindow.Show();
+                desktop.MainWindow.WindowState = Avalonia.Controls.WindowState.Normal;
+                desktop.MainWindow.Activate();
+            }
+
+            await Task.Delay(100);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "恢复主窗口失败");
+        }
+    }
 
     /// <summary>
     /// 设置考试信息
@@ -328,6 +685,13 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         if (!_disposed)
         {
             _countdownTimer?.Dispose();
+
+            // 清理事件订阅
+            ExamAutoSubmitted = null;
+            ExamManualSubmitted = null;
+            ViewQuestionsRequested = null;
+            WindowCloseRequested = null;
+
             _disposed = true;
             _logger.LogInformation("ExamToolbarViewModel资源已释放");
         }
