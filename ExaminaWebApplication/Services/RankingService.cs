@@ -1,9 +1,9 @@
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Ranking;
-using ExaminaWebApplication.Models.Organization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OrganizationEntity = ExaminaWebApplication.Models.Organization.Organization;
 
 namespace ExaminaWebApplication.Services;
 
@@ -305,21 +305,21 @@ public class RankingService
         try
         {
             // 查找学生组织关系
-            StudentOrganization? studentOrg = await _context.StudentOrganizations
+            ExaminaWebApplication.Models.Organization.StudentOrganization? studentOrg = await _context.StudentOrganizations
                 .Include(so => so.Organization)
                 .ThenInclude(o => o.ParentOrganization)
-                .Where(so => so.StudentUserId == userId && so.IsActive)
+                .Where(so => so.StudentId == userId && so.IsActive)
                 .FirstOrDefaultAsync();
 
             if (studentOrg?.Organization != null)
             {
-                Organization org = studentOrg.Organization;
-                if (org.Type == OrganizationType.Class && org.ParentOrganization != null)
+                OrganizationEntity org = studentOrg.Organization;
+                if (org.Type == ExaminaWebApplication.Models.Organization.OrganizationType.Class && org.ParentOrganization != null)
                 {
                     // 用户在班级中，返回学校和班级名称
                     return (org.ParentOrganization.Name, org.Name);
                 }
-                else if (org.Type == OrganizationType.School)
+                else if (org.Type == ExaminaWebApplication.Models.Organization.OrganizationType.School)
                 {
                     // 用户直接在学校中
                     return (org.Name, null);
