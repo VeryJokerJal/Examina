@@ -7,6 +7,97 @@
         <vm:ExamToolbarViewModel />
     </Design.DataContext>
 
+    <!--  样式资源  -->
+    <Window.Styles>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+
+        <Style Selector="Button:pressed">
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+    </Window.Styles>
+
+    <!--  资源字典  -->
+    <Window.Resources>
+        <!--  转换器  -->
+        <converters:BoolToTimeBrushConverter x:Key="BoolToTimeBrushConverter" />
+        <converters:ExamStatusToStringConverter x:Key="ExamStatusToStringConverter" />
+        <converters:ExamStatusToBrushConverter x:Key="ExamStatusToBrushConverter" />
+        <converters:BoolToNetworkIconConverter x:Key="BoolToNetworkIconConverter" />
+        <converters:BoolToNetworkBrushConverter x:Key="BoolToNetworkBrushConverter" />
+        <converters:BoolToSubmitTextConverter x:Key="BoolToSubmitTextConverter" />
+
+        <!--  考试工具栏背景色  -->
+        <SolidColorBrush x:Key="ExamToolbarBackgroundBrush" Color="#E6000000" />
+
+        <!--  考试工具栏边框色  -->
+        <SolidColorBrush x:Key="ExamToolbarBorderBrush" Color="#FF007ACC" />
+
+        <!--  考试工具栏前景色  -->
+        <SolidColorBrush x:Key="ExamToolbarForegroundBrush" Color="#FFFFFF" />
+
+        <!--  考试工具栏次要前景色  -->
+        <SolidColorBrush x:Key="ExamToolbarSecondaryForegroundBrush" Color="#CCCCCC" />
+
+        <!--  学生头像背景色  -->
+        <SolidColorBrush x:Key="StudentAvatarBackgroundBrush" Color="#FF007ACC" />
+
+        <!--  学生头像图标色  -->
+        <SolidColorBrush x:Key="StudentAvatarIconBrush" Color="#FFFFFF" />
+
+        <!--  工具栏按钮背景色  -->
+        <SolidColorBrush x:Key="ExamToolbarButtonBackgroundBrush" Color="#FF333333" />
+
+        <!--  工具栏按钮前景色  -->
+        <SolidColorBrush x:Key="ExamToolbarButtonForegroundBrush" Color="#FFFFFF" />
+
+        <!--  工具栏按钮边框色  -->
+        <SolidColorBrush x:Key="ExamToolbarButtonBorderBrush" Color="#FF666666" />
+
+        <!--  提交按钮背景色  -->
+        <SolidColorBrush x:Key="ExamSubmitButtonBackgroundBrush" Color="#FF28A745" />
+
+        <!--  提交按钮前景色  -->
+        <SolidColorBrush x:Key="ExamSubmitButtonForegroundBrush" Color="#FFFFFF" />
+
+        <!--  正常时间颜色  -->
+        <SolidColorBrush x:Key="NormalTimeBrush" Color="#FFFFFF" />
+
+        <!--  紧急时间颜色  -->
+        <SolidColorBrush x:Key="UrgentTimeBrush" Color="#FFFF4444" />
+
+        <!--  网络连接颜色  -->
+        <SolidColorBrush x:Key="NetworkConnectedBrush" Color="#FF28A745" />
+
+        <!--  网络断开颜色  -->
+        <SolidColorBrush x:Key="NetworkDisconnectedBrush" Color="#FFFF4444" />
+
+        <!--  对话框背景色  -->
+        <SolidColorBrush x:Key="ExamDialogBackgroundBrush" Color="#FF2D2D30" />
+
+        <!--  对话框边框色  -->
+        <SolidColorBrush x:Key="ExamDialogBorderBrush" Color="#FF007ACC" />
+
+        <!--  对话框前景色  -->
+        <SolidColorBrush x:Key="ExamDialogForegroundBrush" Color="#FFFFFF" />
+
+        <!--  对话框取消按钮背景色  -->
+        <SolidColorBrush x:Key="ExamDialogCancelButtonBackgroundBrush" Color="#FF3C3C3C" />
+
+        <!--  对话框取消按钮前景色  -->
+        <SolidColorBrush x:Key="ExamDialogCancelButtonForegroundBrush" Color="#FFFFFF" />
+
+        <!--  对话框取消按钮边框色  -->
+        <SolidColorBrush x:Key="ExamDialogCancelButtonBorderBrush" Color="#FF666666" />
+
+        <!--  进度条背景色  -->
+        <SolidColorBrush x:Key="ExamProgressBackgroundBrush" Color="#FF3C3C3C" />
+
+        <!--  进度条前景色  -->
+        <SolidColorBrush x:Key="ExamProgressForegroundBrush" Color="#FF007ACC" />
+    </Window.Resources>
+
     <!--  主容器 Grid，包含所有内容  -->
     <Grid>
         <!--  考试工具栏主容器  -->
@@ -167,96 +258,5 @@
             </Grid>
         </Border>
     </Border>
-
-    <!--  样式资源  -->
-    <Window.Styles>
-        <Style Selector="Button:pointerover">
-            <Setter Property="Opacity" Value="0.8" />
-        </Style>
-
-        <Style Selector="Button:pressed">
-            <Setter Property="Opacity" Value="0.6" />
-        </Style>
-    </Window.Styles>
-
-    <!--  资源字典  -->
-    <Window.Resources>
-        <!--  转换器  -->
-        <converters:BoolToTimeBrushConverter x:Key="BoolToTimeBrushConverter" />
-        <converters:ExamStatusToStringConverter x:Key="ExamStatusToStringConverter" />
-        <converters:ExamStatusToBrushConverter x:Key="ExamStatusToBrushConverter" />
-        <converters:BoolToNetworkIconConverter x:Key="BoolToNetworkIconConverter" />
-        <converters:BoolToNetworkBrushConverter x:Key="BoolToNetworkBrushConverter" />
-        <converters:BoolToSubmitTextConverter x:Key="BoolToSubmitTextConverter" />
-
-        <!--  考试工具栏背景色  -->
-        <SolidColorBrush x:Key="ExamToolbarBackgroundBrush" Color="#E6000000" />
-
-        <!--  考试工具栏边框色  -->
-        <SolidColorBrush x:Key="ExamToolbarBorderBrush" Color="#FF007ACC" />
-
-        <!--  考试工具栏前景色  -->
-        <SolidColorBrush x:Key="ExamToolbarForegroundBrush" Color="#FFFFFF" />
-
-        <!--  考试工具栏次要前景色  -->
-        <SolidColorBrush x:Key="ExamToolbarSecondaryForegroundBrush" Color="#CCCCCC" />
-
-        <!--  学生头像背景色  -->
-        <SolidColorBrush x:Key="StudentAvatarBackgroundBrush" Color="#FF007ACC" />
-
-        <!--  学生头像图标色  -->
-        <SolidColorBrush x:Key="StudentAvatarIconBrush" Color="#FFFFFF" />
-
-        <!--  工具栏按钮背景色  -->
-        <SolidColorBrush x:Key="ExamToolbarButtonBackgroundBrush" Color="#FF333333" />
-
-        <!--  工具栏按钮前景色  -->
-        <SolidColorBrush x:Key="ExamToolbarButtonForegroundBrush" Color="#FFFFFF" />
-
-        <!--  工具栏按钮边框色  -->
-        <SolidColorBrush x:Key="ExamToolbarButtonBorderBrush" Color="#FF666666" />
-
-        <!--  提交按钮背景色  -->
-        <SolidColorBrush x:Key="ExamSubmitButtonBackgroundBrush" Color="#FF28A745" />
-
-        <!--  提交按钮前景色  -->
-        <SolidColorBrush x:Key="ExamSubmitButtonForegroundBrush" Color="#FFFFFF" />
-
-        <!--  正常时间颜色  -->
-        <SolidColorBrush x:Key="NormalTimeBrush" Color="#FFFFFF" />
-
-        <!--  紧急时间颜色  -->
-        <SolidColorBrush x:Key="UrgentTimeBrush" Color="#FFFF4444" />
-
-        <!--  网络连接颜色  -->
-        <SolidColorBrush x:Key="NetworkConnectedBrush" Color="#FF28A745" />
-
-        <!--  网络断开颜色  -->
-        <SolidColorBrush x:Key="NetworkDisconnectedBrush" Color="#FFFF4444" />
-
-        <!--  对话框背景色  -->
-        <SolidColorBrush x:Key="ExamDialogBackgroundBrush" Color="#FF2D2D30" />
-
-        <!--  对话框边框色  -->
-        <SolidColorBrush x:Key="ExamDialogBorderBrush" Color="#FF007ACC" />
-
-        <!--  对话框前景色  -->
-        <SolidColorBrush x:Key="ExamDialogForegroundBrush" Color="#FFFFFF" />
-
-        <!--  对话框取消按钮背景色  -->
-        <SolidColorBrush x:Key="ExamDialogCancelButtonBackgroundBrush" Color="#FF3C3C3C" />
-
-        <!--  对话框取消按钮前景色  -->
-        <SolidColorBrush x:Key="ExamDialogCancelButtonForegroundBrush" Color="#FFFFFF" />
-
-        <!--  对话框取消按钮边框色  -->
-        <SolidColorBrush x:Key="ExamDialogCancelButtonBorderBrush" Color="#FF666666" />
-
-        <!--  进度条背景色  -->
-        <SolidColorBrush x:Key="ExamProgressBackgroundBrush" Color="#FF3C3C3C" />
-
-        <!--  进度条前景色  -->
-        <SolidColorBrush x:Key="ExamProgressForegroundBrush" Color="#FF007ACC" />
-    </Window.Resources>
     </Grid>
 </Window>
