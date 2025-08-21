@@ -7,8 +7,10 @@
         <vm:ExamToolbarViewModel />
     </Design.DataContext>
 
-    <!--  考试工具栏主容器  -->
-    <Border BorderBrush="{DynamicResource ExamToolbarBorderBrush}" BorderThickness="0,0,0,1" CornerRadius="0">
+    <!--  主容器 Grid，包含所有内容  -->
+    <Grid>
+        <!--  考试工具栏主容器  -->
+        <Border BorderBrush="{DynamicResource ExamToolbarBorderBrush}" BorderThickness="0,0,0,1" CornerRadius="0">
 
         <!--  主要内容区域  -->
         <Grid Margin="15,8">
@@ -102,9 +104,9 @@
                 </StackPanel>
             </Button>
         </Grid>
-    </Border>
+        </Border>
 
-    <!--  提交确认对话框  -->
+        <!--  提交确认对话框  -->
     <Border Background="#80000000" IsVisible="{Binding ShowSubmitConfirmDialog}" ZIndex="1000">
         <Border Width="400" Height="200" Background="{DynamicResource ExamDialogBackgroundBrush}" BorderBrush="{DynamicResource ExamDialogBorderBrush}" BorderThickness="1" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Grid Margin="20">
@@ -256,4 +258,5 @@
         <!--  进度条前景色  -->
         <SolidColorBrush x:Key="ExamProgressForegroundBrush" Color="#FF007ACC" />
     </Window.Resources>
+    </Grid>
 </Window>

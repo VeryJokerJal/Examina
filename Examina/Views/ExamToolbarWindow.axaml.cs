@@ -153,7 +153,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
     /// <summary>
     /// 窗口关闭事件处理
     /// </summary>
-    private async void ExamToolbarWindow_Closing(object? sender, WindowClosingEventArgs e)
+    private void ExamToolbarWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
         // 如果考试正在进行中，阻止关闭并触发提交
         if (_viewModel?.CurrentExamStatus is ExamStatus.InProgress or ExamStatus.AboutToEnd)
@@ -161,14 +161,8 @@ public partial class ExamToolbarWindow : Window, IDisposable
             e.Cancel = true;
             _logger.LogWarning("检测到考试进行中的窗口关闭尝试，触发自动提交");
 
-            // 显示确认对话框
-            bool shouldSubmit = await ShowSubmitConfirmationDialog("检测到考试窗口即将关闭，是否提交考试？");
-            if (shouldSubmit)
-            {
-                // 触发自动提交
-                OnExamAutoSubmitted(this, EventArgs.Empty);
-            }
-            return;
+            // 触发自动提交
+            OnExamAutoSubmitted(this, EventArgs.Empty);
         }
 
         // 释放资源
