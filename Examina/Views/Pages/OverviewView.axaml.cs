@@ -46,6 +46,40 @@ public class StatisticTypeToDisplayNameConverter : IValueConverter
 }
 
 /// <summary>
+/// 页码是否为当前页的转换器（用于背景色）
+/// </summary>
+public class PageNumberBackgroundConverter : IMultiValueConverter
+{
+    public static readonly PageNumberBackgroundConverter Instance = new();
+
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values.Count >= 2 && values[0] is int pageNumber && values[1] is int currentPage)
+        {
+            return pageNumber == currentPage ? "#FF0078D4" : "Transparent";
+        }
+        return "Transparent";
+    }
+}
+
+/// <summary>
+/// 页码是否为当前页的转换器（用于前景色）
+/// </summary>
+public class PageNumberForegroundConverter : IMultiValueConverter
+{
+    public static readonly PageNumberForegroundConverter Instance = new();
+
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values.Count >= 2 && values[0] is int pageNumber && values[1] is int currentPage)
+        {
+            return pageNumber == currentPage ? "White" : "#666666";
+        }
+        return "#666666";
+    }
+}
+
+/// <summary>
 /// 统计类型到背景色的转换器
 /// </summary>
 public class StatisticTypeToBackgroundConverter : IValueConverter

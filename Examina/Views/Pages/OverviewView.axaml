@@ -15,8 +15,8 @@
             </Border>
 
             <!--  统计卡片  -->
-            <Border Padding="24" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="1" CornerRadius="8">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+            <Border Padding="24" Background="{DynamicResource LayerFillColorDefaultBrush}" HorizontalAlignment="Center" CornerRadius="8">
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="12">
 
                     <!--  模拟考试次数  -->
                     <Button Padding="20,16" Background="{Binding SelectedStatisticType, Converter={x:Static local:StatisticTypeToBackgroundConverter.Instance}, ConverterParameter=MockExam}" BorderThickness="0" Command="{Binding SelectStatisticTypeCommand}" CommandParameter="MockExam" CornerRadius="6">
@@ -31,8 +31,8 @@
                                 <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource MockExamTextColorPrimary}" Text="{Binding MockExamCount}" />
                                 <TextBlock Margin="4,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource MockExamTextColor}" Text="次" />
                             </StackPanel>
-                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" Text="暂时没有考试记录" IsVisible="{Binding !HasMockExamRecords}" />
-                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" Text="点击查看成绩详情" IsVisible="{Binding HasMockExamRecords}" />
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" IsVisible="{Binding !HasMockExamRecords}" Text="暂时没有考试记录" />
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" IsVisible="{Binding HasMockExamRecords}" Text="点击查看成绩详情" />
                         </StackPanel>
                     </Button>
 
@@ -46,27 +46,21 @@
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="综合实训" />
 
-                            <!-- 加载状态 -->
+                            <!--  加载状态  -->
                             <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingComprehensiveTrainingProgress}">
-                                <TextBlock FontSize="14" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="加载中..." HorizontalAlignment="Center" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource ComprehensiveTrainingTextColor}" Text="加载中..." />
                             </StackPanel>
 
-                            <!-- 进度显示 -->
+                            <!--  进度显示  -->
                             <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding !IsLoadingComprehensiveTrainingProgress}">
                                 <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                                     <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ComprehensiveTrainingTextColorPrimary}" Text="{Binding ComprehensiveTrainingProgressText}" />
                                 </StackPanel>
 
-                                <!-- 进度条 -->
-                                <ProgressBar Margin="0,8,0,0" Width="120" Height="6"
-                                           Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                                           Foreground="{DynamicResource ComprehensiveTrainingTextColorPrimary}"
-                                           Value="{Binding ComprehensiveTrainingCompletionPercentage}"
-                                           Maximum="100" />
+                                <!--  进度条  -->
+                                <ProgressBar Width="120" Height="6" Margin="0,8,0,0" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" Foreground="{DynamicResource ComprehensiveTrainingTextColorPrimary}" Maximum="100" Value="{Binding ComprehensiveTrainingCompletionPercentage}" />
 
-                                <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12"
-                                         Foreground="{DynamicResource ComprehensiveTrainingTextColorSecondary}"
-                                         Text="{Binding ComprehensiveTrainingCompletionPercentage, StringFormat='{}{0:F1}% 完成'}" />
+                                <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource ComprehensiveTrainingTextColorSecondary}" Text="{Binding ComprehensiveTrainingCompletionPercentage, StringFormat='{}{0:F1}% 完成'}" />
                             </StackPanel>
                         </StackPanel>
                     </Button>
@@ -81,27 +75,21 @@
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="专项练习" />
 
-                            <!-- 加载状态 -->
+                            <!--  加载状态  -->
                             <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingSpecialPracticeProgress}">
-                                <TextBlock FontSize="14" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="加载中..." HorizontalAlignment="Center" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SpecialPracticeTextColor}" Text="加载中..." />
                             </StackPanel>
 
-                            <!-- 进度显示 -->
+                            <!--  进度显示  -->
                             <StackPanel Margin="0,12,0,0" HorizontalAlignment="Center" IsVisible="{Binding !IsLoadingSpecialPracticeProgress}">
                                 <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                                     <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SpecialPracticeTextColorPrimary}" Text="{Binding SpecialPracticeProgressText}" />
                                 </StackPanel>
 
-                                <!-- 进度条 -->
-                                <ProgressBar Margin="0,8,0,0" Width="120" Height="6"
-                                           Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                                           Foreground="{DynamicResource SpecialPracticeTextColorPrimary}"
-                                           Value="{Binding SpecialPracticeCompletionPercentage}"
-                                           Maximum="100" />
+                                <!--  进度条  -->
+                                <ProgressBar Width="120" Height="6" Margin="0,8,0,0" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" Foreground="{DynamicResource SpecialPracticeTextColorPrimary}" Maximum="100" Value="{Binding SpecialPracticeCompletionPercentage}" />
 
-                                <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12"
-                                         Foreground="{DynamicResource SpecialPracticeTextColorSecondary}"
-                                         Text="{Binding SpecialPracticeCompletionPercentage, StringFormat='{}{0:F1}% 完成'}" />
+                                <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource SpecialPracticeTextColorSecondary}" Text="{Binding SpecialPracticeCompletionPercentage, StringFormat='{}{0:F1}% 完成'}" />
                             </StackPanel>
                         </StackPanel>
                     </Button>
@@ -204,32 +192,65 @@
                 </Panel>
 
                 <!--  分页  -->
-                <StackPanel Margin="0,16,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
-                    <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" FontSize="14" Foreground="#999999" Text="&lt;" />
+                <StackPanel Margin="0,16,0,0" HorizontalAlignment="Right" Orientation="Horizontal" IsVisible="{Binding ShowPagination}">
+                    <!-- 上一页按钮 -->
+                    <Button Margin="0,0,8,0"
+                            Padding="8,4"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Command="{Binding PreviousPageCommand}"
+                            IsEnabled="{Binding HasPreviousPage}">
+                        <TextBlock FontSize="14"
+                                   Foreground="#999999"
+                                   Text="&lt;" />
+                    </Button>
 
-                    <Border Margin="0,0,4,0" Padding="8,4" Background="{DynamicResource SystemAccentColor}" CornerRadius="4">
-                        <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="1" />
-                    </Border>
+                    <!-- 页码按钮列表 -->
+                    <ItemsControl ItemsSource="{Binding PageNumbers}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Margin="0,0,4,0"
+                                        Padding="8,4"
+                                        CornerRadius="4"
+                                        BorderThickness="0"
+                                        Command="{Binding $parent[UserControl].DataContext.GoToPageCommand}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Background>
+                                        <MultiBinding Converter="{x:Static local:PageNumberBackgroundConverter.Instance}">
+                                            <Binding />
+                                            <Binding Path="$parent[UserControl].DataContext.CurrentPage" />
+                                        </MultiBinding>
+                                    </Button.Background>
+                                    <TextBlock FontSize="14"
+                                               Text="{Binding}">
+                                        <TextBlock.Foreground>
+                                            <MultiBinding Converter="{x:Static local:PageNumberForegroundConverter.Instance}">
+                                                <Binding />
+                                                <Binding Path="$parent[UserControl].DataContext.CurrentPage" />
+                                            </MultiBinding>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                    <Border Margin="0,0,4,0" Padding="8,4" Background="Transparent" CornerRadius="4">
-                        <TextBlock FontSize="14" Foreground="#666666" Text="2" />
-                    </Border>
-
-                    <Border Margin="0,0,4,0" Padding="8,4" Background="Transparent" CornerRadius="4">
-                        <TextBlock FontSize="14" Foreground="#666666" Text="3" />
-                    </Border>
-
-                    <Border Margin="0,0,4,0" Padding="8,4" Background="Transparent" CornerRadius="4">
-                        <TextBlock FontSize="14" Foreground="#666666" Text="4" />
-                    </Border>
-
-                    <TextBlock Margin="4,0,4,0" VerticalAlignment="Center" FontSize="14" Foreground="#999999" Text="..." />
-
-                    <Border Margin="0,0,8,0" Padding="8,4" Background="Transparent" CornerRadius="4">
-                        <TextBlock FontSize="14" Foreground="#666666" Text="40" />
-                    </Border>
-
-                    <TextBlock VerticalAlignment="Center" FontSize="14" Foreground="#999999" Text="&gt;" />
+                    <!-- 下一页按钮 -->
+                    <Button Margin="8,0,0,0"
+                            Padding="8,4"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Command="{Binding NextPageCommand}"
+                            IsEnabled="{Binding HasNextPage}">
+                        <TextBlock FontSize="14"
+                                   Foreground="#999999"
+                                   Text="&gt;" />
+                    </Button>
                 </StackPanel>
             </StackPanel>
 
