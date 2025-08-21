@@ -1,3 +1,4 @@
+using Examina.Models.Api;
 using Examina.Models.MockExam;
 
 namespace Examina.Services;
