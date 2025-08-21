@@ -322,7 +322,7 @@ public class StudentMockExamController : ControllerBase
 
             int count = await _mockExamService.GetStudentMockExamCountAsync(studentUserId);
 
-            _logger.LogInformation("获取学生模拟考试总数成功，学生ID: {StudentId}, 总数: {Count}", 
+            _logger.LogInformation("获取学生模拟考试总数成功，学生ID: {StudentId}, 总数: {Count}",
                 studentUserId, count);
 
             return Ok(count);
@@ -330,6 +330,31 @@ public class StudentMockExamController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取模拟考试总数时发生异常");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 获取学生已完成的模拟考试数量
+    /// </summary>
+    /// <returns>已完成的模拟考试数量</returns>
+    [HttpGet("completed/count")]
+    public async Task<ActionResult<int>> GetCompletedMockExamCount()
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            int count = await _mockExamService.GetCompletedMockExamCountAsync(studentUserId);
+
+            _logger.LogInformation("获取学生已完成模拟考试数量成功，学生ID: {StudentId}, 已完成数量: {Count}",
+                studentUserId, count);
+
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取已完成模拟考试数量时发生异常");
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }

@@ -14,6 +14,7 @@ public class OverviewViewModel : ViewModelBase
 {
     private readonly IStudentComprehensiveTrainingService? _comprehensiveTrainingService;
     private readonly IStudentExamService? _studentExamService;
+    private readonly IStudentMockExamService? _studentMockExamService;
 
     #region 属性
 
@@ -193,6 +194,18 @@ public class OverviewViewModel : ViewModelBase
     {
         _comprehensiveTrainingService = comprehensiveTrainingService;
         _studentExamService = studentExamService;
+        _studentMockExamService = null;
+        SelectStatisticTypeCommand = new DelegateCommand<object>(SelectStatisticType);
+        LoadOverviewData();
+        _ = LoadComprehensiveTrainingProgressAsync();
+        _ = LoadSpecialPracticeProgressAsync();
+    }
+
+    public OverviewViewModel(IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService studentMockExamService)
+    {
+        _comprehensiveTrainingService = comprehensiveTrainingService;
+        _studentExamService = studentExamService;
+        _studentMockExamService = studentMockExamService;
         SelectStatisticTypeCommand = new DelegateCommand<object>(SelectStatisticType);
         LoadOverviewData();
         _ = LoadComprehensiveTrainingProgressAsync();
@@ -208,15 +221,15 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     private void LoadOverviewData()
     {
-        // TODO: 从服务加载实际数据
-        MockExamCount = 0;
+        // 设置默认值
         ComprehensiveTrainingCount = 5;
         SpecialPracticeCount = 60;
         OnlineExamCount = 0;
 
-        // 异步加载所有成绩数据
+        // 异步加载实际数据
         _ = Task.Run(async () =>
         {
+            await LoadMockExamCountAsync();
             await LoadAllRecordsAsync();
 
             // 在UI线程上更新显示数据
@@ -225,6 +238,43 @@ public class OverviewViewModel : ViewModelBase
                 FilterRecordsByType();
             });
         });
+    }
+
+    /// <summary>
+    /// 加载模拟考试数量
+    /// </summary>
+    private async Task LoadMockExamCountAsync()
+    {
+        try
+        {
+            if (_studentMockExamService != null)
+            {
+                int completedCount = await _studentMockExamService.GetCompletedMockExamCountAsync();
+
+                // 在UI线程上更新属性
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    MockExamCount = completedCount;
+                    System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 已完成模拟考试数量: {completedCount}");
+                });
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OverviewViewModel: 模拟考试服务未注入，使用默认值");
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    MockExamCount = 0;
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载模拟考试数量异常: {ex.Message}");
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                MockExamCount = 0;
+            });
+        }
     }
 
     /// <summary>
@@ -365,6 +415,43 @@ public class OverviewViewModel : ViewModelBase
         finally
         {
             IsLoadingRecords = false;
+        }
+    }
+
+    /// <summary>
+    /// 刷新统计数据
+    /// </summary>
+    public async Task RefreshStatisticsAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新统计数据");
+
+        try
+        {
+            await LoadMockExamCountAsync();
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 统计数据刷新完成");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 刷新统计数据异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 刷新所有数据
+    /// </summary>
+    public async Task RefreshAllDataAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新所有数据");
+
+        try
+        {
+            await LoadMockExamCountAsync();
+            await RefreshRecordsAsync();
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 所有数据刷新完成");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 刷新所有数据异常: {ex.Message}");
         }
     }
 

@@ -389,6 +389,44 @@ public class StudentMockExamService : IStudentMockExamService
     }
 
     /// <summary>
+    /// 获取学生已完成的模拟考试数量
+    /// </summary>
+    public async Task<int> GetCompletedMockExamCountAsync()
+    {
+        try
+        {
+            // 设置认证头
+            await SetAuthenticationHeaderAsync();
+
+            string apiUrl = BuildApiUrl("mock-exams/completed/count");
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送获取已完成模拟考试数量请求到 {apiUrl}");
+
+            HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                int count = JsonSerializer.Deserialize<int>(responseContent, JsonOptions);
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功获取已完成模拟考试数量: {count}");
+                return count;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取已完成模拟考试数量失败，状态码: {response.StatusCode}");
+                return 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取已完成模拟考试数量异常: {ex.Message}");
+            return 0;
+        }
+    }
+
+    /// <summary>
     /// 检查是否有权限访问指定模拟考试
     /// </summary>
     public async Task<bool> HasAccessToMockExamAsync(int mockExamId)

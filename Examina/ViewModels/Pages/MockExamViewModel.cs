@@ -26,6 +26,11 @@ public class MockExamViewModel : ViewModelBase
     private bool _isUpdatingPermissions = false;
 
     /// <summary>
+    /// 概览页面刷新请求事件
+    /// </summary>
+    public static event EventHandler? OverviewPageRefreshRequested;
+
+    /// <summary>
     /// 是否正在加载
     /// </summary>
     public bool IsLoading
@@ -529,10 +534,47 @@ public class MockExamViewModel : ViewModelBase
 
             // 刷新数据
             UpdateUserPermissions();
+
+            // 通知首页刷新统计数据
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await NotifyOverviewPageRefreshAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 通知首页刷新异常: {ex.Message}");
+                }
+            });
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 关闭考试并显示主窗口异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 通知概览页面刷新数据
+    /// </summary>
+    private async Task NotifyOverviewPageRefreshAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始通知概览页面刷新数据");
+
+            // 延迟一下确保数据库操作完成
+            await Task.Delay(1000);
+
+            // 发送刷新概览页面的消息
+            // 这里可以使用消息总线或事件聚合器，暂时使用简单的方式
+            OverviewPageRefreshRequested?.Invoke(this, EventArgs.Empty);
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 概览页面刷新通知已发送");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 通知概览页面刷新异常: {ex.Message}");
         }
     }
 }

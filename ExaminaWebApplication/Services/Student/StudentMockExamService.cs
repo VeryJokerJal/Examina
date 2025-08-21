@@ -463,7 +463,7 @@ public class StudentMockExamService : IStudentMockExamService
             int count = await _context.MockExams
                 .CountAsync(me => me.StudentId == studentUserId);
 
-            _logger.LogInformation("获取学生模拟考试总数成功，学生ID: {StudentId}, 总数: {Count}", 
+            _logger.LogInformation("获取学生模拟考试总数成功，学生ID: {StudentId}, 总数: {Count}",
                 studentUserId, count);
 
             return count;
@@ -471,6 +471,28 @@ public class StudentMockExamService : IStudentMockExamService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取学生模拟考试总数失败，学生ID: {StudentId}", studentUserId);
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 获取学生已完成的模拟考试数量
+    /// </summary>
+    public async Task<int> GetCompletedMockExamCountAsync(int studentUserId)
+    {
+        try
+        {
+            int count = await _context.MockExams
+                .CountAsync(me => me.StudentId == studentUserId && me.Status == "Completed");
+
+            _logger.LogInformation("获取学生已完成模拟考试数量成功，学生ID: {StudentId}, 已完成数量: {Count}",
+                studentUserId, count);
+
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生已完成模拟考试数量失败，学生ID: {StudentId}", studentUserId);
             return 0;
         }
     }

@@ -106,6 +106,9 @@ public class MainViewModel : ViewModelBase, IDisposable
             _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
         }
 
+        // 监听概览页面刷新请求事件
+        MockExamViewModel.OverviewPageRefreshRequested += OnOverviewPageRefreshRequested;
+
         // 监听导航项选择变化
         _ = this.WhenAnyValue(x => x.SelectedNavigationItem)
             .Where(item => item != null)
@@ -356,6 +359,34 @@ public class MainViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// 概览页面刷新请求事件处理
+    /// </summary>
+    /// <param name="sender">事件发送者</param>
+    /// <param name="e">事件参数</param>
+    private async void OnOverviewPageRefreshRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MainViewModel: 收到概览页面刷新请求");
+
+            // 如果当前页面是概览页面，刷新数据
+            if (CurrentPageViewModel is OverviewViewModel overviewViewModel)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面是概览页面，开始刷新统计数据");
+                await overviewViewModel.RefreshStatisticsAsync();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面不是概览页面，跳过刷新");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 处理概览页面刷新请求异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// 导航选择改变事件处理
     /// </summary>
     private void OnNavigationSelectionChanged(NavigationViewItem selectedItem)
@@ -427,9 +458,17 @@ public class MainViewModel : ViewModelBase, IDisposable
             // 获取学生考试服务（用于专项练习）
             IStudentExamService? studentExamService = ((App)Application.Current!).GetService<IStudentExamService>();
 
-            if (comprehensiveTrainingService != null && studentExamService != null)
+            // 获取模拟考试服务
+            IStudentMockExamService? studentMockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
+
+            if (comprehensiveTrainingService != null && studentExamService != null && studentMockExamService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取所有服务，创建带服务注入的OverviewViewModel");
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取所有服务，创建带完整服务注入的OverviewViewModel");
+                return new OverviewViewModel(comprehensiveTrainingService, studentExamService, studentMockExamService);
+            }
+            else if (comprehensiveTrainingService != null && studentExamService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 获取到综合实训和考试服务，创建带部分服务注入的OverviewViewModel");
                 return new OverviewViewModel(comprehensiveTrainingService, studentExamService);
             }
             else if (comprehensiveTrainingService != null)
@@ -714,6 +753,10 @@ public class MainViewModel : ViewModelBase, IDisposable
         {
             _authenticationService.UserInfoUpdated -= OnUserInfoUpdated;
         }
+
+        // 取消概览页面刷新请求事件订阅
+        MockExamViewModel.OverviewPageRefreshRequested -= OnOverviewPageRefreshRequested;
+
         GC.SuppressFinalize(this);
     }
 

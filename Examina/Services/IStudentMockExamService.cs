@@ -76,6 +76,12 @@ public interface IStudentMockExamService
     Task<int> GetStudentMockExamCountAsync();
 
     /// <summary>
+    /// 获取学生已完成的模拟考试数量
+    /// </summary>
+    /// <returns>已完成的模拟考试数量</returns>
+    Task<int> GetCompletedMockExamCountAsync();
+
+    /// <summary>
     /// 检查是否有权限访问指定模拟考试
     /// </summary>
     /// <param name="mockExamId">模拟考试ID</param>
