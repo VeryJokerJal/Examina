@@ -200,18 +200,14 @@
                                            VerticalAlignment="Center" 
                                            CornerRadius="4">
                                         <Border.Background>
-                                            <MultiBinding Converter="{x:Static local:PassStatusToColorConverter.Instance}">
-                                                <Binding Path="IsPassed" />
-                                            </MultiBinding>
+                                            <Binding Path="IsPassed" Converter="{x:Static local:PassStatusToColorConverter.Instance}" />
                                         </Border.Background>
                                         <TextBlock HorizontalAlignment="Center" 
                                                   FontSize="12" 
                                                   FontWeight="SemiBold" 
                                                   Foreground="White">
                                             <TextBlock.Text>
-                                                <MultiBinding Converter="{x:Static local:PassStatusToTextConverter.Instance}">
-                                                    <Binding Path="IsPassed" />
-                                                </MultiBinding>
+                                                <Binding Path="IsPassed" Converter="{x:Static local:PassStatusToTextConverter.Instance}" />
                                             </TextBlock.Text>
                                         </TextBlock>
                                     </Border>
