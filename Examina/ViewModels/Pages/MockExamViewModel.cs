@@ -305,13 +305,9 @@ public class MockExamViewModel : ViewModelBase
                 examToolbar.Show();
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试工具栏窗口已显示");
 
-                // 开始考试倒计时（启动倒计时器）
-                toolbarViewModel.StartCountdown(mockExam.DurationMinutes * 60);
-                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试倒计时已开始");
-
-                // 设置考试状态为进行中
+                // 开始考试（启动倒计时器并设置状态为进行中）
                 toolbarViewModel.StartExam();
-                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试状态已设置为进行中");
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试已开始，剩余时间: {toolbarViewModel.RemainingTimeSeconds}秒, 格式化时间: {toolbarViewModel.FormattedRemainingTime}");
             }
             else
             {

@@ -223,7 +223,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
         _ = this.WhenAnyValue(x => x.RemainingTimeSeconds)
-            .Subscribe(UpdateTimeDisplay);
+            .Subscribe(seconds =>
+            {
+                _logger.LogDebug("响应式监听触发（设计时） - RemainingTimeSeconds变化为: {Seconds}", seconds);
+                UpdateTimeDisplay(seconds);
+            });
 
         // 设置设计时数据
         StudentName = "张三";
@@ -248,7 +252,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
         _ = this.WhenAnyValue(x => x.RemainingTimeSeconds)
-            .Subscribe(UpdateTimeDisplay);
+            .Subscribe(seconds =>
+            {
+                _logger.LogDebug("响应式监听触发 - RemainingTimeSeconds变化为: {Seconds}", seconds);
+                UpdateTimeDisplay(seconds);
+            });
 
         // 初始化学生信息
         InitializeStudentInfo();
@@ -304,6 +312,13 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         RemainingTimeSeconds--;
 
+        // 每30秒记录一次时间状态（避免日志过多）
+        if (RemainingTimeSeconds % 30 == 0)
+        {
+            _logger.LogDebug("倒计时更新 - 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
+                RemainingTimeSeconds, FormattedRemainingTime);
+        }
+
         // 检查自动提交条件
         if (CheckAutoSubmitConditions())
         {
@@ -348,9 +363,33 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// </summary>
     private void UpdateTimeDisplay(int remainingSeconds)
     {
-        TimeSpan timeSpan = TimeSpan.FromSeconds(Math.Max(0, remainingSeconds));
-        FormattedRemainingTime = $"{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
-        IsTimeUrgent = remainingSeconds <= TimeWarningThreshold && remainingSeconds > 0;
+        try
+        {
+            TimeSpan timeSpan = TimeSpan.FromSeconds(Math.Max(0, remainingSeconds));
+            string newFormattedTime = $"{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
+
+            // 确保在UI线程上更新属性
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            {
+                FormattedRemainingTime = newFormattedTime;
+                IsTimeUrgent = remainingSeconds <= TimeWarningThreshold && remainingSeconds > 0;
+            }
+            else
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    FormattedRemainingTime = newFormattedTime;
+                    IsTimeUrgent = remainingSeconds <= TimeWarningThreshold && remainingSeconds > 0;
+                });
+            }
+
+            _logger.LogDebug("更新时间显示 - 剩余秒数: {RemainingSeconds}, 格式化时间: {FormattedTime}, 时间紧急: {IsUrgent}",
+                remainingSeconds, newFormattedTime, IsTimeUrgent);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新时间显示时发生异常");
+        }
     }
 
     /// <summary>
@@ -593,14 +632,13 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         ExamId = examId;
         ExamName = examName;
         TotalQuestions = totalQuestions;
-        RemainingTimeSeconds = durationSeconds;
         CurrentExamStatus = ExamStatus.Preparing;
 
-        // 立即更新时间显示，确保UI正确显示初始时间
-        UpdateTimeDisplay(durationSeconds);
+        // 设置剩余时间，响应式监听会自动触发UpdateTimeDisplay
+        RemainingTimeSeconds = durationSeconds;
 
-        _logger.LogInformation("设置考试信息 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒",
-            examType, examId, examName, totalQuestions, durationSeconds);
+        _logger.LogInformation("设置考试信息 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒, 格式化时间: {FormattedTime}",
+            examType, examId, examName, totalQuestions, durationSeconds, FormattedRemainingTime);
     }
 
     /// <summary>
@@ -612,15 +650,12 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         {
             CurrentExamStatus = ExamStatus.InProgress;
 
-            // 只有在倒计时器未启动时才启动，避免重复启动
-            if (_countdownTimer == null)
-            {
-                _countdownTimer = new Timer(CountdownTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-                _logger.LogInformation("考试倒计时器启动");
-            }
+            // 启动倒计时器
+            _countdownTimer?.Dispose();
+            _countdownTimer = new Timer(CountdownTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
-            _logger.LogInformation("考试开始 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 剩余时间: {RemainingTime}秒",
-                CurrentExamType, ExamId, ExamName, RemainingTimeSeconds);
+            _logger.LogInformation("考试开始 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
+                CurrentExamType, ExamId, ExamName, RemainingTimeSeconds, FormattedRemainingTime);
         }
         else
         {

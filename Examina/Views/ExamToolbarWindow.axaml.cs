@@ -85,7 +85,8 @@ public partial class ExamToolbarWindow : Window, IDisposable
         _viewModel.ViewQuestionsRequested += OnViewQuestionsRequested;
         _viewModel.WindowCloseRequested += OnWindowCloseRequested;
 
-        _logger.LogInformation("ExamToolbarWindow ViewModel已设置");
+        _logger.LogInformation("ExamToolbarWindow ViewModel已设置 - 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
+            _viewModel.RemainingTimeSeconds, _viewModel.FormattedRemainingTime);
     }
 
     /// <summary>
