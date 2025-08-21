@@ -449,19 +449,140 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 训练自动提交事件处理
     /// </summary>
-    private void OnTrainingAutoSubmitted(object? sender, EventArgs e)
+    private async void OnTrainingAutoSubmitted(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 训练自动提交");
-        // TODO: 实现训练自动提交逻辑
+        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 训练时间到，自动提交");
+
+        try
+        {
+            // 获取训练工具栏窗口以获取训练信息
+            if (sender is ExamToolbarWindow examToolbar && examToolbar.DataContext is ExamToolbarViewModel viewModel)
+            {
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 自动提交训练，ID: {viewModel.ExamId}, 类型: {viewModel.CurrentExamType}");
+                await SubmitTrainingAsync(viewModel.ExamId, viewModel.CurrentExamType, isAutoSubmit: true);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 无法获取训练工具栏ViewModel，自动提交失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 自动提交训练异常: {ex.Message}");
+        }
     }
 
     /// <summary>
     /// 训练手动提交事件处理
     /// </summary>
-    private void OnTrainingManualSubmitted(object? sender, EventArgs e)
+    private async void OnTrainingManualSubmitted(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 训练手动提交");
-        // TODO: 实现训练手动提交逻辑
+        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 学生手动提交训练");
+
+        try
+        {
+            // 获取训练工具栏窗口以获取训练信息
+            if (sender is ExamToolbarWindow examToolbar && examToolbar.DataContext is ExamToolbarViewModel viewModel)
+            {
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 手动提交训练，ID: {viewModel.ExamId}, 类型: {viewModel.CurrentExamType}");
+                await SubmitTrainingAsync(viewModel.ExamId, viewModel.CurrentExamType, isAutoSubmit: false);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 无法获取训练工具栏ViewModel，手动提交失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 手动提交训练异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 提交训练
+    /// </summary>
+    private async Task SubmitTrainingAsync(int trainingId, ExamType examType, bool isAutoSubmit)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 开始提交训练，ID: {trainingId}, 类型: {examType}, 自动提交: {isAutoSubmit}");
+
+            bool submitResult = false;
+
+            // 确保是综合实训类型
+            if (examType == ExamType.ComprehensiveTraining)
+            {
+                // 创建提交请求
+                CompleteTrainingRequest request = new()
+                {
+                    Score = null, // 可以从BenchSuite获取评分
+                    MaxScore = null,
+                    DurationSeconds = null, // 可以从工具栏获取实际用时
+                    Notes = isAutoSubmit ? "训练时间到期，自动提交" : "学生手动提交训练"
+                };
+
+                // 调用综合实训服务提交
+                submitResult = await _studentComprehensiveTrainingService.CompleteComprehensiveTrainingAsync(trainingId, request);
+
+                if (submitResult)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 综合实训提交成功，ID: {trainingId}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 综合实训提交失败，ID: {trainingId}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 不支持的训练类型: {examType}");
+            }
+
+            if (submitResult)
+            {
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 训练提交成功，ID: {trainingId}");
+
+                // 关闭训练工具栏窗口并显示主窗口
+                CloseTrainingAndShowMainWindow();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 训练提交失败，ID: {trainingId}");
+                ErrorMessage = "训练提交失败，请稍后重试";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 提交训练异常: {ex.Message}");
+            ErrorMessage = "训练提交失败，请稍后重试";
+        }
+    }
+
+    /// <summary>
+    /// 关闭训练并显示主窗口
+    /// </summary>
+    private void CloseTrainingAndShowMainWindow()
+    {
+        try
+        {
+            // 显示主窗口
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                desktop.MainWindow.Show();
+                desktop.MainWindow.Activate();
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 主窗口已显示");
+            }
+
+            // 刷新训练列表
+            _ = RefreshAsync();
+
+            System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 训练列表刷新已启动");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 关闭训练并显示主窗口异常: {ex.Message}");
+        }
     }
 
     /// <summary>
