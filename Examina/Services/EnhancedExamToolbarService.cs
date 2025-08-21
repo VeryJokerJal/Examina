@@ -198,23 +198,39 @@ public class EnhancedExamToolbarService : IDisposable
             {
                 BenchSuiteScoringResult? scoringResult = await PerformBenchSuiteScoringAsync(ExamType.ComprehensiveTraining, trainingId, studentId);
 
-                // 2. 提交综合实训到服务器
-                bool submitResult = await _studentComprehensiveTrainingService.MarkTrainingAsCompletedAsync(trainingId);
+                // 2. 准备训练提交数据
+                CompleteTrainingRequest trainingRequest = new()
+                {
+                    Score = scoringResult?.AchievedScore,
+                    MaxScore = scoringResult?.TotalScore,
+                    DurationSeconds = null, // 可以从工具栏获取实际用时
+                    Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
+                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null
+                };
+
+                // 3. 提交综合实训成绩到服务器
+                bool submitResult = await _studentComprehensiveTrainingService.CompleteComprehensiveTrainingAsync(trainingId, trainingRequest);
 
                 if (!submitResult)
                 {
-                    _logger.LogWarning("综合实训提交失败，实训ID: {TrainingId}", trainingId);
-                    return false;
+                    _logger.LogWarning("综合实训成绩提交失败，实训ID: {TrainingId}", trainingId);
+
+                    // 如果成绩提交失败，尝试基本提交（不包含成绩数据）
+                    bool basicSubmitResult = await _studentComprehensiveTrainingService.MarkTrainingAsCompletedAsync(trainingId);
+                    if (!basicSubmitResult)
+                    {
+                        _logger.LogError("综合实训基本提交也失败，实训ID: {TrainingId}", trainingId);
+                        return false;
+                    }
+
+                    _logger.LogInformation("综合实训基本提交成功（无成绩数据），实训ID: {TrainingId}", trainingId);
                 }
 
-                // 3. 如果评分成功，记录评分结果
+                // 4. 如果评分成功，记录评分结果
                 if (scoringResult?.IsSuccess == true)
                 {
                     _logger.LogInformation("综合实训BenchSuite评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
                         scoringResult.TotalScore, scoringResult.AchievedScore);
-
-                    // 这里可以将评分结果保存到数据库或发送到服务器
-                    // await SaveScoringResultAsync(trainingId, scoringResult);
                 }
 
                 _logger.LogInformation("综合实训提交成功，实训ID: {TrainingId}", trainingId);

@@ -129,6 +129,16 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     [Reactive] public int TotalQuestions { get; set; }
 
     /// <summary>
+    /// 考试开始时间
+    /// </summary>
+    public DateTime? ExamStartTime { get; private set; }
+
+    /// <summary>
+    /// 考试总时长（秒）
+    /// </summary>
+    public int TotalDurationSeconds { get; private set; }
+
+    /// <summary>
     /// 时间警告阈值（秒，默认5分钟）
     /// </summary>
     [Reactive] public int TimeWarningThreshold { get; set; } = 300;
@@ -288,6 +298,26 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         _countdownTimer = new Timer(CountdownTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
         _logger.LogInformation("考试倒计时开始，时长: {Duration}秒", durationSeconds);
+    }
+
+    /// <summary>
+    /// 获取实际用时（秒）
+    /// </summary>
+    public int GetActualDurationSeconds()
+    {
+        if (ExamStartTime.HasValue)
+        {
+            int actualSeconds = (int)(DateTime.Now - ExamStartTime.Value).TotalSeconds;
+            _logger.LogInformation("计算实际用时 - 开始时间: {StartTime}, 当前时间: {CurrentTime}, 实际用时: {ActualDuration}秒",
+                ExamStartTime.Value, DateTime.Now, actualSeconds);
+            return actualSeconds;
+        }
+
+        // 如果没有开始时间，使用总时长减去剩余时间
+        int fallbackDuration = TotalDurationSeconds - RemainingTimeSeconds;
+        _logger.LogWarning("无开始时间记录，使用备用计算方式 - 总时长: {TotalDuration}秒, 剩余时间: {RemainingTime}秒, 计算用时: {FallbackDuration}秒",
+            TotalDurationSeconds, RemainingTimeSeconds, fallbackDuration);
+        return Math.Max(0, fallbackDuration);
     }
 
     /// <summary>
@@ -633,6 +663,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         ExamName = examName;
         TotalQuestions = totalQuestions;
         CurrentExamStatus = ExamStatus.Preparing;
+        TotalDurationSeconds = durationSeconds;
 
         // 设置剩余时间，响应式监听会自动触发UpdateTimeDisplay
         RemainingTimeSeconds = durationSeconds;
@@ -649,13 +680,14 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         if (CurrentExamStatus == ExamStatus.Preparing)
         {
             CurrentExamStatus = ExamStatus.InProgress;
+            ExamStartTime = DateTime.Now; // 记录开始时间
 
             // 启动倒计时器
             _countdownTimer?.Dispose();
             _countdownTimer = new Timer(CountdownTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
-            _logger.LogInformation("考试开始 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
-                CurrentExamType, ExamId, ExamName, RemainingTimeSeconds, FormattedRemainingTime);
+            _logger.LogInformation("考试开始 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 开始时间: {StartTime}, 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
+                CurrentExamType, ExamId, ExamName, ExamStartTime, RemainingTimeSeconds, FormattedRemainingTime);
         }
         else
         {

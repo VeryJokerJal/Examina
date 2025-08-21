@@ -18,6 +18,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 {
     private readonly IStudentComprehensiveTrainingService _studentComprehensiveTrainingService;
     private readonly IAuthenticationService _authenticationService;
+    private readonly EnhancedExamToolbarService? _enhancedExamToolbarService;
     private bool _isLoading;
     private string _errorMessage = string.Empty;
     private int _totalCount;
@@ -101,10 +102,11 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<StudentComprehensiveTrainingDto, Unit> StartTrainingCommand { get; }
 
-    public ComprehensiveTrainingListViewModel(IStudentComprehensiveTrainingService studentComprehensiveTrainingService, IAuthenticationService authenticationService)
+    public ComprehensiveTrainingListViewModel(IStudentComprehensiveTrainingService studentComprehensiveTrainingService, IAuthenticationService authenticationService, EnhancedExamToolbarService? enhancedExamToolbarService = null)
     {
         _studentComprehensiveTrainingService = studentComprehensiveTrainingService;
         _authenticationService = authenticationService;
+        _enhancedExamToolbarService = enhancedExamToolbarService;
 
         // 创建命令
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
@@ -512,17 +514,20 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             // 确保是综合实训类型
             if (examType == ExamType.ComprehensiveTraining)
             {
-                // 创建提交请求
-                CompleteTrainingRequest request = new()
+                // 优先使用EnhancedExamToolbarService进行BenchSuite集成提交
+                if (_enhancedExamToolbarService != null)
                 {
-                    Score = null, // 可以从BenchSuite获取评分
-                    MaxScore = null,
-                    DurationSeconds = null, // 可以从工具栏获取实际用时
-                    Notes = isAutoSubmit ? "训练时间到期，自动提交" : "学生手动提交训练"
-                };
+                    System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 使用EnhancedExamToolbarService进行BenchSuite集成提交");
+                    submitResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingAsync(trainingId);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: EnhancedExamToolbarService不可用，使用基础提交逻辑");
 
-                // 调用综合实训服务提交
-                submitResult = await _studentComprehensiveTrainingService.CompleteComprehensiveTrainingAsync(trainingId, request);
+                    // 回退到基础提交逻辑，但尝试获取实际用时
+                    CompleteTrainingRequest request = await CreateTrainingRequestAsync(isAutoSubmit);
+                    submitResult = await _studentComprehensiveTrainingService.CompleteComprehensiveTrainingAsync(trainingId, request);
+                }
 
                 if (submitResult)
                 {
@@ -555,6 +560,59 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 提交训练异常: {ex.Message}");
             ErrorMessage = "训练提交失败，请稍后重试";
+        }
+    }
+
+    /// <summary>
+    /// 创建训练提交请求
+    /// </summary>
+    private Task<CompleteTrainingRequest> CreateTrainingRequestAsync(bool isAutoSubmit)
+    {
+        try
+        {
+            // 尝试从当前活动的工具栏窗口获取实际用时
+            int? actualDurationSeconds = null;
+
+            // 查找当前活动的ExamToolbarWindow
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                foreach (Avalonia.Controls.Window window in desktop.Windows)
+                {
+                    if (window is ExamToolbarWindow toolbarWindow &&
+                        toolbarWindow.DataContext is ExamToolbarViewModel viewModel &&
+                        viewModel.CurrentExamType == ExamType.ComprehensiveTraining)
+                    {
+                        actualDurationSeconds = viewModel.GetActualDurationSeconds();
+                        System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 获取到实际用时: {actualDurationSeconds}秒");
+                        break;
+                    }
+                }
+            }
+
+            if (!actualDurationSeconds.HasValue)
+            {
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 无法获取实际用时，使用默认值");
+            }
+
+            CompleteTrainingRequest request = new()
+            {
+                Score = null, // 基础提交不包含评分
+                MaxScore = null,
+                DurationSeconds = actualDurationSeconds,
+                Notes = isAutoSubmit ? "训练时间到期，自动提交" : "学生手动提交训练"
+            };
+
+            return Task.FromResult(request);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 创建训练请求异常: {ex.Message}");
+
+            // 返回基础请求
+            return Task.FromResult(new CompleteTrainingRequest
+            {
+                Notes = isAutoSubmit ? "训练时间到期，自动提交（异常恢复）" : "学生手动提交训练（异常恢复）"
+            });
         }
     }
 
