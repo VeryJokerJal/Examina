@@ -70,6 +70,12 @@ public class ComprehensiveTrainingCompletion
     public string? Notes { get; set; }
 
     /// <summary>
+    /// BenchSuite评分结果（JSON格式）
+    /// </summary>
+    [Column(TypeName = "json")]
+    public string? BenchSuiteScoringResult { get; set; }
+
+    /// <summary>
     /// 创建时间
     /// </summary>
     [Required]

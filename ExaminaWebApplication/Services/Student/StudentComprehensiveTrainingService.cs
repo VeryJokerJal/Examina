@@ -475,6 +475,102 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     }
 
     /// <summary>
+    /// 标记综合训练为已完成（完整版本）
+    /// </summary>
+    public async Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, CompleteTrainingRequest request)
+    {
+        try
+        {
+            // 验证学生用户存在且为学生角色
+            Models.User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
+
+            if (student == null)
+            {
+                _logger.LogWarning("用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
+                return false;
+            }
+
+            // 验证训练存在且启用
+            ImportedComprehensiveTrainingEntity? training = await _context.ImportedComprehensiveTrainings
+                .FirstOrDefaultAsync(t => t.Id == trainingId && t.IsEnabled);
+
+            if (training == null)
+            {
+                _logger.LogWarning("综合训练不存在或未启用，训练ID: {TrainingId}", trainingId);
+                return false;
+            }
+
+            // 查找现有的完成记录
+            ComprehensiveTrainingCompletion? existingRecord = await _context.ComprehensiveTrainingCompletions
+                .FirstOrDefaultAsync(c => c.StudentUserId == studentUserId && c.TrainingId == trainingId && c.IsActive);
+
+            DateTime now = DateTime.UtcNow;
+            DateTime completedAt = request.CompletedAt ?? now; // 使用提供的时间或当前时间
+
+            if (existingRecord != null)
+            {
+                // 更新现有记录
+                existingRecord.Status = ComprehensiveTrainingCompletionStatus.Completed;
+                existingRecord.CompletedAt = completedAt;
+                existingRecord.Score = request.Score;
+                existingRecord.MaxScore = request.MaxScore;
+                existingRecord.DurationSeconds = request.DurationSeconds;
+                existingRecord.Notes = request.Notes;
+                existingRecord.BenchSuiteScoringResult = request.BenchSuiteScoringResult;
+                existingRecord.UpdatedAt = now;
+
+                // 计算完成百分比
+                if (request.Score.HasValue && request.MaxScore.HasValue && request.MaxScore.Value > 0)
+                {
+                    existingRecord.CompletionPercentage = Math.Round(request.Score.Value / request.MaxScore.Value * 100, 2);
+                }
+
+                _logger.LogInformation("更新综合训练完成记录（完整版），学生ID: {StudentUserId}, 训练ID: {TrainingId}, 提交时间: {CompletedAt}",
+                    studentUserId, trainingId, completedAt);
+            }
+            else
+            {
+                // 创建新的完成记录
+                ComprehensiveTrainingCompletion newRecord = new()
+                {
+                    StudentUserId = studentUserId,
+                    TrainingId = trainingId,
+                    Status = ComprehensiveTrainingCompletionStatus.Completed,
+                    StartedAt = completedAt, // 假设开始时间就是完成时间（如果没有先标记为开始）
+                    CompletedAt = completedAt,
+                    Score = request.Score,
+                    MaxScore = request.MaxScore,
+                    DurationSeconds = request.DurationSeconds,
+                    Notes = request.Notes,
+                    BenchSuiteScoringResult = request.BenchSuiteScoringResult,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                // 计算完成百分比
+                if (request.Score.HasValue && request.MaxScore.HasValue && request.MaxScore.Value > 0)
+                {
+                    newRecord.CompletionPercentage = Math.Round(request.Score.Value / request.MaxScore.Value * 100, 2);
+                }
+
+                _ = _context.ComprehensiveTrainingCompletions.Add(newRecord);
+                _logger.LogInformation("创建新的综合训练完成记录（完整版），学生ID: {StudentUserId}, 训练ID: {TrainingId}, 提交时间: {CompletedAt}",
+                    studentUserId, trainingId, completedAt);
+            }
+
+            _ = await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "标记综合训练为已完成失败（完整版），学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 标记综合训练为开始状态
     /// </summary>
     public async Task<bool> MarkTrainingAsStartedAsync(int studentUserId, int trainingId)

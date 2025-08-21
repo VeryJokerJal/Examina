@@ -205,7 +205,8 @@ public class EnhancedExamToolbarService : IDisposable
                     MaxScore = scoringResult?.TotalScore,
                     DurationSeconds = null, // 可以从工具栏获取实际用时
                     Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
-                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null
+                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null,
+                    CompletedAt = DateTime.UtcNow // 记录精确的提交时间（UTC）
                 };
 
                 // 3. 提交综合实训成绩到服务器

@@ -599,7 +599,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 Score = null, // 基础提交不包含评分
                 MaxScore = null,
                 DurationSeconds = actualDurationSeconds,
-                Notes = isAutoSubmit ? "训练时间到期，自动提交" : "学生手动提交训练"
+                Notes = isAutoSubmit ? "训练时间到期，自动提交" : "学生手动提交训练",
+                CompletedAt = DateTime.UtcNow // 记录精确的提交时间（UTC）
             };
 
             return Task.FromResult(request);
@@ -611,7 +612,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             // 返回基础请求
             return Task.FromResult(new CompleteTrainingRequest
             {
-                Notes = isAutoSubmit ? "训练时间到期，自动提交（异常恢复）" : "学生手动提交训练（异常恢复）"
+                Notes = isAutoSubmit ? "训练时间到期，自动提交（异常恢复）" : "学生手动提交训练（异常恢复）",
+                CompletedAt = DateTime.UtcNow // 即使异常恢复也要记录提交时间
             });
         }
     }

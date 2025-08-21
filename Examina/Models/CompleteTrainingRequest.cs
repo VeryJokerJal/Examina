@@ -29,4 +29,9 @@ public class CompleteTrainingRequest
     /// BenchSuite评分结果JSON（可选）
     /// </summary>
     public string? BenchSuiteScoringResult { get; set; }
+
+    /// <summary>
+    /// 提交时间（UTC时间）
+    /// </summary>
+    public DateTime? CompletedAt { get; set; }
 }

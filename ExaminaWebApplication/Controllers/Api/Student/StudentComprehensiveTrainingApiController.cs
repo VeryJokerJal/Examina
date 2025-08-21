@@ -278,10 +278,7 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
             bool success = await _studentComprehensiveTrainingService.MarkTrainingAsCompletedAsync(
                 studentUserId,
                 id,
-                request.Score,
-                request.MaxScore,
-                request.DurationSeconds,
-                request.Notes);
+                request);
 
             if (success)
             {
@@ -380,4 +377,14 @@ public class CompleteTrainingRequest
     /// 备注（可选）
     /// </summary>
     public string? Notes { get; set; }
+
+    /// <summary>
+    /// BenchSuite评分结果JSON（可选）
+    /// </summary>
+    public string? BenchSuiteScoringResult { get; set; }
+
+    /// <summary>
+    /// 提交时间（UTC时间）
+    /// </summary>
+    public DateTime? CompletedAt { get; set; }
 }
