@@ -72,6 +72,14 @@ public interface IStudentMockExamService
     Task<bool> SubmitMockExamScoreAsync(int mockExamId, SubmitMockExamScoreRequestDto scoreRequest);
 
     /// <summary>
+    /// 获取模拟考试成绩列表
+    /// </summary>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>模拟考试成绩列表</returns>
+    Task<List<MockExamCompletionDto>> GetMockExamCompletionsAsync(int pageNumber = 1, int pageSize = 20);
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     /// <param name="mockExamId">模拟考试ID</param>

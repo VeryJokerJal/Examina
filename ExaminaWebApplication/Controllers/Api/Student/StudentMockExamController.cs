@@ -393,6 +393,40 @@ public class StudentMockExamController : ControllerBase
     }
 
     /// <summary>
+    /// 获取学生模拟考试成绩列表
+    /// </summary>
+    /// <param name="pageNumber">页码，默认为1</param>
+    /// <param name="pageSize">页大小，默认为20，最大100</param>
+    /// <returns>模拟考试成绩列表</returns>
+    [HttpGet("completions")]
+    public async Task<ActionResult<List<MockExamCompletionDto>>> GetMockExamCompletions(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            // 验证分页参数
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+            int studentUserId = GetCurrentUserId();
+
+            List<MockExamCompletionDto> completions = await _mockExamService.GetMockExamCompletionsAsync(
+                studentUserId, pageNumber, pageSize);
+
+            _logger.LogInformation("获取学生模拟考试成绩列表成功，学生ID: {StudentId}, 页码: {PageNumber}, 页大小: {PageSize}, 返回数量: {Count}",
+                studentUserId, pageNumber, pageSize, completions.Count);
+
+            return Ok(completions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取模拟考试成绩列表时发生异常");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     /// <returns>用户ID</returns>

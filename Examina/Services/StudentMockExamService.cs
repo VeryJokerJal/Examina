@@ -368,6 +368,46 @@ public class StudentMockExamService : IStudentMockExamService
     }
 
     /// <summary>
+    /// 获取模拟考试成绩列表
+    /// </summary>
+    public async Task<List<MockExamCompletionDto>> GetMockExamCompletionsAsync(int pageNumber = 1, int pageSize = 20)
+    {
+        try
+        {
+            // 设置认证头
+            await SetAuthenticationHeaderAsync();
+
+            string apiUrl = BuildApiUrl($"mock-exams/completions?pageNumber={pageNumber}&pageSize={pageSize}");
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送获取模拟考试成绩列表请求到 {apiUrl}");
+
+            HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                List<MockExamCompletionDto>? completions = JsonSerializer.Deserialize<List<MockExamCompletionDto>>(responseContent, JsonOptions);
+
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功获取模拟考试成绩列表，数量: {completions?.Count ?? 0}");
+                return completions ?? [];
+            }
+            else
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取成绩列表失败，响应内容: {responseContent}");
+                return [];
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取模拟考试成绩列表异常: {ex.Message}");
+            return [];
+        }
+    }
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     public async Task<bool> DeleteMockExamAsync(int mockExamId)

@@ -131,29 +131,7 @@ public class OverviewViewModel : ViewModelBase
     [Reactive]
     public bool IsLoadingSpecialPracticeProgress { get; set; } = false;
 
-    /// <summary>
-    /// 是否正在提交专项练习成绩
-    /// </summary>
-    [Reactive]
-    public bool IsSubmittingSpecialPracticeScore { get; set; } = false;
 
-    /// <summary>
-    /// 是否正在提交综合训练成绩
-    /// </summary>
-    [Reactive]
-    public bool IsSubmittingComprehensiveTrainingScore { get; set; } = false;
-
-    /// <summary>
-    /// 最近的成绩提交结果消息
-    /// </summary>
-    [Reactive]
-    public string? LastSubmissionMessage { get; set; }
-
-    /// <summary>
-    /// 最近的成绩提交是否成功
-    /// </summary>
-    [Reactive]
-    public bool? LastSubmissionSuccess { get; set; }
 
     /// <summary>
     /// 是否正在加载成绩记录
@@ -359,21 +337,7 @@ public class OverviewViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 刷新所有进度数据
-    /// </summary>
-    public async Task RefreshAllProgressAsync()
-    {
-        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新所有进度数据");
 
-        // 并行刷新综合训练和专项练习进度
-        Task comprehensiveTask = LoadComprehensiveTrainingProgressAsync();
-        Task specialPracticeTask = LoadSpecialPracticeProgressAsync();
-
-        await Task.WhenAll(comprehensiveTask, specialPracticeTask);
-
-        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 所有进度数据刷新完成");
-    }
 
     /// <summary>
     /// 刷新综合训练进度
@@ -455,179 +419,11 @@ public class OverviewViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 测试API连接
-    /// </summary>
-    public async Task TestApiConnectionAsync()
-    {
-        System.Diagnostics.Debug.WriteLine("=== OverviewViewModel: 开始测试API连接 ===");
 
-        try
-        {
-            // 测试专项练习进度API（已知工作的API）
-            System.Diagnostics.Debug.WriteLine("测试专项练习进度API...");
-            await RefreshSpecialPracticeProgressAsync();
 
-            // 测试综合训练进度API（已知工作的API）
-            System.Diagnostics.Debug.WriteLine("测试综合训练进度API...");
-            await RefreshComprehensiveTrainingProgressAsync();
 
-            // 测试专项练习完成记录API（新的API）
-            System.Diagnostics.Debug.WriteLine("测试专项练习完成记录API...");
-            if (_studentExamService != null)
-            {
-                List<SpecialPracticeCompletionDto> specialPracticeCompletions = await _studentExamService.GetSpecialPracticeCompletionsAsync(1, 5);
-                System.Diagnostics.Debug.WriteLine($"专项练习完成记录数量: {specialPracticeCompletions.Count}");
-            }
 
-            // 测试综合训练完成记录API（新的API）
-            System.Diagnostics.Debug.WriteLine("测试综合训练完成记录API...");
-            if (_comprehensiveTrainingService != null)
-            {
-                List<ComprehensiveTrainingCompletionDto> comprehensiveTrainingCompletions = await _comprehensiveTrainingService.GetComprehensiveTrainingCompletionsAsync(1, 5);
-                System.Diagnostics.Debug.WriteLine($"综合训练完成记录数量: {comprehensiveTrainingCompletions.Count}");
-            }
 
-            System.Diagnostics.Debug.WriteLine("=== OverviewViewModel: API连接测试完成 ===");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: API连接测试异常: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
-        }
-    }
-
-    /// <summary>
-    /// 提交专项练习成绩并刷新进度
-    /// </summary>
-    /// <param name="practiceId">练习ID</param>
-    /// <param name="score">得分</param>
-    /// <param name="maxScore">最大得分</param>
-    /// <param name="durationSeconds">用时（秒）</param>
-    /// <param name="notes">备注</param>
-    /// <returns>是否成功</returns>
-    public async Task<bool> SubmitSpecialPracticeScoreAsync(int practiceId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
-    {
-        if (_studentExamService == null)
-        {
-            LastSubmissionMessage = "服务未初始化，无法提交成绩";
-            LastSubmissionSuccess = false;
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 学生考试服务未注入，无法提交专项练习成绩");
-            return false;
-        }
-
-        try
-        {
-            IsSubmittingSpecialPracticeScore = true;
-            LastSubmissionMessage = "正在提交专项练习成绩...";
-            LastSubmissionSuccess = null;
-
-            CompletePracticeRequest request = new()
-            {
-                Score = score,
-                MaxScore = maxScore,
-                DurationSeconds = durationSeconds,
-                Notes = notes
-            };
-
-            bool success = await _studentExamService.CompleteSpecialPracticeAsync(practiceId, request);
-
-            if (success)
-            {
-                LastSubmissionMessage = "专项练习成绩提交成功！";
-                LastSubmissionSuccess = true;
-                System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 专项练习成绩提交成功，练习ID: {practiceId}");
-                // 刷新专项练习进度和成绩记录
-                await RefreshSpecialPracticeProgressAsync();
-                await RefreshRecordsAsync();
-            }
-            else
-            {
-                LastSubmissionMessage = "专项练习成绩提交失败，请重试";
-                LastSubmissionSuccess = false;
-                System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 专项练习成绩提交失败，练习ID: {practiceId}");
-            }
-
-            return success;
-        }
-        catch (Exception ex)
-        {
-            LastSubmissionMessage = $"提交专项练习成绩时发生错误: {ex.Message}";
-            LastSubmissionSuccess = false;
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 提交专项练习成绩异常: {ex.Message}");
-            return false;
-        }
-        finally
-        {
-            IsSubmittingSpecialPracticeScore = false;
-        }
-    }
-
-    /// <summary>
-    /// 提交综合训练成绩并刷新进度
-    /// </summary>
-    /// <param name="trainingId">训练ID</param>
-    /// <param name="score">得分</param>
-    /// <param name="maxScore">最大得分</param>
-    /// <param name="durationSeconds">用时（秒）</param>
-    /// <param name="notes">备注</param>
-    /// <returns>是否成功</returns>
-    public async Task<bool> SubmitComprehensiveTrainingScoreAsync(int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
-    {
-        if (_comprehensiveTrainingService == null)
-        {
-            LastSubmissionMessage = "服务未初始化，无法提交成绩";
-            LastSubmissionSuccess = false;
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 综合训练服务未注入，无法提交综合训练成绩");
-            return false;
-        }
-
-        try
-        {
-            IsSubmittingComprehensiveTrainingScore = true;
-            LastSubmissionMessage = "正在提交综合训练成绩...";
-            LastSubmissionSuccess = null;
-
-            CompleteTrainingRequest request = new()
-            {
-                Score = score,
-                MaxScore = maxScore,
-                DurationSeconds = durationSeconds,
-                Notes = notes
-            };
-
-            bool success = await _comprehensiveTrainingService.CompleteComprehensiveTrainingAsync(trainingId, request);
-
-            if (success)
-            {
-                LastSubmissionMessage = "综合训练成绩提交成功！";
-                LastSubmissionSuccess = true;
-                System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 综合训练成绩提交成功，训练ID: {trainingId}");
-                // 刷新综合训练进度和成绩记录
-                await RefreshComprehensiveTrainingProgressAsync();
-                await RefreshRecordsAsync();
-            }
-            else
-            {
-                LastSubmissionMessage = "综合训练成绩提交失败，请重试";
-                LastSubmissionSuccess = false;
-                System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 综合训练成绩提交失败，训练ID: {trainingId}");
-            }
-
-            return success;
-        }
-        catch (Exception ex)
-        {
-            LastSubmissionMessage = $"提交综合训练成绩时发生错误: {ex.Message}";
-            LastSubmissionSuccess = false;
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 提交综合训练成绩异常: {ex.Message}");
-            return false;
-        }
-        finally
-        {
-            IsSubmittingComprehensiveTrainingScore = false;
-        }
-    }
 
     /// <summary>
     /// 加载所有成绩数据

@@ -167,6 +167,13 @@ public class MainViewModel : ViewModelBase, IDisposable
 
         practiceItem.MenuItems.Add(new NavigationViewItem
         {
+            Content = "模拟考试成绩",
+            IconSource = new SymbolIconSource { Symbol = Symbol.ViewAll },
+            Tag = "mock-exam-scores"
+        });
+
+        practiceItem.MenuItems.Add(new NavigationViewItem
+        {
             Content = "综合实训",
             IconSource = new SymbolIconSource { Symbol = Symbol.Target },
             Tag = "comprehensive-training"
@@ -422,6 +429,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "exam" => CreateExamListViewModel(),
                 "practice" => new PracticeViewModel(),
                 "mock-exam" => CreateMockExamViewModel(),
+                "mock-exam-scores" => CreateMockExamScoreListViewModel(),
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
                 "special-practice" => new PracticeViewModel(),
                 "leaderboard" => new LeaderboardViewModel(),
@@ -598,6 +606,36 @@ public class MainViewModel : ViewModelBase, IDisposable
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 创建MockExamScoreListViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateMockExamScoreListViewModel()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MainViewModel: 开始创建MockExamScoreListViewModel");
+
+            // 获取模拟考试服务
+            IStudentMockExamService? studentMockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
+
+            if (studentMockExamService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取模拟考试服务，创建带服务注入的MockExamScoreListViewModel");
+                return new MockExamScoreListViewModel(studentMockExamService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 模拟考试服务为null，创建无服务注入的MockExamScoreListViewModel");
+                return new MockExamScoreListViewModel();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建MockExamScoreListViewModel异常: {ex.Message}");
+            return new MockExamScoreListViewModel();
+        }
     }
 
     /// <summary>

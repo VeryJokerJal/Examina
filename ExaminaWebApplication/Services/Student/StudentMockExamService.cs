@@ -571,6 +571,104 @@ public class StudentMockExamService : IStudentMockExamService
     }
 
     /// <summary>
+    /// 获取学生模拟考试成绩列表
+    /// </summary>
+    public async Task<List<MockExamCompletionDto>> GetMockExamCompletionsAsync(int studentUserId, int pageNumber = 1, int pageSize = 20)
+    {
+        try
+        {
+            _logger.LogInformation("开始获取学生模拟考试成绩列表，学生ID: {StudentId}, 页码: {PageNumber}, 页大小: {PageSize}",
+                studentUserId, pageNumber, pageSize);
+
+            List<MockExamCompletion> completions = await _context.MockExamCompletions
+                .Include(mec => mec.MockExam)
+                .Where(mec => mec.StudentUserId == studentUserId && mec.IsActive)
+                .OrderByDescending(mec => mec.CompletedAt ?? mec.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            List<MockExamCompletionDto> result = [];
+            foreach (MockExamCompletion completion in completions)
+            {
+                MockExamCompletionDto dto = new()
+                {
+                    Id = completion.Id,
+                    MockExamId = completion.MockExamId,
+                    MockExamName = completion.MockExam?.Name ?? "未知考试",
+                    MockExamDescription = completion.MockExam?.Description,
+                    MockExamTotalScore = completion.MockExam?.TotalScore ?? 0,
+                    Status = completion.Status,
+                    StartedAt = completion.StartedAt,
+                    CompletedAt = completion.CompletedAt,
+                    Score = completion.Score,
+                    MaxScore = completion.MaxScore,
+                    CompletionPercentage = completion.CompletionPercentage,
+                    DurationSeconds = completion.DurationSeconds,
+                    Notes = completion.Notes,
+                    CreatedAt = completion.CreatedAt
+                };
+
+                // 计算是否及格
+                if (completion.Score.HasValue && completion.MockExam?.PassingScore != null)
+                {
+                    dto.IsPassed = completion.Score.Value >= completion.MockExam.PassingScore;
+                }
+
+                // 格式化完成时间
+                if (completion.CompletedAt.HasValue)
+                {
+                    dto.FormattedCompletedAt = completion.CompletedAt.Value.ToString("yyyy-MM-dd HH:mm");
+                }
+
+                // 格式化得分文本
+                if (completion.Score.HasValue && completion.MaxScore.HasValue)
+                {
+                    dto.ScoreText = $"{completion.Score:F1}/{completion.MaxScore:F1}";
+                }
+                else if (completion.Score.HasValue)
+                {
+                    dto.ScoreText = $"{completion.Score:F1}";
+                }
+                else
+                {
+                    dto.ScoreText = "未评分";
+                }
+
+                // 格式化用时文本
+                if (completion.DurationSeconds.HasValue)
+                {
+                    int totalSeconds = completion.DurationSeconds.Value;
+                    int minutes = totalSeconds / 60;
+                    int seconds = totalSeconds % 60;
+
+                    if (minutes > 0)
+                    {
+                        dto.DurationText = seconds > 0 ? $"{minutes}分{seconds}秒" : $"{minutes}分钟";
+                    }
+                    else
+                    {
+                        dto.DurationText = $"{seconds}秒";
+                    }
+                }
+
+                result.Add(dto);
+            }
+
+            _logger.LogInformation("获取学生模拟考试成绩列表成功，学生ID: {StudentId}, 返回数量: {Count}",
+                studentUserId, result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生模拟考试成绩列表失败，学生ID: {StudentId}",
+                studentUserId);
+            return [];
+        }
+    }
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     public async Task<bool> DeleteMockExamAsync(int mockExamId, int studentUserId)
