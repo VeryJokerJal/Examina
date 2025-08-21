@@ -60,6 +60,15 @@ public interface IStudentComprehensiveTrainingService
     Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
 
     /// <summary>
+    /// 标记综合训练为已完成（完整版本）
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="trainingId">训练ID</param>
+    /// <param name="request">完成信息</param>
+    /// <returns>是否标记成功</returns>
+    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, Models.Api.Student.CompleteTrainingRequest request);
+
+    /// <summary>
     /// 标记综合训练为开始状态
     /// </summary>
     /// <param name="studentUserId">学生用户ID</param>
