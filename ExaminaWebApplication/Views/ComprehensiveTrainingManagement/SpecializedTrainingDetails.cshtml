@@ -224,7 +224,6 @@
                                             <small class="text-muted ms-2">(@question.Score 分)</small>
                                         </div>
                                         <div>
-                                            <span class="badge bg-info me-2">@question.QuestionType</span>
                                             <span class="badge bg-secondary">@question.OperationPoints.Count 操作点</span>
                                         </div>
                                     </div>
@@ -247,12 +246,6 @@
                                         </div>
                                         <div class="col-md-4">
                                             <dl class="row">
-                                                <dt class="col-6">难度:</dt>
-                                                <dd class="col-6">@question.DifficultyLevel/5</dd>
-                                                
-                                                <dt class="col-6">预计时间:</dt>
-                                                <dd class="col-6">@question.EstimatedMinutes 分钟</dd>
-                                                
                                                 <dt class="col-6">必答题:</dt>
                                                 <dd class="col-6">
                                                     @if (question.IsRequired)

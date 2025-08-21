@@ -14,6 +14,12 @@ public interface IStudentMockExamService
     Task<StudentMockExamDto?> QuickStartMockExamAsync();
 
     /// <summary>
+    /// 快速开始模拟考试（返回综合训练格式，包含模块结构）
+    /// </summary>
+    /// <returns>创建并开始的模拟考试（综合训练格式）</returns>
+    Task<MockExamComprehensiveTrainingDto?> QuickStartMockExamComprehensiveTrainingAsync();
+
+    /// <summary>
     /// 创建模拟考试
     /// </summary>
     /// <param name="request">创建请求</param>

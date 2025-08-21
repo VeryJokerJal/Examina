@@ -12,7 +12,7 @@ public interface IStudentMockExamService
     /// </summary>
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>创建并开始的模拟考试</returns>
-    Task<StudentMockExamDto?> QuickStartMockExamAsync(int studentUserId);
+    Task<MockExamComprehensiveTrainingDto?> QuickStartMockExamAsync(int studentUserId);
 
     /// <summary>
     /// 创建模拟考试

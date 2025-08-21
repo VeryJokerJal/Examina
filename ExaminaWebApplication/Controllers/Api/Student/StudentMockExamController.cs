@@ -31,14 +31,14 @@ public class StudentMockExamController : ControllerBase
     /// </summary>
     /// <returns>创建并开始的模拟考试</returns>
     [HttpPost("quick-start")]
-    public async Task<ActionResult<StudentMockExamDto>> QuickStartMockExam()
+    public async Task<ActionResult<MockExamComprehensiveTrainingDto>> QuickStartMockExam()
     {
         try
         {
             // 获取当前学生用户ID
             int studentUserId = GetCurrentUserId();
 
-            StudentMockExamDto? mockExam = await _mockExamService.QuickStartMockExamAsync(studentUserId);
+            MockExamComprehensiveTrainingDto? mockExam = await _mockExamService.QuickStartMockExamAsync(studentUserId);
             if (mockExam == null)
             {
                 _logger.LogWarning("快速开始模拟考试失败，学生ID: {StudentId}", studentUserId);

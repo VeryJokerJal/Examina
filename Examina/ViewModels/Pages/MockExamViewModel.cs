@@ -1,0 +1,540 @@
+using System.Reactive;
+using System.Reactive.Linq;
+using Avalonia.Controls.ApplicationLifetimes;
+using Examina.Models;
+using Examina.Models.Exam;
+using Examina.Models.MockExam;
+using Examina.Services;
+using Examina.ViewModels.Dialogs;
+using Examina.Views;
+using Examina.Views.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
+
+namespace Examina.ViewModels.Pages;
+
+/// <summary>
+/// 模拟考试视图模型
+/// </summary>
+public class MockExamViewModel : ViewModelBase
+{
+    private readonly IStudentMockExamService _mockExamService;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly EnhancedExamToolbarService? _enhancedExamToolbarService;
+
+    private bool _isLoading;
+    private string? _errorMessage;
+    private bool _hasFullAccess;
+    private bool _isUpdatingPermissions = false;
+
+    /// <summary>
+    /// 是否正在加载
+    /// </summary>
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => this.RaiseAndSetIfChanged(ref _isLoading, value);
+    }
+
+    /// <summary>
+    /// 错误消息
+    /// </summary>
+    public string? ErrorMessage
+    {
+        get => _errorMessage;
+        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
+    }
+
+    /// <summary>
+    /// 是否有完整访问权限
+    /// </summary>
+    public bool HasFullAccess
+    {
+        get => _hasFullAccess;
+        set => this.RaiseAndSetIfChanged(ref _hasFullAccess, value);
+    }
+
+    /// <summary>
+    /// 开始按钮文本
+    /// </summary>
+    public string StartButtonText => HasFullAccess ? "开始模拟考试" : "解锁";
+
+    /// <summary>
+    /// 开始模拟考试命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> StartMockExamCommand { get; }
+
+    public MockExamViewModel(IStudentMockExamService mockExamService, IAuthenticationService authenticationService)
+    {
+        _mockExamService = mockExamService;
+        _authenticationService = authenticationService;
+
+        // 尝试获取EnhancedExamToolbarService（可选依赖）
+        try
+        {
+            _enhancedExamToolbarService = AppServiceManager.GetService<EnhancedExamToolbarService>();
+            if (_enhancedExamToolbarService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 成功获取EnhancedExamToolbarService");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: EnhancedExamToolbarService不可用，将使用原有提交逻辑");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 获取EnhancedExamToolbarService失败: {ex.Message}");
+            _enhancedExamToolbarService = null;
+        }
+
+        // 初始化命令
+        StartMockExamCommand = ReactiveCommand.CreateFromTask(StartMockExamAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
+
+        // 初始化用户权限状态
+        _ = UpdateUserPermissionsAsync();
+
+        // 监听用户信息更新事件
+        _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
+    }
+
+    /// <summary>
+    /// 开始模拟考试
+    /// </summary>
+    private async Task StartMockExamAsync()
+    {
+        try
+        {
+            if (!HasFullAccess)
+            {
+                // 用户没有完整权限，显示解锁提示
+                ErrorMessage = "您需要解锁权限才能开始模拟考试。请加入学校组织或联系管理员进行解锁。";
+                System.Diagnostics.Debug.WriteLine("用户尝试开始模拟考试但没有完整权限");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 准备开始模拟考试");
+
+            // 显示规则说明对话框
+            MockExamRulesViewModel rulesViewModel = new();
+            MockExamRulesDialog dialog = new(rulesViewModel);
+
+            // 设置对话框的父窗口
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 准备显示规则对话框");
+
+                bool? result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
+
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 对话框返回结果: {result}");
+
+                if (result == true)
+                {
+                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 用户确认开始模拟考试");
+                    // 用户确认开始，调用快速开始API
+                    await QuickStartMockExamAsync();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 用户取消了模拟考试");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 无法获取主窗口");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 开始模拟考试异常: {ex.Message}");
+            ErrorMessage = "启动模拟考试失败，请重试";
+        }
+    }
+
+    /// <summary>
+    /// 快速开始模拟考试
+    /// </summary>
+    private async Task QuickStartMockExamAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始调用快速开始模拟考试API");
+
+            // 调用新的API获取模块化的模拟考试数据
+            MockExamComprehensiveTrainingDto? mockExam = await _mockExamService.QuickStartMockExamComprehensiveTrainingAsync();
+            if (mockExam != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 成功生成模拟考试，ID: {mockExam.Id}");
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模拟考试包含 {mockExam.Modules.Count} 个模块");
+
+                // 记录模块信息
+                foreach (MockExamModuleDto module in mockExam.Modules)
+                {
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {module.Name} ({module.Type})，包含 {module.Questions.Count} 道题目，描述: {module.Description}");
+                }
+
+                // 启动模拟考试界面
+                await StartMockExamInterfaceAsync(mockExam);
+            }
+            else
+            {
+                ErrorMessage = "生成模拟考试失败，请检查题库或稍后重试";
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 快速开始模拟考试失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 快速开始模拟考试异常: {ex.Message}");
+            ErrorMessage = "生成模拟考试失败，请重试";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// 更新用户权限状态
+    /// </summary>
+    private async Task UpdateUserPermissionsAsync()
+    {
+        if (_isUpdatingPermissions)
+        {
+            return;
+        }
+
+        try
+        {
+            _isUpdatingPermissions = true;
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始更新用户权限状态");
+
+            UserInfo? currentUser = _authenticationService.CurrentUser;
+            if (currentUser != null)
+            {
+                // 检查用户是否有完整权限
+                HasFullAccess = currentUser.HasFullAccess;
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 用户权限状态 - HasFullAccess: {HasFullAccess}");
+            }
+            else
+            {
+                HasFullAccess = false;
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 当前用户为空，设置为无权限");
+            }
+
+            // 通知UI更新按钮文本
+            this.RaisePropertyChanged(nameof(StartButtonText));
+        }
+        catch (Exception ex)
+        {
+            // 异常处理：使用默认值
+            HasFullAccess = false;
+            this.RaisePropertyChanged(nameof(StartButtonText));
+
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 更新用户权限状态异常: {ex.Message}");
+        }
+        finally
+        {
+            _isUpdatingPermissions = false;
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 权限状态更新完成");
+        }
+    }
+
+    /// <summary>
+    /// 用户信息更新事件处理
+    /// </summary>
+    private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
+    {
+        _ = UpdateUserPermissionsAsync();
+    }
+
+    /// <summary>
+    /// 启动模拟考试界面
+    /// </summary>
+    private async Task StartMockExamInterfaceAsync(MockExamComprehensiveTrainingDto mockExam)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始启动模拟考试界面");
+
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                // 隐藏主窗口
+                desktop.MainWindow.Hide();
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 主窗口已隐藏");
+
+                // 创建考试工具栏 ViewModel
+                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null);
+
+                // 计算总题目数
+                int totalQuestions = mockExam.Modules.Sum(m => m.Questions.Count);
+
+                // 设置考试信息
+                toolbarViewModel.SetExamInfo(
+                    ExamType.MockExam,
+                    mockExam.Id,
+                    mockExam.Name,
+                    totalQuestions,
+                    mockExam.DurationMinutes * 60 // 转换为秒
+                );
+
+                // 设置模块信息用于题目详情显示
+                await SetModuleInformationAsync(toolbarViewModel, mockExam);
+
+                // 创建考试工具栏窗口并设置 ViewModel
+                ExamToolbarWindow examToolbar = new();
+                examToolbar.SetViewModel(toolbarViewModel);
+
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试工具栏已配置 - 考试ID: {mockExam.Id}, 题目数: {totalQuestions}, 时长: {mockExam.DurationMinutes}分钟");
+
+                // 订阅考试事件 - 这是关键的事件订阅
+                examToolbar.ExamAutoSubmitted += OnExamAutoSubmitted;
+                examToolbar.ExamManualSubmitted += OnExamManualSubmitted;
+                examToolbar.ViewQuestionsRequested += (sender, e) => OnViewQuestionsRequested(mockExam);
+
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 已订阅考试工具栏事件");
+
+                // 显示工具栏窗口
+                examToolbar.Show();
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试工具栏窗口已显示");
+
+                // 开始考试倒计时
+                toolbarViewModel.StartExam();
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试倒计时已开始");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 无法获取主窗口，启动考试界面失败");
+                ErrorMessage = "无法启动考试界面，请重试";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 启动模拟考试界面异常: {ex.Message}");
+            ErrorMessage = "启动考试界面失败，请重试";
+        }
+    }
+
+    /// <summary>
+    /// 设置模块信息用于题目详情显示
+    /// </summary>
+    private async Task SetModuleInformationAsync(ExamToolbarViewModel toolbarViewModel, MockExamComprehensiveTrainingDto mockExam)
+    {
+        try
+        {
+            // 设置学生信息
+            UserInfo? currentUser = _authenticationService.CurrentUser;
+            if (currentUser != null)
+            {
+                toolbarViewModel.StudentName = currentUser.RealName ?? "未知学生";
+            }
+
+            // 记录模块详细信息
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 设置模块信息，共 {mockExam.Modules.Count} 个模块");
+
+            foreach (MockExamModuleDto module in mockExam.Modules)
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {module.Name} - {module.Description}");
+                foreach (MockExamQuestionDto question in module.Questions)
+                {
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 题目 {question.Id} - {question.Title} ({question.QuestionType})");
+                }
+            }
+
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 设置模块信息异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 处理考试自动提交事件
+    /// </summary>
+    private async void OnExamAutoSubmitted(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试时间到，自动提交");
+
+        try
+        {
+            // 获取考试工具栏窗口以获取考试信息
+            if (sender is ExamToolbarWindow examToolbar && examToolbar.DataContext is ExamToolbarViewModel viewModel)
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 自动提交考试，ID: {viewModel.ExamId}, 类型: {viewModel.CurrentExamType}");
+                await SubmitExamWithBenchSuiteAsync(viewModel.ExamId, viewModel.CurrentExamType, isAutoSubmit: true);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 无法获取考试工具栏ViewModel，自动提交失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 自动提交考试异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 处理考试手动提交事件
+    /// </summary>
+    private async void OnExamManualSubmitted(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("MockExamViewModel: 学生手动提交考试");
+
+        try
+        {
+            // 获取考试工具栏窗口以获取考试信息
+            if (sender is ExamToolbarWindow examToolbar && examToolbar.DataContext is ExamToolbarViewModel viewModel)
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 手动提交考试，ID: {viewModel.ExamId}, 类型: {viewModel.CurrentExamType}");
+                await SubmitExamWithBenchSuiteAsync(viewModel.ExamId, viewModel.CurrentExamType, isAutoSubmit: false);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 无法获取考试工具栏ViewModel，手动提交失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 手动提交考试异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 处理查看题目请求事件
+    /// </summary>
+    private void OnViewQuestionsRequested(MockExamComprehensiveTrainingDto mockExam)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 用户请求查看题目");
+
+            // 创建题目详情窗口
+            MockExamQuestionDetailsViewModel detailsViewModel = new();
+            detailsViewModel.SetMockExamData(mockExam);
+
+            MockExamQuestionDetailsWindow detailsWindow = new()
+            {
+                DataContext = detailsViewModel
+            };
+
+            // 显示题目详情窗口
+            detailsWindow.Show();
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 题目详情窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示题目详情窗口异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 使用BenchSuite评分提交考试
+    /// </summary>
+    private async Task SubmitExamWithBenchSuiteAsync(int examId, ExamType examType, bool isAutoSubmit)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 开始提交考试，ID: {examId}, 类型: {examType}, 自动提交: {isAutoSubmit}");
+
+            bool submitResult = false;
+
+            // 优先使用EnhancedExamToolbarService进行BenchSuite集成提交
+            if (_enhancedExamToolbarService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 使用EnhancedExamToolbarService进行BenchSuite集成提交");
+
+                switch (examType)
+                {
+                    case ExamType.MockExam:
+                        submitResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId);
+                        break;
+                    case ExamType.FormalExam:
+                        submitResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
+                        break;
+                    case ExamType.ComprehensiveTraining:
+                        submitResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingAsync(examId);
+                        break;
+                    default:
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: EnhancedExamToolbarService不支持的考试类型: {examType}");
+                        break;
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: EnhancedExamToolbarService不可用，使用原有提交逻辑");
+
+                // 回退到原有的提交方法
+                switch (examType)
+                {
+                    case ExamType.MockExam:
+                        // 使用现有的模拟考试服务提交
+                        submitResult = await _mockExamService.SubmitMockExamAsync(examId);
+                        break;
+
+                    case ExamType.FormalExam:
+                        // 正式考试提交（需要实现）
+                        System.Diagnostics.Debug.WriteLine("MockExamViewModel: 正式考试提交功能待实现");
+                        submitResult = true; // 临时返回成功
+                        break;
+
+                    case ExamType.ComprehensiveTraining:
+                        // 综合实训提交（需要实现）
+                        System.Diagnostics.Debug.WriteLine("MockExamViewModel: 综合实训提交功能待实现");
+                        submitResult = true; // 临时返回成功
+                        break;
+
+                    default:
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 不支持的考试类型: {examType}");
+                        break;
+                }
+            }
+
+            if (submitResult)
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交成功，ID: {examId}");
+
+                // 关闭考试工具栏窗口并显示主窗口
+                await CloseExamAndShowMainWindowAsync();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交失败，ID: {examId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 提交考试异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 关闭考试并显示主窗口
+    /// </summary>
+    private async Task CloseExamAndShowMainWindowAsync()
+    {
+        try
+        {
+            // 显示主窗口
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                desktop.MainWindow.Show();
+                desktop.MainWindow.Activate();
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 主窗口已显示");
+            }
+
+            // 刷新数据
+            await UpdateUserPermissionsAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 关闭考试并显示主窗口异常: {ex.Message}");
+        }
+    }
+}

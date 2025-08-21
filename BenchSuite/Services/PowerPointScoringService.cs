@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
-using BenchSuite.Services;
 using Microsoft.Office.Core;
 using Microsoft.Office.Interop.PowerPoint;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
@@ -559,9 +558,8 @@ public class PowerPointScoringService : IPowerPointScoringService
         try
         {
             // 尝试从参数中获取期望的幻灯片数量，如果没有则根据删除操作推算
-            int expectedCount;
             if (parameters.TryGetValue("ExpectedSlideCount", out string? expectedCountStr) &&
-                int.TryParse(expectedCountStr, out expectedCount))
+                int.TryParse(expectedCountStr, out int expectedCount))
             {
                 // 使用明确指定的期望数量
             }
@@ -616,9 +614,8 @@ public class PowerPointScoringService : IPowerPointScoringService
         try
         {
             // 尝试从参数中获取期望的幻灯片数量
-            int expectedCount;
             if (parameters.TryGetValue("ExpectedSlideCount", out string? expectedCountStr) &&
-                int.TryParse(expectedCountStr, out expectedCount))
+                int.TryParse(expectedCountStr, out int expectedCount))
             {
                 // 使用明确指定的期望数量
             }
@@ -785,16 +782,14 @@ public class PowerPointScoringService : IPowerPointScoringService
         try
         {
             // 支持多种参数名称（兼容 ExamLab 和旧版本）
-            string? slideIndexStr = null;
-            if (!parameters.TryGetValue("SlideIndex", out slideIndexStr))
+            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr))
             {
-                parameters.TryGetValue("SlideNumber", out slideIndexStr);
+                _ = parameters.TryGetValue("SlideNumber", out slideIndexStr);
             }
 
-            string? expectedTransition = null;
-            if (!parameters.TryGetValue("TransitionType", out expectedTransition))
+            if (!parameters.TryGetValue("TransitionType", out string? expectedTransition))
             {
-                parameters.TryGetValue("TransitionEffect", out expectedTransition);
+                _ = parameters.TryGetValue("TransitionEffect", out expectedTransition);
             }
 
             if (string.IsNullOrEmpty(slideIndexStr) || !int.TryParse(slideIndexStr, out int slideIndex) ||
@@ -938,7 +933,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             result.ActualValue = allText.Trim();
             result.IsCorrect = textFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"文本检测: 期望包含 '{expectedText}', {searchDetails}, 实际文本 '{result.ActualValue.Substring(0, Math.Min(100, result.ActualValue.Length))}...'";
+            result.Details = $"文本检测: 期望包含 '{expectedText}', {searchDetails}, 实际文本 '{result.ActualValue[..Math.Min(100, result.ActualValue.Length)]}...'";
         }
         catch (Exception ex)
         {
@@ -1536,8 +1531,8 @@ public class PowerPointScoringService : IPowerPointScoringService
     {
         try
         {
-            var background = slide.Background;
-            var fill = background.Fill;
+            PowerPoint.ShapeRange background = slide.Background;
+            PowerPoint.FillFormat fill = background.Fill;
 
             return fill.Type switch
             {
@@ -1562,15 +1557,15 @@ public class PowerPointScoringService : IPowerPointScoringService
     {
         try
         {
-            var background = slide.Background;
-            var fill = background.Fill;
+            PowerPoint.ShapeRange background = slide.Background;
+            PowerPoint.FillFormat fill = background.Fill;
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillPatterned)
             {
                 try
                 {
                     // 尝试获取图案类型
-                    var pattern = fill.Pattern;
+                    MsoPatternType pattern = fill.Pattern;
                     string patternName = GetPatternTypeName(pattern);
 
                     if (!string.IsNullOrEmpty(patternName))
@@ -1674,16 +1669,16 @@ public class PowerPointScoringService : IPowerPointScoringService
     {
         try
         {
-            var background = slide.Background;
-            var fill = background.Fill;
+            PowerPoint.ShapeRange background = slide.Background;
+            PowerPoint.FillFormat fill = background.Fill;
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillTextured)
             {
                 try
                 {
                     // 尝试获取纹理类型
-                    var texture = fill.TextureType;
-                    string textureName = GetTextureTypeName(texture);
+                    Microsoft.Office.Core.MsoPresetTexture preset = fill.PresetTexture;
+                    string textureName = GetTextureTypeName(preset);
 
                     if (!string.IsNullOrEmpty(textureName))
                     {
@@ -1713,34 +1708,34 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     /// <param name="texture">纹理枚举值</param>
     /// <returns>纹理类型名称</returns>
-    private string GetTextureTypeName(Microsoft.Office.Core.MsoTextureType texture)
+    private string GetTextureTypeName(Microsoft.Office.Core.MsoPresetTexture texture)
     {
         return texture switch
         {
-            Microsoft.Office.Core.MsoTextureType.msoTexturePapyrus => "纸莎草纸",
-            Microsoft.Office.Core.MsoTextureType.msoTextureCanvas => "画布",
-            Microsoft.Office.Core.MsoTextureType.msoTextureDenim => "斜纹布",
-            Microsoft.Office.Core.MsoTextureType.msoTextureWovenMat => "编织物",
-            Microsoft.Office.Core.MsoTextureType.msoTextureWaterDroplets => "水滴",
-            Microsoft.Office.Core.MsoTextureType.msoTexturePaperBag => "纸袋",
-            Microsoft.Office.Core.MsoTextureType.msoTextureFishFossil => "鱼类化石",
-            Microsoft.Office.Core.MsoTextureType.msoTextureSand => "沙滩",
-            Microsoft.Office.Core.MsoTextureType.msoTextureGreenMarble => "绿色大理石",
-            Microsoft.Office.Core.MsoTextureType.msoTextureWhiteMarble => "白色大理石",
-            Microsoft.Office.Core.MsoTextureType.msoTextureBrownMarble => "褐色大理石",
-            Microsoft.Office.Core.MsoTextureType.msoTextureGranite => "花岗岩",
-            Microsoft.Office.Core.MsoTextureType.msoTextureNewsprint => "新闻纸",
-            Microsoft.Office.Core.MsoTextureType.msoTextureRecycledPaper => "再生纸",
-            Microsoft.Office.Core.MsoTextureType.msoTextureParchment => "羊皮纸",
-            Microsoft.Office.Core.MsoTextureType.msoTextureStationery => "信纸",
-            Microsoft.Office.Core.MsoTextureType.msoTextureBlueTissuePaper => "蓝色面巾纸",
-            Microsoft.Office.Core.MsoTextureType.msoTexturePinkTissuePaper => "粉色面巾纸",
-            Microsoft.Office.Core.MsoTextureType.msoTexturePurpleMesh => "紫色网格",
-            Microsoft.Office.Core.MsoTextureType.msoTextureBouquet => "花束",
-            Microsoft.Office.Core.MsoTextureType.msoTextureCork => "软木塞",
-            Microsoft.Office.Core.MsoTextureType.msoTextureWalnut => "胡桃",
-            Microsoft.Office.Core.MsoTextureType.msoTextureOak => "栎木",
-            Microsoft.Office.Core.MsoTextureType.msoTextureMediumWood => "深色木质",
+            Microsoft.Office.Core.MsoPresetTexture.msoTexturePapyrus => "纸莎草纸",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureCanvas => "画布",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureDenim => "斜纹布",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureWovenMat => "编织物",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureWaterDroplets => "水滴",
+            Microsoft.Office.Core.MsoPresetTexture.msoTexturePaperBag => "纸袋",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureFishFossil => "鱼类化石",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureSand => "沙滩",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureGreenMarble => "绿色大理石",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureWhiteMarble => "白色大理石",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureBrownMarble => "褐色大理石",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureGranite => "花岗岩",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureNewsprint => "新闻纸",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureRecycledPaper => "再生纸",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureParchment => "羊皮纸",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureStationery => "信纸",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureBlueTissuePaper => "蓝色面巾纸",
+            Microsoft.Office.Core.MsoPresetTexture.msoTexturePinkTissuePaper => "粉色面巾纸",
+            Microsoft.Office.Core.MsoPresetTexture.msoTexturePurpleMesh => "紫色网格",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureBouquet => "花束",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureCork => "软木塞",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureWalnut => "胡桃",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureOak => "栎木",
+            Microsoft.Office.Core.MsoPresetTexture.msoTextureMediumWood => "深色木质",
 
             _ => "未知纹理类型"
         };
@@ -1753,15 +1748,15 @@ public class PowerPointScoringService : IPowerPointScoringService
     {
         try
         {
-            var background = slide.Background;
-            var fill = background.Fill;
+            PowerPoint.ShapeRange background = slide.Background;
+            PowerPoint.FillFormat fill = background.Fill;
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillGradient)
             {
                 try
                 {
                     // 尝试获取预设渐变类型
-                    var presetGradient = fill.PresetGradientType;
+                    MsoPresetGradientType presetGradient = fill.PresetGradientType;
                     string gradientName = GetPresetGradientTypeName(presetGradient);
 
                     if (!string.IsNullOrEmpty(gradientName))
@@ -1770,7 +1765,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     }
 
                     // 如果无法获取具体预设渐变类型，检查是否为自定义渐变
-                    var gradientStyle = fill.GradientStyle;
+                    MsoGradientStyle gradientStyle = fill.GradientStyle;
                     if (gradientStyle != Microsoft.Office.Core.MsoGradientStyle.msoGradientMixed)
                     {
                         return "自定义渐变填充";
@@ -1819,12 +1814,12 @@ public class PowerPointScoringService : IPowerPointScoringService
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientParchment => "羊皮纸",
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientMahogany => "红木",
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientRainbow => "彩虹出岫",
-            Microsoft.Office.Core.MsoPresetGradientType.msoGradientRainbow2 => "彩虹出岫II",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientRainbowII => "彩虹出岫II",
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientGold => "金色年华",
-            Microsoft.Office.Core.MsoPresetGradientType.msoGradientGold2 => "金色年华II",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientGoldII => "金色年华II",
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientBrass => "铜黄色",
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientChrome => "铬色",
-            Microsoft.Office.Core.MsoPresetGradientType.msoGradientChrome2 => "铬色II",
+            Microsoft.Office.Core.MsoPresetGradientType.msoGradientChromeII => "铬色II",
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientSilver => "银波荡漾",
             Microsoft.Office.Core.MsoPresetGradientType.msoGradientSapphire => "宝石蓝",
 
@@ -1839,19 +1834,19 @@ public class PowerPointScoringService : IPowerPointScoringService
     {
         try
         {
-            var background = slide.Background;
-            var fill = background.Fill;
+            PowerPoint.ShapeRange background = slide.Background;
+            PowerPoint.FillFormat fill = background.Fill;
 
             if (fill.Type == Microsoft.Office.Core.MsoFillType.msoFillGradient)
             {
                 try
                 {
                     // 检查渐变样式是否为线性
-                    var gradientStyle = fill.GradientStyle;
-                    if (gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientHorizontal ||
-                        gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientVertical ||
-                        gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalUp ||
-                        gradientStyle == Microsoft.Office.Core.MsoGradientStyle.msoGradientDiagonalDown)
+                    MsoGradientStyle gradientStyle = fill.GradientStyle;
+                    if (gradientStyle is MsoGradientStyle.msoGradientHorizontal or
+                        MsoGradientStyle.msoGradientVertical or
+                        MsoGradientStyle.msoGradientDiagonalUp or
+                        MsoGradientStyle.msoGradientDiagonalDown)
                     {
                         // 尝试获取渐变角度来确定具体方向
                         try
@@ -1905,7 +1900,10 @@ public class PowerPointScoringService : IPowerPointScoringService
     {
         // 根据角度判断具体方向
         float normalizedAngle = angle % 360;
-        if (normalizedAngle < 0) normalizedAngle += 360;
+        if (normalizedAngle < 0)
+        {
+            normalizedAngle += 360;
+        }
 
         return normalizedAngle switch
         {
@@ -2239,22 +2237,19 @@ public class PowerPointScoringService : IPowerPointScoringService
         try
         {
             // 尝试获取幻灯片索引列表（支持多种参数名）
-            string? slideIndexesStr = null;
-            if (!parameters.TryGetValue("SlideIndexes", out slideIndexesStr))
+            if (!parameters.TryGetValue("SlideIndexes", out string? slideIndexesStr))
             {
-                parameters.TryGetValue("SlideNumbers", out slideIndexesStr);
+                _ = parameters.TryGetValue("SlideNumbers", out slideIndexesStr);
             }
 
             // 尝试获取切换方案（支持多种参数名）
-            string? expectedModeStr = null;
-            if (!parameters.TryGetValue("TransitionMode", out expectedModeStr))
+            if (!parameters.TryGetValue("TransitionMode", out string? expectedModeStr))
             {
-                parameters.TryGetValue("TransitionScheme", out expectedModeStr);
+                _ = parameters.TryGetValue("TransitionScheme", out expectedModeStr);
             }
 
             // 尝试获取切换方向（支持新的参数结构）
-            string? expectedDirectionStr = null;
-            parameters.TryGetValue("TransitionDirection", out expectedDirectionStr);
+            _ = parameters.TryGetValue("TransitionDirection", out string? expectedDirectionStr);
 
             if (string.IsNullOrEmpty(slideIndexesStr) || string.IsNullOrEmpty(expectedModeStr))
             {
@@ -2923,12 +2918,12 @@ public class PowerPointScoringService : IPowerPointScoringService
                     if (parameter.Key.Contains("Indexes", StringComparison.OrdinalIgnoreCase))
                     {
                         // 处理多个编号参数（逗号分隔）
-                        ParameterResolver.ResolveMultipleParameters(parameter.Key, parameter.Value, maxValue, context);
+                        _ = ParameterResolver.ResolveMultipleParameters(parameter.Key, parameter.Value, maxValue, context);
                     }
                     else
                     {
                         // 处理单个编号参数
-                        ParameterResolver.ResolveParameter(parameter.Key, parameter.Value, maxValue, context);
+                        _ = ParameterResolver.ResolveParameter(parameter.Key, parameter.Value, maxValue, context);
                     }
                 }
                 catch (Exception)
@@ -3023,7 +3018,9 @@ public class PowerPointScoringService : IPowerPointScoringService
     private string NormalizeLayoutName(string layoutName)
     {
         if (string.IsNullOrEmpty(layoutName))
+        {
             return "";
+        }
 
         // 移除空格和特殊字符，转换为小写
         string normalized = layoutName.Replace(" ", "").Replace("（", "(").Replace("）", ")").ToLowerInvariant();
@@ -3073,10 +3070,10 @@ public class PowerPointScoringService : IPowerPointScoringService
             }
 
             // 获取可选参数
-            parameters.TryGetValue("ObjectIndex", out string? objectIndexStr);
-            parameters.TryGetValue("TriggerMode", out string? expectedTriggerMode);
-            parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr);
-            parameters.TryGetValue("Duration", out string? expectedDurationStr);
+            _ = parameters.TryGetValue("ObjectIndex", out string? objectIndexStr);
+            _ = parameters.TryGetValue("TriggerMode", out string? expectedTriggerMode);
+            _ = parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr);
+            _ = parameters.TryGetValue("Duration", out string? expectedDurationStr);
 
             PowerPoint.Slide slide = presentation.Slides[slideNumber];
             bool animationFound = false;
@@ -3156,12 +3153,12 @@ public class PowerPointScoringService : IPowerPointScoringService
             int elementOrder = 1; // 默认值
             if (parameters.TryGetValue("ElementOrder", out string? elementOrderStr))
             {
-                int.TryParse(elementOrderStr, out elementOrder);
+                _ = int.TryParse(elementOrderStr, out elementOrder);
             }
 
             // 获取期望的持续时间和延迟时间
-            parameters.TryGetValue("Duration", out string? expectedDurationStr);
-            parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr);
+            _ = parameters.TryGetValue("Duration", out string? expectedDurationStr);
+            _ = parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr);
 
             PowerPoint.Slide slide = presentation.Slides[slideNumber];
             bool animationFound = false;
@@ -3177,7 +3174,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     // 检查指定元素的动画
                     if (elementOrder <= slide.TimeLine.MainSequence.Count)
                     {
-                        var animation = slide.TimeLine.MainSequence[elementOrder];
+                        Effect animation = slide.TimeLine.MainSequence[elementOrder];
                         animationDetails = $"第{elementOrder}个元素找到动画效果";
 
                         // 如果指定了具体的持续时间或延迟时间，进行详细检查
@@ -3440,9 +3437,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             PowerPoint.PpEntryEffect.ppEffectBoxIn => "盒状",
             PowerPoint.PpEntryEffect.ppEffectCircleOut => "圆形",
             PowerPoint.PpEntryEffect.ppEffectFlyFromLeft => "飞入",
-            PowerPoint.PpEntryEffect.ppEffectPeek => "显示",
             PowerPoint.PpEntryEffect.ppEffectCut => "切出",
-            PowerPoint.PpEntryEffect.ppEffectMorphByWord => "变换",
             _ => entryEffect.ToString()
         };
     }
@@ -3455,7 +3450,9 @@ public class PowerPointScoringService : IPowerPointScoringService
     private static string NormalizeTransitionEffectName(string effectName)
     {
         if (string.IsNullOrEmpty(effectName))
+        {
             return effectName;
+        }
 
         // 映射新的切换效果名称到标准名称
         return effectName.ToLower() switch
@@ -3517,7 +3514,9 @@ public class PowerPointScoringService : IPowerPointScoringService
     private static bool CheckTransitionSchemeMatch(string actualTransition, string expectedScheme)
     {
         if (string.IsNullOrEmpty(actualTransition) || string.IsNullOrEmpty(expectedScheme))
+        {
             return false;
+        }
 
         string normalizedTransition = actualTransition.ToLower();
         string normalizedScheme = expectedScheme.ToLower();

@@ -105,6 +105,7 @@ builder.Services.AddScoped<ExamImportService>();
 
 // 注册综合训练导入相关服务
 builder.Services.AddScoped<ExaminaWebApplication.Services.ImportedComprehensiveTraining.ComprehensiveTrainingImportService>();
+builder.Services.AddScoped<ExaminaWebApplication.Services.ImportedComprehensiveTraining.EnhancedComprehensiveTrainingService>();
 
 // 注册专项训练导入相关服务
 builder.Services.AddScoped<ExaminaWebApplication.Services.ImportedSpecializedTraining.SpecializedTrainingImportService>();

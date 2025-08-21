@@ -15,9 +15,12 @@ public class BoolToTimeBrushConverter : IValueConverter
     {
         if (value is bool isUrgent)
         {
-            return isUrgent ? new SolidColorBrush(Color.Parse("#FFFF4444")) : new SolidColorBrush(Color.Parse("#FFFFFF"));
+            // 使用动态资源而不是硬编码颜色
+            return isUrgent
+                ? new SolidColorBrush(Color.Parse("#FFFF4444")) // 紧急状态保持红色
+                : new SolidColorBrush(Colors.Transparent); // 正常状态使用透明，让系统颜色显示
         }
-        return new SolidColorBrush(Color.Parse("#FFFFFF"));
+        return new SolidColorBrush(Colors.Transparent);
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -63,17 +66,18 @@ public class ExamStatusToBrushConverter : IValueConverter
     {
         if (value is ExamStatus status)
         {
+            // 使用更适合主题的颜色，保持语义化
             return status switch
             {
-                ExamStatus.Preparing => new SolidColorBrush(Color.Parse("#FFCCCCCC")),
-                ExamStatus.InProgress => new SolidColorBrush(Color.Parse("#FF28A745")),
-                ExamStatus.AboutToEnd => new SolidColorBrush(Color.Parse("#FFFFC107")),
-                ExamStatus.Ended => new SolidColorBrush(Color.Parse("#FFFF4444")),
-                ExamStatus.Submitted => new SolidColorBrush(Color.Parse("#FF6C757D")),
-                _ => new SolidColorBrush(Color.Parse("#FFCCCCCC"))
+                ExamStatus.Preparing => new SolidColorBrush(Color.Parse("#FF9E9E9E")), // 灰色 - 准备中
+                ExamStatus.InProgress => new SolidColorBrush(Color.Parse("#FF4CAF50")), // 绿色 - 进行中
+                ExamStatus.AboutToEnd => new SolidColorBrush(Color.Parse("#FFFF9800")), // 橙色 - 即将结束
+                ExamStatus.Ended => new SolidColorBrush(Color.Parse("#FFF44336")), // 红色 - 已结束
+                ExamStatus.Submitted => new SolidColorBrush(Color.Parse("#FF607D8B")), // 蓝灰色 - 已提交
+                _ => new SolidColorBrush(Color.Parse("#FF9E9E9E"))
             };
         }
-        return new SolidColorBrush(Color.Parse("#FFCCCCCC"));
+        return new SolidColorBrush(Color.Parse("#FF9E9E9E"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -113,11 +117,12 @@ public class BoolToNetworkBrushConverter : IValueConverter
     {
         if (value is bool isConnected)
         {
-            return isConnected 
-                ? new SolidColorBrush(Color.Parse("#FF28A745")) 
-                : new SolidColorBrush(Color.Parse("#FFFF4444"));
+            // 使用更适合主题的颜色
+            return isConnected
+                ? new SolidColorBrush(Color.Parse("#FF4CAF50")) // 绿色 - 已连接
+                : new SolidColorBrush(Color.Parse("#FFF44336")); // 红色 - 未连接
         }
-        return new SolidColorBrush(Color.Parse("#FFFF4444"));
+        return new SolidColorBrush(Color.Parse("#FFF44336"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

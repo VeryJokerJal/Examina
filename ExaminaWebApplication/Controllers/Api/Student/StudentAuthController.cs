@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace ExaminaWebApplication.Controllers;
+namespace ExaminaWebApplication.Controllers.Api.Student;
 
 /// <summary>
 /// 学生端JWT认证控制器

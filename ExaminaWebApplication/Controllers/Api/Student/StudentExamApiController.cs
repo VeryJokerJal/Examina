@@ -1,10 +1,10 @@
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
-namespace ExaminaWebApplication.Controllers;
+namespace ExaminaWebApplication.Controllers.Api.Student;
 
 /// <summary>
 /// 学生端考试API控制器
@@ -39,10 +39,17 @@ public class StudentExamApiController : ControllerBase
         try
         {
             int studentUserId = GetCurrentUserId();
-            
+
             // 验证分页参数
-            if (pageNumber < 1) pageNumber = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 50;
+            if (pageNumber < 1)
+            {
+                pageNumber = 1;
+            }
+
+            if (pageSize is < 1 or > 100)
+            {
+                pageSize = 50;
+            }
 
             List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsAsync(
                 studentUserId, pageNumber, pageSize);
@@ -151,10 +158,8 @@ public class StudentExamApiController : ControllerBase
     private int GetCurrentUserId()
     {
         string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-        {
-            throw new UnauthorizedAccessException("无法获取当前用户信息");
-        }
-        return userId;
+        return string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId)
+            ? throw new UnauthorizedAccessException("无法获取当前用户信息")
+            : userId;
     }
 }

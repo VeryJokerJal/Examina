@@ -11,27 +11,6 @@ using Microsoft.Extensions.Logging;
 namespace Examina.ViewModels;
 
 /// <summary>
-/// 考试类型枚举
-/// </summary>
-public enum ExamType
-{
-    /// <summary>
-    /// 模拟考试
-    /// </summary>
-    MockExam,
-    
-    /// <summary>
-    /// 综合实训
-    /// </summary>
-    ComprehensiveTraining,
-    
-    /// <summary>
-    /// 正式考试
-    /// </summary>
-    FormalExam
-}
-
-/// <summary>
 /// 考试状态枚举
 /// </summary>
 public enum ExamStatus
@@ -118,16 +97,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     [Reactive] public int TotalQuestions { get; set; }
 
     /// <summary>
-    /// 当前题目索引
-    /// </summary>
-    [Reactive] public int CurrentQuestionIndex { get; set; } = 1;
-
-    /// <summary>
-    /// 是否显示题目信息
-    /// </summary>
-    [Reactive] public bool ShowQuestionInfo { get; set; } = true;
-
-    /// <summary>
     /// 时间警告阈值（秒，默认5分钟）
     /// </summary>
     [Reactive] public int TimeWarningThreshold { get; set; } = 300;
@@ -163,11 +132,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     public ReactiveCommand<Unit, Unit> SubmitExamCommand { get; }
 
     /// <summary>
-    /// 刷新网络状态命令
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> RefreshNetworkCommand { get; }
-
-    /// <summary>
     /// 考试自动提交事件
     /// </summary>
     public event EventHandler? ExamAutoSubmitted;
@@ -185,15 +149,14 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ExamToolbarViewModel(IAuthenticationService authenticationService, ILogger<ExamToolbarViewModel> logger)
+    public ExamToolbarViewModel(IAuthenticationService authenticationService, ILogger<ExamToolbarViewModel>? logger)
     {
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<ExamToolbarViewModel>.Instance;
 
         // 初始化命令
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
         SubmitExamCommand = ReactiveCommand.CreateFromTask(SubmitExamAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
-        RefreshNetworkCommand = ReactiveCommand.CreateFromTask(RefreshNetworkStatusAsync);
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
         this.WhenAnyValue(x => x.RemainingTimeSeconds)
@@ -317,25 +280,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         }
     }
 
-    /// <summary>
-    /// 刷新网络状态
-    /// </summary>
-    private async Task RefreshNetworkStatusAsync()
-    {
-        try
-        {
-            // 这里可以实现网络连接检查逻辑
-            // 暂时简化处理
-            await Task.Delay(1000);
-            IsNetworkConnected = true;
-            _logger.LogInformation("网络状态刷新完成");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "刷新网络状态失败");
-            IsNetworkConnected = false;
-        }
-    }
+
 
     /// <summary>
     /// 设置考试信息
@@ -349,8 +294,30 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         RemainingTimeSeconds = durationSeconds;
         CurrentExamStatus = ExamStatus.Preparing;
 
-        _logger.LogInformation("设置考试信息 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒", 
+        _logger.LogInformation("设置考试信息 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒",
             examType, examId, examName, totalQuestions, durationSeconds);
+    }
+
+    /// <summary>
+    /// 开始考试（设置状态为进行中并开始倒计时）
+    /// </summary>
+    public void StartExam()
+    {
+        if (CurrentExamStatus == ExamStatus.Preparing)
+        {
+            CurrentExamStatus = ExamStatus.InProgress;
+
+            // 开始倒计时
+            _countdownTimer?.Dispose();
+            _countdownTimer = new Timer(CountdownTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+
+            _logger.LogInformation("考试开始 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 剩余时间: {RemainingTime}秒",
+                CurrentExamType, ExamId, ExamName, RemainingTimeSeconds);
+        }
+        else
+        {
+            _logger.LogWarning("无法开始考试，当前状态: {CurrentStatus}", CurrentExamStatus);
+        }
     }
 
     /// <summary>

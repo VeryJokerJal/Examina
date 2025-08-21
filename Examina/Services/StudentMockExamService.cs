@@ -59,13 +59,59 @@ public class StudentMockExamService : IStudentMockExamService
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试失败，状态码: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试失败");
+                System.Diagnostics.Debug.WriteLine($"  状态码: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"  请求URL: {apiUrl}");
+                System.Diagnostics.Debug.WriteLine($"  响应内容: {responseContent}");
                 return null;
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 异常堆栈: {ex.StackTrace}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 快速开始模拟考试（返回综合训练格式，包含模块结构）
+    /// </summary>
+    public async Task<MockExamComprehensiveTrainingDto?> QuickStartMockExamComprehensiveTrainingAsync()
+    {
+        try
+        {
+            // 设置认证头
+            await SetAuthenticationHeaderAsync();
+
+            string apiUrl = BuildApiUrl("mock-exams/quick-start");
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送快速开始模拟考试请求（综合训练格式）到 {apiUrl}");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应内容长度: {responseContent.Length}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                MockExamComprehensiveTrainingDto? mockExam = JsonSerializer.Deserialize<MockExamComprehensiveTrainingDto>(responseContent, JsonOptions);
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功快速开始模拟考试（综合训练格式），ID: {mockExam?.Id}");
+                return mockExam;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试（综合训练格式）失败");
+                System.Diagnostics.Debug.WriteLine($"  状态码: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"  请求URL: {apiUrl}");
+                System.Diagnostics.Debug.WriteLine($"  响应内容: {responseContent}");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试（综合训练格式）异常: {ex.Message}");
             return null;
         }
     }
@@ -412,6 +458,7 @@ public class StudentMockExamService : IStudentMockExamService
     {
         string baseUrl = _configurationService.ApiBaseUrl.TrimEnd('/');
         // 使用学生API端点，而不是认证端点
+        // 模拟考试功能在 /api/student/mock-exams/ 路径下
         return $"{baseUrl}/student/{endpoint}";
     }
 }

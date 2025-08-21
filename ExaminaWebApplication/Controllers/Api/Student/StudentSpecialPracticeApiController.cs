@@ -1,10 +1,10 @@
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Models.Dto;
 using ExaminaWebApplication.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
-namespace ExaminaWebApplication.Controllers;
+namespace ExaminaWebApplication.Controllers.Api.Student;
 
 /// <summary>
 /// 学生专项练习API控制器
@@ -175,11 +175,11 @@ public class StudentSpecialPracticeApiController : ControllerBase
             int studentUserId = GetCurrentUserId();
 
             bool success = await _studentSpecialPracticeService.MarkPracticeAsCompletedAsync(
-                studentUserId, 
-                id, 
-                request.Score, 
-                request.MaxScore, 
-                request.DurationSeconds, 
+                studentUserId,
+                id,
+                request.Score,
+                request.MaxScore,
+                request.DurationSeconds,
                 request.Notes);
 
             if (success)
@@ -207,13 +207,10 @@ public class StudentSpecialPracticeApiController : ControllerBase
     private int GetCurrentUserId()
     {
         string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-        {
-            throw new UnauthorizedAccessException("无法获取当前用户ID");
-        }
 
-        return userId;
+        return string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId)
+            ? throw new UnauthorizedAccessException("无法获取当前用户ID")
+            : userId;
     }
 }
 

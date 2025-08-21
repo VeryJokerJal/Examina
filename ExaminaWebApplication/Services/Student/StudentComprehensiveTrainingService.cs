@@ -23,7 +23,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     }
 
     /// <summary>
-    /// 获取学生可访问的综合训练列表
+    /// 获取学生可访问的综合训练列表（随机排序）
     /// </summary>
     public async Task<List<StudentComprehensiveTrainingDto>> GetAvailableTrainingsAsync(int studentUserId, int pageNumber = 1, int pageSize = 50)
     {
@@ -31,17 +31,49 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
         {
             // 目前简化权限验证：所有启用的综合训练都对学生可见
             // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
-            List<ImportedComprehensiveTrainingEntity> trainings = await _context.ImportedComprehensiveTrainings
+
+            // 首先获取总数，用于性能优化决策
+            int totalCount = await _context.ImportedComprehensiveTrainings
                 .Where(t => t.IsEnabled)
-                .OrderByDescending(t => t.ImportedAt)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                .CountAsync();
+
+            List<ImportedComprehensiveTrainingEntity> trainings;
+
+            // 性能优化：如果总数较少（小于1000），使用内存随机排序
+            // 如果总数较多，使用数据库层面的随机排序
+            if (totalCount <= 1000)
+            {
+                // 小数据量：在内存中进行真正的随机排序
+                List<ImportedComprehensiveTrainingEntity> allTrainings = await _context.ImportedComprehensiveTrainings
+                    .Where(t => t.IsEnabled)
+                    .ToListAsync();
+
+                // 使用随机数生成器进行随机排序
+                Random random = new();
+                trainings = allTrainings
+                    .OrderBy(x => random.Next())
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                _logger.LogInformation("使用内存随机排序获取综合训练列表，学生ID: {StudentUserId}, 总数: {TotalCount}, 返回数量: {Count}, 页码: {PageNumber}",
+                    studentUserId, totalCount, trainings.Count, pageNumber);
+            }
+            else
+            {
+                // 大数据量：使用数据库层面的随机排序（性能更好但随机性稍弱）
+                trainings = await _context.ImportedComprehensiveTrainings
+                    .Where(t => t.IsEnabled)
+                    .OrderBy(x => Guid.NewGuid()) // 使用GUID进行随机排序
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                _logger.LogInformation("使用数据库随机排序获取综合训练列表，学生ID: {StudentUserId}, 总数: {TotalCount}, 返回数量: {Count}, 页码: {PageNumber}",
+                    studentUserId, totalCount, trainings.Count, pageNumber);
+            }
 
             List<StudentComprehensiveTrainingDto> result = trainings.Select(MapToStudentComprehensiveTrainingDto).ToList();
-
-            _logger.LogInformation("获取学生可访问综合训练列表成功，学生ID: {StudentUserId}, 返回数量: {Count}",
-                studentUserId, result.Count);
 
             return result;
         }

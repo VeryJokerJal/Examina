@@ -17,15 +17,18 @@ public class ComprehensiveTrainingManagementController : Controller
 {
     private readonly ComprehensiveTrainingImportService _comprehensiveTrainingImportService;
     private readonly SpecializedTrainingImportService _specializedTrainingImportService;
+    private readonly EnhancedComprehensiveTrainingService _enhancedComprehensiveTrainingService;
     private readonly ILogger<ComprehensiveTrainingManagementController> _logger;
 
     public ComprehensiveTrainingManagementController(
         ComprehensiveTrainingImportService comprehensiveTrainingImportService,
         SpecializedTrainingImportService specializedTrainingImportService,
+        EnhancedComprehensiveTrainingService enhancedComprehensiveTrainingService,
         ILogger<ComprehensiveTrainingManagementController> logger)
     {
         _comprehensiveTrainingImportService = comprehensiveTrainingImportService;
         _specializedTrainingImportService = specializedTrainingImportService;
+        _enhancedComprehensiveTrainingService = enhancedComprehensiveTrainingService;
         _logger = logger;
     }
 
@@ -113,7 +116,7 @@ public class ComprehensiveTrainingManagementController : Controller
     }
 
     /// <summary>
-    /// 处理综合训练导入
+    /// 处理综合训练导入（增强版：同时导入到综合训练和模拟考试系统）
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -146,23 +149,37 @@ public class ComprehensiveTrainingManagementController : Controller
             int userId = 1; // 使用管理员用户ID
 
             using Stream fileStream = comprehensiveTrainingFile.OpenReadStream();
-            ComprehensiveTrainingImportResult result = await _comprehensiveTrainingImportService.ImportComprehensiveTrainingAsync(
+
+            // 使用增强的服务进行双重模式导入
+            EnhancedImportResult result = await _enhancedComprehensiveTrainingService.ImportWithDualModeAsync(
                 fileStream, comprehensiveTrainingFile.FileName, userId);
 
             if (result.IsSuccess)
             {
-                TempData["SuccessMessage"] = $"综合训练 '{result.ImportedComprehensiveTrainingName}' 导入成功！" +
-                    $"共导入 {result.TotalSubjects} 个科目，{result.TotalModules} 个模块，{result.TotalQuestions} 道题目";
-                
-                _logger.LogInformation("用户 {UserId} 成功导入综合训练: {ComprehensiveTrainingName} (ID: {ComprehensiveTrainingId})", 
-                    userId, result.ImportedComprehensiveTrainingName, result.ImportedComprehensiveTrainingId);
+                string successMessage = $"综合训练 '{result.ComprehensiveTrainingResult?.ImportedComprehensiveTrainingName}' 导入成功！" +
+                    $"共导入 {result.ComprehensiveTrainingResult?.TotalSubjects} 个科目，{result.ComprehensiveTrainingResult?.TotalModules} 个模块，{result.ComprehensiveTrainingResult?.TotalQuestions} 道题目";
 
-                return RedirectToAction(nameof(ComprehensiveTrainingDetails), new { id = result.ImportedComprehensiveTrainingId });
+                if (result.MockExamImportSuccess)
+                {
+                    successMessage += "，题目已同时导入到模拟考试系统，可用于模拟考试";
+                }
+                else if (!string.IsNullOrEmpty(result.WarningMessage))
+                {
+                    successMessage += $"。注意：{result.WarningMessage}";
+                }
+
+                TempData["SuccessMessage"] = successMessage;
+
+                _logger.LogInformation("用户 {UserId} 成功进行双重模式导入: {ComprehensiveTrainingName} (ID: {ComprehensiveTrainingId})，模拟考试导入：{MockExamSuccess}",
+                    userId, result.ComprehensiveTrainingResult?.ImportedComprehensiveTrainingName,
+                    result.ComprehensiveTrainingResult?.ImportedComprehensiveTrainingId, result.MockExamImportSuccess);
+
+                return RedirectToAction(nameof(ComprehensiveTrainingDetails), new { id = result.ComprehensiveTrainingResult?.ImportedComprehensiveTrainingId });
             }
             else
             {
                 TempData["ErrorMessage"] = result.ErrorMessage;
-                _logger.LogWarning("用户 {UserId} 导入综合训练失败: {ErrorMessage}", userId, result.ErrorMessage);
+                _logger.LogWarning("用户 {UserId} 双重模式导入失败: {ErrorMessage}", userId, result.ErrorMessage);
                 return View();
             }
         }
@@ -175,7 +192,7 @@ public class ComprehensiveTrainingManagementController : Controller
     }
 
     /// <summary>
-    /// 删除综合训练
+    /// 删除综合训练（增强版：同时删除相关的模拟考试数据）
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -186,20 +203,30 @@ public class ComprehensiveTrainingManagementController : Controller
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
             int userId = 1; // 使用管理员用户ID
 
-            bool success = await _comprehensiveTrainingImportService.DeleteImportedComprehensiveTrainingAsync(id, userId);
-            
-            if (success)
+            // 使用增强的服务进行级联删除
+            EnhancedDeleteResult result = await _enhancedComprehensiveTrainingService.DeleteWithCascadeAsync(id, userId);
+
+            if (result.IsSuccess)
             {
-                TempData["SuccessMessage"] = "综合训练删除成功";
+                string successMessage = "综合训练删除成功";
+                if (result.DeletedMockExamQuestions > 0)
+                {
+                    successMessage += $"，同时删除了 {result.DeletedMockExamQuestions} 个相关的模拟考试记录";
+                }
+                TempData["SuccessMessage"] = successMessage;
+
+                _logger.LogInformation("用户 {UserId} 成功进行级联删除: 综合训练ID {ComprehensiveTrainingId}，删除模拟考试记录 {MockExamCount} 个",
+                    userId, id, result.DeletedMockExamQuestions);
             }
             else
             {
-                TempData["ErrorMessage"] = "综合训练不存在或您没有权限删除";
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "综合训练不存在或您没有权限删除";
+                _logger.LogWarning("用户 {UserId} 级联删除失败: {ErrorMessage}", userId, result.ErrorMessage);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "删除综合训练失败: {ComprehensiveTrainingId}", id);
+            _logger.LogError(ex, "级联删除综合训练失败: {ComprehensiveTrainingId}", id);
             TempData["ErrorMessage"] = "删除综合训练时发生错误，请稍后重试";
         }
 

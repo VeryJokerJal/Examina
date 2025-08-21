@@ -1,11 +1,11 @@
-# 模拟考试API端点修复说明
+﻿# 模拟考试API端点修复说明
 
 ## 问题描述
 
 用户在点击"确认开始"模拟考试后，出现以下错误：
 ```
 StudentMockExamService: 快速开始模拟考试失败，状态码: NotFound
-MockExamListViewModel: 快速开始模拟考试失败
+MockExamViewModel: 快速开始模拟考试失败
 ```
 
 ## 问题分析

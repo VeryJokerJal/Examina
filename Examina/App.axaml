@@ -100,22 +100,22 @@
                 <Color x:Key="OnlineExamColorLightHover">#6A1B9A</Color>
                 <Color x:Key="OnlineExamColorLightSelected">#8E24AA</Color>
 
-                <!--  深色模式下的文字颜色  -->
-                <Color x:Key="MockExamTextColor">#90CAF9</Color>
-                <Color x:Key="MockExamTextColorPrimary">#BBDEFB</Color>
-                <Color x:Key="MockExamTextColorSecondary">#64B5F6</Color>
+                <!--  深色模式下的文字颜色 - 优化对比度  -->
+                <Color x:Key="MockExamTextColor">#BBDEFB</Color>
+                <Color x:Key="MockExamTextColorPrimary">#E3F2FD</Color>
+                <Color x:Key="MockExamTextColorSecondary">#90CAF9</Color>
 
-                <Color x:Key="ComprehensiveTrainingTextColor">#A5D6A7</Color>
-                <Color x:Key="ComprehensiveTrainingTextColorPrimary">#C8E6C9</Color>
-                <Color x:Key="ComprehensiveTrainingTextColorSecondary">#81C784</Color>
+                <Color x:Key="ComprehensiveTrainingTextColor">#C8E6C9</Color>
+                <Color x:Key="ComprehensiveTrainingTextColorPrimary">#E8F5E8</Color>
+                <Color x:Key="ComprehensiveTrainingTextColorSecondary">#A5D6A7</Color>
 
-                <Color x:Key="SpecialPracticeTextColor">#FFCC80</Color>
-                <Color x:Key="SpecialPracticeTextColorPrimary">#FFE0B2</Color>
-                <Color x:Key="SpecialPracticeTextColorSecondary">#FFB74D</Color>
+                <Color x:Key="SpecialPracticeTextColor">#FFE0B2</Color>
+                <Color x:Key="SpecialPracticeTextColorPrimary">#FFF3E0</Color>
+                <Color x:Key="SpecialPracticeTextColorSecondary">#FFCC80</Color>
 
-                <Color x:Key="OnlineExamTextColor">#CE93D8</Color>
-                <Color x:Key="OnlineExamTextColorPrimary">#E1BEE7</Color>
-                <Color x:Key="OnlineExamTextColorSecondary">#BA68C8</Color>
+                <Color x:Key="OnlineExamTextColor">#E1BEE7</Color>
+                <Color x:Key="OnlineExamTextColorPrimary">#F3E5F5</Color>
+                <Color x:Key="OnlineExamTextColorSecondary">#CE93D8</Color>
             </Style.Resources>
         </Style>
     </Application.Styles>
@@ -146,8 +146,8 @@
         <DataTemplate DataType="{x:Type vm:ComprehensiveTrainingListViewModel}">
             <views:ComprehensiveTrainingListView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:MockExamListViewModel}">
-            <views:MockExamListView />
+        <DataTemplate DataType="{x:Type vm:MockExamViewModel}">
+            <views:MockExamView />
         </DataTemplate>
     </Application.DataTemplates>
 </Application>

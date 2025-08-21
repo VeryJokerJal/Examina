@@ -1,6 +1,6 @@
-using System;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Examina.Services;
@@ -20,7 +20,6 @@ public partial class ToolbarWindow : Window
     private double _toolbarHeight = 50;
     private double _toolbarWidth = 1920;
     private bool _isTopmost = true;
-    private bool _isScreenReservationEnabled = true;
     private string _toolbarTitle = "工具栏";
 
     /// <summary>
@@ -91,11 +90,7 @@ public partial class ToolbarWindow : Window
     /// <summary>
     /// 是否启用屏幕预留
     /// </summary>
-    public bool IsScreenReservationEnabled
-    {
-        get => _isScreenReservationEnabled;
-        set => _isScreenReservationEnabled = value;
-    }
+    public bool IsScreenReservationEnabled { get; set; } = true;
 
     /// <summary>
     /// 工具栏标题
@@ -198,7 +193,7 @@ public partial class ToolbarWindow : Window
     {
         // 设置窗口位置到屏幕顶部
         Position = new PixelPoint(0, 0);
-        
+
         // 设置窗口区域
         SetupWindowArea();
     }

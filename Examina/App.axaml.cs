@@ -174,11 +174,11 @@ public partial class App : Application
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new ComprehensiveTrainingListViewModel(trainingService, authService);
         });
-        _ = services.AddTransient<MockExamListViewModel>(provider =>
+        _ = services.AddTransient<MockExamViewModel>(provider =>
         {
             IStudentMockExamService mockExamService = provider.GetRequiredService<IStudentMockExamService>();
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
-            return new MockExamListViewModel(mockExamService, authService);
+            return new MockExamViewModel(mockExamService, authService);
         });
         _ = services.AddTransient<ExamViewModel>(provider =>
         {

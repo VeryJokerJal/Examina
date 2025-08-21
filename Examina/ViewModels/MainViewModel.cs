@@ -390,7 +390,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "overview" => CreateOverviewViewModel(),
                 "exam" => CreateExamListViewModel(),
                 "practice" => new PracticeViewModel(),
-                "mock-exam" => CreateMockExamListViewModel(),
+                "mock-exam" => CreateMockExamViewModel(),
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
                 "special-practice" => new PracticeViewModel(),
                 "leaderboard" => new LeaderboardViewModel(),
@@ -597,17 +597,17 @@ public class MainViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// 创建MockExamListViewModel实例
+    /// 创建MockExamViewModel实例
     /// </summary>
-    private ViewModelBase? CreateMockExamListViewModel()
+    private ViewModelBase? CreateMockExamViewModel()
     {
         try
         {
             // 首先尝试从DI容器获取
-            MockExamListViewModel? viewModel = ((App)Application.Current!).GetService<MockExamListViewModel>();
+            MockExamViewModel? viewModel = ((App)Application.Current!).GetService<MockExamViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取MockExamListViewModel");
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取MockExamViewModel");
                 return viewModel;
             }
 
@@ -615,17 +615,17 @@ public class MainViewModel : ViewModelBase, IDisposable
             IStudentMockExamService? mockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
             if (mockExamService != null && _authenticationService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建MockExamListViewModel");
-                return new MockExamListViewModel(mockExamService, _authenticationService);
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建MockExamViewModel");
+                return new MockExamViewModel(mockExamService, _authenticationService);
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentMockExamService，无法创建MockExamListViewModel");
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentMockExamService，无法创建MockExamViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建MockExamListViewModel时发生异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建MockExamViewModel时发生异常: {ex.Message}");
         }
 
         return null;

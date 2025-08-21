@@ -1,3 +1,4 @@
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
@@ -7,9 +8,8 @@ using ExaminaWebApplication.Services.Organization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
-namespace ExaminaWebApplication.Controllers;
+namespace ExaminaWebApplication.Controllers.Api.Student;
 
 /// <summary>
 /// 学生组织管理控制器
@@ -81,7 +81,7 @@ public class StudentOrganizationController : ControllerBase
             }
 
             // 验证邀请码
-            var invitationCode = await _invitationCodeService.ValidateInvitationCodeAsync(request.InvitationCode);
+            InvitationCode? invitationCode = await _invitationCodeService.ValidateInvitationCodeAsync(request.InvitationCode);
             if (invitationCode == null)
             {
                 _logger.LogInformation("邀请码 {InvitationCode} 无效", request.InvitationCode);
@@ -96,7 +96,7 @@ public class StudentOrganizationController : ControllerBase
             }
 
             // 获取组织信息
-            var organization = await _context.Organizations
+            Organization? organization = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == invitationCode.OrganizationId && o.IsActive);
 
             if (organization == null)
@@ -116,7 +116,7 @@ public class StudentOrganizationController : ControllerBase
             }
 
             // 调用组织服务加入组织
-            var joinResult = await _organizationService.JoinOrganizationAsync(userId, UserRole.Student, request.InvitationCode);
+            JoinOrganizationResult joinResult = await _organizationService.JoinOrganizationAsync(userId, UserRole.Student, request.InvitationCode);
 
             if (!joinResult.Success)
             {
@@ -130,7 +130,7 @@ public class StudentOrganizationController : ControllerBase
                 return StatusCode(500, JoinOrganizationResponse.CreateFailure("系统错误，请稍后重试"));
             }
 
-            _logger.LogInformation("学生 {UserId} 成功加入组织 {OrganizationName} (ID: {OrganizationId})", 
+            _logger.LogInformation("学生 {UserId} 成功加入组织 {OrganizationName} (ID: {OrganizationId})",
                 userId, joinResult.StudentOrganization.OrganizationName, joinResult.StudentOrganization.OrganizationId);
 
             return Ok(JoinOrganizationResponse.CreateSuccess(joinResult.StudentOrganization));
@@ -161,7 +161,7 @@ public class StudentOrganizationController : ControllerBase
 
             _logger.LogInformation("获取学生 {UserId} 的组织列表", userId);
 
-            var organizations = await _organizationService.GetUserOrganizationsAsync(userId);
+            List<StudentOrganizationDto> organizations = await _organizationService.GetUserOrganizationsAsync(userId);
 
             _logger.LogInformation("学生 {UserId} 共有 {Count} 个组织", userId, organizations.Count);
 
@@ -194,7 +194,7 @@ public class StudentOrganizationController : ControllerBase
             _logger.LogInformation("检查学生 {UserId} 的学校绑定状态", userId);
 
             // 查找学生加入的学校组织
-            var schoolOrganization = await _context.StudentOrganizations
+            StudentOrganization? schoolOrganization = await _context.StudentOrganizations
                 .Include(so => so.Organization)
                 .FirstOrDefaultAsync(so => so.StudentId == userId &&
                                           so.IsActive &&
@@ -212,7 +212,7 @@ public class StudentOrganizationController : ControllerBase
                 IsSchoolBound = isSchoolBound,
                 CurrentSchool = currentSchool,
                 SchoolId = schoolOrganization?.OrganizationId,
-                JoinedAt = schoolOrganization?.JoinedAt
+                schoolOrganization?.JoinedAt
             });
         }
         catch (Exception ex)

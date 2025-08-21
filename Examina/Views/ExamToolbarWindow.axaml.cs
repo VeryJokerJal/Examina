@@ -1,9 +1,7 @@
-using System;
-using System.Threading.Tasks;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Media;
+using Examina.Models;
 using Examina.Services;
 using Examina.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -97,7 +95,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
         SystemDecorations = SystemDecorations.None;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Topmost = true;
-        Background = new SolidColorBrush(new Color(230, 0, 0, 0)); // 半透明黑色
+        Background = new SolidColorBrush(new Color(128, 60, 60, 60)); // 半透明黑色
         ExtendClientAreaChromeHints = Avalonia.Platform.ExtendClientAreaChromeHints.NoChrome;
         ExtendClientAreaTitleBarHeightHint = -1;
         TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
@@ -113,10 +111,10 @@ public partial class ExamToolbarWindow : Window, IDisposable
     {
         // 防止窗口最小化
         PropertyChanged += ExamToolbarWindow_PropertyChanged;
-        
+
         // 窗口打开时的处理
         Opened += ExamToolbarWindow_Opened;
-        
+
         // 窗口关闭时的处理
         Closing += ExamToolbarWindow_Closing;
 
@@ -143,7 +141,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
     {
         // 设置窗口位置到屏幕顶部
         Position = new PixelPoint(0, 0);
-        
+
         // 设置窗口区域和屏幕预留
         SetupWindowArea();
 
@@ -156,11 +154,11 @@ public partial class ExamToolbarWindow : Window, IDisposable
     private async void ExamToolbarWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
         // 如果考试正在进行中，阻止关闭并触发提交
-        if (_viewModel?.CurrentExamStatus == ExamStatus.InProgress || _viewModel?.CurrentExamStatus == ExamStatus.AboutToEnd)
+        if (_viewModel?.CurrentExamStatus is ExamStatus.InProgress or ExamStatus.AboutToEnd)
         {
             e.Cancel = true;
             _logger.LogWarning("检测到考试进行中的窗口关闭尝试，触发自动提交");
-            
+
             // 显示确认对话框
             bool shouldSubmit = await ShowSubmitConfirmationDialog("检测到考试窗口即将关闭，是否提交考试？");
             if (shouldSubmit)
@@ -192,7 +190,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
 
             // 预留屏幕区域
             bool reservationResult = _screenReservationService.ReserveAreaOnSide((int)toolbarHeight, DockPosition.Top);
-            
+
             if (!reservationResult)
             {
                 _logger.LogWarning("ExamToolbarWindow: 屏幕区域预留失败");
@@ -210,12 +208,12 @@ public partial class ExamToolbarWindow : Window, IDisposable
     private async void OnExamAutoSubmitted(object? sender, EventArgs e)
     {
         _logger.LogWarning("考试时间到，执行自动提交");
-        
+
         try
         {
             // 触发外部事件
             ExamAutoSubmitted?.Invoke(this, EventArgs.Empty);
-            
+
             // 显示自动提交通知
             await ShowAutoSubmitNotification();
         }
@@ -231,12 +229,12 @@ public partial class ExamToolbarWindow : Window, IDisposable
     private async void OnExamManualSubmitted(object? sender, EventArgs e)
     {
         _logger.LogInformation("用户手动提交考试");
-        
+
         try
         {
             // 显示确认对话框
             bool confirmed = await ShowSubmitConfirmationDialog("确定要提交考试吗？提交后将无法继续答题。");
-            
+
             if (confirmed)
             {
                 // 触发外部事件
@@ -281,7 +279,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
             // 暂时简化处理，直接返回true
             // 在实际实现中，应该使用Avalonia的对话框或自定义对话框
             _logger.LogInformation("显示提交确认对话框: {Message}", message);
-            
+
             // TODO: 实现实际的对话框
             await Task.Delay(100); // 模拟对话框显示时间
             return true;
@@ -303,7 +301,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
             // 这里应该显示一个自动提交的通知
             // 暂时简化处理
             _logger.LogInformation("显示自动提交通知");
-            
+
             // TODO: 实现实际的通知
             await Task.Delay(100);
         }
@@ -326,7 +324,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
 
         _viewModel.SetExamInfo(examType, examId, examName, totalQuestions, durationSeconds);
         _viewModel.StartCountdown(durationSeconds);
-        
+
         _logger.LogInformation("考试已开始 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}", examType, examId, examName);
     }
 
@@ -348,10 +346,10 @@ public partial class ExamToolbarWindow : Window, IDisposable
         {
             // 停止倒计时
             _viewModel?.StopCountdown();
-            
+
             // 释放屏幕预留区域
             _screenReservationService.Dispose();
-            
+
             // 清理ViewModel事件订阅
             if (_viewModel != null)
             {

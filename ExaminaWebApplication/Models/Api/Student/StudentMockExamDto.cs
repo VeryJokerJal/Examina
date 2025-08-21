@@ -94,24 +94,9 @@ public class StudentMockExamQuestionDto
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
-    /// 题目类型
-    /// </summary>
-    public string QuestionType { get; set; } = string.Empty;
-
-    /// <summary>
     /// 题目分值
     /// </summary>
     public int Score { get; set; }
-
-    /// <summary>
-    /// 难度等级
-    /// </summary>
-    public string DifficultyLevel { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 预计用时（分钟）
-    /// </summary>
-    public int EstimatedMinutes { get; set; }
 
     /// <summary>
     /// 排序顺序

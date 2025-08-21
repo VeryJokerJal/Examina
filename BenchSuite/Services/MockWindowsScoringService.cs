@@ -46,7 +46,7 @@ public class MockWindowsScoringService : IScoringService
         try
         {
             // 查找Windows模块
-            ExamModuleModel? windowsModule = examModel.Modules.FirstOrDefault(m => m.ModuleType == ModuleType.Windows);
+            ExamModuleModel? windowsModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.Windows);
             if (windowsModule == null)
             {
                 result.ErrorMessage = "试卷中没有找到Windows模块";

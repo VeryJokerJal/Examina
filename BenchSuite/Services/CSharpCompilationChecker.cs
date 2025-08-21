@@ -48,7 +48,7 @@ public static class CSharpCompilationChecker
             }
 
             // 创建编译选项
-            CSharpCompilationOptions compilationOptions = new(OutputKind.DynamicallyLinkedLibrary)
+            CSharpCompilationOptions compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 .WithOptimizationLevel(OptimizationLevel.Debug)
                 .WithPlatform(Platform.AnyCpu);
 

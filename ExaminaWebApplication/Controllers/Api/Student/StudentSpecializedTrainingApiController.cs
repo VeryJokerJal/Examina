@@ -1,10 +1,10 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExaminaWebApplication.Controllers;
+namespace ExaminaWebApplication.Controllers.Api.Student;
 
 /// <summary>
 /// 学生端专项训练API控制器
@@ -26,11 +26,11 @@ public class StudentSpecializedTrainingApiController : ControllerBase
     }
 
     /// <summary>
-    /// 获取学生可访问的专项训练列表
+    /// 获取学生可访问的专项训练列表（随机排序）
     /// </summary>
     /// <param name="pageNumber">页码，默认为1</param>
     /// <param name="pageSize">页大小，默认为50</param>
-    /// <returns>专项训练列表</returns>
+    /// <returns>随机排序的专项训练列表</returns>
     [HttpGet]
     public async Task<ActionResult<List<StudentSpecializedTrainingDto>>> GetAvailableTrainings(
         [FromQuery] int pageNumber = 1,
