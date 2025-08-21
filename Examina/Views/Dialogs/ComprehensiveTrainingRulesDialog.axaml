@@ -1,0 +1,201 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Examina.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="700"
+        x:Class="Examina.Views.Dialogs.ComprehensiveTrainingRulesDialog"
+        x:DataType="vm:ComprehensiveTrainingRulesViewModel"
+        Title="综合实训规则说明"
+        Width="600" Height="700"
+        MinWidth="500" MinHeight="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="true">
+
+    <Design.DataContext>
+        <vm:ComprehensiveTrainingRulesViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题区域 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="综合实训规则说明"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource SystemAccentColor}" />
+            <TextBlock Text="请仔细阅读以下规则和注意事项，确认后开始训练"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       Margin="0,10,0,0"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        </StackPanel>
+
+        <!-- 内容区域 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="20">
+                
+                <!-- 基本信息 -->
+                <Border Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="📊 训练基本信息"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding RulesInfo.DurationMinutes, StringFormat='训练时长：{0} 分钟'}" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RulesInfo.TotalScore, StringFormat='总分：{0} 分'}" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding RulesInfo.PassingScore, StringFormat='及格分数：{0} 分'}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding RulesInfo.TotalQuestions, StringFormat='题目总数：{0} 道'}" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding RulesInfo.ProgrammingQuestions, StringFormat='编程题：{0} 道'}" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RulesInfo.OperationQuestions, StringFormat='操作题：{0} 道'}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 训练规则 -->
+                <Border Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="📋 训练规则"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        
+                        <ItemsControl ItemsSource="{Binding RulesInfo.Rules}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                        <TextBlock Text="•" Margin="0,0,8,0" Foreground="{DynamicResource SystemAccentColor}" />
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 注意事项 -->
+                <Border Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="⚠️ 注意事项"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        
+                        <ItemsControl ItemsSource="{Binding RulesInfo.Notes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                        <TextBlock Text="•" Margin="0,0,8,0" Foreground="{DynamicResource SystemAccentColor}" />
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 操作指南 -->
+                <Border Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="🎯 操作指南"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        
+                        <ItemsControl ItemsSource="{Binding RulesInfo.OperationGuide}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                        <TextBlock Text="•" Margin="0,0,8,0" Foreground="{DynamicResource SystemAccentColor}" />
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 训练特色 -->
+                <Border Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="✨ 训练特色"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        
+                        <ItemsControl ItemsSource="{Binding RulesInfo.TrainingFeatures}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                        <TextBlock Text="•" Margin="0,0,8,0" Foreground="{DynamicResource SystemAccentColor}" />
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 按钮区域 -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Center" 
+                    Spacing="20" 
+                    Margin="0,20,0,0">
+            <Button Content="确认开始训练"
+                    Command="{Binding ConfirmCommand}"
+                    Background="{DynamicResource SystemAccentColor}"
+                    Foreground="White"
+                    Padding="20,10"
+                    CornerRadius="5"
+                    FontWeight="SemiBold" />
+            <Button Content="取消"
+                    Command="{Binding CancelCommand}"
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    Padding="20,10"
+                    CornerRadius="5" />
+        </StackPanel>
+
+    </Grid>
+</Window>

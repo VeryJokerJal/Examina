@@ -3,6 +3,10 @@ using System.Reactive;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.Models;
+using Examina.ViewModels.Dialogs;
+using Examina.Views.Dialogs;
+using Examina.Views;
+using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 
 namespace Examina.ViewModels.Pages;
@@ -240,9 +244,35 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                     return;
                 }
 
-                // TODO: 实现开始训练逻辑
-                // 这里应该导航到训练页面或启动训练
-                System.Diagnostics.Debug.WriteLine($"综合训练 {training.Name} 已开始");
+                // 显示规则说明对话框
+                ComprehensiveTrainingRulesViewModel rulesViewModel = new();
+                ComprehensiveTrainingRulesDialog dialog = new(rulesViewModel);
+
+                // 设置对话框的父窗口
+                if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                    desktop.MainWindow != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 准备显示规则对话框");
+
+                    bool? result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
+
+                    System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 对话框返回结果: {result}");
+
+                    if (result == true)
+                    {
+                        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 用户确认开始综合实训");
+                        // 用户确认开始，启动综合实训
+                        await StartComprehensiveTrainingAsync(training);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 用户取消了综合实训");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 无法获取主窗口");
+                }
             }
             else
             {
@@ -316,6 +346,131 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             _isUpdatingPermissions = false;
             System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 权限状态更新完成");
         }
+    }
+
+    /// <summary>
+    /// 启动综合实训
+    /// </summary>
+    private async Task StartComprehensiveTrainingAsync(StudentComprehensiveTrainingDto training)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 准备启动综合实训 - ID: {training.Id}, 名称: {training.Name}");
+
+            // 获取训练详情
+            StudentComprehensiveTrainingDto? trainingDetails = await _studentComprehensiveTrainingService.GetTrainingDetailsAsync(training.Id);
+            if (trainingDetails == null)
+            {
+                ErrorMessage = "获取训练详情失败，请稍后重试";
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 获取训练详情失败");
+                return;
+            }
+
+            // 标记训练为开始状态
+            bool startResult = await _studentComprehensiveTrainingService.StartComprehensiveTrainingAsync(training.Id);
+            if (!startResult)
+            {
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 标记训练开始状态失败，但继续启动工具栏");
+            }
+
+            // 启动训练界面
+            await StartTrainingInterfaceAsync(trainingDetails);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 启动综合实训异常: {ex.Message}");
+            ErrorMessage = "启动训练失败，请重试";
+        }
+    }
+
+    /// <summary>
+    /// 启动训练界面
+    /// </summary>
+    private async Task StartTrainingInterfaceAsync(StudentComprehensiveTrainingDto training)
+    {
+        try
+        {
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                // 隐藏主窗口
+                desktop.MainWindow.Hide();
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 主窗口已隐藏");
+
+                // 创建考试工具栏 ViewModel
+                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null);
+
+                // 计算总题目数
+                int totalQuestions = training.Subjects.Sum(s => s.Questions.Count) + training.Modules.Sum(m => m.Questions.Count);
+
+                // 设置训练信息
+                toolbarViewModel.SetExamInfo(
+                    ExamType.ComprehensiveTraining,
+                    training.Id,
+                    training.Name,
+                    totalQuestions,
+                    training.DurationMinutes * 60 // 转换为秒
+                );
+
+                // 创建考试工具栏窗口并设置 ViewModel
+                ExamToolbarWindow examToolbar = new();
+                examToolbar.SetViewModel(toolbarViewModel);
+
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 训练工具栏已配置 - 训练ID: {training.Id}, 题目数: {totalQuestions}, 时长: {training.DurationMinutes}分钟");
+
+                // 订阅训练事件
+                examToolbar.ExamAutoSubmitted += OnTrainingAutoSubmitted;
+                examToolbar.ExamManualSubmitted += OnTrainingManualSubmitted;
+                examToolbar.ViewQuestionsRequested += (sender, e) => OnViewQuestionsRequested(training);
+
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 已订阅训练工具栏事件");
+
+                // 显示工具栏窗口
+                examToolbar.Show();
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 训练工具栏窗口已显示");
+
+                // 开始训练（启动倒计时器并设置状态为进行中）
+                toolbarViewModel.StartExam();
+                System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 训练已开始，剩余时间: {toolbarViewModel.RemainingTimeSeconds}秒, 格式化时间: {toolbarViewModel.FormattedRemainingTime}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 无法获取主窗口，启动训练界面失败");
+                ErrorMessage = "无法启动训练界面，请重试";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 启动训练界面异常: {ex.Message}");
+            ErrorMessage = "启动训练界面失败，请重试";
+        }
+    }
+
+    /// <summary>
+    /// 训练自动提交事件处理
+    /// </summary>
+    private void OnTrainingAutoSubmitted(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 训练自动提交");
+        // TODO: 实现训练自动提交逻辑
+    }
+
+    /// <summary>
+    /// 训练手动提交事件处理
+    /// </summary>
+    private void OnTrainingManualSubmitted(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 训练手动提交");
+        // TODO: 实现训练手动提交逻辑
+    }
+
+    /// <summary>
+    /// 查看题目请求事件处理
+    /// </summary>
+    private void OnViewQuestionsRequested(StudentComprehensiveTrainingDto training)
+    {
+        System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看题目请求 - 训练: {training.Name}");
+        // TODO: 实现查看题目逻辑
     }
 
     /// <summary>
