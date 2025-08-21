@@ -4,18 +4,18 @@
     <Application.Resources>
         <!--  统计卡片自定义颜色方案  -->
 
-        <!--  浅色模式颜色  -->
-        <Color x:Key="MockExamColorLight">#E3F2FD</Color>
-        <Color x:Key="MockExamColorLightHover">#BBDEFB</Color>
-        <Color x:Key="MockExamColorLightSelected">#90CAF9</Color>
+        <!--  浅色模式颜色 - 调整为更深的色调以提高对比度  -->
+        <Color x:Key="MockExamColorLight">#BBDEFB</Color>
+        <Color x:Key="MockExamColorLightHover">#90CAF9</Color>
+        <Color x:Key="MockExamColorLightSelected">#64B5F6</Color>
 
-        <Color x:Key="ComprehensiveTrainingColorLight">#E8F5E8</Color>
-        <Color x:Key="ComprehensiveTrainingColorLightHover">#C8E6C9</Color>
-        <Color x:Key="ComprehensiveTrainingColorLightSelected">#A5D6A7</Color>
+        <Color x:Key="ComprehensiveTrainingColorLight">#C8E6C9</Color>
+        <Color x:Key="ComprehensiveTrainingColorLightHover">#A5D6A7</Color>
+        <Color x:Key="ComprehensiveTrainingColorLightSelected">#81C784</Color>
 
-        <Color x:Key="SpecialPracticeColorLight">#FFF3E0</Color>
-        <Color x:Key="SpecialPracticeColorLightHover">#FFE0B2</Color>
-        <Color x:Key="SpecialPracticeColorLightSelected">#FFCC80</Color>
+        <Color x:Key="SpecialPracticeColorLight">#FFE0B2</Color>
+        <Color x:Key="SpecialPracticeColorLightHover">#FFCC80</Color>
+        <Color x:Key="SpecialPracticeColorLightSelected">#FFB74D</Color>
 
         <Color x:Key="OnlineExamColorLight">#F3E5F5</Color>
         <Color x:Key="OnlineExamColorLightHover">#E1BEE7</Color>
@@ -55,18 +55,18 @@
         <SolidColorBrush x:Key="OnlineExamHoverBrush" Color="{DynamicResource OnlineExamColorLightHover}" />
         <SolidColorBrush x:Key="OnlineExamSelectedBrush" Color="{DynamicResource OnlineExamColorLightSelected}" />
 
-        <!--  文字颜色资源  -->
-        <Color x:Key="MockExamTextColor">#1565C0</Color>
+        <!--  文字颜色资源 - 调整以适应更深的背景色  -->
+        <Color x:Key="MockExamTextColor">#0D47A1</Color>
         <Color x:Key="MockExamTextColorPrimary">#0D47A1</Color>
-        <Color x:Key="MockExamTextColorSecondary">#1976D2</Color>
+        <Color x:Key="MockExamTextColorSecondary">#1565C0</Color>
 
-        <Color x:Key="ComprehensiveTrainingTextColor">#2E7D32</Color>
+        <Color x:Key="ComprehensiveTrainingTextColor">#1B5E20</Color>
         <Color x:Key="ComprehensiveTrainingTextColorPrimary">#1B5E20</Color>
-        <Color x:Key="ComprehensiveTrainingTextColorSecondary">#388E3C</Color>
+        <Color x:Key="ComprehensiveTrainingTextColorSecondary">#2E7D32</Color>
 
-        <Color x:Key="SpecialPracticeTextColor">#F57C00</Color>
+        <Color x:Key="SpecialPracticeTextColor">#E65100</Color>
         <Color x:Key="SpecialPracticeTextColorPrimary">#E65100</Color>
-        <Color x:Key="SpecialPracticeTextColorSecondary">#FF9800</Color>
+        <Color x:Key="SpecialPracticeTextColorSecondary">#F57C00</Color>
 
         <Color x:Key="OnlineExamTextColor">#6A1B9A</Color>
         <Color x:Key="OnlineExamTextColorPrimary">#4A148C</Color>
