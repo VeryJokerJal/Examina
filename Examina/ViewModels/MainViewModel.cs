@@ -428,9 +428,9 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
                 "special-practice" => CreatePracticeViewModel(),
                 "leaderboard" => CreateLeaderboardViewModel(),
-                "exam-ranking" => CreateLeaderboardViewModel(),
-                "mock-exam-ranking" => CreateLeaderboardViewModel(),
-                "training-ranking" => CreateLeaderboardViewModel(),
+                "exam-ranking" => CreateLeaderboardViewModel("exam-ranking"),
+                "mock-exam-ranking" => CreateLeaderboardViewModel("mock-exam-ranking"),
+                "training-ranking" => CreateLeaderboardViewModel("training-ranking"),
                 "school-binding" => CreateSchoolBindingViewModel(),
                 "profile" => CreateProfileViewModel(),
                 "exam-view" => CreateExamViewModel(),
@@ -770,25 +770,53 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 创建LeaderboardViewModel实例
     /// </summary>
-    private ViewModelBase? CreateLeaderboardViewModel()
+    private ViewModelBase? CreateLeaderboardViewModel(string? rankingTypeId = null)
     {
         try
         {
             if (_leaderboardViewModelFactory != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 使用工厂创建LeaderboardViewModel");
-                return _leaderboardViewModelFactory();
+                System.Diagnostics.Debug.WriteLine($"MainViewModel: 使用工厂创建LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
+                LeaderboardViewModel viewModel = _leaderboardViewModelFactory();
+
+                // 如果指定了排行榜类型，设置对应的类型
+                if (!string.IsNullOrEmpty(rankingTypeId))
+                {
+                    viewModel.SetRankingType(rankingTypeId);
+                }
+                else
+                {
+                    // 如果没有指定类型，手动触发初始数据加载
+                    viewModel.LoadInitialData();
+                }
+
+                return viewModel;
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 工厂未注入，创建默认LeaderboardViewModel");
-                return new LeaderboardViewModel();
+                System.Diagnostics.Debug.WriteLine($"MainViewModel: 工厂未注入，创建默认LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
+                LeaderboardViewModel viewModel = new LeaderboardViewModel();
+
+                // 如果指定了排行榜类型，设置对应的类型
+                if (!string.IsNullOrEmpty(rankingTypeId))
+                {
+                    viewModel.SetRankingType(rankingTypeId);
+                }
+                else
+                {
+                    // 如果没有指定类型，手动触发初始数据加载
+                    viewModel.LoadInitialData();
+                }
+
+                return viewModel;
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建LeaderboardViewModel失败: {ex.Message}");
-            return new LeaderboardViewModel(); // 回退到默认实例
+            LeaderboardViewModel fallbackViewModel = new LeaderboardViewModel();
+            fallbackViewModel.LoadInitialData(); // 确保回退实例也能加载数据
+            return fallbackViewModel;
         }
     }
 

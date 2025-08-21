@@ -1,5 +1,4 @@
-﻿using System.Net.Http;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Examina.Services;
@@ -7,6 +6,7 @@ using Examina.ViewModels;
 using Examina.ViewModels.Pages;
 using Examina.Views;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Examina;
 
@@ -126,7 +126,7 @@ public partial class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(30);
-        })
+        });
 
         // 为排行榜服务配置HttpClient
         _ = services.AddHttpClient<RankingService>(client =>
@@ -164,7 +164,7 @@ public partial class App : Application
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             IWindowManagerService windowManager = provider.GetRequiredService<IWindowManagerService>();
-            Func<LeaderboardViewModel> leaderboardFactory = () => provider.GetRequiredService<LeaderboardViewModel>();
+            LeaderboardViewModel leaderboardFactory() => provider.GetRequiredService<LeaderboardViewModel>();
             return new MainViewModel(authService, windowManager, leaderboardFactory);
         });
         _ = services.AddTransient<UserInfoCompletionViewModel>();

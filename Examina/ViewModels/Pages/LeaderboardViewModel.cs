@@ -76,13 +76,21 @@ public class LeaderboardViewModel : ViewModelBase
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
 
         InitializeLeaderboardTypes();
-        LoadLeaderboardData();
+        // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
     public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger) : this()
     {
         _rankingService = rankingService;
         _logger = logger;
+    }
+
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, string? rankingTypeId) : this(rankingService, logger)
+    {
+        if (!string.IsNullOrEmpty(rankingTypeId))
+        {
+            SetRankingType(rankingTypeId);
+        }
     }
 
     #endregion
@@ -220,6 +228,61 @@ public class LeaderboardViewModel : ViewModelBase
 
         SelectedLeaderboardType = leaderboardType;
         LoadLeaderboardData();
+    }
+
+    /// <summary>
+    /// 设置排行榜类型并加载数据
+    /// </summary>
+    /// <param name="rankingTypeId">排行榜类型ID</param>
+    public void SetRankingType(string rankingTypeId)
+    {
+        _logger?.LogInformation("设置排行榜类型: {RankingTypeId}", rankingTypeId);
+
+        // 根据类型ID找到对应的排行榜类型项
+        LeaderboardTypeItem? targetType = LeaderboardTypes.FirstOrDefault(t => t.Id == rankingTypeId);
+
+        if (targetType != null)
+        {
+            SelectedLeaderboardType = targetType;
+
+            // 更新页面标题
+            PageTitle = targetType.Name;
+
+            // 加载对应类型的数据
+            LoadLeaderboardData();
+        }
+        else
+        {
+            _logger?.LogWarning("未找到排行榜类型: {RankingTypeId}", rankingTypeId);
+            // 如果没找到，默认选择第一个类型
+            SelectedLeaderboardType = LeaderboardTypes.FirstOrDefault();
+            if (SelectedLeaderboardType != null)
+            {
+                PageTitle = SelectedLeaderboardType.Name;
+                LoadLeaderboardData();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 手动触发数据加载（用于初始化时没有自动加载的情况）
+    /// </summary>
+    public void LoadInitialData()
+    {
+        if (SelectedLeaderboardType != null)
+        {
+            LoadLeaderboardData();
+        }
+        else
+        {
+            // 如果没有选中的类型，选择第一个并加载
+            SelectedLeaderboardType = LeaderboardTypes.FirstOrDefault();
+            if (SelectedLeaderboardType != null)
+            {
+                PageTitle = SelectedLeaderboardType.Name;
+                LoadLeaderboardData();
+            }
+        }
     }
 
     #endregion

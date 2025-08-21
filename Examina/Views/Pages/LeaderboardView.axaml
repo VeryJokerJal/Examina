@@ -35,15 +35,19 @@
                 FontFamily="Microsoft YaHei"/>
       </StackPanel>
       
-      <!-- 排行榜数据 -->
+      <!-- 内容区域 -->
       <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
               CornerRadius="8"
-              Padding="0">
+              Padding="0"
+              MinHeight="400">
+
+        <!-- 排行榜数据 -->
         <DataGrid ItemsSource="{Binding LeaderboardData}"
                   IsReadOnly="True"
                   GridLinesVisibility="Horizontal"
                   HeadersVisibility="Column"
-                  FontFamily="Microsoft YaHei">
+                  FontFamily="Microsoft YaHei"
+                  IsVisible="{Binding !IsLoading}">
           <DataGrid.Columns>
             <DataGridTextColumn Header="排名" Binding="{Binding Rank}" Width="80"/>
             <DataGridTextColumn Header="用户名" Binding="{Binding Username}" Width="150"/>
@@ -52,19 +56,70 @@
             <DataGridTextColumn Header="完成时间" Binding="{Binding CompletionDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="180"/>
           </DataGrid.Columns>
         </DataGrid>
-      </Border>
-      
-      <!-- 加载状态 -->
-      <StackPanel IsVisible="{Binding IsLoading}" 
+
+        <!-- 加载状态 -->
+        <StackPanel IsVisible="{Binding IsLoading}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <ProgressBar IsIndeterminate="True" Width="200"/>
+          <TextBlock Text="正在加载排行榜数据..."
+                     FontSize="14"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- 错误信息 -->
+        <StackPanel IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <TextBlock Text="⚠️"
+                     FontSize="48"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="{Binding ErrorMessage}"
+                     FontSize="16"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                     HorizontalAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxWidth="400"/>
+          <Button Content="重试"
+                  Command="{Binding RefreshLeaderboardCommand}"
                   HorizontalAlignment="Center"
-                  Spacing="12">
-        <ProgressBar IsIndeterminate="True" Width="200"/>
-        <TextBlock Text="正在加载排行榜数据..." 
-                   FontSize="14"
-                   FontFamily="Microsoft YaHei"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                   HorizontalAlignment="Center"/>
-      </StackPanel>
+                  Padding="12,6"/>
+        </StackPanel>
+
+        <!-- 空数据状态 -->
+        <StackPanel IsVisible="{Binding !IsLoading}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <StackPanel.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="!IsLoading"/>
+              <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNullOrEmpty}"/>
+              <Binding Path="LeaderboardData.Count" Converter="{x:Static ObjectConverters.Equal}" ConverterParameter="0"/>
+            </MultiBinding>
+          </StackPanel.IsVisible>
+
+          <TextBlock Text="📊"
+                     FontSize="48"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="暂无排行榜数据"
+                     FontSize="16"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="当前还没有完成的考试或训练记录"
+                     FontSize="14"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     HorizontalAlignment="Center"/>
+        </StackPanel>
+
+      </Border>
       
     </StackPanel>
   </ScrollViewer>
