@@ -240,6 +240,34 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     public event EventHandler? ViewQuestionsRequested;
 
     /// <summary>
+    /// 无参数构造函数（用于设计时）
+    /// </summary>
+    public ExamToolbarViewModel()
+    {
+        _authenticationService = new DesignTimeAuthenticationService();
+        _logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<ExamToolbarViewModel>.Instance;
+
+        // 初始化命令
+        ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
+        SubmitExamCommand = ReactiveCommand.CreateFromTask(ShowSubmitConfirmationAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
+        ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
+        CancelSubmitCommand = ReactiveCommand.Create(CancelSubmit);
+        RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
+        CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
+
+        // 监听剩余时间变化，更新格式化时间和紧急状态
+        this.WhenAnyValue(x => x.RemainingTimeSeconds)
+            .Subscribe(UpdateTimeDisplay);
+
+        // 设置设计时数据
+        StudentName = "张三";
+        StudentId = "2021001";
+        ExamName = "模拟考试";
+        RemainingTimeSeconds = 3600; // 1小时
+        CanSubmitExam = true;
+    }
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ExamToolbarViewModel(IAuthenticationService authenticationService, ILogger<ExamToolbarViewModel>? logger)
@@ -696,4 +724,28 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             _logger.LogInformation("ExamToolbarViewModel资源已释放");
         }
     }
+}
+
+/// <summary>
+/// 设计时认证服务（仅用于XAML设计时）
+/// </summary>
+internal class DesignTimeAuthenticationService : IAuthenticationService
+{
+    public UserInfo? CurrentUser => new UserInfo
+    {
+        UserId = 1,
+        Username = "design_user",
+        DisplayName = "设计时用户",
+        HasFullAccess = true
+    };
+
+    public bool IsAuthenticated => true;
+
+    public event EventHandler<UserInfo?>? UserInfoUpdated;
+
+    public Task<bool> LoginAsync(string username, string password) => Task.FromResult(true);
+    public Task LogoutAsync() => Task.CompletedTask;
+    public Task<UserInfo?> GetCurrentUserAsync() => Task.FromResult(CurrentUser);
+    public Task<bool> RefreshTokenAsync() => Task.FromResult(true);
+    public Task<bool> ValidateTokenAsync() => Task.FromResult(true);
 }
