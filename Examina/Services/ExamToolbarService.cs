@@ -174,18 +174,20 @@ public class ExamToolbarService : IDisposable
         {
             _logger.LogInformation("提交模拟考试，模拟考试ID: {MockExamId}", mockExamId);
 
-            bool result = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
-            
-            if (result)
+            MockExamSubmissionResponseDto? result = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
+
+            if (result?.Success == true)
             {
-                _logger.LogInformation("模拟考试提交成功，模拟考试ID: {MockExamId}", mockExamId);
+                _logger.LogInformation("模拟考试提交成功，模拟考试ID: {MockExamId}, 时间状态: {TimeStatus}, 用时: {Duration}分钟",
+                    mockExamId, result.TimeStatusDescription, result.ActualDurationMinutes);
+                return true;
             }
             else
             {
-                _logger.LogWarning("模拟考试提交失败，模拟考试ID: {MockExamId}", mockExamId);
+                _logger.LogWarning("模拟考试提交失败，模拟考试ID: {MockExamId}, 错误: {Error}",
+                    mockExamId, result?.Message ?? "未知错误");
+                return false;
             }
-
-            return result;
         }
         catch (Exception ex)
         {

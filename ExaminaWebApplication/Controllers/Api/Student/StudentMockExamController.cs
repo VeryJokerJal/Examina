@@ -223,7 +223,7 @@ public class StudentMockExamController : ControllerBase
     /// 提交模拟考试
     /// </summary>
     /// <param name="id">模拟考试ID</param>
-    /// <returns>操作结果</returns>
+    /// <returns>操作结果，包含时间状态信息</returns>
     [HttpPost("{id}/submit")]
     public async Task<ActionResult> SubmitMockExam(int id)
     {
@@ -231,23 +231,28 @@ public class StudentMockExamController : ControllerBase
         {
             int studentUserId = GetCurrentUserId();
 
-            bool success = await _mockExamService.SubmitMockExamAsync(id, studentUserId);
-            if (!success)
+            var result = await _mockExamService.SubmitMockExamAsync(id, studentUserId);
+            if (!result.Success)
             {
-                _logger.LogWarning("提交模拟考试失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
-                    studentUserId, id);
-                return BadRequest(new { message = "无法提交模拟考试，请检查考试状态或权限" });
+                _logger.LogWarning("提交模拟考试失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 原因: {Message}",
+                    studentUserId, id, result.Message);
+                return BadRequest(result);
             }
 
-            _logger.LogInformation("学生提交模拟考试成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
-                studentUserId, id);
+            _logger.LogInformation("学生提交模拟考试成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}分钟",
+                studentUserId, id, result.ActualDurationMinutes);
 
-            return Ok(new { message = "模拟考试已提交" });
+            return Ok(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "提交模拟考试时发生异常，模拟考试ID: {MockExamId}", id);
-            return StatusCode(500, new { message = "服务器内部错误" });
+            return StatusCode(500, new {
+                success = false,
+                message = "服务器内部错误",
+                status = "Error",
+                timeStatusDescription = "服务器处理异常"
+            });
         }
     }
 

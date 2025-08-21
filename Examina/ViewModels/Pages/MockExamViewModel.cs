@@ -305,9 +305,13 @@ public class MockExamViewModel : ViewModelBase
                 examToolbar.Show();
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试工具栏窗口已显示");
 
-                // 开始考试倒计时
-                toolbarViewModel.StartExam();
+                // 开始考试倒计时（启动倒计时器）
+                toolbarViewModel.StartCountdown(mockExam.DurationMinutes * 60);
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试倒计时已开始");
+
+                // 设置考试状态为进行中
+                toolbarViewModel.StartExam();
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试状态已设置为进行中");
             }
             else
             {
@@ -477,7 +481,22 @@ public class MockExamViewModel : ViewModelBase
                 {
                     case ExamType.MockExam:
                         // 使用现有的模拟考试服务提交
-                        submitResult = await _mockExamService.SubmitMockExamAsync(examId);
+                        MockExamSubmissionResponseDto? submitResponse = await _mockExamService.SubmitMockExamAsync(examId);
+                        if (submitResponse != null)
+                        {
+                            submitResult = submitResponse.Success;
+                            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模拟考试提交响应 - 成功: {submitResponse.Success}, 时间状态: {submitResponse.TimeStatusDescription}");
+
+                            if (submitResponse.ActualDurationMinutes.HasValue)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试实际用时: {submitResponse.ActualDurationMinutes}分钟");
+                            }
+                        }
+                        else
+                        {
+                            submitResult = false;
+                            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 模拟考试提交响应为空");
+                        }
                         break;
 
                     case ExamType.FormalExam:

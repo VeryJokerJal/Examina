@@ -3,6 +3,7 @@ using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.MockExam;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
+using ExaminaWebApplication.DTOs.MockExam;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -386,7 +387,7 @@ public class StudentMockExamService : IStudentMockExamService
     /// <summary>
     /// 提交模拟考试（与完成模拟考试功能相同，但语义更明确）
     /// </summary>
-    public async Task<bool> SubmitMockExamAsync(int mockExamId, int studentUserId)
+    public async Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId)
     {
         try
         {
@@ -396,15 +397,40 @@ public class StudentMockExamService : IStudentMockExamService
             // 检查权限
             if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
             {
-                return false;
+                return new MockExamSubmissionResponseDto
+                {
+                    Success = false,
+                    Message = "无权限访问该模拟考试",
+                    Status = "Unauthorized",
+                    TimeStatusDescription = "权限验证失败"
+                };
             }
 
             MockExam? mockExam = await _context.MockExams
                 .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
 
-            if (mockExam == null || mockExam.Status != "InProgress")
+            if (mockExam == null)
             {
-                return false;
+                return new MockExamSubmissionResponseDto
+                {
+                    Success = false,
+                    Message = "模拟考试不存在",
+                    Status = "NotFound",
+                    TimeStatusDescription = "考试记录未找到"
+                };
+            }
+
+            if (mockExam.Status != "InProgress")
+            {
+                return new MockExamSubmissionResponseDto
+                {
+                    Success = false,
+                    Message = "考试状态不正确，无法提交",
+                    Status = mockExam.Status,
+                    StartedAt = mockExam.StartedAt,
+                    CompletedAt = mockExam.CompletedAt,
+                    TimeStatusDescription = $"考试当前状态为: {mockExam.Status}"
+                };
             }
 
             DateTime now = DateTime.UtcNow;
@@ -444,16 +470,43 @@ public class StudentMockExamService : IStudentMockExamService
             mockExam.CompletedAt = now;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("模拟考试提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
-                studentUserId, mockExamId);
+            // 计算实际用时
+            int? actualDurationMinutes = null;
+            string timeStatusDescription = "考试已成功提交";
 
-            return true;
+            if (mockExam.StartedAt.HasValue)
+            {
+                TimeSpan actualDuration = now - mockExam.StartedAt.Value;
+                actualDurationMinutes = (int)Math.Ceiling(actualDuration.TotalMinutes);
+                timeStatusDescription = $"考试用时: {actualDurationMinutes}分钟";
+            }
+
+            _logger.LogInformation("模拟考试提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}分钟",
+                studentUserId, mockExamId, actualDurationMinutes);
+
+            return new MockExamSubmissionResponseDto
+            {
+                Success = true,
+                Message = "模拟考试已成功提交",
+                StartedAt = mockExam.StartedAt,
+                CompletedAt = now,
+                ActualDurationMinutes = actualDurationMinutes,
+                Status = "Completed",
+                TimeStatusDescription = timeStatusDescription
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "提交模拟考试异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
                 mockExamId, studentUserId);
-            return false;
+
+            return new MockExamSubmissionResponseDto
+            {
+                Success = false,
+                Message = "提交模拟考试时发生异常",
+                Status = "Error",
+                TimeStatusDescription = "服务器处理异常"
+            };
         }
     }
 

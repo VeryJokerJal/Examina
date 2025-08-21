@@ -596,6 +596,9 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         RemainingTimeSeconds = durationSeconds;
         CurrentExamStatus = ExamStatus.Preparing;
 
+        // 立即更新时间显示，确保UI正确显示初始时间
+        UpdateTimeDisplay(durationSeconds);
+
         _logger.LogInformation("设置考试信息 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒",
             examType, examId, examName, totalQuestions, durationSeconds);
     }
@@ -609,9 +612,12 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         {
             CurrentExamStatus = ExamStatus.InProgress;
 
-            // 开始倒计时
-            _countdownTimer?.Dispose();
-            _countdownTimer = new Timer(CountdownTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            // 只有在倒计时器未启动时才启动，避免重复启动
+            if (_countdownTimer == null)
+            {
+                _countdownTimer = new Timer(CountdownTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+                _logger.LogInformation("考试倒计时器启动");
+            }
 
             _logger.LogInformation("考试开始 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 剩余时间: {RemainingTime}秒",
                 CurrentExamType, ExamId, ExamName, RemainingTimeSeconds);

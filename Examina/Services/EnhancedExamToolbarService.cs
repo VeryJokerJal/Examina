@@ -2,6 +2,7 @@ using Examina.Models;
 using Examina.Models.Api;
 using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
+using Examina.Models.MockExam;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -131,14 +132,16 @@ public class EnhancedExamToolbarService : IDisposable
                     _logger.LogWarning("模拟考试成绩提交失败，模拟考试ID: {MockExamId}", mockExamId);
 
                     // 如果成绩提交失败，尝试基本提交（不包含成绩数据）
-                    bool basicSubmitResult = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
-                    if (!basicSubmitResult)
+                    MockExamSubmissionResponseDto? basicSubmitResult = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
+                    if (basicSubmitResult?.Success != true)
                     {
-                        _logger.LogError("模拟考试基本提交也失败，模拟考试ID: {MockExamId}", mockExamId);
+                        _logger.LogError("模拟考试基本提交也失败，模拟考试ID: {MockExamId}, 错误: {Error}",
+                            mockExamId, basicSubmitResult?.Message ?? "未知错误");
                         return false;
                     }
 
-                    _logger.LogInformation("模拟考试基本提交成功（无成绩数据），模拟考试ID: {MockExamId}", mockExamId);
+                    _logger.LogInformation("模拟考试基本提交成功（无成绩数据），模拟考试ID: {MockExamId}, 时间状态: {TimeStatus}",
+                        mockExamId, basicSubmitResult.TimeStatusDescription);
                 }
                 else
                 {

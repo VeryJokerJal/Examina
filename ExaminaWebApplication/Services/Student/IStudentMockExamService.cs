@@ -1,4 +1,5 @@
 using ExaminaWebApplication.Models.Api.Student;
+using ExaminaWebApplication.DTOs.MockExam;
 
 namespace ExaminaWebApplication.Services.Student;
 
@@ -60,8 +61,8 @@ public interface IStudentMockExamService
     /// </summary>
     /// <param name="mockExamId">模拟考试ID</param>
     /// <param name="studentUserId">学生用户ID</param>
-    /// <returns>是否成功提交</returns>
-    Task<bool> SubmitMockExamAsync(int mockExamId, int studentUserId);
+    /// <returns>提交结果，包含时间状态信息</returns>
+    Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId);
 
     /// <summary>
     /// 提交模拟考试成绩

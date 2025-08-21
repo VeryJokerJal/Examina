@@ -60,8 +60,8 @@ public interface IStudentMockExamService
     /// 提交模拟考试
     /// </summary>
     /// <param name="mockExamId">模拟考试ID</param>
-    /// <returns>是否成功提交</returns>
-    Task<bool> SubmitMockExamAsync(int mockExamId);
+    /// <returns>提交结果，包含时间状态信息</returns>
+    Task<MockExamSubmissionResponseDto?> SubmitMockExamAsync(int mockExamId);
 
     /// <summary>
     /// 提交模拟考试成绩

@@ -298,7 +298,7 @@ public class StudentMockExamService : IStudentMockExamService
     /// <summary>
     /// 提交模拟考试
     /// </summary>
-    public async Task<bool> SubmitMockExamAsync(int mockExamId)
+    public async Task<MockExamSubmissionResponseDto?> SubmitMockExamAsync(int mockExamId)
     {
         try
         {
@@ -313,14 +313,48 @@ public class StudentMockExamService : IStudentMockExamService
 
             System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
 
-            bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试结果: {success}");
-            return success;
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应内容: {responseContent}");
+
+                MockExamSubmissionResponseDto? result = JsonSerializer.Deserialize<MockExamSubmissionResponseDto>(responseContent, JsonOptions);
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试成功，时间状态: {result?.TimeStatusDescription}");
+                return result;
+            }
+            else
+            {
+                string errorContent = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试失败，错误内容: {errorContent}");
+
+                // 尝试解析错误响应
+                try
+                {
+                    MockExamSubmissionResponseDto? errorResult = JsonSerializer.Deserialize<MockExamSubmissionResponseDto>(errorContent, JsonOptions);
+                    return errorResult;
+                }
+                catch
+                {
+                    return new MockExamSubmissionResponseDto
+                    {
+                        Success = false,
+                        Message = "提交模拟考试失败",
+                        Status = "Error",
+                        TimeStatusDescription = "网络请求失败"
+                    };
+                }
+            }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试异常: {ex.Message}");
-            return false;
+            return new MockExamSubmissionResponseDto
+            {
+                Success = false,
+                Message = "提交模拟考试时发生异常",
+                Status = "Error",
+                TimeStatusDescription = $"客户端异常: {ex.Message}"
+            };
         }
     }
 

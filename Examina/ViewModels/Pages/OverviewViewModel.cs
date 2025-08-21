@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Prism.Commands;
-using ReactiveUI.Fody.Helpers;
 using Examina.Models;
 using Examina.Models.Api;
 using Examina.Services;
+using Prism.Commands;
+using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
 
@@ -673,5 +673,10 @@ public class TrainingRecord
     /// <summary>
     /// 格式化的完成时间
     /// </summary>
-    public string FormattedCompletionTime => CompletionTime.ToString("yyyy年MM月dd日 HH时mm分ss秒");
+    public string FormattedCompletionTime { get; set; }
+
+    public TrainingRecord()
+    {
+        FormattedCompletionTime = CompletionTime.ToString("yyyy年MM月dd日 HH时mm分ss秒");
+    }
 }
