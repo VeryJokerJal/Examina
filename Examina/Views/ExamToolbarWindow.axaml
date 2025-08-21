@@ -1,7 +1,7 @@
 ﻿<Window
-    x:Class="Examina.Views.ExamToolbarWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="using:Examina.Converters" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="using:Examina.ViewModels" Title="考试工具栏" Width="1920" Height="60"
-    d:DesignHeight="60" d:DesignWidth="1920" x:DataType="vm:ExamToolbarViewModel" Background="Transparent" CanResize="False" ExtendClientAreaChromeHints="NoChrome" ExtendClientAreaTitleBarHeightHint="-1" SystemDecorations="None" Topmost="True" TransparencyLevelHint="AcrylicBlur"
-    WindowStartupLocation="Manual" mc:Ignorable="d">
+    x:Class="Examina.Views.ExamToolbarWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="using:Examina.Converters" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="using:FluentAvalonia.UI.Controls" xmlns:vm="using:Examina.ViewModels" Title="考试工具栏" Width="1920"
+    Height="60" d:DesignHeight="60" d:DesignWidth="1920" x:DataType="vm:ExamToolbarViewModel" Background="Transparent" CanResize="False" ExtendClientAreaChromeHints="NoChrome" ExtendClientAreaTitleBarHeightHint="-1" SystemDecorations="None" Topmost="True"
+    TransparencyLevelHint="AcrylicBlur" WindowStartupLocation="Manual" mc:Ignorable="d">
 
     <Design.DataContext>
         <vm:ExamToolbarViewModel />
@@ -103,131 +103,70 @@
         <!--  考试工具栏主容器  -->
         <Border BorderBrush="{DynamicResource ExamToolbarBorderBrush}" BorderThickness="0,0,0,1" CornerRadius="0">
 
-        <!--  主要内容区域  -->
-        <Grid Margin="15,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <!--  主要内容区域  -->
+            <Grid Margin="15,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-            <!--  左侧区域 - 学生信息  -->
-            <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="15">
+                <!--  左侧区域 - 学生信息  -->
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="15">
 
-                <!--  学生头像图标  -->
-                <Border Width="36" Height="36" Background="{DynamicResource StudentAvatarBackgroundBrush}" CornerRadius="18">
-                    <Path Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" Fill="{DynamicResource StudentAvatarIconBrush}" Stretch="Uniform" />
-                </Border>
+                    <!--  学生头像图标  -->
+                    <Border Width="36" Height="36" Background="{DynamicResource StudentAvatarBackgroundBrush}" CornerRadius="18">
+                        <Path Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" Fill="{DynamicResource StudentAvatarIconBrush}" Stretch="Uniform" />
+                    </Border>
 
-                <!--  学生信息文本  -->
-                <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                    <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ExamToolbarForegroundBrush}" Text="{Binding StudentName}" />
-                    <TextBlock FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" Text="{Binding StudentId, StringFormat='学号: {0}'}" />
-                </StackPanel>
-            </StackPanel>
-
-            <!--  中间区域 - 考试时间  -->
-            <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
-
-                <!--  时钟图标  -->
-                <Path Width="24" Height="24" Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.7L16.2,16.2Z" Fill="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}" Stretch="Uniform" />
-
-                <!--  时间显示  -->
-                <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                    <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" Text="剩余时间" />
-                    <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold" Foreground="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}" Text="{Binding FormattedRemainingTime}" />
+                    <!--  学生信息文本  -->
+                    <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ExamToolbarForegroundBrush}" Text="{Binding StudentName}" />
+                    </StackPanel>
                 </StackPanel>
 
-                <!--  考试状态  -->
-                <StackPanel Margin="20,0,0,0" VerticalAlignment="Center" Orientation="Vertical">
-                    <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" Text="考试状态" />
-                    <TextBlock HorizontalAlignment="Center" FontSize="12" FontWeight="Medium" Foreground="{Binding CurrentExamStatus, Converter={StaticResource ExamStatusToBrushConverter}}" Text="{Binding CurrentExamStatus, Converter={StaticResource ExamStatusToStringConverter}}" />
-                </StackPanel>
-            </StackPanel>
+                <!--  中间区域 - 考试时间  -->
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
 
-            <!--  查看题目按钮区域  -->
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal" Spacing="15">
-                <!--  查看题目按钮  -->
-                <Button Padding="12,6" Background="{DynamicResource ExamToolbarButtonBackgroundBrush}" BorderBrush="{DynamicResource ExamToolbarButtonBorderBrush}" BorderThickness="1" Command="{Binding ViewQuestionsCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamToolbarButtonForegroundBrush}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Path Width="14" Height="14" Data="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" Fill="{DynamicResource ExamToolbarButtonForegroundBrush}" Stretch="Uniform" />
-                        <TextBlock Text="查看题目" />
+                    <!--  时钟图标  -->
+                    <Path Width="24" Height="24" Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.7L16.2,16.2Z" Fill="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}" Stretch="Uniform" />
+
+                    <!--  时间显示  -->
+                    <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" Text="剩余时间" />
+                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold" Foreground="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}" Text="{Binding FormattedRemainingTime}" />
+                    </StackPanel>
+
+                    <!--  考试状态  -->
+                    <StackPanel Margin="20,0,0,0" VerticalAlignment="Center" Orientation="Vertical">
+                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" Text="考试状态" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="12" FontWeight="Medium" Foreground="{Binding CurrentExamStatus, Converter={StaticResource ExamStatusToBrushConverter}}" Text="{Binding CurrentExamStatus, Converter={StaticResource ExamStatusToStringConverter}}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  查看题目按钮区域  -->
+                <StackPanel Grid.Column="2" Margin="0,0,10,0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="15">
+                    <!--  查看题目按钮  -->
+                    <Button Padding="12,6" Background="{DynamicResource ExamToolbarButtonBackgroundBrush}" BorderBrush="{DynamicResource ExamToolbarButtonBorderBrush}" BorderThickness="1" Command="{Binding ViewQuestionsCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamToolbarButtonForegroundBrush}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Width="14" Height="14" Data="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" Fill="{DynamicResource ExamToolbarButtonForegroundBrush}" Stretch="Uniform" />
+                            <TextBlock Text="查看题目" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!--  右侧区域 - 提交按钮  -->
+                <Button Grid.Column="3" Padding="20,8" Background="{DynamicResource ExamSubmitButtonBackgroundBrush}" BorderThickness="0" Command="{Binding SubmitExamCommand}" CornerRadius="6" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ExamSubmitButtonForegroundBrush}" IsEnabled="{Binding CanSubmitExam}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <!--  提交图标  -->
+                        <Path Width="16" Height="16" VerticalAlignment="Center" Data="M9,16.17L4.83,12L3.41,13.41L9,19L21,7L19.59,5.59L9,16.17Z" Fill="{DynamicResource ExamSubmitButtonForegroundBrush}" IsVisible="{Binding !IsSubmitting}" Stretch="Uniform" />
+
+                        <ui:ProgressRing VerticalAlignment="Center" IsActive="{Binding IsSubmitting}" IsVisible="{Binding IsSubmitting}" />
+                        <TextBlock VerticalAlignment="Center" Text="{Binding IsSubmitting, Converter={StaticResource BoolToSubmitTextConverter}}" />
                     </StackPanel>
                 </Button>
-            </StackPanel>
-
-            <!--  网络状态指示器  -->
-            <StackPanel Grid.Column="3" Margin="20,0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
-                <!--  网络状态图标  -->
-                <Path Width="16" Height="16" Data="{Binding IsNetworkConnected, Converter={StaticResource BoolToNetworkIconConverter}}" Fill="{Binding IsNetworkConnected, Converter={StaticResource BoolToNetworkBrushConverter}}" Stretch="Uniform" />
-            </StackPanel>
-
-            <!--  右侧区域 - 提交按钮  -->
-            <Button Grid.Column="4" Padding="20,8" Background="{DynamicResource ExamSubmitButtonBackgroundBrush}" BorderThickness="0" Command="{Binding SubmitExamCommand}" CornerRadius="6" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ExamSubmitButtonForegroundBrush}" IsEnabled="{Binding CanSubmitExam}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <!--  提交图标  -->
-                    <Path Width="16" Height="16" Data="M9,16.17L4.83,12L3.41,13.41L9,19L21,7L19.59,5.59L9,16.17Z" Fill="{DynamicResource ExamSubmitButtonForegroundBrush}" IsVisible="{Binding !IsSubmitting}" Stretch="Uniform" />
-
-                    <!--  加载图标  -->
-                    <Path Width="16" Height="16" Data="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z" Fill="{DynamicResource ExamSubmitButtonForegroundBrush}" IsVisible="{Binding IsSubmitting}" Stretch="Uniform">
-                        <Path.RenderTransform>
-                            <RotateTransform />
-                        </Path.RenderTransform>
-                        <Path.Styles>
-                            <Style Selector="Path[IsVisible=True]">
-                                <Style.Animations>
-                                    <Animation IterationCount="INFINITE" Duration="0:0:1">
-                                        <KeyFrame Cue="0%">
-                                            <Setter Property="(RotateTransform.Angle)" Value="0" />
-                                        </KeyFrame>
-                                        <KeyFrame Cue="100%">
-                                            <Setter Property="(RotateTransform.Angle)" Value="360" />
-                                        </KeyFrame>
-                                    </Animation>
-                                </Style.Animations>
-                            </Style>
-                        </Path.Styles>
-                    </Path>
-
-                    <TextBlock Text="{Binding IsSubmitting, Converter={StaticResource BoolToSubmitTextConverter}}" />
-                </StackPanel>
-            </Button>
-        </Grid>
-        </Border>
-
-        <!--  提交结果对话框  -->
-    <Border Background="#80000000" IsVisible="{Binding ShowSubmitResultDialog}" ZIndex="1000">
-        <Border Width="400" Height="250" Background="{DynamicResource ExamDialogBackgroundBrush}" BorderBrush="{DynamicResource ExamDialogBorderBrush}" BorderThickness="1" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Grid Margin="20">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!--  对话框标题  -->
-                <TextBlock Grid.Row="0" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ExamDialogForegroundBrush}" Text="提交结果" />
-
-                <!--  进度条  -->
-                <ProgressBar Grid.Row="1" Margin="0,15,0,10" Height="8" Background="{DynamicResource ExamProgressBackgroundBrush}" Foreground="{DynamicResource ExamProgressForegroundBrush}" IsVisible="{Binding IsSubmitting}" Value="{Binding SubmitProgress}" />
-
-                <!--  对话框内容  -->
-                <TextBlock Grid.Row="2" FontSize="14" Foreground="{DynamicResource ExamDialogForegroundBrush}" Text="{Binding SubmitMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
-
-                <!--  对话框按钮  -->
-                <StackPanel Grid.Row="3" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
-                    <Button Padding="15,8" Background="{DynamicResource ExamDialogCancelButtonBackgroundBrush}" BorderThickness="1" BorderBrush="{DynamicResource ExamDialogCancelButtonBorderBrush}" Command="{Binding RetrySubmitCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamDialogCancelButtonForegroundBrush}" IsVisible="{Binding CanRetrySubmit}">
-                        重试
-                    </Button>
-                    <Button Padding="15,8" Background="{DynamicResource ExamSubmitButtonBackgroundBrush}" BorderThickness="0" Command="{Binding CloseResultDialogCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamSubmitButtonForegroundBrush}">
-                        确定
-                    </Button>
-                </StackPanel>
             </Grid>
         </Border>
-    </Border>
     </Grid>
 </Window>

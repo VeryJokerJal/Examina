@@ -169,16 +169,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     [Reactive] public string SubmitMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// 是否显示提交结果对话框
-    /// </summary>
-    [Reactive] public bool ShowSubmitResultDialog { get; set; } = false;
-
-    /// <summary>
-    /// 是否可以重试提交
-    /// </summary>
-    [Reactive] public bool CanRetrySubmit { get; set; } = false;
-
-    /// <summary>
     /// 所有题目是否已完成
     /// </summary>
     [Reactive] public bool AllQuestionsCompleted { get; set; } = false;
@@ -197,16 +187,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// 确认提交命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> ConfirmSubmitCommand { get; }
-
-    /// <summary>
-    /// 重试提交命令
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> RetrySubmitCommand { get; }
-
-    /// <summary>
-    /// 关闭结果对话框命令
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> CloseResultDialogCommand { get; }
 
     /// <summary>
     /// 考试自动提交事件
@@ -240,8 +220,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
         SubmitExamCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
-        RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
-        CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
         _ = this.WhenAnyValue(x => x.RemainingTimeSeconds)
@@ -267,8 +245,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
         SubmitExamCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
-        RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
-        CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
         _ = this.WhenAnyValue(x => x.RemainingTimeSeconds)
@@ -421,7 +397,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            HandleSubmitFailure(ex);
+            await HandleSubmitFailureAsync(ex);
         }
     }
 
@@ -439,10 +415,8 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             IsSubmitting = false;
             SubmitProgress = 100;
             SubmitMessage = "考试提交成功！";
-            ShowSubmitResultDialog = true;
 
-            // 延迟3秒后自动关闭窗口
-            await Task.Delay(3000);
+            // 直接关闭窗口，无需显示结果对话框
             await CloseWindowAfterSubmitAsync();
         }
         catch (Exception ex)
@@ -454,7 +428,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 处理提交失败
     /// </summary>
-    private void HandleSubmitFailure(Exception exception)
+    private async Task HandleSubmitFailureAsync(Exception exception)
     {
         try
         {
@@ -462,16 +436,10 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
             CurrentSubmitStatus = SubmitStatus.Failed;
             IsSubmitting = false;
-            CanSubmitExam = true;
-            CanRetrySubmit = true;
             SubmitMessage = $"提交失败：{exception.Message}";
-            ShowSubmitResultDialog = true;
 
-            // 恢复倒计时（如果还有时间）
-            if (RemainingTimeSeconds > 0)
-            {
-                StartCountdown(RemainingTimeSeconds);
-            }
+            // 提交失败也直接关闭窗口，不显示错误对话框
+            await CloseWindowAfterSubmitAsync();
         }
         catch (Exception ex)
         {
@@ -500,7 +468,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            HandleSubmitFailure(ex);
+            await HandleSubmitFailureAsync(ex);
         }
     }
 
@@ -522,25 +490,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         }
     }
 
-    /// <summary>
-    /// 关闭结果对话框
-    /// </summary>
-    private void CloseResultDialog()
-    {
-        try
-        {
-            ShowSubmitResultDialog = false;
 
-            if (CurrentSubmitStatus == SubmitStatus.Success)
-            {
-                _ = Task.Run(CloseWindowAfterSubmitAsync);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "关闭结果对话框时发生错误");
-        }
-    }
 
     /// <summary>
     /// 提交完成后关闭窗口
