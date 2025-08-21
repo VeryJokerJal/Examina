@@ -3,6 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Examina.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace Examina.Converters;
 
@@ -15,12 +16,18 @@ public class BoolToTimeBrushConverter : IValueConverter
     {
         if (value is bool isUrgent)
         {
-            // 使用动态资源而不是硬编码颜色
-            return isUrgent
-                ? new SolidColorBrush(Color.Parse("#FFFF4444")) // 紧急状态保持红色
-                : new SolidColorBrush(Colors.Transparent); // 正常状态使用透明，让系统颜色显示
+            var brush = isUrgent
+                ? new SolidColorBrush(Color.Parse("#FFFF4444")) // 紧急状态：红色
+                : new SolidColorBrush(Color.Parse("#FFFFFF"));   // 正常状态：白色（可见）
+
+            // 调试输出
+            System.Diagnostics.Debug.WriteLine($"BoolToTimeBrushConverter: IsUrgent={isUrgent}, Color={brush.Color}");
+            return brush;
         }
-        return new SolidColorBrush(Colors.Transparent);
+
+        var defaultBrush = new SolidColorBrush(Color.Parse("#FFFFFF")); // 默认：白色
+        System.Diagnostics.Debug.WriteLine($"BoolToTimeBrushConverter: 默认颜色={defaultBrush.Color}");
+        return defaultBrush;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
