@@ -56,9 +56,11 @@ public class PageNumberBackgroundConverter : IMultiValueConverter
     {
         if (values.Count >= 2 && values[0] is int pageNumber && values[1] is int currentPage)
         {
-            return pageNumber == currentPage ? "#FF0078D4" : "Transparent";
+            return pageNumber == currentPage
+                ? new SolidColorBrush(Color.Parse("#FF0078D4"))
+                : new SolidColorBrush(Colors.Transparent);
         }
-        return "Transparent";
+        return new SolidColorBrush(Colors.Transparent);
     }
 }
 
@@ -73,9 +75,11 @@ public class PageNumberForegroundConverter : IMultiValueConverter
     {
         if (values.Count >= 2 && values[0] is int pageNumber && values[1] is int currentPage)
         {
-            return pageNumber == currentPage ? "White" : "#666666";
+            return pageNumber == currentPage
+                ? new SolidColorBrush(Colors.White)
+                : new SolidColorBrush(Color.Parse("#666666"));
         }
-        return "#666666";
+        return new SolidColorBrush(Color.Parse("#666666"));
     }
 }
 
