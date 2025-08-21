@@ -106,6 +106,7 @@ public class StudentMockExamService : IStudentMockExamService
             MockExamConfiguration configuration = await GetOrCreateDefaultConfigurationAsync(request, studentUserId);
 
             // 创建模拟考试实例并立即开始
+            DateTime now = DateTime.Now; // 使用本地时间
             MockExam mockExam = new()
             {
                 ConfigurationId = configuration.Id,
@@ -118,9 +119,9 @@ public class StudentMockExamService : IStudentMockExamService
                 RandomizeQuestions = request.RandomizeQuestions,
                 ExtractedQuestions = JsonSerializer.Serialize(extractedQuestions, JsonOptions),
                 Status = "InProgress", // 直接设置为进行中
-                CreatedAt = DateTime.UtcNow,
-                StartedAt = DateTime.UtcNow, // 立即开始
-                ExpiresAt = DateTime.UtcNow.AddHours(request.DurationMinutes / 60.0 + 1) // 考试时长+1小时缓冲
+                CreatedAt = now,
+                StartedAt = now, // 立即开始
+                ExpiresAt = now.AddHours(request.DurationMinutes / 60.0 + 1) // 考试时长+1小时缓冲
             };
 
             _context.MockExams.Add(mockExam);
@@ -188,6 +189,7 @@ public class StudentMockExamService : IStudentMockExamService
             MockExamConfiguration configuration = await GetOrCreateDefaultConfigurationAsync(request, studentUserId);
 
             // 创建模拟考试实例
+            DateTime now = DateTime.Now; // 使用本地时间
             MockExam mockExam = new()
             {
                 ConfigurationId = configuration.Id,
@@ -200,8 +202,8 @@ public class StudentMockExamService : IStudentMockExamService
                 RandomizeQuestions = request.RandomizeQuestions,
                 ExtractedQuestions = JsonSerializer.Serialize(extractedQuestions, JsonOptions),
                 Status = "Created",
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(7) // 7天后过期
+                CreatedAt = now,
+                ExpiresAt = now.AddDays(7) // 7天后过期
             };
 
             _context.MockExams.Add(mockExam);
@@ -433,7 +435,7 @@ public class StudentMockExamService : IStudentMockExamService
                 };
             }
 
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTime.Now; // 使用本地时间
 
             // 创建基本的完成记录（如果不存在）
             MockExamCompletion? existingCompletion = await _context.MockExamCompletions
@@ -478,7 +480,28 @@ public class StudentMockExamService : IStudentMockExamService
             {
                 TimeSpan actualDuration = now - mockExam.StartedAt.Value;
                 actualDurationMinutes = (int)Math.Ceiling(actualDuration.TotalMinutes);
-                timeStatusDescription = $"考试用时: {actualDurationMinutes}分钟";
+
+                // 格式化用时显示
+                if (actualDurationMinutes >= 60)
+                {
+                    int hours = actualDurationMinutes.Value / 60;
+                    int minutes = actualDurationMinutes.Value % 60;
+                    timeStatusDescription = $"考试用时: {hours}小时{minutes}分钟";
+                }
+                else
+                {
+                    timeStatusDescription = $"考试用时: {actualDurationMinutes}分钟";
+                }
+
+                _logger.LogInformation("计算考试用时 - 开始时间: {StartTime}, 结束时间: {EndTime}, 用时: {Duration}分钟",
+                    mockExam.StartedAt.Value.ToString("yyyy-MM-dd HH:mm:ss"),
+                    now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    actualDurationMinutes);
+            }
+            else
+            {
+                timeStatusDescription = "考试已提交（开始时间未记录）";
+                _logger.LogWarning("模拟考试StartedAt为空，无法计算用时，模拟考试ID: {MockExamId}", mockExamId);
             }
 
             _logger.LogInformation("模拟考试提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}分钟",

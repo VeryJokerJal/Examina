@@ -445,7 +445,7 @@ public class OperationPointModel
     public string CreatedTimeString
     {
         get => CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
-        set => CreatedAt = DateTime.TryParse(value, out var result) ? result : DateTime.UtcNow;
+        set => CreatedAt = DateTime.TryParse(value, out var result) ? result : DateTime.Now;
     }
 
     /// <summary>

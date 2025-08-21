@@ -82,10 +82,10 @@ public class DeviceService : IDeviceService
                 BrowserInfo = deviceRequest.BrowserInfo,
                 IpAddress = ipAddress,
                 Location = location,
-                CreatedAt = DateTime.UtcNow,
-                LastUsedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
+                LastUsedAt = DateTime.Now,
                 IsActive = true,
-                ExpiresAt = DateTime.UtcNow.AddDays(
+                ExpiresAt = DateTime.Now.AddDays(
                     int.Parse(_configuration["DeviceSecurity:DeviceTokenExpirationDays"] ?? "30")),
                 IsTrusted = false
             };
