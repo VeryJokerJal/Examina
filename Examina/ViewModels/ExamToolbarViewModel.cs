@@ -1,9 +1,7 @@
-﻿using System.Linq;
-using System.Reactive;
+﻿using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
 using Examina.Services;
@@ -240,7 +238,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         // 初始化命令
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
-        SubmitExamCommand = ReactiveCommand.CreateFromTask(ShowSubmitConfirmationAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
+        SubmitExamCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
         RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
         CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
@@ -267,7 +265,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         // 初始化命令
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
-        SubmitExamCommand = ReactiveCommand.CreateFromTask(ShowSubmitConfirmationAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
+        SubmitExamCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
         RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
         CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
@@ -387,63 +385,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         ViewQuestionsRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>
-    /// 显示提交确认对话框
-    /// </summary>
-    private async Task ShowSubmitConfirmationAsync()
-    {
-        try
-        {
-            _logger.LogInformation("显示手动提交确认对话框");
-            CurrentSubmitStatus = SubmitStatus.WaitingConfirmation;
-            SubmitMessage = "确定要提交考试吗？提交后将无法继续答题。";
 
-            // 创建 ContentDialog
-            var dialog = new ContentDialog
-            {
-                Title = "提交确认",
-                Content = SubmitMessage,
-                PrimaryButtonText = "确认提交",
-                SecondaryButtonText = "取消",
-                DefaultButton = ContentDialogButton.Primary
-            };
-
-            // 获取当前窗口作为父窗口
-            Window? parentWindow = null;
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                parentWindow = desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow;
-            }
-
-            if (parentWindow != null)
-            {
-                var result = await dialog.ShowAsync(parentWindow);
-
-                if (result == ContentDialogResult.Primary)
-                {
-                    // 用户点击了"确认提交"
-                    await PerformSubmitAsync();
-                }
-                else
-                {
-                    // 用户点击了"取消"或关闭了对话框
-                    CancelSubmit();
-                }
-            }
-            else
-            {
-                _logger.LogWarning("无法找到父窗口，无法显示确认对话框");
-                // 如果找不到父窗口，直接执行提交
-                await PerformSubmitAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "显示提交确认对话框失败");
-            // 发生异常时，取消提交状态
-            CancelSubmit();
-        }
-    }
 
     /// <summary>
     /// 执行提交操作
@@ -453,9 +395,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         try
         {
             _logger.LogInformation("开始执行考试提交，考试ID: {ExamId}", ExamId);
-
-            // 隐藏确认对话框
-            ShowSubmitConfirmDialog = false;
 
             // 设置提交状态
             CurrentSubmitStatus = SubmitStatus.Submitting;
