@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Examina.ViewModels.Pages"
+             xmlns:local="clr-namespace:Examina.Views.Pages"
              d:DesignHeight="600"
              d:DesignWidth="800"
              x:DataType="vm:MockExamScoreListViewModel"
