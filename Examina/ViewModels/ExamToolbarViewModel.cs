@@ -1,14 +1,15 @@
-using System;
+﻿using System.Linq;
 using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
-using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
 using Examina.Services;
 using Microsoft.Extensions.Logging;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels;
 
@@ -170,11 +171,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     [Reactive] public string SubmitMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// 是否显示提交确认对话框
-    /// </summary>
-    [Reactive] public bool ShowSubmitConfirmDialog { get; set; } = false;
-
-    /// <summary>
     /// 是否显示提交结果对话框
     /// </summary>
     [Reactive] public bool ShowSubmitResultDialog { get; set; } = false;
@@ -203,11 +199,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// 确认提交命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> ConfirmSubmitCommand { get; }
-
-    /// <summary>
-    /// 取消提交命令
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> CancelSubmitCommand { get; }
 
     /// <summary>
     /// 重试提交命令
@@ -251,12 +242,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
         SubmitExamCommand = ReactiveCommand.CreateFromTask(ShowSubmitConfirmationAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
-        CancelSubmitCommand = ReactiveCommand.Create(CancelSubmit);
         RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
         CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
-        this.WhenAnyValue(x => x.RemainingTimeSeconds)
+        _ = this.WhenAnyValue(x => x.RemainingTimeSeconds)
             .Subscribe(UpdateTimeDisplay);
 
         // 设置设计时数据
@@ -279,12 +269,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
         SubmitExamCommand = ReactiveCommand.CreateFromTask(ShowSubmitConfirmationAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
-        CancelSubmitCommand = ReactiveCommand.Create(CancelSubmit);
         RetrySubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanRetrySubmit));
         CloseResultDialogCommand = ReactiveCommand.Create(CloseResultDialog);
 
         // 监听剩余时间变化，更新格式化时间和紧急状态
-        this.WhenAnyValue(x => x.RemainingTimeSeconds)
+        _ = this.WhenAnyValue(x => x.RemainingTimeSeconds)
             .Subscribe(UpdateTimeDisplay);
 
         // 初始化学生信息
@@ -348,7 +337,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             StopCountdown();
 
             _logger.LogWarning("满足自动提交条件，触发自动提交");
-            _ = Task.Run(async () => await TriggerAutoSubmitAsync());
+            _ = Task.Run(TriggerAutoSubmitAsync);
         }
         else if (RemainingTimeSeconds <= TimeWarningThreshold && CurrentExamStatus != ExamStatus.AboutToEnd)
         {
@@ -408,11 +397,51 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             _logger.LogInformation("显示手动提交确认对话框");
             CurrentSubmitStatus = SubmitStatus.WaitingConfirmation;
             SubmitMessage = "确定要提交考试吗？提交后将无法继续答题。";
-            ShowSubmitConfirmDialog = true;
+
+            // 创建 ContentDialog
+            var dialog = new ContentDialog
+            {
+                Title = "提交确认",
+                Content = SubmitMessage,
+                PrimaryButtonText = "确认提交",
+                SecondaryButtonText = "取消",
+                DefaultButton = ContentDialogButton.Primary
+            };
+
+            // 获取当前窗口作为父窗口
+            Window? parentWindow = null;
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                parentWindow = desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow;
+            }
+
+            if (parentWindow != null)
+            {
+                var result = await dialog.ShowAsync(parentWindow);
+
+                if (result == ContentDialogResult.Primary)
+                {
+                    // 用户点击了"确认提交"
+                    await PerformSubmitAsync();
+                }
+                else
+                {
+                    // 用户点击了"取消"或关闭了对话框
+                    CancelSubmit();
+                }
+            }
+            else
+            {
+                _logger.LogWarning("无法找到父窗口，无法显示确认对话框");
+                // 如果找不到父窗口，直接执行提交
+                await PerformSubmitAsync();
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "显示提交确认对话框失败");
+            // 发生异常时，取消提交状态
+            CancelSubmit();
         }
     }
 
@@ -453,7 +482,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            await HandleSubmitFailureAsync(ex);
+            HandleSubmitFailure(ex);
         }
     }
 
@@ -486,7 +515,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 处理提交失败
     /// </summary>
-    private async Task HandleSubmitFailureAsync(Exception exception)
+    private void HandleSubmitFailure(Exception exception)
     {
         try
         {
@@ -532,7 +561,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            await HandleSubmitFailureAsync(ex);
+            HandleSubmitFailure(ex);
         }
     }
 
@@ -545,7 +574,6 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         {
             _logger.LogInformation("用户取消提交");
 
-            ShowSubmitConfirmDialog = false;
             CurrentSubmitStatus = SubmitStatus.Ready;
             SubmitMessage = string.Empty;
         }
@@ -731,21 +759,148 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 /// </summary>
 internal class DesignTimeAuthenticationService : IAuthenticationService
 {
-    public UserInfo? CurrentUser => new UserInfo
+    public UserInfo? CurrentUser => new()
     {
-        UserId = 1,
+        Id = "1",
         Username = "design_user",
-        DisplayName = "设计时用户",
+        RealName = "设计时用户",
         HasFullAccess = true
     };
 
     public bool IsAuthenticated => true;
 
+    public string? CurrentAccessToken => throw new NotImplementedException();
+
+    public string? CurrentRefreshToken => throw new NotImplementedException();
+
+    public DateTime? TokenExpiresAt => throw new NotImplementedException();
+
+    public bool NeedsTokenRefresh => throw new NotImplementedException();
+
     public event EventHandler<UserInfo?>? UserInfoUpdated;
 
-    public Task<bool> LoginAsync(string username, string password) => Task.FromResult(true);
-    public Task LogoutAsync() => Task.CompletedTask;
-    public Task<UserInfo?> GetCurrentUserAsync() => Task.FromResult(CurrentUser);
-    public Task<bool> RefreshTokenAsync() => Task.FromResult(true);
-    public Task<bool> ValidateTokenAsync() => Task.FromResult(true);
+    public Task<bool> LoginAsync(string username, string password)
+    {
+        return Task.FromResult(true);
+    }
+
+    public Task LogoutAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task<UserInfo?> GetCurrentUserAsync()
+    {
+        return Task.FromResult(CurrentUser);
+    }
+
+    public Task<bool> RefreshTokenAsync()
+    {
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> ValidateTokenAsync()
+    {
+        return Task.FromResult(true);
+    }
+
+    public Task<AuthenticationResult> LoginWithCredentialsAsync(string username, string password)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AuthenticationResult> LoginWithSmsAsync(string phoneNumber, string smsCode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AuthenticationResult> LoginWithWeChatAsync(string qrCode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> SendSmsCodeAsync(string phoneNumber)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<WeChatQrCodeInfo?> GetWeChatQrCodeAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<WeChatScanStatus?> CheckWeChatStatusAsync(string qrCodeKey)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> ValidateTokenAsync(string token)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<AuthenticationResult> IAuthenticationService.RefreshTokenAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<DeviceInfo>> GetUserDevicesAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<UserInfo?> CompleteUserInfoAsync(CompleteUserInfoRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool RequiresUserInfoCompletion()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> ChangePasswordAsync(ChangePasswordRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string?> GetAccessTokenAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> RefreshUserInfoAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> SaveLoginDataAsync(LoginResponse loginResponse)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PersistentLoginData?> LoadLoginDataAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> ClearLoginDataAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AuthenticationResult> AutoAuthenticateAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AuthenticationResult> RefreshTokenAsync(string refreshToken)
+    {
+        throw new NotImplementedException();
+    }
 }
