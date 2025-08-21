@@ -252,6 +252,39 @@ public class StudentMockExamController : ControllerBase
     }
 
     /// <summary>
+    /// 提交模拟考试成绩
+    /// </summary>
+    /// <param name="id">模拟考试ID</param>
+    /// <param name="scoreRequest">成绩数据</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{id}/score")]
+    public async Task<ActionResult> SubmitMockExamScore(int id, [FromBody] SubmitMockExamScoreRequestDto scoreRequest)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _mockExamService.SubmitMockExamScoreAsync(id, studentUserId, scoreRequest);
+            if (!success)
+            {
+                _logger.LogWarning("提交模拟考试成绩失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, id);
+                return BadRequest(new { message = "无法提交模拟考试成绩，请检查考试状态或权限" });
+            }
+
+            _logger.LogInformation("学生提交模拟考试成绩成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                studentUserId, id);
+
+            return Ok(new { message = "模拟考试成绩已提交" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "提交模拟考试成绩时发生异常，模拟考试ID: {MockExamId}", id);
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     /// <param name="id">模拟考试ID</param>

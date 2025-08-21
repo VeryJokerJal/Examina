@@ -1,4 +1,5 @@
 using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.MockExam;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
@@ -392,25 +393,178 @@ public class StudentMockExamService : IStudentMockExamService
             _logger.LogInformation("开始提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
                 mockExamId, studentUserId);
 
-            // 提交模拟考试实际上就是完成模拟考试
-            bool result = await CompleteMockExamAsync(mockExamId, studentUserId);
-
-            if (result)
+            // 检查权限
+            if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
             {
-                _logger.LogInformation("模拟考试提交成功，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
-                    mockExamId, studentUserId);
+                return false;
+            }
+
+            MockExam? mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
+
+            if (mockExam == null || mockExam.Status != "InProgress")
+            {
+                return false;
+            }
+
+            DateTime now = DateTime.UtcNow;
+
+            // 创建基本的完成记录（如果不存在）
+            MockExamCompletion? existingCompletion = await _context.MockExamCompletions
+                .FirstOrDefaultAsync(mec => mec.MockExamId == mockExamId && mec.StudentUserId == studentUserId);
+
+            if (existingCompletion == null)
+            {
+                MockExamCompletion newCompletion = new()
+                {
+                    StudentUserId = studentUserId,
+                    MockExamId = mockExamId,
+                    Status = MockExamCompletionStatus.Completed,
+                    StartedAt = mockExam.StartedAt ?? now,
+                    CompletedAt = now,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                _context.MockExamCompletions.Add(newCompletion);
+                _logger.LogInformation("创建基本的模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, mockExamId);
             }
             else
             {
-                _logger.LogWarning("模拟考试提交失败，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
-                    mockExamId, studentUserId);
+                // 更新现有记录状态
+                existingCompletion.Status = MockExamCompletionStatus.Completed;
+                existingCompletion.CompletedAt = now;
+                existingCompletion.UpdatedAt = now;
             }
 
-            return result;
+            // 更新模拟考试状态
+            mockExam.Status = "Completed";
+            mockExam.CompletedAt = now;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("模拟考试提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                studentUserId, mockExamId);
+
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "提交模拟考试异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                mockExamId, studentUserId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 提交模拟考试成绩
+    /// </summary>
+    public async Task<bool> SubmitMockExamScoreAsync(int mockExamId, int studentUserId, SubmitMockExamScoreRequestDto scoreRequest)
+    {
+        try
+        {
+            _logger.LogInformation("开始提交模拟考试成绩，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                mockExamId, studentUserId);
+
+            // 检查权限
+            if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
+            {
+                _logger.LogWarning("学生无权限访问模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, mockExamId);
+                return false;
+            }
+
+            // 检查模拟考试是否存在且状态正确
+            MockExam? mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
+
+            if (mockExam == null)
+            {
+                _logger.LogWarning("模拟考试不存在，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, mockExamId);
+                return false;
+            }
+
+            if (mockExam.Status != "InProgress")
+            {
+                _logger.LogWarning("模拟考试状态不正确，当前状态: {Status}, 学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    mockExam.Status, studentUserId, mockExamId);
+                return false;
+            }
+
+            DateTime now = DateTime.UtcNow;
+
+            // 检查是否已存在完成记录
+            MockExamCompletion? existingCompletion = await _context.MockExamCompletions
+                .FirstOrDefaultAsync(mec => mec.MockExamId == mockExamId && mec.StudentUserId == studentUserId);
+
+            if (existingCompletion != null)
+            {
+                // 更新现有记录
+                existingCompletion.Status = MockExamCompletionStatus.Completed;
+                existingCompletion.CompletedAt = now;
+                existingCompletion.Score = scoreRequest.Score;
+                existingCompletion.MaxScore = scoreRequest.MaxScore;
+                existingCompletion.DurationSeconds = scoreRequest.DurationSeconds;
+                existingCompletion.Notes = scoreRequest.Notes;
+                existingCompletion.BenchSuiteScoringResult = scoreRequest.BenchSuiteScoringResult;
+                existingCompletion.UpdatedAt = now;
+
+                // 计算完成百分比
+                if (scoreRequest.Score.HasValue && scoreRequest.MaxScore.HasValue && scoreRequest.MaxScore.Value > 0)
+                {
+                    existingCompletion.CompletionPercentage = Math.Round((scoreRequest.Score.Value / scoreRequest.MaxScore.Value) * 100, 2);
+                }
+
+                _logger.LogInformation("更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, mockExamId);
+            }
+            else
+            {
+                // 创建新的完成记录
+                MockExamCompletion newCompletion = new()
+                {
+                    StudentUserId = studentUserId,
+                    MockExamId = mockExamId,
+                    Status = MockExamCompletionStatus.Completed,
+                    StartedAt = mockExam.StartedAt ?? now,
+                    CompletedAt = now,
+                    Score = scoreRequest.Score,
+                    MaxScore = scoreRequest.MaxScore,
+                    DurationSeconds = scoreRequest.DurationSeconds,
+                    Notes = scoreRequest.Notes,
+                    BenchSuiteScoringResult = scoreRequest.BenchSuiteScoringResult,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                // 计算完成百分比
+                if (scoreRequest.Score.HasValue && scoreRequest.MaxScore.HasValue && scoreRequest.MaxScore.Value > 0)
+                {
+                    newCompletion.CompletionPercentage = Math.Round((scoreRequest.Score.Value / scoreRequest.MaxScore.Value) * 100, 2);
+                }
+
+                _context.MockExamCompletions.Add(newCompletion);
+                _logger.LogInformation("创建新的模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, mockExamId);
+            }
+
+            // 更新模拟考试状态
+            mockExam.Status = "Completed";
+            mockExam.CompletedAt = now;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("模拟考试成绩提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 得分: {Score}/{MaxScore}",
+                studentUserId, mockExamId, scoreRequest.Score, scoreRequest.MaxScore);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "提交模拟考试成绩异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
                 mockExamId, studentUserId);
             return false;
         }

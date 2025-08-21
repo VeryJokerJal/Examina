@@ -1,7 +1,9 @@
 using Examina.Models;
+using Examina.Models.Api;
 using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Examina.Services;
 
@@ -111,26 +113,51 @@ public class EnhancedExamToolbarService : IDisposable
             {
                 BenchSuiteScoringResult? scoringResult = await PerformBenchSuiteScoringAsync(ExamType.MockExam, mockExamId, studentId);
 
-                // 2. 提交模拟考试到服务器
-                bool submitResult = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
+                // 2. 准备成绩提交数据
+                SubmitMockExamScoreRequestDto scoreRequest = new()
+                {
+                    Score = scoringResult?.AchievedScore,
+                    MaxScore = scoringResult?.TotalScore,
+                    DurationSeconds = null, // 可以从考试开始时间计算
+                    Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
+                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null
+                };
+
+                // 3. 提交模拟考试成绩到服务器
+                bool submitResult = await _studentMockExamService.SubmitMockExamScoreAsync(mockExamId, scoreRequest);
 
                 if (!submitResult)
                 {
-                    _logger.LogWarning("模拟考试提交失败，模拟考试ID: {MockExamId}", mockExamId);
-                    return false;
+                    _logger.LogWarning("模拟考试成绩提交失败，模拟考试ID: {MockExamId}", mockExamId);
+
+                    // 如果成绩提交失败，尝试基本提交（不包含成绩数据）
+                    bool basicSubmitResult = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
+                    if (!basicSubmitResult)
+                    {
+                        _logger.LogError("模拟考试基本提交也失败，模拟考试ID: {MockExamId}", mockExamId);
+                        return false;
+                    }
+
+                    _logger.LogInformation("模拟考试基本提交成功（无成绩数据），模拟考试ID: {MockExamId}", mockExamId);
+                }
+                else
+                {
+                    _logger.LogInformation("模拟考试成绩提交成功，模拟考试ID: {MockExamId}, 得分: {Score}/{MaxScore}",
+                        mockExamId, scoreRequest.Score, scoreRequest.MaxScore);
                 }
 
-                // 3. 如果评分成功，记录评分结果
+                // 4. 记录评分结果
                 if (scoringResult?.IsSuccess == true)
                 {
                     _logger.LogInformation("模拟考试BenchSuite评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
                         scoringResult.TotalScore, scoringResult.AchievedScore);
-
-                    // 这里可以将评分结果保存到数据库或发送到服务器
-                    // await SaveScoringResultAsync(mockExamId, scoringResult);
+                }
+                else
+                {
+                    _logger.LogWarning("模拟考试BenchSuite评分失败或未执行");
                 }
 
-                _logger.LogInformation("模拟考试提交成功，模拟考试ID: {MockExamId}", mockExamId);
+                _logger.LogInformation("模拟考试提交流程完成，模拟考试ID: {MockExamId}", mockExamId);
                 return true;
             }
             else

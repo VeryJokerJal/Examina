@@ -1,4 +1,7 @@
 ﻿using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using Examina.Models.Api;
 using Examina.Models.MockExam;
 
 namespace Examina.Services;
@@ -317,6 +320,49 @@ public class StudentMockExamService : IStudentMockExamService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 提交模拟考试成绩
+    /// </summary>
+    public async Task<bool> SubmitMockExamScoreAsync(int mockExamId, SubmitMockExamScoreRequestDto scoreRequest)
+    {
+        try
+        {
+            // 设置认证头
+            await SetAuthenticationHeaderAsync();
+
+            string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/score");
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送提交模拟考试成绩请求到 {apiUrl}");
+
+            string jsonContent = JsonSerializer.Serialize(scoreRequest, JsonOptions);
+            StringContent content = new(jsonContent, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
+
+            bool success = response.IsSuccessStatusCode;
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试成绩结果: {success}");
+
+            if (success)
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功提交模拟考试成绩，得分: {scoreRequest.Score}/{scoreRequest.MaxScore}");
+            }
+            else
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交成绩失败，响应内容: {responseContent}");
+            }
+
+            return success;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试成绩异常: {ex.Message}");
             return false;
         }
     }

@@ -64,6 +64,15 @@ public interface IStudentMockExamService
     Task<bool> SubmitMockExamAsync(int mockExamId, int studentUserId);
 
     /// <summary>
+    /// 提交模拟考试成绩
+    /// </summary>
+    /// <param name="mockExamId">模拟考试ID</param>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="scoreRequest">成绩数据</param>
+    /// <returns>是否成功提交</returns>
+    Task<bool> SubmitMockExamScoreAsync(int mockExamId, int studentUserId, SubmitMockExamScoreRequestDto scoreRequest);
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     /// <param name="mockExamId">模拟考试ID</param>
@@ -77,6 +86,13 @@ public interface IStudentMockExamService
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>模拟考试总数</returns>
     Task<int> GetStudentMockExamCountAsync(int studentUserId);
+
+    /// <summary>
+    /// 获取学生已完成的模拟考试数量
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <returns>已完成的模拟考试数量</returns>
+    Task<int> GetCompletedMockExamCountAsync(int studentUserId);
 
     /// <summary>
     /// 检查是否有权限访问指定模拟考试

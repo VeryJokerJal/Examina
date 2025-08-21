@@ -63,6 +63,14 @@ public interface IStudentMockExamService
     Task<bool> SubmitMockExamAsync(int mockExamId);
 
     /// <summary>
+    /// 提交模拟考试成绩
+    /// </summary>
+    /// <param name="mockExamId">模拟考试ID</param>
+    /// <param name="scoreRequest">成绩数据</param>
+    /// <returns>是否成功提交</returns>
+    Task<bool> SubmitMockExamScoreAsync(int mockExamId, SubmitMockExamScoreRequestDto scoreRequest);
+
+    /// <summary>
     /// 删除模拟考试
     /// </summary>
     /// <param name="mockExamId">模拟考试ID</param>
