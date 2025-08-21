@@ -65,7 +65,7 @@ public class AuthenticationService : IAuthenticationService
 
     public bool NeedsTokenRefresh =>
         TokenExpiresAt.HasValue &&
-        TokenExpiresAt.Value.Subtract(DateTime.UtcNow).TotalMinutes <= 30;
+        TokenExpiresAt.Value.Subtract(DateTime.Now).TotalMinutes <= 30;
 
     public AuthenticationService(HttpClient httpClient, IDeviceService deviceService, ISecureStorageService secureStorage)
     {
@@ -885,7 +885,7 @@ public class AuthenticationService : IAuthenticationService
                 ExpiresAt = loginResponse.ExpiresAt,
                 User = loginResponse.User,
                 RequireDeviceBinding = loginResponse.RequireDeviceBinding,
-                SavedAt = DateTime.UtcNow
+                SavedAt = DateTime.Now
             };
 
             string json = JsonSerializer.Serialize(loginData);
@@ -919,7 +919,7 @@ public class AuthenticationService : IAuthenticationService
             }
 
             // 检查数据是否过期（保存时间超过30天则认为无效）
-            if (DateTime.UtcNow.Subtract(loginData.SavedAt).TotalDays > 30)
+            if (DateTime.Now.Subtract(loginData.SavedAt).TotalDays > 30)
             {
                 _ = await ClearLoginDataAsync();
                 return null;
@@ -970,7 +970,7 @@ public class AuthenticationService : IAuthenticationService
             }
 
             // 检查AccessToken是否过期
-            if (DateTime.UtcNow >= loginData.ExpiresAt)
+            if (DateTime.Now >= loginData.ExpiresAt)
             {
                 // AccessToken已过期，尝试使用RefreshToken刷新
                 AuthenticationResult refreshResult = await RefreshTokenAsync(loginData.RefreshToken);

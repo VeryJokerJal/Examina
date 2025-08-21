@@ -178,7 +178,7 @@ public class DeviceService : IDeviceService
         catch
         {
             // 如果获取硬件信息失败，使用备用方案
-            string fallbackInput = $"{Environment.MachineName}|{Environment.UserName}|{DateTime.UtcNow:yyyyMMdd}";
+            string fallbackInput = $"{Environment.MachineName}|{Environment.UserName}|{DateTime.Now:yyyyMMdd}";
             byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(fallbackInput));
             return Convert.ToHexString(hashBytes);
         }

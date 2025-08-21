@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
 namespace Examina.Models.MockExam;
@@ -116,7 +116,7 @@ public class MockExamComprehensiveTrainingDto
     /// <summary>
     /// 导入时间
     /// </summary>
-    public DateTime ImportedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ImportedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 原始创建者用户ID
@@ -126,7 +126,7 @@ public class MockExamComprehensiveTrainingDto
     /// <summary>
     /// 原始创建时间
     /// </summary>
-    public DateTime OriginalCreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime OriginalCreatedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 原始更新时间
@@ -264,7 +264,7 @@ public class MockExamSubjectDto
     /// <summary>
     /// 导入时间
     /// </summary>
-    public DateTime ImportedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ImportedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 题目列表
@@ -320,7 +320,7 @@ public class MockExamModuleDto
     /// <summary>
     /// 导入时间
     /// </summary>
-    public DateTime ImportedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ImportedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 题目列表
@@ -431,7 +431,7 @@ public class MockExamQuestionDto
     /// <summary>
     /// 原始创建时间（来自ExamLab）
     /// </summary>
-    public DateTime OriginalCreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime OriginalCreatedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 原始更新时间（来自ExamLab）
@@ -441,7 +441,7 @@ public class MockExamQuestionDto
     /// <summary>
     /// 导入时间
     /// </summary>
-    public DateTime ImportedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ImportedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 操作点列表
@@ -497,7 +497,7 @@ public class MockExamOperationPointDto
     /// <summary>
     /// 导入时间
     /// </summary>
-    public DateTime ImportedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ImportedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 配置参数列表
@@ -583,5 +583,5 @@ public class MockExamParameterDto
     /// <summary>
     /// 导入时间
     /// </summary>
-    public DateTime ImportedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ImportedAt { get; set; } = DateTime.Now;
 }

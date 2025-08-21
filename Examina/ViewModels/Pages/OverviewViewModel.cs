@@ -663,7 +663,7 @@ public class OverviewViewModel : ViewModelBase
                         CompletionTime = completion.CompletedAt ?? completion.CreatedAt,
                         Score = (int)(completion.Score ?? 0),
                         Type = StatisticType.MockExam,
-                        FormattedCompletionTime = completion.FormattedCompletedAt
+
                     });
                     completedCount++;
                 }
@@ -877,10 +877,5 @@ public class TrainingRecord
     /// <summary>
     /// 格式化的完成时间
     /// </summary>
-    public string FormattedCompletionTime { get; set; }
-
-    public TrainingRecord()
-    {
-        FormattedCompletionTime = CompletionTime.ToString("yyyy年MM月dd日 HH时mm分ss秒");
-    }
+    public string FormattedCompletionTime => CompletionTime.ToLocalTime().ToString("yyyy年MM月dd日 HH时mm分");
 }

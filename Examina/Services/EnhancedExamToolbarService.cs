@@ -1,10 +1,8 @@
-using Examina.Models;
+﻿using Examina.Models;
 using Examina.Models.Api;
 using Examina.Models.BenchSuite;
-using Examina.Models.Exam;
 using Examina.Models.MockExam;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace Examina.Services;
 
@@ -206,7 +204,7 @@ public class EnhancedExamToolbarService : IDisposable
                     DurationSeconds = null, // 可以从工具栏获取实际用时
                     Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
                     BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null,
-                    CompletedAt = DateTime.UtcNow // 记录精确的提交时间（UTC）
+                    CompletedAt = DateTime.Now // 记录精确的提交时间
                 };
 
                 // 3. 提交综合实训成绩到服务器
@@ -260,7 +258,7 @@ public class EnhancedExamToolbarService : IDisposable
             // 这里可以实现实际的网络连接检查
             // 例如ping服务器或调用一个轻量级的API
             await Task.Delay(500); // 模拟网络检查
-            
+
             _logger.LogInformation("网络连接检查完成");
             return true;
         }
@@ -285,12 +283,12 @@ public class EnhancedExamToolbarService : IDisposable
     public async Task<bool> RetrySubmitExamAsync(ExamType examType, int examId, int maxRetries = 3)
     {
         int retryCount = 0;
-        
+
         while (retryCount < maxRetries)
         {
             try
             {
-                _logger.LogInformation("重试提交考试，类型: {ExamType}, ID: {ExamId}, 重试次数: {RetryCount}/{MaxRetries}", 
+                _logger.LogInformation("重试提交考试，类型: {ExamType}, ID: {ExamId}, 重试次数: {RetryCount}/{MaxRetries}",
                     examType, examId, retryCount + 1, maxRetries);
 
                 bool result = examType switch
@@ -309,7 +307,7 @@ public class EnhancedExamToolbarService : IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "重试提交考试失败，类型: {ExamType}, ID: {ExamId}, 重试次数: {RetryCount}", 
+                _logger.LogError(ex, "重试提交考试失败，类型: {ExamType}, ID: {ExamId}, 重试次数: {RetryCount}",
                     examType, examId, retryCount + 1);
             }
 

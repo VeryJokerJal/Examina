@@ -118,7 +118,7 @@ public class PersistentLoginData
     /// <summary>
     /// 保存时间
     /// </summary>
-    public DateTime SavedAt { get; set; } = DateTime.UtcNow;
+    public DateTime SavedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 是否需要设备绑定
