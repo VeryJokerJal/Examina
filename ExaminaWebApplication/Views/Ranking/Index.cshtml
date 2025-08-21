@@ -1,0 +1,123 @@
+@{
+    ViewData["Title"] = "排行榜";
+}
+
+<!-- 欢迎横幅 -->
+<div class="glass-card glass-card-primary py-5 mb-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-trophy-fill me-3"></i>
+            排行榜中心
+        </h1>
+        <p class="lead mb-4">查看各类考试和训练的成绩排行</p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <p class="mb-4">实时更新的成绩排行榜，展示学生在各类考试和训练中的表现，激励学习进步。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 排行榜类型选择 -->
+<div class="container">
+    <div class="row g-4">
+        <!-- 上机统考排行榜 -->
+        <div class="col-md-4">
+            <div class="glass-card h-100 text-center">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-4">
+                        <i class="bi bi-trophy-fill text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">上机统考排行榜</h5>
+                    <p class="card-text flex-grow-1">
+                        正式考试成绩排行榜，展示学生在上机统考中的表现和排名。
+                    </p>
+                    <div class="mt-auto">
+                        <a asp-action="ExamRanking" class="glass-btn glass-btn-primary">
+                            <i class="bi bi-list-ol me-2"></i>查看排行榜
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模拟考试排行榜 -->
+        <div class="col-md-4">
+            <div class="glass-card h-100 text-center">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-4">
+                        <i class="bi bi-graph-up text-info" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">模拟考试排行榜</h5>
+                    <p class="card-text flex-grow-1">
+                        模拟考试成绩排行榜，帮助学生了解自己的练习水平和进步情况。
+                    </p>
+                    <div class="mt-auto">
+                        <a asp-action="MockExamRanking" class="glass-btn glass-btn-primary">
+                            <i class="bi bi-list-ol me-2"></i>查看排行榜
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 综合实训排行榜 -->
+        <div class="col-md-4">
+            <div class="glass-card h-100 text-center">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-4">
+                        <i class="bi bi-target text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">综合实训排行榜</h5>
+                    <p class="card-text flex-grow-1">
+                        综合实训成绩排行榜，展示学生在综合技能训练中的综合表现。
+                    </p>
+                    <div class="mt-auto">
+                        <a asp-action="TrainingRanking" class="glass-btn glass-btn-primary">
+                            <i class="bi bi-list-ol me-2"></i>查看排行榜
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle me-2"></i>排行榜说明
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-primary">排序规则</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>按得分从高到低排序</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>得分相同时按用时从少到多排序</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>用时相同时按完成时间排序</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-primary">更新频率</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-clock text-info me-2"></i>实时更新</li>
+                                <li><i class="bi bi-clock text-info me-2"></i>每次考试完成后立即更新</li>
+                                <li><i class="bi bi-clock text-info me-2"></i>支持历史数据查询</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-primary">数据范围</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-people text-warning me-2"></i>显示所有已完成的考试记录</li>
+                                <li><i class="bi bi-people text-warning me-2"></i>支持按学校、班级筛选</li>
+                                <li><i class="bi bi-people text-warning me-2"></i>支持按时间范围筛选</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

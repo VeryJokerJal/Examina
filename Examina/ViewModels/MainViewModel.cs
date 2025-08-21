@@ -18,6 +18,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
     private readonly IAuthenticationService? _authenticationService;
     private readonly IWindowManagerService? _windowManagerService;
+    private readonly Func<LeaderboardViewModel>? _leaderboardViewModelFactory;
 
     #endregion
 
@@ -90,10 +91,11 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
     }
 
-    public MainViewModel(IAuthenticationService? authenticationService = null, IWindowManagerService? windowManagerService = null)
+    public MainViewModel(IAuthenticationService? authenticationService = null, IWindowManagerService? windowManagerService = null, Func<LeaderboardViewModel>? leaderboardViewModelFactory = null)
     {
         _authenticationService = authenticationService;
         _windowManagerService = windowManagerService;
+        _leaderboardViewModelFactory = leaderboardViewModelFactory;
 
         LogoutCommand = new DelegateCommand(Logout);
         UnlockAdsCommand = new DelegateCommand(UnlockAds);
@@ -425,10 +427,10 @@ public class MainViewModel : ViewModelBase, IDisposable
 
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
                 "special-practice" => CreatePracticeViewModel(),
-                "leaderboard" => new LeaderboardViewModel(),
-                "exam-ranking" => new LeaderboardViewModel(),
-                "mock-exam-ranking" => new LeaderboardViewModel(),
-                "training-ranking" => new LeaderboardViewModel(),
+                "leaderboard" => CreateLeaderboardViewModel(),
+                "exam-ranking" => CreateLeaderboardViewModel(),
+                "mock-exam-ranking" => CreateLeaderboardViewModel(),
+                "training-ranking" => CreateLeaderboardViewModel(),
                 "school-binding" => CreateSchoolBindingViewModel(),
                 "profile" => CreateProfileViewModel(),
                 "exam-view" => CreateExamViewModel(),
@@ -764,6 +766,31 @@ public class MainViewModel : ViewModelBase, IDisposable
     #endregion
 
     #region IDisposable
+
+    /// <summary>
+    /// 创建LeaderboardViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateLeaderboardViewModel()
+    {
+        try
+        {
+            if (_leaderboardViewModelFactory != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 使用工厂创建LeaderboardViewModel");
+                return _leaderboardViewModelFactory();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 工厂未注入，创建默认LeaderboardViewModel");
+                return new LeaderboardViewModel();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建LeaderboardViewModel失败: {ex.Message}");
+            return new LeaderboardViewModel(); // 回退到默认实例
+        }
+    }
 
     /// <summary>
     /// 释放资源

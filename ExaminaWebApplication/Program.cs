@@ -124,6 +124,9 @@ builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecia
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecialPracticeService, ExaminaWebApplication.Services.Student.StudentSpecialPracticeService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentMockExamService, ExaminaWebApplication.Services.Student.StudentMockExamService>();
 
+// 注册排行榜服务
+builder.Services.AddScoped<RankingService>();
+
 // 注册用户导入相关服务
 builder.Services.AddScoped<ExcelImportService>();
 builder.Services.AddScoped<UserImportService>();
@@ -415,6 +418,27 @@ app.MapControllerRoute(
     name: "userManagement",
     pattern: "UserManagement/{action=Index}/{id?}",
     defaults: new { controller = "UserManagement" });
+
+// 排行榜相关路由
+app.MapControllerRoute(
+    name: "ranking",
+    pattern: "Ranking/{action=Index}/{id?}",
+    defaults: new { controller = "Ranking" });
+
+app.MapControllerRoute(
+    name: "examRanking",
+    pattern: "exam-ranking",
+    defaults: new { controller = "Ranking", action = "ExamRanking" });
+
+app.MapControllerRoute(
+    name: "mockExamRanking",
+    pattern: "mock-exam-ranking",
+    defaults: new { controller = "Ranking", action = "MockExamRanking" });
+
+app.MapControllerRoute(
+    name: "trainingRanking",
+    pattern: "training-ranking",
+    defaults: new { controller = "Ranking", action = "TrainingRanking" });
 
 // 添加根路径重定向到登录页面
 app.MapGet("/", context =>

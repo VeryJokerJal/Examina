@@ -2,6 +2,9 @@
 using System.Windows.Input;
 using Prism.Commands;
 using ReactiveUI.Fody.Helpers;
+using Examina.Services;
+using Examina.Models.Ranking;
+using Microsoft.Extensions.Logging;
 
 namespace Examina.ViewModels.Pages;
 
@@ -10,6 +13,9 @@ namespace Examina.ViewModels.Pages;
 /// </summary>
 public class LeaderboardViewModel : ViewModelBase
 {
+    private readonly RankingService? _rankingService;
+    private readonly ILogger<LeaderboardViewModel>? _logger;
+
     #region 属性
 
     /// <summary>
@@ -40,6 +46,12 @@ public class LeaderboardViewModel : ViewModelBase
     [Reactive]
     public bool IsLoading { get; set; } = false;
 
+    /// <summary>
+    /// 错误消息
+    /// </summary>
+    [Reactive]
+    public string? ErrorMessage { get; set; }
+
     #endregion
 
     #region 命令
@@ -65,6 +77,12 @@ public class LeaderboardViewModel : ViewModelBase
 
         InitializeLeaderboardTypes();
         LoadLeaderboardData();
+    }
+
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger) : this()
+    {
+        _rankingService = rankingService;
+        _logger = logger;
     }
 
     #endregion
@@ -112,24 +130,69 @@ public class LeaderboardViewModel : ViewModelBase
     {
         IsLoading = true;
         LeaderboardData.Clear();
+        ErrorMessage = null;
 
         try
         {
-            // TODO: 从服务加载实际排行榜数据
-            await Task.Delay(1000); // 模拟网络延迟
-
-            // 模拟数据
-            for (int i = 1; i <= 10; i++)
+            if (_rankingService != null && SelectedLeaderboardType != null)
             {
-                LeaderboardData.Add(new LeaderboardEntry
+                _logger?.LogInformation("开始加载排行榜数据，类型: {Type}", SelectedLeaderboardType.Id);
+
+                // 根据选中的排行榜类型获取数据
+                RankingType rankingType = SelectedLeaderboardType.Id switch
                 {
-                    Rank = i,
-                    Username = $"用户{i:D3}",
-                    Score = 100 - (i * 2),
-                    CompletionTime = TimeSpan.FromMinutes(30 + (i * 2)),
-                    CompletionDate = DateTime.Now.AddDays(-i)
-                });
+                    "exam-ranking" => RankingType.ExamRanking,
+                    "mock-exam-ranking" => RankingType.MockExamRanking,
+                    "training-ranking" => RankingType.TrainingRanking,
+                    _ => RankingType.ExamRanking
+                };
+
+                RankingResponseDto? response = await _rankingService.GetRankingByTypeAsync(rankingType, 1, 50);
+
+                if (response != null && response.Entries.Any())
+                {
+                    foreach (RankingEntryDto entry in response.Entries)
+                    {
+                        LeaderboardData.Add(new LeaderboardEntry
+                        {
+                            Rank = entry.Rank,
+                            Username = entry.Username,
+                            Score = (int)entry.Score,
+                            CompletionTime = TimeSpan.FromSeconds(entry.DurationSeconds),
+                            CompletionDate = entry.CompletedAt
+                        });
+                    }
+
+                    _logger?.LogInformation("成功加载排行榜数据，记录数: {Count}", response.Entries.Count);
+                }
+                else
+                {
+                    _logger?.LogWarning("未获取到排行榜数据");
+                    ErrorMessage = "暂无排行榜数据";
+                }
             }
+            else
+            {
+                // 如果没有服务注入，使用模拟数据
+                _logger?.LogWarning("排行榜服务未注入，使用模拟数据");
+
+                for (int i = 1; i <= 10; i++)
+                {
+                    LeaderboardData.Add(new LeaderboardEntry
+                    {
+                        Rank = i,
+                        Username = $"用户{i:D3}",
+                        Score = 100 - (i * 2),
+                        CompletionTime = TimeSpan.FromMinutes(30 + (i * 2)),
+                        CompletionDate = DateTime.Now.AddDays(-i)
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "加载排行榜数据时发生异常");
+            ErrorMessage = "加载排行榜数据失败，请稍后重试";
         }
         finally
         {

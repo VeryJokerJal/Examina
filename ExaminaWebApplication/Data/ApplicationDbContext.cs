@@ -62,6 +62,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<MockExam> MockExams { get; set; }
     public DbSet<MockExamCompletion> MockExamCompletions { get; set; }
 
+    // 正式考试完成记录
+    public DbSet<ExamCompletion> ExamCompletions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -1007,6 +1010,46 @@ public class ApplicationDbContext : DbContext
             _ = entity.HasOne(e => e.MockExam)
                   .WithMany()
                   .HasForeignKey(e => e.MockExamId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置ExamCompletion实体
+        _ = modelBuilder.Entity<ExamCompletion>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => new { e.StudentUserId, e.ExamId }).IsUnique();
+            _ = entity.HasIndex(e => e.StudentUserId);
+            _ = entity.HasIndex(e => e.ExamId);
+            _ = entity.HasIndex(e => e.Status);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.HasIndex(e => e.CompletedAt);
+            _ = entity.HasIndex(e => e.IsActive);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.StudentUserId).IsRequired();
+            _ = entity.Property(e => e.ExamId).IsRequired();
+            _ = entity.Property(e => e.Status).IsRequired().HasDefaultValue(ExamCompletionStatus.NotStarted);
+            _ = entity.Property(e => e.Score).HasColumnType("decimal(6,2)");
+            _ = entity.Property(e => e.MaxScore).HasColumnType("decimal(6,2)");
+            _ = entity.Property(e => e.CompletionPercentage).HasColumnType("decimal(5,2)");
+            _ = entity.Property(e => e.Notes).HasMaxLength(1000);
+            _ = entity.Property(e => e.BenchSuiteScoringResult).HasColumnType("json");
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.UpdatedAt).IsRequired();
+            _ = entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Student)
+                  .WithMany()
+                  .HasForeignKey(e => e.StudentUserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Exam)
+                  .WithMany()
+                  .HasForeignKey(e => e.ExamId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

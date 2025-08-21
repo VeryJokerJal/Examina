@@ -127,6 +127,15 @@ public partial class App : Application
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(30);
         })
+
+        // 为排行榜服务配置HttpClient
+        _ = services.AddHttpClient<RankingService>(client =>
+        {
+            client.BaseAddress = new Uri("https://qiuzhenbd.com");
+            client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
         .ConfigurePrimaryHttpMessageHandler(() =>
         {
             return new HttpClientHandler()
@@ -155,7 +164,8 @@ public partial class App : Application
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             IWindowManagerService windowManager = provider.GetRequiredService<IWindowManagerService>();
-            return new MainViewModel(authService, windowManager);
+            Func<LeaderboardViewModel> leaderboardFactory = () => provider.GetRequiredService<LeaderboardViewModel>();
+            return new MainViewModel(authService, windowManager, leaderboardFactory);
         });
         _ = services.AddTransient<UserInfoCompletionViewModel>();
         _ = services.AddTransient<LoadingViewModel>();
@@ -184,6 +194,12 @@ public partial class App : Application
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new ExamViewModel(authService);
+        });
+        _ = services.AddTransient<LeaderboardViewModel>(provider =>
+        {
+            RankingService rankingService = provider.GetRequiredService<RankingService>();
+            ILogger<LeaderboardViewModel> logger = provider.GetRequiredService<ILogger<LeaderboardViewModel>>();
+            return new LeaderboardViewModel(rankingService, logger);
         });
 
         _serviceProvider = services.BuildServiceProvider();
