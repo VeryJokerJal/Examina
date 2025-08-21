@@ -7,72 +7,219 @@
              x:Class="Examina.Views.Pages.PracticeView"
              x:DataType="vm:PracticeViewModel">
 
-  <ScrollViewer>
-    <StackPanel Margin="24" Spacing="24">
-      
-      <!-- 页面标题 -->
-      <TextBlock Text="{Binding PageTitle}" 
-                 FontSize="28" 
-                 FontWeight="Bold"
-                 FontFamily="Microsoft YaHei"
-                 Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-      
+  <UserControl.Resources>
+    <!-- 悬停效果样式 -->
+    <Style x:Key="HoverEffectStyle" Selector="Border:pointerover">
+      <Setter Property="RenderTransform" Value="scale(1.02)"/>
+      <Setter Property="Opacity" Value="0.95"/>
+    </Style>
+
+    <!-- 按钮悬停效果样式 -->
+    <Style x:Key="StartPracticeButtonHoverStyle" Selector="Button:pointerover">
+      <Setter Property="RenderTransform" Value="scale(1.05)"/>
+    </Style>
+  </UserControl.Resources>
+
+  <ScrollViewer Padding="0" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="32,24,32,32" Spacing="32">
+
+      <!-- 页面标题区域 -->
+      <StackPanel Spacing="12">
+        <TextBlock Text="{Binding PageTitle}"
+                   FontSize="32"
+                   FontWeight="Bold"
+                   FontFamily="Microsoft YaHei"
+                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+        <TextBlock Text="选择您想要进行的练习类型，提升您的技能水平"
+                   FontSize="16"
+                   FontFamily="Microsoft YaHei"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   Opacity="0.8"/>
+      </StackPanel>
+
       <!-- 练习类型列表 -->
       <ItemsControl ItemsSource="{Binding PracticeTypes}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <StackPanel Spacing="16"/>
+            <StackPanel Spacing="24"/>
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
-        
+
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    CornerRadius="12"
-                    Padding="20">
-              <Grid>
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <!-- 图标 -->
-                <TextBlock Grid.Column="0" 
-                           Text="{Binding Icon}" 
-                           FontSize="32"
-                           VerticalAlignment="Center"
-                           Margin="0,0,16,0"/>
-                
-                <!-- 内容 -->
-                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                  <TextBlock Text="{Binding Name}" 
-                             FontSize="18" 
-                             FontWeight="SemiBold"
-                             FontFamily="Microsoft YaHei"
-                             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                  <TextBlock Text="{Binding Description}" 
-                             FontSize="14"
-                             FontFamily="Microsoft YaHei"
-                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                             Margin="0,4,0,0"/>
-                </StackPanel>
-                
-                <!-- 开始按钮 -->
-                <Button Grid.Column="2" 
-                        Content="开始练习"
-                        Classes="accent"
-                        Command="{Binding $parent[UserControl].DataContext.StartPracticeCommand}"
-                        CommandParameter="{Binding}"
-                        IsEnabled="{Binding IsEnabled}"
-                        Padding="16,8"
-                        FontFamily="Microsoft YaHei"/>
-              </Grid>
+            <Border Name="PracticeCard"
+                    CornerRadius="16"
+                    Padding="28"
+                    BorderThickness="2"
+                    Margin="0,0,0,8">
+
+              <Border.RenderTransform>
+                <ScaleTransform/>
+              </Border.RenderTransform>
+
+              <Border.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+                  <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+                </Transitions>
+              </Border.Transitions>
+
+              <Border.Styles>
+                <!-- 根据练习类型应用不同的样式 -->
+                <Style Selector="Border[Tag=mock-exam]">
+                  <Setter Property="Background" Value="{DynamicResource MockExamBackgroundBrush}"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource MockExamHoverBrush}"/>
+                </Style>
+                <Style Selector="Border[Tag=comprehensive-training]">
+                  <Setter Property="Background" Value="{DynamicResource ComprehensiveTrainingBackgroundBrush}"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource ComprehensiveTrainingHoverBrush}"/>
+                </Style>
+                <Style Selector="Border[Tag=special-practice]">
+                  <Setter Property="Background" Value="{DynamicResource SpecialPracticeBackgroundBrush}"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource SpecialPracticeHoverBrush}"/>
+                </Style>
+                <Style Selector="Border:pointerover">
+                  <Setter Property="RenderTransform" Value="scale(1.02)"/>
+                  <Setter Property="Opacity" Value="0.95"/>
+                </Style>
+              </Border.Styles>
+
+              <Border Tag="{Binding Id}">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+
+                  <!-- 图标区域 -->
+                  <Border Grid.Column="0"
+                          Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                          CornerRadius="16"
+                          Width="64"
+                          Height="64"
+                          Margin="0,0,24,0">
+                    <TextBlock Text="{Binding Icon}"
+                               FontSize="28"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                  </Border>
+
+                  <!-- 内容区域 -->
+                  <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="8">
+                    <TextBlock Text="{Binding Name}"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               FontFamily="Microsoft YaHei"
+                               Tag="{Binding Id}">
+                      <TextBlock.Styles>
+                        <Style Selector="TextBlock[Tag=mock-exam]">
+                          <Setter Property="Foreground" Value="{DynamicResource MockExamTextColorPrimary}"/>
+                        </Style>
+                        <Style Selector="TextBlock[Tag=comprehensive-training]">
+                          <Setter Property="Foreground" Value="{DynamicResource ComprehensiveTrainingTextColorPrimary}"/>
+                        </Style>
+                        <Style Selector="TextBlock[Tag=special-practice]">
+                          <Setter Property="Foreground" Value="{DynamicResource SpecialPracticeTextColorPrimary}"/>
+                        </Style>
+                      </TextBlock.Styles>
+                    </TextBlock>
+
+                    <TextBlock Text="{Binding Description}"
+                               FontSize="15"
+                               FontFamily="Microsoft YaHei"
+                               TextWrapping="Wrap"
+                               LineHeight="22"
+                               Tag="{Binding Id}">
+                      <TextBlock.Styles>
+                        <Style Selector="TextBlock[Tag=mock-exam]">
+                          <Setter Property="Foreground" Value="{DynamicResource MockExamTextColorSecondary}"/>
+                        </Style>
+                        <Style Selector="TextBlock[Tag=comprehensive-training]">
+                          <Setter Property="Foreground" Value="{DynamicResource ComprehensiveTrainingTextColorSecondary}"/>
+                        </Style>
+                        <Style Selector="TextBlock[Tag=special-practice]">
+                          <Setter Property="Foreground" Value="{DynamicResource SpecialPracticeTextColorSecondary}"/>
+                        </Style>
+                      </TextBlock.Styles>
+                    </TextBlock>
+                  </StackPanel>
+
+                  <!-- 开始按钮区域 -->
+                  <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
+                    <Button Content="开始练习"
+                            Classes="accent"
+                            Command="{Binding $parent[UserControl].DataContext.StartPracticeCommand}"
+                            CommandParameter="{Binding}"
+                            IsEnabled="{Binding IsEnabled}"
+                            CornerRadius="12"
+                            Padding="24,14"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            FontFamily="Microsoft YaHei"
+                            MinWidth="130">
+                      <Button.RenderTransform>
+                        <ScaleTransform/>
+                      </Button.RenderTransform>
+                      <Button.Transitions>
+                        <Transitions>
+                          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
+                        </Transitions>
+                      </Button.Transitions>
+                      <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                          <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                        </Style>
+                      </Button.Styles>
+                    </Button>
+
+                    <!-- 状态指示器 -->
+                    <TextBlock Text="✓ 可用"
+                               FontSize="12"
+                               FontFamily="Microsoft YaHei"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               IsVisible="{Binding IsEnabled}"/>
+                    <TextBlock Text="⚠ 暂不可用"
+                               FontSize="12"
+                               FontFamily="Microsoft YaHei"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                               IsVisible="{Binding !IsEnabled}"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
             </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-      
+
+      <!-- 底部提示信息 -->
+      <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              CornerRadius="12"
+              Padding="20"
+              Margin="0,16,0,0">
+        <StackPanel Spacing="8">
+          <TextBlock Text="💡 练习提示"
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+          <TextBlock Text="• 模拟考试：完整的考试体验，包含所有题型，建议预留充足时间"
+                     FontSize="14"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          <TextBlock Text="• 综合实训：综合性练习，提升实际操作能力"
+                     FontSize="14"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          <TextBlock Text="• 专项练习：针对特定知识点的强化训练"
+                     FontSize="14"
+                     FontFamily="Microsoft YaHei"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+        </StackPanel>
+      </Border>
+
     </StackPanel>
   </ScrollViewer>
 </UserControl>

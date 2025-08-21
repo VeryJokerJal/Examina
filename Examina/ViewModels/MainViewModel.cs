@@ -420,11 +420,11 @@ public class MainViewModel : ViewModelBase, IDisposable
             {
                 "overview" => CreateOverviewViewModel(),
                 "exam" => CreateExamListViewModel(),
-                "practice" => new PracticeViewModel(),
+                "practice" => CreatePracticeViewModel(),
                 "mock-exam" => CreateMockExamViewModel(),
 
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
-                "special-practice" => new PracticeViewModel(),
+                "special-practice" => CreatePracticeViewModel(),
                 "leaderboard" => new LeaderboardViewModel(),
                 "exam-ranking" => new LeaderboardViewModel(),
                 "mock-exam-ranking" => new LeaderboardViewModel(),
@@ -671,6 +671,24 @@ public class MainViewModel : ViewModelBase, IDisposable
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 创建PracticeViewModel实例
+    /// </summary>
+    private ViewModelBase CreatePracticeViewModel()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MainViewModel: 创建PracticeViewModel，传递MainViewModel引用");
+            return new PracticeViewModel(this);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建PracticeViewModel时发生异常: {ex.Message}");
+            // 如果创建失败，返回无参构造的实例
+            return new PracticeViewModel();
+        }
     }
 
     /// <summary>
