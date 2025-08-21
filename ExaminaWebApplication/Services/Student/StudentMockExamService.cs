@@ -441,6 +441,14 @@ public class StudentMockExamService : IStudentMockExamService
             MockExamCompletion? existingCompletion = await _context.MockExamCompletions
                 .FirstOrDefaultAsync(mec => mec.MockExamId == mockExamId && mec.StudentUserId == studentUserId);
 
+            // 计算用时（秒）
+            int? durationSeconds = null;
+            if (mockExam.StartedAt.HasValue)
+            {
+                TimeSpan duration = now - mockExam.StartedAt.Value;
+                durationSeconds = (int)Math.Ceiling(duration.TotalSeconds);
+            }
+
             if (existingCompletion == null)
             {
                 MockExamCompletion newCompletion = new()
@@ -450,21 +458,26 @@ public class StudentMockExamService : IStudentMockExamService
                     Status = MockExamCompletionStatus.Completed,
                     StartedAt = mockExam.StartedAt ?? now,
                     CompletedAt = now,
+                    DurationSeconds = durationSeconds, // 设置用时（秒）
                     CreatedAt = now,
                     UpdatedAt = now,
                     IsActive = true
                 };
 
                 _context.MockExamCompletions.Add(newCompletion);
-                _logger.LogInformation("创建基本的模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
-                    studentUserId, mockExamId);
+                _logger.LogInformation("创建基本的模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}秒",
+                    studentUserId, mockExamId, durationSeconds);
             }
             else
             {
                 // 更新现有记录状态
                 existingCompletion.Status = MockExamCompletionStatus.Completed;
                 existingCompletion.CompletedAt = now;
+                existingCompletion.DurationSeconds = durationSeconds; // 设置用时（秒）
                 existingCompletion.UpdatedAt = now;
+
+                _logger.LogInformation("更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}秒",
+                    studentUserId, mockExamId, durationSeconds);
             }
 
             // 更新模拟考试状态
@@ -711,14 +724,31 @@ public class StudentMockExamService : IStudentMockExamService
                     dto.ScoreText = "未评分";
                 }
 
-                // 格式化用时文本
-                if (completion.DurationSeconds.HasValue)
+                // 计算和格式化用时文本
+                int? calculatedDurationSeconds = completion.DurationSeconds;
+
+                // 如果DurationSeconds为null，但有开始和完成时间，则动态计算
+                if (!calculatedDurationSeconds.HasValue &&
+                    completion.StartedAt.HasValue &&
+                    completion.CompletedAt.HasValue)
                 {
-                    int totalSeconds = completion.DurationSeconds.Value;
-                    int minutes = totalSeconds / 60;
+                    TimeSpan duration = completion.CompletedAt.Value - completion.StartedAt.Value;
+                    calculatedDurationSeconds = (int)Math.Ceiling(duration.TotalSeconds);
+                    dto.DurationSeconds = calculatedDurationSeconds; // 更新DTO中的值
+                }
+
+                if (calculatedDurationSeconds.HasValue)
+                {
+                    int totalSeconds = calculatedDurationSeconds.Value;
+                    int hours = totalSeconds / 3600;
+                    int minutes = (totalSeconds % 3600) / 60;
                     int seconds = totalSeconds % 60;
 
-                    if (minutes > 0)
+                    if (hours > 0)
+                    {
+                        dto.DurationText = minutes > 0 ? $"{hours}小时{minutes}分钟" : $"{hours}小时";
+                    }
+                    else if (minutes > 0)
                     {
                         dto.DurationText = seconds > 0 ? $"{minutes}分{seconds}秒" : $"{minutes}分钟";
                     }
@@ -726,6 +756,10 @@ public class StudentMockExamService : IStudentMockExamService
                     {
                         dto.DurationText = $"{seconds}秒";
                     }
+                }
+                else
+                {
+                    dto.DurationText = "用时未知";
                 }
 
                 result.Add(dto);
