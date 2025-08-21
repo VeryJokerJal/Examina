@@ -45,7 +45,7 @@
 
             <!--  PaneFooter - 解锁广告区域  -->
             <ui:NavigationView.PaneFooter>
-                <Grid>
+                <Grid IsVisible="{Binding CurrentUser.HasFullAccess, Converter={x:Static BoolConverters.Not}}">
                     <!--  展开状态的广告区域  -->
                     <Border x:Name="ExpandedAdBorder" Margin="12,8,12,16" Padding="16" BoxShadow="0 2 8 0 #30000000" CornerRadius="12" IsVisible="{Binding IsNavigationPaneOpen}">
                         <Border.Background>
