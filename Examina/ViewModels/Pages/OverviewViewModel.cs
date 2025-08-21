@@ -3,6 +3,7 @@ using System.Windows.Input;
 using Prism.Commands;
 using ReactiveUI.Fody.Helpers;
 using Examina.Models;
+using Examina.Models.Api;
 using Examina.Services;
 
 namespace Examina.ViewModels.Pages;
@@ -35,6 +36,12 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     [Reactive]
     public int MockExamCount { get; set; } = 0;
+
+    /// <summary>
+    /// 是否有模拟考试记录
+    /// </summary>
+    [Reactive]
+    public bool HasMockExamRecords { get; set; } = false;
 
     /// <summary>
     /// 综合实训次数
@@ -440,7 +447,9 @@ public class OverviewViewModel : ViewModelBase
             // 加载专项练习完成记录
             await LoadSpecialPracticeRecordsAsync();
 
-            // 模拟考试数据（暂无API）
+            // 加载模拟考试完成记录
+            await LoadMockExamRecordsAsync();
+
             // 上机统考数据（暂无API）
 
             System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 成功加载 {_allRecords.Count} 条成绩记录");
@@ -536,6 +545,54 @@ public class OverviewViewModel : ViewModelBase
         {
             SelectedStatisticType = type;
             FilterRecordsByType();
+        }
+    }
+
+    /// <summary>
+    /// 加载模拟考试完成记录
+    /// </summary>
+    private async Task LoadMockExamRecordsAsync()
+    {
+        if (_studentMockExamService == null)
+        {
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 模拟考试服务为null，跳过加载模拟考试记录");
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始加载模拟考试完成记录");
+
+            List<MockExamCompletionDto> completions = await _studentMockExamService.GetMockExamCompletionsAsync(1, 50);
+
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 获取到 {completions.Count} 条模拟考试完成记录");
+
+            int completedCount = 0;
+            foreach (MockExamCompletionDto completion in completions)
+            {
+                if (completion.Status == MockExamCompletionStatus.Completed)
+                {
+                    _allRecords.Add(new TrainingRecord
+                    {
+                        Name = completion.MockExamName,
+                        Duration = completion.DurationText ?? "未知",
+                        CompletionTime = completion.CompletedAt ?? completion.CreatedAt,
+                        Score = (int)(completion.Score ?? 0),
+                        Type = StatisticType.MockExam,
+                        FormattedCompletionTime = completion.FormattedCompletedAt
+                    });
+                    completedCount++;
+                }
+            }
+
+            // 更新是否有模拟考试记录的状态
+            HasMockExamRecords = completedCount > 0;
+
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 成功加载 {completedCount} 条模拟考试记录");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载模拟考试记录异常: {ex.Message}");
         }
     }
 

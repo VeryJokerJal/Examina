@@ -31,7 +31,8 @@
                                 <TextBlock FontSize="28" FontWeight="Bold" Foreground="{DynamicResource MockExamTextColorPrimary}" Text="{Binding MockExamCount}" />
                                 <TextBlock Margin="4,0,0,4" VerticalAlignment="Bottom" FontSize="16" Foreground="{DynamicResource MockExamTextColor}" Text="次" />
                             </StackPanel>
-                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" Text="暂时没有考试记录" />
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" Text="暂时没有考试记录" IsVisible="{Binding !HasMockExamRecords}" />
+                            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource MockExamTextColorSecondary}" Text="点击查看成绩详情" IsVisible="{Binding HasMockExamRecords}" />
                         </StackPanel>
                     </Button>
 
