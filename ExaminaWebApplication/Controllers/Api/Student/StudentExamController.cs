@@ -2,6 +2,8 @@ using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using ExaminaWebApplication.Models;
 
 namespace ExaminaWebApplication.Controllers.Api.Student;
 
@@ -11,7 +13,7 @@ namespace ExaminaWebApplication.Controllers.Api.Student;
 [ApiController]
 [Route("api/student/exams")]
 [Authorize(Roles = "Student")]
-public class StudentExamController : BaseStudentController
+public class StudentExamController : ControllerBase
 {
     private readonly IStudentExamService _examService;
     private readonly ILogger<StudentExamController> _logger;
@@ -200,5 +202,18 @@ public class StudentExamController : BaseStudentController
             _logger.LogError(ex, "获取学生考试完成记录失败");
             return StatusCode(500, new { message = "获取完成记录失败，请稍后重试" });
         }
+    }
+
+    /// <summary>
+    /// 获取当前用户ID
+    /// </summary>
+    /// <returns>用户ID</returns>
+    /// <exception cref="UnauthorizedAccessException">无法获取用户信息时抛出</exception>
+    private int GetCurrentUserId()
+    {
+        string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId)
+            ? throw new UnauthorizedAccessException("无法获取当前用户信息")
+            : userId;
     }
 }

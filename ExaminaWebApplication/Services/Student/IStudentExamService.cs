@@ -1,4 +1,5 @@
 using ExaminaWebApplication.Models.Api.Student;
+using ExaminaWebApplication.Models;
 
 namespace ExaminaWebApplication.Services.Student;
 

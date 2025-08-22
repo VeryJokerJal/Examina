@@ -1,4 +1,5 @@
 using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedExam;
 using Microsoft.EntityFrameworkCore;
