@@ -61,7 +61,7 @@
                                     <!--  文件路径  -->
                                     <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=File}">
                                         <TextBox Width="300" PlaceholderText="选择文件路径" Text="{Binding Value, Mode=TwoWay}" />
-                                        <Button Click="BrowseFile_Click" Content="浏览..." DataContext="{Binding}" />
+                                        <Button Content="浏览..." />
                                     </StackPanel>
 
                                     <!--  多选  -->
@@ -89,9 +89,9 @@
         <!--  操作按钮  -->
         <Border Grid.Row="2" Padding="16" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="12">
-                <Button Click="SaveConfiguration_Click" Content="保存配置" Style="{ThemeResource AccentButtonStyle}" />
-                <Button Click="ResetConfiguration_Click" Content="重置" />
-                <Button Click="DeleteOperationPoint_Click" Content="删除操作点" />
+                <Button Content="保存配置" Style="{ThemeResource AccentButtonStyle}" />
+                <Button Content="重置" />
+                <Button Content="删除操作点" />
             </StackPanel>
         </Border>
 
