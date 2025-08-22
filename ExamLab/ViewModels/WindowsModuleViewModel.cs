@@ -90,15 +90,293 @@ public class WindowsModuleViewModel : ModuleViewModelBase
         AddOperationPoint();
     }
 
-    private void AddOperationPointByType(string knowledgeTypeString)
+    private void AddOperationPointByType(string operationTypeString)
     {
-        if (Enum.TryParse(knowledgeTypeString, out WindowsKnowledgeType knowledgeType))
+        // 首先尝试解析为WindowsOperationType（用于操作类型按钮）
+        if (Enum.TryParse(operationTypeString, out WindowsOperationType operationType))
+        {
+            AddOperationPointByOperationType(operationType);
+        }
+        // 如果失败，尝试解析为WindowsKnowledgeType（用于知识点）
+        else if (Enum.TryParse(operationTypeString, out WindowsKnowledgeType knowledgeType))
         {
             AddKnowledgePoint(knowledgeType);
         }
         else
         {
-            SetError($"未知的知识点类型：{knowledgeTypeString}");
+            SetError($"未知的操作类型：{operationTypeString}");
+        }
+    }
+
+    /// <summary>
+    /// 根据Windows操作类型添加操作点
+    /// </summary>
+    private void AddOperationPointByOperationType(WindowsOperationType operationType)
+    {
+        if (SelectedQuestion == null)
+        {
+            SetError("请先选择一个题目");
+            return;
+        }
+
+        try
+        {
+            OperationPoint operationPoint = CreateOperationPointByType(operationType);
+            operationPoint.ScoringQuestionId = SelectedQuestion.Id;
+
+            SelectedQuestion.OperationPoints.Add(operationPoint);
+            SelectedOperationPoint = operationPoint;
+
+            ClearError();
+        }
+        catch (Exception ex)
+        {
+            SetError($"添加操作点失败：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 根据操作类型创建操作点
+    /// </summary>
+    private OperationPoint CreateOperationPointByType(WindowsOperationType operationType)
+    {
+        OperationPoint operationPoint = new()
+        {
+            Name = GetOperationTypeName(operationType),
+            Description = GetOperationTypeDescription(operationType),
+            ModuleType = ModuleType.Windows,
+            WindowsOperationType = operationType
+        };
+
+        // 根据操作类型添加相应的参数
+        AddParametersForOperationType(operationPoint, operationType);
+
+        return operationPoint;
+    }
+
+    /// <summary>
+    /// 获取操作类型的显示名称
+    /// </summary>
+    private static string GetOperationTypeName(WindowsOperationType operationType)
+    {
+        return operationType switch
+        {
+            WindowsOperationType.QuickCreate => "快捷创建",
+            WindowsOperationType.DeleteOperation => "删除操作",
+            WindowsOperationType.CopyOperation => "复制操作",
+            WindowsOperationType.MoveOperation => "移动操作",
+            WindowsOperationType.RenameOperation => "重命名操作",
+            WindowsOperationType.ShortcutOperation => "快捷方式操作",
+            WindowsOperationType.FilePropertyModification => "文件属性修改操作",
+            WindowsOperationType.CopyRenameOperation => "复制重命名操作",
+            _ => operationType.ToString()
+        };
+    }
+
+    /// <summary>
+    /// 获取操作类型的描述
+    /// </summary>
+    private static string GetOperationTypeDescription(WindowsOperationType operationType)
+    {
+        return operationType switch
+        {
+            WindowsOperationType.QuickCreate => "快速创建文件或文件夹",
+            WindowsOperationType.DeleteOperation => "删除指定的文件或文件夹",
+            WindowsOperationType.CopyOperation => "复制文件或文件夹",
+            WindowsOperationType.MoveOperation => "移动文件或文件夹",
+            WindowsOperationType.RenameOperation => "重命名文件或文件夹",
+            WindowsOperationType.ShortcutOperation => "创建或管理快捷方式",
+            WindowsOperationType.FilePropertyModification => "修改文件或文件夹属性",
+            WindowsOperationType.CopyRenameOperation => "复制并重命名文件或文件夹",
+            _ => $"{operationType} 操作"
+        };
+    }
+
+    /// <summary>
+    /// 为操作类型添加相应的参数
+    /// </summary>
+    private static void AddParametersForOperationType(OperationPoint operationPoint, WindowsOperationType operationType)
+    {
+        switch (operationType)
+        {
+            case WindowsOperationType.QuickCreate:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "TargetPath",
+                    DisplayName = "目标路径",
+                    Description = "要创建的文件或文件夹的完整路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ItemType",
+                    DisplayName = "项目类型",
+                    Description = "选择要创建的项目类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "文件,文件夹",
+                    IsRequired = true,
+                    Order = 2
+                });
+                break;
+
+            case WindowsOperationType.DeleteOperation:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "TargetPath",
+                    DisplayName = "目标路径",
+                    Description = "要删除的文件或文件夹路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                break;
+
+            case WindowsOperationType.CopyOperation:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "SourcePath",
+                    DisplayName = "源路径",
+                    Description = "要复制的文件或文件夹路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "DestinationPath",
+                    DisplayName = "目标路径",
+                    Description = "复制到的目标路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 2
+                });
+                break;
+
+            case WindowsOperationType.MoveOperation:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "SourcePath",
+                    DisplayName = "源路径",
+                    Description = "要移动的文件或文件夹路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "DestinationPath",
+                    DisplayName = "目标路径",
+                    Description = "移动到的目标路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 2
+                });
+                break;
+
+            case WindowsOperationType.RenameOperation:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "OriginalPath",
+                    DisplayName = "原路径",
+                    Description = "要重命名的文件或文件夹路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "NewName",
+                    DisplayName = "新名称",
+                    Description = "新的文件或文件夹名称",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 2
+                });
+                break;
+
+            case WindowsOperationType.ShortcutOperation:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "TargetPath",
+                    DisplayName = "目标路径",
+                    Description = "快捷方式指向的目标文件路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ShortcutPath",
+                    DisplayName = "快捷方式路径",
+                    Description = "快捷方式文件的保存路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 2
+                });
+                break;
+
+            case WindowsOperationType.FilePropertyModification:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "TargetPath",
+                    DisplayName = "目标路径",
+                    Description = "要修改属性的文件或文件夹路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "PropertyType",
+                    DisplayName = "属性类型",
+                    Description = "要修改的属性类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "只读,隐藏,系统,存档",
+                    IsRequired = true,
+                    Order = 2
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "PropertyValue",
+                    DisplayName = "属性值",
+                    Description = "属性的新值",
+                    Type = ParameterType.Boolean,
+                    IsRequired = true,
+                    Order = 3
+                });
+                break;
+
+            case WindowsOperationType.CopyRenameOperation:
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "SourcePath",
+                    DisplayName = "源路径",
+                    Description = "要复制的文件或文件夹路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "DestinationPath",
+                    DisplayName = "目标路径",
+                    Description = "复制到的目标路径",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 2
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "NewName",
+                    DisplayName = "新名称",
+                    Description = "复制后的新文件名",
+                    Type = ParameterType.Text,
+                    IsRequired = true,
+                    Order = 3
+                });
+                break;
         }
     }
 
