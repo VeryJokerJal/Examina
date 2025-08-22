@@ -406,7 +406,8 @@ public class MainViewModel : ViewModelBase, IDisposable
             if (CurrentPageViewModel is LeaderboardViewModel leaderboardViewModel)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面是排行榜页面，开始刷新排行榜数据");
-                await leaderboardViewModel.RefreshLeaderboardAsync();
+                // 使用Task.Run来异步调用刷新方法
+                await Task.Run(() => leaderboardViewModel.RefreshLeaderboardCommand?.Execute(null));
             }
             else
             {
