@@ -36,7 +36,7 @@ public class StudentFormalExamService : IStudentFormalExamService
     /// </summary>
     private async Task SetAuthenticationHeaderAsync()
     {
-        string? token = await _authenticationService.GetTokenAsync();
+        string? token = await _authenticationService.GetAccessTokenAsync();
         if (!string.IsNullOrEmpty(token))
         {
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
