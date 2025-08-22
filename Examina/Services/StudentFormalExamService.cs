@@ -2,7 +2,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Examina.Models.Api;
-using Examina.Services.Authentication;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
