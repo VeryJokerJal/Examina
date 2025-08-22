@@ -329,7 +329,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 Name = newName,
                 Description = exam.Description,
-                TotalScore = exam.TotalScore,
+                // TotalScore 现在是计算属性，会自动基于模块计算
                 Duration = exam.Duration
             };
 
@@ -857,7 +857,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             Name = "计算机应用基础考试",
             Description = "包含Windows、C#、Office等模块的综合考试",
-            TotalScore = 100,
+            // TotalScore 现在是计算属性，会自动基于模块计算
             Duration = 120
         };
 
