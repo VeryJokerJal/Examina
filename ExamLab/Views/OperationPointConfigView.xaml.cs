@@ -263,7 +263,7 @@ public sealed partial class OperationPointConfigView : UserControl
         try
         {
             // 使用ViewModel中的删除命令
-            await viewModel.DeleteOperationPointCommand.Execute(viewModel.SelectedOperationPoint);
+            _ = viewModel.DeleteOperationPointCommand.Execute(viewModel.SelectedOperationPoint).Subscribe(_ => { });
         }
         catch (Exception ex)
         {
