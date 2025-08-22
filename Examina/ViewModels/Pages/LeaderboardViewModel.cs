@@ -1,11 +1,12 @@
 ﻿using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using System.Windows.Input;
+using Examina.Models.Ranking;
+using Examina.Services;
+using Microsoft.Extensions.Logging;
 using Prism.Commands;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Examina.Services;
-using Examina.Models.Ranking;
-using Microsoft.Extensions.Logging;
 
 namespace Examina.ViewModels.Pages;
 

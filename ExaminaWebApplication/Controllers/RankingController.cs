@@ -158,10 +158,11 @@ public class RankingApiController : ControllerBase
     /// </summary>
     [HttpGet("exam")]
     public async Task<ActionResult<RankingResponseDto>> GetExamRanking(
-        [FromQuery] int page = 1, 
+        [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50,
         [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] int? examId = null)
     {
         try
         {
@@ -171,7 +172,8 @@ public class RankingApiController : ControllerBase
                 Page = page,
                 PageSize = pageSize,
                 StartDate = startDate,
-                EndDate = endDate
+                EndDate = endDate,
+                ExamId = examId
             };
 
             RankingResponseDto ranking = await _rankingService.GetRankingAsync(query);
@@ -189,10 +191,11 @@ public class RankingApiController : ControllerBase
     /// </summary>
     [HttpGet("mock-exam")]
     public async Task<ActionResult<RankingResponseDto>> GetMockExamRanking(
-        [FromQuery] int page = 1, 
+        [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50,
         [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] int? examId = null)
     {
         try
         {
@@ -202,7 +205,8 @@ public class RankingApiController : ControllerBase
                 Page = page,
                 PageSize = pageSize,
                 StartDate = startDate,
-                EndDate = endDate
+                EndDate = endDate,
+                ExamId = examId
             };
 
             RankingResponseDto ranking = await _rankingService.GetRankingAsync(query);
@@ -220,10 +224,11 @@ public class RankingApiController : ControllerBase
     /// </summary>
     [HttpGet("training")]
     public async Task<ActionResult<RankingResponseDto>> GetTrainingRanking(
-        [FromQuery] int page = 1, 
+        [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50,
         [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] int? examId = null)
     {
         try
         {
@@ -233,7 +238,8 @@ public class RankingApiController : ControllerBase
                 Page = page,
                 PageSize = pageSize,
                 StartDate = startDate,
-                EndDate = endDate
+                EndDate = endDate,
+                ExamId = examId
             };
 
             RankingResponseDto ranking = await _rankingService.GetRankingAsync(query);

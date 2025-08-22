@@ -28,8 +28,8 @@ public class RankingService
     {
         try
         {
-            _logger.LogInformation("获取排行榜数据，类型: {Type}, 页码: {Page}, 每页: {PageSize}", 
-                query.Type, query.Page, query.PageSize);
+            _logger.LogInformation("获取排行榜数据，类型: {Type}, 页码: {Page}, 每页: {PageSize}, 试卷ID: {ExamId}, 开始时间: {StartDate}, 结束时间: {EndDate}",
+                query.Type, query.Page, query.PageSize, query.ExamId, query.StartDate, query.EndDate);
 
             RankingResponseDto response = query.Type switch
             {
@@ -39,8 +39,8 @@ public class RankingService
                 _ => throw new ArgumentException($"不支持的排行榜类型: {query.Type}")
             };
 
-            _logger.LogInformation("成功获取排行榜数据，类型: {Type}, 记录数: {Count}", 
-                query.Type, response.Entries.Count);
+            _logger.LogInformation("成功获取排行榜数据，类型: {Type}, 记录数: {Count}, 总数: {TotalCount}",
+                query.Type, response.Entries.Count, response.TotalCount);
 
             return response;
         }
@@ -74,8 +74,15 @@ public class RankingService
             baseQuery = baseQuery.Where(ec => ec.CompletedAt <= query.EndDate.Value);
         }
 
+        // 应用试卷筛选
+        if (query.ExamId.HasValue)
+        {
+            baseQuery = baseQuery.Where(ec => ec.ExamId == query.ExamId.Value);
+        }
+
         // 获取总数
         int totalCount = await baseQuery.CountAsync();
+        _logger.LogInformation("上机统考排行榜查询，总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
 
         // 排序并分页
         List<ExamCompletion> completions = await baseQuery
@@ -85,6 +92,8 @@ public class RankingService
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToListAsync();
+
+        _logger.LogInformation("上机统考排行榜查询完成，返回记录数: {Count}", completions.Count);
 
         // 转换为DTO并添加排名
         List<RankingEntryDto> entries = [];
@@ -130,8 +139,15 @@ public class RankingService
             baseQuery = baseQuery.Where(mec => mec.CompletedAt <= query.EndDate.Value);
         }
 
+        // 应用试卷筛选（模拟考试使用MockExamId）
+        if (query.ExamId.HasValue)
+        {
+            baseQuery = baseQuery.Where(mec => mec.MockExamId == query.ExamId.Value);
+        }
+
         // 获取总数
         int totalCount = await baseQuery.CountAsync();
+        _logger.LogInformation("模拟考试排行榜查询，总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
 
         // 排序并分页
         List<MockExamCompletion> completions = await baseQuery
@@ -141,6 +157,8 @@ public class RankingService
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToListAsync();
+
+        _logger.LogInformation("模拟考试排行榜查询完成，返回记录数: {Count}", completions.Count);
 
         // 转换为DTO并添加排名
         List<RankingEntryDto> entries = [];
@@ -186,8 +204,15 @@ public class RankingService
             baseQuery = baseQuery.Where(ctc => ctc.CompletedAt <= query.EndDate.Value);
         }
 
+        // 应用试卷筛选（综合实训使用TrainingId）
+        if (query.ExamId.HasValue)
+        {
+            baseQuery = baseQuery.Where(ctc => ctc.TrainingId == query.ExamId.Value);
+        }
+
         // 获取总数
         int totalCount = await baseQuery.CountAsync();
+        _logger.LogInformation("综合实训排行榜查询，总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
 
         // 排序并分页
         List<ComprehensiveTrainingCompletion> completions = await baseQuery
@@ -197,6 +222,8 @@ public class RankingService
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToListAsync();
+
+        _logger.LogInformation("综合实训排行榜查询完成，返回记录数: {Count}", completions.Count);
 
         // 转换为DTO并添加排名
         List<RankingEntryDto> entries = [];

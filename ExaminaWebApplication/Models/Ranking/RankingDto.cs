@@ -177,4 +177,9 @@ public class RankingQueryDto
     /// 结束时间过滤（可选）
     /// </summary>
     public DateTime? EndDate { get; set; }
+
+    /// <summary>
+    /// 考试/试卷ID过滤（可选）
+    /// </summary>
+    public int? ExamId { get; set; }
 }
