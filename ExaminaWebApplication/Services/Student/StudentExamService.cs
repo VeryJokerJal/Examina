@@ -268,4 +268,279 @@ public class StudentExamService : IStudentExamService
             }).ToList()
         };
     }
+
+    /// <summary>
+    /// 开始正式考试
+    /// </summary>
+    public async Task<bool> StartExamAsync(int examId, int studentUserId)
+    {
+        try
+        {
+            _logger.LogInformation("开始正式考试，考试ID: {ExamId}, 学生ID: {StudentId}", examId, studentUserId);
+
+            // 检查权限
+            if (!await HasAccessToExamAsync(examId, studentUserId))
+            {
+                _logger.LogWarning("学生无权限访问考试，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+                return false;
+            }
+
+            // 检查考试是否存在
+            Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId && e.IsEnabled);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在或未启用，考试ID: {ExamId}", examId);
+                return false;
+            }
+
+            DateTime now = DateTime.Now;
+
+            // 检查是否已有完成记录
+            ExamCompletion? existingCompletion = await _context.ExamCompletions
+                .FirstOrDefaultAsync(ec => ec.ExamId == examId && ec.StudentUserId == studentUserId);
+
+            if (existingCompletion != null)
+            {
+                // 如果已有记录且状态为未开始，更新为进行中
+                if (existingCompletion.Status == ExamCompletionStatus.NotStarted)
+                {
+                    existingCompletion.Status = ExamCompletionStatus.InProgress;
+                    existingCompletion.StartedAt = now;
+                    existingCompletion.UpdatedAt = now;
+                }
+                else
+                {
+                    _logger.LogWarning("考试已开始或完成，无法重新开始，学生ID: {StudentId}, 考试ID: {ExamId}, 当前状态: {Status}",
+                        studentUserId, examId, existingCompletion.Status);
+                    return false;
+                }
+            }
+            else
+            {
+                // 创建新的开始记录
+                ExamCompletion newCompletion = new()
+                {
+                    StudentUserId = studentUserId,
+                    ExamId = examId,
+                    Status = ExamCompletionStatus.InProgress,
+                    StartedAt = now,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                _context.ExamCompletions.Add(newCompletion);
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("正式考试开始成功，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "开始正式考试失败，考试ID: {ExamId}, 学生ID: {StudentId}", examId, studentUserId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 提交正式考试成绩
+    /// </summary>
+    public async Task<bool> SubmitExamScoreAsync(int examId, int studentUserId, SubmitExamScoreRequestDto scoreRequest)
+    {
+        try
+        {
+            _logger.LogInformation("开始提交正式考试成绩，考试ID: {ExamId}, 学生ID: {StudentId}", examId, studentUserId);
+
+            // 检查权限
+            if (!await HasAccessToExamAsync(examId, studentUserId))
+            {
+                _logger.LogWarning("学生无权限访问考试，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+                return false;
+            }
+
+            // 检查考试是否存在
+            Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId && e.IsEnabled);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在或未启用，考试ID: {ExamId}", examId);
+                return false;
+            }
+
+            DateTime now = DateTime.Now;
+            DateTime completedAt = scoreRequest.CompletedAt ?? now;
+
+            // 查找现有的完成记录
+            ExamCompletion? existingCompletion = await _context.ExamCompletions
+                .FirstOrDefaultAsync(ec => ec.ExamId == examId && ec.StudentUserId == studentUserId);
+
+            if (existingCompletion != null)
+            {
+                // 更新现有记录
+                existingCompletion.Status = ExamCompletionStatus.Completed;
+                existingCompletion.CompletedAt = completedAt;
+                existingCompletion.Score = scoreRequest.Score;
+                existingCompletion.MaxScore = scoreRequest.MaxScore;
+                existingCompletion.DurationSeconds = scoreRequest.DurationSeconds;
+                existingCompletion.Notes = scoreRequest.Notes;
+                existingCompletion.BenchSuiteScoringResult = scoreRequest.BenchSuiteScoringResult;
+                existingCompletion.UpdatedAt = now;
+
+                // 计算完成百分比
+                if (scoreRequest.Score.HasValue && scoreRequest.MaxScore.HasValue && scoreRequest.MaxScore.Value > 0)
+                {
+                    existingCompletion.CompletionPercentage = Math.Round((scoreRequest.Score.Value / scoreRequest.MaxScore.Value) * 100, 2);
+                }
+
+                _logger.LogInformation("更新正式考试完成记录，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+            }
+            else
+            {
+                // 创建新的完成记录
+                ExamCompletion newCompletion = new()
+                {
+                    StudentUserId = studentUserId,
+                    ExamId = examId,
+                    Status = ExamCompletionStatus.Completed,
+                    StartedAt = completedAt, // 如果没有开始记录，假设开始时间就是完成时间
+                    CompletedAt = completedAt,
+                    Score = scoreRequest.Score,
+                    MaxScore = scoreRequest.MaxScore,
+                    DurationSeconds = scoreRequest.DurationSeconds,
+                    Notes = scoreRequest.Notes,
+                    BenchSuiteScoringResult = scoreRequest.BenchSuiteScoringResult,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                // 计算完成百分比
+                if (scoreRequest.Score.HasValue && scoreRequest.MaxScore.HasValue && scoreRequest.MaxScore.Value > 0)
+                {
+                    newCompletion.CompletionPercentage = Math.Round((scoreRequest.Score.Value / scoreRequest.MaxScore.Value) * 100, 2);
+                }
+
+                _context.ExamCompletions.Add(newCompletion);
+                _logger.LogInformation("创建新的正式考试完成记录，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("正式考试成绩提交成功，学生ID: {StudentId}, 考试ID: {ExamId}, 得分: {Score}/{MaxScore}",
+                studentUserId, examId, scoreRequest.Score, scoreRequest.MaxScore);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "提交正式考试成绩异常，考试ID: {ExamId}, 学生ID: {StudentId}", examId, studentUserId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 标记正式考试为已完成（不包含成绩）
+    /// </summary>
+    public async Task<bool> CompleteExamAsync(int examId, int studentUserId)
+    {
+        try
+        {
+            _logger.LogInformation("标记正式考试为已完成，考试ID: {ExamId}, 学生ID: {StudentId}", examId, studentUserId);
+
+            // 检查权限
+            if (!await HasAccessToExamAsync(examId, studentUserId))
+            {
+                _logger.LogWarning("学生无权限访问考试，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+                return false;
+            }
+
+            DateTime now = DateTime.Now;
+
+            // 查找现有的完成记录
+            ExamCompletion? existingCompletion = await _context.ExamCompletions
+                .FirstOrDefaultAsync(ec => ec.ExamId == examId && ec.StudentUserId == studentUserId);
+
+            if (existingCompletion != null)
+            {
+                // 更新现有记录状态
+                existingCompletion.Status = ExamCompletionStatus.Completed;
+                existingCompletion.CompletedAt = now;
+                existingCompletion.UpdatedAt = now;
+
+                // 如果有开始时间，计算用时
+                if (existingCompletion.StartedAt.HasValue)
+                {
+                    TimeSpan duration = now - existingCompletion.StartedAt.Value;
+                    existingCompletion.DurationSeconds = (int)Math.Ceiling(duration.TotalSeconds);
+                }
+
+                _logger.LogInformation("更新正式考试完成状态，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+            }
+            else
+            {
+                // 创建新的完成记录
+                ExamCompletion newCompletion = new()
+                {
+                    StudentUserId = studentUserId,
+                    ExamId = examId,
+                    Status = ExamCompletionStatus.Completed,
+                    StartedAt = now, // 假设开始时间就是完成时间
+                    CompletedAt = now,
+                    DurationSeconds = 0, // 没有开始记录，用时为0
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                _context.ExamCompletions.Add(newCompletion);
+                _logger.LogInformation("创建新的正式考试完成记录，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("正式考试完成标记成功，学生ID: {StudentId}, 考试ID: {ExamId}", studentUserId, examId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "标记正式考试完成失败，考试ID: {ExamId}, 学生ID: {StudentId}", examId, studentUserId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取学生的考试完成记录
+    /// </summary>
+    public async Task<List<ExamCompletion>> GetExamCompletionsAsync(int studentUserId, int? examId = null)
+    {
+        try
+        {
+            IQueryable<ExamCompletion> query = _context.ExamCompletions
+                .Include(ec => ec.Student)
+                .Include(ec => ec.Exam)
+                .Where(ec => ec.StudentUserId == studentUserId && ec.IsActive);
+
+            if (examId.HasValue)
+            {
+                query = query.Where(ec => ec.ExamId == examId.Value);
+            }
+
+            List<ExamCompletion> completions = await query
+                .OrderByDescending(ec => ec.CompletedAt)
+                .ToListAsync();
+
+            _logger.LogInformation("获取学生考试完成记录成功，学生ID: {StudentId}, 记录数: {Count}", studentUserId, completions.Count);
+            return completions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生考试完成记录失败，学生ID: {StudentId}", studentUserId);
+            return [];
+        }
+    }
 }

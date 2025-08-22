@@ -14,6 +14,7 @@ public class EnhancedExamToolbarService : IDisposable
     private readonly IStudentExamService _studentExamService;
     private readonly IStudentMockExamService _studentMockExamService;
     private readonly IStudentComprehensiveTrainingService _studentComprehensiveTrainingService;
+    private readonly IStudentFormalExamService _studentFormalExamService;
     private readonly IAuthenticationService _authenticationService;
     private readonly IBenchSuiteIntegrationService _benchSuiteIntegrationService;
     private readonly IBenchSuiteDirectoryService _benchSuiteDirectoryService;
@@ -24,6 +25,7 @@ public class EnhancedExamToolbarService : IDisposable
         IStudentExamService studentExamService,
         IStudentMockExamService studentMockExamService,
         IStudentComprehensiveTrainingService studentComprehensiveTrainingService,
+        IStudentFormalExamService studentFormalExamService,
         IAuthenticationService authenticationService,
         IBenchSuiteIntegrationService benchSuiteIntegrationService,
         IBenchSuiteDirectoryService benchSuiteDirectoryService,
@@ -32,6 +34,7 @@ public class EnhancedExamToolbarService : IDisposable
         _studentExamService = studentExamService ?? throw new ArgumentNullException(nameof(studentExamService));
         _studentMockExamService = studentMockExamService ?? throw new ArgumentNullException(nameof(studentMockExamService));
         _studentComprehensiveTrainingService = studentComprehensiveTrainingService ?? throw new ArgumentNullException(nameof(studentComprehensiveTrainingService));
+        _studentFormalExamService = studentFormalExamService ?? throw new ArgumentNullException(nameof(studentFormalExamService));
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
         _benchSuiteIntegrationService = benchSuiteIntegrationService ?? throw new ArgumentNullException(nameof(benchSuiteIntegrationService));
         _benchSuiteDirectoryService = benchSuiteDirectoryService ?? throw new ArgumentNullException(nameof(benchSuiteDirectoryService));
@@ -60,21 +63,40 @@ public class EnhancedExamToolbarService : IDisposable
             {
                 BenchSuiteScoringResult? scoringResult = await PerformBenchSuiteScoringAsync(ExamType.FormalExam, examId, studentId);
 
-                // 2. 提交考试到服务器
-                // 注意：这里需要实现实际的正式考试提交API
-                await Task.Delay(1000); // 模拟网络请求，实际实现中需要调用相应的API
-
-                // 3. 如果评分成功，记录评分结果
-                if (scoringResult?.IsSuccess == true)
+                // 2. 准备成绩提交数据
+                SubmitExamScoreRequestDto scoreRequest = new()
                 {
-                    _logger.LogInformation("正式考试BenchSuite评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
-                        scoringResult.TotalScore, scoringResult.AchievedScore);
+                    Score = scoringResult?.AchievedScore,
+                    MaxScore = scoringResult?.TotalScore,
+                    DurationSeconds = null, // 可以从考试开始时间计算
+                    Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
+                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null,
+                    CompletedAt = DateTime.Now
+                };
 
-                    // 这里可以将评分结果保存到数据库或发送到服务器
-                    // await SaveScoringResultAsync(examId, scoringResult);
+                // 3. 提交正式考试成绩到服务器
+                bool submitResult = await _studentFormalExamService.SubmitExamScoreAsync(examId, scoreRequest);
+
+                if (!submitResult)
+                {
+                    _logger.LogWarning("正式考试成绩提交失败，考试ID: {ExamId}", examId);
+
+                    // 如果成绩提交失败，尝试基本完成（不包含成绩数据）
+                    bool basicCompleteResult = await _studentFormalExamService.CompleteExamAsync(examId);
+                    if (!basicCompleteResult)
+                    {
+                        _logger.LogError("正式考试基本完成也失败，考试ID: {ExamId}", examId);
+                        return false;
+                    }
+
+                    _logger.LogInformation("正式考试基本完成成功（无成绩数据），考试ID: {ExamId}", examId);
+                }
+                else
+                {
+                    _logger.LogInformation("正式考试成绩提交成功，考试ID: {ExamId}, 得分: {Score}/{MaxScore}",
+                        examId, scoringResult?.AchievedScore, scoringResult?.TotalScore);
                 }
 
-                _logger.LogInformation("正式考试提交成功，考试ID: {ExamId}", examId);
                 return true;
             }
             else

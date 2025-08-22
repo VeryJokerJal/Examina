@@ -38,4 +38,37 @@ public interface IStudentExamService
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>考试总数</returns>
     Task<int> GetAvailableExamCountAsync(int studentUserId);
+
+    /// <summary>
+    /// 开始正式考试
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <returns>是否成功开始</returns>
+    Task<bool> StartExamAsync(int examId, int studentUserId);
+
+    /// <summary>
+    /// 提交正式考试成绩
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="scoreRequest">成绩数据</param>
+    /// <returns>是否成功提交</returns>
+    Task<bool> SubmitExamScoreAsync(int examId, int studentUserId, SubmitExamScoreRequestDto scoreRequest);
+
+    /// <summary>
+    /// 标记正式考试为已完成（不包含成绩）
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <returns>是否成功完成</returns>
+    Task<bool> CompleteExamAsync(int examId, int studentUserId);
+
+    /// <summary>
+    /// 获取学生的考试完成记录
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="examId">考试ID（可选）</param>
+    /// <returns>考试完成记录列表</returns>
+    Task<List<ExamCompletion>> GetExamCompletionsAsync(int studentUserId, int? examId = null);
 }

@@ -136,6 +136,15 @@ public partial class App : Application
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(30);
         })
+
+        // 为学生端正式考试服务配置HttpClient
+        _ = services.AddHttpClient<IStudentFormalExamService, StudentFormalExamService>(client =>
+        {
+            client.BaseAddress = new Uri("https://qiuzhenbd.com");
+            client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
         .ConfigurePrimaryHttpMessageHandler(() =>
         {
             return new HttpClientHandler()
