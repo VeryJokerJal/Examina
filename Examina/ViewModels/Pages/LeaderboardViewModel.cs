@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Prism.Commands;
-using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Examina.Services;
 using Examina.Models.Ranking;
@@ -218,6 +217,26 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 异步刷新排行榜
+    /// </summary>
+    public async Task RefreshLeaderboardAsync()
+    {
+        try
+        {
+            _logger?.LogInformation("开始异步刷新排行榜数据");
+
+            // 使用Task.Run来避免阻塞UI线程
+            await Task.Run(() => LoadLeaderboardData());
+
+            _logger?.LogInformation("异步刷新排行榜数据完成");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "异步刷新排行榜数据时发生异常");
+        }
+    }
+
+    /// <summary>
     /// 切换排行榜类型
     /// </summary>
     private void SwitchLeaderboardType(LeaderboardTypeItem? leaderboardType)
@@ -283,26 +302,6 @@ public class LeaderboardViewModel : ViewModelBase
                 PageTitle = SelectedLeaderboardType.Name;
                 LoadLeaderboardData();
             }
-        }
-    }
-
-    /// <summary>
-    /// 异步刷新排行榜
-    /// </summary>
-    public async Task RefreshLeaderboardAsync()
-    {
-        try
-        {
-            _logger?.LogInformation("开始异步刷新排行榜数据");
-
-            // 使用Task.Run来避免阻塞UI线程
-            await Task.Run(() => LoadLeaderboardData());
-
-            _logger?.LogInformation("异步刷新排行榜数据完成");
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "异步刷新排行榜数据时发生异常");
         }
     }
 
