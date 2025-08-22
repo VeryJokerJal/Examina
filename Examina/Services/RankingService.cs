@@ -137,4 +137,51 @@ public class RankingService
             _ => null
         };
     }
+
+    /// <summary>
+    /// 根据排行榜类型和试卷筛选获取排行榜数据
+    /// </summary>
+    public async Task<RankingResponseDto?> GetRankingByTypeAsync(RankingType type, int? examId = null, int page = 1, int pageSize = 50)
+    {
+        try
+        {
+            _logger.LogInformation("获取排行榜数据，类型: {Type}, 试卷ID: {ExamId}, 页码: {Page}", type, examId, page);
+
+            // 构建查询参数
+            string queryParams = $"?page={page}&pageSize={pageSize}";
+            if (examId.HasValue)
+            {
+                queryParams += $"&examId={examId.Value}";
+            }
+
+            string endpoint = type switch
+            {
+                RankingType.ExamRanking => $"/api/ranking/exam{queryParams}",
+                RankingType.MockExamRanking => $"/api/ranking/mock-exam{queryParams}",
+                RankingType.TrainingRanking => $"/api/ranking/training{queryParams}",
+                _ => throw new ArgumentException($"不支持的排行榜类型: {type}")
+            };
+
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonContent = await response.Content.ReadAsStringAsync();
+                RankingResponseDto? result = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+
+                _logger.LogInformation("成功获取排行榜数据，记录数: {Count}", result?.Entries?.Count ?? 0);
+                return result;
+            }
+            else
+            {
+                _logger.LogWarning("获取排行榜数据失败，状态码: {StatusCode}", response.StatusCode);
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取排行榜数据时发生异常，类型: {Type}, 试卷ID: {ExamId}", type, examId);
+            return null;
+        }
+    }
 }

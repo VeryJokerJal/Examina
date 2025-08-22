@@ -31,6 +31,11 @@ public class MockExamViewModel : ViewModelBase
     public static event EventHandler? OverviewPageRefreshRequested;
 
     /// <summary>
+    /// 排行榜页面刷新请求事件
+    /// </summary>
+    public static event EventHandler? LeaderboardPageRefreshRequested;
+
+    /// <summary>
     /// 是否正在加载
     /// </summary>
     public bool IsLoading
@@ -556,10 +561,11 @@ public class MockExamViewModel : ViewModelBase
                 try
                 {
                     await NotifyOverviewPageRefreshAsync();
+                    await NotifyLeaderboardPageRefreshAsync();
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 通知首页刷新异常: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 通知页面刷新异常: {ex.Message}");
                 }
             });
         }
@@ -590,6 +596,29 @@ public class MockExamViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 通知概览页面刷新异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 通知排行榜页面刷新数据
+    /// </summary>
+    private async Task NotifyLeaderboardPageRefreshAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始通知排行榜页面刷新数据");
+
+            // 延迟一下确保数据库操作完成
+            await Task.Delay(500);
+
+            // 发送刷新排行榜页面的消息
+            LeaderboardPageRefreshRequested?.Invoke(this, EventArgs.Empty);
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 排行榜页面刷新通知已发送");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 通知排行榜页面刷新异常: {ex.Message}");
         }
     }
 }

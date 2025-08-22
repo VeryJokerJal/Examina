@@ -19,7 +19,7 @@
       
       <!-- 排行榜类型选择 -->
       <StackPanel Orientation="Horizontal" Spacing="12">
-        <TextBlock Text="排行榜类型:" 
+        <TextBlock Text="排行榜类型:"
                    FontSize="16"
                    FontFamily="Microsoft YaHei"
                    VerticalAlignment="Center"
@@ -29,7 +29,22 @@
                   DisplayMemberBinding="{Binding Name}"
                   MinWidth="200"
                   FontFamily="Microsoft YaHei"/>
-        <Button Content="刷新" 
+
+        <!-- 试卷筛选器 -->
+        <TextBlock Text="试卷筛选:"
+                   FontSize="16"
+                   FontFamily="Microsoft YaHei"
+                   VerticalAlignment="Center"
+                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                   IsVisible="{Binding ShowExamFilter}"/>
+        <ComboBox ItemsSource="{Binding ExamFilters}"
+                  SelectedItem="{Binding SelectedExamFilter}"
+                  DisplayMemberBinding="{Binding DisplayName}"
+                  MinWidth="150"
+                  FontFamily="Microsoft YaHei"
+                  IsVisible="{Binding ShowExamFilter}"/>
+
+        <Button Content="刷新"
                 Command="{Binding RefreshLeaderboardCommand}"
                 Padding="12,6"
                 FontFamily="Microsoft YaHei"/>

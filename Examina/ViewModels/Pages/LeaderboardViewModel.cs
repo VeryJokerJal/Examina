@@ -52,6 +52,23 @@ public class LeaderboardViewModel : ViewModelBase
     [Reactive]
     public string? ErrorMessage { get; set; }
 
+    /// <summary>
+    /// 试卷筛选列表
+    /// </summary>
+    public ObservableCollection<ExamFilterItem> ExamFilters { get; } = [];
+
+    /// <summary>
+    /// 选中的试卷筛选项
+    /// </summary>
+    [Reactive]
+    public ExamFilterItem? SelectedExamFilter { get; set; }
+
+    /// <summary>
+    /// 是否显示试卷筛选器（模拟考试排行榜不显示）
+    /// </summary>
+    [Reactive]
+    public bool ShowExamFilter { get; set; } = true;
+
     #endregion
 
     #region 命令
@@ -66,6 +83,11 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     public ICommand SwitchLeaderboardTypeCommand { get; }
 
+    /// <summary>
+    /// 切换试卷筛选命令
+    /// </summary>
+    public ICommand SwitchExamFilterCommand { get; }
+
     #endregion
 
     #region 构造函数
@@ -74,8 +96,21 @@ public class LeaderboardViewModel : ViewModelBase
     {
         RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
+        SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
 
         InitializeLeaderboardTypes();
+        InitializeExamFilters();
+
+        // 监听排行榜类型变化
+        _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
+            .Where(type => type != null)
+            .Subscribe(type => OnLeaderboardTypeChanged(type!));
+
+        // 监听试卷筛选变化
+        _ = this.WhenAnyValue(x => x.SelectedExamFilter)
+            .Where(filter => filter != null)
+            .Subscribe(filter => OnExamFilterChanged(filter!));
+
         // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
@@ -132,6 +167,25 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 初始化试卷筛选列表
+    /// </summary>
+    private void InitializeExamFilters()
+    {
+        ExamFilters.Clear();
+
+        // 添加"全部试卷"选项
+        ExamFilters.Add(new ExamFilterItem
+        {
+            ExamId = null,
+            ExamName = "全部试卷",
+            DisplayName = "全部试卷"
+        });
+
+        // 默认选择"全部试卷"
+        SelectedExamFilter = ExamFilters.FirstOrDefault();
+    }
+
+    /// <summary>
     /// 加载排行榜数据
     /// </summary>
     private async void LoadLeaderboardData()
@@ -144,7 +198,8 @@ public class LeaderboardViewModel : ViewModelBase
         {
             if (_rankingService != null && SelectedLeaderboardType != null)
             {
-                _logger?.LogInformation("开始加载排行榜数据，类型: {Type}", SelectedLeaderboardType.Id);
+                _logger?.LogInformation("开始加载排行榜数据，类型: {Type}, 试卷筛选: {ExamFilter}",
+                    SelectedLeaderboardType.Id, SelectedExamFilter?.DisplayName ?? "无");
 
                 // 根据选中的排行榜类型获取数据
                 RankingType rankingType = SelectedLeaderboardType.Id switch
@@ -155,7 +210,10 @@ public class LeaderboardViewModel : ViewModelBase
                     _ => RankingType.ExamRanking
                 };
 
-                RankingResponseDto? response = await _rankingService.GetRankingByTypeAsync(rankingType, 1, 50);
+                // 获取试卷筛选ID（null表示全部试卷）
+                int? examId = SelectedExamFilter?.ExamId;
+
+                RankingResponseDto? response = await _rankingService.GetRankingByTypeAsync(rankingType, examId, 1, 50);
 
                 if (response != null && response.Entries.Any())
                 {
@@ -217,6 +275,76 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 异步刷新排行榜
+    /// </summary>
+    public async Task RefreshLeaderboardAsync()
+    {
+        try
+        {
+            _logger?.LogInformation("开始异步刷新排行榜数据");
+
+            // 使用Task.Run来避免阻塞UI线程
+            await Task.Run(() => LoadLeaderboardData());
+
+            _logger?.LogInformation("异步刷新排行榜数据完成");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "异步刷新排行榜数据时发生异常");
+        }
+    }
+
+    /// <summary>
+    /// 异步加载试卷筛选列表
+    /// </summary>
+    private async Task LoadExamFiltersAsync(string rankingTypeId)
+    {
+        try
+        {
+            _logger?.LogInformation("开始加载试卷筛选列表，排行榜类型: {RankingTypeId}", rankingTypeId);
+
+            // 保存当前选中的筛选项
+            ExamFilterItem? currentFilter = SelectedExamFilter;
+
+            // 清空现有筛选列表
+            ExamFilters.Clear();
+
+            // 添加"全部试卷"选项
+            ExamFilters.Add(new ExamFilterItem
+            {
+                ExamId = null,
+                ExamName = "全部试卷",
+                DisplayName = "全部试卷"
+            });
+
+            // 根据排行榜类型加载对应的试卷列表
+            // 这里暂时使用模拟数据，实际应该调用相应的服务获取试卷列表
+            await Task.Run(() =>
+            {
+                for (int i = 1; i <= 10; i++)
+                {
+                    ExamFilters.Add(new ExamFilterItem
+                    {
+                        ExamId = i,
+                        ExamName = $"试卷{i:D2}",
+                        DisplayName = $"试卷{i:D2}"
+                    });
+                }
+            });
+
+            // 恢复之前的选择，如果不存在则选择"全部试卷"
+            SelectedExamFilter = ExamFilters.FirstOrDefault(f => f.ExamId == currentFilter?.ExamId)
+                               ?? ExamFilters.FirstOrDefault();
+
+            _logger?.LogInformation("试卷筛选列表加载完成，共 {Count} 个选项", ExamFilters.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "加载试卷筛选列表时发生异常");
+        }
+    }
+
+    /// <summary>
     /// 切换排行榜类型
     /// </summary>
     private void SwitchLeaderboardType(LeaderboardTypeItem? leaderboardType)
@@ -227,6 +355,47 @@ public class LeaderboardViewModel : ViewModelBase
         }
 
         SelectedLeaderboardType = leaderboardType;
+        LoadLeaderboardData();
+    }
+
+    /// <summary>
+    /// 切换试卷筛选
+    /// </summary>
+    private void SwitchExamFilter(ExamFilterItem? examFilter)
+    {
+        if (examFilter == null)
+        {
+            return;
+        }
+
+        SelectedExamFilter = examFilter;
+        LoadLeaderboardData();
+    }
+
+    /// <summary>
+    /// 排行榜类型变化处理
+    /// </summary>
+    private void OnLeaderboardTypeChanged(LeaderboardTypeItem leaderboardType)
+    {
+        // 更新试卷筛选器的显示状态
+        ShowExamFilter = leaderboardType.Id != "mock-exam-ranking";
+
+        // 如果是模拟考试排行榜，重置筛选器为"全部试卷"
+        if (!ShowExamFilter)
+        {
+            SelectedExamFilter = ExamFilters.FirstOrDefault();
+        }
+
+        // 加载对应类型的试卷列表
+        _ = LoadExamFiltersAsync(leaderboardType.Id);
+    }
+
+    /// <summary>
+    /// 试卷筛选变化处理
+    /// </summary>
+    private void OnExamFilterChanged(ExamFilterItem examFilter)
+    {
+        // 当筛选条件变化时，重新加载排行榜数据
         LoadLeaderboardData();
     }
 
@@ -343,4 +512,25 @@ public class LeaderboardEntry
     /// 完成日期
     /// </summary>
     public DateTime CompletionDate { get; set; }
+}
+
+/// <summary>
+/// 试卷筛选项
+/// </summary>
+public class ExamFilterItem
+{
+    /// <summary>
+    /// 试卷ID（null表示"全部试卷"）
+    /// </summary>
+    public int? ExamId { get; set; }
+
+    /// <summary>
+    /// 试卷名称
+    /// </summary>
+    public string ExamName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 显示名称
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
 }

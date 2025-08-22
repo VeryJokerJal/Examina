@@ -111,6 +111,9 @@ public class MainViewModel : ViewModelBase, IDisposable
         // 监听概览页面刷新请求事件
         MockExamViewModel.OverviewPageRefreshRequested += OnOverviewPageRefreshRequested;
 
+        // 监听排行榜页面刷新请求事件
+        MockExamViewModel.LeaderboardPageRefreshRequested += OnLeaderboardPageRefreshRequested;
+
         // 监听导航项选择变化
         _ = this.WhenAnyValue(x => x.SelectedNavigationItem)
             .Where(item => item != null)
@@ -385,6 +388,34 @@ public class MainViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 处理概览页面刷新请求异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 排行榜页面刷新请求事件处理
+    /// </summary>
+    /// <param name="sender">事件发送者</param>
+    /// <param name="e">事件参数</param>
+    private async void OnLeaderboardPageRefreshRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("MainViewModel: 收到排行榜页面刷新请求");
+
+            // 如果当前页面是排行榜页面，刷新数据
+            if (CurrentPageViewModel is LeaderboardViewModel leaderboardViewModel)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面是排行榜页面，开始刷新排行榜数据");
+                await leaderboardViewModel.RefreshLeaderboardAsync();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面不是排行榜页面，跳过刷新");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 处理排行榜页面刷新请求异常: {ex.Message}");
         }
     }
 
