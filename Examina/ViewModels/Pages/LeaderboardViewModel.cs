@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Prism.Commands;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Examina.Services;
 using Examina.Models.Ranking;
