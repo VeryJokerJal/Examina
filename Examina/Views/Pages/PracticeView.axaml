@@ -98,8 +98,8 @@
                                         </Button>
 
                                         <!--  状态指示器  -->
-                                        <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" IsVisible="{Binding IsEnabled}" Text="✓ 可用" />
-                                        <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" IsVisible="{Binding !IsEnabled}" Text="⚠ 暂不可用" />
+                                        <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" IsVisible="{Binding IsEnabled}" Text="可用" />
+                                        <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseLowBrush}" IsVisible="{Binding !IsEnabled}" Text="暂不可用" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
