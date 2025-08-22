@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using ExamLab.Services;
 using ReactiveUI;
@@ -50,24 +48,9 @@ public class SpecializedExam : ReactiveObject
     public ObservableCollection<ExamModule> Modules { get; set; } = [];
 
     /// <summary>
-    /// 构造函数
+    /// 试卷总分
     /// </summary>
-    public SpecializedExam()
-    {
-        // 监听模块集合变化
-        Modules.CollectionChanged += OnModulesCollectionChanged;
-
-        // 为现有的模块添加监听（如果有的话）
-        foreach (ExamModule module in Modules)
-        {
-            module.PropertyChanged += OnModulePropertyChanged;
-        }
-    }
-
-    /// <summary>
-    /// 试卷总分（基于所有模块中题目的分数总和自动计算）
-    /// </summary>
-    public double TotalScore => Modules.Sum(m => m.TotalScore);
+    [Reactive] public int TotalScore { get; set; } = 100;
 
     /// <summary>
     /// 考试时长（分钟）
@@ -105,58 +88,6 @@ public class SpecializedExam : ReactiveObject
     public int TotalOperationPointCount => Modules.Sum(m => m.Questions.Sum(q => q.OperationPoints.Count));
 
     /// <summary>
-    /// 模块集合变化事件处理
-    /// </summary>
-    /// <param name="sender">发送者</param>
-    /// <param name="e">事件参数</param>
-    private void OnModulesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        // 通知总分变化
-        this.RaisePropertyChanged(nameof(TotalScore));
-        this.RaisePropertyChanged(nameof(TotalQuestionCount));
-        this.RaisePropertyChanged(nameof(TotalOperationPointCount));
-
-        // 为新添加的模块添加属性变化监听
-        if (e.NewItems != null)
-        {
-            foreach (ExamModule module in e.NewItems.Cast<ExamModule>())
-            {
-                module.PropertyChanged += OnModulePropertyChanged;
-            }
-        }
-
-        // 移除已删除模块的监听
-        if (e.OldItems != null)
-        {
-            foreach (ExamModule module in e.OldItems.Cast<ExamModule>())
-            {
-                module.PropertyChanged -= OnModulePropertyChanged;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 模块属性变化事件处理
-    /// </summary>
-    /// <param name="sender">发送者</param>
-    /// <param name="e">事件参数</param>
-    private void OnModulePropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(ExamModule.TotalScore))
-        {
-            this.RaisePropertyChanged(nameof(TotalScore));
-        }
-        else if (e.PropertyName == nameof(ExamModule.QuestionCount))
-        {
-            this.RaisePropertyChanged(nameof(TotalQuestionCount));
-        }
-        else if (e.PropertyName == nameof(ExamModule.OperationPointCount))
-        {
-            this.RaisePropertyChanged(nameof(TotalOperationPointCount));
-        }
-    }
-
-    /// <summary>
     /// 获取模块类型的显示名称
     /// </summary>
     public string ModuleTypeName => ModuleType switch
@@ -182,7 +113,7 @@ public class SpecializedExam : ReactiveObject
                 Name = ModuleTypeName,
                 Type = ModuleType,
                 Description = GetDefaultModuleDescription(),
-                Score = 100, // 默认模块分数，实际总分将基于题目分数计算
+                Score = TotalScore,
                 Order = 1,
                 IsEnabled = true
             };
@@ -245,7 +176,7 @@ public class SpecializedExam : ReactiveObject
             Name = newName ?? $"{Name} - 副本",
             Description = Description,
             ModuleType = ModuleType,
-            // TotalScore 现在是计算属性，会自动基于模块计算
+            TotalScore = TotalScore,
             Duration = Duration,
             DifficultyLevel = DifficultyLevel,
             RandomizeQuestions = RandomizeQuestions,

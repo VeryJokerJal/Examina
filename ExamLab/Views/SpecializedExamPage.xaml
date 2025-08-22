@@ -62,23 +62,6 @@
 
                                     <!--  试卷描述  -->
                                     <TextBlock Margin="0,4,0,0" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Description}" TextTrimming="CharacterEllipsis" />
-
-                                    <!--  试卷统计信息  -->
-                                    <StackPanel Margin="0,4,0,0" Orientation="Horizontal" Spacing="12">
-                                        <TextBlock FontSize="11" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
-                                            <Run Text="总分: " />
-                                            <Run Text="{Binding TotalScore}" />
-                                        </TextBlock>
-                                        <TextBlock FontSize="11" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
-                                            <Run Text="题目: " />
-                                            <Run Text="{Binding TotalQuestionCount}" />
-                                        </TextBlock>
-                                        <TextBlock FontSize="11" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}">
-                                            <Run Text="时长: " />
-                                            <Run Text="{Binding Duration}" />
-                                            <Run Text="分钟" />
-                                        </TextBlock>
-                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
