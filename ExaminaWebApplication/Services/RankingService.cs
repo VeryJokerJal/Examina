@@ -147,7 +147,16 @@ public class RankingService
 
         // 获取总数
         int totalCount = await baseQuery.CountAsync();
-        _logger.LogInformation("模拟考试排行榜查询，总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
+
+        // 添加详细的诊断日志
+        int totalMockExamCompletions = await _context.MockExamCompletions.CountAsync();
+        int completedRecords = await _context.MockExamCompletions.CountAsync(mec => mec.Status == MockExamCompletionStatus.Completed);
+        int activeRecords = await _context.MockExamCompletions.CountAsync(mec => mec.IsActive);
+        int recordsWithScore = await _context.MockExamCompletions.CountAsync(mec => mec.Score.HasValue);
+        int recordsWithCompletedAt = await _context.MockExamCompletions.CountAsync(mec => mec.CompletedAt.HasValue);
+
+        _logger.LogInformation("模拟考试排行榜查询诊断 - 总记录: {Total}, 已完成: {Completed}, 活跃: {Active}, 有分数: {WithScore}, 有完成时间: {WithCompletedAt}, 符合条件: {Qualified}, 试卷筛选: {ExamId}",
+            totalMockExamCompletions, completedRecords, activeRecords, recordsWithScore, recordsWithCompletedAt, totalCount, query.ExamId);
 
         // 排序并分页
         List<MockExamCompletion> completions = await baseQuery
@@ -212,7 +221,16 @@ public class RankingService
 
         // 获取总数
         int totalCount = await baseQuery.CountAsync();
-        _logger.LogInformation("综合实训排行榜查询，总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
+
+        // 添加详细的诊断日志
+        int totalTrainingCompletions = await _context.ComprehensiveTrainingCompletions.CountAsync();
+        int completedRecords = await _context.ComprehensiveTrainingCompletions.CountAsync(ctc => ctc.Status == ComprehensiveTrainingCompletionStatus.Completed);
+        int activeRecords = await _context.ComprehensiveTrainingCompletions.CountAsync(ctc => ctc.IsActive);
+        int recordsWithScore = await _context.ComprehensiveTrainingCompletions.CountAsync(ctc => ctc.Score.HasValue);
+        int recordsWithCompletedAt = await _context.ComprehensiveTrainingCompletions.CountAsync(ctc => ctc.CompletedAt.HasValue);
+
+        _logger.LogInformation("综合实训排行榜查询诊断 - 总记录: {Total}, 已完成: {Completed}, 活跃: {Active}, 有分数: {WithScore}, 有完成时间: {WithCompletedAt}, 符合条件: {Qualified}, 试卷筛选: {ExamId}",
+            totalTrainingCompletions, completedRecords, activeRecords, recordsWithScore, recordsWithCompletedAt, totalCount, query.ExamId);
 
         // 排序并分页
         List<ComprehensiveTrainingCompletion> completions = await baseQuery

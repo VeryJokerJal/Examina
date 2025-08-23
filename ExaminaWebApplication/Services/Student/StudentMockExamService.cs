@@ -458,14 +458,17 @@ public class StudentMockExamService : IStudentMockExamService
                     Status = MockExamCompletionStatus.Completed,
                     StartedAt = mockExam.StartedAt ?? now,
                     CompletedAt = now,
+                    Score = 0, // 设置默认分数，确保排行榜查询不会过滤掉这条记录
+                    MaxScore = 100, // 设置默认最大分数
                     DurationSeconds = durationSeconds, // 设置用时（秒）
+                    Notes = "基本提交（无BenchSuite评分）",
                     CreatedAt = now,
                     UpdatedAt = now,
                     IsActive = true
                 };
 
                 _context.MockExamCompletions.Add(newCompletion);
-                _logger.LogInformation("创建基本的模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}秒",
+                _logger.LogInformation("创建基本的模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}秒, 默认分数: 0/100",
                     studentUserId, mockExamId, durationSeconds);
             }
             else
@@ -476,8 +479,16 @@ public class StudentMockExamService : IStudentMockExamService
                 existingCompletion.DurationSeconds = durationSeconds; // 设置用时（秒）
                 existingCompletion.UpdatedAt = now;
 
-                _logger.LogInformation("更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}秒",
-                    studentUserId, mockExamId, durationSeconds);
+                // 如果没有分数，设置默认分数
+                if (!existingCompletion.Score.HasValue)
+                {
+                    existingCompletion.Score = 0;
+                    existingCompletion.MaxScore = 100;
+                    existingCompletion.Notes = "基本提交（无BenchSuite评分）";
+                }
+
+                _logger.LogInformation("更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}秒, 分数: {Score}/{MaxScore}",
+                    studentUserId, mockExamId, durationSeconds, existingCompletion.Score, existingCompletion.MaxScore);
             }
 
             // 更新模拟考试状态

@@ -421,19 +421,20 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 // 更新现有记录
                 existingRecord.Status = ComprehensiveTrainingCompletionStatus.Completed;
                 existingRecord.CompletedAt = now;
-                existingRecord.Score = score;
-                existingRecord.MaxScore = maxScore;
+                existingRecord.Score = score ?? 0; // 如果没有分数，设置默认分数
+                existingRecord.MaxScore = maxScore ?? 100; // 如果没有最大分数，设置默认值
                 existingRecord.DurationSeconds = durationSeconds;
-                existingRecord.Notes = notes;
+                existingRecord.Notes = notes ?? "基本提交（无BenchSuite评分）";
                 existingRecord.UpdatedAt = now;
 
                 // 计算完成百分比
-                if (score.HasValue && maxScore.HasValue && maxScore.Value > 0)
+                if (existingRecord.Score.HasValue && existingRecord.MaxScore.HasValue && existingRecord.MaxScore.Value > 0)
                 {
-                    existingRecord.CompletionPercentage = Math.Round(score.Value / maxScore.Value * 100, 2);
+                    existingRecord.CompletionPercentage = Math.Round(existingRecord.Score.Value / existingRecord.MaxScore.Value * 100, 2);
                 }
 
-                _logger.LogInformation("更新综合训练完成记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+                _logger.LogInformation("更新综合训练完成记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 分数: {Score}/{MaxScore}",
+                    studentUserId, trainingId, existingRecord.Score, existingRecord.MaxScore);
             }
             else
             {
@@ -445,23 +446,24 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                     Status = ComprehensiveTrainingCompletionStatus.Completed,
                     StartedAt = now, // 假设开始时间就是完成时间（如果没有先标记为开始）
                     CompletedAt = now,
-                    Score = score,
-                    MaxScore = maxScore,
+                    Score = score ?? 0, // 如果没有分数，设置默认分数
+                    MaxScore = maxScore ?? 100, // 如果没有最大分数，设置默认值
                     DurationSeconds = durationSeconds,
-                    Notes = notes,
+                    Notes = notes ?? "基本提交（无BenchSuite评分）",
                     CreatedAt = now,
                     UpdatedAt = now,
                     IsActive = true
                 };
 
                 // 计算完成百分比
-                if (score.HasValue && maxScore.HasValue && maxScore.Value > 0)
+                if (newRecord.Score.HasValue && newRecord.MaxScore.HasValue && newRecord.MaxScore.Value > 0)
                 {
-                    newRecord.CompletionPercentage = Math.Round(score.Value / maxScore.Value * 100, 2);
+                    newRecord.CompletionPercentage = Math.Round(newRecord.Score.Value / newRecord.MaxScore.Value * 100, 2);
                 }
 
                 _ = _context.ComprehensiveTrainingCompletions.Add(newRecord);
-                _logger.LogInformation("创建新的综合训练完成记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+                _logger.LogInformation("创建新的综合训练完成记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 分数: {Score}/{MaxScore}",
+                    studentUserId, trainingId, newRecord.Score, newRecord.MaxScore);
             }
 
             _ = await _context.SaveChangesAsync();
