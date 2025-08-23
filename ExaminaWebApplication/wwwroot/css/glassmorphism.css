@@ -1898,6 +1898,13 @@ body::before {
     border: 1px solid rgba(13, 202, 240, 0.5);
 }
 
+/* Glass Button Sizes */
+.glass-btn-sm {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+
 /* Glass Forms */
 .glass-form {
     background: var(--glass-primary);

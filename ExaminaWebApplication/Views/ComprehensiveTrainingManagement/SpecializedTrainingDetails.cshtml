@@ -173,7 +173,7 @@
                     @foreach (var module in Model.Modules.OrderBy(m => m.Order))
                     {
                         <div class="col-md-6 mb-3">
-                            <div class="card h-100">
+                            <div class="glass-card h-100">
                                 <div class="card-body">
                                     <h6 class="card-title">
                                         <i class="bi bi-puzzle-fill text-primary me-2"></i>@module.Name
@@ -205,7 +205,7 @@
                 <i class="bi bi-question-circle me-2"></i>题目列表
             </h5>
             <div>
-                <input type="text" class="form-control form-control-sm" placeholder="搜索题目..." id="searchQuestions" style="width: 200px;">
+                <input type="text" class="glass-input form-control-sm" placeholder="搜索题目..." id="searchQuestions" style="width: 200px;">
             </div>
         </div>
         <div class="card-body">
@@ -239,7 +239,7 @@
                                             @if (!string.IsNullOrEmpty(question.StandardAnswer))
                                             {
                                                 <h6>标准答案:</h6>
-                                                <div class="alert alert-light">
+                                                <div class="glass-card p-3">
                                                     <pre>@question.StandardAnswer</pre>
                                                 </div>
                                             }
@@ -278,7 +278,7 @@
                                         <hr>
                                         <h6>操作点列表:</h6>
                                         <div class="table-responsive">
-                                            <table class="table table-sm">
+                                            <table class="glass-table table-sm">
                                                 <thead>
                                                     <tr>
                                                         <th>名称</th>
@@ -351,7 +351,7 @@
 <!-- 删除确认模态框 -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content glass-modal">
             <div class="modal-header">
                 <h5 class="modal-title">确认删除</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -361,8 +361,8 @@
                 <p class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>此操作不可撤销！</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+                <button type="button" class="glass-btn" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="glass-btn glass-btn-danger" id="confirmDeleteBtn">确认删除</button>
             </div>
         </div>
     </div>
@@ -445,10 +445,10 @@ function displayAssociatedFiles(files) {
                 </div>
             </div>
             <div class="file-actions">
-                <a href="${file.downloadUrl}" class="btn btn-sm btn-outline-primary me-2" download>
+                <a href="${file.downloadUrl}" class="glass-btn glass-btn-sm glass-btn-primary me-2" download>
                     <i class="bi bi-download"></i> 下载
                 </a>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFileAssociation(${file.fileId})">
+                <button type="button" class="glass-btn glass-btn-sm glass-btn-danger" onclick="removeFileAssociation(${file.fileId})">
                     <i class="bi bi-unlink"></i> 取消关联
                 </button>
             </div>
