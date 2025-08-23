@@ -121,11 +121,12 @@ public class RankingService
     /// </summary>
     private async Task<RankingResponseDto> GetMockExamRankingAsync(RankingQueryDto query)
     {
-        IQueryable<MockExamCompletion> baseQuery = _context.MockExamCompletions
+        // 构建基础查询，包含去重逻辑
+        var baseQuery = _context.MockExamCompletions
             .Include(mec => mec.Student)
             .Include(mec => mec.MockExam)
-            .Where(mec => mec.Status == MockExamCompletionStatus.Completed && 
-                         mec.IsActive && 
+            .Where(mec => mec.Status == MockExamCompletionStatus.Completed &&
+                         mec.IsActive &&
                          mec.Score.HasValue &&
                          mec.CompletedAt.HasValue);
 
@@ -145,8 +146,18 @@ public class RankingService
             baseQuery = baseQuery.Where(mec => mec.MockExamId == query.ExamId.Value);
         }
 
-        // 获取总数
-        int totalCount = await baseQuery.CountAsync();
+        // 实现去重逻辑：每个学生每个模拟考试只保留最佳记录
+        // 使用窗口函数选择每个学生每个模拟考试的最佳记录（分数最高，用时最短）
+        var deduplicatedQuery = baseQuery
+            .GroupBy(mec => new { mec.StudentUserId, mec.MockExamId })
+            .Select(g => g
+                .OrderByDescending(mec => mec.Score)
+                .ThenBy(mec => mec.DurationSeconds)
+                .ThenBy(mec => mec.CompletedAt)
+                .First());
+
+        // 获取去重后的总数
+        int totalCount = await deduplicatedQuery.CountAsync();
 
         // 添加详细的诊断日志
         int totalMockExamCompletions = await _context.MockExamCompletions.CountAsync();
@@ -155,11 +166,11 @@ public class RankingService
         int recordsWithScore = await _context.MockExamCompletions.CountAsync(mec => mec.Score.HasValue);
         int recordsWithCompletedAt = await _context.MockExamCompletions.CountAsync(mec => mec.CompletedAt.HasValue);
 
-        _logger.LogInformation("模拟考试排行榜查询诊断 - 总记录: {Total}, 已完成: {Completed}, 活跃: {Active}, 有分数: {WithScore}, 有完成时间: {WithCompletedAt}, 符合条件: {Qualified}, 试卷筛选: {ExamId}",
+        _logger.LogInformation("模拟考试排行榜查询诊断 - 总记录: {Total}, 已完成: {Completed}, 活跃: {Active}, 有分数: {WithScore}, 有完成时间: {WithCompletedAt}, 去重后符合条件: {Qualified}, 试卷筛选: {ExamId}",
             totalMockExamCompletions, completedRecords, activeRecords, recordsWithScore, recordsWithCompletedAt, totalCount, query.ExamId);
 
-        // 排序并分页
-        List<MockExamCompletion> completions = await baseQuery
+        // 对去重后的结果进行排序并分页
+        List<MockExamCompletion> completions = await deduplicatedQuery
             .OrderByDescending(mec => mec.Score)
             .ThenBy(mec => mec.DurationSeconds)
             .ThenBy(mec => mec.CompletedAt)

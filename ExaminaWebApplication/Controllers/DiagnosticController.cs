@@ -311,4 +311,133 @@ public class DiagnosticController : ControllerBase
             return StatusCode(500, new { message = "创建失败", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// 检查重复的模拟考试完成记录
+    /// </summary>
+    [HttpGet("duplicate-mock-exam-completions")]
+    public async Task<ActionResult> GetDuplicateMockExamCompletions()
+    {
+        try
+        {
+            var duplicates = await _context.MockExamCompletions
+                .GroupBy(mec => new { mec.StudentUserId, mec.MockExamId })
+                .Where(g => g.Count() > 1)
+                .Select(g => new
+                {
+                    StudentUserId = g.Key.StudentUserId,
+                    MockExamId = g.Key.MockExamId,
+                    Count = g.Count(),
+                    Records = g.Select(mec => new
+                    {
+                        mec.Id,
+                        mec.Status,
+                        mec.Score,
+                        mec.DurationSeconds,
+                        mec.CompletedAt,
+                        mec.CreatedAt,
+                        mec.IsActive
+                    }).OrderByDescending(r => r.Score).ThenBy(r => r.DurationSeconds)
+                })
+                .ToListAsync();
+
+            var summary = new
+            {
+                TotalDuplicateGroups = duplicates.Count,
+                TotalDuplicateRecords = duplicates.Sum(d => d.Count),
+                DuplicateGroups = duplicates
+            };
+
+            return Ok(summary);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查重复模拟考试完成记录失败");
+            return StatusCode(500, new { message = "检查失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 清理重复的模拟考试完成记录
+    /// </summary>
+    [HttpPost("cleanup-duplicate-mock-exam-completions")]
+    public async Task<ActionResult> CleanupDuplicateMockExamCompletions([FromQuery] bool dryRun = true)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var duplicateGroups = await _context.MockExamCompletions
+                .GroupBy(mec => new { mec.StudentUserId, mec.MockExamId })
+                .Where(g => g.Count() > 1)
+                .ToListAsync();
+
+            var cleanupResults = new List<object>();
+            int totalRecordsToDelete = 0;
+
+            foreach (var group in duplicateGroups)
+            {
+                var records = group.OrderByDescending(mec => mec.Score)
+                                  .ThenBy(mec => mec.DurationSeconds)
+                                  .ThenBy(mec => mec.CompletedAt)
+                                  .ToList();
+
+                var bestRecord = records.First();
+                var recordsToDelete = records.Skip(1).ToList();
+
+                cleanupResults.Add(new
+                {
+                    StudentUserId = group.Key.StudentUserId,
+                    MockExamId = group.Key.MockExamId,
+                    TotalRecords = records.Count,
+                    BestRecord = new
+                    {
+                        bestRecord.Id,
+                        bestRecord.Score,
+                        bestRecord.DurationSeconds,
+                        bestRecord.CompletedAt
+                    },
+                    RecordsToDelete = recordsToDelete.Select(r => new
+                    {
+                        r.Id,
+                        r.Score,
+                        r.DurationSeconds,
+                        r.CompletedAt
+                    })
+                });
+
+                totalRecordsToDelete += recordsToDelete.Count;
+
+                if (!dryRun)
+                {
+                    _context.MockExamCompletions.RemoveRange(recordsToDelete);
+                }
+            }
+
+            if (!dryRun)
+            {
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                _logger.LogInformation("成功清理重复的模拟考试完成记录，删除记录数: {Count}", totalRecordsToDelete);
+            }
+            else
+            {
+                await transaction.RollbackAsync();
+            }
+
+            return Ok(new
+            {
+                DryRun = dryRun,
+                TotalDuplicateGroups = duplicateGroups.Count,
+                TotalRecordsToDelete = totalRecordsToDelete,
+                CleanupResults = cleanupResults,
+                Message = dryRun ? "预览模式：未实际删除数据" : $"成功清理 {totalRecordsToDelete} 条重复记录"
+            });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "清理重复模拟考试完成记录失败");
+            return StatusCode(500, new { message = "清理失败", error = ex.Message });
+        }
+    }
 }

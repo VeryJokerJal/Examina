@@ -309,16 +309,31 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private void OnLeaderboardTypeChanged(LeaderboardTypeItem leaderboardType)
     {
+        _logger?.LogInformation("排行榜类型变化: {Type}", leaderboardType.Id);
+
         // 更新试卷筛选器的显示状态
         ShowExamFilter = leaderboardType.Id != "mock-exam-ranking";
 
         // 如果是模拟考试排行榜，重置筛选器为"全部试卷"
         if (!ShowExamFilter)
         {
+            // 临时禁用筛选器变化监听，避免重复加载数据
+            var currentFilter = SelectedExamFilter;
             SelectedExamFilter = ExamFilters.FirstOrDefault();
+
+            // 如果筛选器没有实际变化，手动触发数据加载
+            if (currentFilter == SelectedExamFilter)
+            {
+                LoadLeaderboardData();
+            }
+        }
+        else
+        {
+            // 对于其他类型，直接加载数据
+            LoadLeaderboardData();
         }
 
-        // 加载对应类型的试卷列表
+        // 加载对应类型的试卷列表（异步，不阻塞当前操作）
         _ = LoadExamFiltersAsync(leaderboardType.Id);
     }
 
@@ -327,8 +342,14 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private void OnExamFilterChanged(ExamFilterItem examFilter)
     {
+        _logger?.LogInformation("试卷筛选变化: {Filter}", examFilter?.DisplayName ?? "null");
+
         // 当筛选条件变化时，重新加载排行榜数据
-        LoadLeaderboardData();
+        // 但要避免在初始化过程中重复加载
+        if (!IsLoading)
+        {
+            LoadLeaderboardData();
+        }
     }
 
     /// <summary>

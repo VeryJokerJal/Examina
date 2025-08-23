@@ -391,6 +391,8 @@ public class StudentMockExamService : IStudentMockExamService
     /// </summary>
     public async Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId)
     {
+        // 使用事务确保数据一致性，防止并发问题
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             _logger.LogInformation("开始提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
@@ -437,9 +439,10 @@ public class StudentMockExamService : IStudentMockExamService
 
             DateTime now = DateTime.Now; // 使用本地时间
 
-            // 创建基本的完成记录（如果不存在）
+            // 使用锁定查询防止并发问题，创建或更新完成记录
             MockExamCompletion? existingCompletion = await _context.MockExamCompletions
-                .FirstOrDefaultAsync(mec => mec.MockExamId == mockExamId && mec.StudentUserId == studentUserId);
+                .Where(mec => mec.MockExamId == mockExamId && mec.StudentUserId == studentUserId)
+                .FirstOrDefaultAsync();
 
             // 计算用时（秒）
             int? durationSeconds = null;
@@ -473,28 +476,63 @@ public class StudentMockExamService : IStudentMockExamService
             }
             else
             {
-                // 更新现有记录状态
-                existingCompletion.Status = MockExamCompletionStatus.Completed;
-                existingCompletion.CompletedAt = now;
-                existingCompletion.DurationSeconds = durationSeconds; // 设置用时（秒）
-                existingCompletion.UpdatedAt = now;
+                // 智能合并逻辑：保留最佳记录
+                bool shouldUpdate = false;
+                string updateReason = "";
 
-                // 如果没有分数，设置默认分数
-                if (!existingCompletion.Score.HasValue)
+                // 如果现有记录未完成，直接更新
+                if (existingCompletion.Status != MockExamCompletionStatus.Completed)
                 {
-                    existingCompletion.Score = 0;
-                    existingCompletion.MaxScore = 100;
-                    existingCompletion.Notes = "基本提交（无BenchSuite评分）";
+                    shouldUpdate = true;
+                    updateReason = "状态更新为已完成";
+                }
+                // 如果现有记录已完成，比较用时（保留最短用时）
+                else if (existingCompletion.DurationSeconds.HasValue && durationSeconds < existingCompletion.DurationSeconds.Value)
+                {
+                    shouldUpdate = true;
+                    updateReason = $"更新为更短用时（{durationSeconds}秒 < {existingCompletion.DurationSeconds}秒）";
+                }
+                // 如果现有记录没有用时，更新用时
+                else if (!existingCompletion.DurationSeconds.HasValue)
+                {
+                    shouldUpdate = true;
+                    updateReason = "添加用时信息";
                 }
 
-                _logger.LogInformation("更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}秒, 分数: {Score}/{MaxScore}",
-                    studentUserId, mockExamId, durationSeconds, existingCompletion.Score, existingCompletion.MaxScore);
+                if (shouldUpdate)
+                {
+                    existingCompletion.Status = MockExamCompletionStatus.Completed;
+                    existingCompletion.CompletedAt = now;
+                    existingCompletion.DurationSeconds = durationSeconds;
+                    existingCompletion.UpdatedAt = now;
+
+                    // 如果没有分数，设置默认分数
+                    if (!existingCompletion.Score.HasValue)
+                    {
+                        existingCompletion.Score = 0;
+                        existingCompletion.MaxScore = 100;
+                        existingCompletion.Notes = "基本提交（无BenchSuite评分）";
+                    }
+
+                    _logger.LogInformation("智能更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 原因: {Reason}, 用时: {Duration}秒, 分数: {Score}/{MaxScore}",
+                        studentUserId, mockExamId, updateReason, durationSeconds, existingCompletion.Score, existingCompletion.MaxScore);
+                }
+                else
+                {
+                    _logger.LogInformation("保留现有模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 现有用时: {ExistingDuration}秒, 新用时: {NewDuration}秒",
+                        studentUserId, mockExamId, existingCompletion.DurationSeconds, durationSeconds);
+                }
             }
 
             // 更新模拟考试状态
             mockExam.Status = "Completed";
             mockExam.CompletedAt = now;
+
+            // 保存所有更改
             await _context.SaveChangesAsync();
+
+            // 提交事务
+            await transaction.CommitAsync();
 
             // 计算实际用时
             int? actualDurationMinutes = null;
@@ -544,6 +582,9 @@ public class StudentMockExamService : IStudentMockExamService
         }
         catch (Exception ex)
         {
+            // 回滚事务
+            await transaction.RollbackAsync();
+
             _logger.LogError(ex, "提交模拟考试异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
                 mockExamId, studentUserId);
 
@@ -562,6 +603,8 @@ public class StudentMockExamService : IStudentMockExamService
     /// </summary>
     public async Task<bool> SubmitMockExamScoreAsync(int mockExamId, int studentUserId, SubmitMockExamScoreRequestDto scoreRequest)
     {
+        // 使用事务确保数据一致性
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             _logger.LogInformation("开始提交模拟考试成绩，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
@@ -601,24 +644,65 @@ public class StudentMockExamService : IStudentMockExamService
 
             if (existingCompletion != null)
             {
-                // 更新现有记录
-                existingCompletion.Status = MockExamCompletionStatus.Completed;
-                existingCompletion.CompletedAt = now;
-                existingCompletion.Score = scoreRequest.Score;
-                existingCompletion.MaxScore = scoreRequest.MaxScore;
-                existingCompletion.DurationSeconds = scoreRequest.DurationSeconds;
-                existingCompletion.Notes = scoreRequest.Notes;
-                existingCompletion.BenchSuiteScoringResult = scoreRequest.BenchSuiteScoringResult;
-                existingCompletion.UpdatedAt = now;
+                // 智能合并逻辑：保留最佳分数和最短用时
+                bool shouldUpdate = false;
+                string updateReason = "";
 
-                // 计算完成百分比
-                if (scoreRequest.Score.HasValue && scoreRequest.MaxScore.HasValue && scoreRequest.MaxScore.Value > 0)
+                // 如果现有记录未完成，直接更新
+                if (existingCompletion.Status != MockExamCompletionStatus.Completed)
                 {
-                    existingCompletion.CompletionPercentage = Math.Round((scoreRequest.Score.Value / scoreRequest.MaxScore.Value) * 100, 2);
+                    shouldUpdate = true;
+                    updateReason = "状态更新为已完成";
+                }
+                // 如果新分数更高，更新记录
+                else if (scoreRequest.Score.HasValue &&
+                        (!existingCompletion.Score.HasValue || scoreRequest.Score.Value > existingCompletion.Score.Value))
+                {
+                    shouldUpdate = true;
+                    updateReason = $"更新为更高分数（{scoreRequest.Score} > {existingCompletion.Score}）";
+                }
+                // 如果分数相同但用时更短，更新记录
+                else if (scoreRequest.Score.HasValue && existingCompletion.Score.HasValue &&
+                        scoreRequest.Score.Value == existingCompletion.Score.Value &&
+                        scoreRequest.DurationSeconds.HasValue && existingCompletion.DurationSeconds.HasValue &&
+                        scoreRequest.DurationSeconds.Value < existingCompletion.DurationSeconds.Value)
+                {
+                    shouldUpdate = true;
+                    updateReason = $"相同分数但更短用时（{scoreRequest.DurationSeconds}秒 < {existingCompletion.DurationSeconds}秒）";
+                }
+                // 如果现有记录没有BenchSuite评分结果，但新记录有，则更新
+                else if (string.IsNullOrEmpty(existingCompletion.BenchSuiteScoringResult) &&
+                        !string.IsNullOrEmpty(scoreRequest.BenchSuiteScoringResult))
+                {
+                    shouldUpdate = true;
+                    updateReason = "添加BenchSuite评分结果";
                 }
 
-                _logger.LogInformation("更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
-                    studentUserId, mockExamId);
+                if (shouldUpdate)
+                {
+                    existingCompletion.Status = MockExamCompletionStatus.Completed;
+                    existingCompletion.CompletedAt = now;
+                    existingCompletion.Score = scoreRequest.Score;
+                    existingCompletion.MaxScore = scoreRequest.MaxScore;
+                    existingCompletion.DurationSeconds = scoreRequest.DurationSeconds;
+                    existingCompletion.Notes = scoreRequest.Notes;
+                    existingCompletion.BenchSuiteScoringResult = scoreRequest.BenchSuiteScoringResult;
+                    existingCompletion.UpdatedAt = now;
+
+                    // 计算完成百分比
+                    if (scoreRequest.Score.HasValue && scoreRequest.MaxScore.HasValue && scoreRequest.MaxScore.Value > 0)
+                    {
+                        existingCompletion.CompletionPercentage = Math.Round((scoreRequest.Score.Value / scoreRequest.MaxScore.Value) * 100, 2);
+                    }
+
+                    _logger.LogInformation("智能更新模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 原因: {Reason}, 分数: {Score}/{MaxScore}",
+                        studentUserId, mockExamId, updateReason, scoreRequest.Score, scoreRequest.MaxScore);
+                }
+                else
+                {
+                    _logger.LogInformation("保留现有模拟考试完成记录，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 现有分数: {ExistingScore}, 新分数: {NewScore}",
+                        studentUserId, mockExamId, existingCompletion.Score, scoreRequest.Score);
+                }
             }
             else
             {
@@ -655,7 +739,11 @@ public class StudentMockExamService : IStudentMockExamService
             mockExam.Status = "Completed";
             mockExam.CompletedAt = now;
 
+            // 保存所有更改
             await _context.SaveChangesAsync();
+
+            // 提交事务
+            await transaction.CommitAsync();
 
             _logger.LogInformation("模拟考试成绩提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 得分: {Score}/{MaxScore}",
                 studentUserId, mockExamId, scoreRequest.Score, scoreRequest.MaxScore);
@@ -664,6 +752,9 @@ public class StudentMockExamService : IStudentMockExamService
         }
         catch (Exception ex)
         {
+            // 回滚事务
+            await transaction.RollbackAsync();
+
             _logger.LogError(ex, "提交模拟考试成绩异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
                 mockExamId, studentUserId);
             return false;
