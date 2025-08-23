@@ -4,6 +4,7 @@ using ExaminaWebApplication.Models.ImportedExam;
 using ExaminaWebApplication.Models.ImportedSpecializedTraining;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.MockExam;
+using ExaminaWebApplication.Models.FileUpload;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Data;
@@ -64,6 +65,12 @@ public class ApplicationDbContext : DbContext
 
     // 正式考试完成记录
     public DbSet<ExamCompletion> ExamCompletions { get; set; }
+
+    // 文件上传相关实体
+    public DbSet<UploadedFile> UploadedFiles { get; set; }
+    public DbSet<ExamFileAssociation> ExamFileAssociations { get; set; }
+    public DbSet<ComprehensiveTrainingFileAssociation> ComprehensiveTrainingFileAssociations { get; set; }
+    public DbSet<SpecializedTrainingFileAssociation> SpecializedTrainingFileAssociations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1051,6 +1058,108 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.ExamId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置UploadedFile实体
+        _ = modelBuilder.Entity<UploadedFile>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.StoredFileName).IsUnique();
+            _ = entity.HasIndex(e => e.FileHash);
+            _ = entity.HasIndex(e => e.UploadedBy);
+            _ = entity.HasIndex(e => e.UploadedAt);
+            _ = entity.HasIndex(e => e.IsDeleted);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Uploader)
+                  .WithMany()
+                  .HasForeignKey(e => e.UploadedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            _ = entity.HasOne(e => e.Deleter)
+                  .WithMany()
+                  .HasForeignKey(e => e.DeletedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置ExamFileAssociation实体
+        _ = modelBuilder.Entity<ExamFileAssociation>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置复合索引
+            _ = entity.HasIndex(e => new { e.ExamId, e.FileId }).IsUnique();
+            _ = entity.HasIndex(e => e.FileType);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Exam)
+                  .WithMany(e => e.FileAssociations)
+                  .HasForeignKey(e => e.ExamId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.File)
+                  .WithMany(f => f.ExamAssociations)
+                  .HasForeignKey(e => e.FileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置ComprehensiveTrainingFileAssociation实体
+        _ = modelBuilder.Entity<ComprehensiveTrainingFileAssociation>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置复合索引
+            _ = entity.HasIndex(e => new { e.ComprehensiveTrainingId, e.FileId }).IsUnique();
+            _ = entity.HasIndex(e => e.FileType);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.ComprehensiveTraining)
+                  .WithMany(ct => ct.FileAssociations)
+                  .HasForeignKey(e => e.ComprehensiveTrainingId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.File)
+                  .WithMany(f => f.ComprehensiveTrainingAssociations)
+                  .HasForeignKey(e => e.FileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置SpecializedTrainingFileAssociation实体
+        _ = modelBuilder.Entity<SpecializedTrainingFileAssociation>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置复合索引
+            _ = entity.HasIndex(e => new { e.SpecializedTrainingId, e.FileId }).IsUnique();
+            _ = entity.HasIndex(e => e.FileType);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.SpecializedTraining)
+                  .WithMany(st => st.FileAssociations)
+                  .HasForeignKey(e => e.SpecializedTrainingId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.File)
+                  .WithMany(f => f.SpecializedTrainingAssociations)
+                  .HasForeignKey(e => e.FileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

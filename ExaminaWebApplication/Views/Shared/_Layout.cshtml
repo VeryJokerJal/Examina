@@ -118,9 +118,12 @@
                             </ul>
                         </li>
 
-
-
-
+                        <!-- 文件管理菜单 -->
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="FileManagement" asp-action="Index">
+                                <i class="bi bi-files me-1"></i>文件管理
+                            </a>
+                        </li>
 
                         <!-- 组织管理菜单（管理员和教师） -->
                         @if (User.Identity.IsAuthenticated && (User.IsInRole("Administrator") || User.IsInRole("Teacher")))
@@ -286,6 +289,7 @@
     <script src="~/js/glassmorphism-select-native.js" asp-append-version="true"></script>
     <script src="~/js/glass-notifications.js" asp-append-version="true"></script>
     <script src="~/js/organization.js" asp-append-version="true"></script>
+    <script src="~/js/file-upload.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <!-- 全局脚本 -->

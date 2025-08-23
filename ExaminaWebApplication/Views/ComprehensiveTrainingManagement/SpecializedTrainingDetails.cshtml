@@ -313,6 +313,39 @@
             }
         </div>
     </div>
+
+    <!-- 文件管理 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-files me-2"></i>文件管理
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 文件上传组件 -->
+                    @{
+                        ViewData["ContainerId"] = "specialized-training-file-upload";
+                        ViewData["Multiple"] = true;
+                        ViewData["AutoUpload"] = false;
+                    }
+                    @await Html.PartialAsync("_FileUpload")
+
+                    <!-- 已关联的文件列表 -->
+                    <div id="associated-files-section" style="margin-top: 30px;">
+                        <h6><i class="bi bi-link-45deg me-2"></i>已关联的文件</h6>
+                        <div id="associated-files-list">
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-inbox display-4 mb-2"></i>
+                                <p>暂无关联文件</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- 删除确认模态框 -->
@@ -336,7 +369,164 @@
 </div>
 
 <script>
+// 文件上传完成后的回调
+window.onFilesUploaded = function(uploadedFiles, failedFiles) {
+    // 自动关联上传的文件到当前专项训练
+    uploadedFiles.forEach(file => {
+        associateFileToSpecializedTraining(file.fileId, 'Attachment');
+    });
+
+    // 刷新已关联文件列表
+    loadAssociatedFiles();
+};
+
+// 关联文件到专项训练
+function associateFileToSpecializedTraining(fileId, fileType = 'Attachment', purpose = '') {
+    const formData = new FormData();
+    formData.append('fileType', fileType);
+    if (purpose) {
+        formData.append('purpose', purpose);
+    }
+
+    fetch(`/api/fileupload/associate/specialized-training/@Model.Id/file/${fileId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            console.log('文件关联成功');
+        } else {
+            console.error('文件关联失败:', result.message);
+        }
+    })
+    .catch(error => {
+        console.error('文件关联过程中发生错误:', error);
+    });
+}
+
+// 加载已关联的文件列表
+function loadAssociatedFiles() {
+    fetch(`/api/fileupload/specialized-training/@Model.Id/files`)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                displayAssociatedFiles(result.data);
+            } else {
+                console.error('加载文件列表失败:', result.message);
+            }
+        })
+        .catch(error => {
+            console.error('加载文件列表过程中发生错误:', error);
+        });
+}
+
+// 显示已关联的文件列表
+function displayAssociatedFiles(files) {
+    const container = document.getElementById('associated-files-list');
+
+    if (files.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-3">
+                <i class="bi bi-inbox display-4 mb-2"></i>
+                <p>暂无关联文件</p>
+            </div>
+        `;
+        return;
+    }
+
+    const filesHtml = files.map(file => `
+        <div class="file-item d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+            <div class="file-info d-flex align-items-center">
+                <i class="bi ${getFileIcon(file.originalFileName)} me-3 text-primary" style="font-size: 1.5rem;"></i>
+                <div>
+                    <div class="fw-medium">${file.originalFileName}</div>
+                    <small class="text-muted">${formatFileSize(file.fileSize)} • ${new Date(file.uploadedAt).toLocaleString()}</small>
+                </div>
+            </div>
+            <div class="file-actions">
+                <a href="${file.downloadUrl}" class="btn btn-sm btn-outline-primary me-2" download>
+                    <i class="bi bi-download"></i> 下载
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFileAssociation(${file.fileId})">
+                    <i class="bi bi-unlink"></i> 取消关联
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = filesHtml;
+}
+
+// 取消文件关联
+function removeFileAssociation(fileId) {
+    if (!confirm('确定要取消此文件的关联吗？')) {
+        return;
+    }
+
+    fetch(`/api/fileupload/${fileId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            loadAssociatedFiles();
+            alert('文件关联已取消');
+        } else {
+            alert('取消关联失败: ' + result.message);
+        }
+    })
+    .catch(error => {
+        alert('取消关联过程中发生错误: ' + error.message);
+    });
+}
+
+// 获取文件图标
+function getFileIcon(fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    const iconMap = {
+        'pdf': 'bi-file-earmark-pdf',
+        'doc': 'bi-file-earmark-word',
+        'docx': 'bi-file-earmark-word',
+        'xls': 'bi-file-earmark-excel',
+        'xlsx': 'bi-file-earmark-excel',
+        'ppt': 'bi-file-earmark-ppt',
+        'pptx': 'bi-file-earmark-ppt',
+        'zip': 'bi-file-earmark-zip',
+        'rar': 'bi-file-earmark-zip',
+        '7z': 'bi-file-earmark-zip',
+        'jpg': 'bi-file-earmark-image',
+        'jpeg': 'bi-file-earmark-image',
+        'png': 'bi-file-earmark-image',
+        'gif': 'bi-file-earmark-image',
+        'bmp': 'bi-file-earmark-image',
+        'mp4': 'bi-file-earmark-play',
+        'avi': 'bi-file-earmark-play',
+        'mov': 'bi-file-earmark-play',
+        'wmv': 'bi-file-earmark-play',
+        'mp3': 'bi-file-earmark-music',
+        'wav': 'bi-file-earmark-music',
+        'wma': 'bi-file-earmark-music',
+        'txt': 'bi-file-earmark-text',
+        'rtf': 'bi-file-earmark-text',
+        'json': 'bi-file-earmark-code',
+        'xml': 'bi-file-earmark-code'
+    };
+    return iconMap[extension] || 'bi-file-earmark';
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // 页面加载完成后加载已关联的文件
+    loadAssociatedFiles();
     const searchInput = document.getElementById('searchQuestions');
     
     // 题目搜索功能

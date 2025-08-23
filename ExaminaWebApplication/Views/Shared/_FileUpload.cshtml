@@ -1,0 +1,168 @@
+@{
+    string containerId = ViewData["ContainerId"]?.ToString() ?? "file-upload-container";
+    string uploadUrl = ViewData["UploadUrl"]?.ToString() ?? "/api/fileupload/upload";
+    string multipleUploadUrl = ViewData["MultipleUploadUrl"]?.ToString() ?? "/api/fileupload/upload-multiple";
+    bool multiple = ViewData["Multiple"] as bool? ?? true;
+    bool autoUpload = ViewData["AutoUpload"] as bool? ?? false;
+    int maxFileSize = ViewData["MaxFileSize"] as int? ?? (100 * 1024 * 1024); // 100MB
+    int maxFileCount = ViewData["MaxFileCount"] as int? ?? 10;
+    string[] allowedExtensions = ViewData["AllowedExtensions"] as string[] ?? new[] { ".zip", ".rar", ".7z", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".rtf", ".json", ".xml", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".mp4", ".avi", ".mov", ".wmv", ".mp3", ".wav", ".wma" };
+}
+
+<!-- 文件上传组件容器 -->
+<div id="@containerId" class="file-upload-component">
+    <!-- 组件内容将由JavaScript动态生成 -->
+</div>
+
+<!-- 引入样式和脚本 -->
+<link rel="stylesheet" href="~/css/file-upload.css" />
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化文件上传组件
+        window.fileUpload = new FileUploadComponent('@containerId', {
+            uploadUrl: '@uploadUrl',
+            multipleUploadUrl: '@multipleUploadUrl',
+            multiple: @multiple.ToString().ToLower(),
+            autoUpload: @autoUpload.ToString().ToLower(),
+            maxFileSize: @maxFileSize,
+            maxFileCount: @maxFileCount,
+            allowedExtensions: @Html.Raw(Json.Serialize(allowedExtensions))
+        });
+
+        // 监听文件上传完成事件
+        document.getElementById('@containerId').addEventListener('filesUploaded', function(event) {
+            const uploadedFiles = event.detail.uploadedFiles;
+            const failedFiles = event.detail.failedFiles;
+            
+            console.log('Files uploaded:', uploadedFiles);
+            console.log('Failed files:', failedFiles);
+            
+            // 触发自定义回调（如果有的话）
+            if (typeof window.onFilesUploaded === 'function') {
+                window.onFilesUploaded(uploadedFiles, failedFiles);
+            }
+        });
+    });
+</script>
+
+<style>
+    /* 组件特定样式覆盖 */
+    .file-upload-component {
+        margin: 20px 0;
+    }
+    
+    /* 与现有glassmorphism主题集成 */
+    .file-upload-component .glass-btn {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #495057;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    
+    .file-upload-component .glass-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .file-upload-component .glass-btn-primary {
+        background: rgba(0, 123, 255, 0.1);
+        border-color: rgba(0, 123, 255, 0.3);
+        color: #007bff;
+    }
+    
+    .file-upload-component .glass-btn-primary:hover {
+        background: rgba(0, 123, 255, 0.2);
+        color: #0056b3;
+    }
+    
+    .file-upload-component .glass-btn-sm {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    /* 通知样式 */
+    .file-upload-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        max-width: 350px;
+        padding: 15px;
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: slideInRight 0.3s ease;
+    }
+    
+    .file-upload-notification.success {
+        background: rgba(40, 167, 69, 0.1);
+        border-color: rgba(40, 167, 69, 0.3);
+        color: #155724;
+    }
+    
+    .file-upload-notification.error {
+        background: rgba(220, 53, 69, 0.1);
+        border-color: rgba(220, 53, 69, 0.3);
+        color: #721c24;
+    }
+    
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    // 增强通知系统
+    if (typeof FileUploadComponent !== 'undefined') {
+        FileUploadComponent.prototype.showNotification = function(message, type) {
+            // 移除现有通知
+            const existingNotification = document.querySelector('.file-upload-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // 创建新通知
+            const notification = document.createElement('div');
+            notification.className = `file-upload-notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1; margin-right: 10px;">
+                        <strong>${type === 'success' ? '成功' : '错误'}</strong><br>
+                        ${message.replace(/\n/g, '<br>')}
+                    </div>
+                    <button type="button" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7;" onclick="this.parentElement.parentElement.remove()">
+                        ×
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 自动移除通知
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, type === 'error' ? 8000 : 5000);
+        };
+    }
+</script>

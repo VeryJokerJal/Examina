@@ -1,0 +1,626 @@
+@{
+    ViewData["Title"] = "文件管理";
+}
+
+<!-- 页面标题横幅 -->
+<div class="glass-card glass-card-primary py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    <i class="bi bi-files me-3"></i>文件管理
+                </h1>
+                <p class="lead mb-0">管理和查看所有上传的文件</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="glass-btn glass-btn-primary" onclick="showUploadModal()">
+                    <i class="bi bi-upload me-1"></i>上传文件
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 搜索和筛选 -->
+<div class="container mb-4">
+    <div class="glass-card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-funnel me-2"></i>搜索和筛选
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchInput" class="form-label">搜索文件</label>
+                    <input type="text" class="form-control glass-input" id="searchInput" placeholder="输入文件名...">
+                </div>
+                <div class="col-md-3">
+                    <label for="typeFilter" class="form-label">文件类型</label>
+                    <select class="form-select" id="typeFilter">
+                        <option value="">全部类型</option>
+                        <option value="document">文档</option>
+                        <option value="image">图片</option>
+                        <option value="video">视频</option>
+                        <option value="audio">音频</option>
+                        <option value="archive">压缩包</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="sizeFilter" class="form-label">文件大小</label>
+                    <select class="form-select" id="sizeFilter">
+                        <option value="">全部大小</option>
+                        <option value="small">小于1MB</option>
+                        <option value="medium">1MB-10MB</option>
+                        <option value="large">大于10MB</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>重置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 文件列表 -->
+<div class="container">
+    <div class="glass-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-folder me-2"></i>文件列表
+            </h5>
+            <div class="d-flex align-items-center">
+                <span class="text-muted me-3" id="fileCount">共 0 个文件</span>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="gridViewBtn" onclick="switchView('grid')">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary active" id="listViewBtn" onclick="switchView('list')">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- 文件列表容器 -->
+            <div id="fileListContainer">
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-hourglass-split display-4 mb-3"></i>
+                    <p>正在加载文件列表...</p>
+                </div>
+            </div>
+            
+            <!-- 分页 -->
+            <nav aria-label="文件列表分页" id="paginationContainer" style="display: none;">
+                <ul class="pagination justify-content-center" id="pagination">
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- 文件上传模态框 -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">
+                    <i class="bi bi-upload me-2"></i>上传文件
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @{
+                    ViewData["ContainerId"] = "modal-file-upload";
+                    ViewData["Multiple"] = true;
+                    ViewData["AutoUpload"] = false;
+                }
+                @await Html.PartialAsync("_FileUpload")
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="glass-btn" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 文件详情模态框 -->
+<div class="modal fade" id="fileDetailsModal" tabindex="-1" aria-labelledby="fileDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileDetailsModalLabel">
+                    <i class="bi bi-info-circle me-2"></i>文件详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="fileDetailsContent">
+                <!-- 文件详情内容将在这里动态加载 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="glass-btn" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let currentPage = 0;
+let pageSize = 20;
+let currentView = 'list';
+let allFiles = [];
+let filteredFiles = [];
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadFiles();
+    bindEvents();
+});
+
+// 绑定事件
+function bindEvents() {
+    // 搜索输入
+    document.getElementById('searchInput').addEventListener('input', debounce(filterFiles, 300));
+    
+    // 筛选器
+    document.getElementById('typeFilter').addEventListener('change', filterFiles);
+    document.getElementById('sizeFilter').addEventListener('change', filterFiles);
+}
+
+// 防抖函数
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// 加载文件列表
+async function loadFiles() {
+    try {
+        const response = await fetch('/api/fileupload/my-files?pageSize=1000'); // 加载所有文件
+        const result = await response.json();
+        
+        if (result.success) {
+            allFiles = result.data.files;
+            filteredFiles = [...allFiles];
+            updateFileCount();
+            displayFiles();
+        } else {
+            showError('加载文件列表失败: ' + result.message);
+        }
+    } catch (error) {
+        showError('加载文件列表时发生错误: ' + error.message);
+    }
+}
+
+// 筛选文件
+function filterFiles() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value;
+    const sizeFilter = document.getElementById('sizeFilter').value;
+    
+    filteredFiles = allFiles.filter(file => {
+        // 搜索筛选
+        const matchesSearch = !searchTerm || 
+            file.originalFileName.toLowerCase().includes(searchTerm) ||
+            (file.description && file.description.toLowerCase().includes(searchTerm));
+        
+        // 类型筛选
+        const matchesType = !typeFilter || getFileCategory(file.originalFileName) === typeFilter;
+        
+        // 大小筛选
+        let matchesSize = true;
+        if (sizeFilter === 'small') {
+            matchesSize = file.fileSize < 1024 * 1024; // 小于1MB
+        } else if (sizeFilter === 'medium') {
+            matchesSize = file.fileSize >= 1024 * 1024 && file.fileSize <= 10 * 1024 * 1024; // 1MB-10MB
+        } else if (sizeFilter === 'large') {
+            matchesSize = file.fileSize > 10 * 1024 * 1024; // 大于10MB
+        }
+        
+        return matchesSearch && matchesType && matchesSize;
+    });
+    
+    currentPage = 0;
+    updateFileCount();
+    displayFiles();
+}
+
+// 获取文件类别
+function getFileCategory(fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    
+    if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf'].includes(extension)) {
+        return 'document';
+    } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(extension)) {
+        return 'image';
+    } else if (['mp4', 'avi', 'mov', 'wmv'].includes(extension)) {
+        return 'video';
+    } else if (['mp3', 'wav', 'wma'].includes(extension)) {
+        return 'audio';
+    } else if (['zip', 'rar', '7z'].includes(extension)) {
+        return 'archive';
+    }
+    return 'other';
+}
+
+// 更新文件数量显示
+function updateFileCount() {
+    document.getElementById('fileCount').textContent = `共 ${filteredFiles.length} 个文件`;
+}
+
+// 显示文件列表
+function displayFiles() {
+    const container = document.getElementById('fileListContainer');
+    const startIndex = currentPage * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, filteredFiles.length);
+    const pageFiles = filteredFiles.slice(startIndex, endIndex);
+    
+    if (pageFiles.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox display-4 mb-3"></i>
+                <p>没有找到文件</p>
+            </div>
+        `;
+        document.getElementById('paginationContainer').style.display = 'none';
+        return;
+    }
+    
+    if (currentView === 'list') {
+        displayListView(pageFiles, container);
+    } else {
+        displayGridView(pageFiles, container);
+    }
+    
+    updatePagination();
+}
+
+// 列表视图
+function displayListView(files, container) {
+    const html = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>大小</th>
+                        <th>上传时间</th>
+                        <th>下载次数</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${files.map(file => `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi ${getFileIcon(file.originalFileName)} me-2 text-primary"></i>
+                                    <span>${file.originalFileName}</span>
+                                </div>
+                            </td>
+                            <td>${formatFileSize(file.fileSize)}</td>
+                            <td>${new Date(file.uploadedAt).toLocaleString()}</td>
+                            <td>${file.downloadCount}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary" onclick="showFileDetails(${file.fileId})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <a href="${file.downloadUrl}" class="btn btn-outline-success" download>
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteFile(${file.fileId})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    container.innerHTML = html;
+}
+
+// 网格视图
+function displayGridView(files, container) {
+    const html = `
+        <div class="row g-3">
+            ${files.map(file => `
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="card h-100 file-card">
+                        <div class="card-body text-center">
+                            <i class="bi ${getFileIcon(file.originalFileName)} display-4 text-primary mb-3"></i>
+                            <h6 class="card-title text-truncate" title="${file.originalFileName}">${file.originalFileName}</h6>
+                            <p class="card-text text-muted small">
+                                ${formatFileSize(file.fileSize)}<br>
+                                ${new Date(file.uploadedAt).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="btn-group w-100">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="showFileDetails(${file.fileId})">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <a href="${file.downloadUrl}" class="btn btn-sm btn-outline-success" download>
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFile(${file.fileId})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    container.innerHTML = html;
+}
+
+// 更新分页
+function updatePagination() {
+    const totalPages = Math.ceil(filteredFiles.length / pageSize);
+    const paginationContainer = document.getElementById('paginationContainer');
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+    }
+    
+    paginationContainer.style.display = 'block';
+    
+    let html = '';
+    
+    // 上一页
+    html += `
+        <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">上一页</a>
+        </li>
+    `;
+    
+    // 页码
+    for (let i = 0; i < totalPages; i++) {
+        if (i === currentPage || i === 0 || i === totalPages - 1 || Math.abs(i - currentPage) <= 2) {
+            html += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i + 1}</a>
+                </li>
+            `;
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+    }
+    
+    // 下一页
+    html += `
+        <li class="page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">下一页</a>
+        </li>
+    `;
+    
+    pagination.innerHTML = html;
+}
+
+// 切换页面
+function changePage(page) {
+    const totalPages = Math.ceil(filteredFiles.length / pageSize);
+    if (page >= 0 && page < totalPages) {
+        currentPage = page;
+        displayFiles();
+    }
+}
+
+// 切换视图
+function switchView(view) {
+    currentView = view;
+    
+    // 更新按钮状态
+    document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
+    document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+    
+    displayFiles();
+}
+
+// 清空筛选器
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('sizeFilter').value = '';
+    filterFiles();
+}
+
+// 显示上传模态框
+function showUploadModal() {
+    new bootstrap.Modal(document.getElementById('uploadModal')).show();
+}
+
+// 文件上传完成回调
+window.onFilesUploaded = function(uploadedFiles, failedFiles) {
+    // 刷新文件列表
+    loadFiles();
+    
+    // 关闭上传模态框
+    bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+};
+
+// 显示文件详情
+async function showFileDetails(fileId) {
+    try {
+        const response = await fetch(`/api/fileupload/${fileId}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const file = result.data;
+            const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">文件名:</dt>
+                            <dd class="col-sm-8">${file.originalFileName}</dd>
+                            
+                            <dt class="col-sm-4">文件大小:</dt>
+                            <dd class="col-sm-8">${formatFileSize(file.fileSize)}</dd>
+                            
+                            <dt class="col-sm-4">文件类型:</dt>
+                            <dd class="col-sm-8">${file.contentType}</dd>
+                            
+                            <dt class="col-sm-4">上传时间:</dt>
+                            <dd class="col-sm-8">${new Date(file.uploadedAt).toLocaleString()}</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">上传者:</dt>
+                            <dd class="col-sm-8">${file.uploaderName || '未知'}</dd>
+                            
+                            <dt class="col-sm-4">下载次数:</dt>
+                            <dd class="col-sm-8">${file.downloadCount}</dd>
+                            
+                            <dt class="col-sm-4">描述:</dt>
+                            <dd class="col-sm-8">${file.description || '无'}</dd>
+                            
+                            <dt class="col-sm-4">标签:</dt>
+                            <dd class="col-sm-8">${file.tags || '无'}</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="${file.downloadUrl}" class="btn btn-primary" download>
+                        <i class="bi bi-download me-1"></i>下载文件
+                    </a>
+                </div>
+            `;
+            
+            document.getElementById('fileDetailsContent').innerHTML = content;
+            new bootstrap.Modal(document.getElementById('fileDetailsModal')).show();
+        } else {
+            showError('获取文件详情失败: ' + result.message);
+        }
+    } catch (error) {
+        showError('获取文件详情时发生错误: ' + error.message);
+    }
+}
+
+// 删除文件
+async function deleteFile(fileId) {
+    if (!confirm('确定要删除这个文件吗？此操作不可撤销。')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/fileupload/${fileId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess('文件删除成功');
+            loadFiles(); // 重新加载文件列表
+        } else {
+            showError('删除文件失败: ' + result.message);
+        }
+    } catch (error) {
+        showError('删除文件时发生错误: ' + error.message);
+    }
+}
+
+// 获取文件图标
+function getFileIcon(fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    const iconMap = {
+        'pdf': 'bi-file-earmark-pdf',
+        'doc': 'bi-file-earmark-word',
+        'docx': 'bi-file-earmark-word',
+        'xls': 'bi-file-earmark-excel',
+        'xlsx': 'bi-file-earmark-excel',
+        'ppt': 'bi-file-earmark-ppt',
+        'pptx': 'bi-file-earmark-ppt',
+        'zip': 'bi-file-earmark-zip',
+        'rar': 'bi-file-earmark-zip',
+        '7z': 'bi-file-earmark-zip',
+        'jpg': 'bi-file-earmark-image',
+        'jpeg': 'bi-file-earmark-image',
+        'png': 'bi-file-earmark-image',
+        'gif': 'bi-file-earmark-image',
+        'bmp': 'bi-file-earmark-image',
+        'mp4': 'bi-file-earmark-play',
+        'avi': 'bi-file-earmark-play',
+        'mov': 'bi-file-earmark-play',
+        'wmv': 'bi-file-earmark-play',
+        'mp3': 'bi-file-earmark-music',
+        'wav': 'bi-file-earmark-music',
+        'wma': 'bi-file-earmark-music',
+        'txt': 'bi-file-earmark-text',
+        'rtf': 'bi-file-earmark-text',
+        'json': 'bi-file-earmark-code',
+        'xml': 'bi-file-earmark-code'
+    };
+    return iconMap[extension] || 'bi-file-earmark';
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// 显示成功消息
+function showSuccess(message) {
+    // 这里可以集成现有的通知系统
+    alert('成功: ' + message);
+}
+
+// 显示错误消息
+function showError(message) {
+    // 这里可以集成现有的通知系统
+    alert('错误: ' + message);
+}
+</script>
+
+<style>
+.file-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.page-link {
+    color: #495057;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.page-link:hover {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+    border-color: rgba(0, 123, 255, 0.3);
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+</style>
+}

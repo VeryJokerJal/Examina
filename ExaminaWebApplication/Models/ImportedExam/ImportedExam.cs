@@ -489,4 +489,9 @@ public class ImportedExam
     /// 模块列表
     /// </summary>
     public virtual ICollection<ImportedModule> Modules { get; set; } = [];
+
+    /// <summary>
+    /// 文件关联列表
+    /// </summary>
+    public virtual ICollection<ExaminaWebApplication.Models.FileUpload.ExamFileAssociation> FileAssociations { get; set; } = [];
 }

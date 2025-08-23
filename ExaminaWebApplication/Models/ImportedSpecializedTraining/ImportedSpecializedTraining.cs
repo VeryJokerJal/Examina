@@ -295,4 +295,9 @@ public class ImportedSpecializedTraining
     /// 题目列表（包含所有模块下的题目）
     /// </summary>
     public virtual ICollection<ImportedSpecializedTrainingQuestion> Questions { get; set; } = [];
+
+    /// <summary>
+    /// 文件关联列表
+    /// </summary>
+    public virtual ICollection<ExaminaWebApplication.Models.FileUpload.SpecializedTrainingFileAssociation> FileAssociations { get; set; } = [];
 }

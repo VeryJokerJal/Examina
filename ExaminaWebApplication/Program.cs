@@ -131,6 +131,11 @@ builder.Services.AddScoped<RankingService>();
 builder.Services.AddScoped<ExcelImportService>();
 builder.Services.AddScoped<UserImportService>();
 
+// 注册文件上传相关服务
+builder.Services.AddScoped<ExaminaWebApplication.Services.FileUpload.IFileUploadService, ExaminaWebApplication.Services.FileUpload.FileUploadService>();
+builder.Services.Configure<ExaminaWebApplication.Models.FileUpload.FileUploadConfiguration>(
+    builder.Configuration.GetSection("FileUpload"));
+
 // 添加后台服务
 builder.Services.AddHostedService<SessionCleanupService>();
 

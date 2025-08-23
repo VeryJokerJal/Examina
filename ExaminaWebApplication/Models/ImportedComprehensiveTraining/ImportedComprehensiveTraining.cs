@@ -497,4 +497,9 @@ public class ImportedComprehensiveTraining
     /// 题目列表（包含所有科目和模块下的题目）
     /// </summary>
     public virtual ICollection<ImportedComprehensiveTrainingQuestion> Questions { get; set; } = [];
+
+    /// <summary>
+    /// 文件关联列表
+    /// </summary>
+    public virtual ICollection<ExaminaWebApplication.Models.FileUpload.ComprehensiveTrainingFileAssociation> FileAssociations { get; set; } = [];
 }
