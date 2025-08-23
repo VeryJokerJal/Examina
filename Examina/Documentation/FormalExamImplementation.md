@@ -211,6 +211,147 @@ private async Task StartExamAsync(StudentExamDto exam)
 - 添加离线模式支持
 - 增强安全性和防作弊措施
 
+## 考试提交逻辑
+
+### 1. 提交流程设计
+- **自动提交**: 考试时间到期时自动触发提交
+- **手动提交**: 用户主动点击提交按钮
+- **双重保障**: EnhancedExamToolbarService + 基本提交服务
+- **完整闭环**: 考试 → 提交 → 评分 → 结果显示 → 返回主页
+
+### 2. BenchSuite集成
+- **优先使用**: EnhancedExamToolbarService进行BenchSuite自动评分
+- **回退机制**: 如果BenchSuite不可用，使用IStudentFormalExamService基本提交
+- **错误处理**: 完善的异常捕获和重试逻辑
+- **实时反馈**: 提交过程中的状态更新和用户提示
+
+### 3. 考试结果显示
+- **全屏设计**: 亚克力效果的全屏结果窗口
+- **信息完整**: 显示考试名称、用时、得分、通过状态等
+- **状态区分**: 成功/失败不同的视觉反馈
+- **用户确认**: 必须点击确认按钮才能返回主页
+
+### 4. 数据管理
+- **实时计算**: 从考试工具栏获取实际用时
+- **状态同步**: 考试状态与UI状态保持一致
+- **数据刷新**: 提交完成后自动刷新考试列表和用户权限
+
+## 新增组件
+
+### 1. ExamResultViewModel
+```csharp
+public class ExamResultViewModel : ViewModelBase
+{
+    // 考试基本信息
+    public string ExamName { get; set; }
+    public ExamType ExamType { get; set; }
+
+    // 提交状态
+    public bool IsSubmissionSuccessful { get; set; }
+
+    // 时间信息
+    public DateTime? StartTime { get; set; }
+    public DateTime? EndTime { get; set; }
+    public int? ActualDurationMinutes { get; set; }
+
+    // 成绩信息
+    public decimal? Score { get; set; }
+    public decimal? TotalScore { get; set; }
+
+    // 错误和备注
+    public string ErrorMessage { get; set; }
+    public string Notes { get; set; }
+}
+```
+
+### 2. ExamResultWindow
+- **全屏亚克力**: 使用半透明背景和模糊效果
+- **响应式设计**: 支持不同屏幕尺寸和分辨率
+- **状态适应**: 根据成功/失败状态显示不同内容
+- **用户友好**: 清晰的视觉层次和操作指引
+
+### 3. 提交逻辑增强
+```csharp
+private async Task SubmitFormalExamWithBenchSuiteAsync(int examId, ExamType examType, bool isAutoSubmit, ExamToolbarWindow examToolbar)
+{
+    // 1. BenchSuite评分尝试
+    // 2. 基本提交回退
+    // 3. 结果窗口显示
+    // 4. 主窗口恢复
+}
+```
+
+## 技术亮点
+
+### 1. 架构一致性
+- **复用现有**: 最大化复用MockExamViewModel的成熟模式
+- **服务集成**: 无缝集成现有的服务层架构
+- **依赖注入**: 完整的DI容器支持和可选依赖处理
+
+### 2. 用户体验
+- **视觉统一**: 与现有界面风格保持一致
+- **交互流畅**: 从考试开始到结果确认的完整体验
+- **状态清晰**: 每个阶段都有明确的视觉反馈
+
+### 3. 错误处理
+- **多层保障**: BenchSuite失败时的基本提交保障
+- **异常捕获**: 完善的try-catch和日志记录
+- **用户提示**: 友好的错误信息和解决建议
+
+### 4. 性能优化
+- **异步操作**: 所有网络请求和UI操作都是异步的
+- **资源管理**: 及时关闭窗口和释放资源
+- **内存效率**: 合理的对象生命周期管理
+
+## 测试验证
+
+### 1. 单元测试扩展
+- **ExamResultViewModel**: 测试数据绑定和计算属性
+- **提交流程**: 模拟各种提交场景的测试
+- **错误处理**: 异常情况的处理验证
+
+### 2. 集成测试
+- **完整流程**: 从考试开始到结果确认的端到端测试
+- **服务交互**: 各个服务层的协作测试
+- **UI响应**: 用户界面的交互测试
+
+### 3. 性能测试
+- **响应时间**: 提交操作的响应速度
+- **内存使用**: 长时间运行的内存稳定性
+- **并发处理**: 多用户同时提交的处理能力
+
+## 部署和维护
+
+### 1. 配置要求
+- **服务可用**: 确保IStudentFormalExamService正常工作
+- **BenchSuite**: 可选的EnhancedExamToolbarService配置
+- **网络连接**: 稳定的网络环境支持
+
+### 2. 监控指标
+- **提交成功率**: 考试提交的成功比例
+- **评分准确性**: BenchSuite评分的准确性
+- **用户满意度**: 用户体验反馈收集
+
+### 3. 故障排除
+- **日志分析**: 详细的调试日志支持问题定位
+- **回退机制**: 多层次的故障恢复策略
+- **用户支持**: 清晰的错误信息和操作指引
+
 ## 总结
 
 上机统考功能的实现成功地扩展了Examina.Desktop的考试能力，在保持与现有架构一致性的同时，提供了专门针对正式考试的优化体验。该实现遵循了项目的设计原则，具有良好的可维护性和可扩展性。
+
+**核心成就**:
+- ✅ 完整的考试提交逻辑实现
+- ✅ BenchSuite自动评分集成
+- ✅ 全屏亚克力结果显示窗口
+- ✅ 与现有模拟考试功能完全兼容
+- ✅ 完善的错误处理和用户体验
+- ✅ 可扩展的架构设计
+
+**用户价值**:
+- 🎓 专业的正式考试体验
+- 🔒 可靠的提交保障机制
+- 📊 直观的成绩结果展示
+- 🚀 流畅的操作流程
+- 💡 友好的错误提示和指引
