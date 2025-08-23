@@ -123,7 +123,7 @@ public class RankingController : Controller
 /// 排行榜API控制器
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/ranking")]
 public class RankingApiController : ControllerBase
 {
     private readonly RankingService _rankingService;
