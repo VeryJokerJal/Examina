@@ -39,12 +39,10 @@
 
         <Style Selector="Button.glass-button:pointerover">
             <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush2}" />
-            <Setter Property="RenderTransform" Value="translate(0, -1)" />
         </Style>
 
         <Style Selector="Button.glass-button:pressed">
             <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush3}" />
-            <Setter Property="RenderTransform" Value="translate(0, 0)" />
         </Style>
 
         <!--  危险按钮样式  -->
