@@ -13,8 +13,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // 配置Kestrel服务器以支持大文件上传
 builder.WebHost.ConfigureKestrel(options =>
 {
-    // 配置最大请求体大小为500MB
-    options.Limits.MaxRequestBodySize = 524288000; // 500MB
+    // 从配置中读取最大请求体大小，默认为500MB
+    long maxRequestBodySize = builder.Configuration.GetValue<long>("Performance:MaxRequestBodySize", 524288000);
+    options.Limits.MaxRequestBodySize = maxRequestBodySize;
 
     // 配置最大请求头大小
     options.Limits.MaxRequestHeadersTotalSize = 32768; // 32KB
@@ -22,8 +23,9 @@ builder.WebHost.ConfigureKestrel(options =>
     // 配置最大请求头数量
     options.Limits.MaxRequestHeaderCount = 100;
 
-    // 配置请求超时
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
+    // 从配置中读取请求超时，默认为10分钟
+    int requestTimeoutSeconds = builder.Configuration.GetValue<int>("Performance:RequestTimeoutSeconds", 600);
+    options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(requestTimeoutSeconds);
     options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
 
     if (builder.Environment.IsDevelopment())
@@ -62,11 +64,15 @@ builder.Services.AddControllersWithViews(options =>
 // 配置表单选项以支持大文件上传
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
-    // 设置最大请求体大小为500MB
-    options.MultipartBodyLengthLimit = 524288000; // 500MB
+    // 从配置中读取最大文件大小，优先使用FileUpload配置，其次使用Performance配置
+    long maxFileSize = builder.Configuration.GetValue<long>("FileUpload:MaxFileSize",
+        builder.Configuration.GetValue<long>("Performance:MaxRequestBodySize", 524288000));
 
-    // 设置单个文件大小限制为500MB
-    options.ValueLengthLimit = 524288000; // 500MB
+    // 设置最大请求体大小
+    options.MultipartBodyLengthLimit = maxFileSize;
+
+    // 设置单个文件大小限制
+    options.ValueLengthLimit = maxFileSize;
 
     // 设置表单键数量限制
     options.KeyLengthLimit = 2048;
