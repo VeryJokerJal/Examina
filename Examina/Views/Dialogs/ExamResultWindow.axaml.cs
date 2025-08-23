@@ -1,7 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Input;
 using Examina.ViewModels.Dialogs;
 using System;
+using System.ComponentModel;
 
 namespace Examina.Views.Dialogs;
 
@@ -11,6 +13,7 @@ namespace Examina.Views.Dialogs;
 public partial class ExamResultWindow : Window
 {
     private ExamResultViewModel? _viewModel;
+    private bool _canClose = false;
 
     /// <summary>
     /// 默认构造函数
@@ -21,6 +24,7 @@ public partial class ExamResultWindow : Window
         _viewModel = new ExamResultViewModel();
         DataContext = _viewModel;
 
+        SetupWindow();
         SetupCommandSubscriptions();
         System.Diagnostics.Debug.WriteLine("ExamResultWindow: 窗口已初始化");
     }
@@ -35,8 +39,57 @@ public partial class ExamResultWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
 
+        SetupWindow();
         SetupCommandSubscriptions();
         System.Diagnostics.Debug.WriteLine("ExamResultWindow: 窗口已初始化（带ViewModel）");
+    }
+
+    /// <summary>
+    /// 设置窗口行为
+    /// </summary>
+    private void SetupWindow()
+    {
+        // 禁用Alt+F4关闭窗口
+        this.Closing += OnWindowClosing;
+
+        // 禁用Escape键关闭窗口
+        this.KeyDown += OnKeyDown;
+
+        // 设置为模态对话框行为
+        this.Topmost = false;
+        this.ShowActivated = true;
+
+        System.Diagnostics.Debug.WriteLine("ExamResultWindow: 窗口行为设置完成");
+    }
+
+    /// <summary>
+    /// 处理窗口关闭事件
+    /// </summary>
+    private void OnWindowClosing(object? sender, CancelEventArgs e)
+    {
+        // 只有通过确认按钮才能关闭窗口
+        if (!_canClose)
+        {
+            e.Cancel = true;
+            System.Diagnostics.Debug.WriteLine("ExamResultWindow: 阻止窗口关闭，必须通过确认按钮");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("ExamResultWindow: 允许窗口关闭");
+        }
+    }
+
+    /// <summary>
+    /// 处理键盘按键事件
+    /// </summary>
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        // 禁用Escape键关闭窗口
+        if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            System.Diagnostics.Debug.WriteLine("ExamResultWindow: 阻止Escape键关闭窗口");
+        }
     }
 
     /// <summary>
@@ -72,6 +125,11 @@ public partial class ExamResultWindow : Window
         try
         {
             System.Diagnostics.Debug.WriteLine("ExamResultWindow: 确认按钮被点击");
+
+            // 允许窗口关闭
+            _canClose = true;
+
+            // 关闭窗口并返回true
             Close(true);
         }
         catch (Exception ex)
@@ -101,28 +159,33 @@ public partial class ExamResultWindow : Window
     }
 
     /// <summary>
-    /// 显示考试结果窗口
+    /// 显示考试结果窗口（模态对话框）
     /// </summary>
-    public static async Task<bool?> ShowExamResultAsync(Window? owner, string examName, Models.ExamType examType, 
+    public static async Task<bool?> ShowExamResultAsync(Window? owner, string examName, Models.ExamType examType,
         bool isSuccessful, DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
         decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "")
     {
         try
         {
             ExamResultViewModel viewModel = new();
-            viewModel.SetExamResult(examName, examType, isSuccessful, startTime, endTime, 
+            viewModel.SetExamResult(examName, examType, isSuccessful, startTime, endTime,
                 durationMinutes, score, totalScore, errorMessage, notes);
 
             ExamResultWindow window = new(viewModel);
 
-            System.Diagnostics.Debug.WriteLine($"ExamResultWindow: 准备显示考试结果窗口 - {examName}");
+            System.Diagnostics.Debug.WriteLine($"ExamResultWindow: 准备显示考试结果模态对话框 - {examName}");
 
+            // 必须作为模态对话框显示，确保用户必须与此窗口交互
             if (owner != null)
             {
+                // 显示为模态对话框，阻止与父窗口的交互
                 return await window.ShowDialog<bool?>(owner);
             }
             else
             {
+                // 如果没有父窗口，仍然显示为模态窗口
+                window.WindowState = WindowState.Normal;
+                window.Activate();
                 window.Show();
                 return true;
             }
