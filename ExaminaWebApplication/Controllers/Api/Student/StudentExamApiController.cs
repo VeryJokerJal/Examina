@@ -3,6 +3,7 @@ using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ExaminaWebApplication.Models;
 
 namespace ExaminaWebApplication.Controllers.Api.Student;
 
@@ -147,6 +148,128 @@ public class StudentExamApiController : ControllerBase
         {
             _logger.LogError(ex, "获取学生可访问考试总数失败");
             return StatusCode(500, new { message = "获取考试总数失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 开始正式考试
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{examId}/start")]
+    public async Task<ActionResult> StartExam(int examId)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentExamService.StartExamAsync(examId, studentUserId);
+            if (!success)
+            {
+                _logger.LogWarning("开始正式考试失败，学生ID: {StudentUserId}, 考试ID: {ExamId}",
+                    studentUserId, examId);
+                return BadRequest(new { message = "无法开始考试，请检查考试状态或权限" });
+            }
+
+            _logger.LogInformation("学生开始正式考试成功，学生ID: {StudentUserId}, 考试ID: {ExamId}",
+                studentUserId, examId);
+
+            return Ok(new { message = "考试已开始" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "开始正式考试异常，考试ID: {ExamId}", examId);
+            return StatusCode(500, new { message = "开始考试失败，请稍后重试", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 提交正式考试成绩
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="scoreRequest">成绩数据</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{examId}/score")]
+    public async Task<ActionResult> SubmitExamScore(int examId, [FromBody] SubmitExamScoreRequestDto scoreRequest)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentExamService.SubmitExamScoreAsync(examId, studentUserId, scoreRequest);
+            if (!success)
+            {
+                _logger.LogWarning("提交正式考试成绩失败，学生ID: {StudentUserId}, 考试ID: {ExamId}",
+                    studentUserId, examId);
+                return BadRequest(new { message = "无法提交考试成绩，请检查考试状态或权限" });
+            }
+
+            _logger.LogInformation("学生提交正式考试成绩成功，学生ID: {StudentUserId}, 考试ID: {ExamId}",
+                studentUserId, examId);
+
+            return Ok(new { message = "考试成绩已提交" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "提交正式考试成绩异常，考试ID: {ExamId}", examId);
+            return StatusCode(500, new { message = "提交成绩失败，请稍后重试", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 完成正式考试（不包含成绩）
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{examId}/complete")]
+    public async Task<ActionResult> CompleteExam(int examId)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentExamService.CompleteExamAsync(examId, studentUserId);
+            if (!success)
+            {
+                _logger.LogWarning("完成正式考试失败，学生ID: {StudentUserId}, 考试ID: {ExamId}",
+                    studentUserId, examId);
+                return BadRequest(new { message = "无法完成考试，请检查考试状态或权限" });
+            }
+
+            _logger.LogInformation("学生完成正式考试成功，学生ID: {StudentUserId}, 考试ID: {ExamId}",
+                studentUserId, examId);
+
+            return Ok(new { message = "考试已完成" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "完成正式考试异常，考试ID: {ExamId}", examId);
+            return StatusCode(500, new { message = "完成考试失败，请稍后重试", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 获取学生的考试完成记录
+    /// </summary>
+    /// <param name="examId">考试ID（可选）</param>
+    /// <returns>考试完成记录列表</returns>
+    [HttpGet("completions")]
+    public async Task<ActionResult<List<ExamCompletion>>> GetExamCompletions(int? examId = null)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+            List<ExamCompletion> completions = await _studentExamService.GetExamCompletionsAsync(studentUserId, examId);
+
+            _logger.LogInformation("获取学生考试完成记录成功，学生ID: {StudentUserId}, 记录数: {Count}",
+                studentUserId, completions.Count);
+
+            return Ok(completions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取学生考试完成记录失败");
+            return StatusCode(500, new { message = "获取完成记录失败，请稍后重试", error = ex.Message });
         }
     }
 
