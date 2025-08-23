@@ -5,18 +5,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Examina.ViewModels.FileDownload"
              xmlns:models="clr-namespace:Examina.Models.FileDownload"
-             xmlns:converters="clr-namespace:Examina.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:DataType="vm:FileDownloadPreparationViewModel">
 
-    <UserControl.Resources>
-        <converters:EnumToDisplayNameConverter x:Key="EnumToDisplayNameConverter" />
-        <converters:FileStatusToClassConverter x:Key="FileStatusToClassConverter" />
-        <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
-        <converters:BooleanInverseConverter x:Key="BooleanInverseConverter" />
-        <converters:FileSizeConverter x:Key="FileSizeConverter" />
-        <converters:ProgressPercentageConverter x:Key="ProgressPercentageConverter" />
-    </UserControl.Resources>
+
 
     <UserControl.Styles>
         <!-- 玻璃拟态样式 -->
@@ -56,19 +48,31 @@
         </Style>
 
         <!-- 文件状态颜色 -->
-        <Style Selector="Border.status-pending">
+        <Style Selector="Border.status-indicator[Tag=Pending]">
             <Setter Property="Background" Value="#6C757D" />
         </Style>
 
-        <Style Selector="Border.status-downloading">
+        <Style Selector="Border.status-indicator[Tag=Downloading]">
             <Setter Property="Background" Value="#FFC107" />
         </Style>
 
-        <Style Selector="Border.status-completed">
+        <Style Selector="Border.status-indicator[Tag=Downloaded]">
             <Setter Property="Background" Value="#28A745" />
         </Style>
 
-        <Style Selector="Border.status-failed">
+        <Style Selector="Border.status-indicator[Tag=Extracting]">
+            <Setter Property="Background" Value="#17A2B8" />
+        </Style>
+
+        <Style Selector="Border.status-indicator[Tag=Completed]">
+            <Setter Property="Background" Value="#28A745" />
+        </Style>
+
+        <Style Selector="Border.status-indicator[Tag=Failed]">
+            <Setter Property="Background" Value="#DC3545" />
+        </Style>
+
+        <Style Selector="Border.status-indicator[Tag=Cancelled]">
             <Setter Property="Background" Value="#DC3545" />
         </Style>
     </UserControl.Styles>
@@ -153,7 +157,8 @@
                                                     CornerRadius="6"
                                                     Margin="0,0,12,0"
                                                     VerticalAlignment="Center"
-                                                    Classes="{Binding Status, Converter={StaticResource FileStatusToClassConverter}}">
+                                                    Tag="{Binding Status}"
+                                                    Classes="status-indicator">
                                             </Border>
 
                                             <!-- 文件信息 -->

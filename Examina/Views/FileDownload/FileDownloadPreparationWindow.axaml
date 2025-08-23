@@ -1,13 +1,6 @@
-﻿<Window x:Class="Examina.Views.FileDownload.FileDownloadPreparationWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:views="clr-namespace:Examina.Views.FileDownload" xmlns:vm="clr-namespace:Examina.ViewModels.FileDownload" xmlns:converters="clr-namespace:Examina.Converters" Title="文件准备" Width="800" Height="600" MinWidth="600" MinHeight="400" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:FileDownloadPreparationViewModel" CanResize="True" Icon="/Assets/icon.ico" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
+﻿<Window x:Class="Examina.Views.FileDownload.FileDownloadPreparationWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:views="clr-namespace:Examina.Views.FileDownload" xmlns:vm="clr-namespace:Examina.ViewModels.FileDownload" Title="文件准备" Width="800" Height="600" MinWidth="600" MinHeight="400" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:FileDownloadPreparationViewModel" CanResize="True" Icon="/Assets/icon.ico" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
 
-    <Window.Resources>
-        <converters:EnumToDisplayNameConverter x:Key="EnumToDisplayNameConverter" />
-        <converters:FileStatusToClassConverter x:Key="FileStatusToClassConverter" />
-        <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
-        <converters:BooleanInverseConverter x:Key="BooleanInverseConverter" />
-        <converters:FileSizeConverter x:Key="FileSizeConverter" />
-        <converters:ProgressPercentageConverter x:Key="ProgressPercentageConverter" />
-    </Window.Resources>
+
 
     <Window.Styles>
         <!--  窗口样式  -->
@@ -85,19 +78,31 @@
             <Setter Property="Margin" Value="0,0,12,0" />
         </Style>
 
-        <Style Selector="Border.status-pending">
+        <Style Selector="Border.status-indicator[Tag=Pending]">
             <Setter Property="Background" Value="#6C757D" />
         </Style>
 
-        <Style Selector="Border.status-downloading">
+        <Style Selector="Border.status-indicator[Tag=Downloading]">
             <Setter Property="Background" Value="#FFC107" />
         </Style>
 
-        <Style Selector="Border.status-completed">
+        <Style Selector="Border.status-indicator[Tag=Downloaded]">
             <Setter Property="Background" Value="#28A745" />
         </Style>
 
-        <Style Selector="Border.status-failed">
+        <Style Selector="Border.status-indicator[Tag=Extracting]">
+            <Setter Property="Background" Value="#17A2B8" />
+        </Style>
+
+        <Style Selector="Border.status-indicator[Tag=Completed]">
+            <Setter Property="Background" Value="#28A745" />
+        </Style>
+
+        <Style Selector="Border.status-indicator[Tag=Failed]">
+            <Setter Property="Background" Value="#DC3545" />
+        </Style>
+
+        <Style Selector="Border.status-indicator[Tag=Cancelled]">
             <Setter Property="Background" Value="#DC3545" />
         </Style>
     </Window.Styles>
@@ -163,7 +168,9 @@
                                         <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
                                             <!--  状态指示器  -->
                                             <Border Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
-                                                    Classes="{Binding Status, Converter={StaticResource FileStatusToClassConverter}}">
+                                                    Width="12" Height="12" CornerRadius="6" Margin="0,0,12,0"
+                                                    Tag="{Binding Status}"
+                                                    Classes="status-indicator">
                                             </Border>
 
                                             <!--  文件信息  -->
