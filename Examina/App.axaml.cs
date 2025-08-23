@@ -202,8 +202,10 @@ public partial class App : Application
         _ = services.AddTransient<ExamListViewModel>(provider =>
         {
             IStudentExamService examService = provider.GetRequiredService<IStudentExamService>();
+            IStudentFormalExamService formalExamService = provider.GetRequiredService<IStudentFormalExamService>();
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
-            return new ExamListViewModel(examService, authService);
+            EnhancedExamToolbarService? enhancedService = provider.GetService<EnhancedExamToolbarService>();
+            return new ExamListViewModel(examService, formalExamService, authService, enhancedService);
         });
         _ = services.AddTransient<ComprehensiveTrainingListViewModel>(provider =>
         {

@@ -1,0 +1,213 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Examina.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="700"
+        x:Class="Examina.Views.Dialogs.ExamResultWindow"
+        x:DataType="vm:ExamResultViewModel"
+        Title="考试结果"
+        Width="500" Height="700"
+        MinWidth="450" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        CanResize="false"
+        WindowState="Maximized"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="0">
+
+    <Design.DataContext>
+        <vm:ExamResultViewModel />
+    </Design.DataContext>
+
+    <!-- 全屏亚克力背景 -->
+    <Panel>
+        <!-- 亚克力背景 -->
+        <Border Background="#80000000" />
+        
+        <!-- 模糊背景效果 -->
+        <Border>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#40000000" Offset="0"/>
+                    <GradientStop Color="#60000000" Offset="0.5"/>
+                    <GradientStop Color="#40000000" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 内容区域 -->
+            <ScrollViewer Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="#F0FFFFFF" 
+                        CornerRadius="20" 
+                        Padding="40" 
+                        MaxWidth="450"
+                        BoxShadow="0 20 60 0 #40000000">
+                    <StackPanel Spacing="24">
+                        
+                        <!-- 标题区域 -->
+                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                            <TextBlock Text="🎓" FontSize="48" HorizontalAlignment="Center"/>
+                            <TextBlock Text="考试完成" 
+                                       FontSize="28" 
+                                       FontWeight="Bold" 
+                                       HorizontalAlignment="Center"
+                                       Foreground="#333333"/>
+                            <TextBlock Text="{Binding ExamTypeText}" 
+                                       FontSize="16" 
+                                       HorizontalAlignment="Center"
+                                       Foreground="#666666"/>
+                        </StackPanel>
+
+                        <!-- 考试信息 -->
+                        <Border Background="#F8F9FA" CornerRadius="12" Padding="20">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="📋 考试信息" FontSize="16" FontWeight="SemiBold" Foreground="#333333"/>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="考试名称：" FontWeight="SemiBold" Margin="0,0,8,8"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ExamName}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="实际用时：" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ActualDurationText}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 提交状态 -->
+                        <Border Background="#F8F9FA" CornerRadius="12" Padding="20">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="📤 提交状态" FontSize="16" FontWeight="SemiBold" Foreground="#333333"/>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding SubmissionStatusIcon}" FontSize="20"/>
+                                    <TextBlock Text="{Binding SubmissionStatusText}" 
+                                               FontSize="18" 
+                                               FontWeight="Bold" 
+                                               Foreground="{Binding SubmissionStatusColor}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 成绩信息 -->
+                        <Border Background="#F8F9FA" CornerRadius="12" Padding="20" IsVisible="{Binding IsSubmissionSuccessful}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="📊 考试成绩" FontSize="16" FontWeight="SemiBold" Foreground="#333333"/>
+                                
+                                <!-- 得分显示 -->
+                                <StackPanel Spacing="8" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding ScoreText}" 
+                                               FontSize="32" 
+                                               FontWeight="Bold" 
+                                               HorizontalAlignment="Center"
+                                               Foreground="#2196F3"/>
+                                    <TextBlock Text="{Binding ScoreRateText}" 
+                                               FontSize="18" 
+                                               FontWeight="SemiBold" 
+                                               HorizontalAlignment="Center"
+                                               Foreground="#666666"/>
+                                </StackPanel>
+
+                                <!-- 通过状态 -->
+                                <Border Background="{Binding PassStatusColor}" 
+                                        CornerRadius="20" 
+                                        Padding="12,6" 
+                                        HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding PassStatusText}" 
+                                               FontSize="14" 
+                                               FontWeight="Bold" 
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 错误信息 -->
+                        <Border Background="#FFEBEE" 
+                                CornerRadius="12" 
+                                Padding="20" 
+                                BorderBrush="#F44336" 
+                                BorderThickness="1"
+                                IsVisible="{Binding HasError}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="⚠️ 错误信息" FontSize="16" FontWeight="SemiBold" Foreground="#D32F2F"/>
+                                <TextBlock Text="{Binding ErrorMessage}" 
+                                           TextWrapping="Wrap" 
+                                           Foreground="#B71C1C"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 备注信息 -->
+                        <Border Background="#E8F5E8" 
+                                CornerRadius="12" 
+                                Padding="20" 
+                                BorderBrush="#4CAF50" 
+                                BorderThickness="1"
+                                IsVisible="{Binding HasNotes}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="💡 备注信息" FontSize="16" FontWeight="SemiBold" Foreground="#2E7D32"/>
+                                <TextBlock Text="{Binding Notes}" 
+                                           TextWrapping="Wrap" 
+                                           Foreground="#1B5E20"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 提示信息 -->
+                        <Border Background="#FFF3E0" CornerRadius="12" Padding="16" BorderBrush="#FF9800" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="📝 温馨提示" FontSize="14" FontWeight="SemiBold" Foreground="#E65100"/>
+                                <TextBlock Text="考试结果已保存，您可以在成绩查询页面查看详细信息。" 
+                                           TextWrapping="Wrap" 
+                                           FontSize="12"
+                                           Foreground="#BF360C"/>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+
+            <!-- 底部确认按钮 -->
+            <Border Grid.Row="1" 
+                    Background="#E0FFFFFF" 
+                    Padding="20"
+                    HorizontalAlignment="Center">
+                <Button Name="ConfirmButton" 
+                        Content="确认返回" 
+                        Padding="32,12" 
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Background="#2196F3"
+                        Foreground="White"
+                        CornerRadius="25"
+                        BorderThickness="0"
+                        Click="ConfirmButton_Click">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#1976D2"/>
+                        </Style>
+                        <Style Selector="Button:pressed">
+                            <Setter Property="Background" Value="#0D47A1"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
+            </Border>
+        </Grid>
+    </Panel>
+</Window>
