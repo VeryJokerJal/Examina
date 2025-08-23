@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
+using Examina.Extensions;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.Models;
@@ -395,6 +396,19 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
+                // 文件预下载准备
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 开始文件预下载准备");
+
+                bool filesReady = await desktop.MainWindow.PrepareFilesForComprehensiveTrainingAsync(training.Id, training.Name);
+                if (!filesReady)
+                {
+                    ErrorMessage = "文件准备失败，无法开始综合实训。请检查网络连接或联系管理员。";
+                    System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 文件预下载失败，取消综合实训启动");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 文件预下载完成，继续启动综合实训");
+
                 // 隐藏主窗口
                 desktop.MainWindow.Hide();
                 System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 主窗口已隐藏");

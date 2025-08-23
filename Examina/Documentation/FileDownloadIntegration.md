@@ -55,10 +55,10 @@ public async Task StartExamAsync(int examId, string examName)
 {
     // 获取当前窗口
     var window = GetCurrentWindow();
-    
+
     // 准备文件（模拟考试）
     bool filesReady = await window.PrepareFilesForMockExamAsync(examId, examName);
-    
+
     if (filesReady)
     {
         // 文件准备完成，开始考试
@@ -76,6 +76,34 @@ await window.PrepareFilesForOnlineExamAsync(examId, examName);
 await window.PrepareFilesForComprehensiveTrainingAsync(trainingId, trainingName);
 await window.PrepareFilesForSpecializedTrainingAsync(trainingId, trainingName);
 ```
+
+## ✅ 已完成的集成
+
+### 1. 上机统考 (OnlineExam)
+**文件**: `Examina/ViewModels/Pages/ExamListViewModel.cs`
+**方法**: `StartFormalExamAsync`
+**集成位置**: 在获取考试详情后，启动考试界面前
+**扩展方法**: `PrepareFilesForOnlineExamAsync`
+
+### 2. 模拟考试 (MockExam)
+**文件**: `Examina/ViewModels/Pages/MockExamViewModel.cs`
+**方法**: `StartMockExamInterfaceAsync`
+**集成位置**: 在隐藏主窗口前
+**扩展方法**: `PrepareFilesForMockExamAsync`
+**覆盖路径**:
+- `QuickStartMockExamAsync` → `StartMockExamInterfaceAsync`
+
+### 3. 综合实训 (ComprehensiveTraining)
+**文件**: `Examina/ViewModels/Pages/ComprehensiveTrainingListViewModel.cs`
+**方法**: `StartTrainingInterfaceAsync`
+**集成位置**: 在隐藏主窗口前
+**扩展方法**: `PrepareFilesForComprehensiveTrainingAsync`
+
+### 4. 专项训练 (SpecializedTraining)
+**文件**: `Examina/ViewModels/Pages/SpecializedTrainingListViewModel.cs`
+**方法**: `StartBenchSuiteTrainingAsync`
+**集成位置**: 在创建考试工具栏前
+**扩展方法**: `PrepareFilesForSpecializedTrainingAsync`
 
 ### 方法2：直接使用窗口
 

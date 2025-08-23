@@ -1,6 +1,7 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
+using Examina.Extensions;
 using Examina.Models;
 using Examina.Models.MockExam;
 using Examina.Services;
@@ -271,6 +272,19 @@ public class MockExamViewModel : ViewModelBase
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
+                // 文件预下载准备
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始文件预下载准备");
+
+                bool filesReady = await desktop.MainWindow.PrepareFilesForMockExamAsync(mockExam.Id, mockExam.Name);
+                if (!filesReady)
+                {
+                    ErrorMessage = "文件准备失败，无法开始模拟考试。请检查网络连接或联系管理员。";
+                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 文件预下载失败，取消模拟考试启动");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 文件预下载完成，继续启动模拟考试");
+
                 // 隐藏主窗口
                 desktop.MainWindow.Hide();
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 主窗口已隐藏");

@@ -2,6 +2,7 @@
 using System.Reactive;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Examina.Extensions;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Services;
@@ -376,6 +377,27 @@ public class ExamListViewModel : ViewModelBase
             }
 
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 成功获取考试详情 - 名称: {examDetails.Name}, 时长: {examDetails.DurationMinutes}分钟");
+
+            // 文件预下载准备
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 开始文件预下载准备");
+
+                bool filesReady = await desktop.MainWindow.PrepareFilesForOnlineExamAsync(examDetails.Id, examDetails.Name);
+                if (!filesReady)
+                {
+                    ErrorMessage = "文件准备失败，无法开始考试。请检查网络连接或联系管理员。";
+                    System.Diagnostics.Debug.WriteLine("ExamListViewModel: 文件预下载失败，取消考试启动");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 文件预下载完成，继续启动考试");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过文件预下载");
+            }
 
             // 启动正式考试界面
             await StartFormalExamInterfaceAsync(examDetails);

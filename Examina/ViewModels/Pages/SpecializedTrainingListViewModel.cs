@@ -1,6 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Examina.Extensions;
 using Examina.Models;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
@@ -321,6 +324,27 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"模块类型: {training.ModuleType}");
             System.Diagnostics.Debug.WriteLine($"题目数量: {training.QuestionCount}");
             System.Diagnostics.Debug.WriteLine($"预计时长: {training.Duration}分钟");
+
+            // 文件预下载准备
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 开始文件预下载准备");
+
+                bool filesReady = await desktop.MainWindow.PrepareFilesForSpecializedTrainingAsync(training.Id, training.Name);
+                if (!filesReady)
+                {
+                    ErrorMessage = "文件准备失败，无法开始专项训练。请检查网络连接或联系管理员。";
+                    System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 文件预下载失败，取消专项训练启动");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 文件预下载完成，继续启动专项训练");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 无法获取主窗口，跳过文件预下载");
+            }
 
             // 创建考试工具栏ViewModel
             ExamToolbarViewModel toolbarViewModel = new();
