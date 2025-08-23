@@ -18,6 +18,7 @@ public class LeaderboardViewModel : ViewModelBase
     private readonly RankingService? _rankingService;
     private readonly ILogger<LeaderboardViewModel>? _logger;
     private readonly IStudentComprehensiveTrainingService? _comprehensiveTrainingService;
+    private readonly IStudentExamService? _studentExamService;
 
     #region 属性
 
@@ -104,9 +105,10 @@ public class LeaderboardViewModel : ViewModelBase
         InitializeLeaderboardTypes();
         InitializeExamFilters();
 
-        // 监听排行榜类型变化
+        // 监听排行榜类型变化（按ID去重，防止相同类型重复触发）
         _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
             .Where(type => type != null)
+            .DistinctUntilChanged(type => type!.Id)
             .Subscribe(type => OnLeaderboardTypeChanged(type!));
 
         // 监听试卷筛选变化
@@ -117,14 +119,15 @@ public class LeaderboardViewModel : ViewModelBase
         // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService) : this()
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService) : this()
     {
         _rankingService = rankingService;
         _logger = logger;
         _comprehensiveTrainingService = comprehensiveTrainingService;
+        _studentExamService = studentExamService;
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, string? rankingTypeId) : this(rankingService, logger, comprehensiveTrainingService)
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId) : this(rankingService, logger, comprehensiveTrainingService, studentExamService)
     {
         if (!string.IsNullOrEmpty(rankingTypeId))
         {
@@ -288,8 +291,8 @@ public class LeaderboardViewModel : ViewModelBase
             return;
         }
 
+        // 仅设置类型，数据加载由 OnLeaderboardTypeChanged 和筛选器变化统一触发
         SelectedLeaderboardType = leaderboardType;
-        LoadLeaderboardData();
     }
 
     /// <summary>
@@ -378,14 +381,14 @@ public class LeaderboardViewModel : ViewModelBase
             });
 
             // 根据排行榜类型加载对应的试卷列表
-            if (SelectedLeaderboardType?.Id == "comprehensive_training" && _comprehensiveTrainingService != null)
+            if (rankingTypeId == "training-ranking" && _comprehensiveTrainingService != null)
             {
                 try
                 {
                     // 获取综合实训列表
-                    var trainings = await _comprehensiveTrainingService.GetAvailableTrainingsAsync(1, 100);
+                    List<Models.Exam.StudentComprehensiveTrainingDto> trainings = await _comprehensiveTrainingService.GetAvailableTrainingsAsync(1, 100);
 
-                    foreach (var training in trainings)
+                    foreach (Models.Exam.StudentComprehensiveTrainingDto training in trainings)
                     {
                         ExamFilters.Add(new ExamFilterItem
                         {
@@ -400,6 +403,41 @@ public class LeaderboardViewModel : ViewModelBase
                 catch (Exception ex)
                 {
                     _logger?.LogError(ex, "加载综合实训试卷列表失败");
+
+                    // 如果加载失败，使用模拟数据作为备用
+                    for (int i = 1; i <= 10; i++)
+                    {
+                        ExamFilters.Add(new ExamFilterItem
+                        {
+                            ExamId = i,
+                            ExamName = $"试卷{i:D2}",
+                            DisplayName = $"试卷{i:D2}"
+                        });
+                    }
+                }
+            }
+            else if (rankingTypeId == "exam-ranking" && _studentExamService != null)
+            {
+                try
+                {
+                    // 获取正式考试列表
+                    List<Models.Exam.StudentExamDto> exams = await _studentExamService.GetAvailableExamsAsync(1, 100);
+
+                    foreach (Models.Exam.StudentExamDto exam in exams)
+                    {
+                        ExamFilters.Add(new ExamFilterItem
+                        {
+                            ExamId = exam.Id,
+                            ExamName = exam.Name,
+                            DisplayName = exam.Name
+                        });
+                    }
+
+                    _logger?.LogInformation("成功加载 {Count} 个正式考试试卷", exams.Count);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "加载正式考试试卷列表失败");
 
                     // 如果加载失败，使用模拟数据作为备用
                     for (int i = 1; i <= 10; i++)
@@ -455,23 +493,22 @@ public class LeaderboardViewModel : ViewModelBase
 
         if (targetType != null)
         {
-            SelectedLeaderboardType = targetType;
-
-            // 更新页面标题
-            PageTitle = targetType.Name;
-
-            // 加载对应类型的数据
-            LoadLeaderboardData();
+            // 避免重复触发：仅当新旧不同才更新
+            if (SelectedLeaderboardType?.Id != targetType.Id)
+            {
+                SelectedLeaderboardType = targetType;
+                PageTitle = targetType.Name;
+            }
         }
         else
         {
             _logger?.LogWarning("未找到排行榜类型: {RankingTypeId}", rankingTypeId);
             // 如果没找到，默认选择第一个类型
-            SelectedLeaderboardType = LeaderboardTypes.FirstOrDefault();
-            if (SelectedLeaderboardType != null)
+            var first = LeaderboardTypes.FirstOrDefault();
+            if (first != null && SelectedLeaderboardType?.Id != first.Id)
             {
-                PageTitle = SelectedLeaderboardType.Name;
-                LoadLeaderboardData();
+                SelectedLeaderboardType = first;
+                PageTitle = first.Name;
             }
         }
     }
