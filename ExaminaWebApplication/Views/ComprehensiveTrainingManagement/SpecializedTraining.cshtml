@@ -39,15 +39,7 @@
         box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
     }
 
-    /* 星级评分的玻璃拟态效果 */
-    .specialized-training-page .bi-star-fill {
-        filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
-        transition: all 0.2s ease;
-    }
 
-    .specialized-training-page .bi-star-fill:hover {
-        transform: scale(1.1);
-    }
 
     /* 模态框的额外玻璃拟态效果 */
     .specialized-training-page .modal-content.glass-card {
@@ -190,7 +182,6 @@
                             <tr>
                                 <th>训练名称</th>
                                 <th>模块类型</th>
-                                <th>难度等级</th>
                                 <th>总分</th>
                                 <th>时长</th>
                                 <th>题目数</th>
@@ -218,14 +209,6 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-info">@training.ModuleType</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            @for (int i = 1; i <= 5; i++)
-                                            {
-                                                <i class="bi bi-star@(i <= training.DifficultyLevel ? "-fill text-warning" : " text-muted") me-1"></i>
-                                            }
-                                        </div>
                                     </td>
                                     <td>@training.TotalScore 分</td>
                                     <td>@training.Duration 分钟</td>
