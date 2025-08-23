@@ -334,6 +334,10 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 training.Duration * 60 // 转换为秒
             );
 
+            // 启动考试（切换到进行中状态并开始计时）
+            toolbarViewModel.StartExam();
+            System.Diagnostics.Debug.WriteLine($"专项训练已启动 - 状态: {toolbarViewModel.CurrentExamStatus}");
+
             // 创建考试工具栏窗口
             ExamToolbarWindow examToolbar = new();
             examToolbar.SetViewModel(toolbarViewModel);

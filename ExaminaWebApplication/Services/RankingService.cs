@@ -227,10 +227,9 @@ public class RankingService
         IQueryable<ComprehensiveTrainingCompletion> baseQuery = _context.ComprehensiveTrainingCompletions
             .Include(ctc => ctc.Student)
             .Include(ctc => ctc.Training)
-            .Where(ctc => ctc.Status == ComprehensiveTrainingCompletionStatus.Completed && 
-                         ctc.IsActive && 
-                         ctc.Score.HasValue &&
-                         ctc.CompletedAt.HasValue);
+            .Where(ctc => ctc.Status == ComprehensiveTrainingCompletionStatus.Completed &&
+                         ctc.IsActive &&
+                         ctc.CompletedAt.HasValue); // 移除Score.HasValue要求，只要有完成时间即可
 
         // 应用时间过滤
         if (query.StartDate.HasValue)
@@ -255,8 +254,8 @@ public class RankingService
         var deduplicatedCompletions = allCompletions
             .GroupBy(ctc => new { ctc.StudentUserId, ctc.TrainingId })
             .Select(g => g
-                .OrderByDescending(ctc => ctc.Score)
-                .ThenBy(ctc => ctc.DurationSeconds)
+                .OrderByDescending(ctc => ctc.Score ?? 0) // 没有分数的记录视为0分
+                .ThenBy(ctc => ctc.DurationSeconds ?? int.MaxValue) // 没有用时的记录排在最后
                 .ThenBy(ctc => ctc.CompletedAt)
                 .First())
             .ToList();
@@ -276,8 +275,8 @@ public class RankingService
 
         // 对去重后的结果进行最终排序并分页
         List<ComprehensiveTrainingCompletion> completions = deduplicatedCompletions
-            .OrderByDescending(ctc => ctc.Score)
-            .ThenBy(ctc => ctc.DurationSeconds)
+            .OrderByDescending(ctc => ctc.Score ?? 0) // 没有分数的记录视为0分
+            .ThenBy(ctc => ctc.DurationSeconds ?? int.MaxValue) // 没有用时的记录排在最后
             .ThenBy(ctc => ctc.CompletedAt)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
