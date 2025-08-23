@@ -1,34 +1,27 @@
-<Window x:Class="Examina.Views.FileDownload.FileDownloadPreparationWindow"
-        xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:Examina.ViewModels.FileDownload"
-        xmlns:views="clr-namespace:Examina.Views.FileDownload"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-        x:DataType="vm:FileDownloadPreparationViewModel"
-        Title="文件准备"
-        Width="800"
-        Height="600"
-        MinWidth="600"
-        MinHeight="400"
-        WindowStartupLocation="CenterScreen"
-        CanResize="True"
-        Icon="/Assets/examina-icon.ico">
+﻿<Window x:Class="Examina.Views.FileDownload.FileDownloadPreparationWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:views="clr-namespace:Examina.Views.FileDownload" xmlns:vm="clr-namespace:Examina.ViewModels.FileDownload" xmlns:converters="clr-namespace:Examina.Converters" Title="文件准备" Width="800" Height="600" MinWidth="600" MinHeight="400" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:FileDownloadPreparationViewModel" CanResize="True" Icon="/Assets/icon.ico" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
+
+    <Window.Resources>
+        <converters:EnumToDisplayNameConverter x:Key="EnumToDisplayNameConverter" />
+        <converters:FileStatusToClassConverter x:Key="FileStatusToClassConverter" />
+        <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
+        <converters:BooleanInverseConverter x:Key="BooleanInverseConverter" />
+        <converters:FileSizeConverter x:Key="FileSizeConverter" />
+        <converters:ProgressPercentageConverter x:Key="ProgressPercentageConverter" />
+    </Window.Resources>
 
     <Window.Styles>
-        <!-- 窗口样式 -->
+        <!--  窗口样式  -->
         <Style Selector="Window">
             <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
         </Style>
 
-        <!-- 标题栏样式 -->
+        <!--  标题栏样式  -->
         <Style Selector="Border.title-bar">
             <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
             <Setter Property="Padding" Value="20,16" />
         </Style>
 
-        <!-- 玻璃拟态卡片样式 -->
+        <!--  玻璃拟态卡片样式  -->
         <Style Selector="Border.glass-card">
             <Setter Property="Background" Value="{DynamicResource ThemeCardBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
@@ -38,7 +31,7 @@
             <Setter Property="Margin" Value="12" />
         </Style>
 
-        <!-- 按钮样式 -->
+        <!--  按钮样式  -->
         <Style Selector="Button.glass-button">
             <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
@@ -61,21 +54,21 @@
             <Setter Property="RenderTransform" Value="translate(0, 0)" />
         </Style>
 
-        <!-- 危险按钮样式 -->
+        <!--  危险按钮样式  -->
         <Style Selector="Button.glass-button.danger">
             <Setter Property="Background" Value="#DC3545" />
             <Setter Property="BorderBrush" Value="#DC3545" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
-        <!-- 成功按钮样式 -->
+        <!--  成功按钮样式  -->
         <Style Selector="Button.glass-button.success">
             <Setter Property="Background" Value="#28A745" />
             <Setter Property="BorderBrush" Value="#28A745" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
-        <!-- 进度条样式 -->
+        <!--  进度条样式  -->
         <Style Selector="ProgressBar.glass-progress">
             <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
@@ -84,7 +77,7 @@
             <Setter Property="Height" Value="12" />
         </Style>
 
-        <!-- 状态指示器样式 -->
+        <!--  状态指示器样式  -->
         <Style Selector="Border.status-indicator">
             <Setter Property="Width" Value="16" />
             <Setter Property="Height" Value="16" />
@@ -110,161 +103,83 @@
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
-        <!-- 标题栏 -->
+        <!--  标题栏  -->
         <Border Grid.Row="0" Classes="title-bar">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Vertical">
-                    <TextBlock Text="{Binding TaskName}" 
-                               FontSize="24" 
-                               FontWeight="SemiBold" 
-                               Foreground="White"
-                               Margin="0,0,0,4" />
-                    <TextBlock Text="{Binding TaskType, Converter={StaticResource EnumToDisplayNameConverter}}" 
-                               FontSize="16" 
-                               Foreground="White"
-                               Opacity="0.9" />
+                    <TextBlock Margin="0,0,0,4" FontSize="24" FontWeight="SemiBold" Foreground="White" Text="{Binding TaskName}" />
+                    <TextBlock FontSize="16" Foreground="White" Opacity="0.9" Text="考试/训练" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding CompletedFileCount}" 
-                               FontSize="20" 
-                               FontWeight="Bold" 
-                               Foreground="White" />
-                    <TextBlock Text=" / " 
-                               FontSize="20" 
-                               Foreground="White" />
-                    <TextBlock Text="{Binding TotalFileCount}" 
-                               FontSize="20" 
-                               FontWeight="Bold" 
-                               Foreground="White" />
-                    <TextBlock Text=" 文件" 
-                               FontSize="16" 
-                               Foreground="White" 
-                               Margin="8,0,0,0" 
-                               VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="White" Text="{Binding CompletedFileCount}" />
+                    <TextBlock FontSize="20" Foreground="White" Text=" / " />
+                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="White" Text="{Binding TotalFileCount}" />
+                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="16" Foreground="White" Text=" 文件" />
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- 主要内容区域 -->
+        <!--  主要内容区域  -->
         <ScrollViewer Grid.Row="1" Padding="0,12">
             <StackPanel Spacing="0">
-                <!-- 整体进度卡片 -->
+                <!--  整体进度卡片  -->
                 <Border Classes="glass-card">
                     <StackPanel Spacing="16">
                         <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" 
-                                       Text="{Binding StatusMessage}" 
-                                       FontSize="18" 
-                                       FontWeight="Medium" />
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding OverallProgress, StringFormat='{}{0:F1}%'}"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       Foreground="{DynamicResource ThemeAccentBrush}" />
+                            <TextBlock Grid.Column="0" FontSize="18" FontWeight="Medium" Text="{Binding StatusMessage}" />
+                            <TextBlock Grid.Column="1" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource ThemeAccentBrush}" Text="{Binding OverallProgress, StringFormat='{}{0:F1}%'}" />
                         </Grid>
 
-                        <ProgressBar Classes="glass-progress" 
-                                     Value="{Binding OverallProgress}" 
-                                     Maximum="100" />
+                        <ProgressBar Classes="glass-progress" Maximum="100" Value="{Binding OverallProgress}" />
 
-                        <!-- 错误消息 -->
-                        <Border IsVisible="{Binding HasError}"
-                                Background="#F8D7DA"
-                                BorderBrush="#DC3545"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16,12">
+                        <!--  错误消息  -->
+                        <Border Padding="16,12" Background="#F8D7DA" BorderBrush="#DC3545" BorderThickness="1" CornerRadius="8" IsVisible="{Binding HasError}">
                             <StackPanel Spacing="8">
-                                <TextBlock Text="❌ 下载过程中出现错误"
-                                           FontWeight="Medium"
-                                           Foreground="#DC3545" />
-                                <TextBlock Text="{Binding ErrorMessage}"
-                                           Foreground="#DC3545"
-                                           TextWrapping="Wrap" />
+                                <TextBlock FontWeight="Medium" Foreground="#DC3545" Text="❌ 下载过程中出现错误" />
+                                <TextBlock Foreground="#DC3545" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
-                        <!-- 成功消息 -->
-                        <Border IsVisible="{Binding IsCompleted}"
-                                Background="#D4EDDA"
-                                BorderBrush="#28A745"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16,12">
-                            <TextBlock Text="✅ 所有文件下载完成，可以开始考试/训练"
-                                       FontWeight="Medium"
-                                       Foreground="#28A745" />
+                        <!--  成功消息  -->
+                        <Border Padding="16,12" Background="#D4EDDA" BorderBrush="#28A745" BorderThickness="1" CornerRadius="8" IsVisible="{Binding IsCompleted}">
+                            <TextBlock FontWeight="Medium" Foreground="#28A745" Text="✅ 所有文件下载完成，可以开始考试/训练" />
                         </Border>
                     </StackPanel>
                 </Border>
 
-                <!-- 文件列表卡片 -->
+                <!--  文件列表卡片  -->
                 <Border Classes="glass-card">
                     <StackPanel Spacing="16">
                         <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" 
-                                       Text="文件下载详情" 
-                                       FontSize="18" 
-                                       FontWeight="Medium" />
-                            <ToggleButton Grid.Column="1" 
-                                          Content="显示详细进度" 
-                                          IsChecked="{Binding ShowDetails}" />
+                            <TextBlock Grid.Column="0" FontSize="18" FontWeight="Medium" Text="文件下载详情" />
+                            <ToggleButton Grid.Column="1" Content="显示详细进度" IsChecked="{Binding ShowDetails}" />
                         </Grid>
 
                         <ItemsControl ItemsSource="{Binding Files}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{DynamicResource ThemeControlLowBrush}"
-                                            BorderBrush="{DynamicResource ThemeBorderMidBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="8"
-                                            Padding="16"
-                                            Margin="0,6">
-                                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto">
-                                            <!-- 状态指示器 -->
-                                            <Border Grid.Row="0" Grid.Column="0" 
-                                                    Classes="status-indicator"
-                                                    VerticalAlignment="Center">
-                                                <Border.Classes>
-                                                    <MultiBinding Converter="{StaticResource FileStatusToClassConverter}">
-                                                        <Binding Path="Status" />
-                                                    </MultiBinding>
-                                                </Border.Classes>
+                                    <Border Margin="0,6" Padding="16" Background="{DynamicResource ThemeControlLowBrush}" BorderBrush="{DynamicResource ThemeBorderMidBrush}" BorderThickness="1" CornerRadius="8">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                            <!--  状态指示器  -->
+                                            <Border Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
+                                                    Classes="{Binding Status, Converter={StaticResource FileStatusToClassConverter}}">
                                             </Border>
 
-                                            <!-- 文件信息 -->
+                                            <!--  文件信息  -->
                                             <StackPanel Grid.Row="0" Grid.Column="1" Spacing="6">
-                                                <TextBlock Text="{Binding FileName}" 
-                                                           FontWeight="Medium" 
-                                                           FontSize="14" />
-                                                <TextBlock Text="{Binding StatusMessage}" 
-                                                           FontSize="12" 
-                                                           Opacity="0.7" />
+                                                <TextBlock FontSize="14" FontWeight="Medium" Text="{Binding FileName}" />
+                                                <TextBlock FontSize="12" Opacity="0.7" Text="{Binding StatusMessage}" />
                                             </StackPanel>
 
-                                            <!-- 进度和大小 -->
-                                            <StackPanel Grid.Row="0" Grid.Column="2" 
-                                                        Orientation="Vertical" 
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Progress, StringFormat='{}{0:F1}%'}" 
-                                                           FontSize="14" 
-                                                           FontWeight="Medium" 
-                                                           HorizontalAlignment="Right" />
-                                                <TextBlock Text="{Binding FormattedTotalSize}" 
-                                                           FontSize="12" 
-                                                           Opacity="0.7" 
-                                                           HorizontalAlignment="Right" />
+                                            <!--  进度和大小  -->
+                                            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Vertical">
+                                                <TextBlock HorizontalAlignment="Right" FontSize="14" FontWeight="Medium" Text="{Binding Progress, StringFormat='{}{0:F1}%'}" />
+                                                <TextBlock HorizontalAlignment="Right" FontSize="12" Opacity="0.7" Text="{Binding FormattedTotalSize}" />
                                             </StackPanel>
 
-                                            <!-- 详细进度条 -->
-                                            <ProgressBar Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
-                                                         Classes="glass-progress" 
-                                                         Value="{Binding Progress}" 
-                                                         Maximum="100" 
-                                                         Margin="0,12,0,0"
-                                                         IsVisible="{Binding $parent[Window].((vm:FileDownloadPreparationViewModel)DataContext).ShowDetails}" />
+                                            <!--  详细进度条  -->
+                                            <ProgressBar Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,12,0,0" Classes="glass-progress" IsVisible="{Binding $parent[Window].((vm:FileDownloadPreparationViewModel)DataContext).ShowDetails}" Maximum="100" Value="{Binding Progress}" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -275,46 +190,26 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 操作按钮栏 -->
-        <Border Grid.Row="2"
-                Background="{DynamicResource ThemeControlLowBrush}"
-                BorderBrush="{DynamicResource ThemeBorderMidBrush}"
-                BorderThickness="0,1,0,0"
-                Padding="20,16">
+        <!--  操作按钮栏  -->
+        <Border Grid.Row="2" Padding="20,16" Background="{DynamicResource ThemeControlLowBrush}" BorderBrush="{DynamicResource ThemeBorderMidBrush}" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
-                <!-- 状态信息 -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
-                    <TextBlock IsVisible="{Binding FailedFileCount, Converter={StaticResource GreaterThanZeroConverter}}">
+                <!--  状态信息  -->
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="20">
+                    <TextBlock IsVisible="{Binding HasError}">
                         <Run Text="❌" />
-                        <Run Text="{Binding FailedFileCount}" Foreground="#DC3545" FontWeight="Medium" />
+                        <Run FontWeight="Medium" Foreground="#DC3545" Text="{Binding FailedFileCount}" />
                         <Run Text="个文件失败" />
                     </TextBlock>
                 </StackPanel>
 
-                <!-- 操作按钮 -->
-                <Button Grid.Column="1" 
-                        Classes="glass-button success" 
-                        Content="开始下载" 
-                        Command="{Binding StartDownloadCommand}" 
-                        IsVisible="{Binding CanStartDownload}" />
+                <!--  操作按钮  -->
+                <Button Grid.Column="1" Classes="glass-button success" Command="{Binding StartDownloadCommand}" Content="开始下载" IsVisible="{Binding CanStartDownload}" />
 
-                <Button Grid.Column="2" 
-                        Classes="glass-button danger" 
-                        Content="取消下载" 
-                        Command="{Binding CancelDownloadCommand}" 
-                        IsVisible="{Binding CanCancelDownload}" />
+                <Button Grid.Column="2" Classes="glass-button danger" Command="{Binding CancelDownloadCommand}" Content="取消下载" IsVisible="{Binding CanCancelDownload}" />
 
-                <Button Grid.Column="3" 
-                        Classes="glass-button" 
-                        Content="重试下载" 
-                        Command="{Binding RetryDownloadCommand}" 
-                        IsVisible="{Binding CanRetryDownload}" />
+                <Button Grid.Column="3" Classes="glass-button" Command="{Binding RetryDownloadCommand}" Content="重试下载" IsVisible="{Binding CanRetryDownload}" />
 
-                <Button Grid.Column="4" 
-                        Classes="glass-button" 
-                        Content="关闭" 
-                        Command="{Binding CloseCommand}" 
-                        Click="OnCloseClick" />
+                <Button Grid.Column="4" Classes="glass-button" Click="OnCloseClick" Command="{Binding CloseCommand}" Content="关闭" />
             </Grid>
         </Border>
     </Grid>

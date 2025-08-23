@@ -5,8 +5,18 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Examina.ViewModels.FileDownload"
              xmlns:models="clr-namespace:Examina.Models.FileDownload"
+             xmlns:converters="clr-namespace:Examina.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:DataType="vm:FileDownloadPreparationViewModel">
+
+    <UserControl.Resources>
+        <converters:EnumToDisplayNameConverter x:Key="EnumToDisplayNameConverter" />
+        <converters:FileStatusToClassConverter x:Key="FileStatusToClassConverter" />
+        <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
+        <converters:BooleanInverseConverter x:Key="BooleanInverseConverter" />
+        <converters:FileSizeConverter x:Key="FileSizeConverter" />
+        <converters:ProgressPercentageConverter x:Key="ProgressPercentageConverter" />
+    </UserControl.Resources>
 
     <UserControl.Styles>
         <!-- 玻璃拟态样式 -->
@@ -72,8 +82,8 @@
                                FontSize="20" 
                                FontWeight="SemiBold" 
                                Margin="0,0,0,4" />
-                    <TextBlock Text="{Binding TaskType, Converter={StaticResource EnumToDisplayNameConverter}}" 
-                               FontSize="14" 
+                    <TextBlock Text="考试/训练"
+                               FontSize="14"
                                Opacity="0.7" />
                 </StackPanel>
 
@@ -138,16 +148,12 @@
                                     <Border Classes="glass-card" Margin="0,4">
                                         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto">
                                             <!-- 状态指示器 -->
-                                            <Border Grid.Row="0" Grid.Column="0" 
-                                                    Width="12" Height="12" 
-                                                    CornerRadius="6" 
+                                            <Border Grid.Row="0" Grid.Column="0"
+                                                    Width="12" Height="12"
+                                                    CornerRadius="6"
                                                     Margin="0,0,12,0"
-                                                    VerticalAlignment="Center">
-                                                <Border.Classes>
-                                                    <MultiBinding Converter="{StaticResource FileStatusToClassConverter}">
-                                                        <Binding Path="Status" />
-                                                    </MultiBinding>
-                                                </Border.Classes>
+                                                    VerticalAlignment="Center"
+                                                    Classes="{Binding Status, Converter={StaticResource FileStatusToClassConverter}}">
                                             </Border>
 
                                             <!-- 文件信息 -->
@@ -194,7 +200,7 @@
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <!-- 状态信息 -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                    <TextBlock IsVisible="{Binding FailedFileCount, Converter={StaticResource GreaterThanZeroConverter}}">
+                    <TextBlock IsVisible="{Binding HasError}">
                         <Run Text="{Binding FailedFileCount}" Foreground="#DC3545" />
                         <Run Text="个文件失败" />
                     </TextBlock>
