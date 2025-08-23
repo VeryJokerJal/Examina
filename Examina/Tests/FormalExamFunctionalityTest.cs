@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Examina.Models;
 using Examina.Models.Exam;
@@ -84,7 +85,7 @@ public static class FormalExamFunctionalityTest
                         Id = 1,
                         SubjectName = "C#编程",
                         Score = 75,
-                        Questions = new List<StudentQuestionDto>
+                        Questions = new ObservableCollection<StudentQuestionDto>
                         {
                             new() { Id = 1, Title = "编程题1", Score = 15 },
                             new() { Id = 2, Title = "编程题2", Score = 15 },
@@ -94,7 +95,7 @@ public static class FormalExamFunctionalityTest
                         }
                     }
                 },
-                Modules = new List<StudentModuleDto>
+                Modules = new ObservableCollection<StudentModuleDto>
                 {
                     new()
                     {
@@ -102,7 +103,7 @@ public static class FormalExamFunctionalityTest
                         Name = "操作题模块",
                         Type = "Operation",
                         Score = 25,
-                        Questions = new System.Collections.ObjectModel.ObservableCollection<StudentQuestionDto>
+                        Questions = new ObservableCollection<StudentQuestionDto>
                         {
                             new() { Id = 6, Title = "操作题1", Score = 5 },
                             new() { Id = 7, Title = "操作题2", Score = 5 },
