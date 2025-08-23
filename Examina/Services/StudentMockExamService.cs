@@ -298,7 +298,7 @@ public class StudentMockExamService : IStudentMockExamService
     /// <summary>
     /// 提交模拟考试
     /// </summary>
-    public async Task<MockExamSubmissionResponseDto?> SubmitMockExamAsync(int mockExamId)
+    public async Task<MockExamSubmissionResponseDto?> SubmitMockExamAsync(int mockExamId, int? actualDurationSeconds = null)
     {
         try
         {
@@ -306,6 +306,13 @@ public class StudentMockExamService : IStudentMockExamService
             await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/submit");
+
+            // 如果提供了实际用时，添加到查询参数中
+            if (actualDurationSeconds.HasValue)
+            {
+                apiUrl += $"?actualDurationSeconds={actualDurationSeconds.Value}";
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 传递客户端实际用时: {actualDurationSeconds.Value}秒");
+            }
 
             System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送提交模拟考试请求到 {apiUrl}");
 

@@ -3,6 +3,7 @@ using ExaminaWebApplication.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MockExam = ExaminaWebApplication.Models.MockExam.MockExam;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -439,5 +440,178 @@ public class DiagnosticController : ControllerBase
             _logger.LogError(ex, "清理重复模拟考试完成记录失败");
             return StatusCode(500, new { message = "清理失败", error = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// 时间诊断API - 检查模拟考试的时间记录和计算
+    /// </summary>
+    [HttpGet("time-diagnosis/{mockExamId}")]
+    public async Task<ActionResult> DiagnoseMockExamTime(int mockExamId)
+    {
+        try
+        {
+            // 获取模拟考试信息
+            var mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId);
+
+            if (mockExam == null)
+            {
+                return NotFound(new { message = "模拟考试不存在" });
+            }
+
+            // 获取完成记录
+            var completions = await _context.MockExamCompletions
+                .Where(mec => mec.MockExamId == mockExamId)
+                .OrderByDescending(mec => mec.CreatedAt)
+                .ToListAsync();
+
+            var diagnosis = new
+            {
+                MockExam = new
+                {
+                    mockExam.Id,
+                    mockExam.Name,
+                    mockExam.Status,
+                    mockExam.CreatedAt,
+                    mockExam.StartedAt,
+                    mockExam.CompletedAt,
+                    DurationMinutes = mockExam.DurationMinutes
+                },
+                Completions = completions.Select(completion => new
+                {
+                    completion.Id,
+                    completion.StudentUserId,
+                    completion.Status,
+                    completion.StartedAt,
+                    completion.CompletedAt,
+                    completion.DurationSeconds,
+                    completion.CreatedAt,
+                    completion.UpdatedAt,
+
+                    // 计算各种时间差异
+                    TimeAnalysis = AnalyzeTimeData(completion, mockExam)
+                }),
+                Summary = new
+                {
+                    TotalCompletions = completions.Count,
+                    CompletedCount = completions.Count(c => c.Status == MockExamCompletionStatus.Completed),
+                    AverageDurationSeconds = completions.Where(c => c.DurationSeconds.HasValue).Average(c => c.DurationSeconds),
+                    MinDurationSeconds = completions.Where(c => c.DurationSeconds.HasValue).Min(c => c.DurationSeconds),
+                    MaxDurationSeconds = completions.Where(c => c.DurationSeconds.HasValue).Max(c => c.DurationSeconds)
+                }
+            };
+
+            return Ok(diagnosis);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "时间诊断失败，模拟考试ID: {MockExamId}", mockExamId);
+            return StatusCode(500, new { message = "诊断失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 分析时间数据
+    /// </summary>
+    private static object AnalyzeTimeData(MockExamCompletion completion, MockExam mockExam)
+    {
+        var analysis = new
+        {
+            // 基础时间信息
+            StoredDurationSeconds = completion.DurationSeconds,
+
+            // 使用模拟考试的StartedAt计算（服务端逻辑）
+            ServerCalculation = mockExam.StartedAt.HasValue && completion.CompletedAt.HasValue
+                ? new
+                {
+                    StartTime = mockExam.StartedAt.Value,
+                    EndTime = completion.CompletedAt.Value,
+                    CalculatedSeconds = (int)Math.Ceiling((completion.CompletedAt.Value - mockExam.StartedAt.Value).TotalSeconds),
+                    CalculatedMinutes = (int)Math.Ceiling((completion.CompletedAt.Value - mockExam.StartedAt.Value).TotalMinutes)
+                }
+                : null,
+
+            // 使用完成记录的StartedAt计算（可能的客户端逻辑）
+            ClientCalculation = completion.StartedAt.HasValue && completion.CompletedAt.HasValue
+                ? new
+                {
+                    StartTime = completion.StartedAt.Value,
+                    EndTime = completion.CompletedAt.Value,
+                    CalculatedSeconds = (int)Math.Ceiling((completion.CompletedAt.Value - completion.StartedAt.Value).TotalSeconds),
+                    CalculatedMinutes = (int)Math.Ceiling((completion.CompletedAt.Value - completion.StartedAt.Value).TotalMinutes)
+                }
+                : null,
+
+            // 时间差异分析
+            TimeDifferences = new
+            {
+                MockExamVsCompletionStartTime = mockExam.StartedAt.HasValue && completion.StartedAt.HasValue
+                    ? (completion.StartedAt.Value - mockExam.StartedAt.Value).TotalSeconds
+                    : (double?)null,
+
+                ServerVsStoredDuration = mockExam.StartedAt.HasValue && completion.CompletedAt.HasValue && completion.DurationSeconds.HasValue
+                    ? (int)Math.Ceiling((completion.CompletedAt.Value - mockExam.StartedAt.Value).TotalSeconds) - completion.DurationSeconds.Value
+                    : (int?)null,
+
+                ClientVsStoredDuration = completion.StartedAt.HasValue && completion.CompletedAt.HasValue && completion.DurationSeconds.HasValue
+                    ? (int)Math.Ceiling((completion.CompletedAt.Value - completion.StartedAt.Value).TotalSeconds) - completion.DurationSeconds.Value
+                    : (int?)null
+            },
+
+            // 可能的问题标识
+            PotentialIssues = IdentifyTimeIssues(completion, mockExam)
+        };
+
+        return analysis;
+    }
+
+    /// <summary>
+    /// 识别时间相关的潜在问题
+    /// </summary>
+    private static List<string> IdentifyTimeIssues(MockExamCompletion completion, MockExam mockExam)
+    {
+        var issues = new List<string>();
+
+        // 检查时间戳一致性
+        if (mockExam.StartedAt.HasValue && completion.StartedAt.HasValue)
+        {
+            var timeDiff = Math.Abs((completion.StartedAt.Value - mockExam.StartedAt.Value).TotalSeconds);
+            if (timeDiff > 10) // 超过10秒差异
+            {
+                issues.Add($"模拟考试和完成记录的开始时间差异过大: {timeDiff:F1}秒");
+            }
+        }
+
+        // 检查存储的用时与计算用时的差异
+        if (mockExam.StartedAt.HasValue && completion.CompletedAt.HasValue && completion.DurationSeconds.HasValue)
+        {
+            var calculatedDuration = (int)Math.Ceiling((completion.CompletedAt.Value - mockExam.StartedAt.Value).TotalSeconds);
+            var storedDuration = completion.DurationSeconds.Value;
+            var diff = Math.Abs(calculatedDuration - storedDuration);
+
+            if (diff > 2) // 超过2秒差异
+            {
+                issues.Add($"存储用时与计算用时差异: 存储{storedDuration}秒, 计算{calculatedDuration}秒, 差异{diff}秒");
+            }
+        }
+
+        // 检查是否使用了Math.Ceiling导致的向上取整问题
+        if (completion.DurationSeconds.HasValue && completion.DurationSeconds.Value % 1 == 0)
+        {
+            // 这是整数，可能是Math.Ceiling的结果
+            if (mockExam.StartedAt.HasValue && completion.CompletedAt.HasValue)
+            {
+                var exactDuration = (completion.CompletedAt.Value - mockExam.StartedAt.Value).TotalSeconds;
+                var ceilingDuration = Math.Ceiling(exactDuration);
+                var diff = ceilingDuration - exactDuration;
+
+                if (diff > 0.1) // 向上取整导致的差异
+                {
+                    issues.Add($"Math.Ceiling向上取整导致时间增加: 实际{exactDuration:F2}秒, 取整后{ceilingDuration}秒, 增加{diff:F2}秒");
+                }
+            }
+        }
+
+        return issues;
     }
 }

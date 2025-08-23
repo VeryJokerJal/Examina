@@ -389,7 +389,7 @@ public class StudentMockExamService : IStudentMockExamService
     /// <summary>
     /// 提交模拟考试（与完成模拟考试功能相同，但语义更明确）
     /// </summary>
-    public async Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId)
+    public async Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId, int? clientActualDurationSeconds = null)
     {
         // 使用事务确保数据一致性，防止并发问题
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -444,13 +444,35 @@ public class StudentMockExamService : IStudentMockExamService
                 .Where(mec => mec.MockExamId == mockExamId && mec.StudentUserId == studentUserId)
                 .FirstOrDefaultAsync();
 
-            // 计算用时（秒）
+            // 计算用时（秒）- 优先使用客户端传递的时间，避免网络延迟影响
             int? durationSeconds = null;
-            if (mockExam.StartedAt.HasValue)
+            string timeCalculationMethod = "";
+
+            if (clientActualDurationSeconds.HasValue && clientActualDurationSeconds.Value > 0)
             {
-                TimeSpan duration = now - mockExam.StartedAt.Value;
-                durationSeconds = (int)Math.Ceiling(duration.TotalSeconds);
+                // 优先使用客户端传递的实际用时
+                durationSeconds = clientActualDurationSeconds.Value;
+                timeCalculationMethod = "客户端传递";
+
+                _logger.LogInformation("使用客户端传递的用时 - 客户端用时: {ClientDuration}秒",
+                    durationSeconds);
             }
+            else if (mockExam.StartedAt.HasValue)
+            {
+                // 备用方案：服务端计算，使用四舍五入减少差异
+                TimeSpan duration = now - mockExam.StartedAt.Value;
+                durationSeconds = (int)Math.Round(duration.TotalSeconds);
+                timeCalculationMethod = "服务端计算";
+
+                _logger.LogInformation("服务端时间计算 - 开始时间: {StartTime}, 结束时间: {EndTime}, 精确用时: {ExactDuration}秒, 四舍五入后: {RoundedDuration}秒",
+                    mockExam.StartedAt.Value.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                    now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                    duration.TotalSeconds,
+                    durationSeconds);
+            }
+
+            _logger.LogInformation("时间计算方式: {Method}, 最终用时: {Duration}秒",
+                timeCalculationMethod, durationSeconds);
 
             if (existingCompletion == null)
             {

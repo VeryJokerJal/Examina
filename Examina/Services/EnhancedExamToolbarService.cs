@@ -115,11 +115,11 @@ public class EnhancedExamToolbarService : IDisposable
     /// <summary>
     /// 提交模拟考试
     /// </summary>
-    public async Task<bool> SubmitMockExamAsync(int mockExamId)
+    public async Task<bool> SubmitMockExamAsync(int mockExamId, int? actualDurationSeconds = null)
     {
         try
         {
-            _logger.LogInformation("开始提交模拟考试，模拟考试ID: {MockExamId}", mockExamId);
+            _logger.LogInformation("开始提交模拟考试，模拟考试ID: {MockExamId}, 实际用时: {Duration}秒", mockExamId, actualDurationSeconds);
 
             // 获取当前用户信息
             UserInfo? currentUser = _authenticationService.CurrentUser;
@@ -139,7 +139,7 @@ public class EnhancedExamToolbarService : IDisposable
                 {
                     Score = scoringResult?.AchievedScore,
                     MaxScore = scoringResult?.TotalScore,
-                    DurationSeconds = null, // 可以从考试开始时间计算
+                    DurationSeconds = actualDurationSeconds, // 使用传递的实际用时
                     Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
                     BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null
                 };
@@ -152,7 +152,7 @@ public class EnhancedExamToolbarService : IDisposable
                     _logger.LogWarning("模拟考试成绩提交失败，模拟考试ID: {MockExamId}", mockExamId);
 
                     // 如果成绩提交失败，尝试基本提交（不包含成绩数据）
-                    MockExamSubmissionResponseDto? basicSubmitResult = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
+                    MockExamSubmissionResponseDto? basicSubmitResult = await _studentMockExamService.SubmitMockExamAsync(mockExamId, actualDurationSeconds);
                     if (basicSubmitResult?.Success != true)
                     {
                         _logger.LogError("模拟考试基本提交也失败，模拟考试ID: {MockExamId}, 错误: {Error}",

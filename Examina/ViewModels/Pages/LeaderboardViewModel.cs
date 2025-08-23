@@ -193,7 +193,6 @@ public class LeaderboardViewModel : ViewModelBase
     private async void LoadLeaderboardData()
     {
         IsLoading = true;
-        LeaderboardData.Clear();
         ErrorMessage = null;
 
         try
@@ -217,6 +216,7 @@ public class LeaderboardViewModel : ViewModelBase
 
                 RankingResponseDto? response = await _rankingService.GetRankingByTypeAsync(rankingType, examId, 1, 50);
 
+                LeaderboardData.Clear();
                 if (response != null && response.Entries.Any())
                 {
                     foreach (RankingEntryDto entry in response.Entries)
@@ -318,7 +318,7 @@ public class LeaderboardViewModel : ViewModelBase
         if (!ShowExamFilter)
         {
             // 临时禁用筛选器变化监听，避免重复加载数据
-            var currentFilter = SelectedExamFilter;
+            ExamFilterItem? currentFilter = SelectedExamFilter;
             SelectedExamFilter = ExamFilters.FirstOrDefault();
 
             // 如果筛选器没有实际变化，手动触发数据加载

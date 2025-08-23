@@ -452,15 +452,18 @@ public class MockExamViewModel : ViewModelBase
 
             bool submitResult = false;
 
+            // 获取实际用时（从考试工具栏）
+            int? actualDurationSeconds = GetActualDurationFromToolbar();
+
             // 优先使用EnhancedExamToolbarService进行BenchSuite集成提交
             if (_enhancedExamToolbarService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 使用EnhancedExamToolbarService进行BenchSuite集成提交");
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 使用EnhancedExamToolbarService进行BenchSuite集成提交，实际用时: {actualDurationSeconds}秒");
 
                 switch (examType)
                 {
                     case ExamType.MockExam:
-                        submitResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId);
+                        submitResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
                         break;
                     case ExamType.FormalExam:
                         submitResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
@@ -482,11 +485,11 @@ public class MockExamViewModel : ViewModelBase
                 {
                     case ExamType.MockExam:
                         // 使用现有的模拟考试服务提交
-                        MockExamSubmissionResponseDto? submitResponse = await _mockExamService.SubmitMockExamAsync(examId);
+                        MockExamSubmissionResponseDto? submitResponse = await _mockExamService.SubmitMockExamAsync(examId, actualDurationSeconds);
                         if (submitResponse != null)
                         {
                             submitResult = submitResponse.Success;
-                            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模拟考试提交响应 - 成功: {submitResponse.Success}, 时间状态: {submitResponse.TimeStatusDescription}");
+                            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模拟考试提交响应 - 成功: {submitResponse.Success}, 时间状态: {submitResponse.TimeStatusDescription}, 客户端用时: {actualDurationSeconds}秒");
 
                             if (submitResponse.ActualDurationMinutes.HasValue)
                             {
@@ -572,6 +575,39 @@ public class MockExamViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 关闭考试并显示主窗口异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 从考试工具栏获取实际用时
+    /// </summary>
+    private int? GetActualDurationFromToolbar()
+    {
+        try
+        {
+            // 查找当前活动的ExamToolbarWindow
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                foreach (Avalonia.Controls.Window window in desktop.Windows)
+                {
+                    if (window is ExamToolbarWindow toolbarWindow &&
+                        toolbarWindow.DataContext is ExamToolbarViewModel viewModel &&
+                        viewModel.CurrentExamType == ExamType.MockExam)
+                    {
+                        int actualDurationSeconds = viewModel.GetActualDurationSeconds();
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 从工具栏获取实际用时: {actualDurationSeconds}秒");
+                        return actualDurationSeconds;
+                    }
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 无法找到考试工具栏窗口，无法获取实际用时");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 获取实际用时异常: {ex.Message}");
+            return null;
         }
     }
 

@@ -223,15 +223,19 @@ public class StudentMockExamController : ControllerBase
     /// 提交模拟考试
     /// </summary>
     /// <param name="id">模拟考试ID</param>
+    /// <param name="actualDurationSeconds">客户端实际用时（秒），可选参数</param>
     /// <returns>操作结果，包含时间状态信息</returns>
     [HttpPost("{id}/submit")]
-    public async Task<ActionResult> SubmitMockExam(int id)
+    public async Task<ActionResult> SubmitMockExam(int id, [FromQuery] int? actualDurationSeconds = null)
     {
         try
         {
             int studentUserId = GetCurrentUserId();
 
-            var result = await _mockExamService.SubmitMockExamAsync(id, studentUserId);
+            _logger.LogInformation("接收到模拟考试提交请求，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 客户端用时: {ClientDuration}秒",
+                studentUserId, id, actualDurationSeconds);
+
+            var result = await _mockExamService.SubmitMockExamAsync(id, studentUserId, actualDurationSeconds);
             if (!result.Success)
             {
                 _logger.LogWarning("提交模拟考试失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 原因: {Message}",

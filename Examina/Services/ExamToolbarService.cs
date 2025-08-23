@@ -168,13 +168,13 @@ public class ExamToolbarService : IDisposable
     /// <summary>
     /// 提交模拟考试
     /// </summary>
-    public async Task<bool> SubmitMockExamAsync(int mockExamId)
+    public async Task<bool> SubmitMockExamAsync(int mockExamId, int? actualDurationSeconds = null)
     {
         try
         {
-            _logger.LogInformation("提交模拟考试，模拟考试ID: {MockExamId}", mockExamId);
+            _logger.LogInformation("提交模拟考试，模拟考试ID: {MockExamId}, 实际用时: {Duration}秒", mockExamId, actualDurationSeconds);
 
-            MockExamSubmissionResponseDto? result = await _studentMockExamService.SubmitMockExamAsync(mockExamId);
+            MockExamSubmissionResponseDto? result = await _studentMockExamService.SubmitMockExamAsync(mockExamId, actualDurationSeconds);
 
             if (result?.Success == true)
             {
