@@ -316,6 +316,81 @@ public class StudentSpecializedTrainingApiController : ControllerBase
     }
 
     /// <summary>
+    /// 标记专项训练为开始状态
+    /// </summary>
+    /// <param name="trainingId">专项训练ID</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{trainingId}/start")]
+    public async Task<ActionResult> StartSpecializedTraining(int trainingId)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentSpecializedTrainingService.MarkTrainingAsStartedAsync(studentUserId, trainingId);
+
+            if (success)
+            {
+                _logger.LogInformation("学生开始专项训练成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
+                    studentUserId, trainingId);
+                return Ok(new { message = "专项训练开始成功" });
+            }
+            else
+            {
+                _logger.LogWarning("学生开始专项训练失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
+                    studentUserId, trainingId);
+                return BadRequest(new { message = "开始专项训练失败，请检查训练是否存在或您是否有权限访问" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "开始专项训练时发生异常，训练ID: {TrainingId}", trainingId);
+            return StatusCode(500, new { message = "开始专项训练失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 标记专项训练为已完成
+    /// </summary>
+    /// <param name="trainingId">专项训练ID</param>
+    /// <param name="request">完成信息</param>
+    /// <returns>操作结果</returns>
+    [HttpPost("{trainingId}/complete")]
+    public async Task<ActionResult> CompleteSpecializedTraining(int trainingId, [FromBody] CompleteTrainingRequest request)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            bool success = await _studentSpecializedTrainingService.MarkTrainingAsCompletedAsync(
+                studentUserId,
+                trainingId,
+                request.Score,
+                request.MaxScore,
+                request.DurationSeconds,
+                request.Notes);
+
+            if (success)
+            {
+                _logger.LogInformation("学生完成专项训练成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 得分: {Score}/{MaxScore}",
+                    studentUserId, trainingId, request.Score, request.MaxScore);
+                return Ok(new { message = "专项训练完成成功" });
+            }
+            else
+            {
+                _logger.LogWarning("学生完成专项训练失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
+                    studentUserId, trainingId);
+                return BadRequest(new { message = "完成专项训练失败，请检查训练是否存在或您是否有权限访问" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "完成专项训练时发生异常，训练ID: {TrainingId}", trainingId);
+            return StatusCode(500, new { message = "完成专项训练失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     /// <returns>用户ID</returns>

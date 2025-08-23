@@ -75,4 +75,24 @@ public interface IStudentSpecializedTrainingService
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>模块类型列表</returns>
     Task<List<string>> GetAvailableModuleTypesAsync(int studentUserId);
+
+    /// <summary>
+    /// 标记专项训练为开始状态
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="trainingId">专项训练ID</param>
+    /// <returns>是否成功</returns>
+    Task<bool> MarkTrainingAsStartedAsync(int studentUserId, int trainingId);
+
+    /// <summary>
+    /// 标记专项训练为已完成
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="trainingId">专项训练ID</param>
+    /// <param name="score">得分</param>
+    /// <param name="maxScore">最大得分</param>
+    /// <param name="durationSeconds">用时（秒）</param>
+    /// <param name="notes">备注信息</param>
+    /// <returns>是否成功</returns>
+    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
 }

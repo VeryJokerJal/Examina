@@ -1,4 +1,5 @@
 using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedSpecializedTraining;
 using Microsoft.EntityFrameworkCore;
@@ -439,5 +440,177 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             MinValue = parameter.MinValue?.ToString(), // 转换为字符串
             MaxValue = parameter.MaxValue?.ToString() // 转换为字符串
         };
+    }
+
+    /// <summary>
+    /// 标记专项训练为开始状态
+    /// </summary>
+    public async Task<bool> MarkTrainingAsStartedAsync(int studentUserId, int trainingId)
+    {
+        try
+        {
+            // 验证学生用户存在且为学生角色
+            Models.User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
+
+            if (student == null)
+            {
+                _logger.LogWarning("用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
+                return false;
+            }
+
+            // 验证专项训练存在且启用
+            ImportedSpecializedTrainingEntity? training = await _context.ImportedSpecializedTrainings
+                .FirstOrDefaultAsync(t => t.Id == trainingId && t.IsEnabled);
+
+            if (training == null)
+            {
+                _logger.LogWarning("专项训练不存在或未启用，训练ID: {TrainingId}", trainingId);
+                return false;
+            }
+
+            // 查找现有的完成记录
+            SpecialPracticeCompletion? existingRecord = await _context.SpecialPracticeCompletions
+                .FirstOrDefaultAsync(c => c.StudentUserId == studentUserId && c.PracticeId == trainingId && c.IsActive);
+
+            DateTime now = DateTime.UtcNow;
+
+            if (existingRecord != null)
+            {
+                // 如果已经是完成状态，不允许重新标记为开始
+                if (existingRecord.Status == SpecialPracticeCompletionStatus.Completed)
+                {
+                    _logger.LogInformation("专项训练已完成，不允许重新标记为开始，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+                    return false;
+                }
+
+                // 更新为进行中状态
+                existingRecord.Status = SpecialPracticeCompletionStatus.InProgress;
+                existingRecord.StartedAt ??= now; // 如果没有开始时间则设置
+                existingRecord.UpdatedAt = now;
+
+                _logger.LogInformation("更新专项训练为进行中状态，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+            }
+            else
+            {
+                // 创建新的开始记录
+                SpecialPracticeCompletion newRecord = new()
+                {
+                    StudentUserId = studentUserId,
+                    PracticeId = trainingId,
+                    Status = SpecialPracticeCompletionStatus.InProgress,
+                    StartedAt = now,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                _ = _context.SpecialPracticeCompletions.Add(newRecord);
+                _logger.LogInformation("创建新的专项训练开始记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+            }
+
+            _ = await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "标记专项训练为开始状态失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 标记专项训练为已完成
+    /// </summary>
+    public async Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    {
+        try
+        {
+            // 验证学生用户存在且为学生角色
+            Models.User? student = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
+
+            if (student == null)
+            {
+                _logger.LogWarning("用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
+                return false;
+            }
+
+            // 验证专项训练存在且启用
+            ImportedSpecializedTrainingEntity? training = await _context.ImportedSpecializedTrainings
+                .FirstOrDefaultAsync(t => t.Id == trainingId && t.IsEnabled);
+
+            if (training == null)
+            {
+                _logger.LogWarning("专项训练不存在或未启用，训练ID: {TrainingId}", trainingId);
+                return false;
+            }
+
+            // 查找现有的完成记录
+            SpecialPracticeCompletion? existingRecord = await _context.SpecialPracticeCompletions
+                .FirstOrDefaultAsync(c => c.StudentUserId == studentUserId && c.PracticeId == trainingId && c.IsActive);
+
+            DateTime now = DateTime.UtcNow;
+
+            if (existingRecord != null)
+            {
+                // 更新现有记录为完成状态
+                existingRecord.Status = SpecialPracticeCompletionStatus.Completed;
+                existingRecord.CompletedAt = now;
+                existingRecord.UpdatedAt = now;
+
+                // 更新评分信息
+                if (score.HasValue) existingRecord.Score = score.Value;
+                if (maxScore.HasValue) existingRecord.MaxScore = maxScore.Value;
+                if (durationSeconds.HasValue) existingRecord.DurationSeconds = durationSeconds.Value;
+                if (!string.IsNullOrWhiteSpace(notes)) existingRecord.Notes = notes;
+
+                // 计算完成百分比
+                if (score.HasValue && maxScore.HasValue && maxScore.Value > 0)
+                {
+                    existingRecord.CompletionPercentage = Math.Round((score.Value / maxScore.Value) * 100, 2);
+                }
+
+                _logger.LogInformation("更新专项训练为完成状态，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 得分: {Score}/{MaxScore}",
+                    studentUserId, trainingId, score, maxScore);
+            }
+            else
+            {
+                // 创建新的完成记录（直接标记为完成）
+                SpecialPracticeCompletion newRecord = new()
+                {
+                    StudentUserId = studentUserId,
+                    PracticeId = trainingId,
+                    Status = SpecialPracticeCompletionStatus.Completed,
+                    StartedAt = now, // 假设开始时间就是现在
+                    CompletedAt = now,
+                    Score = score,
+                    MaxScore = maxScore,
+                    DurationSeconds = durationSeconds,
+                    Notes = notes,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    IsActive = true
+                };
+
+                // 计算完成百分比
+                if (score.HasValue && maxScore.HasValue && maxScore.Value > 0)
+                {
+                    newRecord.CompletionPercentage = Math.Round((score.Value / maxScore.Value) * 100, 2);
+                }
+
+                _ = _context.SpecialPracticeCompletions.Add(newRecord);
+                _logger.LogInformation("创建新的专项训练完成记录，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 得分: {Score}/{MaxScore}",
+                    studentUserId, trainingId, score, maxScore);
+            }
+
+            _ = await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "标记专项训练为完成状态失败，学生ID: {StudentUserId}, 训练ID: {TrainingId}", studentUserId, trainingId);
+            return false;
+        }
     }
 }
