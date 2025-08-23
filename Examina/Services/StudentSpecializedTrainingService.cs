@@ -227,33 +227,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
         }
     }
 
-    /// <summary>
-    /// 按难度等级筛选专项训练
-    /// </summary>
-    public async Task<List<StudentSpecializedTrainingDto>> GetTrainingsByDifficultyAsync(int difficultyLevel, int pageNumber = 1, int pageSize = 50)
-    {
-        try
-        {
-            await EnsureAuthenticatedAsync();
 
-            string url = $"/api/student/specialized-trainings/by-difficulty?difficultyLevel={difficultyLevel}&pageNumber={pageNumber}&pageSize={pageSize}";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                List<StudentSpecializedTrainingDto>? trainings = await response.Content.ReadFromJsonAsync<List<StudentSpecializedTrainingDto>>(_jsonOptions);
-                return trainings ?? [];
-            }
-
-            _logger.LogWarning("按难度等级筛选专项训练失败，难度等级: {DifficultyLevel}, 状态码: {StatusCode}", difficultyLevel, response.StatusCode);
-            return [];
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "按难度等级筛选专项训练时发生异常，难度等级: {DifficultyLevel}", difficultyLevel);
-            return [];
-        }
-    }
 
     /// <summary>
     /// 标记专项训练为开始状态

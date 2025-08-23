@@ -28,40 +28,30 @@
 
         <!-- 搜索和筛选栏 -->
         <Border Grid.Row="1" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <!-- 搜索框 -->
-                <TextBox Grid.Column="0" 
-                        Text="{Binding SearchKeyword}" 
-                        Watermark="搜索专项训练..." 
+                <TextBox Grid.Column="0"
+                        Text="{Binding SearchKeyword}"
+                        Watermark="搜索专项训练..."
                         Margin="0,0,10,0" />
 
                 <!-- 模块类型筛选 -->
-                <ComboBox Grid.Column="1" 
+                <ComboBox Grid.Column="1"
                          ItemsSource="{Binding ModuleTypes}"
                          SelectedItem="{Binding SelectedModuleType}"
                          PlaceholderText="选择模块类型"
                          MinWidth="120"
                          Margin="0,0,10,0" />
 
-                <!-- 难度等级筛选 -->
-                <ComboBox Grid.Column="2" 
-                         ItemsSource="{Binding DifficultyOptions}"
-                         SelectedValue="{Binding SelectedDifficultyLevel}"
-                         SelectedValueBinding="{Binding Level}"
-                         DisplayMemberBinding="{Binding Text}"
-                         PlaceholderText="选择难度"
-                         MinWidth="100"
-                         Margin="0,0,10,0" />
-
                 <!-- 搜索按钮 -->
-                <Button Grid.Column="3" 
+                <Button Grid.Column="2"
                        Command="{Binding SearchCommand}"
                        Content="搜索"
                        Classes="accent"
                        Margin="0,0,10,0" />
 
                 <!-- 清除筛选按钮 -->
-                <Button Grid.Column="4" 
+                <Button Grid.Column="3"
                        Command="{Binding ClearFilterCommand}"
                        Content="清除"
                        Margin="0,0,0,0" />
@@ -187,15 +177,7 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                        <!-- 时间信息 -->
-                                        <StackPanel Orientation="Horizontal" Spacing="20">
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock Text="📅" FontSize="14" />
-                                                <TextBlock Text="{Binding ImportedAt, StringFormat={}导入时间: {0:yyyy-MM-dd}}" 
-                                                          FontSize="14" 
-                                                          Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                                            </StackPanel>
-                                        </StackPanel>
+
                                     </StackPanel>
 
                                     <!-- 操作按钮 -->

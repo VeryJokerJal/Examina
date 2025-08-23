@@ -23,7 +23,6 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     private bool _hasFullAccess;
     private string _searchKeyword = string.Empty;
     private string _selectedModuleType = string.Empty;
-    private int _selectedDifficultyLevel = 0;
     private const int PageSize = 20;
 
     /// <summary>
@@ -36,18 +35,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<string> ModuleTypes { get; } = [];
 
-    /// <summary>
-    /// 难度等级选项
-    /// </summary>
-    public ObservableCollection<DifficultyOption> DifficultyOptions { get; } =
-    [
-        new() { Level = 0, Text = "全部难度" },
-        new() { Level = 1, Text = "入门" },
-        new() { Level = 2, Text = "初级" },
-        new() { Level = 3, Text = "中级" },
-        new() { Level = 4, Text = "高级" },
-        new() { Level = 5, Text = "专家" }
-    ];
+
 
     /// <summary>
     /// 是否正在加载
@@ -103,14 +91,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedModuleType, value);
     }
 
-    /// <summary>
-    /// 选中的难度等级
-    /// </summary>
-    public int SelectedDifficultyLevel
-    {
-        get => _selectedDifficultyLevel;
-        set => this.RaiseAndSetIfChanged(ref _selectedDifficultyLevel, value);
-    }
+
 
     /// <summary>
     /// 是否有更多数据
@@ -294,7 +275,6 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         SearchKeyword = string.Empty;
         SelectedModuleType = string.Empty;
-        SelectedDifficultyLevel = 0;
         await RefreshAsync();
     }
 
@@ -492,8 +472,6 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         {
             trainings = !string.IsNullOrWhiteSpace(SelectedModuleType)
                 ? await _studentSpecializedTrainingService.GetTrainingsByModuleTypeAsync(SelectedModuleType, CurrentPage, PageSize)
-                : SelectedDifficultyLevel > 0
-                ? await _studentSpecializedTrainingService.GetTrainingsByDifficultyAsync(SelectedDifficultyLevel, CurrentPage, PageSize)
                 : await _studentSpecializedTrainingService.GetAvailableTrainingsAsync(CurrentPage, PageSize);
         }
 
@@ -552,11 +530,4 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     }
 }
 
-/// <summary>
-/// 难度选项
-/// </summary>
-public class DifficultyOption
-{
-    public int Level { get; set; }
-    public string Text { get; set; } = string.Empty;
-}
+

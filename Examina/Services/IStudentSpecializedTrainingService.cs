@@ -60,14 +60,7 @@ public interface IStudentSpecializedTrainingService
     /// <returns>模块类型列表</returns>
     Task<List<string>> GetAvailableModuleTypesAsync();
 
-    /// <summary>
-    /// 按难度等级筛选专项训练
-    /// </summary>
-    /// <param name="difficultyLevel">难度等级</param>
-    /// <param name="pageNumber">页码</param>
-    /// <param name="pageSize">页大小</param>
-    /// <returns>专项训练列表</returns>
-    Task<List<StudentSpecializedTrainingDto>> GetTrainingsByDifficultyAsync(int difficultyLevel, int pageNumber = 1, int pageSize = 50);
+
 
     /// <summary>
     /// 标记专项训练为开始状态
