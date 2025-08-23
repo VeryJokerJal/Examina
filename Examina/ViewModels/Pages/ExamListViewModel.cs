@@ -645,12 +645,10 @@ public class ExamListViewModel : ViewModelBase
         {
             if (examToolbar.DataContext is ExamToolbarViewModel viewModel)
             {
-                // 计算实际用时：总时长 - 剩余时间
-                int totalSeconds = viewModel.TotalTimeSeconds;
-                int remainingSeconds = viewModel.RemainingTimeSeconds;
-                int actualSeconds = totalSeconds - remainingSeconds;
+                // 使用ExamToolbarViewModel的GetActualDurationSeconds方法
+                int actualSeconds = viewModel.GetActualDurationSeconds();
 
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 实际用时计算 - 总时长: {totalSeconds}秒, 剩余: {remainingSeconds}秒, 实际: {actualSeconds}秒");
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 实际用时计算 - 实际用时: {actualSeconds}秒");
 
                 return actualSeconds > 0 ? actualSeconds : null;
             }
@@ -755,14 +753,14 @@ public class ExamListViewModel : ViewModelBase
             }
 
             // 刷新数据
-            UpdateUserPermissions();
+            _ = UpdateUserPermissionsAsync();
 
             // 重新加载考试列表
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await LoadExamsAsync();
+                    await RefreshAsync();
                 }
                 catch (Exception ex)
                 {

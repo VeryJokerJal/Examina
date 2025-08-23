@@ -620,7 +620,17 @@ public class MainViewModel : ViewModelBase, IDisposable
             if (examService != null && _authenticationService != null)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ExamListViewModel");
-                return new ExamListViewModel(examService, _authenticationService);
+                IStudentFormalExamService? formalExamService = AppServiceManager.GetService<IStudentFormalExamService>();
+                EnhancedExamToolbarService? enhancedService = AppServiceManager.GetService<EnhancedExamToolbarService>();
+
+                if (formalExamService != null)
+                {
+                    return new ExamListViewModel(examService, formalExamService, _authenticationService, enhancedService);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentFormalExamService");
+                }
             }
             else
             {
