@@ -48,18 +48,7 @@
                                 <dd class="col-sm-8">
                                     <span class="badge bg-info">@Model.ModuleType</span>
                                 </dd>
-                                
-                                <dt class="col-sm-4">难度等级:</dt>
-                                <dd class="col-sm-8">
-                                    <div class="d-flex align-items-center">
-                                        @for (int i = 1; i <= 5; i++)
-                                        {
-                                            <i class="bi bi-star@(i <= Model.DifficultyLevel ? "-fill text-warning" : " text-muted") me-1"></i>
-                                        }
-                                        <span class="ms-2">(@Model.DifficultyLevel/5)</span>
-                                    </div>
-                                </dd>
-                                
+
                                 <dt class="col-sm-4">总分:</dt>
                                 <dd class="col-sm-8">@Model.TotalScore 分</dd>
                                 
@@ -349,9 +338,9 @@
 </div>
 
 <!-- 删除确认模态框 -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal fade glass-modal" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content glass-modal">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">确认删除</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

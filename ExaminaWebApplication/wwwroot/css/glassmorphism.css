@@ -1883,6 +1883,11 @@ body::before {
     border: 1px solid rgba(40, 167, 69, 0.5);
 }
 
+.glass-btn-secondary {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.3), rgba(73, 80, 87, 0.3));
+    border: 1px solid rgba(108, 117, 125, 0.5);
+}
+
 .glass-btn-warning {
     background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 143, 0, 0.3));
     border: 1px solid rgba(255, 193, 7, 0.5);
