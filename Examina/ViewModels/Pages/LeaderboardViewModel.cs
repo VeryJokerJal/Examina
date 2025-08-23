@@ -17,6 +17,7 @@ public class LeaderboardViewModel : ViewModelBase
 {
     private readonly RankingService? _rankingService;
     private readonly ILogger<LeaderboardViewModel>? _logger;
+    private readonly IStudentComprehensiveTrainingService? _comprehensiveTrainingService;
 
     #region 属性
 
@@ -116,13 +117,14 @@ public class LeaderboardViewModel : ViewModelBase
         // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger) : this()
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService) : this()
     {
         _rankingService = rankingService;
         _logger = logger;
+        _comprehensiveTrainingService = comprehensiveTrainingService;
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, string? rankingTypeId) : this(rankingService, logger)
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, string? rankingTypeId) : this(rankingService, logger, comprehensiveTrainingService)
     {
         if (!string.IsNullOrEmpty(rankingTypeId))
         {
@@ -376,19 +378,57 @@ public class LeaderboardViewModel : ViewModelBase
             });
 
             // 根据排行榜类型加载对应的试卷列表
-            // 这里暂时使用模拟数据，实际应该调用相应的服务获取试卷列表
-            await Task.Run(() =>
+            if (SelectedLeaderboardType?.Id == "comprehensive_training" && _comprehensiveTrainingService != null)
             {
-                for (int i = 1; i <= 10; i++)
+                try
                 {
-                    ExamFilters.Add(new ExamFilterItem
+                    // 获取综合实训列表
+                    var trainings = await _comprehensiveTrainingService.GetAvailableTrainingsAsync(1, 100);
+
+                    foreach (var training in trainings)
                     {
-                        ExamId = i,
-                        ExamName = $"试卷{i:D2}",
-                        DisplayName = $"试卷{i:D2}"
-                    });
+                        ExamFilters.Add(new ExamFilterItem
+                        {
+                            ExamId = training.Id,
+                            ExamName = training.Name,
+                            DisplayName = training.Name
+                        });
+                    }
+
+                    _logger?.LogInformation("成功加载 {Count} 个综合实训试卷", trainings.Count);
                 }
-            });
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "加载综合实训试卷列表失败");
+
+                    // 如果加载失败，使用模拟数据作为备用
+                    for (int i = 1; i <= 10; i++)
+                    {
+                        ExamFilters.Add(new ExamFilterItem
+                        {
+                            ExamId = i,
+                            ExamName = $"试卷{i:D2}",
+                            DisplayName = $"试卷{i:D2}"
+                        });
+                    }
+                }
+            }
+            else
+            {
+                // 其他排行榜类型暂时使用模拟数据
+                await Task.Run(() =>
+                {
+                    for (int i = 1; i <= 10; i++)
+                    {
+                        ExamFilters.Add(new ExamFilterItem
+                        {
+                            ExamId = i,
+                            ExamName = $"试卷{i:D2}",
+                            DisplayName = $"试卷{i:D2}"
+                        });
+                    }
+                });
+            }
 
             // 恢复之前的选择，如果不存在则选择"全部试卷"
             SelectedExamFilter = ExamFilters.FirstOrDefault(f => f.ExamId == currentFilter?.ExamId)

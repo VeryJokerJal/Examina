@@ -226,7 +226,8 @@ public partial class App : Application
         {
             RankingService rankingService = provider.GetRequiredService<RankingService>();
             ILogger<LeaderboardViewModel> logger = provider.GetRequiredService<ILogger<LeaderboardViewModel>>();
-            return new LeaderboardViewModel(rankingService, logger);
+            IStudentComprehensiveTrainingService comprehensiveTrainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();
+            return new LeaderboardViewModel(rankingService, logger, comprehensiveTrainingService);
         });
         _ = services.AddTransient<SpecializedTrainingListViewModel>(provider =>
         {
