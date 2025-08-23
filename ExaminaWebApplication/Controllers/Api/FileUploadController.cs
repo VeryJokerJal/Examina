@@ -30,6 +30,8 @@ public class FileUploadController : ControllerBase
     /// <param name="tags">文件标签</param>
     /// <returns>上传结果</returns>
     [HttpPost("upload")]
+    [RequestSizeLimit(524288000)] // 500MB
+    [RequestFormLimits(MultipartBodyLengthLimit = 524288000)] // 500MB
     public async Task<IActionResult> UploadFile(IFormFile file, [FromForm] string? description = null, [FromForm] string? tags = null)
     {
         try
@@ -83,6 +85,8 @@ public class FileUploadController : ControllerBase
     /// <param name="tags">文件标签</param>
     /// <returns>上传结果列表</returns>
     [HttpPost("upload-multiple")]
+    [RequestSizeLimit(524288000)] // 500MB
+    [RequestFormLimits(MultipartBodyLengthLimit = 524288000)] // 500MB
     public async Task<IActionResult> UploadFiles(IFormFileCollection files, [FromForm] string? description = null, [FromForm] string? tags = null)
     {
         try

@@ -32,5 +32,14 @@ namespace ExaminaWebApplication.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        /// <summary>
+        /// 文件上传测试页面
+        /// </summary>
+        [AllowAnonymous]
+        public IActionResult FileUploadTest()
+        {
+            return View();
+        }
     }
 }

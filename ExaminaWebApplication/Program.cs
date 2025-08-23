@@ -10,30 +10,43 @@ using Microsoft.IdentityModel.Tokens;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// 配置服务器端口 - 解决发布后无法访问的问题
-//builder.WebHost.ConfigureKestrel(options =>
-//{
-//    if (builder.Environment.IsDevelopment())
-//    {
-//        // 开发环境使用launchSettings.json中的配置
-//        options.ListenLocalhost(5117); // HTTP
-//        // 开发环境的HTTPS配置由launchSettings.json处理
-//    }
-//    else
-//    {
-//        // 生产环境只配置HTTP端口，避免HTTPS证书问题
-//        options.ListenAnyIP(5000); // HTTP - 监听所有IP地址
-//        options.ListenLocalhost(8080); // HTTP localhost备用端口
+// 配置Kestrel服务器以支持大文件上传
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // 配置最大请求体大小为500MB
+    options.Limits.MaxRequestBodySize = 524288000; // 500MB
 
-//        // 如果需要HTTPS，请先配置证书：
-//        // dotnet dev-certs https --trust
-//        // 然后取消注释下面的代码：
-//        // options.ListenAnyIP(5001, listenOptions =>
-//        // {
-//        //     listenOptions.UseHttps(); // HTTPS
-//        // });
-//    }
-//});
+    // 配置最大请求头大小
+    options.Limits.MaxRequestHeadersTotalSize = 32768; // 32KB
+
+    // 配置最大请求头数量
+    options.Limits.MaxRequestHeaderCount = 100;
+
+    // 配置请求超时
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
+
+    if (builder.Environment.IsDevelopment())
+    {
+        // 开发环境使用launchSettings.json中的配置
+        options.ListenLocalhost(5117); // HTTP
+        // 开发环境的HTTPS配置由launchSettings.json处理
+    }
+    else
+    {
+        // 生产环境只配置HTTP端口，避免HTTPS证书问题
+        options.ListenAnyIP(5000); // HTTP - 监听所有IP地址
+        options.ListenLocalhost(8080); // HTTP localhost备用端口
+
+        // 如果需要HTTPS，请先配置证书：
+        // dotnet dev-certs https --trust
+        // 然后取消注释下面的代码：
+        // options.ListenAnyIP(5001, listenOptions =>
+        // {
+        //     listenOptions.UseHttps(); // HTTPS
+        // });
+    }
+});
 
 // 配置日志记录
 builder.Logging.ClearProviders();
@@ -44,6 +57,28 @@ builder.Logging.AddDebug();
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(new RequireLoginAttribute());
+});
+
+// 配置表单选项以支持大文件上传
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    // 设置最大请求体大小为500MB
+    options.MultipartBodyLengthLimit = 524288000; // 500MB
+
+    // 设置单个文件大小限制为500MB
+    options.ValueLengthLimit = 524288000; // 500MB
+
+    // 设置表单键数量限制
+    options.KeyLengthLimit = 2048;
+
+    // 设置表单值数量限制
+    options.ValueCountLimit = 1024;
+
+    // 设置内存缓冲区阈值（超过此大小将写入磁盘）
+    options.MemoryBufferThreshold = 1048576; // 1MB
+
+    // 设置缓冲区大小
+    options.BufferBodyLengthLimit = 134217728; // 128MB
 });
 
 // 添加API控制器并配置JSON序列化选项
