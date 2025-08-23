@@ -1,4 +1,5 @@
 using System.Reactive;
+using System.Reactive.Linq;
 using Examina.Models;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
@@ -227,19 +228,18 @@ public class SpecializedTrainingDetailViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"预计时长: {Training.Duration}分钟");
 
             // 创建考试工具栏ViewModel
-            ExamToolbarViewModel toolbarViewModel = new()
-            {
-                ExamId = Training.Id,
-                ExamName = Training.Name,
-                TotalQuestions = Training.QuestionCount,
-                DurationMinutes = Training.Duration,
-                CurrentExamType = ExamType.SpecializedTraining,
-                IsTimerEnabled = true,
-                ShowQuestionDetails = true
-            };
+            ExamToolbarViewModel toolbarViewModel = new();
 
-            // 设置模块信息
-            await SetSpecializedTrainingModuleInformationAsync(toolbarViewModel, Training);
+            // 设置考试信息
+            toolbarViewModel.SetExamInfo(
+                ExamType.SpecializedTraining,
+                Training.Id,
+                Training.Name,
+                Training.QuestionCount,
+                Training.Duration * 60 // 转换为秒
+            );
+
+            // 模块信息已通过SetExamInfo设置
 
             // 创建考试工具栏窗口
             ExamToolbarWindow examToolbar = new();
@@ -265,59 +265,7 @@ public class SpecializedTrainingDetailViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 设置专项训练模块信息
-    /// </summary>
-    private async Task SetSpecializedTrainingModuleInformationAsync(ExamToolbarViewModel toolbarViewModel, StudentSpecializedTrainingDto training)
-    {
-        try
-        {
-            // 将专项训练的模块和题目信息转换为工具栏可用的格式
-            List<MockExamQuestionDetailsViewModel> questionDetails = [];
 
-            // 处理模块中的题目
-            foreach (StudentSpecializedTrainingModuleDto module in training.Modules)
-            {
-                foreach (StudentSpecializedTrainingQuestionDto question in module.Questions)
-                {
-                    questionDetails.Add(new MockExamQuestionDetailsViewModel
-                    {
-                        QuestionId = question.Id,
-                        Title = question.Title,
-                        Content = question.Content,
-                        ModuleName = module.Name,
-                        ModuleType = module.Type,
-                        Score = (int)question.Score,
-                        EstimatedMinutes = question.EstimatedMinutes,
-                        IsRequired = question.IsRequired
-                    });
-                }
-            }
-
-            // 处理直接的题目（不在模块中的）
-            foreach (StudentSpecializedTrainingQuestionDto question in training.Questions)
-            {
-                questionDetails.Add(new MockExamQuestionDetailsViewModel
-                {
-                    QuestionId = question.Id,
-                    Title = question.Title,
-                    Content = question.Content,
-                    ModuleName = training.ModuleType,
-                    ModuleType = training.ModuleType,
-                    Score = (int)question.Score,
-                    EstimatedMinutes = question.EstimatedMinutes,
-                    IsRequired = question.IsRequired
-                });
-            }
-
-            toolbarViewModel.QuestionDetails = questionDetails;
-            System.Diagnostics.Debug.WriteLine($"专项训练模块信息设置完成，共 {questionDetails.Count} 道题目");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"设置专项训练模块信息失败: {ex}");
-        }
-    }
 
     /// <summary>
     /// 处理训练自动提交事件
@@ -444,7 +392,7 @@ public class SpecializedTrainingDetailViewModel : ViewModelBase
     /// <summary>
     /// 用户信息更新事件处理
     /// </summary>
-    private void OnUserInfoUpdated()
+    private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
         UpdateUserPermissions();
     }

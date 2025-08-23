@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
+using Examina.Models;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
 using ReactiveUI;
@@ -427,7 +429,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 用户信息更新事件处理
     /// </summary>
-    private void OnUserInfoUpdated()
+    private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
         UpdateUserPermissions();
     }

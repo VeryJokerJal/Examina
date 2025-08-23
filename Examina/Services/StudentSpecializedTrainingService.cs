@@ -358,7 +358,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
         }
 
         // 确保HTTP客户端包含认证头
-        string? token = await _authenticationService.GetTokenAsync();
+        string? token = await _authenticationService.GetAccessTokenAsync();
         if (!string.IsNullOrEmpty(token))
         {
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
