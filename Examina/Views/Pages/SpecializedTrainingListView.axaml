@@ -1,0 +1,236 @@
+<UserControl x:Class="Examina.Views.Pages.SpecializedTrainingListView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="using:Examina.Models.SpecializedTraining"
+             xmlns:vm="using:Examina.ViewModels.Pages"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             x:DataType="vm:SpecializedTrainingListViewModel"
+             mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:SpecializedTrainingListViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" Padding="20,15" Background="{DynamicResource SystemAccentColor}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="🎯" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock Text="专项训练" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding TotalCount, StringFormat={}共 {0} 个训练项目}" 
+                          FontSize="14" Foreground="White" Opacity="0.8" 
+                          VerticalAlignment="Center" Margin="20,0,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- 搜索和筛选栏 -->
+        <Border Grid.Row="1" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                <!-- 搜索框 -->
+                <TextBox Grid.Column="0" 
+                        Text="{Binding SearchKeyword}" 
+                        Watermark="搜索专项训练..." 
+                        Margin="0,0,10,0" />
+
+                <!-- 模块类型筛选 -->
+                <ComboBox Grid.Column="1" 
+                         ItemsSource="{Binding ModuleTypes}"
+                         SelectedItem="{Binding SelectedModuleType}"
+                         PlaceholderText="选择模块类型"
+                         MinWidth="120"
+                         Margin="0,0,10,0" />
+
+                <!-- 难度等级筛选 -->
+                <ComboBox Grid.Column="2" 
+                         ItemsSource="{Binding DifficultyOptions}"
+                         SelectedValue="{Binding SelectedDifficultyLevel}"
+                         SelectedValueBinding="{Binding Level}"
+                         DisplayMemberBinding="{Binding Text}"
+                         PlaceholderText="选择难度"
+                         MinWidth="100"
+                         Margin="0,0,10,0" />
+
+                <!-- 搜索按钮 -->
+                <Button Grid.Column="3" 
+                       Command="{Binding SearchCommand}"
+                       Content="搜索"
+                       Classes="accent"
+                       Margin="0,0,10,0" />
+
+                <!-- 清除筛选按钮 -->
+                <Button Grid.Column="4" 
+                       Command="{Binding ClearFilterCommand}"
+                       Content="清除"
+                       Margin="0,0,0,0" />
+            </Grid>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <ScrollViewer Grid.Row="2" Padding="20">
+            <StackPanel Spacing="15">
+                <!-- 错误消息 -->
+                <Border Padding="15" 
+                       Background="#FFEBEE" 
+                       BorderBrush="#F44336" 
+                       BorderThickness="1" 
+                       CornerRadius="5" 
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#D32F2F" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 加载指示器 -->
+                <Border Padding="20" 
+                       Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                       CornerRadius="5" 
+                       IsVisible="{Binding IsLoading}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="🔄" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBlock Text="正在加载专项训练列表..." VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 专项训练列表 -->
+                <ItemsControl ItemsSource="{Binding Trainings}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:StudentSpecializedTrainingDto">
+                            <Border Margin="0,0,0,10" 
+                                   Padding="20" 
+                                   Background="Transparent" 
+                                   BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" 
+                                   BorderThickness="1" 
+                                   CornerRadius="8">
+                                <Border.Styles>
+                                    <Style Selector="Border:pointerover">
+                                        <Setter Property="Background" Value="{DynamicResource LayerFillColorAltBrush}" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+                                    </Style>
+                                </Border.Styles>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <!-- 训练信息 -->
+                                    <StackPanel Grid.Column="0" Spacing="8">
+                                        <!-- 训练名称和模块类型 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" />
+                                            <Border Background="{DynamicResource SystemAccentColor}" 
+                                                   CornerRadius="3" 
+                                                   Padding="6,2">
+                                                <TextBlock Text="{Binding ModuleType}" 
+                                                          FontSize="12" 
+                                                          Foreground="White" />
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- 训练描述 -->
+                                        <TextBlock Text="{Binding Description}" 
+                                                  Foreground="{DynamicResource TextFillColorSecondaryBrush}" 
+                                                  TextWrapping="Wrap" 
+                                                  IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                                        <!-- 训练详情 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="20">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="📊" FontSize="14" />
+                                                <TextBlock Text="{Binding TotalScore, StringFormat={}{0} 分}" FontSize="14" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="⏱️" FontSize="14" />
+                                                <TextBlock Text="{Binding DurationText}" FontSize="14" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="📈" FontSize="14" />
+                                                <TextBlock Text="{Binding DifficultyText}" FontSize="14" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="📝" FontSize="14" />
+                                                <TextBlock Text="{Binding QuestionCount, StringFormat={}{0} 题}" FontSize="14" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- 标签 -->
+                                        <ItemsControl ItemsSource="{Binding TagList}" 
+                                                     IsVisible="{Binding TagList.Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" 
+                                                           CornerRadius="3" 
+                                                           Padding="4,2" 
+                                                           Margin="0,0,5,2">
+                                                        <TextBlock Text="{Binding}" 
+                                                                  FontSize="11" 
+                                                                  Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- 时间信息 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="20">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="📅" FontSize="14" />
+                                                <TextBlock Text="{Binding ImportedAt, StringFormat={}导入时间: {0:yyyy-MM-dd}}" 
+                                                          FontSize="14" 
+                                                          Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- 操作按钮 -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                                        <Button Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).ViewDetailsCommand}"
+                                               CommandParameter="{Binding}"
+                                               Content="查看详情"
+                                               Padding="15,8"
+                                               MinWidth="100" />
+                                        <Button Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartTrainingCommand}"
+                                               CommandParameter="{Binding}"
+                                               Content="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartButtonText}"
+                                               Classes="accent"
+                                               Padding="15,8"
+                                               MinWidth="100" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部操作栏 -->
+        <Border Grid.Row="3" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <!-- 状态信息 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Trainings.Count, StringFormat={}已显示 {0} 项}" 
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Text="{Binding TotalCount, StringFormat={}共 {0} 项}" 
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+
+                <!-- 刷新按钮 -->
+                <Button Grid.Column="1" 
+                       Command="{Binding RefreshCommand}"
+                       Content="刷新"
+                       Margin="0,0,10,0" />
+
+                <!-- 加载更多按钮 -->
+                <Button Grid.Column="2" 
+                       Command="{Binding LoadMoreCommand}"
+                       Content="加载更多"
+                       IsVisible="{Binding HasMoreData}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

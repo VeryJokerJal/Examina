@@ -155,6 +155,24 @@ public partial class App : Application
             };
         });
 
+        // 为学生端专项训练服务配置HttpClient
+        _ = services.AddHttpClient<IStudentSpecializedTrainingService, StudentSpecializedTrainingService>(client =>
+        {
+            client.BaseAddress = new Uri("https://qiuzhenbd.com");
+            client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            return new HttpClientHandler()
+            {
+                AllowAutoRedirect = false,
+                UseProxy = true,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+            };
+        });
+
         // 确保AuthenticationService为单例
         _ = services.AddSingleton<IAuthenticationService>(provider =>
         {
@@ -209,6 +227,18 @@ public partial class App : Application
             RankingService rankingService = provider.GetRequiredService<RankingService>();
             ILogger<LeaderboardViewModel> logger = provider.GetRequiredService<ILogger<LeaderboardViewModel>>();
             return new LeaderboardViewModel(rankingService, logger);
+        });
+        _ = services.AddTransient<SpecializedTrainingListViewModel>(provider =>
+        {
+            IStudentSpecializedTrainingService trainingService = provider.GetRequiredService<IStudentSpecializedTrainingService>();
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new SpecializedTrainingListViewModel(trainingService, authService);
+        });
+        _ = services.AddTransient<SpecializedTrainingDetailViewModel>(provider =>
+        {
+            IStudentSpecializedTrainingService trainingService = provider.GetRequiredService<IStudentSpecializedTrainingService>();
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new SpecializedTrainingDetailViewModel(trainingService, authService);
         });
 
         _serviceProvider = services.BuildServiceProvider();

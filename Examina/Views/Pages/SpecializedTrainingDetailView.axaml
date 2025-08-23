@@ -1,0 +1,254 @@
+<UserControl x:Class="Examina.Views.Pages.SpecializedTrainingDetailView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="using:Examina.Models.SpecializedTraining"
+             xmlns:vm="using:Examina.ViewModels.Pages"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             x:DataType="vm:SpecializedTrainingDetailViewModel"
+             mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:SpecializedTrainingDetailViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" Padding="20,15" Background="{DynamicResource SystemAccentColor}">
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding BackCommand}" 
+                       Background="Transparent" 
+                       BorderThickness="0" 
+                       Padding="5" 
+                       Margin="0,0,15,0">
+                    <TextBlock Text="←" FontSize="20" Foreground="White" />
+                </Button>
+                <TextBlock Text="🎯" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock Text="专项训练详情" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <ScrollViewer Grid.Row="1" Padding="20">
+            <StackPanel Spacing="20">
+                <!-- 错误消息 -->
+                <Border Padding="15" 
+                       Background="#FFEBEE" 
+                       BorderBrush="#F44336" 
+                       BorderThickness="1" 
+                       CornerRadius="5" 
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#D32F2F" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 加载指示器 -->
+                <Border Padding="20" 
+                       Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                       CornerRadius="5" 
+                       IsVisible="{Binding IsLoading}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="🔄" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBlock Text="正在加载专项训练详情..." VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 训练详情 -->
+                <StackPanel Spacing="20" IsVisible="{Binding HasTraining}">
+                    <!-- 基本信息 -->
+                    <Border Padding="20" 
+                           Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                           CornerRadius="8">
+                        <StackPanel Spacing="15">
+                            <!-- 训练名称和模块类型 -->
+                            <StackPanel Orientation="Horizontal" Spacing="15">
+                                <TextBlock Text="{Binding Training.Name}" 
+                                          FontSize="24" 
+                                          FontWeight="Bold" />
+                                <Border Background="{DynamicResource SystemAccentColor}" 
+                                       CornerRadius="5" 
+                                       Padding="8,4">
+                                    <TextBlock Text="{Binding Training.ModuleType}" 
+                                              FontSize="14" 
+                                              Foreground="White" 
+                                              FontWeight="SemiBold" />
+                                </Border>
+                            </StackPanel>
+
+                            <!-- 训练描述 -->
+                            <TextBlock Text="{Binding Training.Description}" 
+                                      FontSize="16" 
+                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}" 
+                                      TextWrapping="Wrap" 
+                                      IsVisible="{Binding Training.Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                            <!-- 训练统计信息 -->
+                            <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
+                                <StackPanel Grid.Column="0" Grid.Row="0" Spacing="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="📊" FontSize="20" HorizontalAlignment="Center" />
+                                    <TextBlock Text="总分" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding Training.TotalScore}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Grid.Row="0" Spacing="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="⏱️" FontSize="20" HorizontalAlignment="Center" />
+                                    <TextBlock Text="时长" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding Training.DurationText}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Grid.Row="0" Spacing="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="📈" FontSize="20" HorizontalAlignment="Center" />
+                                    <TextBlock Text="难度" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding Training.DifficultyText}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3" Grid.Row="0" Spacing="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="📝" FontSize="20" HorizontalAlignment="Center" />
+                                    <TextBlock Text="题目" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding Training.QuestionCount, StringFormat={}{0} 题}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- 标签 -->
+                            <ItemsControl ItemsSource="{Binding Training.TagList}" 
+                                         IsVisible="{Binding Training.TagList.Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" 
+                                               CornerRadius="3" 
+                                               Padding="6,3" 
+                                               Margin="0,0,8,4">
+                                            <TextBlock Text="{Binding}" 
+                                                      FontSize="12" 
+                                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 模块列表 -->
+                    <Border Padding="20" 
+                           Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                           CornerRadius="8"
+                           IsVisible="{Binding Training.Modules.Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="训练模块" FontSize="18" FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding Training.Modules}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:StudentSpecializedTrainingModuleDto">
+                                        <Border Margin="0,0,0,10" 
+                                               Padding="15" 
+                                               Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" 
+                                               CornerRadius="5">
+                                            <StackPanel Spacing="8">
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Score, StringFormat={}({0} 分)}" 
+                                                              FontSize="14" 
+                                                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Description}" 
+                                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}" 
+                                                          TextWrapping="Wrap" 
+                                                          IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                <TextBlock Text="{Binding Questions.Count, StringFormat={}包含 {0} 道题目}" 
+                                                          FontSize="12" 
+                                                          Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 题目列表 -->
+                    <Border Padding="20" 
+                           Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                           CornerRadius="8"
+                           IsVisible="{Binding Training.Questions.Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="训练题目" FontSize="18" FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding Training.Questions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:StudentSpecializedTrainingQuestionDto">
+                                        <Border Margin="0,0,0,10" 
+                                               Padding="15" 
+                                               Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" 
+                                               CornerRadius="5">
+                                            <StackPanel Spacing="8">
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Score, StringFormat={}({0} 分)}" 
+                                                              FontSize="14" 
+                                                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                    <Border Background="{DynamicResource SystemAccentColor}" 
+                                                           CornerRadius="3" 
+                                                           Padding="4,2"
+                                                           IsVisible="{Binding IsRequired}">
+                                                        <TextBlock Text="必答" 
+                                                                  FontSize="10" 
+                                                                  Foreground="White" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Content}" 
+                                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}" 
+                                                          TextWrapping="Wrap" 
+                                                          IsVisible="{Binding Content, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="15">
+                                                    <TextBlock Text="{Binding QuestionType, StringFormat={}类型: {0}}" 
+                                                              FontSize="12" 
+                                                              Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                    <TextBlock Text="{Binding EstimatedMinutes, StringFormat={}预计用时: {0} 分钟}" 
+                                                              FontSize="12" 
+                                                              Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部操作栏 -->
+        <Border Grid.Row="2" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <!-- 状态信息 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="准备开始专项训练" 
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" 
+                              IsVisible="{Binding HasTraining}" />
+                </StackPanel>
+
+                <!-- 刷新按钮 -->
+                <Button Grid.Column="1" 
+                       Command="{Binding RefreshCommand}"
+                       Content="刷新"
+                       Margin="0,0,10,0" />
+
+                <!-- 开始训练按钮 -->
+                <Button Grid.Column="2" 
+                       Command="{Binding StartTrainingCommand}"
+                       Content="{Binding StartButtonText}"
+                       Classes="accent"
+                       Padding="20,10"
+                       MinWidth="120" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

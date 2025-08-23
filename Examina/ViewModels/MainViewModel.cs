@@ -179,7 +179,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
         practiceItem.MenuItems.Add(new NavigationViewItem
         {
-            Content = "专项练习",
+            Content = "专项训练",
             IconSource = new SymbolIconSource { Symbol = Symbol.Find },
             Tag = "special-practice"
         });
@@ -458,7 +458,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "mock-exam" => CreateMockExamViewModel(),
 
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
-                "special-practice" => CreatePracticeViewModel(),
+                "special-practice" => CreateSpecializedTrainingListViewModel(),
                 "leaderboard" => CreateLeaderboardViewModel(),
                 "exam-ranking" => CreateLeaderboardViewModel("exam-ranking"),
                 "mock-exam-ranking" => CreateLeaderboardViewModel("mock-exam-ranking"),
@@ -667,6 +667,41 @@ public class MainViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ComprehensiveTrainingListViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 创建SpecializedTrainingListViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateSpecializedTrainingListViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            SpecializedTrainingListViewModel? viewModel = ((App)Application.Current!).GetService<SpecializedTrainingListViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取SpecializedTrainingListViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            IStudentSpecializedTrainingService? trainingService = ((App)Application.Current!).GetService<IStudentSpecializedTrainingService>();
+            if (trainingService != null && _authenticationService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建SpecializedTrainingListViewModel");
+                return new SpecializedTrainingListViewModel(trainingService, _authenticationService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentSpecializedTrainingService，无法创建SpecializedTrainingListViewModel");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建SpecializedTrainingListViewModel时发生异常: {ex.Message}");
         }
 
         return null;
