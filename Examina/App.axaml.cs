@@ -234,12 +234,6 @@ public partial class App : Application
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new SpecializedTrainingListViewModel(trainingService, authService);
         });
-        _ = services.AddTransient<SpecializedTrainingDetailViewModel>(provider =>
-        {
-            IStudentSpecializedTrainingService trainingService = provider.GetRequiredService<IStudentSpecializedTrainingService>();
-            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
-            return new SpecializedTrainingDetailViewModel(trainingService, authService);
-        });
 
         _serviceProvider = services.BuildServiceProvider();
     }

@@ -459,7 +459,6 @@ public class MainViewModel : ViewModelBase, IDisposable
 
                 "comprehensive-training" => CreateComprehensiveTrainingListViewModel(),
                 "special-practice" => CreateSpecializedTrainingListViewModel(),
-                "specialized-training-detail" => CreateSpecializedTrainingDetailViewModel(),
                 "leaderboard" => CreateLeaderboardViewModel(),
                 "exam-ranking" => CreateLeaderboardViewModel("exam-ranking"),
                 "mock-exam-ranking" => CreateLeaderboardViewModel("mock-exam-ranking"),
@@ -684,8 +683,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             SpecializedTrainingListViewModel? viewModel = ((App)Application.Current!).GetService<SpecializedTrainingListViewModel>();
             if (viewModel != null)
             {
-                // 订阅详情查看事件
-                viewModel.DetailViewRequested += OnSpecializedTrainingDetailViewRequested;
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取SpecializedTrainingListViewModel");
                 return viewModel;
             }
@@ -695,8 +692,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             if (trainingService != null && _authenticationService != null)
             {
                 SpecializedTrainingListViewModel newViewModel = new(trainingService, _authenticationService);
-                // 订阅详情查看事件
-                newViewModel.DetailViewRequested += OnSpecializedTrainingDetailViewRequested;
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建SpecializedTrainingListViewModel");
                 return newViewModel;
             }
@@ -713,95 +708,7 @@ public class MainViewModel : ViewModelBase, IDisposable
         return null;
     }
 
-    /// <summary>
-    /// 处理专项训练详情查看请求
-    /// </summary>
-    private void OnSpecializedTrainingDetailViewRequested(int trainingId)
-    {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 请求查看专项训练详情，训练ID: {trainingId}");
 
-            // 创建专项训练详情ViewModel
-            SpecializedTrainingDetailViewModel? detailViewModel = CreateSpecializedTrainingDetailViewModel() as SpecializedTrainingDetailViewModel;
-            if (detailViewModel != null)
-            {
-                // 初始化详情ViewModel
-                _ = Task.Run(async () => await detailViewModel.InitializeAsync(trainingId));
-
-                // 设置当前页面ViewModel
-                CurrentPageViewModel = detailViewModel;
-
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 成功导航到专项训练详情页面，训练ID: {trainingId}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法创建SpecializedTrainingDetailViewModel");
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 处理专项训练详情查看请求时发生异常: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 创建SpecializedTrainingDetailViewModel实例
-    /// </summary>
-    private ViewModelBase? CreateSpecializedTrainingDetailViewModel()
-    {
-        try
-        {
-            // 首先尝试从DI容器获取
-            SpecializedTrainingDetailViewModel? viewModel = ((App)Application.Current!).GetService<SpecializedTrainingDetailViewModel>();
-            if (viewModel != null)
-            {
-                // 订阅返回事件
-                viewModel.BackRequested += OnSpecializedTrainingDetailBackRequested;
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取SpecializedTrainingDetailViewModel");
-                return viewModel;
-            }
-
-            // 如果DI容器无法提供，手动创建
-            IStudentSpecializedTrainingService? trainingService = ((App)Application.Current!).GetService<IStudentSpecializedTrainingService>();
-            if (trainingService != null && _authenticationService != null)
-            {
-                SpecializedTrainingDetailViewModel newViewModel = new(trainingService, _authenticationService);
-                // 订阅返回事件
-                newViewModel.BackRequested += OnSpecializedTrainingDetailBackRequested;
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建SpecializedTrainingDetailViewModel");
-                return newViewModel;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentSpecializedTrainingService，无法创建SpecializedTrainingDetailViewModel");
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建SpecializedTrainingDetailViewModel时发生异常: {ex.Message}");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 处理专项训练详情页面返回请求
-    /// </summary>
-    private void OnSpecializedTrainingDetailBackRequested()
-    {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine("MainViewModel: 处理专项训练详情页面返回请求");
-
-            // 返回到专项训练列表页面
-            NavigateToPage("special-practice");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 处理专项训练详情页面返回请求时发生异常: {ex.Message}");
-        }
-    }
 
     /// <summary>
     /// 创建MockExamViewModel实例

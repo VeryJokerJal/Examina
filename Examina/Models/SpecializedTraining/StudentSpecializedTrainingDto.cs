@@ -87,28 +87,7 @@ public class StudentSpecializedTrainingDto
     /// </summary>
     public ObservableCollection<StudentSpecializedTrainingQuestionDto> Questions { get; set; } = [];
 
-    /// <summary>
-    /// 难度等级显示文本
-    /// </summary>
-    public string DifficultyText => DifficultyLevel switch
-    {
-        1 => "入门",
-        2 => "初级",
-        3 => "中级",
-        4 => "高级",
-        5 => "专家",
-        _ => "未知"
-    };
 
-    /// <summary>
-    /// 时长显示文本
-    /// </summary>
-    public string DurationText => Duration switch
-    {
-        < 60 => $"{Duration}分钟",
-        >= 60 and < 120 => $"{Duration / 60}小时{Duration % 60}分钟",
-        _ => $"{Duration / 60}小时"
-    };
 
     /// <summary>
     /// 标签列表

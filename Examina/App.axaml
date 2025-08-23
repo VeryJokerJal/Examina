@@ -152,8 +152,5 @@
         <DataTemplate DataType="{x:Type vm:SpecializedTrainingListViewModel}">
             <views:SpecializedTrainingListView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:SpecializedTrainingDetailViewModel}">
-            <views:SpecializedTrainingDetailView />
-        </DataTemplate>
     </Application.DataTemplates>
 </Application>

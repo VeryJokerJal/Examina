@@ -1,9 +1,10 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using Examina.Models;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
+using Examina.Views;
 using ReactiveUI;
 
 namespace Examina.ViewModels.Pages;
@@ -38,7 +39,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 难度等级选项
     /// </summary>
-    public ObservableCollection<DifficultyOption> DifficultyOptions { get; } = 
+    public ObservableCollection<DifficultyOption> DifficultyOptions { get; } =
     [
         new() { Level = 0, Text = "全部难度" },
         new() { Level = 1, Text = "入门" },
@@ -170,10 +171,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<StudentSpecializedTrainingDto, Unit> StartTrainingCommand { get; }
 
-    /// <summary>
-    /// 查看详情命令
-    /// </summary>
-    public ReactiveCommand<StudentSpecializedTrainingDto, Unit> ViewDetailsCommand { get; }
+
 
     public SpecializedTrainingListViewModel(
         IStudentSpecializedTrainingService studentSpecializedTrainingService,
@@ -189,7 +187,6 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         FilterCommand = ReactiveCommand.CreateFromTask(FilterAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
         ClearFilterCommand = ReactiveCommand.CreateFromTask(ClearFilterAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
         StartTrainingCommand = ReactiveCommand.CreateFromTask<StudentSpecializedTrainingDto>(StartTrainingAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
-        ViewDetailsCommand = ReactiveCommand.CreateFromTask<StudentSpecializedTrainingDto>(ViewDetailsAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
 
         // 初始化用户权限状态
         UpdateUserPermissions();
@@ -197,15 +194,17 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
 
+        _ = InitializeAsync();
+
         // 监听属性变化
-        this.WhenAnyValue(x => x.Trainings.Count)
+        _ = this.WhenAnyValue(x => x.Trainings.Count)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(HasTrainings));
                 this.RaisePropertyChanged(nameof(ShowEmptyState));
             });
 
-        this.WhenAnyValue(x => x.IsLoading, x => x.ErrorMessage)
+        _ = this.WhenAnyValue(x => x.IsLoading, x => x.ErrorMessage)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowEmptyState)));
     }
 
@@ -312,41 +311,170 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"快速开始专项训练: {training.Name}");
+            IsLoading = true;
+            ErrorMessage = string.Empty;
 
-            // 直接导航到详情页面，在详情页面中开始训练
-            DetailViewRequested?.Invoke(training.Id);
+            System.Diagnostics.Debug.WriteLine($"开始专项训练: {training.Name}");
+
+            // 标记训练为开始状态
+            bool success = await _studentSpecializedTrainingService.StartSpecializedTrainingAsync(training.Id);
+            if (!success)
+            {
+                ErrorMessage = "开始训练失败，请稍后重试";
+                return;
+            }
+
+            // 启动BenchSuite进行实际训练
+            await StartBenchSuiteTrainingAsync(training);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"开始训练失败: {ex.Message}";
             System.Diagnostics.Debug.WriteLine($"开始专项训练失败: {ex}");
         }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     /// <summary>
-    /// 查看详情
+    /// 启动BenchSuite训练
     /// </summary>
-    private async Task ViewDetailsAsync(StudentSpecializedTrainingDto training)
+    private async Task StartBenchSuiteTrainingAsync(StudentSpecializedTrainingDto training)
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine($"查看专项训练详情: {training.Name}");
+            System.Diagnostics.Debug.WriteLine($"启动BenchSuite专项训练: {training.Name}");
+            System.Diagnostics.Debug.WriteLine($"模块类型: {training.ModuleType}");
+            System.Diagnostics.Debug.WriteLine($"题目数量: {training.QuestionCount}");
+            System.Diagnostics.Debug.WriteLine($"预计时长: {training.Duration}分钟");
 
-            // 触发详情查看事件，由主窗口处理导航
-            DetailViewRequested?.Invoke(training.Id);
+            // 创建考试工具栏ViewModel
+            ExamToolbarViewModel toolbarViewModel = new();
+
+            // 设置考试信息
+            toolbarViewModel.SetExamInfo(
+                ExamType.SpecializedTraining,
+                training.Id,
+                training.Name,
+                training.QuestionCount,
+                training.Duration * 60 // 转换为秒
+            );
+
+            // 创建考试工具栏窗口
+            ExamToolbarWindow examToolbar = new();
+            examToolbar.SetViewModel(toolbarViewModel);
+
+            System.Diagnostics.Debug.WriteLine($"专项训练工具栏已配置 - 训练ID: {training.Id}, 题目数: {training.QuestionCount}, 时长: {training.Duration}分钟");
+
+            // 订阅考试事件
+            examToolbar.ExamAutoSubmitted += (sender, e) => OnTrainingAutoSubmitted(sender, e, training.Id);
+            examToolbar.ExamManualSubmitted += (sender, e) => OnTrainingManualSubmitted(sender, e, training.Id);
+            examToolbar.ViewQuestionsRequested += (sender, e) => OnViewQuestionsRequested(training);
+
+            System.Diagnostics.Debug.WriteLine("已订阅专项训练工具栏事件");
+
+            // 显示工具栏窗口
+            examToolbar.Show();
+            System.Diagnostics.Debug.WriteLine("专项训练工具栏窗口已显示");
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"查看详情失败: {ex.Message}";
-            System.Diagnostics.Debug.WriteLine($"查看专项训练详情失败: {ex}");
+            System.Diagnostics.Debug.WriteLine($"启动BenchSuite训练失败: {ex}");
+            throw;
         }
     }
 
     /// <summary>
-    /// 详情查看请求事件
+    /// 处理训练自动提交事件
     /// </summary>
-    public event Action<int>? DetailViewRequested;
+    private async void OnTrainingAutoSubmitted(object? sender, EventArgs e, int trainingId)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"专项训练自动提交，ID: {trainingId}");
+            await SubmitTrainingWithBenchSuiteAsync(trainingId, isAutoSubmit: true);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"处理专项训练自动提交事件失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 处理训练手动提交事件
+    /// </summary>
+    private async void OnTrainingManualSubmitted(object? sender, EventArgs e, int trainingId)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"专项训练手动提交，ID: {trainingId}");
+            await SubmitTrainingWithBenchSuiteAsync(trainingId, isAutoSubmit: false);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"处理专项训练手动提交事件失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 使用BenchSuite评分提交训练
+    /// </summary>
+    private async Task SubmitTrainingWithBenchSuiteAsync(int trainingId, bool isAutoSubmit)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"开始提交专项训练，ID: {trainingId}, 自动提交: {isAutoSubmit}");
+
+            // TODO: 集成BenchSuite评分系统
+            // 这里应该调用BenchSuite来获取实际的评分结果
+
+            // 模拟评分结果
+            decimal score = 85.5m;
+            decimal maxScore = 100m;
+            int durationSeconds = 1800;
+
+            bool success = await _studentSpecializedTrainingService.CompleteSpecializedTrainingAsync(
+                trainingId, score, maxScore, durationSeconds, isAutoSubmit ? "自动提交" : "手动提交");
+
+            if (success)
+            {
+                System.Diagnostics.Debug.WriteLine($"专项训练提交成功，得分: {score}/{maxScore}");
+
+                // 刷新训练列表以反映最新状态
+                await RefreshAsync();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("专项训练提交失败");
+                ErrorMessage = "训练提交失败，请稍后重试";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"提交专项训练失败: {ex}");
+            ErrorMessage = $"训练提交失败: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 处理查看题目详情请求
+    /// </summary>
+    private void OnViewQuestionsRequested(StudentSpecializedTrainingDto training)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情: {training.Name}");
+            // TODO: 实现题目详情窗口
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情失败: {ex}");
+        }
+    }
+
+
 
     /// <summary>
     /// 加载训练数据
@@ -360,17 +488,13 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         {
             trainings = await _studentSpecializedTrainingService.SearchTrainingsAsync(SearchKeyword, CurrentPage, PageSize);
         }
-        else if (!string.IsNullOrWhiteSpace(SelectedModuleType))
-        {
-            trainings = await _studentSpecializedTrainingService.GetTrainingsByModuleTypeAsync(SelectedModuleType, CurrentPage, PageSize);
-        }
-        else if (SelectedDifficultyLevel > 0)
-        {
-            trainings = await _studentSpecializedTrainingService.GetTrainingsByDifficultyAsync(SelectedDifficultyLevel, CurrentPage, PageSize);
-        }
         else
         {
-            trainings = await _studentSpecializedTrainingService.GetAvailableTrainingsAsync(CurrentPage, PageSize);
+            trainings = !string.IsNullOrWhiteSpace(SelectedModuleType)
+                ? await _studentSpecializedTrainingService.GetTrainingsByModuleTypeAsync(SelectedModuleType, CurrentPage, PageSize)
+                : SelectedDifficultyLevel > 0
+                ? await _studentSpecializedTrainingService.GetTrainingsByDifficultyAsync(SelectedDifficultyLevel, CurrentPage, PageSize)
+                : await _studentSpecializedTrainingService.GetAvailableTrainingsAsync(CurrentPage, PageSize);
         }
 
         if (!append)
@@ -416,14 +540,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// </summary>
     private void UpdateUserPermissions()
     {
-        if (_authenticationService.IsAuthenticated && _authenticationService.CurrentUser != null)
-        {
-            HasFullAccess = _authenticationService.CurrentUser.HasFullAccess;
-        }
-        else
-        {
-            HasFullAccess = false;
-        }
+        HasFullAccess = _authenticationService.IsAuthenticated && _authenticationService.CurrentUser != null && _authenticationService.CurrentUser.HasFullAccess;
     }
 
     /// <summary>

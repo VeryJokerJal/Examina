@@ -163,18 +163,6 @@
                                                 <TextBlock Text="📊" FontSize="14" />
                                                 <TextBlock Text="{Binding TotalScore, StringFormat={}{0} 分}" FontSize="14" />
                                             </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock Text="⏱️" FontSize="14" />
-                                                <TextBlock Text="{Binding DurationText}" FontSize="14" />
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock Text="📈" FontSize="14" />
-                                                <TextBlock Text="{Binding DifficultyText}" FontSize="14" />
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock Text="📝" FontSize="14" />
-                                                <TextBlock Text="{Binding QuestionCount, StringFormat={}{0} 题}" FontSize="14" />
-                                            </StackPanel>
                                         </StackPanel>
 
                                         <!-- 标签 -->
@@ -212,11 +200,6 @@
 
                                     <!-- 操作按钮 -->
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-                                        <Button Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).ViewDetailsCommand}"
-                                               CommandParameter="{Binding}"
-                                               Content="查看详情"
-                                               Padding="15,8"
-                                               MinWidth="100" />
                                         <Button Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartTrainingCommand}"
                                                CommandParameter="{Binding}"
                                                Content="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartButtonText}"
