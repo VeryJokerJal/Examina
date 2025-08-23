@@ -78,7 +78,7 @@ public static class FormalExamFunctionalityTest
                 StartTime = DateTime.Now,
                 EndTime = DateTime.Now.AddHours(3),
                 PassingScore = 60,
-                Subjects = new List<StudentSubjectDto>
+                Subjects = new ObservableCollection<StudentSubjectDto>
                 {
                     new()
                     {
