@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using Examina.Models.Ranking;
@@ -37,13 +38,44 @@ public class RankingService
             string endpoint = $"/api/ranking/exam?page={page}&pageSize={pageSize}";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
 
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 string jsonContent = await response.Content.ReadAsStringAsync();
-                RankingResponseDto? ranking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
-                
-                _logger.LogInformation("成功获取上机统考排行榜，记录数: {Count}", ranking?.Entries.Count ?? 0);
-                return ranking;
+
+                // 对于401状态码，尝试解析响应内容，如果解析失败则返回空的排行榜数据
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    _logger.LogInformation("获取上机统考排行榜时遇到401状态码，尝试返回空数据或解析可用数据");
+                    try
+                    {
+                        RankingResponseDto? ranking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+                        if (ranking != null)
+                        {
+                            _logger.LogInformation("成功解析401响应中的排行榜数据，记录数: {Count}", ranking.Entries.Count);
+                            return ranking;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        _logger.LogInformation("401响应无法解析为排行榜数据，返回空的排行榜");
+                    }
+
+                    // 返回空的排行榜数据而不是null，允许UI显示空状态
+                    return new RankingResponseDto
+                    {
+                        Type = RankingType.ExamRanking,
+                        TypeName = "上机统考排行榜",
+                        Entries = [],
+                        TotalCount = 0,
+                        CurrentPage = page,
+                        PageSize = pageSize,
+                        TotalPages = 0
+                    };
+                }
+
+                RankingResponseDto? successRanking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+                _logger.LogInformation("成功获取上机统考排行榜，记录数: {Count}", successRanking?.Entries.Count ?? 0);
+                return successRanking;
             }
             else
             {
@@ -70,13 +102,44 @@ public class RankingService
             string endpoint = $"/api/ranking/mock-exam?page={page}&pageSize={pageSize}";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
 
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 string jsonContent = await response.Content.ReadAsStringAsync();
-                RankingResponseDto? ranking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
-                
-                _logger.LogInformation("成功获取模拟考试排行榜，记录数: {Count}", ranking?.Entries.Count ?? 0);
-                return ranking;
+
+                // 对于401状态码，尝试解析响应内容，如果解析失败则返回空的排行榜数据
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    _logger.LogInformation("获取模拟考试排行榜时遇到401状态码，尝试返回空数据或解析可用数据");
+                    try
+                    {
+                        RankingResponseDto? ranking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+                        if (ranking != null)
+                        {
+                            _logger.LogInformation("成功解析401响应中的排行榜数据，记录数: {Count}", ranking.Entries.Count);
+                            return ranking;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        _logger.LogInformation("401响应无法解析为排行榜数据，返回空的排行榜");
+                    }
+
+                    // 返回空的排行榜数据而不是null，允许UI显示空状态
+                    return new RankingResponseDto
+                    {
+                        Type = RankingType.MockExamRanking,
+                        TypeName = "模拟考试排行榜",
+                        Entries = [],
+                        TotalCount = 0,
+                        CurrentPage = page,
+                        PageSize = pageSize,
+                        TotalPages = 0
+                    };
+                }
+
+                RankingResponseDto? successRanking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+                _logger.LogInformation("成功获取模拟考试排行榜，记录数: {Count}", successRanking?.Entries.Count ?? 0);
+                return successRanking;
             }
             else
             {
@@ -103,13 +166,44 @@ public class RankingService
             string endpoint = $"/api/ranking/training?page={page}&pageSize={pageSize}";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
 
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 string jsonContent = await response.Content.ReadAsStringAsync();
-                RankingResponseDto? ranking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
-                
-                _logger.LogInformation("成功获取综合实训排行榜，记录数: {Count}", ranking?.Entries.Count ?? 0);
-                return ranking;
+
+                // 对于401状态码，尝试解析响应内容，如果解析失败则返回空的排行榜数据
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    _logger.LogInformation("获取综合实训排行榜时遇到401状态码，尝试返回空数据或解析可用数据");
+                    try
+                    {
+                        RankingResponseDto? ranking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+                        if (ranking != null)
+                        {
+                            _logger.LogInformation("成功解析401响应中的排行榜数据，记录数: {Count}", ranking.Entries.Count);
+                            return ranking;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        _logger.LogInformation("401响应无法解析为排行榜数据，返回空的排行榜");
+                    }
+
+                    // 返回空的排行榜数据而不是null，允许UI显示空状态
+                    return new RankingResponseDto
+                    {
+                        Type = RankingType.TrainingRanking,
+                        TypeName = "综合实训排行榜",
+                        Entries = [],
+                        TotalCount = 0,
+                        CurrentPage = page,
+                        PageSize = pageSize,
+                        TotalPages = 0
+                    };
+                }
+
+                RankingResponseDto? successRanking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+                _logger.LogInformation("成功获取综合实训排行榜，记录数: {Count}", successRanking?.Entries.Count ?? 0);
+                return successRanking;
             }
             else
             {
@@ -164,11 +258,50 @@ public class RankingService
 
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
 
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 string jsonContent = await response.Content.ReadAsStringAsync();
-                RankingResponseDto? result = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
 
+                // 对于401状态码，尝试解析响应内容，如果解析失败则返回空的排行榜数据
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    _logger.LogInformation("获取排行榜数据时遇到401状态码，类型: {Type}, 尝试返回空数据或解析可用数据", type);
+                    try
+                    {
+                        RankingResponseDto? ranking = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
+                        if (ranking != null)
+                        {
+                            _logger.LogInformation("成功解析401响应中的排行榜数据，记录数: {Count}", ranking.Entries?.Count ?? 0);
+                            return ranking;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        _logger.LogInformation("401响应无法解析为排行榜数据，返回空的排行榜");
+                    }
+
+                    // 返回空的排行榜数据而不是null，允许UI显示空状态
+                    string typeName = type switch
+                    {
+                        RankingType.ExamRanking => "上机统考排行榜",
+                        RankingType.MockExamRanking => "模拟考试排行榜",
+                        RankingType.TrainingRanking => "综合实训排行榜",
+                        _ => "排行榜"
+                    };
+
+                    return new RankingResponseDto
+                    {
+                        Type = type,
+                        TypeName = typeName,
+                        Entries = [],
+                        TotalCount = 0,
+                        CurrentPage = page,
+                        PageSize = pageSize,
+                        TotalPages = 0
+                    };
+                }
+
+                RankingResponseDto? result = JsonSerializer.Deserialize<RankingResponseDto>(jsonContent, _jsonOptions);
                 _logger.LogInformation("成功获取排行榜数据，记录数: {Count}", result?.Entries?.Count ?? 0);
                 return result;
             }
