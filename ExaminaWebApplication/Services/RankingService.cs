@@ -80,18 +80,31 @@ public class RankingService
             baseQuery = baseQuery.Where(ec => ec.ExamId == query.ExamId.Value);
         }
 
-        // 获取总数
-        int totalCount = await baseQuery.CountAsync();
-        _logger.LogInformation("上机统考排行榜查询，总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
+        // 先获取所有符合条件的记录到内存中，然后进行去重
+        List<ExamCompletion> allCompletions = await baseQuery.ToListAsync();
 
-        // 排序并分页
-        List<ExamCompletion> completions = await baseQuery
+        // 在内存中进行去重：每个学生每个正式考试只保留最佳记录
+        var deduplicatedCompletions = allCompletions
+            .GroupBy(ec => new { ec.StudentUserId, ec.ExamId })
+            .Select(g => g
+                .OrderByDescending(ec => ec.Score)
+                .ThenBy(ec => ec.DurationSeconds)
+                .ThenBy(ec => ec.CompletedAt)
+                .First())
+            .ToList();
+
+        // 获取去重后的总数
+        int totalCount = deduplicatedCompletions.Count;
+        _logger.LogInformation("上机统考排行榜查询，去重后总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
+
+        // 对去重后的结果进行最终排序并分页
+        List<ExamCompletion> completions = deduplicatedCompletions
             .OrderByDescending(ec => ec.Score)
             .ThenBy(ec => ec.DurationSeconds)
             .ThenBy(ec => ec.CompletedAt)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .ToListAsync();
+            .ToList();
 
         _logger.LogInformation("上机统考排行榜查询完成，返回记录数: {Count}", completions.Count);
 
@@ -146,18 +159,23 @@ public class RankingService
             baseQuery = baseQuery.Where(mec => mec.MockExamId == query.ExamId.Value);
         }
 
-        // 实现去重逻辑：每个学生每个模拟考试只保留最佳记录
-        // 使用窗口函数选择每个学生每个模拟考试的最佳记录（分数最高，用时最短）
-        var deduplicatedQuery = baseQuery
+        // 先获取所有符合条件的记录到内存中，然后进行去重
+        // 这样可以避免复杂的LINQ表达式翻译问题
+        // 注意：Include的导航属性已经在baseQuery中加载
+        List<MockExamCompletion> allCompletions = await baseQuery.ToListAsync();
+
+        // 在内存中进行去重：每个学生每个模拟考试只保留最佳记录
+        var deduplicatedCompletions = allCompletions
             .GroupBy(mec => new { mec.StudentUserId, mec.MockExamId })
             .Select(g => g
                 .OrderByDescending(mec => mec.Score)
                 .ThenBy(mec => mec.DurationSeconds)
                 .ThenBy(mec => mec.CompletedAt)
-                .First());
+                .First())
+            .ToList();
 
         // 获取去重后的总数
-        int totalCount = await deduplicatedQuery.CountAsync();
+        int totalCount = deduplicatedCompletions.Count;
 
         // 添加详细的诊断日志
         int totalMockExamCompletions = await _context.MockExamCompletions.CountAsync();
@@ -169,14 +187,14 @@ public class RankingService
         _logger.LogInformation("模拟考试排行榜查询诊断 - 总记录: {Total}, 已完成: {Completed}, 活跃: {Active}, 有分数: {WithScore}, 有完成时间: {WithCompletedAt}, 去重后符合条件: {Qualified}, 试卷筛选: {ExamId}",
             totalMockExamCompletions, completedRecords, activeRecords, recordsWithScore, recordsWithCompletedAt, totalCount, query.ExamId);
 
-        // 对去重后的结果进行排序并分页
-        List<MockExamCompletion> completions = await deduplicatedQuery
+        // 对去重后的结果进行最终排序并分页
+        List<MockExamCompletion> completions = deduplicatedCompletions
             .OrderByDescending(mec => mec.Score)
             .ThenBy(mec => mec.DurationSeconds)
             .ThenBy(mec => mec.CompletedAt)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .ToListAsync();
+            .ToList();
 
         _logger.LogInformation("模拟考试排行榜查询完成，返回记录数: {Count}", completions.Count);
 
@@ -230,8 +248,21 @@ public class RankingService
             baseQuery = baseQuery.Where(ctc => ctc.TrainingId == query.ExamId.Value);
         }
 
-        // 获取总数
-        int totalCount = await baseQuery.CountAsync();
+        // 先获取所有符合条件的记录到内存中，然后进行去重
+        List<ComprehensiveTrainingCompletion> allCompletions = await baseQuery.ToListAsync();
+
+        // 在内存中进行去重：每个学生每个综合实训只保留最佳记录
+        var deduplicatedCompletions = allCompletions
+            .GroupBy(ctc => new { ctc.StudentUserId, ctc.TrainingId })
+            .Select(g => g
+                .OrderByDescending(ctc => ctc.Score)
+                .ThenBy(ctc => ctc.DurationSeconds)
+                .ThenBy(ctc => ctc.CompletedAt)
+                .First())
+            .ToList();
+
+        // 获取去重后的总数
+        int totalCount = deduplicatedCompletions.Count;
 
         // 添加详细的诊断日志
         int totalTrainingCompletions = await _context.ComprehensiveTrainingCompletions.CountAsync();
@@ -240,17 +271,17 @@ public class RankingService
         int recordsWithScore = await _context.ComprehensiveTrainingCompletions.CountAsync(ctc => ctc.Score.HasValue);
         int recordsWithCompletedAt = await _context.ComprehensiveTrainingCompletions.CountAsync(ctc => ctc.CompletedAt.HasValue);
 
-        _logger.LogInformation("综合实训排行榜查询诊断 - 总记录: {Total}, 已完成: {Completed}, 活跃: {Active}, 有分数: {WithScore}, 有完成时间: {WithCompletedAt}, 符合条件: {Qualified}, 试卷筛选: {ExamId}",
+        _logger.LogInformation("综合实训排行榜查询诊断 - 总记录: {Total}, 已完成: {Completed}, 活跃: {Active}, 有分数: {WithScore}, 有完成时间: {WithCompletedAt}, 去重后符合条件: {Qualified}, 试卷筛选: {ExamId}",
             totalTrainingCompletions, completedRecords, activeRecords, recordsWithScore, recordsWithCompletedAt, totalCount, query.ExamId);
 
-        // 排序并分页
-        List<ComprehensiveTrainingCompletion> completions = await baseQuery
+        // 对去重后的结果进行最终排序并分页
+        List<ComprehensiveTrainingCompletion> completions = deduplicatedCompletions
             .OrderByDescending(ctc => ctc.Score)
             .ThenBy(ctc => ctc.DurationSeconds)
             .ThenBy(ctc => ctc.CompletedAt)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .ToListAsync();
+            .ToList();
 
         _logger.LogInformation("综合实训排行榜查询完成，返回记录数: {Count}", completions.Count);
 
