@@ -61,8 +61,9 @@ public interface IStudentMockExamService
     /// </summary>
     /// <param name="mockExamId">模拟考试ID</param>
     /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="clientActualDurationSeconds">客户端实际用时（秒），可选参数</param>
     /// <returns>提交结果，包含时间状态信息</returns>
-    Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId);
+    Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId, int? clientActualDurationSeconds = null);
 
     /// <summary>
     /// 提交模拟考试成绩
