@@ -1,3 +1,4 @@
+﻿using System.IO;
 using Avalonia.Controls;
 using Examina.Models.FileDownload;
 using Examina.Views.FileDownload;
@@ -19,9 +20,9 @@ public static class FileDownloadExtensions
     public static async Task<bool> PrepareFilesForMockExamAsync(this Window parent, int examId, string examName)
     {
         return await FileDownloadPreparationWindow.ShowDownloadPreparationAsync(
-            parent, 
-            $"模拟考试: {examName}", 
-            FileDownloadTaskType.MockExam, 
+            parent,
+            $"模拟考试: {examName}",
+            FileDownloadTaskType.MockExam,
             examId);
     }
 
@@ -35,9 +36,9 @@ public static class FileDownloadExtensions
     public static async Task<bool> PrepareFilesForOnlineExamAsync(this Window parent, int examId, string examName)
     {
         return await FileDownloadPreparationWindow.ShowDownloadPreparationAsync(
-            parent, 
-            $"上机统考: {examName}", 
-            FileDownloadTaskType.OnlineExam, 
+            parent,
+            $"上机统考: {examName}",
+            FileDownloadTaskType.OnlineExam,
             examId);
     }
 
@@ -51,9 +52,9 @@ public static class FileDownloadExtensions
     public static async Task<bool> PrepareFilesForComprehensiveTrainingAsync(this Window parent, int trainingId, string trainingName)
     {
         return await FileDownloadPreparationWindow.ShowDownloadPreparationAsync(
-            parent, 
-            $"综合实训: {trainingName}", 
-            FileDownloadTaskType.ComprehensiveTraining, 
+            parent,
+            $"综合实训: {trainingName}",
+            FileDownloadTaskType.ComprehensiveTraining,
             trainingId);
     }
 
@@ -67,9 +68,9 @@ public static class FileDownloadExtensions
     public static async Task<bool> PrepareFilesForSpecializedTrainingAsync(this Window parent, int trainingId, string trainingName)
     {
         return await FileDownloadPreparationWindow.ShowDownloadPreparationAsync(
-            parent, 
-            $"专项训练: {trainingName}", 
-            FileDownloadTaskType.SpecializedTraining, 
+            parent,
+            $"专项训练: {trainingName}",
+            FileDownloadTaskType.SpecializedTraining,
             trainingId);
     }
 
@@ -102,24 +103,17 @@ public static class FileDownloadHelper
     {
         try
         {
-            var app = Avalonia.Application.Current as App;
-            var fileDownloadService = app?.GetService<Services.IFileDownloadService>();
-            
+            App? app = Avalonia.Application.Current as App;
+            Services.IFileDownloadService? fileDownloadService = app?.GetService<Services.IFileDownloadService>();
+
             if (fileDownloadService == null)
             {
                 return false;
             }
 
-            List<FileDownloadInfo> files;
-            if (taskType == FileDownloadTaskType.MockExam || taskType == FileDownloadTaskType.OnlineExam)
-            {
-                files = await fileDownloadService.GetExamFilesAsync(relatedId, taskType);
-            }
-            else
-            {
-                files = await fileDownloadService.GetTrainingFilesAsync(relatedId, taskType);
-            }
-
+            List<FileDownloadInfo> files = taskType is FileDownloadTaskType.MockExam or FileDownloadTaskType.OnlineExam
+                ? await fileDownloadService.GetExamFilesAsync(relatedId, taskType)
+                : await fileDownloadService.GetTrainingFilesAsync(relatedId, taskType);
             return files.Count > 0;
         }
         catch
@@ -138,9 +132,9 @@ public static class FileDownloadHelper
     {
         try
         {
-            var app = Avalonia.Application.Current as App;
-            var fileDownloadService = app?.GetService<Services.IFileDownloadService>();
-            
+            App? app = Avalonia.Application.Current as App;
+            Services.IFileDownloadService? fileDownloadService = app?.GetService<Services.IFileDownloadService>();
+
             return fileDownloadService?.GetDownloadDirectory(taskType, relatedId) ?? string.Empty;
         }
         catch
@@ -158,7 +152,7 @@ public static class FileDownloadHelper
     {
         try
         {
-            var downloadDir = GetDownloadDirectory(taskType, relatedId);
+            string downloadDir = GetDownloadDirectory(taskType, relatedId);
             if (!string.IsNullOrEmpty(downloadDir) && Directory.Exists(downloadDir))
             {
                 await Task.Run(() => Directory.Delete(downloadDir, true));
@@ -200,7 +194,7 @@ public static class FileDownloadHelper
         while (len >= 1024 && order < sizes.Length - 1)
         {
             order++;
-            len = len / 1024;
+            len /= 1024;
         }
         return $"{len:0.##} {sizes[order]}";
     }
@@ -212,9 +206,8 @@ public static class FileDownloadHelper
     /// <returns>格式化的时间字符串</returns>
     public static string FormatTimeSpan(TimeSpan timeSpan)
     {
-        if (timeSpan.TotalHours >= 1)
-            return $"{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
-        else
-            return $"{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
+        return timeSpan.TotalHours >= 1
+            ? $"{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}"
+            : $"{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
     }
 }

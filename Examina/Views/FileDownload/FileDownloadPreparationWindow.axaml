@@ -19,66 +19,66 @@
     <Window.Styles>
         <!-- 窗口样式 -->
         <Style Selector="Window">
-            <Setter Property="Background" Value="{DynamicResource ApplicationPageBackgroundThemeBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
         </Style>
 
         <!-- 标题栏样式 -->
         <Style Selector="Border.title-bar">
-            <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
             <Setter Property="Padding" Value="20,16" />
         </Style>
 
         <!-- 玻璃拟态卡片样式 -->
         <Style Selector="Border.glass-card">
-            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ThemeCardBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="20" />
             <Setter Property="Margin" Value="12" />
-            <Setter Property="BoxShadow" Value="0 4 16 0 #10000000" />
         </Style>
 
         <!-- 按钮样式 -->
         <Style Selector="Button.glass-button">
-            <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentControlElevationBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="16,10" />
             <Setter Property="Margin" Value="6" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="MinWidth" Value="100" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
 
         <Style Selector="Button.glass-button:pointerover">
-            <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
-            <Setter Property="Transform" Value="translateY(-1px)" />
+            <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush2}" />
+            <Setter Property="RenderTransform" Value="translate(0, -1)" />
         </Style>
 
         <Style Selector="Button.glass-button:pressed">
-            <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
-            <Setter Property="Transform" Value="translateY(0px)" />
+            <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush3}" />
+            <Setter Property="RenderTransform" Value="translate(0, 0)" />
         </Style>
 
         <!-- 危险按钮样式 -->
         <Style Selector="Button.glass-button.danger">
-            <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            <Setter Property="Background" Value="#DC3545" />
+            <Setter Property="BorderBrush" Value="#DC3545" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
         <!-- 成功按钮样式 -->
         <Style Selector="Button.glass-button.success">
-            <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+            <Setter Property="Background" Value="#28A745" />
+            <Setter Property="BorderBrush" Value="#28A745" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
         <!-- 进度条样式 -->
         <Style Selector="ProgressBar.glass-progress">
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorTransparentBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Height" Value="12" />
@@ -93,19 +93,19 @@
         </Style>
 
         <Style Selector="Border.status-pending">
-            <Setter Property="Background" Value="{DynamicResource SystemFillColorNeutralBrush}" />
+            <Setter Property="Background" Value="#6C757D" />
         </Style>
 
         <Style Selector="Border.status-downloading">
-            <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBrush}" />
+            <Setter Property="Background" Value="#FFC107" />
         </Style>
 
         <Style Selector="Border.status-completed">
-            <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+            <Setter Property="Background" Value="#28A745" />
         </Style>
 
         <Style Selector="Border.status-failed">
-            <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            <Setter Property="Background" Value="#DC3545" />
         </Style>
     </Window.Styles>
 
@@ -157,11 +157,11 @@
                                        Text="{Binding StatusMessage}" 
                                        FontSize="18" 
                                        FontWeight="Medium" />
-                            <TextBlock Grid.Column="1" 
-                                       Text="{Binding OverallProgress, StringFormat='{}{0:F1}%'}" 
-                                       FontSize="18" 
-                                       FontWeight="Bold" 
-                                       Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding OverallProgress, StringFormat='{}{0:F1}%'}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource ThemeAccentBrush}" />
                         </Grid>
 
                         <ProgressBar Classes="glass-progress" 
@@ -169,32 +169,32 @@
                                      Maximum="100" />
 
                         <!-- 错误消息 -->
-                        <Border IsVisible="{Binding HasError}" 
-                                Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}" 
-                                BorderBrush="{DynamicResource SystemFillColorCriticalBrush}"
+                        <Border IsVisible="{Binding HasError}"
+                                Background="#F8D7DA"
+                                BorderBrush="#DC3545"
                                 BorderThickness="1"
-                                CornerRadius="8" 
+                                CornerRadius="8"
                                 Padding="16,12">
                             <StackPanel Spacing="8">
-                                <TextBlock Text="❌ 下载过程中出现错误" 
+                                <TextBlock Text="❌ 下载过程中出现错误"
                                            FontWeight="Medium"
-                                           Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
-                                <TextBlock Text="{Binding ErrorMessage}" 
-                                           Foreground="{DynamicResource SystemFillColorCriticalBrush}" 
+                                           Foreground="#DC3545" />
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           Foreground="#DC3545"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
                         <!-- 成功消息 -->
-                        <Border IsVisible="{Binding IsCompleted}" 
-                                Background="{DynamicResource SystemFillColorSuccessBackgroundBrush}" 
-                                BorderBrush="{DynamicResource SystemFillColorSuccessBrush}"
+                        <Border IsVisible="{Binding IsCompleted}"
+                                Background="#D4EDDA"
+                                BorderBrush="#28A745"
                                 BorderThickness="1"
-                                CornerRadius="8" 
+                                CornerRadius="8"
                                 Padding="16,12">
-                            <TextBlock Text="✅ 所有文件下载完成，可以开始考试/训练" 
+                            <TextBlock Text="✅ 所有文件下载完成，可以开始考试/训练"
                                        FontWeight="Medium"
-                                       Foreground="{DynamicResource SystemFillColorSuccessBrush}" />
+                                       Foreground="#28A745" />
                         </Border>
                     </StackPanel>
                 </Border>
@@ -215,11 +215,11 @@
                         <ItemsControl ItemsSource="{Binding Files}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{DynamicResource SubtleFillColorTransparentBrush}"
-                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                    <Border Background="{DynamicResource ThemeControlLowBrush}"
+                                            BorderBrush="{DynamicResource ThemeBorderMidBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="8" 
-                                            Padding="16" 
+                                            CornerRadius="8"
+                                            Padding="16"
                                             Margin="0,6">
                                         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto">
                                             <!-- 状态指示器 -->
@@ -276,9 +276,9 @@
         </ScrollViewer>
 
         <!-- 操作按钮栏 -->
-        <Border Grid.Row="2" 
-                Background="{DynamicResource LayerFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+        <Border Grid.Row="2"
+                Background="{DynamicResource ThemeControlLowBrush}"
+                BorderBrush="{DynamicResource ThemeBorderMidBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="20,16">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
@@ -286,7 +286,7 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
                     <TextBlock IsVisible="{Binding FailedFileCount, Converter={StaticResource GreaterThanZeroConverter}}">
                         <Run Text="❌" />
-                        <Run Text="{Binding FailedFileCount}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" FontWeight="Medium" />
+                        <Run Text="{Binding FailedFileCount}" Foreground="#DC3545" FontWeight="Medium" />
                         <Run Text="个文件失败" />
                     </TextBlock>
                 </StackPanel>

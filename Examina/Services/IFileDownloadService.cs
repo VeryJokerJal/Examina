@@ -1,3 +1,4 @@
+﻿using System.Threading;
 using Examina.Models.FileDownload;
 
 namespace Examina.Services;
@@ -158,7 +159,7 @@ public class FileDownloadException : Exception
         DownloadUrl = downloadUrl;
     }
 
-    public FileDownloadException(string message, string? fileName, string? downloadUrl, Exception innerException) 
+    public FileDownloadException(string message, string? fileName, string? downloadUrl, Exception innerException)
         : base(message, innerException)
     {
         FileName = fileName;

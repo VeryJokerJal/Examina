@@ -1,4 +1,5 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.Threading;
 
 namespace Examina.Models.FileDownload;
 
@@ -11,7 +12,7 @@ public class FileDownloadTask : INotifyPropertyChanged
     private string _taskName = string.Empty;
     private FileDownloadTaskType _taskType;
     private int _relatedId;
-    private List<FileDownloadInfo> _files = new();
+    private List<FileDownloadInfo> _files = [];
     private FileDownloadTaskStatus _status = FileDownloadTaskStatus.Pending;
     private string _statusMessage = string.Empty;
     private double _overallProgress;
@@ -200,7 +201,7 @@ public class FileDownloadTask : INotifyPropertyChanged
     /// <summary>
     /// 是否可以重试
     /// </summary>
-    public bool CanRetry => Status == FileDownloadTaskStatus.Failed || Status == FileDownloadTaskStatus.Cancelled;
+    public bool CanRetry => Status is FileDownloadTaskStatus.Failed or FileDownloadTaskStatus.Cancelled;
 
     /// <summary>
     /// 任务类型显示名称
@@ -225,7 +226,7 @@ public class FileDownloadTask : INotifyPropertyChanged
             return;
         }
 
-        var totalProgress = Files.Sum(f => f.Progress);
+        double totalProgress = Files.Sum(f => f.Progress);
         OverallProgress = totalProgress / Files.Count;
     }
 
@@ -262,7 +263,7 @@ public class FileDownloadTask : INotifyPropertyChanged
     /// </summary>
     public void ClearFiles()
     {
-        foreach (var file in Files)
+        foreach (FileDownloadInfo file in Files)
         {
             file.PropertyChanged -= OnFilePropertyChanged;
         }
@@ -274,8 +275,8 @@ public class FileDownloadTask : INotifyPropertyChanged
 
     private void OnFilePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(FileDownloadInfo.Progress) || 
-            e.PropertyName == nameof(FileDownloadInfo.Status))
+        if (e.PropertyName is (nameof(FileDownloadInfo.Progress)) or
+            (nameof(FileDownloadInfo.Status)))
         {
             UpdateOverallProgress();
             OnPropertyChanged(nameof(CompletedFileCount));
@@ -300,17 +301,17 @@ public enum FileDownloadTaskType
     /// 模拟考试
     /// </summary>
     MockExam,
-    
+
     /// <summary>
     /// 上机统考
     /// </summary>
     OnlineExam,
-    
+
     /// <summary>
     /// 综合实训
     /// </summary>
     ComprehensiveTraining,
-    
+
     /// <summary>
     /// 专项训练
     /// </summary>
@@ -326,22 +327,22 @@ public enum FileDownloadTaskStatus
     /// 等待中
     /// </summary>
     Pending,
-    
+
     /// <summary>
     /// 运行中
     /// </summary>
     Running,
-    
+
     /// <summary>
     /// 已完成
     /// </summary>
     Completed,
-    
+
     /// <summary>
     /// 失败
     /// </summary>
     Failed,
-    
+
     /// <summary>
     /// 已取消
     /// </summary>

@@ -3,8 +3,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Examina.Services;
 using Examina.ViewModels;
-using Examina.ViewModels.Pages;
 using Examina.ViewModels.FileDownload;
+using Examina.ViewModels.Pages;
 using Examina.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -83,8 +83,7 @@ public partial class App : Application
         // 注册日志服务
         _ = services.AddLogging(builder =>
         {
-            builder.AddDebug();
-            builder.SetMinimumLevel(LogLevel.Information);
+            _ = builder.SetMinimumLevel(LogLevel.Information);
         });
 
         // 注册其他服务
@@ -220,7 +219,11 @@ public partial class App : Application
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             IWindowManagerService windowManager = provider.GetRequiredService<IWindowManagerService>();
-            LeaderboardViewModel leaderboardFactory() => provider.GetRequiredService<LeaderboardViewModel>();
+            LeaderboardViewModel leaderboardFactory()
+            {
+                return provider.GetRequiredService<LeaderboardViewModel>();
+            }
+
             return new MainViewModel(authService, windowManager, leaderboardFactory);
         });
         _ = services.AddTransient<UserInfoCompletionViewModel>();

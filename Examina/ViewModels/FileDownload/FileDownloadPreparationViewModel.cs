@@ -1,6 +1,7 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using Examina.Models.FileDownload;
 using Examina.Services;
 using ReactiveUI;
@@ -14,7 +15,7 @@ namespace Examina.ViewModels.FileDownload;
 public class FileDownloadPreparationViewModel : ViewModelBase
 {
     private readonly IFileDownloadService _fileDownloadService;
-    private FileDownloadTask? _currentTask;
+    private readonly FileDownloadTask? _currentTask;
     private CancellationTokenSource? _cancellationTokenSource;
 
     public FileDownloadPreparationViewModel(IFileDownloadService fileDownloadService)
@@ -28,17 +29,17 @@ public class FileDownloadPreparationViewModel : ViewModelBase
         CloseCommand = ReactiveCommand.Create(Close, this.WhenAnyValue(x => x.CanClose));
 
         // 初始化集合
-        Files = new ObservableCollection<FileDownloadInfo>();
+        Files = [];
 
         // 监听属性变化
-        this.WhenAnyValue(x => x.CurrentTask)
+        _ = this.WhenAnyValue(x => x.CurrentTask)
             .Where(task => task != null)
             .Subscribe(task =>
             {
                 Files.Clear();
                 if (task?.Files != null)
                 {
-                    foreach (var file in task.Files)
+                    foreach (FileDownloadInfo file in task.Files)
                     {
                         Files.Add(file);
                     }
@@ -46,7 +47,7 @@ public class FileDownloadPreparationViewModel : ViewModelBase
                 UpdateCanExecuteStates();
             });
 
-        this.WhenAnyValue(x => x.IsDownloading, x => x.IsCompleted, x => x.HasError)
+        _ = this.WhenAnyValue(x => x.IsDownloading, x => x.IsCompleted, x => x.HasError)
             .Subscribe(_ => UpdateCanExecuteStates());
     }
 
@@ -208,16 +209,9 @@ public class FileDownloadPreparationViewModel : ViewModelBase
             RelatedId = relatedId;
             StatusMessage = "正在获取文件列表...";
 
-            List<FileDownloadInfo> files;
-            if (taskType == FileDownloadTaskType.MockExam || taskType == FileDownloadTaskType.OnlineExam)
-            {
-                files = await _fileDownloadService.GetExamFilesAsync(relatedId, taskType);
-            }
-            else
-            {
-                files = await _fileDownloadService.GetTrainingFilesAsync(relatedId, taskType);
-            }
-
+            List<FileDownloadInfo> files = taskType is FileDownloadTaskType.MockExam or FileDownloadTaskType.OnlineExam
+                ? await _fileDownloadService.GetExamFilesAsync(relatedId, taskType)
+                : await _fileDownloadService.GetTrainingFilesAsync(relatedId, taskType);
             if (files.Count == 0)
             {
                 StatusMessage = "没有需要下载的文件";
@@ -242,7 +236,10 @@ public class FileDownloadPreparationViewModel : ViewModelBase
     /// </summary>
     private async Task StartDownloadAsync()
     {
-        if (CurrentTask == null) return;
+        if (CurrentTask == null)
+        {
+            return;
+        }
 
         try
         {
@@ -251,14 +248,14 @@ public class FileDownloadPreparationViewModel : ViewModelBase
             ErrorMessage = null;
             _cancellationTokenSource = new CancellationTokenSource();
 
-            var progress = new Progress<FileDownloadTask>(OnDownloadProgress);
-            var result = await _fileDownloadService.StartDownloadTaskAsync(CurrentTask, progress, _cancellationTokenSource.Token);
+            Progress<FileDownloadTask> progress = new(OnDownloadProgress);
+            bool result = await _fileDownloadService.StartDownloadTaskAsync(CurrentTask, progress, _cancellationTokenSource.Token);
 
             if (result)
             {
                 IsCompleted = true;
                 StatusMessage = "下载完成";
-                
+
                 // 清理临时文件
                 await _fileDownloadService.CleanupTempFilesAsync(CurrentTask);
             }
@@ -302,12 +299,15 @@ public class FileDownloadPreparationViewModel : ViewModelBase
     /// </summary>
     private async Task RetryDownloadAsync()
     {
-        if (CurrentTask == null) return;
+        if (CurrentTask == null)
+        {
+            return;
+        }
 
         HasError = false;
         ErrorMessage = null;
         IsCompleted = false;
-        
+
         await StartDownloadAsync();
     }
 
@@ -331,7 +331,7 @@ public class FileDownloadPreparationViewModel : ViewModelBase
         StatusMessage = task.StatusMessage;
         CompletedFileCount = task.CompletedFileCount;
         FailedFileCount = task.FailedFileCount;
-        
+
         if (task.Status == FileDownloadTaskStatus.Failed)
         {
             HasError = true;

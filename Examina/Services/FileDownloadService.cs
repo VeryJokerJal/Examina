@@ -1,7 +1,7 @@
+﻿using System.IO;
 using System.IO.Compression;
-using System.Net.Http;
 using System.Security.Cryptography;
-using System.Text.Json;
+using System.Threading;
 using Examina.Models.FileDownload;
 using Microsoft.Extensions.Logging;
 using SharpCompress.Archives;
@@ -17,41 +17,41 @@ public class FileDownloadService : IFileDownloadService
     private readonly HttpClient _httpClient;
     private readonly ILogger<FileDownloadService> _logger;
     private readonly string _baseDownloadPath;
-    private readonly List<string> _supportedCompressionFormats = new()
-    {
+    private readonly List<string> _supportedCompressionFormats =
+    [
         ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"
-    };
+    ];
 
     public FileDownloadService(HttpClient httpClient, ILogger<FileDownloadService> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
         _baseDownloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Examina", "Downloads");
-        
+
         // 确保下载目录存在
-        Directory.CreateDirectory(_baseDownloadPath);
+        _ = Directory.CreateDirectory(_baseDownloadPath);
     }
 
     public async Task<List<FileDownloadInfo>> GetExamFilesAsync(int examId, FileDownloadTaskType examType)
     {
         try
         {
-            var endpoint = examType switch
+            string endpoint = examType switch
             {
                 FileDownloadTaskType.MockExam => $"/api/fileupload/exam/{examId}/files",
                 FileDownloadTaskType.OnlineExam => $"/api/fileupload/exam/{examId}/files",
                 _ => throw new ArgumentException($"不支持的考试类型: {examType}")
             };
 
-            var response = await _httpClient.GetAsync(endpoint);
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("获取考试文件列表失败: {StatusCode}", response.StatusCode);
-                return new List<FileDownloadInfo>();
+                return [];
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var fileData = JsonSerializer.Deserialize<List<ExamFileDto>>(content, new JsonSerializerOptions
+            string content = await response.Content.ReadAsStringAsync();
+            List<ExamFileDto>? fileData = JsonSerializer.Deserialize<List<ExamFileDto>>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
@@ -62,12 +62,12 @@ public class FileDownloadService : IFileDownloadService
                 DownloadUrl = f.DownloadUrl,
                 TotalSize = f.FileSize,
                 IsCompressed = IsCompressedFile(f.FileName)
-            }).ToList() ?? new List<FileDownloadInfo>();
+            }).ToList() ?? [];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取考试文件列表时发生错误: ExamId={ExamId}, ExamType={ExamType}", examId, examType);
-            return new List<FileDownloadInfo>();
+            return [];
         }
     }
 
@@ -75,22 +75,22 @@ public class FileDownloadService : IFileDownloadService
     {
         try
         {
-            var endpoint = trainingType switch
+            string endpoint = trainingType switch
             {
                 FileDownloadTaskType.ComprehensiveTraining => $"/api/fileupload/comprehensive-training/{trainingId}/files",
                 FileDownloadTaskType.SpecializedTraining => $"/api/fileupload/specialized-training/{trainingId}/files",
                 _ => throw new ArgumentException($"不支持的训练类型: {trainingType}")
             };
 
-            var response = await _httpClient.GetAsync(endpoint);
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("获取训练文件列表失败: {StatusCode}", response.StatusCode);
-                return new List<FileDownloadInfo>();
+                return [];
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var fileData = JsonSerializer.Deserialize<List<TrainingFileDto>>(content, new JsonSerializerOptions
+            string content = await response.Content.ReadAsStringAsync();
+            List<TrainingFileDto>? fileData = JsonSerializer.Deserialize<List<TrainingFileDto>>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
@@ -101,18 +101,18 @@ public class FileDownloadService : IFileDownloadService
                 DownloadUrl = f.DownloadUrl,
                 TotalSize = f.FileSize,
                 IsCompressed = IsCompressedFile(f.FileName)
-            }).ToList() ?? new List<FileDownloadInfo>();
+            }).ToList() ?? [];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取训练文件列表时发生错误: TrainingId={TrainingId}, TrainingType={TrainingType}", trainingId, trainingType);
-            return new List<FileDownloadInfo>();
+            return [];
         }
     }
 
     public FileDownloadTask CreateDownloadTask(string taskName, FileDownloadTaskType taskType, int relatedId, List<FileDownloadInfo> files)
     {
-        var task = new FileDownloadTask
+        FileDownloadTask task = new()
         {
             TaskName = taskName,
             TaskType = taskType,
@@ -123,8 +123,8 @@ public class FileDownloadService : IFileDownloadService
         };
 
         // 设置文件的本地路径和解压路径
-        var downloadDir = GetDownloadDirectory(taskType, relatedId);
-        foreach (var file in files)
+        string downloadDir = GetDownloadDirectory(taskType, relatedId);
+        foreach (FileDownloadInfo file in files)
         {
             file.LocalFilePath = Path.Combine(downloadDir, file.FileName);
             if (file.IsCompressed)
@@ -147,8 +147,8 @@ public class FileDownloadService : IFileDownloadService
             progress?.Report(task);
 
             // 检查磁盘空间
-            var totalSize = task.Files.Sum(f => f.TotalSize);
-            var downloadDir = GetDownloadDirectory(task.TaskType, task.RelatedId);
+            long totalSize = task.Files.Sum(f => f.TotalSize);
+            string downloadDir = GetDownloadDirectory(task.TaskType, task.RelatedId);
             if (!HasSufficientDiskSpace(totalSize * 2, downloadDir)) // 预留双倍空间用于解压
             {
                 task.Status = FileDownloadTaskStatus.Failed;
@@ -159,10 +159,10 @@ public class FileDownloadService : IFileDownloadService
             }
 
             // 确保下载目录存在
-            Directory.CreateDirectory(downloadDir);
+            _ = Directory.CreateDirectory(downloadDir);
 
             // 下载所有文件
-            foreach (var file in task.Files)
+            foreach (FileDownloadInfo file in task.Files)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -172,13 +172,13 @@ public class FileDownloadService : IFileDownloadService
                     return false;
                 }
 
-                var fileProgress = new Progress<FileDownloadInfo>(f =>
+                Progress<FileDownloadInfo> fileProgress = new(f =>
                 {
                     task.UpdateOverallProgress();
                     progress?.Report(task);
                 });
 
-                var downloadResult = await DownloadFileAsync(file, fileProgress, cancellationToken);
+                bool downloadResult = await DownloadFileAsync(file, fileProgress, cancellationToken);
                 if (!downloadResult)
                 {
                     task.Status = FileDownloadTaskStatus.Failed;
@@ -191,7 +191,7 @@ public class FileDownloadService : IFileDownloadService
                 // 如果是压缩文件，进行解压
                 if (file.IsCompressed)
                 {
-                    var extractResult = await ExtractFileAsync(file, fileProgress, cancellationToken);
+                    bool extractResult = await ExtractFileAsync(file, fileProgress, cancellationToken);
                     if (!extractResult)
                     {
                         task.Status = FileDownloadTaskStatus.Failed;
@@ -241,14 +241,14 @@ public class FileDownloadService : IFileDownloadService
             progress?.Report(fileInfo);
 
             // 确保目录存在
-            var directory = Path.GetDirectoryName(fileInfo.LocalFilePath);
+            string? directory = Path.GetDirectoryName(fileInfo.LocalFilePath);
             if (!string.IsNullOrEmpty(directory))
             {
-                Directory.CreateDirectory(directory);
+                _ = Directory.CreateDirectory(directory);
             }
 
-            using var response = await _httpClient.GetAsync(fileInfo.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            using HttpResponseMessage response = await _httpClient.GetAsync(fileInfo.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            _ = response.EnsureSuccessStatusCode();
 
             // 获取文件大小
             if (response.Content.Headers.ContentLength.HasValue)
@@ -256,10 +256,10 @@ public class FileDownloadService : IFileDownloadService
                 fileInfo.TotalSize = response.Content.Headers.ContentLength.Value;
             }
 
-            using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            using var fileStream = new FileStream(fileInfo.LocalFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+            using Stream contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using FileStream fileStream = new(fileInfo.LocalFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
 
-            var buffer = new byte[8192];
+            byte[] buffer = new byte[8192];
             int bytesRead;
             while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
             {
@@ -298,7 +298,7 @@ public class FileDownloadService : IFileDownloadService
 
     public string GetDownloadDirectory(FileDownloadTaskType taskType, int relatedId)
     {
-        var typeFolder = taskType switch
+        string typeFolder = taskType switch
         {
             FileDownloadTaskType.MockExam => "MockExams",
             FileDownloadTaskType.OnlineExam => "OnlineExams",
@@ -314,7 +314,7 @@ public class FileDownloadService : IFileDownloadService
     {
         try
         {
-            var drive = new DriveInfo(Path.GetPathRoot(downloadPath) ?? "C:");
+            DriveInfo drive = new(Path.GetPathRoot(downloadPath) ?? "C:");
             return drive.AvailableFreeSpace > requiredSpace;
         }
         catch
@@ -325,12 +325,12 @@ public class FileDownloadService : IFileDownloadService
 
     public List<string> GetSupportedCompressionFormats()
     {
-        return new List<string>(_supportedCompressionFormats);
+        return [.. _supportedCompressionFormats];
     }
 
     public bool IsCompressedFile(string fileName)
     {
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        string extension = Path.GetExtension(fileName).ToLowerInvariant();
         return _supportedCompressionFormats.Contains(extension);
     }
 
@@ -343,9 +343,9 @@ public class FileDownloadService : IFileDownloadService
             progress?.Report(fileInfo);
 
             // 确保解压目录存在
-            Directory.CreateDirectory(fileInfo.ExtractPath);
+            _ = Directory.CreateDirectory(fileInfo.ExtractPath);
 
-            var extension = Path.GetExtension(fileInfo.LocalFilePath).ToLowerInvariant();
+            string extension = Path.GetExtension(fileInfo.LocalFilePath).ToLowerInvariant();
 
             if (extension == ".zip")
             {
@@ -386,19 +386,22 @@ public class FileDownloadService : IFileDownloadService
     {
         await Task.Run(() =>
         {
-            using var archive = ZipFile.OpenRead(zipPath);
-            foreach (var entry in archive.Entries)
+            using ZipArchive archive = ZipFile.OpenRead(zipPath);
+            foreach (ZipArchiveEntry entry in archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (string.IsNullOrEmpty(entry.Name)) continue;
+                if (string.IsNullOrEmpty(entry.Name))
+                {
+                    continue;
+                }
 
-                var destinationPath = Path.Combine(extractPath, entry.FullName);
-                var destinationDir = Path.GetDirectoryName(destinationPath);
+                string destinationPath = Path.Combine(extractPath, entry.FullName);
+                string? destinationDir = Path.GetDirectoryName(destinationPath);
 
                 if (!string.IsNullOrEmpty(destinationDir))
                 {
-                    Directory.CreateDirectory(destinationDir);
+                    _ = Directory.CreateDirectory(destinationDir);
                 }
 
                 entry.ExtractToFile(destinationPath, true);
@@ -410,8 +413,8 @@ public class FileDownloadService : IFileDownloadService
     {
         await Task.Run(() =>
         {
-            using var archive = ArchiveFactory.Open(archivePath);
-            foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
+            using IArchive archive = ArchiveFactory.Open(archivePath);
+            foreach (IArchiveEntry? entry in archive.Entries.Where(entry => !entry.IsDirectory))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 entry.WriteToDirectory(extractPath, new ExtractionOptions()
@@ -451,9 +454,9 @@ public class FileDownloadService : IFileDownloadService
             task.CancellationTokenSource = new CancellationTokenSource();
 
             // 重置文件状态
-            foreach (var file in task.Files)
+            foreach (FileDownloadInfo file in task.Files)
             {
-                if (file.Status == FileDownloadStatus.Failed || file.Status == FileDownloadStatus.Cancelled)
+                if (file.Status is FileDownloadStatus.Failed or FileDownloadStatus.Cancelled)
                 {
                     file.Status = FileDownloadStatus.Pending;
                     file.StatusMessage = "等待下载...";
@@ -485,15 +488,15 @@ public class FileDownloadService : IFileDownloadService
             // 如果没有提供期望的哈希值，只检查文件是否存在且可读
             if (string.IsNullOrEmpty(expectedHash))
             {
-                using var stream = File.OpenRead(filePath);
-                return stream.CanRead;
+                using FileStream readStream = File.OpenRead(filePath);
+                return readStream.CanRead;
             }
 
             // 计算文件的MD5哈希值
-            using var md5 = MD5.Create();
-            using var stream = File.OpenRead(filePath);
-            var hash = await Task.Run(() => md5.ComputeHash(stream));
-            var hashString = Convert.ToHexString(hash);
+            using MD5 md5 = MD5.Create();
+            using FileStream stream = File.OpenRead(filePath);
+            byte[] hash = await Task.Run(() => md5.ComputeHash(stream));
+            string hashString = Convert.ToHexString(hash);
 
             return string.Equals(hashString, expectedHash, StringComparison.OrdinalIgnoreCase);
         }
@@ -510,7 +513,7 @@ public class FileDownloadService : IFileDownloadService
         {
             await Task.Run(() =>
             {
-                foreach (var file in task.Files)
+                foreach (FileDownloadInfo file in task.Files)
                 {
                     // 删除下载的压缩文件（保留解压后的文件）
                     if (file.IsCompressed && File.Exists(file.LocalFilePath))
