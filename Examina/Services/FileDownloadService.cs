@@ -1,0 +1,558 @@
+using System.IO.Compression;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text.Json;
+using Examina.Models.FileDownload;
+using Microsoft.Extensions.Logging;
+using SharpCompress.Archives;
+using SharpCompress.Common;
+
+namespace Examina.Services;
+
+/// <summary>
+/// 文件下载服务实现
+/// </summary>
+public class FileDownloadService : IFileDownloadService
+{
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<FileDownloadService> _logger;
+    private readonly string _baseDownloadPath;
+    private readonly List<string> _supportedCompressionFormats = new()
+    {
+        ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"
+    };
+
+    public FileDownloadService(HttpClient httpClient, ILogger<FileDownloadService> logger)
+    {
+        _httpClient = httpClient;
+        _logger = logger;
+        _baseDownloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Examina", "Downloads");
+        
+        // 确保下载目录存在
+        Directory.CreateDirectory(_baseDownloadPath);
+    }
+
+    public async Task<List<FileDownloadInfo>> GetExamFilesAsync(int examId, FileDownloadTaskType examType)
+    {
+        try
+        {
+            var endpoint = examType switch
+            {
+                FileDownloadTaskType.MockExam => $"/api/fileupload/exam/{examId}/files",
+                FileDownloadTaskType.OnlineExam => $"/api/fileupload/exam/{examId}/files",
+                _ => throw new ArgumentException($"不支持的考试类型: {examType}")
+            };
+
+            var response = await _httpClient.GetAsync(endpoint);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("获取考试文件列表失败: {StatusCode}", response.StatusCode);
+                return new List<FileDownloadInfo>();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var fileData = JsonSerializer.Deserialize<List<ExamFileDto>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return fileData?.Select(f => new FileDownloadInfo
+            {
+                FileName = f.FileName,
+                DownloadUrl = f.DownloadUrl,
+                TotalSize = f.FileSize,
+                IsCompressed = IsCompressedFile(f.FileName)
+            }).ToList() ?? new List<FileDownloadInfo>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取考试文件列表时发生错误: ExamId={ExamId}, ExamType={ExamType}", examId, examType);
+            return new List<FileDownloadInfo>();
+        }
+    }
+
+    public async Task<List<FileDownloadInfo>> GetTrainingFilesAsync(int trainingId, FileDownloadTaskType trainingType)
+    {
+        try
+        {
+            var endpoint = trainingType switch
+            {
+                FileDownloadTaskType.ComprehensiveTraining => $"/api/fileupload/comprehensive-training/{trainingId}/files",
+                FileDownloadTaskType.SpecializedTraining => $"/api/fileupload/specialized-training/{trainingId}/files",
+                _ => throw new ArgumentException($"不支持的训练类型: {trainingType}")
+            };
+
+            var response = await _httpClient.GetAsync(endpoint);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("获取训练文件列表失败: {StatusCode}", response.StatusCode);
+                return new List<FileDownloadInfo>();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var fileData = JsonSerializer.Deserialize<List<TrainingFileDto>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return fileData?.Select(f => new FileDownloadInfo
+            {
+                FileName = f.FileName,
+                DownloadUrl = f.DownloadUrl,
+                TotalSize = f.FileSize,
+                IsCompressed = IsCompressedFile(f.FileName)
+            }).ToList() ?? new List<FileDownloadInfo>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取训练文件列表时发生错误: TrainingId={TrainingId}, TrainingType={TrainingType}", trainingId, trainingType);
+            return new List<FileDownloadInfo>();
+        }
+    }
+
+    public FileDownloadTask CreateDownloadTask(string taskName, FileDownloadTaskType taskType, int relatedId, List<FileDownloadInfo> files)
+    {
+        var task = new FileDownloadTask
+        {
+            TaskName = taskName,
+            TaskType = taskType,
+            RelatedId = relatedId,
+            Status = FileDownloadTaskStatus.Pending,
+            StatusMessage = "准备下载...",
+            CancellationTokenSource = new CancellationTokenSource()
+        };
+
+        // 设置文件的本地路径和解压路径
+        var downloadDir = GetDownloadDirectory(taskType, relatedId);
+        foreach (var file in files)
+        {
+            file.LocalFilePath = Path.Combine(downloadDir, file.FileName);
+            if (file.IsCompressed)
+            {
+                file.ExtractPath = Path.Combine(downloadDir, Path.GetFileNameWithoutExtension(file.FileName));
+            }
+            task.AddFile(file);
+        }
+
+        return task;
+    }
+
+    public async Task<bool> StartDownloadTaskAsync(FileDownloadTask task, IProgress<FileDownloadTask>? progress = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            task.Status = FileDownloadTaskStatus.Running;
+            task.StatusMessage = "开始下载...";
+            task.StartTime = DateTime.Now;
+            progress?.Report(task);
+
+            // 检查磁盘空间
+            var totalSize = task.Files.Sum(f => f.TotalSize);
+            var downloadDir = GetDownloadDirectory(task.TaskType, task.RelatedId);
+            if (!HasSufficientDiskSpace(totalSize * 2, downloadDir)) // 预留双倍空间用于解压
+            {
+                task.Status = FileDownloadTaskStatus.Failed;
+                task.ErrorMessage = "磁盘空间不足";
+                task.StatusMessage = "磁盘空间不足";
+                progress?.Report(task);
+                return false;
+            }
+
+            // 确保下载目录存在
+            Directory.CreateDirectory(downloadDir);
+
+            // 下载所有文件
+            foreach (var file in task.Files)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    task.Status = FileDownloadTaskStatus.Cancelled;
+                    task.StatusMessage = "下载已取消";
+                    progress?.Report(task);
+                    return false;
+                }
+
+                var fileProgress = new Progress<FileDownloadInfo>(f =>
+                {
+                    task.UpdateOverallProgress();
+                    progress?.Report(task);
+                });
+
+                var downloadResult = await DownloadFileAsync(file, fileProgress, cancellationToken);
+                if (!downloadResult)
+                {
+                    task.Status = FileDownloadTaskStatus.Failed;
+                    task.ErrorMessage = $"文件下载失败: {file.FileName}";
+                    task.StatusMessage = $"文件下载失败: {file.FileName}";
+                    progress?.Report(task);
+                    return false;
+                }
+
+                // 如果是压缩文件，进行解压
+                if (file.IsCompressed)
+                {
+                    var extractResult = await ExtractFileAsync(file, fileProgress, cancellationToken);
+                    if (!extractResult)
+                    {
+                        task.Status = FileDownloadTaskStatus.Failed;
+                        task.ErrorMessage = $"文件解压失败: {file.FileName}";
+                        task.StatusMessage = $"文件解压失败: {file.FileName}";
+                        progress?.Report(task);
+                        return false;
+                    }
+                }
+            }
+
+            task.Status = FileDownloadTaskStatus.Completed;
+            task.StatusMessage = "下载完成";
+            task.EndTime = DateTime.Now;
+            progress?.Report(task);
+
+            _logger.LogInformation("下载任务完成: {TaskName}", task.TaskName);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            task.Status = FileDownloadTaskStatus.Cancelled;
+            task.StatusMessage = "下载已取消";
+            task.EndTime = DateTime.Now;
+            progress?.Report(task);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "下载任务失败: {TaskName}", task.TaskName);
+            task.Status = FileDownloadTaskStatus.Failed;
+            task.ErrorMessage = ex.Message;
+            task.StatusMessage = "下载失败";
+            task.EndTime = DateTime.Now;
+            progress?.Report(task);
+            return false;
+        }
+    }
+
+    public async Task<bool> DownloadFileAsync(FileDownloadInfo fileInfo, IProgress<FileDownloadInfo>? progress = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            fileInfo.Status = FileDownloadStatus.Downloading;
+            fileInfo.StatusMessage = "正在下载...";
+            fileInfo.StartTime = DateTime.Now;
+            progress?.Report(fileInfo);
+
+            // 确保目录存在
+            var directory = Path.GetDirectoryName(fileInfo.LocalFilePath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            using var response = await _httpClient.GetAsync(fileInfo.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            // 获取文件大小
+            if (response.Content.Headers.ContentLength.HasValue)
+            {
+                fileInfo.TotalSize = response.Content.Headers.ContentLength.Value;
+            }
+
+            using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var fileStream = new FileStream(fileInfo.LocalFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+
+            var buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            {
+                await fileStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                fileInfo.DownloadedSize += bytesRead;
+                progress?.Report(fileInfo);
+            }
+
+            fileInfo.Status = FileDownloadStatus.Downloaded;
+            fileInfo.StatusMessage = "下载完成";
+            fileInfo.EndTime = DateTime.Now;
+            progress?.Report(fileInfo);
+
+            _logger.LogInformation("文件下载完成: {FileName}", fileInfo.FileName);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            fileInfo.Status = FileDownloadStatus.Cancelled;
+            fileInfo.StatusMessage = "下载已取消";
+            fileInfo.EndTime = DateTime.Now;
+            progress?.Report(fileInfo);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "文件下载失败: {FileName}", fileInfo.FileName);
+            fileInfo.Status = FileDownloadStatus.Failed;
+            fileInfo.ErrorMessage = ex.Message;
+            fileInfo.StatusMessage = "下载失败";
+            fileInfo.EndTime = DateTime.Now;
+            progress?.Report(fileInfo);
+            return false;
+        }
+    }
+
+    public string GetDownloadDirectory(FileDownloadTaskType taskType, int relatedId)
+    {
+        var typeFolder = taskType switch
+        {
+            FileDownloadTaskType.MockExam => "MockExams",
+            FileDownloadTaskType.OnlineExam => "OnlineExams",
+            FileDownloadTaskType.ComprehensiveTraining => "ComprehensiveTraining",
+            FileDownloadTaskType.SpecializedTraining => "SpecializedTraining",
+            _ => "Unknown"
+        };
+
+        return Path.Combine(_baseDownloadPath, typeFolder, relatedId.ToString());
+    }
+
+    public bool HasSufficientDiskSpace(long requiredSpace, string downloadPath)
+    {
+        try
+        {
+            var drive = new DriveInfo(Path.GetPathRoot(downloadPath) ?? "C:");
+            return drive.AvailableFreeSpace > requiredSpace;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public List<string> GetSupportedCompressionFormats()
+    {
+        return new List<string>(_supportedCompressionFormats);
+    }
+
+    public bool IsCompressedFile(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return _supportedCompressionFormats.Contains(extension);
+    }
+
+    public async Task<bool> ExtractFileAsync(FileDownloadInfo fileInfo, IProgress<FileDownloadInfo>? progress = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            fileInfo.Status = FileDownloadStatus.Extracting;
+            fileInfo.StatusMessage = "正在解压...";
+            progress?.Report(fileInfo);
+
+            // 确保解压目录存在
+            Directory.CreateDirectory(fileInfo.ExtractPath);
+
+            var extension = Path.GetExtension(fileInfo.LocalFilePath).ToLowerInvariant();
+
+            if (extension == ".zip")
+            {
+                await ExtractZipFileAsync(fileInfo.LocalFilePath, fileInfo.ExtractPath, cancellationToken);
+            }
+            else
+            {
+                // 使用SharpCompress处理其他格式
+                await ExtractWithSharpCompressAsync(fileInfo.LocalFilePath, fileInfo.ExtractPath, cancellationToken);
+            }
+
+            fileInfo.Status = FileDownloadStatus.Completed;
+            fileInfo.StatusMessage = "解压完成";
+            progress?.Report(fileInfo);
+
+            _logger.LogInformation("文件解压完成: {FileName}", fileInfo.FileName);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            fileInfo.Status = FileDownloadStatus.Cancelled;
+            fileInfo.StatusMessage = "解压已取消";
+            progress?.Report(fileInfo);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "文件解压失败: {FileName}", fileInfo.FileName);
+            fileInfo.Status = FileDownloadStatus.Failed;
+            fileInfo.ErrorMessage = ex.Message;
+            fileInfo.StatusMessage = "解压失败";
+            progress?.Report(fileInfo);
+            return false;
+        }
+    }
+
+    private async Task ExtractZipFileAsync(string zipPath, string extractPath, CancellationToken cancellationToken)
+    {
+        await Task.Run(() =>
+        {
+            using var archive = ZipFile.OpenRead(zipPath);
+            foreach (var entry in archive.Entries)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (string.IsNullOrEmpty(entry.Name)) continue;
+
+                var destinationPath = Path.Combine(extractPath, entry.FullName);
+                var destinationDir = Path.GetDirectoryName(destinationPath);
+
+                if (!string.IsNullOrEmpty(destinationDir))
+                {
+                    Directory.CreateDirectory(destinationDir);
+                }
+
+                entry.ExtractToFile(destinationPath, true);
+            }
+        }, cancellationToken);
+    }
+
+    private async Task ExtractWithSharpCompressAsync(string archivePath, string extractPath, CancellationToken cancellationToken)
+    {
+        await Task.Run(() =>
+        {
+            using var archive = ArchiveFactory.Open(archivePath);
+            foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                entry.WriteToDirectory(extractPath, new ExtractionOptions()
+                {
+                    ExtractFullPath = true,
+                    Overwrite = true
+                });
+            }
+        }, cancellationToken);
+    }
+
+    public void CancelDownloadTask(FileDownloadTask task)
+    {
+        try
+        {
+            task.CancellationTokenSource?.Cancel();
+            task.Status = FileDownloadTaskStatus.Cancelled;
+            task.StatusMessage = "下载已取消";
+            task.EndTime = DateTime.Now;
+
+            _logger.LogInformation("下载任务已取消: {TaskName}", task.TaskName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消下载任务时发生错误: {TaskName}", task.TaskName);
+        }
+    }
+
+    public async Task<bool> RetryDownloadTaskAsync(FileDownloadTask task, IProgress<FileDownloadTask>? progress = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // 重置任务状态
+            task.Status = FileDownloadTaskStatus.Pending;
+            task.StatusMessage = "准备重试...";
+            task.ErrorMessage = null;
+            task.CancellationTokenSource = new CancellationTokenSource();
+
+            // 重置文件状态
+            foreach (var file in task.Files)
+            {
+                if (file.Status == FileDownloadStatus.Failed || file.Status == FileDownloadStatus.Cancelled)
+                {
+                    file.Status = FileDownloadStatus.Pending;
+                    file.StatusMessage = "等待下载...";
+                    file.ErrorMessage = null;
+                    file.DownloadedSize = 0;
+                    file.StartTime = null;
+                    file.EndTime = null;
+                }
+            }
+
+            return await StartDownloadTaskAsync(task, progress, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "重试下载任务失败: {TaskName}", task.TaskName);
+            return false;
+        }
+    }
+
+    public async Task<bool> ValidateFileIntegrityAsync(string filePath, string? expectedHash = null)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                return false;
+            }
+
+            // 如果没有提供期望的哈希值，只检查文件是否存在且可读
+            if (string.IsNullOrEmpty(expectedHash))
+            {
+                using var stream = File.OpenRead(filePath);
+                return stream.CanRead;
+            }
+
+            // 计算文件的MD5哈希值
+            using var md5 = MD5.Create();
+            using var stream = File.OpenRead(filePath);
+            var hash = await Task.Run(() => md5.ComputeHash(stream));
+            var hashString = Convert.ToHexString(hash);
+
+            return string.Equals(hashString, expectedHash, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "验证文件完整性失败: {FilePath}", filePath);
+            return false;
+        }
+    }
+
+    public async Task CleanupTempFilesAsync(FileDownloadTask task)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                foreach (var file in task.Files)
+                {
+                    // 删除下载的压缩文件（保留解压后的文件）
+                    if (file.IsCompressed && File.Exists(file.LocalFilePath))
+                    {
+                        try
+                        {
+                            File.Delete(file.LocalFilePath);
+                            _logger.LogDebug("已删除临时文件: {FilePath}", file.LocalFilePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "删除临时文件失败: {FilePath}", file.LocalFilePath);
+                        }
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "清理临时文件失败: {TaskName}", task.TaskName);
+        }
+    }
+}
+
+/// <summary>
+/// 考试文件DTO
+/// </summary>
+public class ExamFileDto
+{
+    public string FileName { get; set; } = string.Empty;
+    public string DownloadUrl { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+    public string? FileHash { get; set; }
+}
+
+/// <summary>
+/// 训练文件DTO
+/// </summary>
+public class TrainingFileDto
+{
+    public string FileName { get; set; } = string.Empty;
+    public string DownloadUrl { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+    public string? FileHash { get; set; }
+}

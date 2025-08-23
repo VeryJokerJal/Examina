@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using Examina.Services;
 using Examina.ViewModels;
 using Examina.ViewModels.Pages;
+using Examina.ViewModels.FileDownload;
 using Examina.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -79,10 +80,38 @@ public partial class App : Application
             };
         });
 
+        // 注册日志服务
+        _ = services.AddLogging(builder =>
+        {
+            builder.AddDebug();
+            builder.SetMinimumLevel(LogLevel.Information);
+        });
+
         // 注册其他服务
         _ = services.AddSingleton<IConfigurationService, ConfigurationService>();
         _ = services.AddSingleton<IDeviceService, DeviceService>();
         _ = services.AddSingleton<ISecureStorageService, SecureStorageService>();
+
+        // 为文件下载服务配置HttpClient
+        _ = services.AddHttpClient<FileDownloadService>(client =>
+        {
+            client.BaseAddress = new Uri("https://qiuzhenbd.com");
+            client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromMinutes(10); // 文件下载需要更长的超时时间
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            return new HttpClientHandler()
+            {
+                AllowAutoRedirect = true, // 文件下载允许重定向
+                UseProxy = true,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+            };
+        });
+
+        // 注册文件下载服务为单例
+        _ = services.AddSingleton<IFileDownloadService, FileDownloadService>();
 
         // 为学生端试卷服务配置HttpClient
         _ = services.AddHttpClient<IStudentExamService, StudentExamService>(client =>
@@ -238,6 +267,9 @@ public partial class App : Application
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new SpecializedTrainingListViewModel(trainingService, authService);
         });
+
+        // 注册文件下载相关的ViewModels
+        _ = services.AddTransient<FileDownloadPreparationViewModel>();
 
         _serviceProvider = services.BuildServiceProvider();
     }

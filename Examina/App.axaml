@@ -1,7 +1,15 @@
-﻿<Application x:Class="Examina.App" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sty="using:FluentAvalonia.Styling" xmlns:views="clr-namespace:Examina.Views.Pages" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" RequestedThemeVariant="Default">
+﻿<Application x:Class="Examina.App" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sty="using:FluentAvalonia.Styling" xmlns:views="clr-namespace:Examina.Views.Pages" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" xmlns:converters="clr-namespace:Examina.Converters" xmlns:vmFileDownload="clr-namespace:Examina.ViewModels.FileDownload" xmlns:viewsFileDownload="clr-namespace:Examina.Views.FileDownload" RequestedThemeVariant="Default">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Resources>
+        <!--  转换器资源  -->
+        <converters:EnumToDisplayNameConverter x:Key="EnumToDisplayNameConverter" />
+        <converters:FileStatusToClassConverter x:Key="FileStatusToClassConverter" />
+        <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
+        <converters:BooleanInverseConverter x:Key="BooleanInverseConverter" />
+        <converters:FileSizeConverter x:Key="FileSizeConverter" />
+        <converters:ProgressPercentageConverter x:Key="ProgressPercentageConverter" />
+
         <!--  统计卡片自定义颜色方案  -->
 
         <!--  浅色模式颜色 - 调整为更深的色调以提高对比度  -->
@@ -151,6 +159,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SpecializedTrainingListViewModel}">
             <views:SpecializedTrainingListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vmFileDownload:FileDownloadPreparationViewModel}">
+            <viewsFileDownload:FileDownloadPreparationView />
         </DataTemplate>
     </Application.DataTemplates>
 </Application>
