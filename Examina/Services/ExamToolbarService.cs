@@ -16,6 +16,7 @@ public class ExamToolbarService : IDisposable
     private readonly IStudentExamService _studentExamService;
     private readonly IStudentMockExamService _studentMockExamService;
     private readonly IStudentComprehensiveTrainingService _studentComprehensiveTrainingService;
+    private readonly IStudentFormalExamService _studentFormalExamService;
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<ExamToolbarService> _logger;
     private bool _disposed;
@@ -27,12 +28,14 @@ public class ExamToolbarService : IDisposable
         IStudentExamService studentExamService,
         IStudentMockExamService studentMockExamService,
         IStudentComprehensiveTrainingService studentComprehensiveTrainingService,
+        IStudentFormalExamService studentFormalExamService,
         IAuthenticationService authenticationService,
         ILogger<ExamToolbarService> logger)
     {
         _studentExamService = studentExamService ?? throw new ArgumentNullException(nameof(studentExamService));
         _studentMockExamService = studentMockExamService ?? throw new ArgumentNullException(nameof(studentMockExamService));
         _studentComprehensiveTrainingService = studentComprehensiveTrainingService ?? throw new ArgumentNullException(nameof(studentComprehensiveTrainingService));
+        _studentFormalExamService = studentFormalExamService ?? throw new ArgumentNullException(nameof(studentFormalExamService));
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -45,6 +48,14 @@ public class ExamToolbarService : IDisposable
         try
         {
             _logger.LogInformation("开始正式考试，考试ID: {ExamId}", examId);
+
+            // 调用正式考试服务启动考试
+            bool startResult = await _studentFormalExamService.StartExamAsync(examId);
+            if (!startResult)
+            {
+                _logger.LogWarning("启动正式考试失败，考试ID: {ExamId}", examId);
+                return false;
+            }
 
             StudentExamDto? examDetails = await _studentExamService.GetExamDetailsAsync(examId);
             if (examDetails == null)
@@ -60,7 +71,7 @@ public class ExamToolbarService : IDisposable
             viewModel.SetExamInfo(ExamType.FormalExam, examId, examDetails.Name, totalQuestions, durationSeconds);
             viewModel.StartCountdown(durationSeconds);
 
-            _logger.LogInformation("正式考试已开始，考试名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}分钟", 
+            _logger.LogInformation("正式考试已开始，考试名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}分钟",
                 examDetails.Name, totalQuestions, examDetails.DurationMinutes);
 
             return true;
@@ -151,12 +162,19 @@ public class ExamToolbarService : IDisposable
         {
             _logger.LogInformation("提交正式考试，考试ID: {ExamId}", examId);
 
-            // 这里应该调用相应的提交API
-            // 由于当前的StudentExamService没有提交方法，这里暂时模拟
-            await Task.Delay(1000); // 模拟网络请求
+            // 调用正式考试服务完成考试
+            bool result = await _studentFormalExamService.CompleteExamAsync(examId);
 
-            _logger.LogInformation("正式考试提交成功，考试ID: {ExamId}", examId);
-            return true;
+            if (result)
+            {
+                _logger.LogInformation("正式考试提交成功，考试ID: {ExamId}", examId);
+            }
+            else
+            {
+                _logger.LogWarning("正式考试提交失败，考试ID: {ExamId}", examId);
+            }
+
+            return result;
         }
         catch (Exception ex)
         {

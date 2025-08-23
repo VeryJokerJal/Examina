@@ -1,0 +1,177 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Examina.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="800"
+        x:Class="Examina.Views.Dialogs.FormalExamRulesDialog"
+        x:DataType="vm:FormalExamRulesViewModel"
+        Title="上机统考规则说明"
+        Width="600" Height="800"
+        MinWidth="500" MinHeight="700"
+        WindowStartupLocation="CenterOwner"
+        CanResize="true">
+
+    <Design.DataContext>
+        <vm:FormalExamRulesViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 主内容区域 -->
+        <ScrollViewer Grid.Row="0" Padding="24" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="20">
+                
+                <!-- 标题区域 -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="🎓 上机统考规则说明" 
+                               FontSize="24" 
+                               FontWeight="Bold" 
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemAccentColor}"/>
+                    <TextBlock Text="请仔细阅读以下规则，确认无误后开始考试" 
+                               FontSize="14" 
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                </StackPanel>
+
+                <!-- 考试基本信息 -->
+                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                        CornerRadius="8" Padding="20" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="📊 考试基本信息" FontSize="16" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource SystemAccentColor}" Margin="0,0,0,12"/>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                            <TextBlock Text="考试时长" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding RulesInfo.DurationMinutes, StringFormat='{0} 分钟'}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                            <TextBlock Text="总分值" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding RulesInfo.TotalScore, StringFormat='{0} 分'}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4" Margin="0,8,0,0">
+                            <TextBlock Text="及格分数" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding RulesInfo.PassingScore, StringFormat='{0} 分'}" FontSize="18" FontWeight="Bold" Foreground="#FF4CAF50"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4" Margin="0,8,0,0">
+                            <TextBlock Text="题目总数" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding RulesInfo.TotalQuestions, StringFormat='{0} 道'}" FontSize="18" FontWeight="Bold" Foreground="#FF4CAF50"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="0" Spacing="4" Margin="0,8,0,0">
+                            <TextBlock Text="编程题" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding RulesInfo.ProgrammingQuestions, StringFormat='{0} 道 × 15分'}" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4" Margin="0,8,0,0">
+                            <TextBlock Text="操作题" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding RulesInfo.OperationQuestions, StringFormat='{0} 道 × 5分'}" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 考试规则 -->
+                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                        CornerRadius="8" Padding="20" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="📋 考试规则" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}"/>
+                        <ItemsControl ItemsSource="{Binding RulesInfo.Rules}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                                        <TextBlock Text="•" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 考试要求 -->
+                <Border Background="#FFF3E0" CornerRadius="8" Padding="20" BorderBrush="#FFCC02" BorderThickness="1">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="⚠️ 考试要求" FontSize="16" FontWeight="SemiBold" Foreground="#FF8F00"/>
+                        <ItemsControl ItemsSource="{Binding RulesInfo.Requirements}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                                        <TextBlock Text="•" FontWeight="Bold" Foreground="#FF8F00" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#E65100"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 注意事项 -->
+                <Border Background="#FFEBEE" CornerRadius="8" Padding="20" BorderBrush="#F44336" BorderThickness="1">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="⚠️ 重要注意事项" FontSize="16" FontWeight="SemiBold" Foreground="#D32F2F"/>
+                        <ItemsControl ItemsSource="{Binding RulesInfo.Notes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                                        <TextBlock Text="•" FontWeight="Bold" Foreground="#D32F2F" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#B71C1C"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 操作指南 -->
+                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                        CornerRadius="8" Padding="20" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="💡 操作指南" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}"/>
+                        <ItemsControl ItemsSource="{Binding RulesInfo.OperationGuide}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                                        <TextBlock Text="•" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部按钮区域 -->
+        <Border Grid.Row="1" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" 
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12" Margin="24,16">
+                <Button Name="CancelButton" Content="取消" Padding="20,8" MinWidth="80" Click="CancelButton_Click"/>
+                <Button Name="ConfirmButton" Content="确认开始" Padding="20,8" MinWidth="100" Classes="accent" Click="ConfirmButton_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
