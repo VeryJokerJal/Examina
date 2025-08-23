@@ -1,3 +1,4 @@
+using Examina.Models;
 using Examina.Models.SpecializedTraining;
 
 namespace Examina.Services;
