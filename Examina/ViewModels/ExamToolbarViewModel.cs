@@ -109,9 +109,24 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     [Reactive] public int RemainingTimeSeconds { get; set; }
 
     /// <summary>
+    /// 已用时间（秒）- 用于专项训练和综合实训的正向计时
+    /// </summary>
+    [Reactive] public int ElapsedTimeSeconds { get; set; }
+
+    /// <summary>
     /// 格式化的剩余时间显示（HH:MM:SS）
     /// </summary>
     [Reactive] public string FormattedRemainingTime { get; set; } = "00:00:00";
+
+    /// <summary>
+    /// 格式化的已用时间显示（HH:MM:SS）
+    /// </summary>
+    [Reactive] public string FormattedElapsedTime { get; set; } = "00:00:00";
+
+    /// <summary>
+    /// 是否使用正向计时（专项训练和综合实训使用）
+    /// </summary>
+    [Reactive] public bool UseForwardTiming { get; set; }
 
     /// <summary>
     /// 考试名称
@@ -239,6 +254,14 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
                 UpdateTimeDisplay(seconds);
             });
 
+        // 监听已用时间变化，更新格式化已用时间
+        _ = this.WhenAnyValue(x => x.ElapsedTimeSeconds)
+            .Subscribe(seconds =>
+            {
+                _logger.LogDebug("响应式监听触发（设计时） - ElapsedTimeSeconds变化为: {Seconds}", seconds);
+                UpdateElapsedTimeDisplay(seconds);
+            });
+
         // 设置设计时数据
         StudentName = "张三";
         StudentId = "2021001";
@@ -266,6 +289,14 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             {
                 _logger.LogDebug("响应式监听触发 - RemainingTimeSeconds变化为: {Seconds}", seconds);
                 UpdateTimeDisplay(seconds);
+            });
+
+        // 监听已用时间变化，更新格式化已用时间
+        _ = this.WhenAnyValue(x => x.ElapsedTimeSeconds)
+            .Subscribe(seconds =>
+            {
+                _logger.LogDebug("响应式监听触发 - ElapsedTimeSeconds变化为: {Seconds}", seconds);
+                UpdateElapsedTimeDisplay(seconds);
             });
 
         // 初始化学生信息
@@ -305,6 +336,13 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     /// </summary>
     public int GetActualDurationSeconds()
     {
+        if (UseForwardTiming)
+        {
+            // 正向计时模式：直接返回已用时间
+            _logger.LogInformation("正向计时模式 - 已用时间: {ElapsedTime}秒", ElapsedTimeSeconds);
+            return ElapsedTimeSeconds;
+        }
+
         if (ExamStartTime.HasValue)
         {
             int actualSeconds = (int)(DateTime.Now - ExamStartTime.Value).TotalSeconds;
@@ -340,29 +378,45 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        RemainingTimeSeconds--;
-
-        // 每30秒记录一次时间状态（避免日志过多）
-        if (RemainingTimeSeconds % 30 == 0)
+        if (UseForwardTiming)
         {
-            _logger.LogDebug("倒计时更新 - 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
-                RemainingTimeSeconds, FormattedRemainingTime);
+            // 正向计时：专项训练和综合实训
+            ElapsedTimeSeconds++;
+
+            // 每30秒记录一次时间状态（避免日志过多）
+            if (ElapsedTimeSeconds % 30 == 0)
+            {
+                _logger.LogDebug("正向计时更新 - 已用时间: {ElapsedTime}秒, 格式化时间: {FormattedTime}",
+                    ElapsedTimeSeconds, FormattedElapsedTime);
+            }
         }
-
-        // 检查自动提交条件
-        if (CheckAutoSubmitConditions())
+        else
         {
-            CurrentExamStatus = ExamStatus.Ended;
-            StopCountdown();
+            // 倒计时：正式考试和模拟考试
+            RemainingTimeSeconds--;
 
-            _logger.LogWarning("满足自动提交条件，触发自动提交");
-            _ = Task.Run(TriggerAutoSubmitAsync);
-        }
-        else if (RemainingTimeSeconds <= TimeWarningThreshold && CurrentExamStatus != ExamStatus.AboutToEnd)
-        {
-            // 进入即将结束状态
-            CurrentExamStatus = ExamStatus.AboutToEnd;
-            _logger.LogInformation("考试进入即将结束状态，剩余时间: {RemainingTime}秒", RemainingTimeSeconds);
+            // 每30秒记录一次时间状态（避免日志过多）
+            if (RemainingTimeSeconds % 30 == 0)
+            {
+                _logger.LogDebug("倒计时更新 - 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
+                    RemainingTimeSeconds, FormattedRemainingTime);
+            }
+
+            // 检查自动提交条件（仅倒计时模式）
+            if (CheckAutoSubmitConditions())
+            {
+                CurrentExamStatus = ExamStatus.Ended;
+                StopCountdown();
+
+                _logger.LogWarning("满足自动提交条件，触发自动提交");
+                _ = Task.Run(TriggerAutoSubmitAsync);
+            }
+            else if (RemainingTimeSeconds <= TimeWarningThreshold && CurrentExamStatus != ExamStatus.AboutToEnd)
+            {
+                // 进入即将结束状态
+                CurrentExamStatus = ExamStatus.AboutToEnd;
+                _logger.LogInformation("考试进入即将结束状态，剩余时间: {RemainingTime}秒", RemainingTimeSeconds);
+            }
         }
     }
 
@@ -419,6 +473,38 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "更新时间显示时发生异常");
+        }
+    }
+
+    /// <summary>
+    /// 更新已用时间显示
+    /// </summary>
+    private void UpdateElapsedTimeDisplay(int elapsedSeconds)
+    {
+        try
+        {
+            TimeSpan timeSpan = TimeSpan.FromSeconds(Math.Max(0, elapsedSeconds));
+            string newFormattedTime = $"{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
+
+            // 确保在UI线程上更新属性
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            {
+                FormattedElapsedTime = newFormattedTime;
+            }
+            else
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    FormattedElapsedTime = newFormattedTime;
+                });
+            }
+
+            _logger.LogDebug("更新已用时间显示 - 已用秒数: {ElapsedSeconds}, 格式化时间: {FormattedTime}",
+                elapsedSeconds, newFormattedTime);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新已用时间显示时发生异常");
         }
     }
 
@@ -665,11 +751,23 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         CurrentExamStatus = ExamStatus.Preparing;
         TotalDurationSeconds = durationSeconds;
 
-        // 设置剩余时间，响应式监听会自动触发UpdateTimeDisplay
-        RemainingTimeSeconds = durationSeconds;
+        // 根据考试类型设置计时模式
+        UseForwardTiming = examType == ExamType.SpecializedTraining || examType == ExamType.ComprehensiveTraining;
 
-        _logger.LogInformation("设置考试信息 - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒, 格式化时间: {FormattedTime}",
-            examType, examId, examName, totalQuestions, durationSeconds, FormattedRemainingTime);
+        if (UseForwardTiming)
+        {
+            // 正向计时：从0开始
+            ElapsedTimeSeconds = 0;
+            _logger.LogInformation("设置考试信息（正向计时） - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒",
+                examType, examId, examName, totalQuestions, durationSeconds);
+        }
+        else
+        {
+            // 倒计时：设置剩余时间，响应式监听会自动触发UpdateTimeDisplay
+            RemainingTimeSeconds = durationSeconds;
+            _logger.LogInformation("设置考试信息（倒计时） - 类型: {ExamType}, ID: {ExamId}, 名称: {ExamName}, 题目数: {TotalQuestions}, 时长: {Duration}秒, 格式化时间: {FormattedTime}",
+                examType, examId, examName, totalQuestions, durationSeconds, FormattedRemainingTime);
+        }
     }
 
     /// <summary>

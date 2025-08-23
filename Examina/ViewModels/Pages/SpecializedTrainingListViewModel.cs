@@ -296,15 +296,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine($"开始专项训练: {training.Name}");
 
-            // 标记训练为开始状态
-            bool success = await _studentSpecializedTrainingService.StartSpecializedTrainingAsync(training.Id);
-            if (!success)
-            {
-                ErrorMessage = "开始训练失败，请稍后重试";
-                return;
-            }
-
-            // 启动BenchSuite进行实际训练
+            // 直接启动BenchSuite进行训练，无需API调用
             await StartBenchSuiteTrainingAsync(training);
         }
         catch (Exception ex)
@@ -399,42 +391,26 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 使用BenchSuite评分提交训练
+    /// 处理专项训练提交（简化版本，无API调用）
     /// </summary>
     private async Task SubmitTrainingWithBenchSuiteAsync(int trainingId, bool isAutoSubmit)
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine($"开始提交专项训练，ID: {trainingId}, 自动提交: {isAutoSubmit}");
+            System.Diagnostics.Debug.WriteLine($"专项训练提交完成，ID: {trainingId}, 自动提交: {isAutoSubmit}");
 
-            // TODO: 集成BenchSuite评分系统
-            // 这里应该调用BenchSuite来获取实际的评分结果
+            // 专项训练提交后直接完成，无需API调用
+            // BenchSuite会处理实际的评分和结果记录
 
-            // 模拟评分结果
-            decimal score = 85.5m;
-            decimal maxScore = 100m;
-            int durationSeconds = 1800;
+            System.Diagnostics.Debug.WriteLine("专项训练已通过BenchSuite完成");
 
-            bool success = await _studentSpecializedTrainingService.CompleteSpecializedTrainingAsync(
-                trainingId, score, maxScore, durationSeconds, isAutoSubmit ? "自动提交" : "手动提交");
-
-            if (success)
-            {
-                System.Diagnostics.Debug.WriteLine($"专项训练提交成功，得分: {score}/{maxScore}");
-
-                // 刷新训练列表以反映最新状态
-                await RefreshAsync();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("专项训练提交失败");
-                ErrorMessage = "训练提交失败，请稍后重试";
-            }
+            // 可选：刷新训练列表
+            await RefreshAsync();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"提交专项训练失败: {ex}");
-            ErrorMessage = $"训练提交失败: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"处理专项训练提交失败: {ex}");
+            ErrorMessage = $"训练提交处理失败: {ex.Message}";
         }
     }
 

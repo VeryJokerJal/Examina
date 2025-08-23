@@ -134,8 +134,19 @@
 
                     <!--  时间显示  -->
                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" Text="剩余时间" />
-                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold" Foreground="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}" Text="{Binding FormattedRemainingTime}" />
+                        <!-- 倒计时模式：显示剩余时间 -->
+                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}"
+                                   Text="剩余时间" IsVisible="{Binding !UseForwardTiming}" />
+                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold"
+                                   Foreground="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}"
+                                   Text="{Binding FormattedRemainingTime}" IsVisible="{Binding !UseForwardTiming}" />
+
+                        <!-- 正向计时模式：显示已用时间 -->
+                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}"
+                                   Text="已用时间" IsVisible="{Binding UseForwardTiming}" />
+                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold"
+                                   Foreground="{DynamicResource ExamToolbarPrimaryForegroundBrush}"
+                                   Text="{Binding FormattedElapsedTime}" IsVisible="{Binding UseForwardTiming}" />
                     </StackPanel>
 
                     <!--  考试状态  -->
