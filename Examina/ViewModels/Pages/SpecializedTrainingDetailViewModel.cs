@@ -1,6 +1,8 @@
 using System.Reactive;
+using Examina.Models;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
+using Examina.Views;
 using ReactiveUI;
 
 namespace Examina.ViewModels.Pages;
@@ -219,22 +221,42 @@ public class SpecializedTrainingDetailViewModel : ViewModelBase
         {
             if (Training == null) return;
 
-            // TODO: 实现BenchSuite集成
-            // 1. 将专项训练数据转换为BenchSuite格式
-            // 2. 启动BenchSuite执行训练
-            // 3. 监听训练完成事件
-            // 4. 提交训练结果
-
             System.Diagnostics.Debug.WriteLine($"启动BenchSuite专项训练: {Training.Name}");
             System.Diagnostics.Debug.WriteLine($"模块类型: {Training.ModuleType}");
             System.Diagnostics.Debug.WriteLine($"题目数量: {Training.QuestionCount}");
             System.Diagnostics.Debug.WriteLine($"预计时长: {Training.Duration}分钟");
 
-            // 模拟训练过程
-            await Task.Delay(1000);
-            
-            // 训练完成后的处理
-            await OnTrainingCompletedAsync(85.5m, 100m, 1800); // 示例：得分85.5，满分100，用时1800秒
+            // 创建考试工具栏ViewModel
+            ExamToolbarViewModel toolbarViewModel = new()
+            {
+                ExamId = Training.Id,
+                ExamName = Training.Name,
+                TotalQuestions = Training.QuestionCount,
+                DurationMinutes = Training.Duration,
+                CurrentExamType = ExamType.SpecializedTraining,
+                IsTimerEnabled = true,
+                ShowQuestionDetails = true
+            };
+
+            // 设置模块信息
+            await SetSpecializedTrainingModuleInformationAsync(toolbarViewModel, Training);
+
+            // 创建考试工具栏窗口
+            ExamToolbarWindow examToolbar = new();
+            examToolbar.SetViewModel(toolbarViewModel);
+
+            System.Diagnostics.Debug.WriteLine($"专项训练工具栏已配置 - 训练ID: {Training.Id}, 题目数: {Training.QuestionCount}, 时长: {Training.Duration}分钟");
+
+            // 订阅考试事件
+            examToolbar.ExamAutoSubmitted += OnTrainingAutoSubmitted;
+            examToolbar.ExamManualSubmitted += OnTrainingManualSubmitted;
+            examToolbar.ViewQuestionsRequested += (sender, e) => OnViewQuestionsRequested(Training);
+
+            System.Diagnostics.Debug.WriteLine("已订阅专项训练工具栏事件");
+
+            // 显示工具栏窗口
+            examToolbar.Show();
+            System.Diagnostics.Debug.WriteLine("专项训练工具栏窗口已显示");
         }
         catch (Exception ex)
         {
@@ -244,40 +266,165 @@ public class SpecializedTrainingDetailViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 训练完成处理
+    /// 设置专项训练模块信息
     /// </summary>
-    private async Task OnTrainingCompletedAsync(decimal score, decimal maxScore, int durationSeconds)
+    private async Task SetSpecializedTrainingModuleInformationAsync(ExamToolbarViewModel toolbarViewModel, StudentSpecializedTrainingDto training)
     {
         try
         {
-            if (Training == null) return;
+            // 将专项训练的模块和题目信息转换为工具栏可用的格式
+            List<MockExamQuestionDetailsViewModel> questionDetails = [];
 
-            bool success = await _studentSpecializedTrainingService.CompleteSpecializedTrainingAsync(
-                Training.Id, score, maxScore, durationSeconds, "专项训练完成");
-
-            if (success)
+            // 处理模块中的题目
+            foreach (StudentSpecializedTrainingModuleDto module in training.Modules)
             {
-                System.Diagnostics.Debug.WriteLine($"专项训练完成记录提交成功，得分: {score}/{maxScore}");
+                foreach (StudentSpecializedTrainingQuestionDto question in module.Questions)
+                {
+                    questionDetails.Add(new MockExamQuestionDetailsViewModel
+                    {
+                        QuestionId = question.Id,
+                        Title = question.Title,
+                        Content = question.Content,
+                        ModuleName = module.Name,
+                        ModuleType = module.Type,
+                        Score = (int)question.Score,
+                        EstimatedMinutes = question.EstimatedMinutes,
+                        IsRequired = question.IsRequired
+                    });
+                }
             }
-            else
+
+            // 处理直接的题目（不在模块中的）
+            foreach (StudentSpecializedTrainingQuestionDto question in training.Questions)
             {
-                System.Diagnostics.Debug.WriteLine("专项训练完成记录提交失败");
+                questionDetails.Add(new MockExamQuestionDetailsViewModel
+                {
+                    QuestionId = question.Id,
+                    Title = question.Title,
+                    Content = question.Content,
+                    ModuleName = training.ModuleType,
+                    ModuleType = training.ModuleType,
+                    Score = (int)question.Score,
+                    EstimatedMinutes = question.EstimatedMinutes,
+                    IsRequired = question.IsRequired
+                });
+            }
+
+            toolbarViewModel.QuestionDetails = questionDetails;
+            System.Diagnostics.Debug.WriteLine($"专项训练模块信息设置完成，共 {questionDetails.Count} 道题目");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"设置专项训练模块信息失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 处理训练自动提交事件
+    /// </summary>
+    private async void OnTrainingAutoSubmitted(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (sender is ExamToolbarWindow examToolbar && examToolbar.DataContext is ExamToolbarViewModel viewModel)
+            {
+                System.Diagnostics.Debug.WriteLine($"专项训练自动提交，ID: {viewModel.ExamId}");
+                await SubmitTrainingWithBenchSuiteAsync(viewModel.ExamId, isAutoSubmit: true);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"提交专项训练完成记录失败: {ex}");
+            System.Diagnostics.Debug.WriteLine($"处理专项训练自动提交事件失败: {ex}");
         }
     }
+
+    /// <summary>
+    /// 处理训练手动提交事件
+    /// </summary>
+    private async void OnTrainingManualSubmitted(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (sender is ExamToolbarWindow examToolbar && examToolbar.DataContext is ExamToolbarViewModel viewModel)
+            {
+                System.Diagnostics.Debug.WriteLine($"专项训练手动提交，ID: {viewModel.ExamId}");
+                await SubmitTrainingWithBenchSuiteAsync(viewModel.ExamId, isAutoSubmit: false);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"处理专项训练手动提交事件失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 使用BenchSuite评分提交训练
+    /// </summary>
+    private async Task SubmitTrainingWithBenchSuiteAsync(int trainingId, bool isAutoSubmit)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"开始提交专项训练，ID: {trainingId}, 自动提交: {isAutoSubmit}");
+
+            // TODO: 集成BenchSuite评分系统
+            // 这里应该调用BenchSuite来获取实际的评分结果
+
+            // 模拟评分结果
+            decimal score = 85.5m;
+            decimal maxScore = 100m;
+            int durationSeconds = 1800;
+
+            bool success = await _studentSpecializedTrainingService.CompleteSpecializedTrainingAsync(
+                trainingId, score, maxScore, durationSeconds, isAutoSubmit ? "自动提交" : "手动提交");
+
+            if (success)
+            {
+                System.Diagnostics.Debug.WriteLine($"专项训练提交成功，得分: {score}/{maxScore}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("专项训练提交失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"提交专项训练失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 处理查看题目详情请求
+    /// </summary>
+    private void OnViewQuestionsRequested(StudentSpecializedTrainingDto training)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情: {training.Name}");
+            // TODO: 实现题目详情窗口
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情失败: {ex}");
+        }
+    }
+
+
 
     /// <summary>
     /// 返回
     /// </summary>
     private void GoBack()
     {
-        // TODO: 实现返回导航逻辑
         System.Diagnostics.Debug.WriteLine("返回专项训练列表");
+
+        // 触发返回事件，由主窗口处理导航
+        BackRequested?.Invoke();
     }
+
+    /// <summary>
+    /// 返回请求事件
+    /// </summary>
+    public event Action? BackRequested;
 
     /// <summary>
     /// 更新用户权限状态

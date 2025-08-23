@@ -95,8 +95,32 @@
                     </StackPanel>
                 </Border>
 
+                <!-- 空状态显示 -->
+                <Border Padding="40"
+                       Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                       CornerRadius="8"
+                       IsVisible="{Binding ShowEmptyState}">
+                    <StackPanel HorizontalAlignment="Center" Spacing="15">
+                        <TextBlock Text="📚" FontSize="48" HorizontalAlignment="Center" />
+                        <TextBlock Text="暂无专项训练"
+                                  FontSize="18"
+                                  FontWeight="SemiBold"
+                                  HorizontalAlignment="Center" />
+                        <TextBlock Text="请尝试调整搜索条件或联系管理员添加专项训练内容"
+                                  FontSize="14"
+                                  Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                  HorizontalAlignment="Center"
+                                  TextWrapping="Wrap" />
+                        <Button Command="{Binding RefreshCommand}"
+                               Content="刷新"
+                               Classes="accent"
+                               HorizontalAlignment="Center"
+                               Margin="0,10,0,0" />
+                    </StackPanel>
+                </Border>
+
                 <!-- 专项训练列表 -->
-                <ItemsControl ItemsSource="{Binding Trainings}">
+                <ItemsControl ItemsSource="{Binding Trainings}" IsVisible="{Binding HasTrainings}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:StudentSpecializedTrainingDto">
                             <Border Margin="0,0,0,10" 

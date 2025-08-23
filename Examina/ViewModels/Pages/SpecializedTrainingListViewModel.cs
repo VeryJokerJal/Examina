@@ -115,6 +115,16 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     public bool HasMoreData => Trainings.Count < TotalCount;
 
     /// <summary>
+    /// 是否有训练数据
+    /// </summary>
+    public bool HasTrainings => Trainings.Count > 0;
+
+    /// <summary>
+    /// 是否显示空状态
+    /// </summary>
+    public bool ShowEmptyState => !IsLoading && !HasTrainings && string.IsNullOrEmpty(ErrorMessage);
+
+    /// <summary>
     /// 用户是否拥有完整功能权限
     /// </summary>
     public bool HasFullAccess
@@ -184,6 +194,17 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
+
+        // 监听属性变化
+        this.WhenAnyValue(x => x.Trainings.Count)
+            .Subscribe(_ =>
+            {
+                this.RaisePropertyChanged(nameof(HasTrainings));
+                this.RaisePropertyChanged(nameof(ShowEmptyState));
+            });
+
+        this.WhenAnyValue(x => x.IsLoading, x => x.ErrorMessage)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowEmptyState)));
     }
 
     /// <summary>
@@ -289,28 +310,15 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
         try
         {
-            IsLoading = true;
-            ErrorMessage = string.Empty;
+            System.Diagnostics.Debug.WriteLine($"快速开始专项训练: {training.Name}");
 
-            bool success = await _studentSpecializedTrainingService.StartSpecializedTrainingAsync(training.Id);
-            if (success)
-            {
-                // TODO: 启动BenchSuite进行实际训练
-                System.Diagnostics.Debug.WriteLine($"开始专项训练: {training.Name}");
-            }
-            else
-            {
-                ErrorMessage = "开始训练失败，请稍后重试";
-            }
+            // 直接导航到详情页面，在详情页面中开始训练
+            DetailViewRequested?.Invoke(training.Id);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"开始训练失败: {ex.Message}";
             System.Diagnostics.Debug.WriteLine($"开始专项训练失败: {ex}");
-        }
-        finally
-        {
-            IsLoading = false;
         }
     }
 
@@ -321,8 +329,10 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         try
         {
-            // TODO: 导航到专项训练详情页面
             System.Diagnostics.Debug.WriteLine($"查看专项训练详情: {training.Name}");
+
+            // 触发详情查看事件，由主窗口处理导航
+            DetailViewRequested?.Invoke(training.Id);
         }
         catch (Exception ex)
         {
@@ -330,6 +340,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"查看专项训练详情失败: {ex}");
         }
     }
+
+    /// <summary>
+    /// 详情查看请求事件
+    /// </summary>
+    public event Action<int>? DetailViewRequested;
 
     /// <summary>
     /// 加载训练数据

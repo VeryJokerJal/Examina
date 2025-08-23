@@ -28,5 +28,10 @@ public enum ExamType
     /// <summary>
     /// 专项练习
     /// </summary>
-    SpecialPractice
+    SpecialPractice,
+
+    /// <summary>
+    /// 专项训练
+    /// </summary>
+    SpecializedTraining
 }
