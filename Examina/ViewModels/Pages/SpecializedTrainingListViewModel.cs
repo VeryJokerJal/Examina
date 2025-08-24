@@ -465,6 +465,15 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         try
         {
             System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情: {training.Name}");
+            System.Diagnostics.Debug.WriteLine($"训练数据验证 - 模块数量: {training.Modules.Count}, 题目数量: {training.Questions.Count}");
+
+            // 验证模块数据
+            if (training.Modules.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("⚠️ 警告：训练数据中没有模块信息！");
+                ErrorMessage = "该训练没有模块信息，无法显示题目详情。";
+                return;
+            }
 
             // 创建题目详情窗口
             QuestionDetailsViewModel detailsViewModel = new();
@@ -482,6 +491,12 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 IsEnabled = module.IsEnabled
             }).ToList();
 
+            System.Diagnostics.Debug.WriteLine($"模块详情:");
+            foreach (ModuleItem module in moduleItems)
+            {
+                System.Diagnostics.Debug.WriteLine($"  - 模块: {module.Name}, 描述: {module.Description}, 题目数: {module.QuestionCount}");
+            }
+
             detailsViewModel.SetQuestionDetailsData(training.Name, moduleItems);
 
             QuestionDetailsWindow detailsWindow = new()
@@ -496,6 +511,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情失败: {ex}");
+            ErrorMessage = $"显示题目详情失败: {ex.Message}";
         }
     }
 
