@@ -157,11 +157,41 @@ public class ExamQuestionDetailsViewModel : ViewModelBase
             ExamTitle = examData.Name;
             ExamDescription = examData.Description ?? "无描述";
 
-            // 更新模块列表
+            // 清空现有模块
             Modules.Clear();
-            foreach (StudentModuleDto module in examData.Modules)
+
+            // 优先使用Modules，如果为空则使用Subjects转换为模块
+            if (examData.Modules.Count > 0)
             {
-                Modules.Add(module);
+                // 直接使用模块数据
+                foreach (StudentModuleDto module in examData.Modules)
+                {
+                    Modules.Add(module);
+                }
+                System.Diagnostics.Debug.WriteLine($"ExamQuestionDetailsViewModel: 使用模块数据 - 模块数: {examData.Modules.Count}");
+            }
+            else if (examData.Subjects.Count > 0)
+            {
+                // 将科目转换为模块显示
+                foreach (StudentSubjectDto subject in examData.Subjects)
+                {
+                    StudentModuleDto moduleFromSubject = new()
+                    {
+                        Id = subject.Id,
+                        Name = subject.SubjectName,
+                        Type = subject.SubjectType,
+                        Description = subject.Description,
+                        Score = subject.Score,
+                        Order = subject.SortOrder,
+                        Questions = subject.Questions
+                    };
+                    Modules.Add(moduleFromSubject);
+                }
+                System.Diagnostics.Debug.WriteLine($"ExamQuestionDetailsViewModel: 使用科目数据转换为模块 - 科目数: {examData.Subjects.Count}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ExamQuestionDetailsViewModel: 警告 - 考试数据中既没有模块也没有科目");
             }
 
             // 默认选择第一个模块
@@ -174,7 +204,7 @@ public class ExamQuestionDetailsViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(ModuleCount));
             this.RaisePropertyChanged(nameof(TotalQuestionCount));
 
-            System.Diagnostics.Debug.WriteLine($"ExamQuestionDetailsViewModel: 设置考试数据 - {examData.Name}, 模块数: {Modules.Count}, 总题目数: {TotalQuestionCount}");
+            System.Diagnostics.Debug.WriteLine($"ExamQuestionDetailsViewModel: 设置考试数据完成 - {examData.Name}, 最终模块数: {Modules.Count}, 总题目数: {TotalQuestionCount}");
         }
         catch (Exception ex)
         {

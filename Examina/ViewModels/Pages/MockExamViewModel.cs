@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
+using Examina.Models.Exam;
 using Examina.Models.MockExam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -437,11 +438,14 @@ public class MockExamViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine("MockExamViewModel: 用户请求查看题目");
 
-            // 创建题目详情窗口
-            MockExamQuestionDetailsViewModel detailsViewModel = new();
-            detailsViewModel.SetMockExamData(mockExam);
+            // 将MockExamComprehensiveTrainingDto转换为StudentExamDto
+            StudentExamDto examData = ConvertMockExamToStudentExam(mockExam);
 
-            MockExamQuestionDetailsWindow detailsWindow = new()
+            // 创建通用题目详情窗口
+            ExamQuestionDetailsViewModel detailsViewModel = new();
+            detailsViewModel.SetExamData(examData);
+
+            ExamQuestionDetailsWindow detailsWindow = new()
             {
                 DataContext = detailsViewModel
             };
@@ -454,6 +458,58 @@ public class MockExamViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示题目详情窗口异常: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 将MockExamComprehensiveTrainingDto转换为StudentExamDto
+    /// </summary>
+    private StudentExamDto ConvertMockExamToStudentExam(MockExamComprehensiveTrainingDto mockExam)
+    {
+        StudentExamDto studentExam = new()
+        {
+            Id = mockExam.Id,
+            Name = mockExam.Name,
+            Description = mockExam.Description,
+            ExamType = "MockExam",
+            Status = mockExam.Status,
+            TotalScore = (int)mockExam.TotalScore,
+            DurationMinutes = mockExam.DurationMinutes
+        };
+
+        // 转换模块
+        foreach (MockExamModuleDto mockModule in mockExam.Modules)
+        {
+            StudentModuleDto studentModule = new()
+            {
+                Id = mockModule.Id,
+                Name = mockModule.Name,
+                Type = mockModule.Type,
+                Description = mockModule.Description ?? string.Empty,
+                Score = (int)mockModule.Score,
+                Order = mockModule.Order
+            };
+
+            // 转换题目
+            foreach (MockExamQuestionDto mockQuestion in mockModule.Questions)
+            {
+                StudentQuestionDto studentQuestion = new()
+                {
+                    Id = mockQuestion.Id,
+                    Title = mockQuestion.Title,
+                    Content = mockQuestion.Content,
+                    QuestionType = mockModule.Type, // 使用模块类型作为题目类型
+                    Score = (int)mockQuestion.Score,
+                    SortOrder = mockQuestion.SortOrder,
+                    IsRequired = mockQuestion.IsRequired
+                };
+                studentModule.Questions.Add(studentQuestion);
+            }
+
+            studentExam.Modules.Add(studentModule);
+        }
+
+        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 转换完成 - 模块数: {studentExam.Modules.Count}, 总题目数: {studentExam.Modules.Sum(m => m.Questions.Count)}");
+        return studentExam;
     }
 
     /// <summary>

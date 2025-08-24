@@ -566,15 +566,26 @@ public class ExamListViewModel : ViewModelBase
     /// <summary>
     /// 显示考试题目详情
     /// </summary>
-    private void ShowExamQuestionDetails(StudentExamDto exam)
+    private async void ShowExamQuestionDetails(StudentExamDto exam)
     {
         try
         {
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示考试题目详情 - {exam.Name}");
 
+            // 获取考试详细信息（包含模块和题目）
+            StudentExamDto? examDetails = await _studentExamService.GetExamDetailsAsync(exam.Id);
+
+            if (examDetails == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 无法获取考试详情，考试ID: {exam.Id}");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 获取到考试详情 - 模块数: {examDetails.Modules.Count}, 科目数: {examDetails.Subjects.Count}");
+
             // 创建题目详情窗口
             ExamQuestionDetailsViewModel detailsViewModel = new();
-            detailsViewModel.SetExamData(exam);
+            detailsViewModel.SetExamData(examDetails);
 
             ExamQuestionDetailsWindow detailsWindow = new()
             {
