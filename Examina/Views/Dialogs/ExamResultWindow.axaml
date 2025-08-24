@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Examina.ViewModels.Dialogs"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="750"
         x:Class="Examina.Views.Dialogs.ExamResultWindow"
         x:DataType="vm:ExamResultViewModel"
@@ -133,30 +134,26 @@
                         </StackPanel>
 
                         <!-- 得分显示 -->
-                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                        <StackPanel Spacing="16" HorizontalAlignment="Center">
+                            <!-- 评分状态显示 -->
+                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center"
+                                        IsVisible="{Binding IsScoring}">
+                                <ui:ProgressRing Width="24" Height="24" IsActive="{Binding IsScoring}"/>
+                                <TextBlock Text="正在计算成绩..."
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                            </StackPanel>
+
+                            <!-- 得分显示 -->
                             <TextBlock Text="{Binding ScoreText}"
                                        FontSize="36"
                                        FontWeight="Bold"
                                        HorizontalAlignment="Center"
-                                       Foreground="{DynamicResource SystemAccentColor}"/>
-                            <TextBlock Text="{Binding ScoreRateText}"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       HorizontalAlignment="Center"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                                       Foreground="{DynamicResource SystemAccentColor}"
+                                       IsVisible="{Binding !IsScoring}"/>
                         </StackPanel>
-
-                        <!-- 通过状态 -->
-                        <Border Background="{Binding PassStatusColor}"
-                                CornerRadius="16"
-                                Padding="16,8"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding PassStatusText}"
-                                       FontSize="14"
-                                       FontWeight="SemiBold"
-                                       Foreground="White"
-                                       HorizontalAlignment="Center"/>
-                        </Border>
                     </StackPanel>
                 </Border>
 

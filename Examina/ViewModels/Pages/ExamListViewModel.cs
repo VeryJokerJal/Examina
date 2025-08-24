@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
+using Examina.Models.Api;
 using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
@@ -553,7 +554,7 @@ public class ExamListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 使用BenchSuite评分提交正式考试
+    /// 使用BenchSuite评分提交正式考试（异步评分模式）
     /// </summary>
     private async Task SubmitFormalExamWithBenchSuiteAsync(int examId, ExamType examType, bool isAutoSubmit, ExamToolbarWindow examToolbar)
     {
@@ -561,89 +562,36 @@ public class ExamListViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 开始提交正式考试，ID: {examId}, 类型: {examType}, 自动提交: {isAutoSubmit}");
 
-            bool submitResult = false;
-            decimal? score = null;
-            decimal? totalScore = null;
-            string notes = "";
-            string errorMessage = "";
-
             // 获取实际用时（从考试工具栏）
             int? actualDurationSeconds = GetActualDurationFromToolbar(examToolbar);
 
-            // 优先使用EnhancedExamToolbarService进行BenchSuite集成提交
-            if (_enhancedExamToolbarService != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 使用EnhancedExamToolbarService进行BenchSuite集成提交，实际用时: {actualDurationSeconds}秒");
+            // 先进行基本提交，确保考试状态正确
+            bool basicSubmitResult = false;
+            string errorMessage = "";
 
-                try
+            try
+            {
+                basicSubmitResult = await _studentFormalExamService.CompleteExamAsync(examId);
+                if (!basicSubmitResult)
                 {
-                    BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
-                    if (scoringResult != null)
-                    {
-                        submitResult = true;
-                        notes = scoringResult.IsSuccess ? "BenchSuite自动评分完成" : "BenchSuite评分失败";
-                        score = scoringResult.AchievedScore;
-                        totalScore = scoringResult.TotalScore;
-                    }
-                    else
-                    {
-                        errorMessage = "BenchSuite评分失败";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: EnhancedExamToolbarService提交异常: {ex.Message}");
-                    errorMessage = $"BenchSuite评分异常: {ex.Message}";
+                    errorMessage = "考试基本提交失败";
                 }
             }
-
-            // 如果EnhancedExamToolbarService不可用或失败，回退到基本提交
-            if (!submitResult)
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 回退到基本正式考试提交");
-
-                try
-                {
-                    submitResult = await _studentFormalExamService.CompleteExamAsync(examId);
-                    if (submitResult)
-                    {
-                        notes = "考试提交成功";
-                        if (string.IsNullOrEmpty(errorMessage))
-                        {
-                            score = null; // 基本提交不包含评分
-                            totalScore = null;
-                        }
-                    }
-                    else
-                    {
-                        errorMessage = "考试提交失败";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 基本提交异常: {ex.Message}");
-                    errorMessage = $"考试提交异常: {ex.Message}";
-                    submitResult = false;
-                }
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 基本提交异常: {ex.Message}");
+                errorMessage = $"考试提交异常: {ex.Message}";
+                basicSubmitResult = false;
             }
 
             // 关闭考试工具栏窗口
             CloseExamToolbarWindow(examToolbar);
 
-            // 显示考试结果窗口
-            await ShowExamResultAsync(examId, examType, submitResult, actualDurationSeconds, score, totalScore, errorMessage, notes);
+            // 先显示考试结果窗口（不包含评分，显示计算中状态）
+            await ShowExamResultWithAsyncScoringAsync(examId, examType, basicSubmitResult, actualDurationSeconds, errorMessage);
 
-            if (submitResult)
-            {
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 正式考试提交成功，ID: {examId}");
-
-                // 显示主窗口并刷新数据
-                ShowMainWindowAndRefresh();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 正式考试提交失败，ID: {examId}");
-            }
+            // 显示主窗口并刷新数据
+            ShowMainWindowAndRefresh();
         }
         catch (Exception ex)
         {
@@ -702,7 +650,73 @@ public class ExamListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 显示考试结果窗口
+    /// 显示考试结果窗口（带异步评分）
+    /// </summary>
+    private async Task ShowExamResultWithAsyncScoringAsync(int examId, ExamType examType, bool isSuccessful,
+        int? actualDurationSeconds, string errorMessage)
+    {
+        try
+        {
+            // 获取考试名称
+            string examName = "上机统考";
+            try
+            {
+                StudentExamDto? examDetails = await _studentExamService.GetExamDetailsAsync(examId);
+                if (examDetails != null)
+                {
+                    examName = examDetails.Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 获取考试名称异常: {ex.Message}");
+            }
+
+            // 转换用时为分钟
+            int? durationMinutes = actualDurationSeconds.HasValue ? (actualDurationSeconds.Value / 60) : null;
+
+            // 显示考试结果窗口
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 准备显示考试结果窗口（异步评分模式） - {examName}");
+
+                // 创建结果窗口并显示
+                ExamResultViewModel resultViewModel = new();
+                resultViewModel.SetExamResult(examName, examType, isSuccessful, null, null, durationMinutes, null, null, errorMessage, "考试提交成功");
+
+                // 如果提交成功，开始评分计算
+                if (isSuccessful)
+                {
+                    resultViewModel.StartScoring();
+                }
+
+                ExamResultWindow resultWindow = new(resultViewModel);
+
+                // 显示窗口（非阻塞）
+                resultWindow.Show();
+
+                // 如果提交成功，在后台开始异步评分
+                if (isSuccessful)
+                {
+                    _ = Task.Run(async () => await PerformAsyncScoringAsync(examId, resultViewModel));
+                }
+
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试结果窗口已显示（异步评分模式）");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过结果显示");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示考试结果异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 显示考试结果窗口（传统模式，用于错误情况）
     /// </summary>
     private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful,
         int? actualDurationSeconds, decimal? score, decimal? totalScore, string errorMessage, string notes)
@@ -757,6 +771,107 @@ public class ExamListViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示考试结果窗口异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 执行异步评分
+    /// </summary>
+    private async Task PerformAsyncScoringAsync(int examId, ExamResultViewModel resultViewModel)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 开始异步BenchSuite评分，考试ID: {examId}");
+
+            // 延迟一下，让用户看到"计算中..."状态
+            await Task.Delay(1000);
+
+            BenchSuiteScoringResult? scoringResult = null;
+
+            // 使用EnhancedExamToolbarService进行BenchSuite评分
+            if (_enhancedExamToolbarService != null)
+            {
+                try
+                {
+                    scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步BenchSuite评分异常: {ex.Message}");
+                }
+            }
+
+            // 在UI线程上更新结果
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (scoringResult != null && scoringResult.IsSuccess)
+                {
+                    // 评分成功，更新分数
+                    resultViewModel.UpdateScore(scoringResult.AchievedScore, scoringResult.TotalScore, "BenchSuite自动评分完成");
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {scoringResult.AchievedScore}");
+                }
+                else
+                {
+                    // 评分失败
+                    string errorMsg = scoringResult?.ErrorMessage ?? "BenchSuite评分服务不可用";
+                    resultViewModel.ScoringFailed($"评分失败: {errorMsg}");
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分失败: {errorMsg}");
+                }
+            });
+
+            // 如果评分成功，自动提交成绩到服务器
+            if (scoringResult != null && scoringResult.IsSuccess)
+            {
+                await AutoSubmitScoreAsync(examId, scoringResult);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分过程异常: {ex.Message}");
+
+            // 在UI线程上更新错误状态
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                resultViewModel.ScoringFailed($"评分过程异常: {ex.Message}");
+            });
+        }
+    }
+
+    /// <summary>
+    /// 自动提交成绩到服务器
+    /// </summary>
+    private async Task AutoSubmitScoreAsync(int examId, BenchSuiteScoringResult scoringResult)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 开始自动提交成绩到服务器，考试ID: {examId}");
+
+            // 准备成绩提交数据
+            SubmitExamScoreRequestDto scoreRequest = new()
+            {
+                Score = scoringResult.AchievedScore,
+                MaxScore = scoringResult.TotalScore,
+                DurationSeconds = null,
+                Notes = "BenchSuite自动评分完成",
+                BenchSuiteScoringResult = System.Text.Json.JsonSerializer.Serialize(scoringResult),
+                CompletedAt = DateTime.Now
+            };
+
+            // 提交成绩到服务器
+            bool submitResult = await _studentFormalExamService.SubmitExamScoreAsync(examId, scoreRequest);
+
+            if (submitResult)
+            {
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 成绩自动提交成功，得分: {scoringResult.AchievedScore}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 成绩自动提交失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 自动提交成绩异常: {ex.Message}");
         }
     }
 

@@ -104,61 +104,25 @@ public class ExamResultViewModel : ViewModelBase
     [Reactive] public decimal? TotalScore { get; set; }
 
     /// <summary>
-    /// 得分显示文本
+    /// 是否正在评分
+    /// </summary>
+    [Reactive] public bool IsScoring { get; set; } = false;
+
+    /// <summary>
+    /// 得分显示文本（只显示得分，不显示总分）
     /// </summary>
     public string ScoreText
     {
         get
         {
-            if (Score.HasValue && TotalScore.HasValue)
-                return $"{Score:F1} / {TotalScore:F1}";
-            else
-                return "评分中...";
-        }
-    }
-
-    /// <summary>
-    /// 得分率
-    /// </summary>
-    public string ScoreRateText
-    {
-        get
-        {
-            if (Score.HasValue && TotalScore.HasValue && TotalScore.Value > 0)
-            {
-                decimal rate = (Score.Value / TotalScore.Value) * 100;
-                return $"{rate:F1}%";
-            }
-            else
+            if (IsScoring)
                 return "计算中...";
+            else if (Score.HasValue)
+                return $"{Score:F1}";
+            else
+                return "暂无评分";
         }
     }
-
-    /// <summary>
-    /// 是否通过考试
-    /// </summary>
-    public bool IsPassed
-    {
-        get
-        {
-            if (Score.HasValue && TotalScore.HasValue && TotalScore.Value > 0)
-            {
-                decimal rate = (Score.Value / TotalScore.Value) * 100;
-                return rate >= 60; // 60分及格
-            }
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 通过状态文本
-    /// </summary>
-    public string PassStatusText => IsPassed ? "通过" : "未通过";
-
-    /// <summary>
-    /// 通过状态颜色
-    /// </summary>
-    public string PassStatusColor => IsPassed ? "#4CAF50" : "#FF9800";
 
     /// <summary>
     /// 错误消息
@@ -190,14 +154,10 @@ public class ExamResultViewModel : ViewModelBase
         });
 
         // 监听属性变化，更新计算属性
-        this.WhenAnyValue(x => x.Score, x => x.TotalScore)
+        this.WhenAnyValue(x => x.Score, x => x.IsScoring)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(ScoreText));
-                this.RaisePropertyChanged(nameof(ScoreRateText));
-                this.RaisePropertyChanged(nameof(IsPassed));
-                this.RaisePropertyChanged(nameof(PassStatusText));
-                this.RaisePropertyChanged(nameof(PassStatusColor));
             });
 
         this.WhenAnyValue(x => x.ActualDurationMinutes)
@@ -224,7 +184,7 @@ public class ExamResultViewModel : ViewModelBase
     /// <summary>
     /// 设置考试结果数据
     /// </summary>
-    public void SetExamResult(string examName, ExamType examType, bool isSuccessful, 
+    public void SetExamResult(string examName, ExamType examType, bool isSuccessful,
         DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
         decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "")
     {
@@ -239,6 +199,44 @@ public class ExamResultViewModel : ViewModelBase
         ErrorMessage = errorMessage;
         Notes = notes;
 
-        System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 设置考试结果 - {examName}, 成功: {isSuccessful}, 得分: {score}/{totalScore}");
+        System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 设置考试结果 - {examName}, 成功: {isSuccessful}, 得分: {score}");
+    }
+
+    /// <summary>
+    /// 开始评分计算
+    /// </summary>
+    public void StartScoring()
+    {
+        IsScoring = true;
+        Score = null;
+        TotalScore = null;
+        System.Diagnostics.Debug.WriteLine("ExamResultViewModel: 开始评分计算");
+    }
+
+    /// <summary>
+    /// 更新评分结果
+    /// </summary>
+    public void UpdateScore(decimal? score, decimal? totalScore = null, string notes = "")
+    {
+        IsScoring = false;
+        Score = score;
+        TotalScore = totalScore;
+        if (!string.IsNullOrEmpty(notes))
+        {
+            Notes = notes;
+        }
+        System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 评分更新完成 - 得分: {score}");
+    }
+
+    /// <summary>
+    /// 评分失败
+    /// </summary>
+    public void ScoringFailed(string errorMessage)
+    {
+        IsScoring = false;
+        Score = null;
+        TotalScore = null;
+        ErrorMessage = errorMessage;
+        System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 评分失败 - {errorMessage}");
     }
 }
