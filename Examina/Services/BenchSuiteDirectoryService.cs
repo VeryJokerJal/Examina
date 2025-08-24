@@ -1,8 +1,7 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Reflection;
 using Examina.Models;
 using Examina.Models.BenchSuite;
-using Examina.Models.FileDownload;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
@@ -43,11 +42,9 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     /// </summary>
     public string GetDirectoryPath(BenchSuiteFileType fileType)
     {
-        if (_directoryMapping.TryGetValue(fileType, out string? subdirectory))
-        {
-            return System.IO.Path.Combine(_basePath, subdirectory);
-        }
-        throw new ArgumentException($"不支持的文件类型: {fileType}", nameof(fileType));
+        return _directoryMapping.TryGetValue(fileType, out string? subdirectory)
+            ? System.IO.Path.Combine(_basePath, subdirectory)
+            : throw new ArgumentException($"不支持的文件类型: {fileType}", nameof(fileType));
     }
 
     /// <summary>
@@ -85,14 +82,6 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 获取基础路径
-    /// </summary>
-    public string GetBasePath()
-    {
-        return _basePath;
-    }
-
-    /// <summary>
     /// 确保目录结构存在
     /// </summary>
     public async Task<BenchSuiteDirectoryValidationResult> EnsureDirectoryStructureAsync()
@@ -106,26 +95,26 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             // 创建基础目录
             if (!System.IO.Directory.Exists(_basePath))
             {
-                System.IO.Directory.CreateDirectory(_basePath);
+                _ = System.IO.Directory.CreateDirectory(_basePath);
                 _logger.LogInformation("创建基础目录: {BasePath}", _basePath);
             }
 
             // 创建各子目录
-            List<string> createdDirectories = new();
+            List<string> createdDirectories = [];
             foreach (KeyValuePair<BenchSuiteFileType, string> mapping in _directoryMapping)
             {
                 string directoryPath = System.IO.Path.Combine(_basePath, mapping.Value);
                 if (!System.IO.Directory.Exists(directoryPath))
                 {
-                    System.IO.Directory.CreateDirectory(directoryPath);
+                    _ = System.IO.Directory.CreateDirectory(directoryPath);
                     createdDirectories.Add(directoryPath);
                     _logger.LogInformation("创建子目录: {DirectoryPath}", directoryPath);
                 }
             }
 
             result.IsValid = true;
-            result.Details = createdDirectories.Count > 0 
-                ? $"成功创建 {createdDirectories.Count} 个目录" 
+            result.Details = createdDirectories.Count > 0
+                ? $"成功创建 {createdDirectories.Count} 个目录"
                 : "目录结构已存在";
 
             _logger.LogInformation("目录结构确保完成: {Details}", result.Details);
@@ -157,7 +146,9 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             {
                 string directoryPath = GetDirectoryPath(fileType);
                 if (!System.IO.Directory.Exists(directoryPath))
+                {
                     continue;
+                }
 
                 System.IO.DirectoryInfo directoryInfo = new(directoryPath);
                 System.IO.FileInfo[] files = directoryInfo.GetFiles("*", System.IO.SearchOption.AllDirectories);
@@ -254,7 +245,7 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             // 确保备份目录存在
             if (!System.IO.Directory.Exists(backupPath))
             {
-                System.IO.Directory.CreateDirectory(backupPath);
+                _ = System.IO.Directory.CreateDirectory(backupPath);
             }
 
             int copiedFileCount = 0;
@@ -263,12 +254,14 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             {
                 string sourceDirectory = System.IO.Path.Combine(GetDirectoryPath(fileType), $"Exam_{examId}", $"Student_{studentId}");
                 if (!System.IO.Directory.Exists(sourceDirectory))
+                {
                     continue;
+                }
 
                 string targetDirectory = System.IO.Path.Combine(backupPath, GetFileTypeDescription(fileType));
                 if (!System.IO.Directory.Exists(targetDirectory))
                 {
-                    System.IO.Directory.CreateDirectory(targetDirectory);
+                    _ = System.IO.Directory.CreateDirectory(targetDirectory);
                 }
 
                 System.IO.DirectoryInfo sourceInfo = new(sourceDirectory);
@@ -282,10 +275,10 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
                     string? targetDir = System.IO.Path.GetDirectoryName(targetPath);
                     if (!string.IsNullOrEmpty(targetDir) && !System.IO.Directory.Exists(targetDir))
                     {
-                        System.IO.Directory.CreateDirectory(targetDir);
+                        _ = System.IO.Directory.CreateDirectory(targetDir);
                     }
 
-                    file.CopyTo(targetPath, true);
+                    _ = file.CopyTo(targetPath, true);
                     copiedFileCount++;
                 }
             }

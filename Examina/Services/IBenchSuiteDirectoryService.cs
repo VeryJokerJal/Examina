@@ -1,4 +1,4 @@
-using Examina.Models;
+﻿using Examina.Models;
 using Examina.Models.BenchSuite;
 
 namespace Examina.Services;
@@ -50,12 +50,6 @@ public interface IBenchSuiteDirectoryService
     /// <param name="fileName">文件名</param>
     /// <returns>完整文件路径</returns>
     string GetExamFilePath(ExamType examType, int examId, BenchSuiteFileType fileType, int studentId, string fileName);
-
-    /// <summary>
-    /// 获取基础路径
-    /// </summary>
-    /// <returns>基础路径</returns>
-    string GetBasePath();
 
     /// <summary>
     /// 确保目录结构存在

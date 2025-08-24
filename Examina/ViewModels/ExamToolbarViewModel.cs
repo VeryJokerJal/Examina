@@ -824,6 +824,151 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             _logger.LogInformation("ExamToolbarViewModel资源已释放");
         }
     }
+
+    /// <summary>
+    /// 打开考试目录
+    /// </summary>
+    private async Task OpenDirectoryAsync()
+    {
+        try
+        {
+            _logger.LogInformation("开始打开考试目录 - 考试类型: {ExamType}, 考试ID: {ExamId}", CurrentExamType, ExamId);
+
+            if (_benchSuiteDirectoryService == null)
+            {
+                _logger.LogWarning("BenchSuiteDirectoryService未注入，无法打开目录");
+                return;
+            }
+
+            // 获取考试根目录路径
+            string examRootDirectory = GetExamRootDirectory();
+
+            if (string.IsNullOrEmpty(examRootDirectory))
+            {
+                _logger.LogWarning("无法获取考试目录路径");
+                return;
+            }
+
+            // 确保目录存在
+            if (!Directory.Exists(examRootDirectory))
+            {
+                _logger.LogInformation("目录不存在，正在创建: {Directory}", examRootDirectory);
+                Directory.CreateDirectory(examRootDirectory);
+            }
+
+            // 使用系统默认文件管理器打开目录
+            await OpenDirectoryWithSystemExplorerAsync(examRootDirectory);
+
+            _logger.LogInformation("成功打开考试目录: {Directory}", examRootDirectory);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "打开考试目录时发生异常");
+        }
+    }
+
+    /// <summary>
+    /// 获取考试根目录路径
+    /// </summary>
+    private string GetExamRootDirectory()
+    {
+        if (_benchSuiteDirectoryService == null)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            // 获取基础路径
+            string basePath = _benchSuiteDirectoryService.GetBasePath();
+
+            // 获取考试类型文件夹名称
+            string examTypeFolder = GetExamTypeFolder(CurrentExamType);
+
+            // 组合完整路径
+            return Path.Combine(basePath, examTypeFolder, ExamId.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取考试根目录路径时发生异常");
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取考试类型对应的文件夹名称
+    /// </summary>
+    private static string GetExamTypeFolder(ExamType examType)
+    {
+        return examType switch
+        {
+            ExamType.MockExam => "MockExams",
+            ExamType.FormalExam => "OnlineExams",
+            ExamType.ComprehensiveTraining => "ComprehensiveTraining",
+            ExamType.SpecializedTraining => "SpecializedTraining",
+            ExamType.Practice => "Practice",
+            ExamType.SpecialPractice => "SpecialPractice",
+            _ => "Unknown"
+        };
+    }
+
+    /// <summary>
+    /// 使用系统默认文件管理器打开目录
+    /// </summary>
+    private async Task OpenDirectoryWithSystemExplorerAsync(string directoryPath)
+    {
+        try
+        {
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = directoryPath,
+                UseShellExecute = true,
+                Verb = "open"
+            };
+
+            using Process? process = Process.Start(startInfo);
+            if (process != null)
+            {
+                await process.WaitForExitAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "使用系统文件管理器打开目录失败: {Directory}", directoryPath);
+
+            // 尝试备用方法
+            await TryAlternativeOpenMethodAsync(directoryPath);
+        }
+    }
+
+    /// <summary>
+    /// 尝试备用的目录打开方法
+    /// </summary>
+    private async Task TryAlternativeOpenMethodAsync(string directoryPath)
+    {
+        try
+        {
+            _logger.LogInformation("尝试备用方法打开目录: {Directory}", directoryPath);
+
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = "explorer.exe",
+                Arguments = $"\"{directoryPath}\"",
+                UseShellExecute = false
+            };
+
+            using Process? process = Process.Start(startInfo);
+            if (process != null)
+            {
+                await process.WaitForExitAsync();
+                _logger.LogInformation("备用方法成功打开目录");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "备用方法也无法打开目录: {Directory}", directoryPath);
+        }
+    }
 }
 
 /// <summary>
@@ -974,150 +1119,5 @@ internal class DesignTimeAuthenticationService : IAuthenticationService
     public Task<AuthenticationResult> RefreshTokenAsync(string refreshToken)
     {
         throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// 打开考试目录
-    /// </summary>
-    private async Task OpenDirectoryAsync()
-    {
-        try
-        {
-            _logger.LogInformation("开始打开考试目录 - 考试类型: {ExamType}, 考试ID: {ExamId}", CurrentExamType, ExamId);
-
-            if (_benchSuiteDirectoryService == null)
-            {
-                _logger.LogWarning("BenchSuiteDirectoryService未注入，无法打开目录");
-                return;
-            }
-
-            // 获取考试根目录路径
-            string examRootDirectory = GetExamRootDirectory();
-
-            if (string.IsNullOrEmpty(examRootDirectory))
-            {
-                _logger.LogWarning("无法获取考试目录路径");
-                return;
-            }
-
-            // 确保目录存在
-            if (!Directory.Exists(examRootDirectory))
-            {
-                _logger.LogInformation("目录不存在，正在创建: {Directory}", examRootDirectory);
-                Directory.CreateDirectory(examRootDirectory);
-            }
-
-            // 使用系统默认文件管理器打开目录
-            await OpenDirectoryWithSystemExplorerAsync(examRootDirectory);
-
-            _logger.LogInformation("成功打开考试目录: {Directory}", examRootDirectory);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "打开考试目录时发生异常");
-        }
-    }
-
-    /// <summary>
-    /// 获取考试根目录路径
-    /// </summary>
-    private string GetExamRootDirectory()
-    {
-        if (_benchSuiteDirectoryService == null)
-        {
-            return string.Empty;
-        }
-
-        try
-        {
-            // 获取基础路径
-            string basePath = _benchSuiteDirectoryService.GetBasePath();
-
-            // 获取考试类型文件夹名称
-            string examTypeFolder = GetExamTypeFolder(CurrentExamType);
-
-            // 组合完整路径
-            return Path.Combine(basePath, examTypeFolder, ExamId.ToString());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "获取考试根目录路径时发生异常");
-            return string.Empty;
-        }
-    }
-
-    /// <summary>
-    /// 获取考试类型对应的文件夹名称
-    /// </summary>
-    private static string GetExamTypeFolder(ExamType examType)
-    {
-        return examType switch
-        {
-            ExamType.MockExam => "MockExams",
-            ExamType.FormalExam => "OnlineExams",
-            ExamType.ComprehensiveTraining => "ComprehensiveTraining",
-            ExamType.SpecializedTraining => "SpecializedTraining",
-            ExamType.Practice => "Practice",
-            ExamType.SpecialPractice => "SpecialPractice",
-            _ => "Unknown"
-        };
-    }
-
-    /// <summary>
-    /// 使用系统默认文件管理器打开目录
-    /// </summary>
-    private async Task OpenDirectoryWithSystemExplorerAsync(string directoryPath)
-    {
-        try
-        {
-            ProcessStartInfo startInfo = new()
-            {
-                FileName = directoryPath,
-                UseShellExecute = true,
-                Verb = "open"
-            };
-
-            using Process? process = Process.Start(startInfo);
-            if (process != null)
-            {
-                await process.WaitForExitAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "使用系统文件管理器打开目录失败: {Directory}", directoryPath);
-
-            // 尝试备用方法
-            await TryAlternativeOpenMethodAsync(directoryPath);
-        }
-    }
-
-    /// <summary>
-    /// 尝试备用的目录打开方法
-    /// </summary>
-    private async Task TryAlternativeOpenMethodAsync(string directoryPath)
-    {
-        try
-        {
-            _logger.LogInformation("尝试备用方法打开目录: {Directory}", directoryPath);
-
-            ProcessStartInfo startInfo = new()
-            {
-                FileName = "explorer.exe",
-                Arguments = $"\"{directoryPath}\"",
-                UseShellExecute = false
-            };
-
-            using Process? process = Process.Start(startInfo);
-            if (process != null)
-            {
-                await process.WaitForExitAsync();
-                _logger.LogInformation("备用方法成功打开目录");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "备用方法也无法打开目录: {Directory}", directoryPath);
-        }
     }
 }
