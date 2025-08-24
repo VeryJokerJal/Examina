@@ -299,8 +299,21 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine($"开始专项训练: {training.Name}");
 
-            // 直接启动BenchSuite进行训练，无需API调用
-            await StartBenchSuiteTrainingAsync(training);
+            // 获取包含模块详细信息的训练数据
+            System.Diagnostics.Debug.WriteLine($"获取训练详情，训练ID: {training.Id}");
+            StudentSpecializedTrainingDto? detailedTraining = await _studentSpecializedTrainingService.GetTrainingDetailsAsync(training.Id);
+
+            if (detailedTraining == null)
+            {
+                ErrorMessage = "无法获取训练详情，请稍后重试。";
+                System.Diagnostics.Debug.WriteLine($"获取训练详情失败，训练ID: {training.Id}");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"训练详情获取成功，模块数量: {detailedTraining.Modules.Count}, 题目数量: {detailedTraining.Questions.Count}");
+
+            // 启动BenchSuite进行训练，使用包含完整模块信息的数据
+            await StartBenchSuiteTrainingAsync(detailedTraining);
         }
         catch (Exception ex)
         {

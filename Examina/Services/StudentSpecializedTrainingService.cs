@@ -69,11 +69,18 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             await EnsureAuthenticatedAsync();
 
             string url = $"/api/student/specialized-trainings/{trainingId}";
+            _logger.LogInformation("请求专项训练详情，URL: {Url}", url);
             HttpResponseMessage response = await _httpClient.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
                 StudentSpecializedTrainingDto? training = await response.Content.ReadFromJsonAsync<StudentSpecializedTrainingDto>(_jsonOptions);
+                if (training != null)
+                {
+                    _logger.LogInformation("客户端获取专项训练详情成功，训练ID: {TrainingId}, 模块数量: {ModuleCount}, 题目数量: {QuestionCount}",
+                        trainingId, training.Modules.Count, training.Questions.Count);
+                    System.Diagnostics.Debug.WriteLine($"客户端获取训练详情成功，训练ID: {trainingId}, 模块数量: {training.Modules.Count}, 题目数量: {training.Questions.Count}");
+                }
                 return training;
             }
 

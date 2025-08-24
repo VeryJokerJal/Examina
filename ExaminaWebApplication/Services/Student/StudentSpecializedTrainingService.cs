@@ -120,10 +120,13 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                 return null;
             }
 
+            _logger.LogInformation("从数据库获取训练数据成功，训练ID: {TrainingId}, 模块数量: {ModuleCount}, 题目数量: {QuestionCount}",
+                trainingId, training.Modules?.Count ?? 0, training.Questions?.Count ?? 0);
+
             StudentSpecializedTrainingDto result = MapToStudentSpecializedTrainingDtoWithDetails(training);
 
-            _logger.LogInformation("获取专项训练详情成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}",
-                studentUserId, trainingId);
+            _logger.LogInformation("获取专项训练详情成功，学生ID: {StudentUserId}, 训练ID: {TrainingId}, 模块数量: {ModuleCount}, 题目数量: {QuestionCount}",
+                studentUserId, trainingId, result.Modules.Count, result.Questions.Count);
 
             return result;
         }
@@ -353,13 +356,25 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
         // 映射模块信息
         if (training.Modules != null)
         {
+            System.Diagnostics.Debug.WriteLine($"映射模块信息，原始模块数量: {training.Modules.Count}");
             dto.Modules = training.Modules.Select(MapToStudentSpecializedTrainingModuleDto).ToList();
+            System.Diagnostics.Debug.WriteLine($"映射后模块数量: {dto.Modules.Count}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("原始训练数据中Modules为null");
         }
 
         // 映射题目信息
         if (training.Questions != null)
         {
+            System.Diagnostics.Debug.WriteLine($"映射题目信息，原始题目数量: {training.Questions.Count}");
             dto.Questions = training.Questions.Select(MapToStudentSpecializedTrainingQuestionDto).ToList();
+            System.Diagnostics.Debug.WriteLine($"映射后题目数量: {dto.Questions.Count}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("原始训练数据中Questions为null");
         }
 
         return dto;
