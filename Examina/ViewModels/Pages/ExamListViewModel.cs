@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
