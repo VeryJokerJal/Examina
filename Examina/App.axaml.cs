@@ -92,7 +92,7 @@ public partial class App : Application
         _ = services.AddSingleton<ISecureStorageService, SecureStorageService>();
 
         // 为文件下载服务配置HttpClient
-        _ = services.AddHttpClient<FileDownloadService>(client =>
+        _ = services.AddHttpClient("FileDownloadService", client =>
         {
             client.BaseAddress = new Uri("https://qiuzhenbd.com");
             client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
@@ -110,7 +110,12 @@ public partial class App : Application
         });
 
         // 注册文件下载服务为单例
-        _ = services.AddSingleton<IFileDownloadService, FileDownloadService>();
+        _ = services.AddSingleton<IFileDownloadService>(provider =>
+        {
+            HttpClient httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("FileDownloadService");
+            ILogger<FileDownloadService> logger = provider.GetRequiredService<ILogger<FileDownloadService>>();
+            return new FileDownloadService(httpClient, logger);
+        });
 
         // 为学生端试卷服务配置HttpClient
         _ = services.AddHttpClient<IStudentExamService, StudentExamService>(client =>
