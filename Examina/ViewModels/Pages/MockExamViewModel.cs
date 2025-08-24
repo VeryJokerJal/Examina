@@ -530,6 +530,50 @@ public class MockExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 已添加模块 {mockModule.Name} 到转换结果");
         }
 
+        // 兼容：合并科目为模块显示，补充未出现在Modules中的模块
+        if (mockExam.Subjects != null && mockExam.Subjects.Count > 0)
+        {
+            foreach (MockExamSubjectDto subject in mockExam.Subjects)
+            {
+                bool exists = studentExam.Modules.Any(m => string.Equals(m.Name, subject.SubjectName, StringComparison.OrdinalIgnoreCase)
+                                                        && string.Equals(m.Type, subject.SubjectType, StringComparison.OrdinalIgnoreCase));
+                if (!exists)
+                {
+                    StudentModuleDto moduleFromSubject = new()
+                    {
+                        Id = subject.Id,
+                        Name = subject.SubjectName,
+                        Type = subject.SubjectType,
+                        Description = subject.Description ?? string.Empty,
+                        Score = (int)subject.Score,
+                        Order = subject.SortOrder
+                    };
+
+                    if (subject.Questions != null)
+                    {
+                        foreach (MockExamQuestionDto q in subject.Questions)
+                        {
+                            StudentQuestionDto mapped = new()
+                            {
+                                Id = q.Id,
+                                Title = q.Title,
+                                Content = q.Content,
+                                QuestionType = subject.SubjectType,
+                                Score = (int)q.Score,
+                                SortOrder = q.SortOrder,
+                                IsRequired = q.IsRequired
+                            };
+                            moduleFromSubject.Questions.Add(mapped);
+                        }
+                    }
+
+                    studentExam.Modules.Add(moduleFromSubject);
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 从科目补充模块 {moduleFromSubject.Name}");
+                }
+            }
+        }
+
+
         System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 转换完成 - 模块数: {studentExam.Modules.Count}, 总题目数: {studentExam.Modules.Sum(m => m.Questions.Count)}");
         return studentExam;
     }

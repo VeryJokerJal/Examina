@@ -106,7 +106,7 @@ public class ExamQuestionDetailsViewModel : ViewModelBase
     /// 模块信息文本
     /// </summary>
     public string ModuleInfoText => HasSelectedModule
-        ? $"{SelectedModule!.Name} - {CurrentModuleQuestionCount} 道题目"
+        ? SelectedModule!.Name
         : "请选择模块";
 
     /// <summary>
