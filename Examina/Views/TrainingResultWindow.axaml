@@ -106,12 +106,12 @@
                                         FontWeight="Bold"
                                         Foreground="White"
                                         HorizontalAlignment="Center"
-                                        Text="{Binding AchievedScore, StringFormat='{0:F1}'}" />
+                                        Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
                                     <TextBlock
                                         FontSize="12"
                                         Foreground="White"
                                         HorizontalAlignment="Center"
-                                        Text="{Binding TotalScore, StringFormat='总分: {0:F1}'}" />
+                                        Text="{Binding TotalScore, StringFormat={}总分: {0:F1}}" />
                                     <TextBlock
                                         FontSize="10"
                                         Foreground="White"
@@ -128,7 +128,7 @@
                                         FontWeight="Bold"
                                         Foreground="White"
                                         HorizontalAlignment="Center"
-                                        Text="{Binding ScoreRate, StringFormat='{0:F1}%'}" />
+                                        Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
                                     <TextBlock
                                         FontSize="10"
                                         Foreground="White"
@@ -145,7 +145,7 @@
                                         FontWeight="Bold"
                                         Foreground="White"
                                         HorizontalAlignment="Center"
-                                        Text="{Binding CorrectRate, StringFormat='{0:F1}%'}" />
+                                        Text="{Binding CorrectRate, StringFormat={}{0:F1}%}" />
                                     <TextBlock
                                         FontSize="10"
                                         Foreground="White"
@@ -183,12 +183,12 @@
                             
                             <StackPanel Grid.Column="0">
                                 <TextBlock Classes="content" Text="完成时间:" />
-                                <TextBlock Classes="content" Text="{Binding CompletionTime, StringFormat='{0:yyyy-MM-dd HH:mm:ss}'}" />
+                                <TextBlock Classes="content" Text="{Binding CompletionTime, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" />
                             </StackPanel>
                             
                             <StackPanel Grid.Column="1">
                                 <TextBlock Classes="content" Text="训练耗时:" />
-                                <TextBlock Classes="content" Text="{Binding Duration, StringFormat='{0:hh\\:mm\\:ss}'}" />
+                                <TextBlock Classes="content" Text="{Binding Duration, StringFormat={}{0:hh\\:mm\\:ss}}" />
                             </StackPanel>
                             
                             <StackPanel Grid.Column="2">
@@ -229,19 +229,19 @@
                                                 Grid.Column="1"
                                                 Classes="content"
                                                 Margin="8,0"
-                                                Text="{Binding AchievedScore, StringFormat='{0:F1}'}" />
+                                                Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
                                             
                                             <TextBlock
                                                 Grid.Column="2"
                                                 Classes="content"
                                                 Margin="8,0"
-                                                Text="{Binding TotalScore, StringFormat='/ {0:F1}'}" />
+                                                Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
                                             
                                             <TextBlock
                                                 Grid.Column="3"
                                                 Classes="content"
                                                 Margin="8,0"
-                                                Text="{Binding ScoreRate, StringFormat='({0:F1}%)'}" />
+                                                Text="{Binding ScoreRate, StringFormat={}({0:F1}%)}" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -285,8 +285,8 @@
                                             
                                             <!-- 得分 -->
                                             <StackPanel Grid.Column="2" Margin="8,0">
-                                                <TextBlock Classes="content" Text="{Binding AchievedScore, StringFormat='{0:F1}'}" HorizontalAlignment="Right" />
-                                                <TextBlock Classes="content" Text="{Binding TotalScore, StringFormat='/ {0:F1}'}" HorizontalAlignment="Right" />
+                                                <TextBlock Classes="content" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" HorizontalAlignment="Right" />
+                                                <TextBlock Classes="content" Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" HorizontalAlignment="Right" />
                                             </StackPanel>
                                             
                                             <!-- 得分率 -->
@@ -294,7 +294,7 @@
                                                 Grid.Column="3"
                                                 Classes="content"
                                                 Margin="8,0"
-                                                Text="{Binding ScoreRate, StringFormat='{0:F1}%'}"
+                                                Text="{Binding ScoreRate, StringFormat={}{0:F1}%}"
                                                 VerticalAlignment="Center" />
                                         </Grid>
                                     </Border>
