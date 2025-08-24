@@ -46,6 +46,15 @@ public class EnhancedExamToolbarService : IDisposable
     /// </summary>
     public async Task<bool> SubmitFormalExamAsync(int examId)
     {
+        BenchSuiteScoringResult? result = await SubmitFormalExamWithResultAsync(examId);
+        return result != null;
+    }
+
+    /// <summary>
+    /// 提交正式考试并返回评分结果
+    /// </summary>
+    public async Task<BenchSuiteScoringResult?> SubmitFormalExamWithResultAsync(int examId)
+    {
         try
         {
             _logger.LogInformation("开始提交正式考试，考试ID: {ExamId}", examId);
@@ -55,7 +64,7 @@ public class EnhancedExamToolbarService : IDisposable
             if (currentUser == null)
             {
                 _logger.LogWarning("用户未登录，无法提交考试");
-                return false;
+                return null;
             }
 
             // 1. 先进行BenchSuite评分
@@ -86,7 +95,7 @@ public class EnhancedExamToolbarService : IDisposable
                     if (!basicCompleteResult)
                     {
                         _logger.LogError("正式考试基本完成也失败，考试ID: {ExamId}", examId);
-                        return false;
+                        return null;
                     }
 
                     _logger.LogInformation("正式考试基本完成成功（无成绩数据），考试ID: {ExamId}", examId);
@@ -97,18 +106,18 @@ public class EnhancedExamToolbarService : IDisposable
                         examId, scoringResult?.AchievedScore, scoringResult?.TotalScore);
                 }
 
-                return true;
+                return scoringResult;
             }
             else
             {
                 _logger.LogWarning("无法解析用户ID为整数: {UserId}", currentUser.Id);
-                return false;
+                return null;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "提交正式考试失败，考试ID: {ExamId}", examId);
-            return false;
+            return null;
         }
     }
 

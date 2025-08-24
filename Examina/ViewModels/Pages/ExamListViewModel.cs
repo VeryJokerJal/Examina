@@ -576,13 +576,13 @@ public class ExamListViewModel : ViewModelBase
 
                 try
                 {
-                    submitResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
-                    if (submitResult)
+                    BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
+                    if (scoringResult != null)
                     {
-                        notes = "BenchSuite自动评分完成";
-                        // TODO: 从EnhancedExamToolbarService获取评分结果
-                        score = 85.0m; // 临时模拟分数
-                        totalScore = 100.0m;
+                        submitResult = true;
+                        notes = scoringResult.IsSuccess ? "BenchSuite自动评分完成" : "BenchSuite评分失败";
+                        score = scoringResult.AchievedScore;
+                        totalScore = scoringResult.TotalScore;
                     }
                     else
                     {
