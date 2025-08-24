@@ -103,6 +103,55 @@
         <Style Selector="Border.status-indicator[Tag=Cancelled]">
             <Setter Property="Background" Value="#DC3545" />
         </Style>
+
+        <!--  错误消息样式  -->
+        <Style Selector="Border.error-message">
+            <Setter Property="Background" Value="#F8D7DA" />
+            <Setter Property="BorderBrush" Value="#DC3545" />
+        </Style>
+
+        <Style Selector="TextBlock.error-text">
+            <Setter Property="Foreground" Value="#DC3545" />
+        </Style>
+
+        <!--  成功消息样式  -->
+        <Style Selector="Border.success-message">
+            <Setter Property="Background" Value="#D4EDDA" />
+            <Setter Property="BorderBrush" Value="#28A745" />
+        </Style>
+
+        <Style Selector="TextBlock.success-text">
+            <Setter Property="Foreground" Value="#28A745" />
+        </Style>
+
+        <!--  错误计数样式  -->
+        <Style Selector="Run.error-count">
+            <Setter Property="Foreground" Value="#DC3545" />
+        </Style>
+
+        <!--  深色模式样式覆盖  -->
+        <Style Selector=":is(Window)[((FluentAvalonia|Styling|FluentAvaloniaTheme)RequestedTheme)=Dark] Border.error-message">
+            <Setter Property="Background" Value="#2D1B1E" />
+            <Setter Property="BorderBrush" Value="#F87171" />
+        </Style>
+
+        <Style Selector=":is(Window)[((FluentAvalonia|Styling|FluentAvaloniaTheme)RequestedTheme)=Dark] TextBlock.error-text">
+            <Setter Property="Foreground" Value="#F87171" />
+        </Style>
+
+        <Style Selector=":is(Window)[((FluentAvalonia|Styling|FluentAvaloniaTheme)RequestedTheme)=Dark] Border.success-message">
+            <Setter Property="Background" Value="#1A2E1A" />
+            <Setter Property="BorderBrush" Value="#4ADE80" />
+        </Style>
+
+        <Style Selector=":is(Window)[((FluentAvalonia|Styling|FluentAvaloniaTheme)RequestedTheme)=Dark] TextBlock.success-text">
+            <Setter Property="Foreground" Value="#4ADE80" />
+        </Style>
+
+        <!--  深色模式下的失败文件计数  -->
+        <Style Selector=":is(Window)[((FluentAvalonia|Styling|FluentAvaloniaTheme)RequestedTheme)=Dark] Run.error-count">
+            <Setter Property="Foreground" Value="#F87171" />
+        </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -137,16 +186,16 @@
                         <ProgressBar Classes="glass-progress" Maximum="100" Value="{Binding OverallProgress}" />
 
                         <!--  错误消息  -->
-                        <Border Padding="16,12" Background="#F8D7DA" BorderBrush="#DC3545" BorderThickness="1" CornerRadius="8" IsVisible="{Binding HasError}">
+                        <Border Padding="16,12" Classes="error-message" BorderThickness="1" CornerRadius="8" IsVisible="{Binding HasError}">
                             <StackPanel Spacing="8">
-                                <TextBlock FontWeight="Medium" Foreground="#DC3545" Text="❌ 下载过程中出现错误" />
-                                <TextBlock Foreground="#DC3545" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+                                <TextBlock FontWeight="Medium" Classes="error-text" Text="❌ 下载过程中出现错误" />
+                                <TextBlock Classes="error-text" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
                         <!--  成功消息  -->
-                        <Border Padding="16,12" Background="#D4EDDA" BorderBrush="#28A745" BorderThickness="1" CornerRadius="8" IsVisible="{Binding IsCompleted}">
-                            <TextBlock FontWeight="Medium" Foreground="#28A745" Text="✅ 所有文件下载完成，可以开始考试/训练" />
+                        <Border Padding="16,12" Classes="success-message" BorderThickness="1" CornerRadius="8" IsVisible="{Binding IsCompleted}">
+                            <TextBlock FontWeight="Medium" Classes="success-text" Text="✅ 所有文件下载完成，可以开始考试/训练" />
                         </Border>
                     </StackPanel>
                 </Border>
@@ -202,7 +251,7 @@
                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="20">
                     <TextBlock IsVisible="{Binding HasError}">
                         <Run Text="❌" />
-                        <Run FontWeight="Medium" Foreground="#DC3545" Text="{Binding FailedFileCount}" />
+                        <Run FontWeight="Medium" Classes="error-count" Text="{Binding FailedFileCount}" />
                         <Run Text="个文件失败" />
                     </TextBlock>
                 </StackPanel>
