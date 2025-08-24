@@ -513,7 +513,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                         Content = question.Content, // 题目的content属性作为答案解析
                         QuestionType = question.QuestionType,
                         Score = question.Score,
-                        SortOrder = question.SortOrder
+                        SortOrder = question.Order
                     });
                 }
             }
@@ -528,7 +528,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     Content = question.Content, // 题目的content属性作为答案解析
                     QuestionType = question.QuestionType,
                     Score = question.Score,
-                    SortOrder = question.SortOrder
+                    SortOrder = question.Order
                 });
             }
 
