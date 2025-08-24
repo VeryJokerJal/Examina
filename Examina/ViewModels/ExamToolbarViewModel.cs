@@ -697,8 +697,8 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
             // 触发窗口关闭事件
             WindowCloseRequested?.Invoke(this, EventArgs.Empty);
 
-            // 恢复主窗口
-            await RestoreMainWindowAsync();
+            // 移除主窗口恢复逻辑，让各个训练/考试ViewModel控制主窗口显示时机
+            // await RestoreMainWindowAsync(); // 已移除，避免过早显示主窗口
         }
         catch (Exception ex)
         {
@@ -747,8 +747,12 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// 恢复主窗口
+    /// 恢复主窗口（已废弃，不再在提交流程中使用）
+    /// 注意：此方法已从CloseWindowAfterSubmitAsync中移除，
+    /// 主窗口显示时机现在由各个训练/考试ViewModel控制，
+    /// 确保结果窗口显示完成后再显示主窗口
     /// </summary>
+    [Obsolete("此方法不再在提交流程中使用，主窗口显示由各个ViewModel控制")]
     private async Task RestoreMainWindowAsync()
     {
         try
