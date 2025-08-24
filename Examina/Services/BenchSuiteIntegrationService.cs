@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
 using Examina.Models.BenchSuite;
 using Microsoft.Extensions.Logging;
@@ -314,16 +315,16 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = request.ExamId.ToString(),
             Name = $"考试_{request.ExamId}",
             Description = $"{GetFileTypeDescription(fileType)}考试",
-            Modules = new List<ModuleModel>()
+            Modules = new List<ExamModuleModel>()
         };
 
         // 根据文件类型创建对应的模块
         ModuleType moduleType = GetModuleTypeFromFileType(fileType);
-        ModuleModel module = new()
+        ExamModuleModel module = new()
         {
             Id = $"Module_{fileType}",
             Name = GetFileTypeDescription(fileType),
-            ModuleType = moduleType,
+            Type = moduleType,
             Questions = new List<QuestionModel>()
         };
 
@@ -332,7 +333,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         {
             Id = $"Question_{fileType}_1",
             Title = $"{GetFileTypeDescription(fileType)}操作题",
-            Description = $"完成{GetFileTypeDescription(fileType)}相关操作",
+            Content = $"完成{GetFileTypeDescription(fileType)}相关操作",
             Score = 100, // 默认总分100
             OperationPoints = new List<OperationPointModel>()
         };
@@ -345,7 +346,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ModuleType = moduleType,
             Score = 100,
             IsEnabled = true,
-            Parameters = new List<ParameterModel>()
+            Parameters = new List<ConfigurationParameterModel>()
         };
 
         question.OperationPoints.Add(operationPoint);
