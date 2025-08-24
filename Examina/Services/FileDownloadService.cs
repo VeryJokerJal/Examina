@@ -26,7 +26,7 @@ public class FileDownloadService : IFileDownloadService
     {
         _httpClient = httpClient;
         _logger = logger;
-        _baseDownloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Examina", "Downloads");
+        _baseDownloadPath = @"C:\河北对口计算机";
 
         // 确保下载目录存在
         _ = Directory.CreateDirectory(_baseDownloadPath);

@@ -35,7 +35,7 @@ public class BenchSuiteScoringRequest
     /// <summary>
     /// 基础目录路径
     /// </summary>
-    public string BasePath { get; set; } = @"C:\HBVCES\";
+    public string BasePath { get; set; } = @"C:\河北对口计算机\";
 }
 
 /// <summary>

@@ -208,11 +208,11 @@ private Window? GetMainWindow()
 
 ### 1. 下载目录配置
 
-默认下载目录：`%LocalAppData%/Examina/Downloads/`
+默认下载目录：`C:\河北对口计算机\`
 
 目录结构：
 ```
-Downloads/
+C:\河北对口计算机\
 ├── MockExams/
 │   └── {examId}/
 ├── OnlineExams/

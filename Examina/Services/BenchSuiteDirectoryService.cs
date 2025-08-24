@@ -17,7 +17,7 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     public BenchSuiteDirectoryService(ILogger<BenchSuiteDirectoryService> logger)
     {
         _logger = logger;
-        _basePath = @"C:\HBVCES\";
+        _basePath = @"C:\河北对口计算机\";
         _directoryMapping = new Dictionary<BenchSuiteFileType, string>
         {
             { BenchSuiteFileType.CSharp, "CSharp" },
