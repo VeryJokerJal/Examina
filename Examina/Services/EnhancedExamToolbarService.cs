@@ -201,6 +201,15 @@ public class EnhancedExamToolbarService : IDisposable
     /// </summary>
     public async Task<bool> SubmitComprehensiveTrainingAsync(int trainingId)
     {
+        BenchSuiteScoringResult? result = await SubmitComprehensiveTrainingWithResultAsync(trainingId);
+        return result != null;
+    }
+
+    /// <summary>
+    /// 提交综合实训并返回评分结果
+    /// </summary>
+    public async Task<BenchSuiteScoringResult?> SubmitComprehensiveTrainingWithResultAsync(int trainingId)
+    {
         try
         {
             _logger.LogInformation("开始提交综合实训，实训ID: {TrainingId}", trainingId);
@@ -210,7 +219,7 @@ public class EnhancedExamToolbarService : IDisposable
             if (currentUser == null)
             {
                 _logger.LogWarning("用户未登录，无法提交综合实训");
-                return false;
+                return null;
             }
 
             // 1. 先进行BenchSuite评分
@@ -241,7 +250,7 @@ public class EnhancedExamToolbarService : IDisposable
                     if (!basicSubmitResult)
                     {
                         _logger.LogError("综合实训基本提交也失败，实训ID: {TrainingId}", trainingId);
-                        return false;
+                        return null;
                     }
 
                     _logger.LogInformation("综合实训基本提交成功（无成绩数据），实训ID: {TrainingId}", trainingId);
@@ -255,18 +264,18 @@ public class EnhancedExamToolbarService : IDisposable
                 }
 
                 _logger.LogInformation("综合实训提交成功，实训ID: {TrainingId}", trainingId);
-                return true;
+                return scoringResult;
             }
             else
             {
                 _logger.LogWarning("无法解析用户ID为整数: {UserId}", currentUser.Id);
-                return false;
+                return null;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "提交综合实训失败，实训ID: {TrainingId}", trainingId);
-            return false;
+            return null;
         }
     }
 

@@ -530,6 +530,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 开始提交训练，ID: {trainingId}, 类型: {examType}, 自动提交: {isAutoSubmit}");
 
+            BenchSuiteScoringResult? scoringResult = null;
             bool submitResult = false;
 
             // 确保是综合实训类型
@@ -539,7 +540,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 if (_enhancedExamToolbarService != null)
                 {
                     System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 使用EnhancedExamToolbarService进行BenchSuite集成提交");
-                    submitResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingAsync(trainingId);
+                    scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
+                    submitResult = scoringResult != null;
                 }
                 else
                 {
@@ -568,8 +570,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 训练提交成功，ID: {trainingId}");
 
-                // 获取训练信息并显示结果
-                await ShowTrainingResultAsync(trainingId, examType);
+                // 获取训练信息并显示结果（传递真实的评分结果）
+                await ShowTrainingResultAsync(trainingId, examType, scoringResult);
 
                 // 关闭训练工具栏窗口并显示主窗口
                 CloseTrainingAndShowMainWindow();
@@ -783,7 +785,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示训练结果
     /// </summary>
-    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType)
+    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, BenchSuiteScoringResult? scoringResult = null)
     {
         try
         {
@@ -795,27 +797,23 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 return;
             }
 
-            // 创建基本的评分结果（综合练习已通过EnhancedExamToolbarService完成评分）
-            // 这里显示一个基本的成功结果
-            BenchSuiteScoringResult? scoringResult = new()
+            // 如果没有传入评分结果，创建一个基本的失败结果
+            if (scoringResult == null)
             {
-                IsSuccess = true,
-                TotalScore = 100,
-                AchievedScore = 85, // 模拟得分
-                StartTime = _trainingStartTime,
-                EndTime = DateTime.Now
-            };
+                System.Diagnostics.Debug.WriteLine("未获取到真实评分结果，创建基本结果");
+                scoringResult = new BenchSuiteScoringResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "未能获取评分结果",
+                    TotalScore = 100,
+                    AchievedScore = 0,
+                    StartTime = _trainingStartTime,
+                    EndTime = DateTime.Now
+                };
+            }
 
-            if (scoringResult != null && scoringResult.IsSuccess)
-            {
-                // 显示详细的训练结果
-                await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
-            }
-            else
-            {
-                // 显示基本的训练结果
-                await ShowBasicTrainingResultAsync(training.Name);
-            }
+            // 显示详细的训练结果（使用真实或基本的评分结果）
+            await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
         }
         catch (Exception ex)
         {
@@ -870,31 +868,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 显示基本训练结果（当BenchSuite评分失败时）
-    /// </summary>
-    private async Task ShowBasicTrainingResultAsync(string trainingName)
-    {
-        try
-        {
-            // 创建基本的评分结果
-            BenchSuiteScoringResult basicResult = new()
-            {
-                IsSuccess = false,
-                ErrorMessage = "评分服务不可用",
-                TotalScore = 100,
-                AchievedScore = 0,
-                StartTime = _trainingStartTime,
-                EndTime = DateTime.Now
-            };
 
-            await ShowDetailedTrainingResultAsync(trainingName, basicResult);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"显示基本训练结果失败: {ex.Message}");
-        }
-    }
 
     /// <summary>
     /// 用户信息更新事件处理
