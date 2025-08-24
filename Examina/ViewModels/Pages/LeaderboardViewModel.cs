@@ -26,6 +26,11 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private bool _isInitialized = false;
 
+    /// <summary>
+    /// 抑制自动加载与事件响应，确保依赖注入完成后再进行数据加载
+    /// </summary>
+    private bool _suppressAutoLoad = false;
+
     #region 属性
 
     /// <summary>
@@ -153,12 +158,28 @@ public class LeaderboardViewModel : ViewModelBase
         _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
             .Where(type => type != null)
             .DistinctUntilChanged(type => type!.Id)
-            .Subscribe(type => OnLeaderboardTypeChanged(type!));
+            .Subscribe(type =>
+            {
+                if (_suppressAutoLoad)
+                {
+                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制排行榜类型变化事件（初始化期间）");
+                    return;
+                }
+                OnLeaderboardTypeChanged(type!);
+            });
 
         // 监听试卷筛选变化
         _ = this.WhenAnyValue(x => x.SelectedExamFilter)
             .Where(filter => filter != null)
-            .Subscribe(filter => OnExamFilterChanged(filter!));
+            .Subscribe(filter =>
+            {
+                if (_suppressAutoLoad)
+                {
+                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制试卷筛选变化事件（初始化期间）");
+                    return;
+                }
+                OnExamFilterChanged(filter!);
+            });
 
         // 监听排序类型变化
         _ = this.WhenAnyValue(x => x.SelectedSortType)
@@ -168,17 +189,69 @@ public class LeaderboardViewModel : ViewModelBase
         // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService? studentMockExamService = null) : this()
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService? studentMockExamService = null)
     {
+        // 关键修复：不再调用无参构造函数，避免先期初始化
+        _suppressAutoLoad = true;
+
+        // 初始化命令与基础集合（仅一次）
+        RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
+        SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
+        SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
+        SwitchSortTypeCommand = new DelegateCommand<SortTypeItem>(SwitchSortType);
+
+        InitializeLeaderboardTypes();
+        InitializeExamFilters();
+        InitializeSortTypes();
+
+        // 订阅（带抑制控制）
+        _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
+            .Where(type => type != null)
+            .DistinctUntilChanged(type => type!.Id)
+            .Subscribe(type =>
+            {
+                if (_suppressAutoLoad)
+                {
+                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制排行榜类型变化事件（DI构造期间）");
+                    return;
+                }
+                OnLeaderboardTypeChanged(type!);
+            });
+
+        _ = this.WhenAnyValue(x => x.SelectedExamFilter)
+            .Where(filter => filter != null)
+            .Subscribe(filter =>
+            {
+                if (_suppressAutoLoad)
+                {
+                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制试卷筛选变化事件（DI构造期间）");
+                    return;
+                }
+                OnExamFilterChanged(filter!);
+            });
+
+        _ = this.WhenAnyValue(x => x.SelectedSortType)
+            .Where(sortType => sortType != null)
+            .Subscribe(sortType =>
+            {
+                if (_suppressAutoLoad)
+                {
+                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制排序类型变化事件（DI构造期间）");
+                    return;
+                }
+                OnSortTypeChanged(sortType!);
+            });
+
+        // 赋值依赖
         _rankingService = rankingService;
         _logger = logger;
         _comprehensiveTrainingService = comprehensiveTrainingService;
         _studentExamService = studentExamService;
         _studentMockExamService = studentMockExamService;
 
-        // 添加详细调试日志和调用栈跟踪
+        // 调试跟踪
         System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
-        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel依赖注入构造函数调用 ===");
+        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel依赖注入构造函数调用(无链式this) ===");
         System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
         System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
         System.Diagnostics.Debug.WriteLine("调用栈:");
@@ -196,13 +269,17 @@ public class LeaderboardViewModel : ViewModelBase
         System.Diagnostics.Debug.WriteLine($"  - ComprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
         System.Diagnostics.Debug.WriteLine($"  - StudentExamService: {(_studentExamService != null ? "已注入" : "null")}");
         System.Diagnostics.Debug.WriteLine($"  - StudentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
+
+        // 结束抑制
+        _suppressAutoLoad = false;
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null) : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null)
+        : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
     {
-        // 添加详细调试日志和调用栈跟踪
+        // 由于上面的构造已经设置了抑制，这里无需再次抑制，只负责设置类型
         System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
-        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel带排行榜类型构造函数调用 ===");
+        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel带排行榜类型构造函数调用(复用DI构造) ===");
         System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
         System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
         System.Diagnostics.Debug.WriteLine($"排行榜类型ID: {rankingTypeId ?? "null"}");
@@ -365,6 +442,12 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private async void LoadLeaderboardData()
     {
+        if (_suppressAutoLoad)
+        {
+            System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制LoadLeaderboardData（初始化期间）");
+            return;
+        }
+
         IsLoading = true;
         ErrorMessage = null;
 
