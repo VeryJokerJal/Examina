@@ -305,6 +305,28 @@ public class StudentMockExamService : IStudentMockExamService
             // 设置认证头
             await SetAuthenticationHeaderAsync();
 
+            // 提交前进行权限预检查
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交前进行权限预检查，模拟考试ID: {mockExamId}");
+            bool hasAccess = await HasAccessToMockExamAsync(mockExamId);
+
+            if (!hasAccess)
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 权限预检查失败，模拟考试ID: {mockExamId}");
+
+                // 获取详细诊断信息
+                await DiagnoseMockExamAccessAsync(mockExamId);
+
+                return new MockExamSubmissionResponseDto
+                {
+                    Success = false,
+                    Message = "无权限访问该模拟考试",
+                    Status = "Unauthorized",
+                    TimeStatusDescription = "权限验证失败"
+                };
+            }
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 权限预检查通过，继续提交，模拟考试ID: {mockExamId}");
+
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/submit");
 
             // 如果提供了实际用时，添加到查询参数中
@@ -589,6 +611,40 @@ public class StudentMockExamService : IStudentMockExamService
         {
             System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 检查模拟考试访问权限异常: {ex.Message}");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 诊断模拟考试访问权限问题
+    /// </summary>
+    public async Task DiagnoseMockExamAccessAsync(int mockExamId)
+    {
+        try
+        {
+            // 设置认证头
+            await SetAuthenticationHeaderAsync();
+
+            string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/diagnose");
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送诊断模拟考试权限请求到 {apiUrl}");
+
+            HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 诊断响应状态码: {response.StatusCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 诊断信息: {responseContent}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 诊断失败，响应内容: {responseContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 诊断模拟考试权限异常: {ex.Message}");
         }
     }
 

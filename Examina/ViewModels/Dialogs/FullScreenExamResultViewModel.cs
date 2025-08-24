@@ -1,7 +1,7 @@
-using System.Reactive;
+﻿using System.Reactive;
+using Examina.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Examina.Models;
 
 namespace Examina.ViewModels.Dialogs;
 
@@ -57,12 +57,7 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
                 return "正在计算成绩，请稍候...";
             }
 
-            if (Score.HasValue)
-            {
-                return $"您的成绩：{ScoreText}分";
-            }
-
-            return "感谢您的参与";
+            return Score.HasValue ? $"您的成绩：{ScoreText}分" : "感谢您的参与";
         }
     }
 
@@ -94,7 +89,7 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     /// <summary>
     /// 是否显示备注信息
     /// </summary>
-    public bool ShowNotesInfo => !string.IsNullOrEmpty(Notes);
+    public bool ShowNotesInfo => false/*!string.IsNullOrEmpty(Notes)*/;
 
     public FullScreenExamResultViewModel()
     {
@@ -112,10 +107,10 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
         });
 
         // 监听属性变化，更新计算属性
-        this.WhenAnyValue(x => x.ExamType)
+        _ = this.WhenAnyValue(x => x.ExamType)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(WindowTitle)));
 
-        this.WhenAnyValue(x => x.IsSubmissionSuccessful)
+        _ = this.WhenAnyValue(x => x.IsSubmissionSuccessful)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(PrimaryStatusMessage));
@@ -126,24 +121,24 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
                 this.RaisePropertyChanged(nameof(ShowErrorInfo));
             });
 
-        this.WhenAnyValue(x => x.Score, x => x.IsScoring)
+        _ = this.WhenAnyValue(x => x.Score, x => x.IsScoring)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(SecondaryStatusMessage));
                 this.RaisePropertyChanged(nameof(ShowScoreInfo));
             });
 
-        this.WhenAnyValue(x => x.ActualDurationMinutes)
+        _ = this.WhenAnyValue(x => x.ActualDurationMinutes)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowDurationInfo)));
 
-        this.WhenAnyValue(x => x.ErrorMessage)
+        _ = this.WhenAnyValue(x => x.ErrorMessage)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(SecondaryStatusMessage));
                 this.RaisePropertyChanged(nameof(ShowErrorInfo));
             });
 
-        this.WhenAnyValue(x => x.Notes)
+        _ = this.WhenAnyValue(x => x.Notes)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowNotesInfo)));
     }
 
@@ -168,7 +163,7 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     {
         // 调用基类方法设置基本数据
         SetExamResult(examName, examType, isSuccessful, startTime, endTime, durationMinutes, score, totalScore, errorMessage, notes);
-        
+
         // 设置按钮显示状态
         SetButtonVisibility(showContinue, showClose);
 

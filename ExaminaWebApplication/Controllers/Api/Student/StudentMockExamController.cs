@@ -339,7 +339,7 @@ public class StudentMockExamController : ControllerBase
 
             bool hasAccess = await _mockExamService.HasAccessToMockExamAsync(id, studentUserId);
 
-            _logger.LogInformation("检查模拟考试访问权限，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 有权限: {HasAccess}", 
+            _logger.LogInformation("检查模拟考试访问权限，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 有权限: {HasAccess}",
                 studentUserId, id, hasAccess);
 
             return Ok(new { hasAccess });
@@ -348,6 +348,101 @@ public class StudentMockExamController : ControllerBase
         {
             _logger.LogError(ex, "检查模拟考试访问权限时发生异常，模拟考试ID: {MockExamId}", id);
             return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 诊断模拟考试权限问题
+    /// </summary>
+    /// <param name="id">模拟考试ID</param>
+    /// <returns>详细的诊断信息</returns>
+    [HttpGet("{id}/diagnose")]
+    public async Task<ActionResult> DiagnoseMockExamAccess(int id)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            _logger.LogInformation("开始诊断模拟考试权限，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                studentUserId, id);
+
+            // 获取当前用户信息
+            var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == studentUserId);
+
+            // 获取模拟考试信息
+            var mockExam = await _context.MockExams.FirstOrDefaultAsync(me => me.Id == id);
+
+            // 检查权限
+            bool hasAccess = await _mockExamService.HasAccessToMockExamAsync(id, studentUserId);
+
+            var diagnosticInfo = new
+            {
+                RequestInfo = new
+                {
+                    RequestedMockExamId = id,
+                    RequestingStudentId = studentUserId,
+                    RequestTime = DateTime.Now
+                },
+                CurrentUser = currentUser != null ? new
+                {
+                    currentUser.Id,
+                    currentUser.Username,
+                    currentUser.Email,
+                    currentUser.Role,
+                    currentUser.IsActive,
+                    currentUser.RealName,
+                    currentUser.CreatedAt
+                } : null,
+                MockExam = mockExam != null ? new
+                {
+                    mockExam.Id,
+                    mockExam.StudentId,
+                    mockExam.Name,
+                    mockExam.Status,
+                    mockExam.CreatedAt,
+                    mockExam.StartedAt,
+                    mockExam.CompletedAt,
+                    mockExam.DurationMinutes
+                } : null,
+                PermissionCheck = new
+                {
+                    HasAccess = hasAccess,
+                    UserExists = currentUser != null,
+                    UserIsStudent = currentUser?.Role == Models.UserRole.Student,
+                    UserIsActive = currentUser?.IsActive == true,
+                    MockExamExists = mockExam != null,
+                    StudentIdMatches = mockExam?.StudentId == studentUserId,
+                    Issues = new List<string>()
+                }
+            };
+
+            // 添加问题诊断
+            var issues = (List<string>)diagnosticInfo.PermissionCheck.Issues;
+
+            if (currentUser == null)
+                issues.Add("用户不存在");
+            else if (currentUser.Role != Models.UserRole.Student)
+                issues.Add($"用户角色不正确，当前角色: {currentUser.Role}，需要: Student");
+            else if (!currentUser.IsActive)
+                issues.Add("用户账号未激活");
+
+            if (mockExam == null)
+                issues.Add("模拟考试不存在");
+            else if (mockExam.StudentId != studentUserId)
+                issues.Add($"模拟考试不属于当前用户，考试所属学生ID: {mockExam.StudentId}，当前用户ID: {studentUserId}");
+
+            if (issues.Count == 0)
+                issues.Add("未发现明显问题，权限验证应该通过");
+
+            _logger.LogInformation("模拟考试权限诊断完成，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 有权限: {HasAccess}, 问题数: {IssueCount}",
+                studentUserId, id, hasAccess, issues.Count);
+
+            return Ok(diagnosticInfo);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "诊断模拟考试权限时发生异常，模拟考试ID: {MockExamId}", id);
+            return StatusCode(500, new { message = "服务器内部错误", error = ex.Message });
         }
     }
 

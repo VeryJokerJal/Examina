@@ -399,8 +399,16 @@ public class StudentMockExamService : IStudentMockExamService
                 mockExamId, studentUserId);
 
             // 检查权限
-            if (!await HasAccessToMockExamAsync(mockExamId, studentUserId))
+            _logger.LogInformation("开始权限验证，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                mockExamId, studentUserId);
+
+            bool hasAccess = await HasAccessToMockExamAsync(mockExamId, studentUserId);
+
+            if (!hasAccess)
             {
+                _logger.LogWarning("权限验证失败，拒绝提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                    mockExamId, studentUserId);
+
                 return new MockExamSubmissionResponseDto
                 {
                     Success = false,
@@ -409,6 +417,9 @@ public class StudentMockExamService : IStudentMockExamService
                     TimeStatusDescription = "权限验证失败"
                 };
             }
+
+            _logger.LogInformation("权限验证通过，继续提交流程，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                mockExamId, studentUserId);
 
             MockExam? mockExam = await _context.MockExams
                 .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
@@ -990,24 +1001,66 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
+            _logger.LogInformation("开始检查模拟考试访问权限，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                studentUserId, mockExamId);
+
             // 验证学生用户存在且为学生角色
             Models.User? student = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
 
             if (student == null)
             {
+                _logger.LogWarning("权限验证失败：用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
+
+                // 进一步检查用户是否存在
+                Models.User? anyUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == studentUserId);
+                if (anyUser == null)
+                {
+                    _logger.LogWarning("用户完全不存在，用户ID: {UserId}", studentUserId);
+                }
+                else
+                {
+                    _logger.LogWarning("用户存在但条件不符，用户ID: {UserId}, 角色: {Role}, 活跃状态: {IsActive}",
+                        studentUserId, anyUser.Role, anyUser.IsActive);
+                }
+
                 return false;
             }
 
+            _logger.LogInformation("用户验证通过，用户ID: {UserId}, 用户名: {Username}, 角色: {Role}",
+                student.Id, student.Username, student.Role);
+
             // 验证模拟考试存在且属于该学生
-            bool hasAccess = await _context.MockExams
-                .AnyAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
+            MockExam? mockExam = await _context.MockExams
+                .FirstOrDefaultAsync(me => me.Id == mockExamId);
+
+            if (mockExam == null)
+            {
+                _logger.LogWarning("权限验证失败：模拟考试不存在，模拟考试ID: {MockExamId}", mockExamId);
+                return false;
+            }
+
+            _logger.LogInformation("模拟考试存在，模拟考试ID: {MockExamId}, 所属学生ID: {StudentId}, 状态: {Status}, 创建时间: {CreatedAt}",
+                mockExam.Id, mockExam.StudentId, mockExam.Status, mockExam.CreatedAt);
+
+            bool hasAccess = mockExam.StudentId == studentUserId;
+
+            if (hasAccess)
+            {
+                _logger.LogInformation("权限验证成功：学生有权限访问模拟考试，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, mockExamId);
+            }
+            else
+            {
+                _logger.LogWarning("权限验证失败：模拟考试不属于该学生，请求学生ID: {RequestStudentId}, 模拟考试所属学生ID: {MockExamStudentId}, 模拟考试ID: {MockExamId}",
+                    studentUserId, mockExam.StudentId, mockExamId);
+            }
 
             return hasAccess;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "检查模拟考试访问权限失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}", 
+            _logger.LogError(ex, "检查模拟考试访问权限失败，学生ID: {StudentId}, 模拟考试ID: {MockExamId}",
                 studentUserId, mockExamId);
             return false;
         }

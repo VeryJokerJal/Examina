@@ -506,6 +506,28 @@ public class MockExamViewModel : ViewModelBase
                             submitResult = submitResponse.Success;
                             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模拟考试提交响应 - 成功: {submitResponse.Success}, 时间状态: {submitResponse.TimeStatusDescription}, 客户端用时: {actualDurationSeconds}秒");
 
+                            if (!submitResponse.Success)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模拟考试提交失败 - 状态: {submitResponse.Status}, 消息: {submitResponse.Message}");
+
+                                // 如果是权限问题，记录更多信息
+                                if (submitResponse.Status == "Unauthorized")
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 权限验证失败，考试ID: {examId}");
+
+                                    // 获取当前用户信息用于调试
+                                    var currentUser = _authenticationService.CurrentUser;
+                                    if (currentUser != null)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 当前用户信息 - ID: {currentUser.Id}, 用户名: {currentUser.Username}, 权限: {currentUser.HasFullAccess}");
+                                    }
+                                    else
+                                    {
+                                        System.Diagnostics.Debug.WriteLine("MockExamViewModel: 当前用户信息为空");
+                                    }
+                                }
+                            }
+
                             if (submitResponse.ActualDurationMinutes.HasValue)
                             {
                                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试实际用时: {submitResponse.ActualDurationMinutes}分钟");
