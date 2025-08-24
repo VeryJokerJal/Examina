@@ -52,6 +52,12 @@ public interface IBenchSuiteDirectoryService
     string GetExamFilePath(ExamType examType, int examId, BenchSuiteFileType fileType, int studentId, string fileName);
 
     /// <summary>
+    /// 获取基础路径
+    /// </summary>
+    /// <returns>基础路径</returns>
+    string GetBasePath();
+
+    /// <summary>
     /// 确保目录结构存在
     /// </summary>
     /// <returns>操作结果</returns>

@@ -426,7 +426,8 @@ public class ExamListViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine("ExamListViewModel: 主窗口已隐藏");
 
                 // 创建考试工具栏 ViewModel
-                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null);
+                IBenchSuiteDirectoryService? benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null, benchSuiteDirectoryService);
 
                 // 计算总题目数
                 int totalQuestions = exam.Subjects.Sum(s => s.Questions.Count) + exam.Modules.Sum(m => m.Questions.Count);

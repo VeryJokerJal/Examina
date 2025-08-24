@@ -347,7 +347,8 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             }
 
             // 创建考试工具栏ViewModel
-            ExamToolbarViewModel toolbarViewModel = new();
+            IBenchSuiteDirectoryService? benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+            ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null, benchSuiteDirectoryService);
 
             // 设置考试信息
             toolbarViewModel.SetExamInfo(

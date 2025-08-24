@@ -85,6 +85,14 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
+    /// 获取基础路径
+    /// </summary>
+    public string GetBasePath()
+    {
+        return _basePath;
+    }
+
+    /// <summary>
     /// 确保目录结构存在
     /// </summary>
     public async Task<BenchSuiteDirectoryValidationResult> EnsureDirectoryStructureAsync()

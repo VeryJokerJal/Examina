@@ -165,6 +165,14 @@
                             <TextBlock Text="查看题目" />
                         </StackPanel>
                     </Button>
+
+                    <!--  打开目录按钮  -->
+                    <Button Padding="12,6" Background="{DynamicResource ExamToolbarButtonBackgroundBrush}" BorderBrush="{DynamicResource ExamToolbarButtonBorderBrush}" BorderThickness="1" Command="{Binding OpenDirectoryCommand}" CornerRadius="4" FontSize="12" Foreground="{DynamicResource ExamToolbarButtonForegroundBrush}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Width="14" Height="14" Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" Fill="{DynamicResource ExamToolbarButtonForegroundBrush}" Stretch="Uniform" />
+                            <TextBlock Text="打开目录" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
                 <!--  右侧区域 - 提交按钮  -->

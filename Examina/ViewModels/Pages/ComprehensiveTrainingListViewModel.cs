@@ -414,7 +414,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 主窗口已隐藏");
 
                 // 创建考试工具栏 ViewModel
-                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null);
+                IBenchSuiteDirectoryService? benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null, benchSuiteDirectoryService);
 
                 // 计算总题目数
                 int totalQuestions = training.Subjects.Sum(s => s.Questions.Count) + training.Modules.Sum(m => m.Questions.Count);

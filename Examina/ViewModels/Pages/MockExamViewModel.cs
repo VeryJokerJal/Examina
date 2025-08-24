@@ -290,7 +290,8 @@ public class MockExamViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 主窗口已隐藏");
 
                 // 创建考试工具栏 ViewModel
-                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null);
+                IBenchSuiteDirectoryService? benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+                ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null, benchSuiteDirectoryService);
 
                 // 计算总题目数
                 int totalQuestions = mockExam.Modules.Sum(m => m.Questions.Count);
