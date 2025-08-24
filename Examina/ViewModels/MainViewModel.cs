@@ -874,8 +874,25 @@ public class MainViewModel : ViewModelBase, IDisposable
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 工厂未注入，创建默认LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
-                LeaderboardViewModel viewModel = new LeaderboardViewModel();
+                System.Diagnostics.Debug.WriteLine($"MainViewModel: 工厂未注入，尝试手动获取服务创建LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
+
+                // 尝试手动获取服务
+                RankingService? rankingService = ((App)Application.Current!).GetService<RankingService>();
+                IStudentComprehensiveTrainingService? comprehensiveTrainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
+                IStudentExamService? studentExamService = ((App)Application.Current!).GetService<IStudentExamService>();
+                IStudentMockExamService? studentMockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
+
+                LeaderboardViewModel viewModel;
+                if (rankingService != null && comprehensiveTrainingService != null && studentExamService != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取服务，创建带依赖的LeaderboardViewModel");
+                    viewModel = new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取所需服务，创建默认LeaderboardViewModel");
+                    viewModel = new LeaderboardViewModel();
+                }
 
                 // 如果指定了排行榜类型，设置对应的类型
                 if (!string.IsNullOrEmpty(rankingTypeId))
@@ -894,9 +911,37 @@ public class MainViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建LeaderboardViewModel失败: {ex.Message}");
-            LeaderboardViewModel fallbackViewModel = new LeaderboardViewModel();
-            fallbackViewModel.LoadInitialData(); // 确保回退实例也能加载数据
-            return fallbackViewModel;
+
+            // 尝试手动获取服务创建回退实例
+            try
+            {
+                RankingService? rankingService = ((App)Application.Current!).GetService<RankingService>();
+                IStudentComprehensiveTrainingService? comprehensiveTrainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
+                IStudentExamService? studentExamService = ((App)Application.Current!).GetService<IStudentExamService>();
+                IStudentMockExamService? studentMockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
+
+                LeaderboardViewModel fallbackViewModel;
+                if (rankingService != null && comprehensiveTrainingService != null && studentExamService != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 异常回退时成功获取服务");
+                    fallbackViewModel = new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MainViewModel: 异常回退时无法获取服务，使用默认构造函数");
+                    fallbackViewModel = new LeaderboardViewModel();
+                }
+
+                fallbackViewModel.LoadInitialData(); // 确保回退实例也能加载数据
+                return fallbackViewModel;
+            }
+            catch (Exception fallbackEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"MainViewModel: 回退创建也失败: {fallbackEx.Message}");
+                LeaderboardViewModel defaultViewModel = new LeaderboardViewModel();
+                defaultViewModel.LoadInitialData();
+                return defaultViewModel;
+            }
         }
     }
 

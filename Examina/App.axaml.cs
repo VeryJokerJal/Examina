@@ -270,7 +270,8 @@ public partial class App : Application
             ILogger<LeaderboardViewModel> logger = provider.GetRequiredService<ILogger<LeaderboardViewModel>>();
             IStudentComprehensiveTrainingService comprehensiveTrainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();
             IStudentExamService studentExamService = provider.GetRequiredService<IStudentExamService>();
-            return new LeaderboardViewModel(rankingService, logger, comprehensiveTrainingService, studentExamService);
+            IStudentMockExamService studentMockExamService = provider.GetRequiredService<IStudentMockExamService>();
+            return new LeaderboardViewModel(rankingService, logger, comprehensiveTrainingService, studentExamService, null, studentMockExamService);
         });
         _ = services.AddTransient<SpecializedTrainingListViewModel>(provider =>
         {

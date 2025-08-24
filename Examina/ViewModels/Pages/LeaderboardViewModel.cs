@@ -115,6 +115,9 @@ public class LeaderboardViewModel : ViewModelBase
 
     public LeaderboardViewModel()
     {
+        // 添加调试日志
+        System.Diagnostics.Debug.WriteLine("LeaderboardViewModel: 无参构造函数调用");
+
         RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
         SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
@@ -150,6 +153,14 @@ public class LeaderboardViewModel : ViewModelBase
         _comprehensiveTrainingService = comprehensiveTrainingService;
         _studentExamService = studentExamService;
         _studentMockExamService = studentMockExamService;
+
+        // 添加调试日志
+        System.Diagnostics.Debug.WriteLine($"LeaderboardViewModel: 依赖注入构造函数调用");
+        System.Diagnostics.Debug.WriteLine($"  - RankingService: {(_rankingService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - Logger: {(_logger != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - ComprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - StudentExamService: {(_studentExamService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - StudentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
     }
 
     public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null) : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
@@ -267,6 +278,11 @@ public class LeaderboardViewModel : ViewModelBase
     {
         IsLoading = true;
         ErrorMessage = null;
+
+        // 添加服务状态调试日志
+        System.Diagnostics.Debug.WriteLine("LeaderboardViewModel.LoadLeaderboardData: 开始加载数据");
+        System.Diagnostics.Debug.WriteLine($"  - RankingService状态: {(_rankingService != null ? "可用" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - SelectedLeaderboardType: {SelectedLeaderboardType?.Id ?? "null"}");
 
         try
         {
