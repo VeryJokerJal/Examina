@@ -19,6 +19,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     private readonly IAuthenticationService? _authenticationService;
     private readonly IWindowManagerService? _windowManagerService;
     private readonly Func<LeaderboardViewModel>? _leaderboardViewModelFactory;
+    private readonly Func<string, LeaderboardViewModel>? _leaderboardViewModelWithTypeFactory;
 
     #endregion
 
@@ -91,11 +92,12 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
     }
 
-    public MainViewModel(IAuthenticationService? authenticationService = null, IWindowManagerService? windowManagerService = null, Func<LeaderboardViewModel>? leaderboardViewModelFactory = null)
+    public MainViewModel(IAuthenticationService? authenticationService = null, IWindowManagerService? windowManagerService = null, Func<LeaderboardViewModel>? leaderboardViewModelFactory = null, Func<string, LeaderboardViewModel>? leaderboardViewModelWithTypeFactory = null)
     {
         _authenticationService = authenticationService;
         _windowManagerService = windowManagerService;
         _leaderboardViewModelFactory = leaderboardViewModelFactory;
+        _leaderboardViewModelWithTypeFactory = leaderboardViewModelWithTypeFactory;
 
         LogoutCommand = new DelegateCommand(Logout);
         UnlockAdsCommand = new DelegateCommand(UnlockAds);
@@ -854,9 +856,16 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            if (_leaderboardViewModelFactory != null)
+            // 优先使用带类型的工厂方法，确保一次性正确初始化
+            if (!string.IsNullOrEmpty(rankingTypeId) && _leaderboardViewModelWithTypeFactory != null)
             {
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 使用工厂创建LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
+                System.Diagnostics.Debug.WriteLine($"MainViewModel: 使用带类型工厂创建LeaderboardViewModel，类型: {rankingTypeId}");
+                LeaderboardViewModel viewModel = _leaderboardViewModelWithTypeFactory(rankingTypeId);
+                return viewModel;
+            }
+            else if (_leaderboardViewModelFactory != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"MainViewModel: 使用默认工厂创建LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
                 LeaderboardViewModel viewModel = _leaderboardViewModelFactory();
 
                 // 如果指定了排行榜类型，设置对应的类型

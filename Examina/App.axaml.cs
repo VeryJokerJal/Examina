@@ -232,7 +232,9 @@ public partial class App : Application
                 return provider.GetRequiredService<LeaderboardViewModel>();
             }
 
-            return new MainViewModel(authService, windowManager, leaderboardFactory);
+            Func<string, LeaderboardViewModel> leaderboardWithTypeFactory = provider.GetRequiredService<Func<string, LeaderboardViewModel>>();
+
+            return new MainViewModel(authService, windowManager, leaderboardFactory, leaderboardWithTypeFactory);
         });
         _ = services.AddTransient<UserInfoCompletionViewModel>();
         _ = services.AddTransient<LoadingViewModel>();
@@ -271,7 +273,22 @@ public partial class App : Application
             IStudentComprehensiveTrainingService comprehensiveTrainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();
             IStudentExamService studentExamService = provider.GetRequiredService<IStudentExamService>();
             IStudentMockExamService studentMockExamService = provider.GetRequiredService<IStudentMockExamService>();
-            return new LeaderboardViewModel(rankingService, logger, comprehensiveTrainingService, studentExamService, null, studentMockExamService);
+
+            // 直接创建带所有依赖的实例，避免无参构造函数的双重初始化问题
+            return new LeaderboardViewModel(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService);
+        });
+
+        // 添加带排行榜类型的工厂方法
+        _ = services.AddTransient<Func<string, LeaderboardViewModel>>(provider => rankingTypeId =>
+        {
+            RankingService rankingService = provider.GetRequiredService<RankingService>();
+            ILogger<LeaderboardViewModel> logger = provider.GetRequiredService<ILogger<LeaderboardViewModel>>();
+            IStudentComprehensiveTrainingService comprehensiveTrainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();
+            IStudentExamService studentExamService = provider.GetRequiredService<IStudentExamService>();
+            IStudentMockExamService studentMockExamService = provider.GetRequiredService<IStudentMockExamService>();
+
+            // 直接创建带特定排行榜类型的实例，确保一次性正确初始化
+            return new LeaderboardViewModel(rankingService, logger, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
         });
         _ = services.AddTransient<SpecializedTrainingListViewModel>(provider =>
         {
@@ -300,6 +317,9 @@ public partial class App : Application
 
             // 测试LeaderboardViewModel依赖注入
             Tests.LeaderboardViewModelDependencyTest.TestLeaderboardViewModelDependencies();
+
+            // 测试排行榜类型初始化一致性
+            Tests.LeaderboardViewModelDependencyTest.TestLeaderboardTypeInitializationConsistency();
             #endif
         }
 

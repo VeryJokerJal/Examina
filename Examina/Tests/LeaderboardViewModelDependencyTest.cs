@@ -175,26 +175,26 @@ public static class LeaderboardViewModelDependencyTest
         try
         {
             Debug.WriteLine("=== LeaderboardViewModel数据加载测试 ===");
-            
+
             if (Avalonia.Application.Current is App app)
             {
                 LeaderboardViewModel? viewModel = app.GetService<LeaderboardViewModel>();
-                
+
                 if (viewModel != null)
                 {
                     Debug.WriteLine("🔄 测试初始数据加载...");
-                    
+
                     // 触发初始数据加载
                     viewModel.LoadInitialData();
-                    
+
                     // 等待一段时间让异步操作完成
                     System.Threading.Thread.Sleep(2000);
-                    
+
                     // 检查数据加载结果
                     if (viewModel.LeaderboardData.Count > 0)
                     {
                         Debug.WriteLine($"✅ 数据加载成功，记录数: {viewModel.LeaderboardData.Count}");
-                        
+
                         // 检查第一条记录的数据完整性
                         var firstEntry = viewModel.LeaderboardData[0];
                         Debug.WriteLine($"📊 第一条记录: 排名={firstEntry.Rank}, 用户={firstEntry.Username}, 分数={firstEntry.Score}");
@@ -204,7 +204,7 @@ public static class LeaderboardViewModelDependencyTest
                     {
                         Debug.WriteLine("⚠️ 数据加载后记录为空");
                     }
-                    
+
                     if (!viewModel.IsLoading)
                     {
                         Debug.WriteLine("✅ 加载状态正确更新");
@@ -219,6 +219,88 @@ public static class LeaderboardViewModelDependencyTest
         catch (Exception ex)
         {
             Debug.WriteLine($"❌ 数据加载测试失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 测试不同排行榜类型的初始化一致性
+    /// </summary>
+    public static void TestLeaderboardTypeInitializationConsistency()
+    {
+        try
+        {
+            Debug.WriteLine("=== 排行榜类型初始化一致性测试 ===");
+
+            if (Avalonia.Application.Current is App app)
+            {
+                string[] rankingTypes = { "exam-ranking", "mock-exam-ranking", "training-ranking" };
+
+                foreach (string rankingType in rankingTypes)
+                {
+                    Debug.WriteLine($"🔧 测试排行榜类型: {rankingType}");
+
+                    // 获取带类型的工厂方法
+                    Func<string, LeaderboardViewModel>? factory = app.GetService<Func<string, LeaderboardViewModel>>();
+
+                    if (factory != null)
+                    {
+                        LeaderboardViewModel viewModel = factory(rankingType);
+
+                        Debug.WriteLine($"✅ {rankingType} - ViewModel创建成功");
+                        Debug.WriteLine($"📊 {rankingType} - 排行榜类型数量: {viewModel.LeaderboardTypes.Count}");
+                        Debug.WriteLine($"🎯 {rankingType} - 当前选中类型: {viewModel.SelectedLeaderboardType?.Id ?? "null"}");
+                        Debug.WriteLine($"📝 {rankingType} - 页面标题: {viewModel.PageTitle}");
+
+                        // 检查服务注入状态
+                        bool hasServices = CheckServicesInjected(viewModel);
+                        Debug.WriteLine($"🔌 {rankingType} - 服务注入状态: {(hasServices ? "✅ 完整" : "❌ 不完整")}");
+
+                        Debug.WriteLine($"--- {rankingType} 测试完成 ---\n");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"❌ {rankingType} - 无法获取工厂方法");
+                    }
+                }
+
+                Debug.WriteLine("✅ 排行榜类型初始化一致性测试完成");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"❌ 排行榜类型初始化一致性测试失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 检查ViewModel中的服务是否正确注入（通过反射）
+    /// </summary>
+    private static bool CheckServicesInjected(LeaderboardViewModel viewModel)
+    {
+        try
+        {
+            var type = viewModel.GetType();
+            var rankingServiceField = type.GetField("_rankingService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var comprehensiveServiceField = type.GetField("_comprehensiveTrainingService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var examServiceField = type.GetField("_studentExamService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var mockExamServiceField = type.GetField("_studentMockExamService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            bool rankingServiceInjected = rankingServiceField?.GetValue(viewModel) != null;
+            bool comprehensiveServiceInjected = comprehensiveServiceField?.GetValue(viewModel) != null;
+            bool examServiceInjected = examServiceField?.GetValue(viewModel) != null;
+            bool mockExamServiceInjected = mockExamServiceField?.GetValue(viewModel) != null;
+
+            Debug.WriteLine($"  - RankingService: {(rankingServiceInjected ? "✅" : "❌")}");
+            Debug.WriteLine($"  - ComprehensiveTrainingService: {(comprehensiveServiceInjected ? "✅" : "❌")}");
+            Debug.WriteLine($"  - StudentExamService: {(examServiceInjected ? "✅" : "❌")}");
+            Debug.WriteLine($"  - StudentMockExamService: {(mockExamServiceInjected ? "✅" : "❌")}");
+
+            return rankingServiceInjected && comprehensiveServiceInjected && examServiceInjected && mockExamServiceInjected;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"❌ 检查服务注入状态时发生异常: {ex.Message}");
+            return false;
         }
     }
 }

@@ -21,6 +21,11 @@ public class LeaderboardViewModel : ViewModelBase
     private readonly IStudentExamService? _studentExamService;
     private readonly IStudentMockExamService? _studentMockExamService;
 
+    /// <summary>
+    /// 标记是否已经完成初始化，避免重复初始化
+    /// </summary>
+    private bool _isInitialized = false;
+
     #region 属性
 
     /// <summary>
@@ -115,8 +120,25 @@ public class LeaderboardViewModel : ViewModelBase
 
     public LeaderboardViewModel()
     {
-        // 添加调试日志
-        System.Diagnostics.Debug.WriteLine("LeaderboardViewModel: 无参构造函数调用");
+        // 添加详细调试日志和调用栈跟踪
+        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel无参构造函数调用 ===");
+        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        System.Diagnostics.Debug.WriteLine("调用栈:");
+        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
+        {
+            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
+            if (frame != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
+            }
+        }
+        System.Diagnostics.Debug.WriteLine("服务状态:");
+        System.Diagnostics.Debug.WriteLine($"  - _rankingService: {(_rankingService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - _comprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - _studentExamService: {(_studentExamService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - _studentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
 
         RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
@@ -146,7 +168,7 @@ public class LeaderboardViewModel : ViewModelBase
         // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService? studentMockExamService = null) : this()
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService? studentMockExamService = null) : this()
     {
         _rankingService = rankingService;
         _logger = logger;
@@ -154,8 +176,21 @@ public class LeaderboardViewModel : ViewModelBase
         _studentExamService = studentExamService;
         _studentMockExamService = studentMockExamService;
 
-        // 添加调试日志
-        System.Diagnostics.Debug.WriteLine($"LeaderboardViewModel: 依赖注入构造函数调用");
+        // 添加详细调试日志和调用栈跟踪
+        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel依赖注入构造函数调用 ===");
+        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        System.Diagnostics.Debug.WriteLine("调用栈:");
+        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
+        {
+            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
+            if (frame != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
+            }
+        }
+        System.Diagnostics.Debug.WriteLine("服务注入状态:");
         System.Diagnostics.Debug.WriteLine($"  - RankingService: {(_rankingService != null ? "已注入" : "null")}");
         System.Diagnostics.Debug.WriteLine($"  - Logger: {(_logger != null ? "已注入" : "null")}");
         System.Diagnostics.Debug.WriteLine($"  - ComprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
@@ -163,11 +198,32 @@ public class LeaderboardViewModel : ViewModelBase
         System.Diagnostics.Debug.WriteLine($"  - StudentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null) : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null) : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
     {
+        // 添加详细调试日志和调用栈跟踪
+        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel带排行榜类型构造函数调用 ===");
+        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        System.Diagnostics.Debug.WriteLine($"排行榜类型ID: {rankingTypeId ?? "null"}");
+        System.Diagnostics.Debug.WriteLine("调用栈:");
+        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
+        {
+            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
+            if (frame != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
+            }
+        }
+
         if (!string.IsNullOrEmpty(rankingTypeId))
         {
+            System.Diagnostics.Debug.WriteLine($"设置排行榜类型: {rankingTypeId}");
             SetRankingType(rankingTypeId);
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("排行榜类型ID为空，跳过设置");
         }
     }
 
@@ -180,6 +236,35 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private void InitializeLeaderboardTypes()
     {
+        // 添加详细调试日志和调用栈跟踪
+        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+        System.Diagnostics.Debug.WriteLine("=== InitializeLeaderboardTypes方法调用 ===");
+        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        System.Diagnostics.Debug.WriteLine($"当前LeaderboardTypes数量: {LeaderboardTypes.Count}");
+        System.Diagnostics.Debug.WriteLine($"是否已初始化: {_isInitialized}");
+        System.Diagnostics.Debug.WriteLine("调用栈:");
+        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 15); i++)
+        {
+            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
+            if (frame != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
+            }
+        }
+        System.Diagnostics.Debug.WriteLine("服务状态:");
+        System.Diagnostics.Debug.WriteLine($"  - _rankingService: {(_rankingService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - _comprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - _studentExamService: {(_studentExamService != null ? "已注入" : "null")}");
+        System.Diagnostics.Debug.WriteLine($"  - _studentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
+
+        // 检查是否已经初始化过，避免重复初始化
+        if (_isInitialized && LeaderboardTypes.Count > 0)
+        {
+            System.Diagnostics.Debug.WriteLine("⚠️ 跳过重复初始化，LeaderboardTypes已存在");
+            return;
+        }
+
         LeaderboardTypes.Clear();
 
         LeaderboardTypes.Add(new LeaderboardTypeItem
@@ -207,6 +292,10 @@ public class LeaderboardViewModel : ViewModelBase
         });
 
         SelectedLeaderboardType = LeaderboardTypes.FirstOrDefault();
+
+        // 标记初始化完成
+        _isInitialized = true;
+        System.Diagnostics.Debug.WriteLine("✅ InitializeLeaderboardTypes完成，设置初始化标志");
     }
 
     /// <summary>
@@ -425,7 +514,7 @@ public class LeaderboardViewModel : ViewModelBase
         _logger?.LogInformation("排行榜类型变化: {Type}", leaderboardType.Id);
 
         // 更新试卷筛选器的显示状态
-        ShowExamFilter = leaderboardType.Id != "mock-exam-ranking";
+        ShowExamFilter = leaderboardType.Id is not "mock-exam-ranking";
 
         // 如果是模拟考试排行榜，重置筛选器为"全部试卷"
         if (!ShowExamFilter)
@@ -670,7 +759,7 @@ public class LeaderboardViewModel : ViewModelBase
         {
             _logger?.LogWarning("未找到排行榜类型: {RankingTypeId}", rankingTypeId);
             // 如果没找到，默认选择第一个类型
-            var first = LeaderboardTypes.FirstOrDefault();
+            LeaderboardTypeItem? first = LeaderboardTypes.FirstOrDefault();
             if (first != null && SelectedLeaderboardType?.Id != first.Id)
             {
                 SelectedLeaderboardType = first;
