@@ -72,7 +72,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
     options.MultipartBodyLengthLimit = maxFileSize;
 
     // 设置单个文件大小限制
-    options.ValueLengthLimit = maxFileSize;
+    options.ValueLengthLimit = (int)maxFileSize;
 
     // 设置表单键数量限制
     options.KeyLengthLimit = 2048;

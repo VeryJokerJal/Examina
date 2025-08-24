@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Services.Student;
 using ExaminaWebApplication.Services;
+using ExaminaWebApplication.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace ExaminaWebApplication.Controllers.Api.Student;
@@ -17,13 +19,16 @@ public class StudentMockExamController : ControllerBase
 {
     private readonly IStudentMockExamService _mockExamService;
     private readonly ILogger<StudentMockExamController> _logger;
+    private readonly ApplicationDbContext _context;
 
     public StudentMockExamController(
         IStudentMockExamService mockExamService,
-        ILogger<StudentMockExamController> logger)
+        ILogger<StudentMockExamController> logger,
+        ApplicationDbContext context)
     {
         _mockExamService = mockExamService;
         _logger = logger;
+        _context = context;
     }
 
     /// <summary>
