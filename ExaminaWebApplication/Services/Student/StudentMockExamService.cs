@@ -391,35 +391,38 @@ public class StudentMockExamService : IStudentMockExamService
     /// </summary>
     public async Task<MockExamSubmissionResponseDto> SubmitMockExamAsync(int mockExamId, int studentUserId, int? clientActualDurationSeconds = null)
     {
-        // 使用事务确保数据一致性，防止并发问题
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        // 使用执行策略来处理事务，避免与MySQL重试策略冲突
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            _logger.LogInformation("开始提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
-                mockExamId, studentUserId);
-
-            // 检查权限
-            _logger.LogInformation("开始权限验证，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
-                mockExamId, studentUserId);
-
-            bool hasAccess = await HasAccessToMockExamAsync(mockExamId, studentUserId);
-
-            if (!hasAccess)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                _logger.LogWarning("权限验证失败，拒绝提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                _logger.LogInformation("开始提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
                     mockExamId, studentUserId);
 
-                return new MockExamSubmissionResponseDto
-                {
-                    Success = false,
-                    Message = "无权限访问该模拟考试",
-                    Status = "Unauthorized",
-                    TimeStatusDescription = "权限验证失败"
-                };
-            }
+                // 检查权限
+                _logger.LogInformation("开始权限验证，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                    mockExamId, studentUserId);
 
-            _logger.LogInformation("权限验证通过，继续提交流程，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
-                mockExamId, studentUserId);
+                bool hasAccess = await HasAccessToMockExamAsync(mockExamId, studentUserId);
+
+                if (!hasAccess)
+                {
+                    _logger.LogWarning("权限验证失败，拒绝提交模拟考试，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                        mockExamId, studentUserId);
+
+                    return new MockExamSubmissionResponseDto
+                    {
+                        Success = false,
+                        Message = "无权限访问该模拟考试",
+                        Status = "Unauthorized",
+                        TimeStatusDescription = "权限验证失败"
+                    };
+                }
+
+                _logger.LogInformation("权限验证通过，继续提交流程，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                    mockExamId, studentUserId);
 
             MockExam? mockExam = await _context.MockExams
                 .FirstOrDefaultAsync(me => me.Id == mockExamId && me.StudentId == studentUserId);
@@ -602,33 +605,37 @@ public class StudentMockExamService : IStudentMockExamService
             _logger.LogInformation("模拟考试提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 用时: {Duration}分钟",
                 studentUserId, mockExamId, actualDurationMinutes);
 
-            return new MockExamSubmissionResponseDto
-            {
-                Success = true,
-                Message = "模拟考试已成功提交",
-                StartedAt = mockExam.StartedAt,
-                CompletedAt = now,
-                ActualDurationMinutes = actualDurationMinutes,
-                Status = "Completed",
-                TimeStatusDescription = timeStatusDescription
-            };
-        }
-        catch (Exception ex)
-        {
-            // 回滚事务
-            await transaction.RollbackAsync();
+                // 提交事务
+                await transaction.CommitAsync();
 
-            _logger.LogError(ex, "提交模拟考试异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
-                mockExamId, studentUserId);
-
-            return new MockExamSubmissionResponseDto
+                return new MockExamSubmissionResponseDto
+                {
+                    Success = true,
+                    Message = "模拟考试已成功提交",
+                    StartedAt = mockExam.StartedAt,
+                    CompletedAt = now,
+                    ActualDurationMinutes = actualDurationMinutes,
+                    Status = "Completed",
+                    TimeStatusDescription = timeStatusDescription
+                };
+            }
+            catch (Exception ex)
             {
-                Success = false,
-                Message = "提交模拟考试时发生异常",
-                Status = "Error",
-                TimeStatusDescription = "服务器处理异常"
-            };
-        }
+                // 回滚事务
+                await transaction.RollbackAsync();
+
+                _logger.LogError(ex, "提交模拟考试异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                    mockExamId, studentUserId);
+
+                return new MockExamSubmissionResponseDto
+                {
+                    Success = false,
+                    Message = "提交模拟考试时发生异常",
+                    Status = "Error",
+                    TimeStatusDescription = "服务器处理异常"
+                };
+            }
+        });
     }
 
     /// <summary>
@@ -636,10 +643,13 @@ public class StudentMockExamService : IStudentMockExamService
     /// </summary>
     public async Task<bool> SubmitMockExamScoreAsync(int mockExamId, int studentUserId, SubmitMockExamScoreRequestDto scoreRequest)
     {
-        // 使用事务确保数据一致性
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        // 使用执行策略来处理事务，避免与MySQL重试策略冲突
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
             _logger.LogInformation("开始提交模拟考试成绩，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
                 mockExamId, studentUserId);
 
@@ -778,20 +788,21 @@ public class StudentMockExamService : IStudentMockExamService
             // 提交事务
             await transaction.CommitAsync();
 
-            _logger.LogInformation("模拟考试成绩提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 得分: {Score}/{MaxScore}",
-                studentUserId, mockExamId, scoreRequest.Score, scoreRequest.MaxScore);
+                _logger.LogInformation("模拟考试成绩提交成功，学生ID: {StudentId}, 模拟考试ID: {MockExamId}, 得分: {Score}/{MaxScore}",
+                    studentUserId, mockExamId, scoreRequest.Score, scoreRequest.MaxScore);
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            // 回滚事务
-            await transaction.RollbackAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // 回滚事务
+                await transaction.RollbackAsync();
 
-            _logger.LogError(ex, "提交模拟考试成绩异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
-                mockExamId, studentUserId);
-            return false;
-        }
+                _logger.LogError(ex, "提交模拟考试成绩异常，模拟考试ID: {MockExamId}, 学生ID: {StudentId}",
+                    mockExamId, studentUserId);
+                return false;
+            }
+        });
     }
 
     /// <summary>
