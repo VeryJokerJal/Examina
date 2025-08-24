@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace Examina.Models.SpecializedTraining;
 
@@ -30,17 +30,12 @@ public class StudentSpecializedTrainingDto
     /// <summary>
     /// 总分
     /// </summary>
-    public int TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 考试时长（分钟）
     /// </summary>
     public int Duration { get; set; }
-
-    /// <summary>
-    /// 难度等级（1-5）
-    /// </summary>
-    public int DifficultyLevel { get; set; }
 
     /// <summary>
     /// 是否随机题目顺序
@@ -92,8 +87,8 @@ public class StudentSpecializedTrainingDto
     /// <summary>
     /// 标签列表
     /// </summary>
-    public List<string> TagList => string.IsNullOrEmpty(Tags) 
-        ? [] 
+    public List<string> TagList => string.IsNullOrEmpty(Tags)
+        ? []
         : Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
               .Select(tag => tag.Trim())
               .ToList();
@@ -127,7 +122,7 @@ public class StudentSpecializedTrainingModuleDto
     /// <summary>
     /// 模块分值
     /// </summary>
-    public int Score { get; set; }
+    public decimal Score { get; set; }
 
     /// <summary>
     /// 排序顺序
@@ -174,11 +169,6 @@ public class StudentSpecializedTrainingQuestionDto
     /// 题目分值
     /// </summary>
     public decimal Score { get; set; }
-
-    /// <summary>
-    /// 难度等级
-    /// </summary>
-    public int DifficultyLevel { get; set; }
 
     /// <summary>
     /// 预计用时（分钟）
@@ -249,7 +239,7 @@ public class StudentSpecializedTrainingOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public int Score { get; set; }
+    public decimal Score { get; set; }
 
     /// <summary>
     /// 排序顺序

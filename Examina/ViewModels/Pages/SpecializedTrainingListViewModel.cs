@@ -353,6 +353,10 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 }
 
                 System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 文件预下载完成，继续启动专项训练");
+
+                // 隐藏主窗口
+                desktop.MainWindow.Hide();
+                System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 主窗口已隐藏");
             }
             else
             {
@@ -447,13 +451,40 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine("专项训练已通过BenchSuite完成");
 
-            // 可选：刷新训练列表
-            await RefreshAsync();
+            // 关闭训练并显示主窗口
+            CloseTrainingAndShowMainWindow();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"处理专项训练提交失败: {ex}");
             ErrorMessage = $"训练提交处理失败: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 关闭训练并显示主窗口
+    /// </summary>
+    private void CloseTrainingAndShowMainWindow()
+    {
+        try
+        {
+            // 显示主窗口
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                desktop.MainWindow.Show();
+                desktop.MainWindow.Activate();
+                System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 主窗口已显示");
+            }
+
+            // 刷新训练列表
+            _ = RefreshAsync();
+
+            System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 训练列表刷新已启动");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SpecializedTrainingListViewModel: 关闭训练并显示主窗口异常: {ex.Message}");
         }
     }
 
