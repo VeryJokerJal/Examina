@@ -465,6 +465,16 @@ public class MockExamViewModel : ViewModelBase
     /// </summary>
     private StudentExamDto ConvertMockExamToStudentExam(MockExamComprehensiveTrainingDto mockExam)
     {
+        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 开始转换模拟考试数据 - {mockExam.Name}");
+        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 原始模块数量: {mockExam.Modules.Count}");
+
+        // 打印每个模块的详细信息
+        for (int i = 0; i < mockExam.Modules.Count; i++)
+        {
+            MockExamModuleDto module = mockExam.Modules[i];
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {i + 1} - ID: {module.Id}, 名称: {module.Name}, 类型: {module.Type}, 题目数: {module.Questions?.Count ?? 0}");
+        }
+
         StudentExamDto studentExam = new()
         {
             Id = mockExam.Id,
@@ -479,6 +489,8 @@ public class MockExamViewModel : ViewModelBase
         // 转换模块
         foreach (MockExamModuleDto mockModule in mockExam.Modules)
         {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 正在转换模块 - {mockModule.Name}");
+
             StudentModuleDto studentModule = new()
             {
                 Id = mockModule.Id,
@@ -492,6 +504,7 @@ public class MockExamViewModel : ViewModelBase
             // 转换题目（如果存在）
             if (mockModule.Questions != null)
             {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {mockModule.Name} 包含 {mockModule.Questions.Count} 个题目");
                 foreach (MockExamQuestionDto mockQuestion in mockModule.Questions)
                 {
                     StudentQuestionDto studentQuestion = new()
@@ -507,9 +520,14 @@ public class MockExamViewModel : ViewModelBase
                     studentModule.Questions.Add(studentQuestion);
                 }
             }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {mockModule.Name} 没有题目");
+            }
 
             // 无论模块是否包含题目，都添加到列表中
             studentExam.Modules.Add(studentModule);
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 已添加模块 {mockModule.Name} 到转换结果");
         }
 
         System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 转换完成 - 模块数: {studentExam.Modules.Count}, 总题目数: {studentExam.Modules.Sum(m => m.Questions.Count)}");
