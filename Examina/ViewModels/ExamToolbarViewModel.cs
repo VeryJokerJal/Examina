@@ -108,6 +108,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     [Reactive] public string StudentId { get; set; } = string.Empty;
 
     /// <summary>
+    /// 是否显示答案解析按钮
+    /// </summary>
+    public bool ShowAnswerAnalysisButton => CurrentExamType == ExamType.ComprehensiveTraining || CurrentExamType == ExamType.SpecializedTraining;
+
+    /// <summary>
     /// 考试剩余时间（秒）
     /// </summary>
     [Reactive] public int RemainingTimeSeconds { get; set; }
@@ -786,6 +791,9 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         TotalQuestions = totalQuestions;
         CurrentExamStatus = ExamStatus.Preparing;
         TotalDurationSeconds = durationSeconds;
+
+        // 触发答案解析按钮可见性更新
+        this.RaisePropertyChanged(nameof(ShowAnswerAnalysisButton));
 
         // 根据考试类型设置计时模式
         UseForwardTiming = examType == ExamType.SpecializedTraining || examType == ExamType.ComprehensiveTraining;

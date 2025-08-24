@@ -1,0 +1,199 @@
+<Window x:Class="Examina.Views.ExamQuestionDetailsWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Examina.ViewModels"
+        xmlns:models="using:Examina.Models.Exam"
+        Title="{Binding ExamTitle}"
+        Width="1000"
+        Height="700"
+        d:DesignHeight="700"
+        d:DesignWidth="1000"
+        x:DataType="vm:ExamQuestionDetailsViewModel"
+        Icon="/Assets/icon.ico"
+        WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:ExamQuestionDetailsViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题栏 -->
+        <Border Grid.Row="0"
+                Padding="20,15"
+                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                           Text="{Binding ExamTitle}" />
+                <TextBlock Margin="0,5,0,0"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="{Binding ExamDescription}" />
+                <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                    <TextBlock FontSize="12"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                               Text="{Binding ModuleCount, StringFormat={}模块数: {0}}" />
+                    <TextBlock Margin="20,0,0,0"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                               Text="{Binding TotalQuestionCount, StringFormat={}总题目数: {0}}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧模块列表 -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource LayerFillColorAltBrush}"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                    BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- 模块列表标题 -->
+                    <Border Grid.Row="0"
+                            Padding="15,10"
+                            Background="{DynamicResource LayerFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                            BorderThickness="0,0,0,1">
+                        <TextBlock FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   Text="考试模块" />
+                    </Border>
+
+                    <!-- 模块列表 -->
+                    <ListBox Grid.Row="1"
+                             Background="Transparent"
+                             ItemsSource="{Binding Modules}"
+                             SelectedItem="{Binding SelectedModule}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="models:StudentModuleDto">
+                                <Border Margin="5"
+                                        Padding="10,8"
+                                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6">
+                                    <StackPanel>
+                                        <TextBlock FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                   Text="{Binding Name}" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   Text="{Binding Type}" />
+                                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                                            <TextBlock FontSize="11"
+                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                       Text="{Binding Questions.Count, StringFormat={}题目: {0}}" />
+                                            <TextBlock Margin="10,0,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                       Text="{Binding Score, StringFormat={}分值: {0}}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- 右侧题目详情 -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 模块信息栏 -->
+                <Border Grid.Row="0"
+                        Padding="15,10"
+                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               Text="{Binding ModuleInfoText}" />
+                </Border>
+
+                <!-- 题目列表 -->
+                <ScrollViewer Grid.Row="1" Padding="15">
+                    <ItemsControl ItemsSource="{Binding CurrentModuleQuestions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="models:StudentQuestionDto">
+                                <Border Margin="0,0,0,10"
+                                        Padding="15"
+                                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8">
+                                    <StackPanel>
+                                        <!-- 题目标题 -->
+                                        <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
+                                            <TextBlock VerticalAlignment="Center"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                       Text="{Binding Title}" />
+                                            <Border Margin="10,0,0,0"
+                                                    Padding="6,2"
+                                                    Background="{DynamicResource AccentFillColorDefaultBrush}"
+                                                    CornerRadius="3">
+                                                <TextBlock FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="White"
+                                                           Text="{Binding Score, StringFormat={}{0}分}" />
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- 题目内容 -->
+                                        <TextBlock Margin="0,0,0,8"
+                                                   FontSize="14"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   Text="{Binding Content}"
+                                                   TextWrapping="Wrap" />
+
+                                        <!-- 题目信息 -->
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="12"
+                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                       Text="{Binding QuestionType}" />
+                                            <TextBlock Margin="15,0,0,0"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                       Text="{Binding SortOrder, StringFormat={}序号: {0}}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

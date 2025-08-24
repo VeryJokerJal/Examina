@@ -540,7 +540,17 @@ public class ExamListViewModel : ViewModelBase
             if (sender is ExamToolbarWindow examToolbar && examToolbar.DataContext is ExamToolbarViewModel viewModel)
             {
                 System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 用户请求查看正式考试题目，考试ID: {viewModel.ExamId}");
-                // TODO: 实现正式考试题目详情显示逻辑
+
+                // 查找对应的考试数据
+                StudentExamDto? exam = Exams.FirstOrDefault(e => e.Id == viewModel.ExamId);
+                if (exam != null)
+                {
+                    ShowExamQuestionDetails(exam);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 未找到考试ID为 {viewModel.ExamId} 的考试数据");
+                }
             }
             else
             {
@@ -550,6 +560,34 @@ public class ExamListViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示题目详情异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 显示考试题目详情
+    /// </summary>
+    private void ShowExamQuestionDetails(StudentExamDto exam)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示考试题目详情 - {exam.Name}");
+
+            // 创建题目详情窗口
+            ExamQuestionDetailsViewModel detailsViewModel = new();
+            detailsViewModel.SetExamData(exam);
+
+            ExamQuestionDetailsWindow detailsWindow = new()
+            {
+                DataContext = detailsViewModel
+            };
+
+            // 显示题目详情窗口
+            detailsWindow.Show();
+            System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试题目详情窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示考试题目详情异常: {ex.Message}");
         }
     }
 
