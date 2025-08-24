@@ -2,6 +2,9 @@ using System.ComponentModel;
 using System.Reflection;
 using Examina.Models.BenchSuite;
 using Microsoft.Extensions.Logging;
+using BenchSuite.Interfaces;
+using BenchSuite.Models;
+using BenchSuite.Services;
 
 namespace Examina.Services;
 
@@ -12,6 +15,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 {
     private readonly ILogger<BenchSuiteIntegrationService> _logger;
     private readonly Dictionary<BenchSuiteFileType, string> _directoryMapping;
+    private readonly Dictionary<BenchSuiteFileType, IScoringService> _scoringServices;
 
     public BenchSuiteIntegrationService(ILogger<BenchSuiteIntegrationService> logger)
     {
@@ -23,6 +27,16 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             { BenchSuiteFileType.Word, "WORD" },
             { BenchSuiteFileType.Excel, "EXCEL" },
             { BenchSuiteFileType.Windows, "WINDOWS" }
+        };
+
+        // 初始化真实的BenchSuite评分服务
+        _scoringServices = new Dictionary<BenchSuiteFileType, IScoringService>
+        {
+            { BenchSuiteFileType.Word, new WordScoringService() },
+            { BenchSuiteFileType.Excel, new ExcelScoringService() },
+            { BenchSuiteFileType.PowerPoint, new PowerPointScoringService() },
+            { BenchSuiteFileType.Windows, new WindowsScoringService() },
+            { BenchSuiteFileType.CSharp, new CSharpScoringService() }
         };
     }
 
@@ -217,15 +231,64 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
         try
         {
-            // 根据文件类型选择相应的评分服务
-            // 这里需要调用BenchSuite的具体评分服务
-            // 由于BenchSuite是独立的程序集，这里使用反射或依赖注入来调用
+            // 检查是否有对应的评分服务
+            if (!_scoringServices.TryGetValue(fileType, out IScoringService? scoringService))
+            {
+                result.IsSuccess = false;
+                result.ErrorMessage = $"不支持的文件类型: {GetFileTypeDescription(fileType)}";
+                return result;
+            }
 
-            // 模拟评分结果（实际实现中需要调用BenchSuite的评分服务）
-            result.TotalScore = 100;
-            result.AchievedScore = 85;
+            // 检查是否有文件需要评分
+            if (filePaths == null || filePaths.Count == 0)
+            {
+                result.IsSuccess = false;
+                result.ErrorMessage = $"没有找到 {GetFileTypeDescription(fileType)} 类型的文件";
+                return result;
+            }
+
+            // 创建简化的考试模型用于评分
+            ExamModel examModel = CreateSimplifiedExamModel(fileType, request);
+
+            decimal totalScore = 0;
+            decimal achievedScore = 0;
+            List<string> details = new();
+
+            // 对每个文件进行评分
+            foreach (string filePath in filePaths)
+            {
+                if (!File.Exists(filePath))
+                {
+                    details.Add($"文件不存在: {filePath}");
+                    continue;
+                }
+
+                try
+                {
+                    // 调用真实的BenchSuite评分服务
+                    ScoringResult fileResult = await scoringService.ScoreFileAsync(filePath, examModel);
+
+                    totalScore += fileResult.TotalScore;
+                    achievedScore += fileResult.AchievedScore;
+
+                    details.Add($"文件 {Path.GetFileName(filePath)}: {fileResult.AchievedScore}/{fileResult.TotalScore}");
+
+                    if (!fileResult.IsSuccess)
+                    {
+                        details.Add($"评分警告: {fileResult.ErrorMessage}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    details.Add($"文件 {Path.GetFileName(filePath)} 评分失败: {ex.Message}");
+                    _logger.LogWarning(ex, "文件评分失败: {FilePath}", filePath);
+                }
+            }
+
+            result.TotalScore = totalScore;
+            result.AchievedScore = achievedScore;
             result.IsSuccess = true;
-            result.Details = $"文件类型 {GetFileTypeDescription(fileType)} 评分完成";
+            result.Details = string.Join("; ", details);
 
             _logger.LogInformation("文件类型 {FileType} 评分完成，得分: {AchievedScore}/{TotalScore}",
                 GetFileTypeDescription(fileType), result.AchievedScore, result.TotalScore);
@@ -238,6 +301,74 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 创建简化的考试模型用于评分
+    /// </summary>
+    private ExamModel CreateSimplifiedExamModel(BenchSuiteFileType fileType, BenchSuiteScoringRequest request)
+    {
+        // 创建简化的考试模型
+        ExamModel examModel = new()
+        {
+            Id = request.ExamId.ToString(),
+            Name = $"考试_{request.ExamId}",
+            Description = $"{GetFileTypeDescription(fileType)}考试",
+            Modules = new List<ModuleModel>()
+        };
+
+        // 根据文件类型创建对应的模块
+        ModuleType moduleType = GetModuleTypeFromFileType(fileType);
+        ModuleModel module = new()
+        {
+            Id = $"Module_{fileType}",
+            Name = GetFileTypeDescription(fileType),
+            ModuleType = moduleType,
+            Questions = new List<QuestionModel>()
+        };
+
+        // 创建一个简化的题目
+        QuestionModel question = new()
+        {
+            Id = $"Question_{fileType}_1",
+            Title = $"{GetFileTypeDescription(fileType)}操作题",
+            Description = $"完成{GetFileTypeDescription(fileType)}相关操作",
+            Score = 100, // 默认总分100
+            OperationPoints = new List<OperationPointModel>()
+        };
+
+        // 添加一个基本的操作点
+        OperationPointModel operationPoint = new()
+        {
+            Id = $"OP_{fileType}_1",
+            Name = $"{GetFileTypeDescription(fileType)}基本操作",
+            ModuleType = moduleType,
+            Score = 100,
+            IsEnabled = true,
+            Parameters = new List<ParameterModel>()
+        };
+
+        question.OperationPoints.Add(operationPoint);
+        module.Questions.Add(question);
+        examModel.Modules.Add(module);
+
+        return examModel;
+    }
+
+    /// <summary>
+    /// 根据文件类型获取模块类型
+    /// </summary>
+    private ModuleType GetModuleTypeFromFileType(BenchSuiteFileType fileType)
+    {
+        return fileType switch
+        {
+            BenchSuiteFileType.Word => ModuleType.Word,
+            BenchSuiteFileType.Excel => ModuleType.Excel,
+            BenchSuiteFileType.PowerPoint => ModuleType.PowerPoint,
+            BenchSuiteFileType.Windows => ModuleType.Windows,
+            BenchSuiteFileType.CSharp => ModuleType.CSharp,
+            _ => ModuleType.Word // 默认值
+        };
     }
 
     /// <summary>
