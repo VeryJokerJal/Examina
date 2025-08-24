@@ -1,3 +1,4 @@
+using Examina.Models;
 using Examina.Models.BenchSuite;
 
 namespace Examina.Services;
@@ -21,7 +22,16 @@ public interface IBenchSuiteDirectoryService
     string GetDirectoryPath(BenchSuiteFileType fileType);
 
     /// <summary>
-    /// 获取考试文件的完整路径
+    /// 获取指定考试类型和ID的文件类型目录路径
+    /// </summary>
+    /// <param name="examType">考试类型</param>
+    /// <param name="examId">考试ID</param>
+    /// <param name="fileType">文件类型</param>
+    /// <returns>目录路径</returns>
+    string GetExamDirectoryPath(ExamType examType, int examId, BenchSuiteFileType fileType);
+
+    /// <summary>
+    /// 获取考试文件的完整路径（旧版本，保持兼容性）
     /// </summary>
     /// <param name="fileType">文件类型</param>
     /// <param name="examId">考试ID</param>
@@ -29,6 +39,17 @@ public interface IBenchSuiteDirectoryService
     /// <param name="fileName">文件名</param>
     /// <returns>完整文件路径</returns>
     string GetExamFilePath(BenchSuiteFileType fileType, int examId, int studentId, string fileName);
+
+    /// <summary>
+    /// 获取考试文件的完整路径（新版本）
+    /// </summary>
+    /// <param name="examType">考试类型</param>
+    /// <param name="examId">考试ID</param>
+    /// <param name="fileType">文件类型</param>
+    /// <param name="studentId">学生ID</param>
+    /// <param name="fileName">文件名</param>
+    /// <returns>完整文件路径</returns>
+    string GetExamFilePath(ExamType examType, int examId, BenchSuiteFileType fileType, int studentId, string fileName);
 
     /// <summary>
     /// 确保目录结构存在

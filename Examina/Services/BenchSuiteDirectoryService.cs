@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Reflection;
+using Examina.Models;
 using Examina.Models.BenchSuite;
+using Examina.Models.FileDownload;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
@@ -37,7 +39,7 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 获取指定文件类型的目录路径
+    /// 获取指定文件类型的目录路径（旧版本，保持兼容性）
     /// </summary>
     public string GetDirectoryPath(BenchSuiteFileType fileType)
     {
@@ -49,13 +51,37 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 获取考试文件的完整路径
+    /// 获取指定考试类型和ID的文件类型目录路径
+    /// </summary>
+    public string GetExamDirectoryPath(ExamType examType, int examId, BenchSuiteFileType fileType)
+    {
+        if (!_directoryMapping.TryGetValue(fileType, out string? subdirectory))
+        {
+            throw new ArgumentException($"不支持的文件类型: {fileType}", nameof(fileType));
+        }
+
+        string examTypeFolder = GetExamTypeFolder(examType);
+        return System.IO.Path.Combine(_basePath, examTypeFolder, examId.ToString(), subdirectory);
+    }
+
+    /// <summary>
+    /// 获取考试文件的完整路径（旧版本，保持兼容性）
     /// </summary>
     public string GetExamFilePath(BenchSuiteFileType fileType, int examId, int studentId, string fileName)
     {
         string directoryPath = GetDirectoryPath(fileType);
         string examDirectory = System.IO.Path.Combine(directoryPath, $"Exam_{examId}", $"Student_{studentId}");
         return System.IO.Path.Combine(examDirectory, fileName);
+    }
+
+    /// <summary>
+    /// 获取考试文件的完整路径（新版本）
+    /// </summary>
+    public string GetExamFilePath(ExamType examType, int examId, BenchSuiteFileType fileType, int studentId, string fileName)
+    {
+        string directoryPath = GetExamDirectoryPath(examType, examId, fileType);
+        string studentDirectory = System.IO.Path.Combine(directoryPath, $"Student_{studentId}");
+        return System.IO.Path.Combine(studentDirectory, fileName);
     }
 
     /// <summary>
@@ -276,6 +302,23 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
         FieldInfo? field = fileType.GetType().GetField(fileType.ToString());
         DescriptionAttribute? attribute = field?.GetCustomAttribute<DescriptionAttribute>();
         return attribute?.Description ?? fileType.ToString();
+    }
+
+    /// <summary>
+    /// 获取考试类型对应的文件夹名称
+    /// </summary>
+    private static string GetExamTypeFolder(ExamType examType)
+    {
+        return examType switch
+        {
+            ExamType.MockExam => "MockExams",
+            ExamType.FormalExam => "OnlineExams",
+            ExamType.ComprehensiveTraining => "ComprehensiveTraining",
+            ExamType.SpecializedTraining => "SpecializedTraining",
+            ExamType.Practice => "Practice",
+            ExamType.SpecialPractice => "SpecialPractice",
+            _ => "Unknown"
+        };
     }
 
     #endregion

@@ -213,14 +213,34 @@ private Window? GetMainWindow()
 目录结构：
 ```
 C:\河北对口计算机\
-├── MockExams/
+├── MockExams/              # 模拟考试
 │   └── {examId}/
-├── OnlineExams/
+│       ├── CSharp/
+│       ├── PPT/
+│       ├── WORD/
+│       ├── EXCEL/
+│       └── WINDOWS/
+├── OnlineExams/            # 上机统考（正式考试）
 │   └── {examId}/
-├── ComprehensiveTraining/
+│       ├── CSharp/
+│       ├── PPT/
+│       ├── WORD/
+│       ├── EXCEL/
+│       └── WINDOWS/
+├── ComprehensiveTraining/  # 综合考试
 │   └── {trainingId}/
-└── SpecializedTraining/
+│       ├── CSharp/
+│       ├── PPT/
+│       ├── WORD/
+│       ├── EXCEL/
+│       └── WINDOWS/
+└── SpecializedTraining/    # 专项训练
     └── {trainingId}/
+        ├── CSharp/
+        ├── PPT/
+        ├── WORD/
+        ├── EXCEL/
+        └── WINDOWS/
 ```
 
 ### 2. 支持的文件格式

@@ -408,8 +408,8 @@ public class EnhancedExamToolbarService : IDisposable
         // 扫描各种类型的考试文件
         foreach (BenchSuiteFileType fileType in _benchSuiteIntegrationService.GetSupportedFileTypes())
         {
-            string directoryPath = _benchSuiteDirectoryService.GetDirectoryPath(fileType);
-            string examDirectory = System.IO.Path.Combine(directoryPath, $"Exam_{request.ExamId}", $"Student_{request.StudentUserId}");
+            string directoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(request.ExamType, request.ExamId, fileType);
+            string examDirectory = System.IO.Path.Combine(directoryPath, $"Student_{request.StudentUserId}");
 
             if (System.IO.Directory.Exists(examDirectory))
             {
