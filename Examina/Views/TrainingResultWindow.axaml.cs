@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Examina.ViewModels;
+using System.Threading.Tasks;
 
 namespace Examina.Views;
 
@@ -86,5 +87,17 @@ public partial class TrainingResultWindow : Window
     private void CloseButton_Click(object? sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    /// <summary>
+    /// 等待窗口关闭
+    /// </summary>
+    public Task WaitForCloseAsync()
+    {
+        TaskCompletionSource<bool> tcs = new();
+
+        Closed += (sender, e) => tcs.SetResult(true);
+
+        return tcs.Task;
     }
 }

@@ -605,18 +605,13 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 DataContext = resultViewModel
             };
 
-            // 显示结果窗口（模态）
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-                desktop.MainWindow != null)
-            {
-                await resultWindow.ShowDialog(desktop.MainWindow);
-            }
-            else
-            {
-                resultWindow.Show();
-            }
+            // 显示结果窗口（非模态，因为主窗口已隐藏）
+            resultWindow.Show();
 
-            System.Diagnostics.Debug.WriteLine("训练结果窗口已显示");
+            // 等待窗口关闭
+            await resultWindow.WaitForCloseAsync();
+
+            System.Diagnostics.Debug.WriteLine("训练结果窗口已显示并关闭");
         }
         catch (Exception ex)
         {
