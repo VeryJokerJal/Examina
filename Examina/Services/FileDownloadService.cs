@@ -51,17 +51,19 @@ public class FileDownloadService : IFileDownloadService
             }
 
             string content = await response.Content.ReadAsStringAsync();
-            List<ExamFileDto>? fileData = JsonSerializer.Deserialize<List<ExamFileDto>>(content, new JsonSerializerOptions
+            ApiResponse<List<ExamFileDto>>? apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ExamFileDto>>>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
+            List<ExamFileDto>? fileData = apiResponse?.Data;
+
             return fileData?.Select(f => new FileDownloadInfo
             {
-                FileName = f.FileName,
+                FileName = f.OriginalFileName,
                 DownloadUrl = f.DownloadUrl,
                 TotalSize = f.FileSize,
-                IsCompressed = IsCompressedFile(f.FileName)
+                IsCompressed = IsCompressedFile(f.OriginalFileName)
             }).ToList() ?? [];
         }
         catch (Exception ex)
@@ -90,17 +92,19 @@ public class FileDownloadService : IFileDownloadService
             }
 
             string content = await response.Content.ReadAsStringAsync();
-            List<TrainingFileDto>? fileData = JsonSerializer.Deserialize<List<TrainingFileDto>>(content, new JsonSerializerOptions
+            ApiResponse<List<TrainingFileDto>>? apiResponse = JsonSerializer.Deserialize<ApiResponse<List<TrainingFileDto>>>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
+            List<TrainingFileDto>? fileData = apiResponse?.Data;
+
             return fileData?.Select(f => new FileDownloadInfo
             {
-                FileName = f.FileName,
+                FileName = f.OriginalFileName,
                 DownloadUrl = f.DownloadUrl,
                 TotalSize = f.FileSize,
-                IsCompressed = IsCompressedFile(f.FileName)
+                IsCompressed = IsCompressedFile(f.OriginalFileName)
             }).ToList() ?? [];
         }
         catch (Exception ex)
@@ -539,14 +543,30 @@ public class FileDownloadService : IFileDownloadService
 }
 
 /// <summary>
+/// API响应包装类
+/// </summary>
+/// <typeparam name="T">数据类型</typeparam>
+public class ApiResponse<T>
+{
+    public bool Success { get; set; }
+    public T? Data { get; set; }
+    public string? Message { get; set; }
+}
+
+/// <summary>
 /// 考试文件DTO
 /// </summary>
 public class ExamFileDto
 {
-    public string FileName { get; set; } = string.Empty;
-    public string DownloadUrl { get; set; } = string.Empty;
+    public int FileId { get; set; }
+    public string OriginalFileName { get; set; } = string.Empty;
     public long FileSize { get; set; }
-    public string? FileHash { get; set; }
+    public string ContentType { get; set; } = string.Empty;
+    public DateTime UploadedAt { get; set; }
+    public string? Description { get; set; }
+    public string? Tags { get; set; }
+    public int DownloadCount { get; set; }
+    public string DownloadUrl { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -554,8 +574,13 @@ public class ExamFileDto
 /// </summary>
 public class TrainingFileDto
 {
-    public string FileName { get; set; } = string.Empty;
-    public string DownloadUrl { get; set; } = string.Empty;
+    public int FileId { get; set; }
+    public string OriginalFileName { get; set; } = string.Empty;
     public long FileSize { get; set; }
-    public string? FileHash { get; set; }
+    public string ContentType { get; set; } = string.Empty;
+    public DateTime UploadedAt { get; set; }
+    public string? Description { get; set; }
+    public string? Tags { get; set; }
+    public int DownloadCount { get; set; }
+    public string DownloadUrl { get; set; } = string.Empty;
 }
