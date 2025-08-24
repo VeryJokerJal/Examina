@@ -471,27 +471,27 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
             if (scoringResult != null && scoringResult.IsSuccess)
             {
-                // 显示训练结果窗口
+                // 显示训练结果窗口，窗口关闭后会自动显示主窗口
                 await ShowTrainingResultAsync(training.Name, scoringResult);
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine("无法获取BenchSuite评分结果或评分失败");
-                // 即使评分失败也显示基本结果
+                // 即使评分失败也显示基本结果，窗口关闭后会自动显示主窗口
                 await ShowBasicTrainingResultAsync(training.Name);
             }
 
             System.Diagnostics.Debug.WriteLine("专项训练已通过BenchSuite完成");
 
-            // 关闭训练并显示主窗口
-            CloseTrainingAndShowMainWindow();
+            // 结果窗口关闭后会自动显示主窗口，这里不需要手动调用
+            // CloseTrainingAndShowMainWindow(); // 移除过早的主窗口显示调用
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"处理专项训练提交失败: {ex}");
             ErrorMessage = $"训练提交处理失败: {ex.Message}";
 
-            // 即使出错也要关闭训练
+            // 即使出错也要关闭训练并显示主窗口
             CloseTrainingAndShowMainWindow();
         }
     }
@@ -612,10 +612,15 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             await resultWindow.WaitForCloseAsync();
 
             System.Diagnostics.Debug.WriteLine("训练结果窗口已显示并关闭");
+
+            // 窗口关闭后显示主窗口
+            CloseTrainingAndShowMainWindow();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"显示训练结果窗口失败: {ex.Message}");
+            // 如果显示结果窗口失败，也要显示主窗口
+            CloseTrainingAndShowMainWindow();
         }
     }
 

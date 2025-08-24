@@ -540,17 +540,22 @@ public class MockExamViewModel : ViewModelBase
             {
                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交成功，ID: {examId}");
 
-                // 关闭考试工具栏窗口并显示主窗口
-                CloseExamAndShowMainWindow();
+                // 显示考试结果窗口，窗口关闭后会自动显示主窗口
+                await ShowExamResultAsync(examId, examType, true, actualDurationSeconds);
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交失败，ID: {examId}");
+
+                // 显示失败结果窗口，窗口关闭后会自动显示主窗口
+                await ShowExamResultAsync(examId, examType, false, actualDurationSeconds);
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 提交考试异常: {ex.Message}");
+            // 如果提交过程异常，显示错误结果窗口
+            await ShowExamResultAsync(examId, examType, false, actualDurationSeconds);
         }
     }
 
@@ -670,6 +675,59 @@ public class MockExamViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 通知排行榜页面刷新异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 显示考试结果窗口
+    /// </summary>
+    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds)
+    {
+        try
+        {
+            // 获取考试名称
+            string examName = "模拟考试";
+
+            // 转换用时为分钟
+            int? durationMinutes = actualDurationSeconds.HasValue ? (actualDurationSeconds.Value / 60) : null;
+
+            // 显示考试结果窗口
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备显示考试结果窗口 - {examName}");
+
+                await ExamResultWindow.ShowExamResultAsync(
+                    desktop.MainWindow,
+                    examName,
+                    examType,
+                    isSuccessful,
+                    null, // startTime
+                    null, // endTime
+                    durationMinutes,
+                    null, // score - 模拟考试暂时不显示分数
+                    null, // totalScore
+                    isSuccessful ? "" : "考试提交失败",
+                    isSuccessful ? "模拟考试提交成功" : "请检查网络连接或联系管理员"
+                );
+
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 考试结果窗口已显示并关闭");
+
+                // 窗口关闭后显示主窗口
+                CloseExamAndShowMainWindow();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 无法获取主窗口，跳过结果显示");
+                // 如果无法显示结果窗口，直接显示主窗口
+                CloseExamAndShowMainWindow();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示考试结果窗口失败: {ex.Message}");
+            // 如果显示结果窗口失败，也要显示主窗口
+            CloseExamAndShowMainWindow();
         }
     }
 }

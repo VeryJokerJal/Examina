@@ -571,10 +571,11 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 训练提交成功，ID: {trainingId}");
 
                 // 获取训练信息并显示结果（传递真实的评分结果）
+                // 窗口关闭后会自动显示主窗口
                 await ShowTrainingResultAsync(trainingId, examType, scoringResult);
 
-                // 关闭训练工具栏窗口并显示主窗口
-                CloseTrainingAndShowMainWindow();
+                // 结果窗口关闭后会自动显示主窗口，这里不需要手动调用
+                // CloseTrainingAndShowMainWindow(); // 移除过早的主窗口显示调用
             }
             else
             {
@@ -794,6 +795,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             if (training == null)
             {
                 System.Diagnostics.Debug.WriteLine($"无法获取综合训练信息，ID: {trainingId}");
+                // 获取训练信息失败时也要显示主窗口
+                CloseTrainingAndShowMainWindow();
                 return;
             }
 
@@ -818,6 +821,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"显示综合训练结果失败: {ex.Message}");
+            // 如果显示训练结果失败，也要显示主窗口
+            CloseTrainingAndShowMainWindow();
         }
     }
 
@@ -861,10 +866,15 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             await resultWindow.WaitForCloseAsync();
 
             System.Diagnostics.Debug.WriteLine("综合训练结果窗口已显示并关闭");
+
+            // 窗口关闭后显示主窗口
+            CloseTrainingAndShowMainWindow();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"显示详细训练结果失败: {ex.Message}");
+            // 如果显示结果窗口失败，也要显示主窗口
+            CloseTrainingAndShowMainWindow();
         }
     }
 

@@ -588,10 +588,11 @@ public class ExamListViewModel : ViewModelBase
             CloseExamToolbarWindow(examToolbar);
 
             // 先显示考试结果窗口（不包含评分，显示计算中状态）
+            // 窗口关闭后会自动显示主窗口，这里不需要手动调用
             await ShowExamResultWithAsyncScoringAsync(examId, examType, basicSubmitResult, actualDurationSeconds, errorMessage);
 
-            // 显示主窗口并刷新数据
-            ShowMainWindowAndRefresh();
+            // 结果窗口关闭后会自动显示主窗口，这里不需要手动调用
+            // ShowMainWindowAndRefresh(); // 移除过早的主窗口显示调用
         }
         catch (Exception ex)
         {
@@ -600,11 +601,11 @@ public class ExamListViewModel : ViewModelBase
             // 确保关闭考试工具栏窗口
             CloseExamToolbarWindow(examToolbar);
 
-            // 显示错误结果
+            // 显示错误结果，窗口关闭后会自动显示主窗口
             await ShowExamResultAsync(examId, examType, false, null, null, null, $"提交异常: {ex.Message}", "");
 
-            // 显示主窗口
-            ShowMainWindowAndRefresh();
+            // 传统模式的结果窗口关闭后会自动显示主窗口，这里不需要手动调用
+            // ShowMainWindowAndRefresh(); // 移除过早的主窗口显示调用
         }
     }
 
@@ -693,6 +694,13 @@ public class ExamListViewModel : ViewModelBase
 
                 ExamResultWindow resultWindow = new(resultViewModel);
 
+                // 添加窗口关闭事件处理
+                resultWindow.Closed += (sender, e) =>
+                {
+                    System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试结果窗口已关闭，显示主窗口");
+                    ShowMainWindowAndRefresh();
+                };
+
                 // 显示窗口（非阻塞）
                 resultWindow.Show();
 
@@ -707,11 +715,15 @@ public class ExamListViewModel : ViewModelBase
             else
             {
                 System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过结果显示");
+                // 如果无法显示结果窗口，直接显示主窗口
+                ShowMainWindowAndRefresh();
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示考试结果异常: {ex.Message}");
+            // 如果显示结果窗口失败，也要显示主窗口
+            ShowMainWindowAndRefresh();
         }
     }
 
@@ -761,16 +773,23 @@ public class ExamListViewModel : ViewModelBase
                     notes
                 );
 
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试结果窗口已显示");
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试结果窗口已显示并关闭");
+
+                // 模态窗口关闭后显示主窗口
+                ShowMainWindowAndRefresh();
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过结果显示");
+                // 如果无法显示结果窗口，直接显示主窗口
+                ShowMainWindowAndRefresh();
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 显示考试结果窗口异常: {ex.Message}");
+            // 如果显示结果窗口失败，也要显示主窗口
+            ShowMainWindowAndRefresh();
         }
     }
 
