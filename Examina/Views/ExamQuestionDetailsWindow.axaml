@@ -142,87 +142,12 @@
 
                 <!-- 模块描述内容 -->
                 <ScrollViewer Grid.Row="1" Padding="20">
-                    <StackPanel Spacing="20">
-                        <!-- 模块详细信息 -->
-                        <Border Padding="15"
-                                Background="{DynamicResource LayerFillColorDefaultBrush}"
-                                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                                BorderThickness="1"
-                                CornerRadius="8">
-                            <StackPanel Spacing="12">
-                                <!-- 模块基本信息 -->
-                                <TextBlock FontSize="14"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                           Text="模块信息" />
-
-                                <TextBlock FontSize="13"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                           Text="{Binding ModuleDetailInfo}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-
-                        <!-- 模块描述 -->
-                        <Border Padding="15"
-                                Background="{DynamicResource LayerFillColorDefaultBrush}"
-                                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                                BorderThickness="1"
-                                CornerRadius="8">
-                            <StackPanel Spacing="12">
-                                <!-- 描述标题 -->
-                                <TextBlock FontSize="14"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                           Text="模块描述" />
-
-                                <!-- 描述内容 -->
-                                <TextBlock FontSize="13"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                           Text="{Binding ModuleDescriptionText}"
-                                           TextWrapping="Wrap"
-                                           LineHeight="20" />
-                            </StackPanel>
-                        </Border>
-
-                        <!-- 题目统计信息 -->
-                        <Border Padding="15"
-                                Background="{DynamicResource LayerFillColorDefaultBrush}"
-                                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                                BorderThickness="1"
-                                CornerRadius="8">
-                            <StackPanel Spacing="12">
-                                <!-- 统计标题 -->
-                                <TextBlock FontSize="14"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                           Text="题目统计" />
-
-                                <!-- 统计内容 -->
-                                <StackPanel Orientation="Horizontal" Spacing="20">
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <TextBlock FontSize="12"
-                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                   Text="题目总数:" />
-                                        <TextBlock FontSize="12"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource AccentFillColorDefaultBrush}"
-                                                   Text="{Binding CurrentModuleQuestionCount}" />
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <TextBlock FontSize="12"
-                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                   Text="模块分值:" />
-                                        <TextBlock FontSize="12"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource AccentFillColorDefaultBrush}"
-                                                   Text="{Binding SelectedModule.Score, StringFormat={}分}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
+                    <!-- 直接显示模块描述文本，无卡片容器 -->
+                    <TextBlock FontSize="14"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="{Binding ModuleDescriptionText}"
+                               TextWrapping="Wrap"
+                               LineHeight="22" />
                 </ScrollViewer>
             </Grid>
         </Grid>

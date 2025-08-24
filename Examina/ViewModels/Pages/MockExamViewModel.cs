@@ -489,22 +489,26 @@ public class MockExamViewModel : ViewModelBase
                 Order = mockModule.Order
             };
 
-            // 转换题目
-            foreach (MockExamQuestionDto mockQuestion in mockModule.Questions)
+            // 转换题目（如果存在）
+            if (mockModule.Questions != null)
             {
-                StudentQuestionDto studentQuestion = new()
+                foreach (MockExamQuestionDto mockQuestion in mockModule.Questions)
                 {
-                    Id = mockQuestion.Id,
-                    Title = mockQuestion.Title,
-                    Content = mockQuestion.Content,
-                    QuestionType = mockModule.Type, // 使用模块类型作为题目类型
-                    Score = (int)mockQuestion.Score,
-                    SortOrder = mockQuestion.SortOrder,
-                    IsRequired = mockQuestion.IsRequired
-                };
-                studentModule.Questions.Add(studentQuestion);
+                    StudentQuestionDto studentQuestion = new()
+                    {
+                        Id = mockQuestion.Id,
+                        Title = mockQuestion.Title,
+                        Content = mockQuestion.Content,
+                        QuestionType = mockModule.Type, // 使用模块类型作为题目类型
+                        Score = (int)mockQuestion.Score,
+                        SortOrder = mockQuestion.SortOrder,
+                        IsRequired = mockQuestion.IsRequired
+                    };
+                    studentModule.Questions.Add(studentQuestion);
+                }
             }
 
+            // 无论模块是否包含题目，都添加到列表中
             studentExam.Modules.Add(studentModule);
         }
 
