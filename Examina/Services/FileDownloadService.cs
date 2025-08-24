@@ -263,11 +263,11 @@ public class FileDownloadService : IFileDownloadService
             using Stream contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using FileStream fileStream = new(fileInfo.LocalFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
 
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[100 * 1024 * 1024];
             int bytesRead;
-            while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
             {
-                await fileStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
                 fileInfo.DownloadedSize += bytesRead;
                 progress?.Report(fileInfo);
             }

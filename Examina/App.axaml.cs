@@ -86,6 +86,9 @@ public partial class App : Application
             _ = builder.SetMinimumLevel(LogLevel.Information);
         });
 
+        // 注册BenchSuite相关服务
+        _ = services.ConfigureExaminaServices();
+
         // 注册其他服务
         _ = services.AddSingleton<IConfigurationService, ConfigurationService>();
         _ = services.AddSingleton<IDeviceService, DeviceService>();
@@ -284,6 +287,18 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // 初始化AppServiceManager
+        if (_serviceProvider != null)
+        {
+            AppServiceManager.Initialize(_serviceProvider);
+
+            // 测试BenchSuiteDirectoryService是否正确注册
+            #if DEBUG
+            Tests.BenchSuiteDirectoryServiceTest.TestServiceAvailability();
+            Tests.BenchSuiteDirectoryServiceTest.TestExamToolbarViewModelDependency();
+            #endif
+        }
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // 创建加载窗口，开始自动认证流程
