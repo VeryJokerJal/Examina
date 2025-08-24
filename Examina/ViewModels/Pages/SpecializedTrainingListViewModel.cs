@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
+using Examina.Models.BenchSuite;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
 using Examina.Views;
@@ -19,6 +20,9 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 {
     private readonly IStudentSpecializedTrainingService _studentSpecializedTrainingService;
     private readonly IAuthenticationService _authenticationService;
+    private readonly IBenchSuiteIntegrationService? _benchSuiteIntegrationService;
+    private readonly IBenchSuiteDirectoryService? _benchSuiteDirectoryService;
+    private DateTime _trainingStartTime;
     private bool _isLoading;
     private string _errorMessage = string.Empty;
     private int _totalCount;
@@ -163,6 +167,10 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         _studentSpecializedTrainingService = studentSpecializedTrainingService;
         _authenticationService = authenticationService;
+
+        // 尝试获取BenchSuite服务（可选）
+        _benchSuiteIntegrationService = AppServiceManager.GetService<IBenchSuiteIntegrationService>();
+        _benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
 
         // 初始化命令
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
@@ -333,6 +341,9 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         try
         {
+            // 记录训练开始时间
+            _trainingStartTime = DateTime.Now;
+
             System.Diagnostics.Debug.WriteLine($"启动BenchSuite专项训练: {training.Name}");
             System.Diagnostics.Debug.WriteLine($"模块类型: {training.ModuleType}");
             System.Diagnostics.Debug.WriteLine($"题目数量: {training.QuestionCount}");
@@ -438,7 +449,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 处理专项训练提交（简化版本，无API调用）
+    /// 处理专项训练提交（包含BenchSuite评分和结果显示）
     /// </summary>
     private async Task SubmitTrainingWithBenchSuiteAsync(int trainingId, bool isAutoSubmit)
     {
@@ -446,8 +457,29 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"专项训练提交完成，ID: {trainingId}, 自动提交: {isAutoSubmit}");
 
-            // 专项训练提交后直接完成，无需API调用
-            // BenchSuite会处理实际的评分和结果记录
+            // 获取训练信息
+            StudentSpecializedTrainingDto? training = await GetTrainingByIdAsync(trainingId);
+            if (training == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取训练信息，ID: {trainingId}");
+                CloseTrainingAndShowMainWindow();
+                return;
+            }
+
+            // 获取BenchSuite评分结果
+            BenchSuiteScoringResult? scoringResult = await GetBenchSuiteScoringResultAsync(trainingId, training);
+
+            if (scoringResult != null && scoringResult.IsSuccess)
+            {
+                // 显示训练结果窗口
+                await ShowTrainingResultAsync(training.Name, scoringResult);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("无法获取BenchSuite评分结果或评分失败");
+                // 即使评分失败也显示基本结果
+                await ShowBasicTrainingResultAsync(training.Name);
+            }
 
             System.Diagnostics.Debug.WriteLine("专项训练已通过BenchSuite完成");
 
@@ -458,6 +490,163 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"处理专项训练提交失败: {ex}");
             ErrorMessage = $"训练提交处理失败: {ex.Message}";
+
+            // 即使出错也要关闭训练
+            CloseTrainingAndShowMainWindow();
+        }
+    }
+
+    /// <summary>
+    /// 根据ID获取训练信息
+    /// </summary>
+    private async Task<StudentSpecializedTrainingDto?> GetTrainingByIdAsync(int trainingId)
+    {
+        try
+        {
+            return await _studentSpecializedTrainingService.GetTrainingDetailsAsync(trainingId);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取训练信息失败，ID: {trainingId}, 错误: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 获取BenchSuite评分结果
+    /// </summary>
+    private async Task<BenchSuiteScoringResult?> GetBenchSuiteScoringResultAsync(int trainingId, StudentSpecializedTrainingDto training)
+    {
+        try
+        {
+            if (_benchSuiteIntegrationService == null || _benchSuiteDirectoryService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("BenchSuite服务不可用");
+                return null;
+            }
+
+            // 构建评分请求
+            BenchSuiteScoringRequest request = new()
+            {
+                ExamId = trainingId,
+                ExamType = ExamType.SpecializedTraining,
+                StudentUserId = 1, // TODO: 从认证服务获取实际用户ID
+                BasePath = _benchSuiteDirectoryService.GetBasePath()
+            };
+
+            // 扫描考试文件（简化版本）
+            await ScanTrainingFilesAsync(request, training);
+
+            // 执行评分
+            BenchSuiteScoringResult result = await _benchSuiteIntegrationService.ScoreExamAsync(request);
+
+            System.Diagnostics.Debug.WriteLine($"BenchSuite评分完成，成功: {result.IsSuccess}, 总分: {result.TotalScore}, 得分: {result.AchievedScore}");
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取BenchSuite评分结果失败: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 扫描训练文件
+    /// </summary>
+    private async Task ScanTrainingFilesAsync(BenchSuiteScoringRequest request, StudentSpecializedTrainingDto training)
+    {
+        try
+        {
+            // 根据训练的模块类型确定文件类型
+            BenchSuiteFileType fileType = GetFileTypeFromModuleType(training.ModuleType);
+
+            // 简化的文件扫描逻辑
+            request.FilePaths[fileType] = new List<string>();
+
+            System.Diagnostics.Debug.WriteLine($"已配置文件类型: {fileType} 用于模块类型: {training.ModuleType}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"扫描训练文件失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 从模块类型获取BenchSuite文件类型
+    /// </summary>
+    private static BenchSuiteFileType GetFileTypeFromModuleType(string moduleType)
+    {
+        return moduleType.ToLower() switch
+        {
+            "word" => BenchSuiteFileType.Word,
+            "excel" => BenchSuiteFileType.Excel,
+            "powerpoint" => BenchSuiteFileType.PowerPoint,
+            "csharp" => BenchSuiteFileType.CSharp,
+            "windows" => BenchSuiteFileType.Windows,
+            _ => BenchSuiteFileType.Windows
+        };
+    }
+
+    /// <summary>
+    /// 显示训练结果窗口
+    /// </summary>
+    private async Task ShowTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
+    {
+        try
+        {
+            // 创建训练结果ViewModel
+            TrainingResultViewModel resultViewModel = new();
+            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
+
+            // 创建训练结果窗口
+            TrainingResultWindow resultWindow = new()
+            {
+                DataContext = resultViewModel
+            };
+
+            // 显示结果窗口（模态）
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                await resultWindow.ShowDialog(desktop.MainWindow);
+            }
+            else
+            {
+                resultWindow.Show();
+            }
+
+            System.Diagnostics.Debug.WriteLine("训练结果窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"显示训练结果窗口失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 显示基本训练结果（当BenchSuite评分失败时）
+    /// </summary>
+    private async Task ShowBasicTrainingResultAsync(string trainingName)
+    {
+        try
+        {
+            // 创建基本的评分结果
+            BenchSuiteScoringResult basicResult = new()
+            {
+                IsSuccess = false,
+                ErrorMessage = "评分服务不可用",
+                TotalScore = 100,
+                AchievedScore = 0,
+                StartTime = _trainingStartTime,
+                EndTime = DateTime.Now
+            };
+
+            await ShowTrainingResultAsync(trainingName, basicResult);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"显示基本训练结果失败: {ex.Message}");
         }
     }
 

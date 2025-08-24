@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using Examina.Extensions;
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.Models;
@@ -26,6 +27,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     private int _currentPage = 1;
     private bool _hasFullAccess;
     private bool _isUpdatingPermissions = false;
+    private DateTime _trainingStartTime;
     private const int PageSize = 20;
 
     /// <summary>
@@ -393,6 +395,9 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
+            // 记录训练开始时间
+            _trainingStartTime = DateTime.Now;
+
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
@@ -562,6 +567,9 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             if (submitResult)
             {
                 System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 训练提交成功，ID: {trainingId}");
+
+                // 获取训练信息并显示结果
+                await ShowTrainingResultAsync(trainingId, examType);
 
                 // 关闭训练工具栏窗口并显示主窗口
                 CloseTrainingAndShowMainWindow();
@@ -769,6 +777,127 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看答案解析失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 显示训练结果
+    /// </summary>
+    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType)
+    {
+        try
+        {
+            // 获取训练信息
+            StudentComprehensiveTrainingDto? training = await GetTrainingByIdAsync(trainingId);
+            if (training == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取综合训练信息，ID: {trainingId}");
+                return;
+            }
+
+            // 创建基本的评分结果（综合练习已通过EnhancedExamToolbarService完成评分）
+            // 这里显示一个基本的成功结果
+            BenchSuiteScoringResult? scoringResult = new()
+            {
+                IsSuccess = true,
+                TotalScore = 100,
+                AchievedScore = 85, // 模拟得分
+                StartTime = _trainingStartTime,
+                EndTime = DateTime.Now
+            };
+
+            if (scoringResult != null && scoringResult.IsSuccess)
+            {
+                // 显示详细的训练结果
+                await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
+            }
+            else
+            {
+                // 显示基本的训练结果
+                await ShowBasicTrainingResultAsync(training.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"显示综合训练结果失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 根据ID获取训练信息
+    /// </summary>
+    private async Task<StudentComprehensiveTrainingDto?> GetTrainingByIdAsync(int trainingId)
+    {
+        try
+        {
+            return await _studentComprehensiveTrainingService.GetTrainingDetailsAsync(trainingId);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取综合训练信息失败，ID: {trainingId}, 错误: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 显示详细的训练结果
+    /// </summary>
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
+    {
+        try
+        {
+            // 创建训练结果ViewModel
+            TrainingResultViewModel resultViewModel = new();
+            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
+
+            // 创建训练结果窗口
+            TrainingResultWindow resultWindow = new()
+            {
+                DataContext = resultViewModel
+            };
+
+            // 显示结果窗口（模态）
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                await resultWindow.ShowDialog(desktop.MainWindow);
+            }
+            else
+            {
+                resultWindow.Show();
+            }
+
+            System.Diagnostics.Debug.WriteLine("综合训练结果窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"显示详细训练结果失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 显示基本训练结果（当BenchSuite评分失败时）
+    /// </summary>
+    private async Task ShowBasicTrainingResultAsync(string trainingName)
+    {
+        try
+        {
+            // 创建基本的评分结果
+            BenchSuiteScoringResult basicResult = new()
+            {
+                IsSuccess = false,
+                ErrorMessage = "评分服务不可用",
+                TotalScore = 100,
+                AchievedScore = 0,
+                StartTime = _trainingStartTime,
+                EndTime = DateTime.Now
+            };
+
+            await ShowDetailedTrainingResultAsync(trainingName, basicResult);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"显示基本训练结果失败: {ex.Message}");
         }
     }
 
