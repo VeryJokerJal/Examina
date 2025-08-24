@@ -93,7 +93,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ExamCompletions_StudentUserId_ExamId",
                 table: "ExamCompletions",
-                columns: new[] { "StudentUserId", "ExamId" },
+                columns: ["StudentUserId", "ExamId"],
                 unique: true);
         }
 

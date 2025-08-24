@@ -1,4 +1,4 @@
-namespace ExaminaWebApplication.Models.FileUpload;
+﻿namespace ExaminaWebApplication.Models.FileUpload;
 
 /// <summary>
 /// 文件上传配置
@@ -19,20 +19,20 @@ public class FileUploadConfiguration
     /// 允许的文件扩展名
     /// </summary>
     public string[] AllowedExtensions { get; set; } = 
-    {
+    [
         ".zip", ".rar", ".7z",
         ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
         ".txt", ".rtf", ".json", ".xml",
         ".jpg", ".jpeg", ".png", ".gif", ".bmp",
         ".mp4", ".avi", ".mov", ".wmv",
         ".mp3", ".wav", ".wma"
-    };
+    ];
 
     /// <summary>
     /// 允许的MIME类型
     /// </summary>
     public string[] AllowedMimeTypes { get; set; } = 
-    {
+    [
         "application/zip",
         "application/x-rar-compressed",
         "application/x-7z-compressed",
@@ -59,7 +59,7 @@ public class FileUploadConfiguration
         "audio/mpeg",
         "audio/wav",
         "audio/x-ms-wma"
-    };
+    ];
 
     /// <summary>
     /// 上传目录路径

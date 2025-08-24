@@ -92,7 +92,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_PreConfiguredUsers_Username_OrganizationId",
                 table: "PreConfiguredUsers",
-                columns: new[] { "Username", "OrganizationId" },
+                columns: ["Username", "OrganizationId"],
                 unique: true);
         }
 

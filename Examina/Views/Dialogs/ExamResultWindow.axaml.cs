@@ -1,9 +1,9 @@
+﻿using System.ComponentModel;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Media;
 using Examina.ViewModels.Dialogs;
-using System;
-using System.ComponentModel;
 
 namespace Examina.Views.Dialogs;
 
@@ -12,7 +12,7 @@ namespace Examina.Views.Dialogs;
 /// </summary>
 public partial class ExamResultWindow : Window
 {
-    private ExamResultViewModel? _viewModel;
+    private readonly ExamResultViewModel? _viewModel;
     private bool _canClose = false;
 
     /// <summary>
@@ -21,6 +21,20 @@ public partial class ExamResultWindow : Window
     public ExamResultWindow()
     {
         InitializeComponent();
+
+        // 全屏 & 去系统装饰
+        WindowState = WindowState.FullScreen;
+        SystemDecorations = SystemDecorations.None;
+
+        // 透明/虚化能力提示
+        TransparencyLevelHint =
+        [
+            WindowTransparencyLevel.AcrylicBlur,
+            WindowTransparencyLevel.Transparent
+        ];
+
+        Background = Brushes.Transparent;
+
         _viewModel = new ExamResultViewModel();
         DataContext = _viewModel;
 
@@ -50,14 +64,14 @@ public partial class ExamResultWindow : Window
     private void SetupWindow()
     {
         // 禁用Alt+F4关闭窗口
-        this.Closing += OnWindowClosing;
+        Closing += OnWindowClosing;
 
         // 禁用Escape键关闭窗口
-        this.KeyDown += OnKeyDown;
+        KeyDown += OnKeyDown;
 
         // 设置为模态对话框行为
-        this.Topmost = false;
-        this.ShowActivated = true;
+        Topmost = false;
+        ShowActivated = true;
 
         System.Diagnostics.Debug.WriteLine("ExamResultWindow: 窗口行为设置完成");
     }
@@ -97,22 +111,19 @@ public partial class ExamResultWindow : Window
     /// </summary>
     private void SetupCommandSubscriptions()
     {
-        if (_viewModel != null)
+        // 订阅确认命令
+        _ = _viewModel?.ConfirmCommand.Subscribe(result =>
         {
-            // 订阅确认命令
-            _viewModel.ConfirmCommand.Subscribe(result =>
+            try
             {
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine($"ExamResultWindow: 确认命令执行，结果: {result}");
-                    Close(result);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"ExamResultWindow: 确认命令异常: {ex.Message}");
-                }
-            });
-        }
+                System.Diagnostics.Debug.WriteLine($"ExamResultWindow: 确认命令执行，结果: {result}");
+                Close(result);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ExamResultWindow: 确认命令异常: {ex.Message}");
+            }
+        });
     }
 
     /// <summary>
@@ -141,15 +152,15 @@ public partial class ExamResultWindow : Window
     /// <summary>
     /// 设置考试结果数据
     /// </summary>
-    public void SetExamResult(string examName, Models.ExamType examType, bool isSuccessful, 
+    public void SetExamResult(string examName, Models.ExamType examType, bool isSuccessful,
         DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
         decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "")
     {
         try
         {
-            _viewModel?.SetExamResult(examName, examType, isSuccessful, startTime, endTime, 
+            _viewModel?.SetExamResult(examName, examType, isSuccessful, startTime, endTime,
                 durationMinutes, score, totalScore, errorMessage, notes);
-            
+
             System.Diagnostics.Debug.WriteLine($"ExamResultWindow: 考试结果已设置 - {examName}, 成功: {isSuccessful}");
         }
         catch (Exception ex)

@@ -120,7 +120,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_NonOrganizationStudentOrganizations_NonOrganizationStudentId~",
                 table: "NonOrganizationStudentOrganizations",
-                columns: new[] { "NonOrganizationStudentId", "OrganizationId" },
+                columns: ["NonOrganizationStudentId", "OrganizationId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(

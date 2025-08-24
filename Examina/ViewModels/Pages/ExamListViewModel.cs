@@ -676,48 +676,43 @@ public class ExamListViewModel : ViewModelBase
             // 转换用时为分钟
             int? durationMinutes = actualDurationSeconds.HasValue ? (actualDurationSeconds.Value / 60) : null;
 
-            // 显示考试结果窗口
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-                desktop.MainWindow != null)
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 准备显示全屏考试结果窗口（异步评分模式） - {examName}");
+
+            // 创建全屏结果窗口并显示
+            Views.Dialogs.FullScreenExamResultWindow resultWindow = Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResult(
+                examName,
+                examType,
+                isSuccessful,
+                null, // startTime
+                null, // endTime
+                durationMinutes,
+                null, // score - 初始为空，异步评分后更新
+                null, // totalScore
+                errorMessage,
+                isSuccessful ? "考试提交成功，正在计算成绩..." : "考试提交失败",
+                true, // showContinue
+                false // showClose - 只显示确认按钮
+            );
+
+            // 如果提交成功，开始评分计算
+            if (isSuccessful)
             {
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 准备显示考试结果窗口（异步评分模式） - {examName}");
-
-                // 创建结果窗口并显示
-                ExamResultViewModel resultViewModel = new();
-                resultViewModel.SetExamResult(examName, examType, isSuccessful, null, null, durationMinutes, null, null, errorMessage, "考试提交成功");
-
-                // 如果提交成功，开始评分计算
-                if (isSuccessful)
-                {
-                    resultViewModel.StartScoring();
-                }
-
-                ExamResultWindow resultWindow = new(resultViewModel);
-
-                // 添加窗口关闭事件处理
-                resultWindow.Closed += (sender, e) =>
-                {
-                    System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试结果窗口已关闭，显示主窗口");
-                    ShowMainWindowAndRefresh();
-                };
-
-                // 显示窗口（非阻塞）
-                resultWindow.Show();
-
-                // 如果提交成功，在后台开始异步评分
-                if (isSuccessful)
-                {
-                    _ = Task.Run(async () => await PerformAsyncScoringAsync(examId, resultViewModel));
-                }
-
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试结果窗口已显示（异步评分模式）");
+                resultWindow.StartScoring();
             }
-            else
+
+            // 如果提交成功，在后台开始异步评分
+            if (isSuccessful)
             {
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过结果显示");
-                // 如果无法显示结果窗口，直接显示主窗口
-                ShowMainWindowAndRefresh();
+                _ = Task.Run(async () => await PerformAsyncScoringAsync(examId, resultWindow));
             }
+
+            // 等待窗口关闭
+            await resultWindow.WaitForCloseAsync();
+
+            System.Diagnostics.Debug.WriteLine("ExamListViewModel: 全屏考试结果窗口已显示并关闭（异步评分模式）");
+
+            // 窗口关闭后显示主窗口
+            ShowMainWindowAndRefresh();
         }
         catch (Exception ex)
         {
@@ -753,37 +748,28 @@ public class ExamListViewModel : ViewModelBase
             // 转换用时为分钟
             int? durationMinutes = actualDurationSeconds.HasValue ? (actualDurationSeconds.Value / 60) : null;
 
-            // 显示考试结果窗口
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-                desktop.MainWindow != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 准备显示考试结果窗口 - {examName}");
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 准备显示全屏考试结果窗口（传统模式） - {examName}");
 
-                await ExamResultWindow.ShowExamResultAsync(
-                    desktop.MainWindow,
-                    examName,
-                    examType,
-                    isSuccessful,
-                    null, // startTime
-                    null, // endTime
-                    durationMinutes,
-                    score,
-                    totalScore,
-                    errorMessage,
-                    notes
-                );
+            // 使用新的全屏考试结果窗口
+            await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+                examName,
+                examType,
+                isSuccessful,
+                null, // startTime
+                null, // endTime
+                durationMinutes,
+                score,
+                totalScore,
+                errorMessage,
+                notes,
+                true, // showContinue
+                false // showClose - 只显示确认按钮
+            );
 
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 考试结果窗口已显示并关闭");
+            System.Diagnostics.Debug.WriteLine("ExamListViewModel: 全屏考试结果窗口已显示并关闭（传统模式）");
 
-                // 模态窗口关闭后显示主窗口
-                ShowMainWindowAndRefresh();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过结果显示");
-                // 如果无法显示结果窗口，直接显示主窗口
-                ShowMainWindowAndRefresh();
-            }
+            // 窗口关闭后显示主窗口
+            ShowMainWindowAndRefresh();
         }
         catch (Exception ex)
         {
@@ -852,6 +838,69 @@ public class ExamListViewModel : ViewModelBase
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 resultViewModel.ScoringFailed($"评分过程异常: {ex.Message}");
+            });
+        }
+    }
+
+    /// <summary>
+    /// 执行异步评分（全屏窗口版本）
+    /// </summary>
+    private async Task PerformAsyncScoringAsync(int examId, Views.Dialogs.FullScreenExamResultWindow resultWindow)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 开始异步BenchSuite评分（全屏窗口），考试ID: {examId}");
+
+            // 延迟一下，让用户看到"计算中..."状态
+            await Task.Delay(1000);
+
+            BenchSuiteScoringResult? scoringResult = null;
+
+            // 使用EnhancedExamToolbarService进行BenchSuite评分
+            if (_enhancedExamToolbarService != null)
+            {
+                try
+                {
+                    scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步BenchSuite评分异常: {ex.Message}");
+                }
+            }
+
+            // 在UI线程上更新结果
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (scoringResult != null && scoringResult.IsSuccess)
+                {
+                    // 评分成功，更新分数
+                    resultWindow.UpdateScore(scoringResult.AchievedScore, scoringResult.TotalScore, "BenchSuite自动评分完成");
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {scoringResult.AchievedScore}");
+                }
+                else
+                {
+                    // 评分失败
+                    string errorMsg = scoringResult?.ErrorMessage ?? "BenchSuite评分服务不可用";
+                    resultWindow.ScoringFailed($"评分失败: {errorMsg}");
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分失败: {errorMsg}");
+                }
+            });
+
+            // 如果评分成功，自动提交成绩到服务器
+            if (scoringResult != null && scoringResult.IsSuccess)
+            {
+                await AutoSubmitScoreAsync(examId, scoringResult);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分过程异常: {ex.Message}");
+
+            // 在UI线程上更新错误状态
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                resultWindow.ScoringFailed($"评分过程异常: {ex.Message}");
             });
         }
     }

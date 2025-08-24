@@ -1,0 +1,216 @@
+<Window
+    x:Class="Examina.Views.Dialogs.FullScreenExamResultWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Examina.ViewModels.Dialogs"
+    Title="{Binding WindowTitle}"
+    d:DesignHeight="1080"
+    d:DesignWidth="1920"
+    x:DataType="vm:FullScreenExamResultViewModel"
+    Background="Transparent"
+    CanResize="False"
+    Icon="/Assets/icon.ico"
+    ShowInTaskbar="False"
+    SystemDecorations="None"
+    Topmost="True"
+    WindowState="FullScreen"
+    mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:FullScreenExamResultViewModel />
+    </Design.DataContext>
+
+    <Window.Styles>
+        <!-- 主要标题样式 -->
+        <Style Selector="TextBlock.main-title">
+            <Setter Property="FontSize" Value="48" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,24" />
+        </Style>
+
+        <!-- 副标题样式 -->
+        <Style Selector="TextBlock.sub-title">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+
+        <!-- 状态文本样式 -->
+        <Style Selector="TextBlock.status-text">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <!-- 信息文本样式 -->
+        <Style Selector="TextBlock.info-text">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondary}" />
+        </Style>
+
+        <!-- 错误文本样式 -->
+        <Style Selector="TextBlock.error-text">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Foreground" Value="#FF5722" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <!-- 主要按钮样式 -->
+        <Style Selector="Button.primary-button">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="32,16" />
+            <Setter Property="Margin" Value="16,8" />
+            <Setter Property="MinWidth" Value="160" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="{DynamicResource AccentFillColorDefault}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!-- 次要按钮样式 -->
+        <Style Selector="Button.secondary-button">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Padding" Value="32,16" />
+            <Setter Property="Margin" Value="16,8" />
+            <Setter Property="MinWidth" Value="160" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefault}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefault}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <!-- 内容卡片样式 -->
+        <Style Selector="Border.content-card">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefault}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefault}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="48" />
+            <Setter Property="MaxWidth" Value="800" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- 状态图标样式 -->
+        <Style Selector="TextBlock.status-icon">
+            <Setter Property="FontSize" Value="72" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,24" />
+        </Style>
+    </Window.Styles>
+
+    <!-- 主要布局 -->
+    <Grid>
+        <!-- 亚克力背景层 -->
+        <Border Background="#80000000" />
+
+        <!-- 内容区域 -->
+        <Border Classes="content-card">
+            <StackPanel Spacing="16">
+                <!-- 状态图标 -->
+                <TextBlock
+                    Classes="status-icon"
+                    Text="{Binding StatusIcon}" />
+
+                <!-- 考试名称 -->
+                <TextBlock
+                    Classes="main-title"
+                    Foreground="{Binding StatusColor}"
+                    Text="{Binding ExamName}" />
+
+                <!-- 考试类型 -->
+                <TextBlock
+                    Classes="sub-title"
+                    Text="{Binding ExamTypeText}" />
+
+                <!-- 主要状态消息 -->
+                <TextBlock
+                    Classes="status-text"
+                    Foreground="{Binding StatusColor}"
+                    Text="{Binding PrimaryStatusMessage}" />
+
+                <!-- 次要状态消息 -->
+                <TextBlock
+                    Classes="info-text"
+                    Text="{Binding SecondaryStatusMessage}" />
+
+                <!-- 成绩信息 -->
+                <StackPanel IsVisible="{Binding ShowScoreInfo}" Spacing="8">
+                    <TextBlock
+                        Classes="info-text"
+                        FontWeight="SemiBold"
+                        Text="考试成绩" />
+                    <TextBlock
+                        Classes="status-text"
+                        Foreground="{DynamicResource AccentFillColorDefault}"
+                        Text="{Binding ScoreText}" />
+                </StackPanel>
+
+                <!-- 用时信息 -->
+                <StackPanel IsVisible="{Binding ShowDurationInfo}" Spacing="8">
+                    <TextBlock
+                        Classes="info-text"
+                        FontWeight="SemiBold"
+                        Text="考试用时" />
+                    <TextBlock
+                        Classes="info-text"
+                        Text="{Binding ActualDurationText}" />
+                </StackPanel>
+
+                <!-- 错误信息 -->
+                <StackPanel IsVisible="{Binding ShowErrorInfo}" Spacing="8">
+                    <TextBlock
+                        Classes="info-text"
+                        FontWeight="SemiBold"
+                        Text="错误信息" />
+                    <TextBlock
+                        Classes="error-text"
+                        Text="{Binding ErrorMessage}" />
+                </StackPanel>
+
+                <!-- 备注信息 -->
+                <StackPanel IsVisible="{Binding ShowNotesInfo}" Spacing="8">
+                    <TextBlock
+                        Classes="info-text"
+                        FontWeight="SemiBold"
+                        Text="备注" />
+                    <TextBlock
+                        Classes="info-text"
+                        Text="{Binding Notes}" />
+                </StackPanel>
+
+                <!-- 操作按钮 -->
+                <StackPanel
+                    Margin="0,32,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="16">
+                    
+                    <!-- 继续按钮 -->
+                    <Button
+                        Classes="primary-button"
+                        Command="{Binding ContinueCommand}"
+                        Content="确认"
+                        IsVisible="{Binding ShowContinueButton}" />
+
+                    <!-- 关闭按钮 -->
+                    <Button
+                        Classes="secondary-button"
+                        Command="{Binding CloseCommand}"
+                        Content="关闭"
+                        IsVisible="{Binding ShowCloseButton}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

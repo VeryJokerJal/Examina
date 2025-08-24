@@ -29,11 +29,11 @@ internal class Program
 
         if (args.Length == 0)
         {
-            args = new string[]
-            {
+            args =
+            [
                 "C:\\Users\\Jal\\Downloads\\计算机应用基础考试 - 副本_20250813_035202.json",
                 "C:\\Users\\Jal\\Downloads\\B套素材PPT2.pptx"
-            };
+            ];
         }
 
         try

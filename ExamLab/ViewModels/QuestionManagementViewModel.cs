@@ -177,7 +177,7 @@ public class QuestionManagementViewModel : ViewModelBase
 
         string? questionType = await NotificationService.ShowSelectionDialogAsync(
             "选择题目类型",
-            new[] { "Description", "ScoringDescription" });
+            ["Description", "ScoringDescription"]);
 
         if (questionType == null)
         {

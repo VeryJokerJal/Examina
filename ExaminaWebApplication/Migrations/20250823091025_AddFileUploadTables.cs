@@ -193,7 +193,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ComprehensiveTrainingFileAssociations_ComprehensiveTrainingI~",
                 table: "ComprehensiveTrainingFileAssociations",
-                columns: new[] { "ComprehensiveTrainingId", "FileId" },
+                columns: ["ComprehensiveTrainingId", "FileId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -219,7 +219,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ExamFileAssociations_ExamId_FileId",
                 table: "ExamFileAssociations",
-                columns: new[] { "ExamId", "FileId" },
+                columns: ["ExamId", "FileId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -250,7 +250,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_SpecializedTrainingFileAssociations_SpecializedTrainingId_Fi~",
                 table: "SpecializedTrainingFileAssociations",
-                columns: new[] { "SpecializedTrainingId", "FileId" },
+                columns: ["SpecializedTrainingId", "FileId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(

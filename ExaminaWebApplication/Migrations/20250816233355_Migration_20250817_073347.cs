@@ -193,7 +193,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_TeacherOrganizations_TeacherId_OrganizationId",
                 table: "TeacherOrganizations",
-                columns: new[] { "TeacherId", "OrganizationId" },
+                columns: ["TeacherId", "OrganizationId"],
                 unique: true);
 
             migrationBuilder.AddForeignKey(

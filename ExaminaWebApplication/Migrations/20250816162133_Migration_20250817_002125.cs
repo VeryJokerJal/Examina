@@ -104,7 +104,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_OrganizationMembers_Username_OrganizationId",
                 table: "OrganizationMembers",
-                columns: new[] { "Username", "OrganizationId" },
+                columns: ["Username", "OrganizationId"],
                 unique: true);
         }
 

@@ -1,261 +1,128 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="using:Examina.ViewModels.Dialogs"
-        xmlns:ui="using:FluentAvalonia.UI.Controls"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="750"
-        x:Class="Examina.Views.Dialogs.ExamResultWindow"
-        x:DataType="vm:ExamResultViewModel"
-        Title="考试结果"
-        Width="600" Height="750"
-        MinWidth="550" MinHeight="700"
-        MaxWidth="700" MaxHeight="850"
-        WindowStartupLocation="CenterOwner"
-        CanResize="false"
-        SystemDecorations="Full"
-        ShowInTaskbar="false">
+﻿<Window x:Class="Examina.Views.Dialogs.ExamResultWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="using:FluentAvalonia.UI.Controls" xmlns:vm="using:Examina.ViewModels.Dialogs" Title="考试结果" Width="600" Height="750" d:DesignHeight="750" d:DesignWidth="600" x:DataType="vm:ExamResultViewModel" CanResize="false" ShowInTaskbar="false" SystemDecorations="Full" WindowStartupLocation="CenterOwner" mc:Ignorable="d">
 
     <Design.DataContext>
         <vm:ExamResultViewModel />
     </Design.DataContext>
 
-    <!-- Fluent UI 设计的主布局 -->
-    <Grid RowDefinitions="Auto,*,Auto" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+    <!--  Fluent UI 设计的主布局  -->
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- 标题栏 -->
-        <Border Grid.Row="0"
-                Background="{DynamicResource SystemAccentColor}"
-                Padding="24,20">
+        <!--  标题栏  -->
+        <Border Grid.Row="0" Padding="24,20" Background="{DynamicResource SystemAccentColor}">
             <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock Text="🎓" FontSize="28" VerticalAlignment="Center" Foreground="White"/>
+                <TextBlock VerticalAlignment="Center" FontSize="28" Foreground="White" Text="🎓" />
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="考试完成"
-                               FontSize="20"
-                               FontWeight="SemiBold"
-                               Foreground="White"/>
-                    <TextBlock Text="{Binding ExamTypeText}"
-                               FontSize="14"
-                               Foreground="#E0FFFFFF"
-                               Margin="0,2,0,0"/>
+                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="White" Text="考试完成" />
+                    <TextBlock Margin="0,2,0,0" FontSize="14" Foreground="#E0FFFFFF" Text="{Binding ExamTypeText}" />
                 </StackPanel>
             </StackPanel>
         </Border>
 
-        <!-- 主内容区域 -->
-        <ScrollViewer Grid.Row="1"
-                      Padding="24,20,24,0"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
+        <!--  主内容区域  -->
+        <ScrollViewer Grid.Row="1" Padding="24,20,24,0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="16">
 
-                <!-- 考试基本信息卡片 -->
-                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                        CornerRadius="8"
-                        Padding="20"
-                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                        BorderThickness="1"
-                        BoxShadow="0 2 8 0 #10000000">
+                <!--  考试基本信息卡片  -->
+                <Border Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" BoxShadow="0 2 8 0 #10000000" CornerRadius="8">
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="📋" FontSize="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="考试信息"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SystemAccentColor}"
-                                       VerticalAlignment="Center"/>
+                            <TextBlock VerticalAlignment="Center" FontSize="16" Text="📋" />
+                            <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}" Text="考试信息" />
                         </StackPanel>
 
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-                            <TextBlock Grid.Row="0" Grid.Column="0"
-                                       Text="考试名称："
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1"
-                                       Text="{Binding ExamName}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="8">
+                            <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="考试名称：" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding ExamName}" TextWrapping="Wrap" />
 
-                            <TextBlock Grid.Row="1" Grid.Column="0"
-                                       Text="实际用时："
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1"
-                                       Text="{Binding ActualDurationText}"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="实际用时：" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding ActualDurationText}" />
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- 提交状态卡片 -->
-                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                        CornerRadius="8"
-                        Padding="20"
-                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                        BorderThickness="1"
-                        BoxShadow="0 2 8 0 #10000000">
+                <!--  提交状态卡片  -->
+                <Border Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" BoxShadow="0 2 8 0 #10000000" CornerRadius="8">
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="📤" FontSize="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="提交状态"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SystemAccentColor}"
-                                       VerticalAlignment="Center"/>
+                            <TextBlock VerticalAlignment="Center" FontSize="16" Text="📤" />
+                            <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}" Text="提交状态" />
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding SubmissionStatusIcon}" FontSize="24" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding SubmissionStatusText}"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       Foreground="{Binding SubmissionStatusColor}"
-                                       VerticalAlignment="Center"/>
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="12">
+                            <TextBlock VerticalAlignment="Center" FontSize="24" Text="{Binding SubmissionStatusIcon}" />
+                            <TextBlock VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" Foreground="{Binding SubmissionStatusColor}" Text="{Binding SubmissionStatusText}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <!-- 成绩信息卡片 -->
-                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                        CornerRadius="8"
-                        Padding="20"
-                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                        BorderThickness="1"
-                        BoxShadow="0 2 8 0 #10000000"
-                        IsVisible="{Binding IsSubmissionSuccessful}">
+                <!--  成绩信息卡片  -->
+                <Border Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" BoxShadow="0 2 8 0 #10000000" CornerRadius="8" IsVisible="{Binding IsSubmissionSuccessful}">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="📊" FontSize="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="考试成绩"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SystemAccentColor}"
-                                       VerticalAlignment="Center"/>
+                            <TextBlock VerticalAlignment="Center" FontSize="16" Text="📊" />
+                            <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}" Text="考试成绩" />
                         </StackPanel>
 
-                        <!-- 得分显示 -->
-                        <StackPanel Spacing="16" HorizontalAlignment="Center">
-                            <!-- 评分状态显示 -->
-                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center"
-                                        IsVisible="{Binding IsScoring}">
-                                <ui:ProgressRing Width="24" Height="24" IsActive="{Binding IsScoring}"/>
-                                <TextBlock Text="正在计算成绩..."
-                                           FontSize="16"
-                                           FontWeight="SemiBold"
-                                           VerticalAlignment="Center"
-                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        <!--  得分显示  -->
+                        <StackPanel HorizontalAlignment="Center" Spacing="16">
+                            <!--  评分状态显示  -->
+                            <StackPanel HorizontalAlignment="Center" IsVisible="{Binding IsScoring}" Orientation="Horizontal" Spacing="12">
+                                <ui:ProgressRing Width="24" Height="24" IsActive="{Binding IsScoring}" />
+                                <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="正在计算成绩..." />
                             </StackPanel>
 
-                            <!-- 得分显示 -->
-                            <TextBlock Text="{Binding ScoreText}"
-                                       FontSize="36"
-                                       FontWeight="Bold"
-                                       HorizontalAlignment="Center"
-                                       Foreground="{DynamicResource SystemAccentColor}"
-                                       IsVisible="{Binding !IsScoring}"/>
+                            <!--  得分显示  -->
+                            <TextBlock HorizontalAlignment="Center" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding !IsScoring}" Text="{Binding ScoreText}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <!-- 错误信息卡片 -->
-                <Border Background="#FFF4F4"
-                        CornerRadius="8"
-                        Padding="20"
-                        BorderBrush="#FFB3B3"
-                        BorderThickness="1"
-                        BoxShadow="0 2 8 0 #10000000"
-                        IsVisible="{Binding HasError}">
+                <!--  错误信息卡片  -->
+                <Border Padding="20" Background="#FFF4F4" BorderBrush="#FFB3B3" BorderThickness="1" BoxShadow="0 2 8 0 #10000000" CornerRadius="8" IsVisible="{Binding HasError}">
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="错误信息"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="#D32F2F"
-                                       VerticalAlignment="Center"/>
+                            <TextBlock VerticalAlignment="Center" FontSize="16" Text="⚠️" />
+                            <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="#D32F2F" Text="错误信息" />
                         </StackPanel>
-                        <TextBlock Text="{Binding ErrorMessage}"
-                                   TextWrapping="Wrap"
-                                   Foreground="#B71C1C"
-                                   LineHeight="20"/>
+                        <TextBlock Foreground="#B71C1C" LineHeight="20" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
-                <!-- 备注信息卡片 -->
-                <Border Background="#F1F8E9"
-                        CornerRadius="8"
-                        Padding="20"
-                        BorderBrush="#C8E6C9"
-                        BorderThickness="1"
-                        BoxShadow="0 2 8 0 #10000000"
-                        IsVisible="{Binding HasNotes}">
+                <!--  备注信息卡片  -->
+                <Border Padding="20" Background="#F1F8E9" BorderBrush="#C8E6C9" BorderThickness="1" BoxShadow="0 2 8 0 #10000000" CornerRadius="8" IsVisible="{Binding HasNotes}">
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="💡" FontSize="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="备注信息"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="#2E7D32"
-                                       VerticalAlignment="Center"/>
+                            <TextBlock VerticalAlignment="Center" FontSize="16" Text="💡" />
+                            <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="#2E7D32" Text="备注信息" />
                         </StackPanel>
-                        <TextBlock Text="{Binding Notes}"
-                                   TextWrapping="Wrap"
-                                   Foreground="#1B5E20"
-                                   LineHeight="20"/>
+                        <TextBlock Foreground="#1B5E20" LineHeight="20" Text="{Binding Notes}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
-                <!-- 温馨提示卡片 -->
-                <Border Background="#FFF8E1"
-                        CornerRadius="8"
-                        Padding="16"
-                        BorderBrush="#FFCC02"
-                        BorderThickness="1"
-                        BoxShadow="0 2 8 0 #10000000">
+                <!--  温馨提示卡片  -->
+                <Border Padding="16" Background="#FFF8E1" BorderBrush="#FFCC02" BorderThickness="1" BoxShadow="0 2 8 0 #10000000" CornerRadius="8">
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="📝" FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="温馨提示"
-                                       FontSize="14"
-                                       FontWeight="SemiBold"
-                                       Foreground="#E65100"
-                                       VerticalAlignment="Center"/>
+                            <TextBlock VerticalAlignment="Center" FontSize="14" Text="📝" />
+                            <TextBlock VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="#E65100" Text="温馨提示" />
                         </StackPanel>
-                        <TextBlock Text="考试结果已保存，您可以在成绩查询页面查看详细信息。"
-                                   TextWrapping="Wrap"
-                                   FontSize="12"
-                                   Foreground="#BF360C"
-                                   LineHeight="18"/>
+                        <TextBlock FontSize="12" Foreground="#BF360C" LineHeight="18" Text="考试结果已保存，您可以在成绩查询页面查看详细信息。" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 底部按钮区域 -->
-        <Border Grid.Row="2"
-                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                BorderThickness="0,1,0,0"
-                Padding="24,16">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
-                <Button Name="ConfirmButton"
-                        Content="确认返回"
-                        Padding="24,10"
-                        MinWidth="120"
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Background="{DynamicResource SystemAccentColor}"
-                        Foreground="White"
-                        CornerRadius="4"
-                        BorderThickness="0"
-                        Click="ConfirmButton_Click">
+        <!--  底部按钮区域  -->
+        <Border Grid.Row="2" Padding="24,16" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,1,0,0">
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="12">
+                <Button Name="ConfirmButton" MinWidth="120" Padding="24,10" Background="{DynamicResource SystemAccentColor}" BorderThickness="0" Click="ConfirmButton_Click" Content="确认" CornerRadius="4" FontSize="14" FontWeight="SemiBold" Foreground="White">
                     <Button.Styles>
                         <Style Selector="Button:pointerover">
-                            <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}"/>
+                            <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}" />
                         </Style>
                         <Style Selector="Button:pressed">
-                            <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark2}"/>
+                            <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark2}" />
                         </Style>
                     </Button.Styles>
                 </Button>

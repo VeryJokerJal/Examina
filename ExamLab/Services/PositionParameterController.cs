@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -29,13 +29,13 @@ public class PositionParameterController : ReactiveObject
     {
         // 水平位置参数规则
         ["HorizontalAlignment"] = new("HorizontalPositionType", "对齐方式"),
-        ["HorizontalRelativeTo"] = new("HorizontalPositionType", new[] { "对齐方式", "相对位置" }),
+        ["HorizontalRelativeTo"] = new("HorizontalPositionType", ["对齐方式", "相对位置"]),
         ["HorizontalAbsolutePosition"] = new("HorizontalPositionType", "绝对位置"),
         ["HorizontalRelativePosition"] = new("HorizontalPositionType", "相对位置"),
 
         // 垂直位置参数规则
         ["VerticalAlignment"] = new("VerticalPositionType", "对齐方式"),
-        ["VerticalRelativeTo"] = new("VerticalPositionType", new[] { "对齐方式", "相对位置" }),
+        ["VerticalRelativeTo"] = new("VerticalPositionType", ["对齐方式", "相对位置"]),
         ["VerticalAbsolutePosition"] = new("VerticalPositionType", "绝对位置"),
         ["VerticalRelativePosition"] = new("VerticalPositionType", "相对位置")
     };

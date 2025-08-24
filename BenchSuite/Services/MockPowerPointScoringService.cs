@@ -195,7 +195,7 @@ public class MockPowerPointScoringService : IScoringService
     /// <returns>支持的扩展名列表</returns>
     public IEnumerable<string> GetSupportedExtensions()
     {
-        return new[] { ".pptx", ".ppt" };
+        return [".pptx", ".ppt"];
     }
 
     /// <summary>

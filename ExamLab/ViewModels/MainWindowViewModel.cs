@@ -1024,7 +1024,7 @@ public class MainWindowViewModel : ViewModelBase
         // 使用NotificationService显示选择对话框
         string? selectedLevel = await NotificationService.ShowSelectionDialogAsync(
             "选择导出级别",
-            new[] { "基本信息", "完整内容（不含答案）", "完整内容（含答案）" });
+            ["基本信息", "完整内容（不含答案）", "完整内容（含答案）"]);
 
         return selectedLevel switch
         {

@@ -733,7 +733,7 @@ namespace ExaminaWebApplication.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserDevices_UserId_DeviceFingerprint",
                 table: "UserDevices",
-                columns: new[] { "UserId", "DeviceFingerprint" },
+                columns: ["UserId", "DeviceFingerprint"],
                 unique: true);
 
             migrationBuilder.CreateIndex(

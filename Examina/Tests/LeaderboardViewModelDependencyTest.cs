@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using Examina.Services;
 using Examina.ViewModels.Pages;
@@ -233,7 +233,7 @@ public static class LeaderboardViewModelDependencyTest
 
             if (Avalonia.Application.Current is App app)
             {
-                string[] rankingTypes = { "exam-ranking", "mock-exam-ranking", "training-ranking" };
+                string[] rankingTypes = ["exam-ranking", "mock-exam-ranking", "training-ranking"];
 
                 foreach (string rankingType in rankingTypes)
                 {

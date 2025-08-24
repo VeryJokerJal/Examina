@@ -1,7 +1,7 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Examina.ViewModels.Dialogs;
-using System;
 
 namespace Examina.Views.Dialogs;
 
@@ -10,7 +10,7 @@ namespace Examina.Views.Dialogs;
 /// </summary>
 public partial class FormalExamRulesDialog : Window
 {
-    private FormalExamRulesViewModel? _viewModel;
+    private readonly FormalExamRulesViewModel? _viewModel;
 
     /// <summary>
     /// 默认构造函数
@@ -18,6 +18,20 @@ public partial class FormalExamRulesDialog : Window
     public FormalExamRulesDialog()
     {
         InitializeComponent();
+
+        // 全屏 & 去系统装饰
+        WindowState = WindowState.FullScreen;
+        SystemDecorations = SystemDecorations.None;
+
+        // 透明/虚化能力提示
+        TransparencyLevelHint =
+        [
+            WindowTransparencyLevel.AcrylicBlur,
+            WindowTransparencyLevel.Transparent
+        ];
+
+        Background = Brushes.Transparent;
+
         _viewModel = new FormalExamRulesViewModel();
         DataContext = _viewModel;
 
@@ -45,7 +59,7 @@ public partial class FormalExamRulesDialog : Window
         if (_viewModel != null)
         {
             // 订阅确认命令
-            _viewModel.ConfirmCommand.Subscribe(result =>
+            _ = _viewModel.ConfirmCommand.Subscribe(result =>
             {
                 try
                 {
@@ -59,7 +73,7 @@ public partial class FormalExamRulesDialog : Window
             });
 
             // 订阅取消命令
-            _viewModel.CancelCommand.Subscribe(result =>
+            _ = _viewModel.CancelCommand.Subscribe(result =>
             {
                 try
                 {
