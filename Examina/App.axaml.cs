@@ -297,6 +297,9 @@ public partial class App : Application
             #if DEBUG
             Tests.BenchSuiteDirectoryServiceTest.TestServiceAvailability();
             Tests.BenchSuiteDirectoryServiceTest.TestExamToolbarViewModelDependency();
+
+            // 测试LeaderboardViewModel依赖注入
+            Tests.LeaderboardViewModelDependencyTest.TestLeaderboardViewModelDependencies();
             #endif
         }
 
