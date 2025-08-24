@@ -573,39 +573,6 @@ public class MockExamViewModel : ViewModelBase
             }
         }
 
-        // 保底：确保标准模块都存在（即使没有题目也显示在左侧列表）
-        var expectedModules = new[]
-        {
-            new { Type = "word", Name = "Word操作", Order = 1, Description = "Word 文档编辑与排版" },
-            new { Type = "excel", Name = "Excel操作", Order = 2, Description = "Excel 数据处理与分析" },
-            new { Type = "ppt", Name = "PowerPoint操作", Order = 3, Description = "PowerPoint 演示文稿制作" }
-        };
-
-        foreach (var em in expectedModules)
-        {
-            bool existsByType = studentExam.Modules.Any(m => string.Equals(m.Type, em.Type, StringComparison.OrdinalIgnoreCase));
-            if (!existsByType)
-            {
-                StudentModuleDto placeholder = new()
-                {
-                    Id = 0,
-                    Name = em.Name,
-                    Type = em.Type,
-                    Description = em.Description,
-                    Score = 0,
-                    Order = em.Order
-                };
-                studentExam.Modules.Add(placeholder);
-                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 添加占位模块 {placeholder.Name}（无题目）");
-            }
-        }
-
-        // 排序：按Order升序，再按Name
-        studentExam.Modules = new System.Collections.ObjectModel.ObservableCollection<StudentModuleDto>(
-            studentExam.Modules.OrderBy(m => m.Order).ThenBy(m => m.Name)
-        );
-
-
 
         System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 转换完成 - 模块数: {studentExam.Modules.Count}, 总题目数: {studentExam.Modules.Sum(m => m.Questions.Count)}");
         return studentExam;

@@ -134,19 +134,13 @@
 
                     <!--  时间显示  -->
                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                        <!-- 倒计时模式：显示剩余时间 -->
-                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}"
-                                   Text="剩余时间" IsVisible="{Binding !UseForwardTiming}" />
-                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold"
-                                   Foreground="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}"
-                                   Text="{Binding FormattedRemainingTime}" IsVisible="{Binding !UseForwardTiming}" />
+                        <!--  倒计时模式：显示剩余时间  -->
+                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" IsVisible="{Binding !UseForwardTiming}" Text="剩余时间" />
+                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold" Foreground="{Binding IsTimeUrgent, Converter={StaticResource BoolToTimeBrushConverter}}" IsVisible="{Binding !UseForwardTiming}" Text="{Binding FormattedRemainingTime}" />
 
-                        <!-- 正向计时模式：显示已用时间 -->
-                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}"
-                                   Text="已用时间" IsVisible="{Binding UseForwardTiming}" />
-                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold"
-                                   Foreground="{DynamicResource ExamToolbarPrimaryForegroundBrush}"
-                                   Text="{Binding FormattedElapsedTime}" IsVisible="{Binding UseForwardTiming}" />
+                        <!--  正向计时模式：显示已用时间  -->
+                        <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource ExamToolbarSecondaryForegroundBrush}" IsVisible="{Binding UseForwardTiming}" Text="已用时间" />
+                        <TextBlock HorizontalAlignment="Center" FontFamily="Consolas" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ExamToolbarPrimaryForegroundBrush}" IsVisible="{Binding UseForwardTiming}" Text="{Binding FormattedElapsedTime}" />
                     </StackPanel>
 
                     <!--  考试状态  -->
@@ -184,7 +178,7 @@
                 </StackPanel>
 
                 <!--  右侧区域 - 提交按钮  -->
-                <Button Grid.Column="3" Padding="20,8" Background="{DynamicResource ExamSubmitButtonBackgroundBrush}" BorderThickness="0" Command="{Binding SubmitExamCommand}" CornerRadius="6" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ExamSubmitButtonForegroundBrush}" IsEnabled="{Binding CanSubmitExam}">
+                <Button Grid.Column="3" Padding="12,6" Background="{DynamicResource ExamSubmitButtonBackgroundBrush}" BorderThickness="0" Command="{Binding SubmitExamCommand}" CornerRadius="6" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ExamSubmitButtonForegroundBrush}" IsEnabled="{Binding CanSubmitExam}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <!--  提交图标  -->
                         <Path Width="16" Height="16" VerticalAlignment="Center" Data="M9,16.17L4.83,12L3.41,13.41L9,19L21,7L19.59,5.59L9,16.17Z" Fill="{DynamicResource ExamSubmitButtonForegroundBrush}" IsVisible="{Binding !IsSubmitting}" Stretch="Uniform" />

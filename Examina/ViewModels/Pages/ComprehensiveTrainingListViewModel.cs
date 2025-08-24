@@ -673,7 +673,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 查看题目请求事件处理
+    /// 查看题目请求事件处理（统一为ExamQuestionDetailsWindow样式与逻辑）
     /// </summary>
     private void OnViewQuestionsRequested(StudentComprehensiveTrainingDto training)
     {
@@ -681,37 +681,116 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看题目请求 - 训练: {training.Name}");
 
-            // 创建题目详情窗口
-            QuestionDetailsViewModel detailsViewModel = new();
+            // 将综合实训数据转换为通用的StudentExamDto以复用通用窗口
+            StudentExamDto examData = ConvertTrainingToStudentExam(training);
 
-            // 转换模块数据
-            List<ModuleItem> moduleItems = training.Modules.Select(module => new ModuleItem
-            {
-                Id = module.Id,
-                Name = module.Name,
-                Description = module.Description,
-                Type = module.Type,
-                Score = module.Score,
-                QuestionCount = module.Questions?.Count ?? 0,
-                Order = module.Order,
-                IsEnabled = true
-            }).ToList();
+            // 创建通用题目详情窗口
+            ExamQuestionDetailsViewModel detailsViewModel = new();
+            detailsViewModel.SetExamData(examData);
 
-            detailsViewModel.SetQuestionDetailsData(training.Name, moduleItems);
-
-            QuestionDetailsWindow detailsWindow = new()
+            ExamQuestionDetailsWindow detailsWindow = new()
             {
                 DataContext = detailsViewModel
             };
 
             // 显示题目详情窗口
             detailsWindow.Show();
-            System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 题目详情窗口已显示");
+            System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 通用题目详情窗口已显示");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看题目详情失败: {ex}");
         }
+    }
+
+    /// <summary>
+    /// 将综合实训DTO转换为StudentExamDto（用于ExamQuestionDetailsWindow）
+    /// </summary>
+    private static StudentExamDto ConvertTrainingToStudentExam(StudentComprehensiveTrainingDto training)
+    {
+        StudentExamDto exam = new()
+        {
+            Id = training.Id,
+            Name = training.Name,
+            Description = training.Description,
+            ExamType = "ComprehensiveTraining",
+            Status = training.Status,
+            TotalScore = training.TotalScore,
+            DurationMinutes = training.DurationMinutes,
+            Subjects = [],
+            Modules = []
+        };
+
+        // 先按模块转换（保持所有模块，包括无题目的）
+        foreach (StudentComprehensiveTrainingModuleDto module in training.Modules)
+        {
+            StudentModuleDto m = new()
+            {
+                Id = module.Id,
+                Name = module.Name,
+                Type = module.Type,
+                Description = module.Description ?? string.Empty,
+                Score = module.Score,
+                Order = module.Order
+            };
+
+            if (module.Questions != null && module.Questions.Count > 0)
+            {
+                foreach (StudentComprehensiveTrainingQuestionDto q in module.Questions)
+                {
+                    m.Questions.Add(new StudentQuestionDto
+                    {
+                        Id = q.Id,
+                        Title = q.Title,
+                        Content = q.Content,
+                        QuestionType = q.QuestionType,
+                        Score = q.Score,
+                        SortOrder = q.SortOrder,
+                        IsRequired = q.IsRequired
+                    });
+                }
+            }
+
+            exam.Modules.Add(m);
+        }
+
+        // 若没有模块或存在未覆盖的科目，则从Subjects补充为模块
+        if ((exam.Modules.Count == 0) && training.Subjects != null && training.Subjects.Count > 0)
+        {
+            foreach (StudentComprehensiveTrainingSubjectDto s in training.Subjects)
+            {
+                StudentModuleDto m = new()
+                {
+                    Id = s.Id,
+                    Name = s.SubjectName,
+                    Type = s.SubjectType,
+                    Description = s.Description ?? string.Empty,
+                    Score = s.Score,
+                    Order = s.SortOrder
+                };
+
+                if (s.Questions != null && s.Questions.Count > 0)
+                {
+                    foreach (StudentComprehensiveTrainingQuestionDto q in s.Questions)
+                    {
+                        m.Questions.Add(new StudentQuestionDto
+                        {
+                            Id = q.Id,
+                            Title = q.Title,
+                            Content = q.Content,
+                            QuestionType = q.QuestionType,
+                            Score = q.Score,
+                            SortOrder = q.SortOrder,
+                            IsRequired = q.IsRequired
+                        });
+                    }
+                }
+
+                exam.Modules.Add(m);
+            }
+        }
+
+        return exam;
     }
 
     /// <summary>
