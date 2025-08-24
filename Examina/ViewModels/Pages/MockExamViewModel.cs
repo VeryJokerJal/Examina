@@ -461,14 +461,14 @@ public class MockExamViewModel : ViewModelBase
     /// </summary>
     private async Task SubmitExamWithBenchSuiteAsync(int examId, ExamType examType, bool isAutoSubmit)
     {
+        // 获取实际用时（从考试工具栏）
+        int? actualDurationSeconds = GetActualDurationFromToolbar();
+
         try
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 开始提交考试，ID: {examId}, 类型: {examType}, 自动提交: {isAutoSubmit}");
 
             bool submitResult = false;
-
-            // 获取实际用时（从考试工具栏）
-            int? actualDurationSeconds = GetActualDurationFromToolbar();
 
             // 优先使用EnhancedExamToolbarService进行BenchSuite集成提交
             if (_enhancedExamToolbarService != null)
