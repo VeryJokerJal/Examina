@@ -373,6 +373,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             examToolbar.ExamAutoSubmitted += (sender, e) => OnTrainingAutoSubmitted(sender, e, training.Id);
             examToolbar.ExamManualSubmitted += (sender, e) => OnTrainingManualSubmitted(sender, e, training.Id);
             examToolbar.ViewQuestionsRequested += (sender, e) => OnViewQuestionsRequested(training);
+            examToolbar.ViewAnswerAnalysisRequested += (sender, e) => OnViewAnswerAnalysisRequested(training);
 
             System.Diagnostics.Debug.WriteLine("已订阅专项训练工具栏事件");
 
@@ -451,11 +452,103 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         try
         {
             System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情: {training.Name}");
-            // TODO: 实现题目详情窗口
+
+            // 创建题目详情窗口
+            QuestionDetailsViewModel detailsViewModel = new();
+
+            // 转换模块数据
+            List<ModuleItem> moduleItems = training.Modules.Select(module => new ModuleItem
+            {
+                Id = module.Id,
+                Name = module.Name,
+                Description = module.Description,
+                Type = module.Type,
+                Score = module.Score,
+                QuestionCount = module.Questions?.Count ?? 0,
+                Order = module.Order,
+                IsEnabled = module.IsEnabled
+            }).ToList();
+
+            detailsViewModel.SetQuestionDetailsData(training.Name, moduleItems);
+
+            QuestionDetailsWindow detailsWindow = new()
+            {
+                DataContext = detailsViewModel
+            };
+
+            // 显示题目详情窗口
+            detailsWindow.Show();
+            System.Diagnostics.Debug.WriteLine("专项训练题目详情窗口已显示");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"查看专项训练题目详情失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 处理查看答案解析请求
+    /// </summary>
+    private void OnViewAnswerAnalysisRequested(StudentSpecializedTrainingDto training)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"查看专项训练答案解析: {training.Name}");
+
+            // 创建答案解析窗口
+            AnswerAnalysisViewModel analysisViewModel = new();
+
+            // 收集所有题目的答案解析内容
+            List<QuestionItem> questionItems = [];
+
+            // 从模块中收集题目
+            foreach (StudentSpecializedTrainingModuleDto module in training.Modules)
+            {
+                foreach (StudentSpecializedTrainingQuestionDto question in module.Questions)
+                {
+                    questionItems.Add(new QuestionItem
+                    {
+                        Id = question.Id,
+                        Title = question.Title,
+                        Content = question.Content, // 题目的content属性作为答案解析
+                        QuestionType = question.QuestionType,
+                        Score = question.Score,
+                        SortOrder = question.SortOrder
+                    });
+                }
+            }
+
+            // 从直接题目列表中收集题目（如果有的话）
+            foreach (StudentSpecializedTrainingQuestionDto question in training.Questions)
+            {
+                questionItems.Add(new QuestionItem
+                {
+                    Id = question.Id,
+                    Title = question.Title,
+                    Content = question.Content, // 题目的content属性作为答案解析
+                    QuestionType = question.QuestionType,
+                    Score = question.Score,
+                    SortOrder = question.SortOrder
+                });
+            }
+
+            // 按排序顺序排列题目
+            questionItems = questionItems.OrderBy(q => q.SortOrder).ToList();
+
+            analysisViewModel.SetAnswerAnalysisData(training.Name, questionItems);
+
+            AnswerAnalysisWindow analysisWindow = new()
+            {
+                DataContext = analysisViewModel
+            };
+
+            // 显示答案解析窗口
+            analysisWindow.Show();
+            System.Diagnostics.Debug.WriteLine("专项训练答案解析窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"查看专项训练答案解析失败: {ex}");
         }
     }
 

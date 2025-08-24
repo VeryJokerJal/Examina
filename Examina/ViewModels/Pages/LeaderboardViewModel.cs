@@ -24,12 +24,12 @@ public class LeaderboardViewModel : ViewModelBase
     /// <summary>
     /// 标记是否已经完成初始化，避免重复初始化
     /// </summary>
-    private bool _isInitialized = false;
+    private readonly bool _isInitialized = false;
 
     /// <summary>
     /// 抑制自动加载与事件响应，确保依赖注入完成后再进行数据加载
     /// </summary>
-    private bool _suppressAutoLoad = false;
+    private readonly bool _suppressAutoLoad = false;
 
     #region 属性
 
@@ -126,14 +126,14 @@ public class LeaderboardViewModel : ViewModelBase
     public LeaderboardViewModel()
     {
         // 添加详细调试日志和调用栈跟踪
-        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+        System.Diagnostics.StackTrace stackTrace = new(true);
         System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel无参构造函数调用 ===");
         System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
         System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
         System.Diagnostics.Debug.WriteLine("调用栈:");
         for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
         {
-            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
+            System.Diagnostics.StackFrame? frame = stackTrace.GetFrame(i);
             if (frame != null)
             {
                 System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
@@ -199,14 +199,14 @@ public class LeaderboardViewModel : ViewModelBase
         _studentMockExamService = studentMockExamService;
 
         // 调试跟踪
-        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+        System.Diagnostics.StackTrace stackTrace = new(true);
         System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel依赖注入构造函数调用(单次初始化) ===");
         System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
         System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
         System.Diagnostics.Debug.WriteLine("调用栈:");
         for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
         {
-            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
+            System.Diagnostics.StackFrame? frame = stackTrace.GetFrame(i);
             if (frame != null)
             {
                 System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
@@ -270,7 +270,7 @@ public class LeaderboardViewModel : ViewModelBase
     private void InitializeLeaderboardTypes()
     {
         // 添加详细调试日志和调用栈跟踪
-        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+        System.Diagnostics.StackTrace stackTrace = new(true);
         System.Diagnostics.Debug.WriteLine("=== InitializeLeaderboardTypes方法调用 ===");
         System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
         System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
@@ -279,7 +279,7 @@ public class LeaderboardViewModel : ViewModelBase
         System.Diagnostics.Debug.WriteLine("调用栈:");
         for (int i = 0; i < Math.Min(stackTrace.FrameCount, 15); i++)
         {
-            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
+            System.Diagnostics.StackFrame? frame = stackTrace.GetFrame(i);
             if (frame != null)
             {
                 System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");

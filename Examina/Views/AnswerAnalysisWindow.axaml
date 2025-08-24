@@ -1,0 +1,111 @@
+﻿﻿<Window
+    x:Class="Examina.Views.AnswerAnalysisWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Examina.ViewModels"
+    Title="{Binding Title}"
+    Width="900"
+    Height="700"
+    d:DesignHeight="700"
+    d:DesignWidth="900"
+    x:DataType="vm:AnswerAnalysisViewModel"
+    Icon="/Assets/icon.ico"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.header">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.content">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="20" />
+        </Style>
+        <Style Selector="Border.question-item">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefault}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefault}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题区域 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock
+                Classes="header"
+                FontSize="20"
+                Text="{Binding Title}" />
+            <TextBlock
+                FontSize="14"
+                Foreground="{DynamicResource TextFillColorSecondary}"
+                Text="{Binding ExamName}" />
+        </StackPanel>
+
+        <!-- 题目列表区域 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Questions}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Classes="question-item">
+                            <StackPanel>
+                                <!-- 题目标题 -->
+                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                    <TextBlock
+                                        Classes="header"
+                                        Margin="0,0,8,0"
+                                        Text="{Binding Title}" />
+                                    <Border
+                                        Padding="6,2"
+                                        Background="{DynamicResource AccentFillColorDefault}"
+                                        CornerRadius="4">
+                                        <TextBlock
+                                            FontSize="12"
+                                            Foreground="White"
+                                            Text="{Binding QuestionType}" />
+                                    </Border>
+                                    <TextBlock
+                                        Margin="8,0,0,0"
+                                        FontSize="12"
+                                        Foreground="{DynamicResource TextFillColorSecondary}"
+                                        Text="{Binding Score, StringFormat='分值: {0}'}" />
+                                </StackPanel>
+
+                                <!-- 答案解析内容 -->
+                                <TextBlock
+                                    Classes="content"
+                                    Text="{Binding Content}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- 底部按钮区域 -->
+        <StackPanel
+            Grid.Row="2"
+            Margin="0,20,0,0"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal"
+            Spacing="12">
+            <Button
+                Padding="20,8"
+                Click="CloseButton_Click"
+                Content="关闭" />
+        </StackPanel>
+    </Grid>
+</Window>

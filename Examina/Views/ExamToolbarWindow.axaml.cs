@@ -34,6 +34,11 @@ public partial class ExamToolbarWindow : Window, IDisposable
     public event EventHandler? ViewQuestionsRequested;
 
     /// <summary>
+    /// 查看答案解析请求事件
+    /// </summary>
+    public event EventHandler? ViewAnswerAnalysisRequested;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ExamToolbarWindow() : this(new ScreenReservationService(), null)
@@ -73,6 +78,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
             _viewModel.ExamAutoSubmitted -= OnExamAutoSubmitted;
             _viewModel.ExamManualSubmitted -= OnExamManualSubmitted;
             _viewModel.ViewQuestionsRequested -= OnViewQuestionsRequested;
+            _viewModel.ViewAnswerAnalysisRequested -= OnViewAnswerAnalysisRequested;
             _viewModel.WindowCloseRequested -= OnWindowCloseRequested;
         }
 
@@ -83,6 +89,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
         _viewModel.ExamAutoSubmitted += OnExamAutoSubmitted;
         _viewModel.ExamManualSubmitted += OnExamManualSubmitted;
         _viewModel.ViewQuestionsRequested += OnViewQuestionsRequested;
+        _viewModel.ViewAnswerAnalysisRequested += OnViewAnswerAnalysisRequested;
         _viewModel.WindowCloseRequested += OnWindowCloseRequested;
 
         _logger.LogInformation("ExamToolbarWindow ViewModel已设置 - 剩余时间: {RemainingTime}秒, 格式化时间: {FormattedTime}",
@@ -242,6 +249,15 @@ public partial class ExamToolbarWindow : Window, IDisposable
     {
         _logger.LogInformation("用户请求查看题目");
         ViewQuestionsRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// 查看答案解析请求事件处理
+    /// </summary>
+    private void OnViewAnswerAnalysisRequested(object? sender, EventArgs e)
+    {
+        _logger.LogInformation("用户请求查看答案解析");
+        ViewAnswerAnalysisRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

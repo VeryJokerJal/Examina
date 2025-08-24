@@ -439,6 +439,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 examToolbar.ExamAutoSubmitted += OnTrainingAutoSubmitted;
                 examToolbar.ExamManualSubmitted += OnTrainingManualSubmitted;
                 examToolbar.ViewQuestionsRequested += (sender, e) => OnViewQuestionsRequested(training);
+                examToolbar.ViewAnswerAnalysisRequested += (sender, e) => OnViewAnswerAnalysisRequested(training);
 
                 System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 已订阅训练工具栏事件");
 
@@ -665,8 +666,110 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// </summary>
     private void OnViewQuestionsRequested(StudentComprehensiveTrainingDto training)
     {
-        System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看题目请求 - 训练: {training.Name}");
-        // TODO: 实现查看题目逻辑
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看题目请求 - 训练: {training.Name}");
+
+            // 创建题目详情窗口
+            QuestionDetailsViewModel detailsViewModel = new();
+
+            // 转换模块数据
+            List<ModuleItem> moduleItems = training.Modules.Select(module => new ModuleItem
+            {
+                Id = module.Id,
+                Name = module.Name,
+                Description = module.Description,
+                Type = module.Type,
+                Score = module.Score,
+                QuestionCount = module.Questions?.Count ?? 0,
+                Order = module.Order,
+                IsEnabled = true
+            }).ToList();
+
+            detailsViewModel.SetQuestionDetailsData(training.Name, moduleItems);
+
+            QuestionDetailsWindow detailsWindow = new()
+            {
+                DataContext = detailsViewModel
+            };
+
+            // 显示题目详情窗口
+            detailsWindow.Show();
+            System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 题目详情窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看题目详情失败: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// 查看答案解析请求事件处理
+    /// </summary>
+    private void OnViewAnswerAnalysisRequested(StudentComprehensiveTrainingDto training)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看答案解析请求 - 训练: {training.Name}");
+
+            // 创建答案解析窗口
+            AnswerAnalysisViewModel analysisViewModel = new();
+
+            // 收集所有题目的答案解析内容
+            List<QuestionItem> questionItems = [];
+
+            // 从模块中收集题目
+            foreach (StudentComprehensiveTrainingModuleDto module in training.Modules)
+            {
+                foreach (StudentComprehensiveTrainingQuestionDto question in module.Questions)
+                {
+                    questionItems.Add(new QuestionItem
+                    {
+                        Id = question.Id,
+                        Title = question.Title,
+                        Content = question.Content, // 题目的content属性作为答案解析
+                        QuestionType = question.QuestionType,
+                        Score = question.Score,
+                        SortOrder = question.SortOrder
+                    });
+                }
+            }
+
+            // 从科目中收集题目
+            foreach (StudentComprehensiveTrainingSubjectDto subject in training.Subjects)
+            {
+                foreach (StudentComprehensiveTrainingQuestionDto question in subject.Questions)
+                {
+                    questionItems.Add(new QuestionItem
+                    {
+                        Id = question.Id,
+                        Title = question.Title,
+                        Content = question.Content, // 题目的content属性作为答案解析
+                        QuestionType = question.QuestionType,
+                        Score = question.Score,
+                        SortOrder = question.SortOrder
+                    });
+                }
+            }
+
+            // 按排序顺序排列题目
+            questionItems = questionItems.OrderBy(q => q.SortOrder).ToList();
+
+            analysisViewModel.SetAnswerAnalysisData(training.Name, questionItems);
+
+            AnswerAnalysisWindow analysisWindow = new()
+            {
+                DataContext = analysisViewModel
+            };
+
+            // 显示答案解析窗口
+            analysisWindow.Show();
+            System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 答案解析窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 查看答案解析失败: {ex}");
+        }
     }
 
     /// <summary>

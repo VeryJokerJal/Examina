@@ -208,6 +208,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     public ReactiveCommand<Unit, Unit> ViewQuestionsCommand { get; }
 
     /// <summary>
+    /// 查看答案解析命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ViewAnswerAnalysisCommand { get; }
+
+    /// <summary>
     /// 提交考试命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> SubmitExamCommand { get; }
@@ -243,6 +248,11 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     public event EventHandler? ViewQuestionsRequested;
 
     /// <summary>
+    /// 查看答案解析请求事件
+    /// </summary>
+    public event EventHandler? ViewAnswerAnalysisRequested;
+
+    /// <summary>
     /// 无参数构造函数（用于设计时）
     /// </summary>
     public ExamToolbarViewModel()
@@ -252,6 +262,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         // 初始化命令
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
+        ViewAnswerAnalysisCommand = ReactiveCommand.Create(ViewAnswerAnalysis);
         SubmitExamCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
         OpenDirectoryCommand = ReactiveCommand.CreateFromTask(OpenDirectoryAsync);
@@ -291,6 +302,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         // 初始化命令
         ViewQuestionsCommand = ReactiveCommand.Create(ViewQuestions);
+        ViewAnswerAnalysisCommand = ReactiveCommand.Create(ViewAnswerAnalysis);
         SubmitExamCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync, this.WhenAnyValue(x => x.CanSubmitExam, x => x.IsSubmitting, (canSubmit, isSubmitting) => canSubmit && !isSubmitting));
         ConfirmSubmitCommand = ReactiveCommand.CreateFromTask(PerformSubmitAsync);
         OpenDirectoryCommand = ReactiveCommand.CreateFromTask(OpenDirectoryAsync);
@@ -526,6 +538,14 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     private void ViewQuestions()
     {
         ViewQuestionsRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// 查看答案解析
+    /// </summary>
+    private void ViewAnswerAnalysis()
+    {
+        ViewAnswerAnalysisRequested?.Invoke(this, EventArgs.Empty);
     }
 
 
