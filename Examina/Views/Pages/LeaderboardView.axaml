@@ -15,6 +15,10 @@
                 <TextBlock VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" IsVisible="{Binding ShowExamFilter}" Text="试卷筛选:" />
                 <ComboBox MinWidth="150" DisplayMemberBinding="{Binding DisplayName}" FontFamily="Microsoft YaHei" IsVisible="{Binding ShowExamFilter}" ItemsSource="{Binding ExamFilters}" SelectedItem="{Binding SelectedExamFilter}" />
 
+                <!--  排序类型选择  -->
+                <TextBlock VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="排序方式:" />
+                <ComboBox MinWidth="150" DisplayMemberBinding="{Binding Name}" FontFamily="Microsoft YaHei" ItemsSource="{Binding SortTypes}" SelectedItem="{Binding SelectedSortType}" />
+
                 <Button Padding="12,6" Command="{Binding RefreshLeaderboardCommand}" Content="刷新" FontFamily="Microsoft YaHei" />
             </StackPanel>
 
@@ -28,6 +32,8 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Width="80" Binding="{Binding Rank}" Header="排名" />
                             <DataGridTextColumn Width="150" Binding="{Binding Username}" Header="用户名" />
+                            <DataGridTextColumn Width="120" Binding="{Binding SchoolName}" Header="学校" />
+                            <DataGridTextColumn Width="100" Binding="{Binding ClassName}" Header="班级" />
                             <DataGridTextColumn Width="100" Binding="{Binding Score}" Header="分数" />
                             <DataGridTextColumn Width="120" Binding="{Binding CompletionTime, StringFormat='{}{0:hh\\:mm\\:ss}'}" Header="用时" />
                             <DataGridTextColumn Width="180" Binding="{Binding CompletionDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Header="完成时间" />

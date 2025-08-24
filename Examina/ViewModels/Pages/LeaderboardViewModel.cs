@@ -19,6 +19,7 @@ public class LeaderboardViewModel : ViewModelBase
     private readonly ILogger<LeaderboardViewModel>? _logger;
     private readonly IStudentComprehensiveTrainingService? _comprehensiveTrainingService;
     private readonly IStudentExamService? _studentExamService;
+    private readonly IStudentMockExamService? _studentMockExamService;
 
     #region 属性
 
@@ -73,6 +74,17 @@ public class LeaderboardViewModel : ViewModelBase
     [Reactive]
     public bool ShowExamFilter { get; set; } = true;
 
+    /// <summary>
+    /// 排序类型列表
+    /// </summary>
+    public ObservableCollection<SortTypeItem> SortTypes { get; } = [];
+
+    /// <summary>
+    /// 选中的排序类型
+    /// </summary>
+    [Reactive]
+    public SortTypeItem? SelectedSortType { get; set; }
+
     #endregion
 
     #region 命令
@@ -92,6 +104,11 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     public ICommand SwitchExamFilterCommand { get; }
 
+    /// <summary>
+    /// 切换排序类型命令
+    /// </summary>
+    public ICommand SwitchSortTypeCommand { get; }
+
     #endregion
 
     #region 构造函数
@@ -101,9 +118,11 @@ public class LeaderboardViewModel : ViewModelBase
         RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
         SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
+        SwitchSortTypeCommand = new DelegateCommand<SortTypeItem>(SwitchSortType);
 
         InitializeLeaderboardTypes();
         InitializeExamFilters();
+        InitializeSortTypes();
 
         // 监听排行榜类型变化（按ID去重，防止相同类型重复触发）
         _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
@@ -116,18 +135,24 @@ public class LeaderboardViewModel : ViewModelBase
             .Where(filter => filter != null)
             .Subscribe(filter => OnExamFilterChanged(filter!));
 
+        // 监听排序类型变化
+        _ = this.WhenAnyValue(x => x.SelectedSortType)
+            .Where(sortType => sortType != null)
+            .Subscribe(sortType => OnSortTypeChanged(sortType!));
+
         // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService) : this()
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService? studentMockExamService = null) : this()
     {
         _rankingService = rankingService;
         _logger = logger;
         _comprehensiveTrainingService = comprehensiveTrainingService;
         _studentExamService = studentExamService;
+        _studentMockExamService = studentMockExamService;
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId) : this(rankingService, logger, comprehensiveTrainingService, studentExamService)
+    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel> logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null) : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
     {
         if (!string.IsNullOrEmpty(rankingTypeId))
         {
@@ -193,6 +218,49 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 初始化排序类型列表
+    /// </summary>
+    private void InitializeSortTypes()
+    {
+        SortTypes.Clear();
+
+        SortTypes.Add(new SortTypeItem
+        {
+            Id = "score",
+            Name = "按分数排序",
+            Description = "按考试分数从高到低排序",
+            Icon = "🏆"
+        });
+
+        SortTypes.Add(new SortTypeItem
+        {
+            Id = "school",
+            Name = "按学校排序",
+            Description = "按学校名称排序",
+            Icon = "🏫"
+        });
+
+        SortTypes.Add(new SortTypeItem
+        {
+            Id = "class",
+            Name = "按班级排序",
+            Description = "按班级名称排序",
+            Icon = "👥"
+        });
+
+        SortTypes.Add(new SortTypeItem
+        {
+            Id = "time",
+            Name = "按时间排序",
+            Description = "按完成时间排序",
+            Icon = "⏰"
+        });
+
+        // 默认选择按分数排序
+        SelectedSortType = SortTypes.FirstOrDefault();
+    }
+
+    /// <summary>
     /// 加载排行榜数据
     /// </summary>
     private async void LoadLeaderboardData()
@@ -232,7 +300,9 @@ public class LeaderboardViewModel : ViewModelBase
                             Username = entry.Username,
                             Score = (int)entry.Score,
                             CompletionTime = TimeSpan.FromSeconds(entry.DurationSeconds),
-                            CompletionDate = entry.CompletedAt
+                            CompletionDate = entry.CompletedAt,
+                            SchoolName = entry.SchoolName ?? "未知学校",
+                            ClassName = entry.ClassName ?? "未知班级"
                         });
                     }
 
@@ -257,7 +327,9 @@ public class LeaderboardViewModel : ViewModelBase
                         Username = $"用户{i:D3}",
                         Score = 100 - (i * 2),
                         CompletionTime = TimeSpan.FromMinutes(30 + (i * 2)),
-                        CompletionDate = DateTime.Now.AddDays(-i)
+                        CompletionDate = DateTime.Now.AddDays(-i),
+                        SchoolName = $"学校{(i % 3) + 1}",
+                        ClassName = $"班级{(i % 5) + 1}"
                     });
                 }
             }
@@ -270,6 +342,12 @@ public class LeaderboardViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+
+            // 数据加载完成后应用排序
+            if (LeaderboardData.Any() && SelectedSortType != null)
+            {
+                ApplySorting();
+            }
         }
     }
 
@@ -307,6 +385,20 @@ public class LeaderboardViewModel : ViewModelBase
 
         SelectedExamFilter = examFilter;
         LoadLeaderboardData();
+    }
+
+    /// <summary>
+    /// 切换排序类型
+    /// </summary>
+    private void SwitchSortType(SortTypeItem? sortType)
+    {
+        if (sortType == null)
+        {
+            return;
+        }
+
+        SelectedSortType = sortType;
+        ApplySorting();
     }
 
     /// <summary>
@@ -354,6 +446,20 @@ public class LeaderboardViewModel : ViewModelBase
         if (!IsLoading)
         {
             LoadLeaderboardData();
+        }
+    }
+
+    /// <summary>
+    /// 排序类型变化处理
+    /// </summary>
+    private void OnSortTypeChanged(SortTypeItem sortType)
+    {
+        _logger?.LogInformation("排序类型变化: {SortType}", sortType?.Name ?? "null");
+
+        // 当排序类型变化时，重新应用排序
+        if (!IsLoading && LeaderboardData.Any())
+        {
+            ApplySorting();
         }
     }
 
@@ -451,18 +557,62 @@ public class LeaderboardViewModel : ViewModelBase
                     }
                 }
             }
-            else
+            else if (rankingTypeId == "mock-exam-ranking" && _studentMockExamService != null)
             {
-                // 其他排行榜类型暂时使用模拟数据
-                await Task.Run(() =>
+                try
                 {
+                    // 获取模拟考试列表
+                    List<Models.MockExam.StudentMockExamDto> mockExams = await _studentMockExamService.GetStudentMockExamsAsync(1, 100);
+
+                    foreach (Models.MockExam.StudentMockExamDto mockExam in mockExams)
+                    {
+                        ExamFilters.Add(new ExamFilterItem
+                        {
+                            ExamId = mockExam.Id,
+                            ExamName = mockExam.Name,
+                            DisplayName = mockExam.Name
+                        });
+                    }
+
+                    _logger?.LogInformation("成功加载 {Count} 个模拟考试试卷", mockExams.Count);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "加载模拟考试试卷列表失败");
+
+                    // 如果加载失败，使用模拟数据作为备用
                     for (int i = 1; i <= 10; i++)
                     {
                         ExamFilters.Add(new ExamFilterItem
                         {
                             ExamId = i,
-                            ExamName = $"试卷{i:D2}",
-                            DisplayName = $"试卷{i:D2}"
+                            ExamName = $"模拟考试{i:D2}",
+                            DisplayName = $"模拟考试{i:D2}"
+                        });
+                    }
+                }
+            }
+            else
+            {
+                // 如果没有对应的服务，使用模拟数据作为备用
+                _logger?.LogWarning("未找到对应的服务，使用模拟数据，排行榜类型: {RankingTypeId}", rankingTypeId);
+
+                await Task.Run(() =>
+                {
+                    string examPrefix = rankingTypeId switch
+                    {
+                        "mock-exam-ranking" => "模拟考试",
+                        "exam-ranking" => "正式考试",
+                        _ => "试卷"
+                    };
+
+                    for (int i = 1; i <= 10; i++)
+                    {
+                        ExamFilters.Add(new ExamFilterItem
+                        {
+                            ExamId = i,
+                            ExamName = $"{examPrefix}{i:D2}",
+                            DisplayName = $"{examPrefix}{i:D2}"
                         });
                     }
                 });
@@ -534,6 +684,63 @@ public class LeaderboardViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 应用排序
+    /// </summary>
+    private void ApplySorting()
+    {
+        if (SelectedSortType == null || !LeaderboardData.Any())
+        {
+            return;
+        }
+
+        try
+        {
+            _logger?.LogInformation("应用排序: {SortType}", SelectedSortType.Id);
+
+            List<LeaderboardEntry> sortedData = SelectedSortType.Id switch
+            {
+                "score" => LeaderboardData.OrderByDescending(x => x.Score)
+                                         .ThenBy(x => x.CompletionTime)
+                                         .ThenBy(x => x.CompletionDate)
+                                         .ToList(),
+                "school" => LeaderboardData.OrderBy(x => x.SchoolName)
+                                          .ThenBy(x => x.ClassName)
+                                          .ThenByDescending(x => x.Score)
+                                          .ToList(),
+                "class" => LeaderboardData.OrderBy(x => x.ClassName)
+                                         .ThenBy(x => x.SchoolName)
+                                         .ThenByDescending(x => x.Score)
+                                         .ToList(),
+                "time" => LeaderboardData.OrderBy(x => x.CompletionDate)
+                                        .ThenByDescending(x => x.Score)
+                                        .ToList(),
+                _ => LeaderboardData.OrderByDescending(x => x.Score)
+                                   .ThenBy(x => x.CompletionTime)
+                                   .ToList()
+            };
+
+            // 重新分配排名
+            for (int i = 0; i < sortedData.Count; i++)
+            {
+                sortedData[i].Rank = i + 1;
+            }
+
+            // 更新集合
+            LeaderboardData.Clear();
+            foreach (LeaderboardEntry entry in sortedData)
+            {
+                LeaderboardData.Add(entry);
+            }
+
+            _logger?.LogInformation("排序完成，共 {Count} 条记录", sortedData.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "应用排序时发生异常");
+        }
+    }
+
     #endregion
 }
 
@@ -592,6 +799,16 @@ public class LeaderboardEntry
     /// 完成日期
     /// </summary>
     public DateTime CompletionDate { get; set; }
+
+    /// <summary>
+    /// 学校名称
+    /// </summary>
+    public string SchoolName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 班级名称
+    /// </summary>
+    public string ClassName { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -613,4 +830,30 @@ public class ExamFilterItem
     /// 显示名称
     /// </summary>
     public string DisplayName { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 排序类型项
+/// </summary>
+public class SortTypeItem
+{
+    /// <summary>
+    /// 排序类型ID
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 排序类型名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 排序类型描述
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 图标
+    /// </summary>
+    public string Icon { get; set; } = string.Empty;
 }
