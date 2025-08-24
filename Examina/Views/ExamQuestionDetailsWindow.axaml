@@ -121,7 +121,7 @@
                 </Grid>
             </Border>
 
-            <!-- 右侧题目详情 -->
+            <!-- 右侧模块详情 -->
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -140,58 +140,89 @@
                                Text="{Binding ModuleInfoText}" />
                 </Border>
 
-                <!-- 题目列表 -->
-                <ScrollViewer Grid.Row="1" Padding="15">
-                    <ItemsControl ItemsSource="{Binding CurrentModuleQuestions}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="models:StudentQuestionDto">
-                                <Border Margin="0,0,0,10"
-                                        Padding="15"
-                                        Background="{DynamicResource LayerFillColorDefaultBrush}"
-                                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="8">
-                                    <StackPanel>
-                                        <!-- 题目标题 -->
-                                        <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
-                                            <TextBlock VerticalAlignment="Center"
-                                                       FontSize="16"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                       Text="{Binding Title}" />
-                                            <Border Margin="10,0,0,0"
-                                                    Padding="6,2"
-                                                    Background="{DynamicResource AccentFillColorDefaultBrush}"
-                                                    CornerRadius="3">
-                                                <TextBlock FontSize="11"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="White"
-                                                           Text="{Binding Score, StringFormat={}{0}分}" />
-                                            </Border>
-                                        </StackPanel>
+                <!-- 模块描述内容 -->
+                <ScrollViewer Grid.Row="1" Padding="20">
+                    <StackPanel Spacing="20">
+                        <!-- 模块详细信息 -->
+                        <Border Padding="15"
+                                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <StackPanel Spacing="12">
+                                <!-- 模块基本信息 -->
+                                <TextBlock FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                           Text="模块信息" />
 
-                                        <!-- 题目内容 -->
-                                        <TextBlock Margin="0,0,0,8"
-                                                   FontSize="14"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                   Text="{Binding Content}"
-                                                   TextWrapping="Wrap" />
+                                <TextBlock FontSize="13"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           Text="{Binding ModuleDetailInfo}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
 
-                                        <!-- 题目信息 -->
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontSize="12"
-                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                       Text="{Binding QuestionType}" />
-                                            <TextBlock Margin="15,0,0,0"
-                                                       FontSize="12"
-                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                       Text="{Binding SortOrder, StringFormat={}序号: {0}}" />
-                                        </StackPanel>
+                        <!-- 模块描述 -->
+                        <Border Padding="15"
+                                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <StackPanel Spacing="12">
+                                <!-- 描述标题 -->
+                                <TextBlock FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                           Text="模块描述" />
+
+                                <!-- 描述内容 -->
+                                <TextBlock FontSize="13"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           Text="{Binding ModuleDescriptionText}"
+                                           TextWrapping="Wrap"
+                                           LineHeight="20" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 题目统计信息 -->
+                        <Border Padding="15"
+                                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <StackPanel Spacing="12">
+                                <!-- 统计标题 -->
+                                <TextBlock FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                           Text="题目统计" />
+
+                                <!-- 统计内容 -->
+                                <StackPanel Orientation="Horizontal" Spacing="20">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                   Text="题目总数:" />
+                                        <TextBlock FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource AccentFillColorDefaultBrush}"
+                                                   Text="{Binding CurrentModuleQuestionCount}" />
                                     </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                   Text="模块分值:" />
+                                        <TextBlock FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource AccentFillColorDefaultBrush}"
+                                                   Text="{Binding SelectedModule.Score, StringFormat={}分}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </ScrollViewer>
             </Grid>
         </Grid>

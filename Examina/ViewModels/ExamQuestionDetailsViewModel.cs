@@ -105,14 +105,28 @@ public class ExamQuestionDetailsViewModel : ViewModelBase
     /// <summary>
     /// 模块信息文本
     /// </summary>
-    public string ModuleInfoText => HasSelectedModule 
+    public string ModuleInfoText => HasSelectedModule
         ? $"{SelectedModule!.Name} - {CurrentModuleQuestionCount} 道题目"
         : "请选择模块";
 
     /// <summary>
+    /// 模块描述信息
+    /// </summary>
+    public string ModuleDescriptionText => HasSelectedModule && !string.IsNullOrEmpty(SelectedModule!.Description)
+        ? SelectedModule.Description
+        : "暂无模块描述信息";
+
+    /// <summary>
+    /// 模块详细信息（包含类型、分值等）
+    /// </summary>
+    public string ModuleDetailInfo => HasSelectedModule
+        ? $"类型: {SelectedModule!.Type} | 分值: {SelectedModule.Score}分 | 题目数: {CurrentModuleQuestionCount}道"
+        : "";
+
+    /// <summary>
     /// 题目信息文本
     /// </summary>
-    public string QuestionInfoText => HasSelectedQuestion 
+    public string QuestionInfoText => HasSelectedQuestion
         ? $"题目 {SelectedQuestion!.SortOrder}: {SelectedQuestion.Title}"
         : "请选择题目";
 
@@ -135,6 +149,8 @@ public class ExamQuestionDetailsViewModel : ViewModelBase
                 this.RaisePropertyChanged(nameof(HasSelectedModule));
                 this.RaisePropertyChanged(nameof(CurrentModuleQuestionCount));
                 this.RaisePropertyChanged(nameof(ModuleInfoText));
+                this.RaisePropertyChanged(nameof(ModuleDescriptionText));
+                this.RaisePropertyChanged(nameof(ModuleDetailInfo));
             });
 
         // 监听选中题目的变化
