@@ -191,58 +191,7 @@ public class LeaderboardViewModel : ViewModelBase
 
     public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService? studentMockExamService = null)
     {
-        // 关键修复：不再调用无参构造函数，避免先期初始化
-        _suppressAutoLoad = true;
-
-        // 初始化命令与基础集合（仅一次）
-        RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
-        SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
-        SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
-        SwitchSortTypeCommand = new DelegateCommand<SortTypeItem>(SwitchSortType);
-
-        InitializeLeaderboardTypes();
-        InitializeExamFilters();
-        InitializeSortTypes();
-
-        // 订阅（带抑制控制）
-        _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
-            .Where(type => type != null)
-            .DistinctUntilChanged(type => type!.Id)
-            .Subscribe(type =>
-            {
-                if (_suppressAutoLoad)
-                {
-                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制排行榜类型变化事件（DI构造期间）");
-                    return;
-                }
-                OnLeaderboardTypeChanged(type!);
-            });
-
-        _ = this.WhenAnyValue(x => x.SelectedExamFilter)
-            .Where(filter => filter != null)
-            .Subscribe(filter =>
-            {
-                if (_suppressAutoLoad)
-                {
-                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制试卷筛选变化事件（DI构造期间）");
-                    return;
-                }
-                OnExamFilterChanged(filter!);
-            });
-
-        _ = this.WhenAnyValue(x => x.SelectedSortType)
-            .Where(sortType => sortType != null)
-            .Subscribe(sortType =>
-            {
-                if (_suppressAutoLoad)
-                {
-                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制排序类型变化事件（DI构造期间）");
-                    return;
-                }
-                OnSortTypeChanged(sortType!);
-            });
-
-        // 赋值依赖
+        // 1) 先注入依赖，保证后续初始化能使用到服务
         _rankingService = rankingService;
         _logger = logger;
         _comprehensiveTrainingService = comprehensiveTrainingService;
@@ -251,7 +200,7 @@ public class LeaderboardViewModel : ViewModelBase
 
         // 调试跟踪
         System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
-        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel依赖注入构造函数调用(无链式this) ===");
+        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel依赖注入构造函数调用(单次初始化) ===");
         System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
         System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
         System.Diagnostics.Debug.WriteLine("调用栈:");
@@ -270,37 +219,45 @@ public class LeaderboardViewModel : ViewModelBase
         System.Diagnostics.Debug.WriteLine($"  - StudentExamService: {(_studentExamService != null ? "已注入" : "null")}");
         System.Diagnostics.Debug.WriteLine($"  - StudentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
 
-        // 结束抑制
-        _suppressAutoLoad = false;
+        // 2) 初始化命令与基础集合
+        RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
+        SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
+        SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
+        SwitchSortTypeCommand = new DelegateCommand<SortTypeItem>(SwitchSortType);
+
+        // 3) 初始化静态数据
+        InitializeLeaderboardTypes();
+        InitializeExamFilters();
+        InitializeSortTypes();
+
+        // 4) 订阅变更（此时服务已可用）
+        _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
+            .Where(type => type != null)
+            .DistinctUntilChanged(type => type!.Id)
+            .Subscribe(type => OnLeaderboardTypeChanged(type!));
+
+        _ = this.WhenAnyValue(x => x.SelectedExamFilter)
+            .Where(filter => filter != null)
+            .Subscribe(filter => OnExamFilterChanged(filter!));
+
+        _ = this.WhenAnyValue(x => x.SelectedSortType)
+            .Where(sortType => sortType != null)
+            .Subscribe(sortType => OnSortTypeChanged(sortType!));
+
+        // 5) 加载数据（默认类型）
+        LoadInitialData();
     }
 
     public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null)
         : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
     {
-        // 由于上面的构造已经设置了抑制，这里无需再次抑制，只负责设置类型
-        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
-        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel带排行榜类型构造函数调用(复用DI构造) ===");
-        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        // 仅负责根据传入的rankingTypeId设置默认类型
+        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel带排行榜类型构造函数调用(直接设置类型) ===");
         System.Diagnostics.Debug.WriteLine($"排行榜类型ID: {rankingTypeId ?? "null"}");
-        System.Diagnostics.Debug.WriteLine("调用栈:");
-        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
-        {
-            System.Diagnostics.StackFrame frame = stackTrace.GetFrame(i);
-            if (frame != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
-            }
-        }
 
         if (!string.IsNullOrEmpty(rankingTypeId))
         {
-            System.Diagnostics.Debug.WriteLine($"设置排行榜类型: {rankingTypeId}");
             SetRankingType(rankingTypeId);
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("排行榜类型ID为空，跳过设置");
         }
     }
 
