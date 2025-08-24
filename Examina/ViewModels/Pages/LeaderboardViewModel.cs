@@ -244,8 +244,7 @@ public class LeaderboardViewModel : ViewModelBase
             .Where(sortType => sortType != null)
             .Subscribe(sortType => OnSortTypeChanged(sortType!));
 
-        // 5) 加载数据（默认类型）
-        LoadInitialData();
+        // 不在构造中加载默认数据，等待外部显式SetRankingType或LoadInitialData调用
     }
 
     public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null)
@@ -325,11 +324,8 @@ public class LeaderboardViewModel : ViewModelBase
             Icon = "🎯"
         });
 
-        SelectedLeaderboardType = LeaderboardTypes.FirstOrDefault();
-
-        // 标记初始化完成
-        _isInitialized = true;
-        System.Diagnostics.Debug.WriteLine("✅ InitializeLeaderboardTypes完成，设置初始化标志");
+        // 不在此处选择默认类型，避免与外部SetRankingType叠加触发
+        System.Diagnostics.Debug.WriteLine("✅ InitializeLeaderboardTypes完成（未设置默认SelectedLeaderboardType）");
     }
 
     /// <summary>
@@ -549,29 +545,33 @@ public class LeaderboardViewModel : ViewModelBase
     /// <summary>
     /// 排行榜类型变化处理
     /// </summary>
+    private static int _typeChangedCallCount = 0;
     private void OnLeaderboardTypeChanged(LeaderboardTypeItem leaderboardType)
     {
+        int callOrder = System.Threading.Interlocked.Increment(ref _typeChangedCallCount);
+        System.Diagnostics.Debug.WriteLine($"[TypeChanged] #{callOrder} 触发，Id={leaderboardType.Id}; 旧筛选={SelectedExamFilter?.DisplayName ?? "null"}");
         _logger?.LogInformation("排行榜类型变化: {Type}", leaderboardType.Id);
 
         // 更新试卷筛选器的显示状态
         ShowExamFilter = leaderboardType.Id is not "mock-exam-ranking";
 
+        bool needLoad = true;
+
         // 如果是模拟考试排行榜，重置筛选器为"全部试卷"
         if (!ShowExamFilter)
         {
-            // 临时禁用筛选器变化监听，避免重复加载数据
             ExamFilterItem? currentFilter = SelectedExamFilter;
-            SelectedExamFilter = ExamFilters.FirstOrDefault();
-
-            // 如果筛选器没有实际变化，手动触发数据加载
-            if (currentFilter == SelectedExamFilter)
+            ExamFilterItem? defaultFilter = ExamFilters.FirstOrDefault();
+            if (currentFilter?.ExamId != defaultFilter?.ExamId)
             {
-                LoadLeaderboardData();
+                SelectedExamFilter = defaultFilter;
+                // 此处SelectedExamFilter变化会触发加载，无需再次Load
+                needLoad = false;
             }
         }
-        else
+
+        if (needLoad)
         {
-            // 对于其他类型，直接加载数据
             LoadLeaderboardData();
         }
 
