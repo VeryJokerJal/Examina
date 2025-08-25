@@ -232,6 +232,26 @@ public class SmsCodeRequest
 }
 
 /// <summary>
+/// 短信验证码验证请求模型
+/// </summary>
+public class SmsVerifyRequest
+{
+    /// <summary>
+    /// 手机号
+    /// </summary>
+    [Required]
+    [Phone]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required]
+    [StringLength(8, MinimumLength = 4)]
+    public string Code { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// 短信验证码登录请求模型
 /// </summary>
 public class SmsLoginRequest

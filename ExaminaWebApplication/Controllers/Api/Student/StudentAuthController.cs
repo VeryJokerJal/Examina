@@ -369,6 +369,61 @@ public class StudentAuthController : ControllerBase
     }
 
     /// <summary>
+    /// 验证短信验证码
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("verify-sms")]
+    public async Task<ActionResult> VerifySmsCode([FromBody] SmsVerifyRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("收到验证短信验证码请求，手机号: {PhoneNumber}", request?.PhoneNumber ?? "null");
+
+            // 验证模型绑定
+            if (request == null)
+            {
+                _logger.LogWarning("SmsVerifyRequest为null，模型绑定失败");
+                return BadRequest(new { success = false, message = "请求数据无效" });
+            }
+
+            if (string.IsNullOrEmpty(request.PhoneNumber) || string.IsNullOrEmpty(request.Code))
+            {
+                _logger.LogWarning("手机号或验证码为空，手机号: {PhoneNumber}, 验证码为空: {CodeEmpty}",
+                    request.PhoneNumber, string.IsNullOrEmpty(request.Code));
+                return BadRequest(new { success = false, message = "手机号和验证码不能为空" });
+            }
+
+            // 验证模型状态
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("模型验证失败: {ModelState}",
+                    string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+                return BadRequest(new { success = false, message = "手机号或验证码格式不正确" });
+            }
+
+            // 验证短信验证码
+            bool isValid = await _smsService.VerifyCodeAsync(request.PhoneNumber, request.Code);
+
+            if (isValid)
+            {
+                _logger.LogInformation("短信验证码验证成功，手机号: {PhoneNumber}", request.PhoneNumber);
+                return Ok(new { success = true, message = "验证码验证成功" });
+            }
+            else
+            {
+                _logger.LogWarning("短信验证码验证失败，手机号: {PhoneNumber}, 验证码: {Code}",
+                    request.PhoneNumber, request.Code);
+                return BadRequest(new { success = false, message = "验证码错误或已过期" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "验证短信验证码失败，手机号: {PhoneNumber}", request?.PhoneNumber);
+            return StatusCode(500, new { success = false, message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
     /// 获取微信登录二维码
     /// </summary>
     [AllowAnonymous]
