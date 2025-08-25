@@ -138,6 +138,8 @@ public class UserInfoCompletionViewModel : ViewModelBase
     /// </summary>
     private int _smsCodeCountdown;
 
+    #endregion
+
     #region 方法
 
     /// <summary>
