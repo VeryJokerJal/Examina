@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Linq;
 using ExamLab.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -101,8 +102,16 @@ public class ExamModule : ReactiveObject
     {
         if (e.PropertyName == nameof(Question.TotalScore))
         {
-            this.RaisePropertyChanged(nameof(TotalScore));
+            NotifyTotalScoreChanged();
         }
+    }
+
+    /// <summary>
+    /// 触发总分更新通知
+    /// </summary>
+    private void NotifyTotalScoreChanged()
+    {
+        this.RaisePropertyChanged(nameof(TotalScore));
     }
 
     /// <summary>
@@ -132,6 +141,9 @@ public class ExamModule : ReactiveObject
         {
             question.ReinitializeEventListeners();
         }
+
+        // 触发总分重新计算
+        NotifyTotalScoreChanged();
     }
     /// <summary>
     /// 模块ID
@@ -179,7 +191,7 @@ public class ExamModule : ReactiveObject
     public int QuestionCount => Questions.Count;
 
     /// <summary>
-    /// 总分
+    /// 总分（自动计算）
     /// </summary>
     public double TotalScore => Questions.Sum(q => q.TotalScore);
 
@@ -187,4 +199,6 @@ public class ExamModule : ReactiveObject
     /// 操作点数量
     /// </summary>
     public int OperationPointCount => Questions.Sum(q => q.OperationPoints.Count);
+
+
 }

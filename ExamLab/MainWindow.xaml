@@ -67,6 +67,7 @@
                         <Button Command="{Binding CreateExamCommand}" Content="新建考试试卷" IsHitTestVisible="True" />
                         <Button Command="{Binding ImportExamCommand}" Content="导入" IsHitTestVisible="True" />
                         <Button Command="{Binding ExportExamCommand}" CommandParameter="{Binding SelectedExam}" Content="导出" IsEnabled="{Binding SelectedExam, Converter={StaticResource NullToBooleanConverter}}" IsHitTestVisible="True" />
+                        <Button Command="{Binding TestScoreUpdateCommand}" Content="测试分值更新" IsHitTestVisible="True" Background="Orange" />
                     </StackPanel>
 
                     <!--  专项试卷特定工具栏  -->

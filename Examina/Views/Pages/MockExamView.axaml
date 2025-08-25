@@ -33,6 +33,7 @@
                     <TextBlock Text="3. 模拟考试中请勿进行任何形式的作弊行为" TextWrapping="Wrap" />
                     <TextBlock Text="4. 模拟考试结束后请及时提交试卷" TextWrapping="Wrap" />
                     <TextBlock Text="5. 模拟考试成绩仅供参考，不计入班级成绩" TextWrapping="Wrap" />
+                    <TextBlock Margin="0,10,0,0" Text="将从综合训练试卷中随机抽取一套试卷，开始考试前您将不会知道具体是哪一套试卷。" TextWrapping="Wrap" />
                 </StackPanel>
 
                 <!--  考试信息  -->

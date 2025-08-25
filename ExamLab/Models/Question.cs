@@ -35,6 +35,14 @@ public class Question : ReactiveObject
     public double TotalScore => CalculateTotalScore();
 
     /// <summary>
+    /// 触发总分更新通知
+    /// </summary>
+    private void NotifyTotalScoreChanged()
+    {
+        this.RaisePropertyChanged(nameof(TotalScore));
+    }
+
+    /// <summary>
     /// 计算题目总分值
     /// </summary>
     private double CalculateTotalScore()
@@ -62,13 +70,7 @@ public class Question : ReactiveObject
         return (double)OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
     }
 
-    /// <summary>
-    /// 触发总分更新通知
-    /// </summary>
-    private void NotifyTotalScoreChanged()
-    {
-        this.RaisePropertyChanged(nameof(TotalScore));
-    }
+
 
     /// <summary>
     /// 题目排序
@@ -209,6 +211,8 @@ public class Question : ReactiveObject
         }
     }
 
+
+
     /// <summary>
     /// 重新初始化事件监听（用于反序列化后）
     /// </summary>
@@ -237,6 +241,9 @@ public class Question : ReactiveObject
             codeBlank.PropertyChanged -= OnCodeBlankPropertyChanged; // 防止重复监听
             codeBlank.PropertyChanged += OnCodeBlankPropertyChanged;
         }
+
+        // 触发总分重新计算
+        NotifyTotalScoreChanged();
     }
 
     /// <summary>

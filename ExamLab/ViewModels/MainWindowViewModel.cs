@@ -172,6 +172,11 @@ public class MainWindowViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> ResetModuleDescriptionCommand { get; }
 
+    /// <summary>
+    /// 测试分值更新功能命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> TestScoreUpdateCommand { get; }
+
     public MainWindowViewModel()
     {
         Title = "试卷制作系统";
@@ -192,6 +197,7 @@ public class MainWindowViewModel : ViewModelBase
         AddOperationPointCommand = ReactiveCommand.CreateFromTask(AddOperationPointAsync);
         SaveModuleDescriptionCommand = ReactiveCommand.CreateFromTask(SaveModuleDescriptionAsync);
         ResetModuleDescriptionCommand = ReactiveCommand.CreateFromTask(ResetModuleDescriptionAsync);
+        TestScoreUpdateCommand = ReactiveCommand.Create(TestScoreUpdate);
 
         // 初始化导航
         InitializeNavigation();
@@ -1212,6 +1218,22 @@ public class MainWindowViewModel : ViewModelBase
         {
             // 专项试卷的未保存状态
             HasUnsavedChanges = SpecializedExamViewModel.HasUnsavedChanges;
+        }
+    }
+
+    /// <summary>
+    /// 测试分值更新功能
+    /// </summary>
+    private async void TestScoreUpdate()
+    {
+        try
+        {
+            await Tests.TestRunner.RunAllTestsAsync();
+            _ = NotificationService.ShowSuccessAsync("测试完成", "分值更新功能测试已完成，请查看控制台输出");
+        }
+        catch (Exception ex)
+        {
+            _ = NotificationService.ShowErrorAsync("测试失败", $"分值更新功能测试失败：{ex.Message}");
         }
     }
 }
