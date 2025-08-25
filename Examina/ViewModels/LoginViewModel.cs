@@ -234,107 +234,74 @@ public class LoginViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 执行微信登录 - 直接跳转浏览器方式
+    /// 执行微信登录 - 跳转到微信登录页面
     /// </summary>
-    private async Task<AuthenticationResult> ExecuteWeChatLoginAsync()
+    private Task<AuthenticationResult> ExecuteWeChatLoginAsync()
     {
         try
         {
-            // 获取微信授权URL
-            WeChatQrCodeInfo? qrCodeInfo = await _authenticationService.GetWeChatQrCodeAsync();
-            if (qrCodeInfo != null)
-            {
-                try
-                {
-                    // 直接打开浏览器进行微信授权
-                    System.Diagnostics.ProcessStartInfo startInfo = new()
-                    {
-                        FileName = qrCodeInfo.QrCodeUrl,
-                        UseShellExecute = true,
-                        Verb = "open"
-                    };
-                    using System.Diagnostics.Process? process = System.Diagnostics.Process.Start(startInfo);
-                    _ = process; // 忽略返回值，仅触发浏览器打开
+            // 构建微信登录页面URL
+            string weChatLoginUrl = GetWeChatLoginPageUrl();
 
-                    // 开始轮询检查登录状态
-                    return await WaitForWeChatLoginAsync(qrCodeInfo.QrCodeKey);
-                }
-                catch (Exception ex)
-                {
-                    return new AuthenticationResult
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = $"无法打开浏览器: {ex.Message}"
-                    };
-                }
-            }
-            else
+            try
             {
-                return new AuthenticationResult
+                // 打开微信登录页面
+                System.Diagnostics.ProcessStartInfo startInfo = new()
+                {
+                    FileName = weChatLoginUrl,
+                    UseShellExecute = true,
+                    Verb = "open"
+                };
+                using System.Diagnostics.Process? process = System.Diagnostics.Process.Start(startInfo);
+                _ = process; // 忽略返回值，仅触发浏览器打开
+
+                // 返回提示信息，告知用户在浏览器中完成登录
+                return Task.FromResult(new AuthenticationResult
+                {
+                    IsSuccess = false, // 暂时返回false，因为需要用户在浏览器中完成授权
+                    ErrorMessage = "已打开微信登录页面，请在浏览器中完成微信扫码登录"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(new AuthenticationResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = "获取微信登录授权URL失败"
-                };
+                    ErrorMessage = $"无法打开微信登录页面: {ex.Message}"
+                });
             }
         }
         catch (Exception ex)
         {
-            return new AuthenticationResult
+            return Task.FromResult(new AuthenticationResult
             {
                 IsSuccess = false,
                 ErrorMessage = $"微信登录失败: {ex.Message}"
-            };
+            });
         }
     }
 
     /// <summary>
-    /// 等待微信登录完成
+    /// 获取微信登录页面URL
     /// </summary>
-    private async Task<AuthenticationResult> WaitForWeChatLoginAsync(string qrCodeKey)
+    private string GetWeChatLoginPageUrl()
     {
-        const int maxAttempts = 60; // 最多等待5分钟（每5秒检查一次）
-        const int intervalSeconds = 5;
-
-        for (int attempt = 0; attempt < maxAttempts; attempt++)
-        {
-            try
-            {
-                // 检查微信登录状态
-                WeChatScanStatus? status = await _authenticationService.CheckWeChatStatusAsync(qrCodeKey);
-                if (status != null)
-                {
-                    if (status.Status == 2 && !string.IsNullOrEmpty(status.Code))
-                    {
-                        // 用户已确认授权，执行登录
-                        return await _authenticationService.LoginWithWeChatAsync(qrCodeKey);
-                    }
-                    else if (status.Status == 3)
-                    {
-                        // 二维码已过期
-                        return new AuthenticationResult
-                        {
-                            IsSuccess = false,
-                            ErrorMessage = "授权已过期，请重新尝试微信登录"
-                        };
-                    }
-                }
-
-                // 等待下次检查
-                await Task.Delay(intervalSeconds * 1000);
-            }
-            catch
-            {
-                // 忽略检查错误，继续等待
-            }
-        }
-
-        // 超时
-        return new AuthenticationResult
-        {
-            IsSuccess = false,
-            ErrorMessage = "微信登录超时，请重新尝试"
-        };
+        // 从配置或服务中获取后端服务地址
+        string baseUrl = GetBackendBaseUrl();
+        return $"{baseUrl}/wechat-login";
     }
+
+    /// <summary>
+    /// 获取后端服务基础URL
+    /// </summary>
+    private string GetBackendBaseUrl()
+    {
+        // 这里应该从配置文件或服务中获取，暂时硬编码
+        // 在实际部署时，应该从配置中读取
+        return "https://localhost:7125"; // 开发环境地址
+    }
+
+
 
     private void StartSmsCodeCountdown()
     {

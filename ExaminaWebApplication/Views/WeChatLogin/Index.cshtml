@@ -1,0 +1,359 @@
+@{
+    ViewData["Title"] = "微信扫码登录";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="login-container">
+    <div class="card">
+        <div class="card-header text-center">
+            <h3 class="card-title">微信扫码登录</h3>
+            <p class="text-muted">请使用微信扫描二维码完成登录</p>
+        </div>
+        
+        <div class="card-body">
+            <!-- 微信二维码容器 -->
+            <div id="wechat-qrcode-container" class="text-center mb-4">
+                <div id="loading-indicator" class="mb-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">加载中...</span>
+                    </div>
+                    <p class="mt-2">正在生成微信登录二维码...</p>
+                </div>
+                
+                <!-- 微信官方二维码将在这里显示 -->
+                <div id="wechat-login-qrcode" style="display: none;"></div>
+                
+                <!-- 错误提示 -->
+                <div id="error-message" class="alert alert-danger" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span id="error-text">加载失败，请刷新页面重试</span>
+                </div>
+            </div>
+            
+            <!-- 状态提示 -->
+            <div id="status-message" class="text-center mb-3" style="display: none;">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <span id="status-text">等待扫码...</span>
+                </div>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="text-center">
+                <button id="refresh-btn" class="btn btn-outline-primary me-2" onclick="refreshQRCode()">
+                    <i class="bi bi-arrow-clockwise"></i> 刷新二维码
+                </button>
+                <a href="@Url.Action("Login", "Login")" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> 返回登录
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 引入微信官方JS SDK（符合官方文档规范） -->
+<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"></script>
+
+<script>
+    let wxLoginObj = null;
+    let currentState = null;
+    let statusCheckInterval = null;
+    
+    // 页面加载完成后初始化微信登录
+    document.addEventListener('DOMContentLoaded', function() {
+        initWeChatLogin();
+    });
+    
+    // 初始化微信登录
+    async function initWeChatLogin() {
+        try {
+            showLoading();
+            
+            // 获取微信登录配置
+            const response = await fetch('/api/auth/wechat/config');
+            const result = await response.json();
+            
+            if (!result.success) {
+                showError(result.message || '获取微信登录配置失败');
+                return;
+            }
+            
+            const config = result.data.wxLoginConfig;
+            currentState = config.state;
+            
+            // 创建微信登录对象（符合官方文档规范）
+            wxLoginObj = new WxLogin({
+                self_redirect: false, // 不在当前窗口跳转
+                id: "wechat-login-qrcode", // 二维码容器ID
+                appid: config.appid, // 微信开放平台应用ID
+                scope: "snsapi_login", // 网站应用微信登录授权作用域
+                redirect_uri: encodeURIComponent(config.redirect_uri), // 回调地址
+                state: config.state, // 状态码，防CSRF攻击
+                style: "black", // 二维码样式：black或white
+                href: "", // 自定义样式链接
+                stylelite: 1 // 使用新版UI样式
+            });
+            
+            // 等待二维码加载完成
+            setTimeout(() => {
+                showQRCode();
+                startStatusCheck();
+            }, 2000);
+            
+        } catch (error) {
+            console.error('初始化微信登录失败:', error);
+            showError('初始化微信登录失败: ' + error.message);
+        }
+    }
+    
+    // 开始状态检查
+    function startStatusCheck() {
+        if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+        }
+        
+        // 每3秒检查一次登录状态
+        statusCheckInterval = setInterval(async function() {
+            if (!currentState) return;
+            
+            try {
+                const response = await fetch(`/api/auth/wechat/check-status?state=${encodeURIComponent(currentState)}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const status = result.data.status;
+                    const message = result.data.message;
+                    
+                    switch (status) {
+                        case 'scanned':
+                            showStatus('扫描成功，请在手机上确认登录');
+                            break;
+                        case 'confirmed':
+                        case 'success':
+                            showStatus('登录成功，正在跳转...');
+                            if (result.data.hasCallback && result.data.code) {
+                                // 发送登录成功消息给Avalonia客户端
+                                sendMessageToClient({
+                                    type: 'wechat_auth_success',
+                                    data: {
+                                        code: result.data.code,
+                                        state: currentState
+                                    }
+                                });
+
+                                // 如果不是在WebView中，则跳转到主页
+                                if (!isInWebView()) {
+                                    setTimeout(() => {
+                                        window.location.href = '/';
+                                    }, 1000);
+                                }
+                            }
+                            break;
+                        case 'cancelled':
+                            showStatus('用户取消登录');
+                            setTimeout(() => refreshQRCode(), 3000);
+                            break;
+                        case 'expired':
+                            showStatus('二维码已过期，正在刷新...');
+                            setTimeout(() => refreshQRCode(), 2000);
+                            break;
+                        case 'error':
+                            showError(message || '登录过程中发生错误');
+                            break;
+                    }
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+                // 网络错误不停止轮询，继续尝试
+            }
+        }, 3000);
+        
+        // 5分钟后停止轮询，防止二维码过期后无限轮询
+        setTimeout(() => {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                showError('二维码已过期，请刷新重试');
+            }
+        }, 5 * 60 * 1000);
+    }
+    
+    // 停止状态检查
+    function stopStatusCheck() {
+        if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+            statusCheckInterval = null;
+        }
+    }
+    
+    // 刷新二维码
+    function refreshQRCode() {
+        stopStatusCheck();
+        
+        // 清空二维码容器
+        const qrContainer = document.getElementById('wechat-login-qrcode');
+        if (qrContainer) {
+            qrContainer.innerHTML = '';
+        }
+        
+        // 重新初始化
+        initWeChatLogin();
+    }
+    
+    // 显示加载状态
+    function showLoading() {
+        document.getElementById('loading-indicator').style.display = 'block';
+        document.getElementById('wechat-login-qrcode').style.display = 'none';
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('status-message').style.display = 'none';
+    }
+    
+    // 显示二维码
+    function showQRCode() {
+        document.getElementById('loading-indicator').style.display = 'none';
+        document.getElementById('wechat-login-qrcode').style.display = 'block';
+        document.getElementById('error-message').style.display = 'none';
+        showStatus('请使用微信扫描二维码');
+    }
+    
+    // 显示错误
+    function showError(message) {
+        document.getElementById('loading-indicator').style.display = 'none';
+        document.getElementById('wechat-login-qrcode').style.display = 'none';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('error-text').textContent = message;
+        document.getElementById('status-message').style.display = 'none';
+        stopStatusCheck();
+    }
+    
+    // 显示状态
+    function showStatus(message) {
+        document.getElementById('status-message').style.display = 'block';
+        document.getElementById('status-text').textContent = message;
+    }
+
+    // 发送消息给Avalonia客户端
+    function sendMessageToClient(message) {
+        try {
+            console.log('发送消息给客户端:', message);
+
+            // 方法1: 通过window.chrome.webview.postMessage (适用于WebView2)
+            if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {
+                window.chrome.webview.postMessage(JSON.stringify(message));
+                return;
+            }
+
+            // 方法2: 通过window.external.notify (适用于旧版WebView)
+            if (window.external && window.external.notify) {
+                window.external.notify(JSON.stringify(message));
+                return;
+            }
+
+            // 方法3: 通过postMessage到父窗口 (适用于iframe)
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage(message, '*');
+                return;
+            }
+
+            // 方法4: 通过自定义事件
+            const event = new CustomEvent('wechat_auth_success', { detail: message });
+            window.dispatchEvent(event);
+
+        } catch (error) {
+            console.error('发送消息给客户端失败:', error);
+        }
+    }
+
+    // 检测是否在WebView环境中
+    function isInWebView() {
+        // 检测WebView2
+        if (window.chrome && window.chrome.webview) {
+            return true;
+        }
+
+        // 检测旧版WebView
+        if (window.external && window.external.notify) {
+            return true;
+        }
+
+        // 检测iframe
+        if (window.parent && window.parent !== window) {
+            return true;
+        }
+
+        // 检测User Agent
+        const userAgent = navigator.userAgent.toLowerCase();
+        if (userAgent.includes('webview') || userAgent.includes('avalonia')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // 页面卸载时清理
+    window.addEventListener('beforeunload', function() {
+        stopStatusCheck();
+    });
+</script>
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+
+    .card {
+        max-width: 500px;
+        width: 100%;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: white;
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        padding: 2rem 2rem 1rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    #wechat-login-qrcode {
+        min-height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .btn {
+        border-radius: 25px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+    }
+
+    .alert {
+        border-radius: 10px;
+        border: none;
+    }
+
+    @media (max-width: 576px) {
+        .card-header, .card-body {
+            padding: 1.5rem;
+        }
+
+        .login-container {
+            padding: 10px;
+        }
+    }
+</style>
