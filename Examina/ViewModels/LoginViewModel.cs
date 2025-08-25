@@ -16,8 +16,6 @@ namespace Examina.ViewModels;
 public class LoginViewModel : ViewModelBase
 {
     private readonly IAuthenticationService _authenticationService;
-    private Timer? _qrCodeStatusTimer;
-    private string? _currentQrCodeKey;
 
     public LoginViewModel(IAuthenticationService authenticationService)
     {
@@ -38,7 +36,7 @@ public class LoginViewModel : ViewModelBase
         SwitchToCredentialsCommand = new DelegateCommand(SwitchToCredentials);
         SwitchToSmsCommand = new DelegateCommand(SwitchToSms);
         SendSmsCodeCommand = new DelegateCommand(async () => await SendSmsCodeAsync(), CanSendSmsCode);
-        RefreshQrCodeCommand = new DelegateCommand(async () => await RefreshQrCodeAsync());
+        // RefreshQrCodeCommand 已移除，微信登录改为直接跳转浏览器
     }
 
     /// <summary>
@@ -48,7 +46,7 @@ public class LoginViewModel : ViewModelBase
     {
         // 监听属性更改以更新命令状态
         _ = this.WhenAnyValue(x => x.Username, x => x.Password, x => x.PhoneNumber, x => x.SmsCode,
-                         x => x.IsLoading, x => x.QrCodeUrl, x => x.LoginMode)
+                         x => x.IsLoading, x => x.LoginMode)
             .Subscribe(_ =>
             {
                 ((DelegateCommand)LoginCommand).RaiseCanExecuteChanged();
@@ -84,9 +82,7 @@ public class LoginViewModel : ViewModelBase
     // 登录模式
     [Reactive] public LoginMode LoginMode { get; set; } = LoginMode.Credentials;
 
-    // 微信登录相关
-    [Reactive] public string QrCodeUrl { get; set; } = string.Empty;
-    [Reactive] public string QrCodeStatus { get; set; } = "等待扫描";
+    // 微信登录相关 - 已简化为直接跳转浏览器方式
 
     // 短信验证码相关
     [Reactive] public bool IsSmsCodeSent { get; set; } = false;
@@ -107,7 +103,7 @@ public class LoginViewModel : ViewModelBase
     public ICommand SwitchToCredentialsCommand { get; private set; } = null!;
     public ICommand SwitchToSmsCommand { get; private set; } = null!;
     public ICommand SendSmsCodeCommand { get; private set; } = null!;
-    public ICommand RefreshQrCodeCommand { get; private set; } = null!;
+    // RefreshQrCodeCommand 已移除，微信登录改为直接跳转浏览器
 
     private bool CanExecuteLogin()
     {
@@ -115,7 +111,7 @@ public class LoginViewModel : ViewModelBase
         {
             LoginMode.Credentials => !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password),
             LoginMode.SmsCode => !string.IsNullOrEmpty(PhoneNumber) && !string.IsNullOrEmpty(SmsCode),
-            LoginMode.WeChat => !string.IsNullOrEmpty(QrCodeUrl),
+            LoginMode.WeChat => true, // 微信登录直接跳转浏览器，无需验证
             _ => false
         };
     }
@@ -139,7 +135,7 @@ public class LoginViewModel : ViewModelBase
             {
                 LoginMode.Credentials => await _authenticationService.LoginWithCredentialsAsync(Username, Password),
                 LoginMode.SmsCode => await _authenticationService.LoginWithSmsAsync(PhoneNumber, SmsCode),
-                LoginMode.WeChat => await _authenticationService.LoginWithWeChatAsync(_currentQrCodeKey ?? ""),
+                LoginMode.WeChat => await ExecuteWeChatLoginAsync(),
                 _ => new AuthenticationResult { IsSuccess = false, ErrorMessage = "不支持的登录方式" }
             };
 
@@ -187,21 +183,18 @@ public class LoginViewModel : ViewModelBase
     {
         LoginMode = LoginMode.WeChat;
         ClearMessages();
-        _ = RefreshQrCodeAsync();
     }
 
     private void SwitchToCredentials()
     {
         LoginMode = LoginMode.Credentials;
         ClearMessages();
-        StopQrCodeStatusTimer();
     }
 
     private void SwitchToSms()
     {
         LoginMode = LoginMode.SmsCode;
         ClearMessages();
-        StopQrCodeStatusTimer();
     }
 
     private async Task SendSmsCodeAsync()
@@ -240,117 +233,107 @@ public class LoginViewModel : ViewModelBase
         }
     }
 
-    private async Task RefreshQrCodeAsync()
+    /// <summary>
+    /// 执行微信登录 - 直接跳转浏览器方式
+    /// </summary>
+    private async Task<AuthenticationResult> ExecuteWeChatLoginAsync()
     {
         try
         {
-            IsLoading = true;
-            QrCodeStatus = "正在获取二维码...";
-
+            // 获取微信授权URL
             WeChatQrCodeInfo? qrCodeInfo = await _authenticationService.GetWeChatQrCodeAsync();
             if (qrCodeInfo != null)
             {
-                _currentQrCodeKey = qrCodeInfo.QrCodeKey;
-                QrCodeUrl = qrCodeInfo.QrCodeUrl;
-                QrCodeStatus = "请使用微信扫描二维码";
-
                 try
                 {
-                    // 打开系统默认浏览器，导航到EW微信授权页面（便于在桌面端完成扫码授权）
+                    // 直接打开浏览器进行微信授权
                     System.Diagnostics.ProcessStartInfo startInfo = new()
                     {
-                        FileName = QrCodeUrl,
+                        FileName = qrCodeInfo.QrCodeUrl,
                         UseShellExecute = true,
                         Verb = "open"
                     };
                     using System.Diagnostics.Process? process = System.Diagnostics.Process.Start(startInfo);
                     _ = process; // 忽略返回值，仅触发浏览器打开
-                }
-                catch (Exception)
-                {
-                    // 忽略浏览器打开异常，用户仍可手动扫码
-                }
 
-                // 开始轮询二维码状态
-                StartQrCodeStatusTimer();
+                    // 开始轮询检查登录状态
+                    return await WaitForWeChatLoginAsync(qrCodeInfo.QrCodeKey);
+                }
+                catch (Exception ex)
+                {
+                    return new AuthenticationResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = $"无法打开浏览器: {ex.Message}"
+                    };
+                }
             }
             else
             {
-                ErrorMessage = "获取微信登录二维码失败";
-                QrCodeStatus = "获取二维码失败";
+                return new AuthenticationResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "获取微信登录授权URL失败"
+                };
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"获取二维码失败: {ex.Message}";
-            QrCodeStatus = "获取二维码失败";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private void StartQrCodeStatusTimer()
-    {
-        StopQrCodeStatusTimer();
-
-        _qrCodeStatusTimer = new Timer(3000); // 每3秒检查一次
-        _qrCodeStatusTimer.Elapsed += async (sender, e) =>
-        {
-            // 确保异步操作在UI线程中执行
-            await Dispatcher.UIThread.InvokeAsync(async () => await CheckQrCodeStatusAsync());
-        };
-        _qrCodeStatusTimer.Start();
-    }
-
-    private void StopQrCodeStatusTimer()
-    {
-        _qrCodeStatusTimer?.Stop();
-        _qrCodeStatusTimer?.Dispose();
-        _qrCodeStatusTimer = null;
-    }
-
-    private async Task CheckQrCodeStatusAsync()
-    {
-        if (string.IsNullOrEmpty(_currentQrCodeKey))
-        {
-            return;
-        }
-
-        try
-        {
-            WeChatScanStatus? status = await _authenticationService.CheckWeChatStatusAsync(_currentQrCodeKey);
-            if (status != null)
+            return new AuthenticationResult
             {
-                QrCodeStatus = status.Status switch
-                {
-                    0 => "等待扫描",
-                    1 => "已扫描，等待确认",
-                    2 => "已确认，正在登录...",
-                    3 => "二维码已过期",
-                    _ => "未知状态"
-                };
+                IsSuccess = false,
+                ErrorMessage = $"微信登录失败: {ex.Message}"
+            };
+        }
+    }
 
-                if (status.Status == 2 && !string.IsNullOrEmpty(status.Code))
+    /// <summary>
+    /// 等待微信登录完成
+    /// </summary>
+    private async Task<AuthenticationResult> WaitForWeChatLoginAsync(string qrCodeKey)
+    {
+        const int maxAttempts = 60; // 最多等待5分钟（每5秒检查一次）
+        const int intervalSeconds = 5;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                // 检查微信登录状态
+                WeChatScanStatus? status = await _authenticationService.CheckWeChatStatusAsync(qrCodeKey);
+                if (status != null)
                 {
-                    // 二维码已确认，执行登录
-                    StopQrCodeStatusTimer();
-                    // 不要覆盖二维码Key，后端使用该Key查询状态；授权码在服务端使用
-                    await ExecuteLoginAsync();
+                    if (status.Status == 2 && !string.IsNullOrEmpty(status.Code))
+                    {
+                        // 用户已确认授权，执行登录
+                        return await _authenticationService.LoginWithWeChatAsync(qrCodeKey);
+                    }
+                    else if (status.Status == 3)
+                    {
+                        // 二维码已过期
+                        return new AuthenticationResult
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "授权已过期，请重新尝试微信登录"
+                        };
+                    }
                 }
-                else if (status.Status == 3)
-                {
-                    // 二维码已过期，停止轮询
-                    StopQrCodeStatusTimer();
-                    ErrorMessage = "二维码已过期，请刷新";
-                }
+
+                // 等待下次检查
+                await Task.Delay(intervalSeconds * 1000);
+            }
+            catch
+            {
+                // 忽略检查错误，继续等待
             }
         }
-        catch
+
+        // 超时
+        return new AuthenticationResult
         {
-            // 忽略状态检查错误
-        }
+            IsSuccess = false,
+            ErrorMessage = "微信登录超时，请重新尝试"
+        };
     }
 
     private void StartSmsCodeCountdown()
@@ -472,9 +455,5 @@ public class LoginViewModel : ViewModelBase
         }
     }
 
-    // 析构函数，确保定时器被清理
-    ~LoginViewModel()
-    {
-        StopQrCodeStatusTimer();
-    }
+    // 析构函数 - 二维码定时器已移除，无需清理
 }

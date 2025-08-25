@@ -35,7 +35,7 @@ public class ConfigurationService : IConfigurationService
 #if DEBUG
             true;
 #else
-            return false;
+            false;
 #endif
 
 

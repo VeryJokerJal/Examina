@@ -1,19 +1,4 @@
-<Window x:Class="Examina.Views.ExamQuestionDetailsWindow"
-        xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="using:Examina.ViewModels"
-        xmlns:models="using:Examina.Models.Exam"
-        Title="{Binding ExamTitle}"
-        Width="1000"
-        Height="700"
-        d:DesignHeight="700"
-        d:DesignWidth="1000"
-        x:DataType="vm:ExamQuestionDetailsViewModel"
-        Icon="/Assets/icon.ico"
-        WindowStartupLocation="CenterScreen"
-        mc:Ignorable="d">
+﻿<Window x:Class="Examina.Views.ExamQuestionDetailsWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Examina.Models.Exam" xmlns:vm="using:Examina.ViewModels" Title="{Binding ExamTitle}" Width="1000" Height="700" d:DesignHeight="700" d:DesignWidth="1000" x:DataType="vm:ExamQuestionDetailsViewModel" Icon="/Assets/icon.ico" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
 
     <Design.DataContext>
         <vm:ExamQuestionDetailsViewModel />
@@ -25,81 +10,45 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- 标题栏 -->
-        <Border Grid.Row="0"
-                Padding="20,15"
-                Background="{DynamicResource LayerFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                BorderThickness="0,0,0,1">
+        <!--  标题栏  -->
+        <Border Grid.Row="0" Padding="20,15" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,0,1">
             <StackPanel>
-                <TextBlock FontSize="20"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                           Text="{Binding ExamTitle}" />
-                <TextBlock Margin="0,5,0,0"
-                           FontSize="14"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           Text="{Binding ExamDescription}" />
+                <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding ExamTitle}" />
+                <TextBlock Margin="0,5,0,0" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding ExamDescription}" />
 
             </StackPanel>
         </Border>
 
-        <!-- 主内容区域 -->
+        <!--  主内容区域  -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- 左侧模块列表 -->
-            <Border Grid.Column="0"
-                    Background="{DynamicResource LayerFillColorAltBrush}"
-                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                    BorderThickness="0,0,1,0">
+            <!--  左侧模块列表  -->
+            <Border Grid.Column="0" Background="{DynamicResource LayerFillColorAltBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- 模块列表标题 -->
-                    <Border Grid.Row="0"
-                            Padding="15,10"
-                            Background="{DynamicResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                            BorderThickness="0,0,0,1">
-                        <TextBlock FontSize="14"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                   Text="考试模块" />
+                    <!--  模块列表标题  -->
+                    <Border Grid.Row="0" Padding="15,10" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,0,1">
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="考试模块" />
                     </Border>
 
-                    <!-- 模块列表 -->
-                    <ListBox Grid.Row="1"
-                             Background="Transparent"
-                             ItemsSource="{Binding Modules}"
-                             SelectedItem="{Binding SelectedModule}">
+                    <!--  模块列表  -->
+                    <ListBox Grid.Row="1" Background="Transparent" ItemsSource="{Binding Modules}" SelectedItem="{Binding SelectedModule}">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="models:StudentModuleDto">
-                                <Border Margin="5"
-                                        Padding="10,8"
-                                        Background="{DynamicResource LayerFillColorDefaultBrush}"
-                                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="6">
+                                <Border Margin="5" Padding="10,8" BorderThickness="1" CornerRadius="6">
                                     <StackPanel>
-                                        <TextBlock FontSize="13"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                   Text="{Binding Name}" />
-                                        <TextBlock Margin="0,2,0,0"
-                                                   FontSize="11"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                   Text="{Binding Type}" />
+                                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                        <TextBlock Margin="0,2,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Type}" />
                                         <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
-                                            <TextBlock FontSize="11"
-                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                       Text="{Binding Score, StringFormat={}分值: {0}}" />
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding Score, StringFormat={}分值: {0}}" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -109,33 +58,22 @@
                 </Grid>
             </Border>
 
-            <!-- 右侧模块详情 -->
+            <!--  右侧模块详情  -->
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- 模块信息栏 -->
-                <Border Grid.Row="0"
-                        Padding="15,10"
-                        Background="{DynamicResource LayerFillColorDefaultBrush}"
-                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                        BorderThickness="0,0,0,1">
-                    <TextBlock FontSize="14"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                               Text="{Binding ModuleInfoText}" />
+                <!--  模块信息栏  -->
+                <Border Grid.Row="0" Padding="15,10" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding ModuleInfoText}" />
                 </Border>
 
-                <!-- 模块描述内容 -->
+                <!--  模块描述内容  -->
                 <ScrollViewer Grid.Row="1" Padding="20">
-                    <!-- 直接显示模块描述文本，无卡片容器 -->
-                    <TextBlock FontSize="14"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               Text="{Binding ModuleDescriptionText}"
-                               TextWrapping="Wrap"
-                               LineHeight="22" />
+                    <!--  直接显示模块描述文本，无卡片容器  -->
+                    <TextBlock FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" LineHeight="22" Text="{Binding ModuleDescriptionText}" TextWrapping="Wrap" />
                 </ScrollViewer>
             </Grid>
         </Grid>

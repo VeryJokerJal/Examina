@@ -53,18 +53,18 @@
                             <Button MinHeight="48" Margin="0,8,0,0" Padding="16,12" HorizontalAlignment="Stretch" Classes="accent" Command="{Binding LoginCommand}" Content="立即登录" CornerRadius="8" FontSize="16" FontWeight="Medium" />
                         </StackPanel>
 
-                        <!--  微信扫码登录区域  -->
+                        <!--  微信登录区域  -->
                         <StackPanel HorizontalAlignment="Center" IsVisible="{Binding IsWeChatMode}" Spacing="20">
-                            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="使用微信扫一扫登录" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="使用微信登录" />
 
-                            <Border Width="220" Height="220" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" BoxShadow="0 2 8 0 #15000000" CornerRadius="12">
-                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="48" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="📱" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding QrCodeStatus}" />
+                            <Border Width="280" Height="120" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" BoxShadow="0 2 8 0 #15000000" CornerRadius="12">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                    <TextBlock HorizontalAlignment="Center" FontSize="48" Foreground="{DynamicResource SystemFillColorSuccessBrush}" Text="💬" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="点击下方按钮跳转浏览器完成微信授权" />
                                 </StackPanel>
                             </Border>
 
-                            <Button Padding="16,8" HorizontalAlignment="Center" Command="{Binding RefreshQrCodeCommand}" Content="刷新二维码" CornerRadius="6" FontWeight="Medium" />
+                            <Button MinHeight="48" Padding="16,12" HorizontalAlignment="Center" Classes="accent" Command="{Binding LoginCommand}" Content="微信登录" CornerRadius="8" FontSize="16" FontWeight="Medium" />
                         </StackPanel>
 
                         <!--  成功信息  -->
