@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Claims;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -41,7 +41,7 @@ public class AdminAuthController : ControllerBase
     /// 管理员/教师登录
     /// </summary>
     [AllowAnonymous]
-[HttpPost("login")]
+    [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] AdminLoginRequest request)
     {
         try
@@ -52,10 +52,10 @@ public class AdminAuthController : ControllerBase
             }
 
             // 查找用户（支持用户名、邮箱登录）
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => 
-                    (u.Username == request.Username || u.Email == request.Username) 
-                    && u.IsActive 
+            User? user = await _context.Users
+                .FirstOrDefaultAsync(u =>
+                    (u.Username == request.Username || u.Email == request.Username)
+                    && u.IsActive
                     && (u.Role == UserRole.Administrator || u.Role == UserRole.Teacher));
 
             if (user == null)
@@ -70,29 +70,29 @@ public class AdminAuthController : ControllerBase
             }
 
             // 创建Claims
-            var claims = new List<Claim>
-            {
+            List<Claim> claims =
+            [
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.Username),
                 new(ClaimTypes.Email, user.Email),
                 new(ClaimTypes.Role, user.Role.ToString()),
                 new("IsFirstLogin", user.IsFirstLogin.ToString())
-            };
+            ];
 
             if (!string.IsNullOrEmpty(user.PhoneNumber))
             {
                 claims.Add(new Claim(ClaimTypes.MobilePhone, user.PhoneNumber));
             }
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+            ClaimsIdentity claimsIdentity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            ClaimsPrincipal claimsPrincipal = new(claimsIdentity);
 
             // 设置Cookie认证属性
-            var authProperties = new AuthenticationProperties
+            AuthenticationProperties authProperties = new()
             {
                 IsPersistent = request.RememberMe,
-                ExpiresUtc = request.RememberMe 
-                    ? DateTimeOffset.UtcNow.AddDays(7) 
+                ExpiresUtc = request.RememberMe
+                    ? DateTimeOffset.UtcNow.AddDays(7)
                     : DateTimeOffset.UtcNow.AddHours(8)
             };
 
@@ -103,10 +103,10 @@ public class AdminAuthController : ControllerBase
                 authProperties);
 
             // 创建会话记录
-            var sessionToken = HttpContext.Session.Id;
-            var expiresAt = authProperties.ExpiresUtc?.DateTime ?? DateTime.UtcNow.AddHours(8);
-            
-            await _sessionService.CreateSessionAsync(
+            string sessionToken = HttpContext.Session.Id;
+            DateTime expiresAt = authProperties.ExpiresUtc?.DateTime ?? DateTime.UtcNow.AddHours(8);
+
+            _ = await _sessionService.CreateSessionAsync(
                 user.Id,
                 sessionToken,
                 SessionType.Cookie,
@@ -119,9 +119,9 @@ public class AdminAuthController : ControllerBase
 
             // 更新用户最后登录时间
             user.LastLoginAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
-            var response = new AdminLoginResponse
+            AdminLoginResponse response = new()
             {
                 User = new UserInfo
                 {
@@ -156,23 +156,23 @@ public class AdminAuthController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            Claim? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized(new { message = "未登录或登录已过期" });
             }
 
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null || !user.IsActive || 
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive ||
                 (user.Role != UserRole.Administrator && user.Role != UserRole.Teacher))
             {
                 return Unauthorized(new { message = "用户不存在、已被禁用或权限不足" });
             }
 
-            return Ok(new 
-            { 
-                message = "登录有效", 
-                userId = user.Id, 
+            return Ok(new
+            {
+                message = "登录有效",
+                userId = user.Id,
                 username = user.Username,
                 role = user.Role.ToString(),
                 realName = user.RealName
@@ -194,19 +194,19 @@ public class AdminAuthController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            Claim? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized(new { message = "未登录或登录已过期" });
             }
 
-            var user = await _context.Users.FindAsync(userId);
+            User? user = await _context.Users.FindAsync(userId);
             if (user == null || !user.IsActive)
             {
                 return Unauthorized(new { message = "用户不存在或已被禁用" });
             }
 
-            var userInfo = new UserInfo
+            UserInfo userInfo = new()
             {
                 Id = user.Id.ToString(),
                 Username = user.Username,
@@ -236,11 +236,11 @@ public class AdminAuthController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            
+            Claim? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
             // 结束会话记录
-            var sessionToken = HttpContext.Session.Id;
-            await _sessionService.EndSessionAsync(sessionToken);
+            string sessionToken = HttpContext.Session.Id;
+            _ = await _sessionService.EndSessionAsync(sessionToken);
 
             // 登出用户
             await HttpContext.SignOutAsync("Cookie");
@@ -268,7 +268,7 @@ public class AdminAuthController : ControllerBase
     {
         try
         {
-            var success = await _deviceService.AdminUnbindDeviceAsync(deviceId);
+            bool success = await _deviceService.AdminUnbindDeviceAsync(deviceId);
             if (success)
             {
                 _logger.LogInformation("管理员解绑设备成功，设备ID: {DeviceId}", deviceId);
@@ -295,19 +295,19 @@ public class AdminAuthController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            Claim? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized(new { message = "未登录或登录已过期" });
             }
 
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null || !user.IsActive || user.Role != UserRole.Admin)
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive || user.Role != UserRole.Administrator)
             {
                 return Forbid("只有管理员可以执行此操作");
             }
 
-            var report = await _userDataFixService.CheckDuplicateUsersAsync();
+            DuplicateUserReport report = await _userDataFixService.CheckDuplicateUsersAsync();
             return Ok(report);
         }
         catch (Exception ex)
@@ -326,14 +326,14 @@ public class AdminAuthController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            Claim? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized(new { message = "未登录或登录已过期" });
             }
 
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null || !user.IsActive || user.Role != UserRole.Admin)
+            User? user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive || user.Role != UserRole.Administrator)
             {
                 return Forbid("只有管理员可以执行此操作");
             }
@@ -358,7 +358,7 @@ public class AdminAuthController : ControllerBase
     /// </summary>
     private string GetClientIpAddress()
     {
-        var ipAddress = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        string? ipAddress = Request.Headers["X-Forwarded-For"].FirstOrDefault();
         if (string.IsNullOrEmpty(ipAddress))
         {
             ipAddress = Request.Headers["X-Real-IP"].FirstOrDefault();
@@ -392,12 +392,12 @@ public class AdminLoginRequest
     /// 用户名（支持用户名、邮箱）
     /// </summary>
     public string Username { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// 密码
     /// </summary>
     public string Password { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// 是否记住登录状态
     /// </summary>
@@ -413,7 +413,7 @@ public class AdminLoginResponse
     /// 用户信息
     /// </summary>
     public UserInfo User { get; set; } = new();
-    
+
     /// <summary>
     /// 会话过期时间
     /// </summary>

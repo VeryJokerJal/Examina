@@ -450,6 +450,52 @@ public class StudentAuthController : ControllerBase
     }
 
     /// <summary>
+    /// 测试JWT令牌验证
+    /// </summary>
+    [HttpGet("test-auth")]
+    [Authorize]
+    public async Task<ActionResult> TestAuth()
+    {
+        try
+        {
+            // 获取当前用户ID
+            string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            _logger.LogInformation("test-auth API调用 - JWT中的用户ID: {UserIdClaim}", userIdClaim ?? "null");
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                _logger.LogWarning("test-auth 用户身份验证失败 - userIdClaim: {UserIdClaim}", userIdClaim ?? "null");
+                return Unauthorized(new { message = "用户身份验证失败" });
+            }
+
+            // 查找用户
+            User? user = await _context.Users.FindAsync(userId);
+            _logger.LogInformation("test-auth 数据库查找用户结果 - 用户ID: {UserId}, 找到用户: {Found}, 用户名: {Username}, IsActive: {IsActive}, Role: {Role}",
+                userId, user != null, user?.Username ?? "null", user?.IsActive ?? false, user?.Role.ToString() ?? "null");
+
+            if (user == null || !user.IsActive || user.Role != UserRole.Student)
+            {
+                _logger.LogWarning("test-auth 用户验证失败 - 用户ID: {UserId}, 用户存在: {UserExists}, IsActive: {IsActive}, Role: {Role}",
+                    userId, user != null, user?.IsActive ?? false, user?.Role.ToString() ?? "null");
+                return NotFound(new { message = "用户不存在或无权限" });
+            }
+
+            return Ok(new {
+                message = "JWT令牌验证成功",
+                userId = user.Id,
+                username = user.Username,
+                isActive = user.IsActive,
+                role = user.Role.ToString()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "test-auth API异常");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
     /// 完善用户信息
     /// </summary>
     [HttpPost("complete-info")]
@@ -460,15 +506,25 @@ public class StudentAuthController : ControllerBase
         {
             // 获取当前用户ID
             string? userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            _logger.LogInformation("complete-info API调用 - JWT中的用户ID: {UserIdClaim}", userIdClaim ?? "null");
+
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
+                _logger.LogWarning("用户身份验证失败 - userIdClaim: {UserIdClaim}", userIdClaim ?? "null");
                 return Unauthorized(new { message = "用户身份验证失败" });
             }
 
+            _logger.LogInformation("解析用户ID成功: {UserId}", userId);
+
             // 查找用户
             User? user = await _context.Users.FindAsync(userId);
+            _logger.LogInformation("数据库查找用户结果 - 用户ID: {UserId}, 找到用户: {Found}, 用户名: {Username}, IsActive: {IsActive}, Role: {Role}",
+                userId, user != null, user?.Username ?? "null", user?.IsActive ?? false, user?.Role.ToString() ?? "null");
+
             if (user == null || !user.IsActive || user.Role != UserRole.Student)
             {
+                _logger.LogWarning("用户验证失败 - 用户ID: {UserId}, 用户存在: {UserExists}, IsActive: {IsActive}, Role: {Role}",
+                    userId, user != null, user?.IsActive ?? false, user?.Role.ToString() ?? "null");
                 return NotFound(new { message = "用户不存在或无权限" });
             }
 
@@ -1223,8 +1279,30 @@ public class StudentAuthController : ControllerBase
                 MaxDeviceCount = 1
             };
 
+            _logger.LogInformation("创建新微信用户 - OpenId: {OpenId}, 用户名: {Username}, 邮箱: {Email}",
+                weChatUserInfo.OpenId, user.Username, user.Email);
+
             _ = _context.Users.Add(user);
             _ = await _context.SaveChangesAsync();
+
+            _logger.LogInformation("微信用户创建成功 - 用户ID: {UserId}, 用户名: {Username}, IsActive: {IsActive}, Role: {Role}",
+                user.Id, user.Username, user.IsActive, user.Role);
+
+            // 立即验证用户是否真的被保存到数据库
+            User? verifyUser = await _context.Users.FindAsync(user.Id);
+            if (verifyUser == null)
+            {
+                _logger.LogError("严重错误：用户创建后立即查找失败 - 用户ID: {UserId}", user.Id);
+            }
+            else
+            {
+                _logger.LogInformation("用户创建验证成功 - 用户ID: {UserId}, 数据库中存在", user.Id);
+            }
+        }
+        else
+        {
+            _logger.LogInformation("找到现有微信用户 - 用户ID: {UserId}, 用户名: {Username}, IsActive: {IsActive}, Role: {Role}",
+                user.Id, user.Username, user.IsActive, user.Role);
         }
 
         return user;

@@ -243,6 +243,17 @@ public class UserInfoCompletionViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"[用户信息完善] 当前用户: {CurrentUser?.Username}, ID: {CurrentUser?.Id}, 原手机号: {CurrentUser?.PhoneNumber}");
             System.Diagnostics.Debug.WriteLine($"[用户信息完善] 请求更新手机号为: {request.PhoneNumber}");
 
+            // 先测试JWT令牌验证
+            System.Diagnostics.Debug.WriteLine($"[用户信息完善] 开始测试JWT令牌验证");
+            bool authTest = await _authenticationService.TestAuthAsync();
+            System.Diagnostics.Debug.WriteLine($"[用户信息完善] JWT令牌验证结果: {authTest}");
+
+            if (!authTest)
+            {
+                ErrorMessage = "用户身份验证失败，请重新登录";
+                return;
+            }
+
             UserInfo? updatedUser = await _authenticationService.CompleteUserInfoAsync(request);
             if (updatedUser != null)
             {

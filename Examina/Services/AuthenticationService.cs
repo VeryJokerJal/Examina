@@ -759,6 +759,38 @@ public class AuthenticationService : IAuthenticationService
     }
 
     /// <summary>
+    /// 测试JWT令牌验证
+    /// </summary>
+    public async Task<bool> TestAuthAsync()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(CurrentAccessToken))
+            {
+                System.Diagnostics.Debug.WriteLine("[测试认证] CurrentAccessToken为空");
+                return false;
+            }
+
+            // 设置Authorization头
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CurrentAccessToken);
+
+            HttpResponseMessage response = await _httpClient.GetAsync(BuildApiUrl("test-auth"));
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"[测试认证] 响应状态: {response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"[测试认证] 响应内容: {responseContent}");
+
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[测试认证] 异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 完善用户信息
     /// </summary>
     /// <param name="request">用户信息完善请求</param>
