@@ -26,6 +26,7 @@ public static class ExportService
 
         // 添加自定义转换器
         options.Converters.Add(new Converters.ModuleTypeJsonConverter());
+        options.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
 
         return Task.FromResult(JsonSerializer.Serialize(exam, options));
     }
@@ -44,6 +45,7 @@ public static class ExportService
 
             // 添加自定义转换器
             options.Converters.Add(new Converters.ModuleTypeJsonConverter());
+            options.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
 
             return Task.FromResult(JsonSerializer.Deserialize<Exam>(json, options));
         }

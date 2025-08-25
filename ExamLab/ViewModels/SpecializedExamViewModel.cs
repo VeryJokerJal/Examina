@@ -972,6 +972,7 @@ public class SpecializedExamViewModel : ViewModelBase
 
                 // 添加自定义转换器
                 jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
+                jsonOptions.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
 
                 fileContent = System.Text.Json.JsonSerializer.Serialize(specializedExportDto, jsonOptions);
             }

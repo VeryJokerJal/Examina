@@ -243,4 +243,9 @@ public class Question : ReactiveObject
     /// 代码补全填空处集合（仅C#模块代码补全类型使用）
     /// </summary>
     public ObservableCollection<CodeBlank> CodeBlanks { get; set; } = [];
+
+    /// <summary>
+    /// Office文档文件路径（仅Office模块使用）
+    /// </summary>
+    [Reactive] public string? DocumentFilePath { get; set; }
 }

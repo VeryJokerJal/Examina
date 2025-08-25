@@ -34,6 +34,7 @@ public class DataStorageService
 
         // 添加自定义转换器
         _jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
+        _jsonOptions.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
     }
 
     /// <summary>

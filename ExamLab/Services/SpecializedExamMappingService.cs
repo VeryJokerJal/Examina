@@ -424,8 +424,29 @@ public static class SpecializedExamMappingService
             IsEnabled = questionDto.IsEnabled,
             CreatedTime = questionDto.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
             ProgramInput = questionDto.ProgramInput,
-            ExpectedOutput = questionDto.ExpectedOutput
+            ExpectedOutput = questionDto.ExpectedOutput,
+            // C#编程题目特有字段
+            CodeFilePath = questionDto.CodeFilePath,
+            CSharpDirectScore = questionDto.CSharpDirectScore ?? 10.0,
+            // Office文档题目特有字段
+            DocumentFilePath = questionDto.DocumentFilePath
         };
+
+        // 解析C#题目类型
+        if (!string.IsNullOrEmpty(questionDto.CSharpQuestionType) &&
+            Enum.TryParse<CSharpQuestionType>(questionDto.CSharpQuestionType, true, out CSharpQuestionType csharpType))
+        {
+            question.CSharpQuestionType = csharpType;
+        }
+
+        // 转换代码填空处
+        if (questionDto.CodeBlanks != null)
+        {
+            foreach (CodeBlankDto codeBlankDto in questionDto.CodeBlanks)
+            {
+                question.CodeBlanks.Add(FromCodeBlankDtoToCodeBlank(codeBlankDto));
+            }
+        }
 
         // 转换操作点
         foreach (OperationPointDto operationPointDto in questionDto.OperationPoints)
@@ -1006,7 +1027,14 @@ public static class SpecializedExamMappingService
             IsEnabled = question.IsEnabled,
             CreatedAt = DateTime.TryParse(question.CreatedTime, out DateTime createdTime) ? createdTime : DateTime.UtcNow,
             ProgramInput = question.ProgramInput,
-            ExpectedOutput = question.ExpectedOutput
+            ExpectedOutput = question.ExpectedOutput,
+            // C#编程题目特有字段
+            CSharpQuestionType = question.CSharpQuestionType.ToString(),
+            CodeFilePath = question.CodeFilePath,
+            CSharpDirectScore = question.CSharpDirectScore,
+            CodeBlanks = question.CodeBlanks?.Select(ToCodeBlankDto).ToList(),
+            // Office文档题目特有字段
+            DocumentFilePath = question.DocumentFilePath
         };
 
         // 根据导出级别决定是否包含操作点
@@ -1070,6 +1098,42 @@ public static class SpecializedExamMappingService
             ValidationErrorMessage = parameter.ValidationErrorMessage,
             MinValue = parameter.MinValue,
             MaxValue = parameter.MaxValue
+        };
+    }
+
+    /// <summary>
+    /// 将CodeBlank转换为CodeBlankDto
+    /// </summary>
+    private static CodeBlankDto ToCodeBlankDto(CodeBlank codeBlank)
+    {
+        return new CodeBlankDto
+        {
+            Id = codeBlank.Id,
+            Name = codeBlank.Name,
+            Description = codeBlank.Description,
+            Score = codeBlank.Score,
+            Order = codeBlank.Order,
+            IsEnabled = codeBlank.IsEnabled,
+            StandardAnswer = codeBlank.StandardAnswer,
+            CreatedTime = codeBlank.CreatedTime
+        };
+    }
+
+    /// <summary>
+    /// 将CodeBlankDto转换为CodeBlank
+    /// </summary>
+    private static CodeBlank FromCodeBlankDtoToCodeBlank(CodeBlankDto codeBlankDto)
+    {
+        return new CodeBlank
+        {
+            Id = codeBlankDto.Id,
+            Name = codeBlankDto.Name,
+            Description = codeBlankDto.Description,
+            Score = codeBlankDto.Score,
+            Order = codeBlankDto.Order,
+            IsEnabled = codeBlankDto.IsEnabled,
+            StandardAnswer = codeBlankDto.StandardAnswer,
+            CreatedTime = codeBlankDto.CreatedTime
         };
     }
 }

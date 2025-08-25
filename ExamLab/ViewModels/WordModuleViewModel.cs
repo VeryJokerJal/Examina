@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Services;
 using ReactiveUI;
@@ -40,6 +42,16 @@ public class WordModuleViewModel : ModuleViewModelBase
     /// </summary>
     public ReactiveCommand<OperationPoint, Unit> EditOperationPointCommand { get; }
 
+    /// <summary>
+    /// 选择Word文档文件命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SelectDocumentFileCommand { get; }
+
+    /// <summary>
+    /// 清除Word文档文件路径命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ClearDocumentFilePathCommand { get; }
+
     public WordModuleViewModel(ExamModule module) : base(module)
     {
         // 初始化可用知识点
@@ -52,6 +64,8 @@ public class WordModuleViewModel : ModuleViewModelBase
         AddKnowledgePointCommand = ReactiveCommand.Create<WordKnowledgeType>(AddKnowledgePoint);
         AddOperationPointByTypeCommand = ReactiveCommand.Create<string>(AddOperationPointByType);
         EditOperationPointCommand = ReactiveCommand.Create<OperationPoint>(EditOperationPoint);
+        SelectDocumentFileCommand = ReactiveCommand.CreateFromTask(SelectDocumentFileAsync);
+        ClearDocumentFilePathCommand = ReactiveCommand.Create(ClearDocumentFilePath);
     }
 
     protected override void AddOperationPoint()
@@ -241,5 +255,64 @@ public class WordModuleViewModel : ModuleViewModelBase
         return AvailableKnowledgePoints.GroupBy(k => k.Category);
     }
 
+    /// <summary>
+    /// 选择Word文档文件
+    /// </summary>
+    private async Task SelectDocumentFileAsync()
+    {
+        if (SelectedQuestion == null) return;
 
+        try
+        {
+            // 定义支持的Word文件类型
+            List<string> wordFileTypes = [".docx", ".doc", ".docm"];
+
+            // 打开文件选择对话框
+            Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(
+                wordFileTypes,
+                Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary);
+
+            if (selectedFile != null)
+            {
+                // 验证文件是否为有效的Word文件
+                if (IsValidWordFile(selectedFile))
+                {
+                    SelectedQuestion.DocumentFilePath = selectedFile.Path;
+                    await NotificationService.ShowSuccessAsync("文件选择成功", $"已选择Word文档文件：{selectedFile.Name}");
+                }
+                else
+                {
+                    await NotificationService.ShowErrorAsync("文件类型错误", "请选择有效的Word文档文件（.docx、.doc、.docm）");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("文件选择失败", $"选择Word文档文件时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 清除Word文档文件路径
+    /// </summary>
+    private void ClearDocumentFilePath()
+    {
+        if (SelectedQuestion != null)
+        {
+            SelectedQuestion.DocumentFilePath = null;
+        }
+    }
+
+    /// <summary>
+    /// 验证是否为有效的Word文档文件
+    /// </summary>
+    /// <param name="file">要验证的文件</param>
+    /// <returns>是否为有效的Word文档文件</returns>
+    private static bool IsValidWordFile(Windows.Storage.StorageFile file)
+    {
+        if (file == null) return false;
+
+        string extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        return extension == ".docx" || extension == ".doc" || extension == ".docm";
+    }
 }

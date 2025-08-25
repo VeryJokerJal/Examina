@@ -15,6 +15,11 @@ public class CodeBlank : ReactiveObject
     [Reactive] public string Id { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
+    /// 填空处名称
+    /// </summary>
+    [Reactive] public string Name { get; set; } = string.Empty;
+
+    /// <summary>
     /// 填空处描述/提示文本
     /// </summary>
     [Reactive] public string Description { get; set; } = string.Empty;
@@ -38,6 +43,11 @@ public class CodeBlank : ReactiveObject
     /// 填空处分数（仅代码补全类型使用）
     /// </summary>
     [Reactive] public double Score { get; set; } = 5.0;
+
+    /// <summary>
+    /// 标准答案
+    /// </summary>
+    [Reactive] public string? StandardAnswer { get; set; }
 
     /// <summary>
     /// 创建时间
