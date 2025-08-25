@@ -214,11 +214,16 @@ public class SmsService : ISmsService
 
             if (_cache.TryGetValue(cacheKey, out VerificationCodeData? codeData) && codeData != null)
             {
+                DateTime now = DateTime.UtcNow;
+                _logger.LogInformation("验证码验证详情 - 手机号: {PhoneNumber}, 输入验证码: {InputCode}, 存储验证码: {StoredCode}, 当前时间: {Now}, 过期时间: {ExpiresAt}, 剩余时间: {RemainingMinutes}分钟",
+                    phoneNumber, code, codeData.Code, now, codeData.ExpiresAt, (codeData.ExpiresAt - now).TotalMinutes);
+
                 // 检查验证码是否过期
-                if (DateTime.UtcNow > codeData.ExpiresAt)
+                if (now > codeData.ExpiresAt)
                 {
                     _cache.Remove(cacheKey);
-                    _logger.LogWarning("验证码已过期，手机号: {PhoneNumber}", phoneNumber);
+                    _logger.LogWarning("验证码已过期，手机号: {PhoneNumber}, 过期时间: {ExpiresAt}, 当前时间: {Now}",
+                        phoneNumber, codeData.ExpiresAt, now);
                     return Task.FromResult(false);
                 }
 
@@ -239,7 +244,13 @@ public class SmsService : ISmsService
                 {
                     // 增加验证尝试次数
                     IncrementAttemptCount(phoneNumber);
+                    _logger.LogWarning("验证码不匹配，手机号: {PhoneNumber}, 输入: {InputCode}, 期望: {ExpectedCode}",
+                        phoneNumber, code, codeData.Code);
                 }
+            }
+            else
+            {
+                _logger.LogWarning("未找到验证码缓存，手机号: {PhoneNumber}, 缓存键: {CacheKey}", phoneNumber, cacheKey);
             }
 
             _logger.LogWarning("验证码验证失败，手机号: {PhoneNumber}", phoneNumber);
@@ -507,14 +518,19 @@ public class SmsService : ISmsService
         try
         {
             string cacheKey = CODE_CACHE_PREFIX + phoneNumber;
+            DateTime now = DateTime.UtcNow;
             VerificationCodeData codeData = new()
             {
                 Code = code,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(_codeValidMinutes)
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(_codeValidMinutes)
             };
 
             _ = _cache.Set(cacheKey, codeData, TimeSpan.FromMinutes(_codeValidMinutes));
+
+            _logger.LogInformation("验证码已缓存 - 手机号: {PhoneNumber}, 验证码: {Code}, 创建时间: {CreatedAt}, 过期时间: {ExpiresAt}, 有效期: {ValidMinutes}分钟",
+                phoneNumber, code, codeData.CreatedAt, codeData.ExpiresAt, _codeValidMinutes);
+
             return Task.CompletedTask;
         }
         catch (Exception ex)
