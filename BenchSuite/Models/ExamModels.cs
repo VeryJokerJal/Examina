@@ -262,9 +262,15 @@ public class QuestionModel
     {
         get
         {
-            if (OperationPoints == null || OperationPoints.Count == 0)
-                return Score; // 回退到Score字段
-            return OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+            // 首先检查是否有操作点，如果有操作点则优先使用操作点分数
+            // 这适用于Excel、Word、PowerPoint、Windows等模块
+            if (OperationPoints != null && OperationPoints.Count > 0)
+            {
+                return OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+            }
+
+            // 如果没有操作点，则回退到Score字段
+            return Score;
         }
     }
 

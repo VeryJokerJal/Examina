@@ -351,6 +351,9 @@ public class ExamImportService
                 Remarks = questionDto.Remarks,
                 ProgramInput = questionDto.ProgramInput,
                 ExpectedOutput = questionDto.ExpectedOutput,
+                CodeFilePath = questionDto.CodeFilePath,
+                CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? (decimal)questionDto.CSharpDirectScore.Value : null,
+                DocumentFilePath = questionDto.DocumentFilePath,
                 OriginalCreatedAt = questionDto.CreatedAt,
                 OriginalUpdatedAt = questionDto.UpdatedAt,
                 ImportedAt = DateTime.UtcNow

@@ -138,6 +138,24 @@ public class ImportedQuestion
     public string? ExpectedOutput { get; set; }
 
     /// <summary>
+    /// C#代码文件路径（仅C#模块使用）
+    /// </summary>
+    [StringLength(500)]
+    public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// C#题目直接分数（仅调试纠错和编写实现类型使用）
+    /// </summary>
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// Office文档文件路径（仅Office模块使用）
+    /// </summary>
+    [StringLength(500)]
+    public string? DocumentFilePath { get; set; }
+
+    /// <summary>
     /// 原始创建时间（来自ExamLab）
     /// </summary>
     public DateTime OriginalCreatedAt { get; set; } = DateTime.UtcNow;

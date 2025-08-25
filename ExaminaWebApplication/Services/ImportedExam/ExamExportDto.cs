@@ -493,6 +493,24 @@ public class QuestionDto
     public string? ExpectedOutput { get; set; }
 
     /// <summary>
+    /// C#代码文件路径（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("codeFilePath")]
+    public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// C#题目直接分数（仅调试纠错和编写实现类型使用）
+    /// </summary>
+    [JsonPropertyName("csharpDirectScore")]
+    public double? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// Office文档文件路径（仅Office模块使用）
+    /// </summary>
+    [JsonPropertyName("documentFilePath")]
+    public string? DocumentFilePath { get; set; }
+
+    /// <summary>
     /// 操作点列表
     /// </summary>
     [JsonPropertyName("operationPoints")]

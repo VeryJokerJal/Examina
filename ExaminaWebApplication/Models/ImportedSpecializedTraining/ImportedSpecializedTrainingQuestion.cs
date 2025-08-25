@@ -95,6 +95,36 @@ public class ImportedSpecializedTrainingQuestion
     public string? Tags { get; set; }
 
     /// <summary>
+    /// C#程序参数输入（仅C#模块使用）
+    /// </summary>
+    [StringLength(1000)]
+    public string? ProgramInput { get; set; }
+
+    /// <summary>
+    /// C#程序预期控制台输出（仅C#模块使用）
+    /// </summary>
+    [StringLength(2000)]
+    public string? ExpectedOutput { get; set; }
+
+    /// <summary>
+    /// C#代码文件路径（仅C#模块使用）
+    /// </summary>
+    [StringLength(500)]
+    public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// C#题目直接分数（仅调试纠错和编写实现类型使用）
+    /// </summary>
+    [Column(TypeName = "decimal(6,2)")]
+    public decimal? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// Office文档文件路径（仅Office模块使用）
+    /// </summary>
+    [StringLength(500)]
+    public string? DocumentFilePath { get; set; }
+
+    /// <summary>
     /// 导入时间
     /// </summary>
     [Required]
