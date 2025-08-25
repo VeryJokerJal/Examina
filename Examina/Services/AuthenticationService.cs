@@ -877,8 +877,15 @@ public class AuthenticationService : IAuthenticationService
     /// <returns>是否需要完善信息</returns>
     public bool RequiresUserInfoCompletion()
     {
-        bool requires = CurrentUser?.IsFirstLogin == true;
-        System.Diagnostics.Debug.WriteLine($"RequiresUserInfoCompletion: CurrentUser={CurrentUser?.Username}, IsFirstLogin={CurrentUser?.IsFirstLogin}, 需要完善信息={requires}");
+        // 如果没有当前用户信息，则不需要完善信息（应该重新登录）
+        if (CurrentUser == null)
+        {
+            System.Diagnostics.Debug.WriteLine($"RequiresUserInfoCompletion: CurrentUser为null，不需要完善信息");
+            return false;
+        }
+
+        bool requires = CurrentUser.IsFirstLogin == true;
+        System.Diagnostics.Debug.WriteLine($"RequiresUserInfoCompletion: CurrentUser={CurrentUser.Username}, IsFirstLogin={CurrentUser.IsFirstLogin}, 需要完善信息={requires}");
         return requires;
     }
 

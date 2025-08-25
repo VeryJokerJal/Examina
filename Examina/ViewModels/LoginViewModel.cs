@@ -164,28 +164,35 @@ public class LoginViewModel : ViewModelBase
                 // 延迟一下显示成功消息
                 await Task.Delay(1000);
 
+                // 刷新用户信息以确保获取最新状态
+                System.Diagnostics.Debug.WriteLine($"[登录导航] 登录成功，刷新用户信息");
+                await _authenticationService.RefreshUserInfoAsync();
+
                 // 根据登录方式决定导航逻辑
+                System.Diagnostics.Debug.WriteLine($"[登录导航] 登录方式: {LoginMode}, 用户: {result.User?.Username}, IsFirstLogin: {result.User?.IsFirstLogin}");
+
                 if (LoginMode == LoginMode.SmsCode)
                 {
                     // 手机号登录直接进入主界面（已验证手机号）
+                    System.Diagnostics.Debug.WriteLine($"[登录导航] 手机号登录，直接进入主界面");
                     NavigateToMainWindow();
-                }
-                else if (LoginMode == LoginMode.WeChat)
-                {
-                    // 微信登录必须进入用户信息完善界面进行手机号验证
-                    NavigateToUserInfoCompletion();
                 }
                 else
                 {
-                    // 用户名密码登录，检查是否需要完善用户信息
-                    if (_authenticationService.RequiresUserInfoCompletion())
+                    // 微信登录和用户名密码登录都需要检查是否需要完善用户信息
+                    bool requiresCompletion = _authenticationService.RequiresUserInfoCompletion();
+                    System.Diagnostics.Debug.WriteLine($"[登录导航] {LoginMode}登录，需要完善信息: {requiresCompletion}");
+
+                    if (requiresCompletion)
                     {
                         // 导航到用户信息完善页面
+                        System.Diagnostics.Debug.WriteLine($"[登录导航] 导航到用户信息完善页面");
                         NavigateToUserInfoCompletion();
                     }
                     else
                     {
                         // 登录成功，导航到主页面
+                        System.Diagnostics.Debug.WriteLine($"[登录导航] 导航到主页面");
                         NavigateToMainWindow();
                     }
                 }
