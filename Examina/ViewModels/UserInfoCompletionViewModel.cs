@@ -34,6 +34,20 @@ public class UserInfoCompletionViewModel : ViewModelBase
 
         // 初始化当前用户信息
         InitializeUserInfo();
+
+        // 监听属性变化以更新命令状态
+        this.PropertyChanged += (sender, e) =>
+        {
+            if (e.PropertyName == nameof(PhoneNumber) ||
+                e.PropertyName == nameof(SmsCode) ||
+                e.PropertyName == nameof(CanSendSmsCodeValue) ||
+                e.PropertyName == nameof(IsProcessing) ||
+                e.PropertyName == nameof(IsPhoneVerified))
+            {
+                ((DelegateCommand)SendSmsCodeCommand).RaiseCanExecuteChanged();
+                ((DelegateCommand)CompleteInfoCommand).RaiseCanExecuteChanged();
+            }
+        };
     }
 
     #region 属性
@@ -162,7 +176,12 @@ public class UserInfoCompletionViewModel : ViewModelBase
     /// </summary>
     private bool CanCompleteInfo()
     {
-        return !IsProcessing && IsPhoneVerified && !string.IsNullOrWhiteSpace(PhoneNumber);
+        bool canComplete = !IsProcessing &&
+                          !string.IsNullOrWhiteSpace(PhoneNumber) &&
+                          PhoneNumber.Length == 11 &&
+                          !string.IsNullOrWhiteSpace(SmsCode);
+        System.Diagnostics.Debug.WriteLine($"[UserInfo] CanCompleteInfo: {canComplete}, IsProcessing: {IsProcessing}, PhoneNumber: '{PhoneNumber}', SmsCode: '{SmsCode}'");
+        return canComplete;
     }
 
     /// <summary>
@@ -170,7 +189,9 @@ public class UserInfoCompletionViewModel : ViewModelBase
     /// </summary>
     private bool CanSendSmsCode()
     {
-        return CanSendSmsCodeValue && !string.IsNullOrWhiteSpace(PhoneNumber) && PhoneNumber.Length == 11;
+        bool canSend = CanSendSmsCodeValue && !string.IsNullOrWhiteSpace(PhoneNumber) && PhoneNumber.Length == 11;
+        System.Diagnostics.Debug.WriteLine($"[UserInfo] CanSendSmsCode: {canSend}, CanSendSmsCodeValue: {CanSendSmsCodeValue}, PhoneNumber: '{PhoneNumber}', Length: {PhoneNumber?.Length ?? 0}");
+        return canSend;
     }
 
     /// <summary>
@@ -201,13 +222,6 @@ public class UserInfoCompletionViewModel : ViewModelBase
                 return;
             }
 
-            // 验证手机号验证码
-            if (!IsPhoneVerified)
-            {
-                ErrorMessage = "请先验证手机号";
-                return;
-            }
-
             // 验证短信验证码
             bool isCodeValid = await _authenticationService.VerifySmsCodeAsync(PhoneNumber, SmsCode);
             if (!isCodeValid)
@@ -215,6 +229,9 @@ public class UserInfoCompletionViewModel : ViewModelBase
                 ErrorMessage = "验证码错误或已过期";
                 return;
             }
+
+            // 验证成功，标记手机号已验证
+            IsPhoneVerified = true;
 
             CompleteUserInfoRequest request = new()
             {

@@ -77,7 +77,7 @@
 
         <!--  按钮区域  -->
         <StackPanel Grid.Row="2" Margin="0,30,0,0" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="15">
-            <Button Width="120" Height="40" Background="{DynamicResource SystemAccentColor}" Command="{Binding CompleteInfoCommand}" Content="完成验证" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" IsEnabled="{Binding !IsProcessing}" />
+            <Button Width="120" Height="40" Background="{DynamicResource SystemAccentColor}" Command="{Binding CompleteInfoCommand}" Content="完成验证" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" />
         </StackPanel>
 
         <!--  加载指示器  -->
