@@ -50,6 +50,12 @@ public interface IAuthenticationService
     Task<bool> VerifySmsCodeAsync(string phoneNumber, string code);
 
     /// <summary>
+    /// 测试JWT令牌验证
+    /// </summary>
+    /// <returns>是否验证成功</returns>
+    Task<bool> TestAuthAsync();
+
+    /// <summary>
     /// 获取微信登录二维码
     /// </summary>
     /// <returns>二维码信息</returns>

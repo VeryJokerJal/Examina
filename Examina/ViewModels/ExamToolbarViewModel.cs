@@ -1163,4 +1163,10 @@ internal class DesignTimeAuthenticationService : IAuthenticationService
         // 设计时服务不需要实际实现
         return Task.FromResult(true);
     }
+
+    public Task<bool> TestAuthAsync()
+    {
+        // 设计时服务不需要实际实现
+        return Task.FromResult(true);
+    }
 }
