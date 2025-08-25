@@ -500,6 +500,24 @@ public class StudentAuthController : ControllerBase
                 hasChanges = true;
             }
 
+            // 更新手机号
+            if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
+            {
+                // 检查手机号是否已被其他用户使用
+                bool phoneExists = await _context.Users
+                    .AnyAsync(u => u.PhoneNumber == request.PhoneNumber && u.Id != userId);
+                if (phoneExists)
+                {
+                    _logger.LogWarning("手机号 {PhoneNumber} 已被其他用户使用，用户ID: {UserId}", request.PhoneNumber, userId);
+                    return BadRequest(new { message = "该手机号已被其他用户使用" });
+                }
+
+                _logger.LogInformation("更新用户 {UserId} 的手机号从 {OldPhone} 到 {NewPhone}",
+                    userId, user.PhoneNumber ?? "null", request.PhoneNumber);
+                user.PhoneNumber = request.PhoneNumber;
+                hasChanges = true;
+            }
+
             // 绑定微信
             if (!string.IsNullOrEmpty(request.WeChatOpenId) && request.WeChatOpenId != user.WeChatOpenId)
             {

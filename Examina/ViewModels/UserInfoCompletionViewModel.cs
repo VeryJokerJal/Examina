@@ -240,9 +240,13 @@ public class UserInfoCompletionViewModel : ViewModelBase
                 PhoneNumber = PhoneNumber.Trim()
             };
 
+            System.Diagnostics.Debug.WriteLine($"[用户信息完善] 当前用户: {CurrentUser?.Username}, ID: {CurrentUser?.Id}, 原手机号: {CurrentUser?.PhoneNumber}");
+            System.Diagnostics.Debug.WriteLine($"[用户信息完善] 请求更新手机号为: {request.PhoneNumber}");
+
             UserInfo? updatedUser = await _authenticationService.CompleteUserInfoAsync(request);
             if (updatedUser != null)
             {
+                System.Diagnostics.Debug.WriteLine($"[用户信息完善] 更新成功，用户: {updatedUser.Username}, ID: {updatedUser.Id}, 新手机号: {updatedUser.PhoneNumber}");
                 SuccessMessage = "用户信息更新成功！";
                 CurrentUser = updatedUser;
 
@@ -254,6 +258,7 @@ public class UserInfoCompletionViewModel : ViewModelBase
             }
             else
             {
+                System.Diagnostics.Debug.WriteLine($"[用户信息完善] 更新失败，返回null");
                 ErrorMessage = "更新用户信息失败，请重试";
             }
         }
