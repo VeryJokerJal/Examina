@@ -119,6 +119,7 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IWeChatService, WeChatService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<UserDataFixService>();
 
 // 注册考试导入相关服务
 builder.Services.AddScoped<ExamImportService>();

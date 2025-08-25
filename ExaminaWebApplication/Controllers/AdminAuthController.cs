@@ -20,17 +20,20 @@ public class AdminAuthController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly ISessionService _sessionService;
     private readonly IDeviceService _deviceService;
+    private readonly UserDataFixService _userDataFixService;
     private readonly ILogger<AdminAuthController> _logger;
 
     public AdminAuthController(
         ApplicationDbContext context,
         ISessionService sessionService,
         IDeviceService deviceService,
+        UserDataFixService userDataFixService,
         ILogger<AdminAuthController> logger)
     {
         _context = context;
         _sessionService = sessionService;
         _deviceService = deviceService;
+        _userDataFixService = userDataFixService;
         _logger = logger;
     }
 
@@ -279,6 +282,71 @@ public class AdminAuthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "管理员解绑设备失败，设备ID: {DeviceId}", deviceId);
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 检查重复用户情况
+    /// </summary>
+    [HttpGet("check-duplicate-users")]
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    public async Task<ActionResult<DuplicateUserReport>> CheckDuplicateUsers()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized(new { message = "未登录或登录已过期" });
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive || user.Role != UserRole.Admin)
+            {
+                return Forbid("只有管理员可以执行此操作");
+            }
+
+            var report = await _userDataFixService.CheckDuplicateUsersAsync();
+            return Ok(report);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查重复用户时发生错误");
+            return StatusCode(500, new { message = "服务器内部错误" });
+        }
+    }
+
+    /// <summary>
+    /// 修复重复用户
+    /// </summary>
+    [HttpPost("fix-duplicate-users")]
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    public async Task<ActionResult> FixDuplicateUsers()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized(new { message = "未登录或登录已过期" });
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive || user.Role != UserRole.Admin)
+            {
+                return Forbid("只有管理员可以执行此操作");
+            }
+
+            _logger.LogInformation("管理员 {UserId} 开始修复重复用户", userId);
+            int fixedCount = await _userDataFixService.FixDuplicateUsersAsync();
+
+            _logger.LogInformation("重复用户修复完成，共修复 {FixedCount} 对用户", fixedCount);
+            return Ok(new { message = $"修复完成，共修复 {fixedCount} 对重复用户", fixedCount });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "修复重复用户时发生错误");
             return StatusCode(500, new { message = "服务器内部错误" });
         }
     }
