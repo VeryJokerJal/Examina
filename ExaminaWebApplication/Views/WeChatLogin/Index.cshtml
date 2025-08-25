@@ -268,11 +268,19 @@
 			}
 
 			statusCheckInterval = setInterval(async function() {
-				if (!currentState) return;
+				if (!currentState) {
+					console.log('currentState为空，跳过状态检查');
+					return;
+				}
 
 				try {
-					const response = await fetch(`/api/auth/wechat/check-status?state=${encodeURIComponent(currentState)}`);
+					const checkUrl = `/api/auth/wechat/check-status?state=${encodeURIComponent(currentState)}`;
+					console.log('检查微信登录状态，URL:', checkUrl);
+
+					const response = await fetch(checkUrl);
 					const result = await response.json();
+
+					console.log('状态检查响应:', response.status, result);
 
 					if (result.success && result.data) {
 						const status = result.data.status;
@@ -284,12 +292,21 @@
 								break;
 							case 'confirmed':
 							case 'success':
+								console.log('微信授权成功，准备执行登录');
 								showStatus('微信授权成功，正在登录...');
 								if (result.data.hasCallback && result.data.code) {
 									// 停止状态检查，避免重复登录
 									stopStatusCheck();
+
+									const qrCodeKey = currentState.replace('examina_', '');
+									console.log('提取的qrCodeKey:', qrCodeKey, '原始currentState:', currentState);
+
 									// 执行实际的登录操作
-									await performWeChatLogin(currentState.replace('examina_', ''));
+									console.log('开始调用performWeChatLogin');
+									await performWeChatLogin(qrCodeKey);
+									console.log('performWeChatLogin调用完成');
+								} else {
+									console.log('缺少回调信息:', result.data);
 								}
 								break;
 							case 'cancelled':
@@ -407,6 +424,7 @@
 		// 执行微信登录
 		async function performWeChatLogin(qrCodeKey) {
 			try {
+				console.log('performWeChatLogin开始执行，qrCodeKey:', qrCodeKey);
 				showStatus('正在登录系统...');
 
 				const loginRequest = {
@@ -421,6 +439,8 @@
 					}
 				};
 
+				console.log('准备发送登录请求:', loginRequest);
+
 				const response = await fetch('/api/student/login', {
 					method: 'POST',
 					headers: {
@@ -429,17 +449,23 @@
 					body: JSON.stringify(loginRequest)
 				});
 
+				console.log('登录API响应状态:', response.status, response.statusText);
+
 				const loginResult = await response.json();
+				console.log('登录API响应结果:', loginResult);
 
 				if (response.ok && loginResult.accessToken) {
+					console.log('登录成功，开始写入文件');
 					showStatus('登录成功！正在通知客户端...');
 
 					// 将登录信息写入本地文件供Avalonia客户端读取
+					console.log('准备写入登录信息到文件');
 					await writeLoginInfoToFile({
 						accessToken: loginResult.accessToken,
 						refreshToken: loginResult.refreshToken,
 						user: loginResult.user
 					});
+					console.log('文件写入完成');
 
 					// 发送登录成功消息给Avalonia客户端（如果在WebView中）
 					sendMessageToClient({
@@ -461,10 +487,11 @@
 						}, 3000);
 					}
 				} else {
+					console.log('登录失败，响应不正确:', response.status, loginResult);
 					showError(loginResult.message || '登录失败，请重试');
 				}
 			} catch (error) {
-				console.error('登录失败:', error);
+				console.error('登录过程中发生异常:', error);
 				showError('登录过程中发生错误，请重试');
 			}
 		}

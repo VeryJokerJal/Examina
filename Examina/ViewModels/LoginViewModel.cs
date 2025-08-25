@@ -2,10 +2,8 @@
 using System.Windows.Input;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using Examina;
 using Examina.Models;
 using Examina.Services;
-using Examina.ViewModels;
 using Examina.Views;
 using Prism.Commands;
 using ReactiveUI;
@@ -338,7 +336,7 @@ public class LoginViewModel : ViewModelBase
                         try
                         {
                             // 解析登录数据
-                            var options = new JsonSerializerOptions
+                            JsonSerializerOptions options = new()
                             {
                                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                                 PropertyNameCaseInsensitive = true
@@ -481,13 +479,7 @@ public class LoginViewModel : ViewModelBase
     /// </summary>
     private string GetBackendBaseUrl()
     {
-        // 这里应该从配置文件或服务中获取，暂时硬编码
-        // 在实际部署时，应该从配置中读取
-        #if DEBUG
-        return "https://localhost:7125"; // 开发环境地址
-        #else
-        return "https://qiuzhenbd.com"; // 生产环境地址
-        #endif
+        return "https://www.qiuzhenbd.com";
     }
 
     /// <summary>
@@ -501,7 +493,7 @@ public class LoginViewModel : ViewModelBase
 
             // 创建测试登录文件
             string filePath = GetWeChatLoginStatusFilePath();
-            var testLoginInfo = new WeChatLoginInfo
+            WeChatLoginInfo testLoginInfo = new()
             {
                 AccessToken = "test_access_token_12345",
                 RefreshToken = "test_refresh_token_67890",
@@ -513,7 +505,7 @@ public class LoginViewModel : ViewModelBase
                 }
             };
 
-            var options = new JsonSerializerOptions
+            JsonSerializerOptions options = new()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
@@ -526,7 +518,7 @@ public class LoginViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"[微信登录测试] 文件内容: {json}");
 
             // 启动轮询测试
-            var result = await WaitForWeChatLoginAsync();
+            AuthenticationResult result = await WaitForWeChatLoginAsync();
 
             System.Diagnostics.Debug.WriteLine($"[微信登录测试] 轮询结果: Success={result.IsSuccess}, Message={result.ErrorMessage}");
         }
