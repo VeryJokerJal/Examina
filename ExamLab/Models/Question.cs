@@ -210,6 +210,36 @@ public class Question : ReactiveObject
     }
 
     /// <summary>
+    /// 重新初始化事件监听（用于反序列化后）
+    /// </summary>
+    public void ReinitializeEventListeners()
+    {
+        // 清除可能存在的旧监听
+        OperationPoints.CollectionChanged -= OnOperationPointsCollectionChanged;
+        CodeBlanks.CollectionChanged -= OnCodeBlanksCollectionChanged;
+        this.PropertyChanged -= OnQuestionPropertyChanged;
+
+        // 重新设置监听
+        OperationPoints.CollectionChanged += OnOperationPointsCollectionChanged;
+        CodeBlanks.CollectionChanged += OnCodeBlanksCollectionChanged;
+        this.PropertyChanged += OnQuestionPropertyChanged;
+
+        // 为现有的操作点添加监听
+        foreach (OperationPoint operationPoint in OperationPoints)
+        {
+            operationPoint.PropertyChanged -= OnOperationPointPropertyChanged; // 防止重复监听
+            operationPoint.PropertyChanged += OnOperationPointPropertyChanged;
+        }
+
+        // 为现有的代码填空处添加监听
+        foreach (CodeBlank codeBlank in CodeBlanks)
+        {
+            codeBlank.PropertyChanged -= OnCodeBlankPropertyChanged; // 防止重复监听
+            codeBlank.PropertyChanged += OnCodeBlankPropertyChanged;
+        }
+    }
+
+    /// <summary>
     /// 创建时间
     /// </summary>
     [Reactive] public string CreatedTime { get; set; } = "2025-08-10";

@@ -49,4 +49,16 @@ public class Exam : ReactiveObject
     /// 考试时长（分钟）
     /// </summary>
     [Reactive] public int Duration { get; set; } = 120;
+
+    /// <summary>
+    /// 重新初始化事件监听（用于反序列化后）
+    /// </summary>
+    public void ReinitializeEventListeners()
+    {
+        // 为所有模块重新初始化事件监听
+        foreach (ExamModule module in Modules)
+        {
+            module.ReinitializeEventListeners();
+        }
+    }
 }

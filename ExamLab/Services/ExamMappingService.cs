@@ -116,6 +116,9 @@ public static class ExamMappingService
             }
         }
 
+        // 重新初始化事件监听（修复反序列化后分值更新问题）
+        exam.ReinitializeEventListeners();
+
         return exam;
     }
 

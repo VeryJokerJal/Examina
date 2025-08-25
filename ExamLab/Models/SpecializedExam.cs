@@ -147,6 +147,18 @@ public class SpecializedExam : ReactiveObject
     }
 
     /// <summary>
+    /// 重新初始化事件监听（用于反序列化后）
+    /// </summary>
+    public void ReinitializeEventListeners()
+    {
+        // 为所有模块重新初始化事件监听
+        foreach (ExamModule module in Modules)
+        {
+            module.ReinitializeEventListeners();
+        }
+    }
+
+    /// <summary>
     /// 验证专项试卷数据
     /// </summary>
     public bool IsValid()

@@ -47,7 +47,12 @@ public static class ExportService
             options.Converters.Add(new Converters.ModuleTypeJsonConverter());
             options.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
 
-            return Task.FromResult(JsonSerializer.Deserialize<Exam>(json, options));
+            Exam? exam = JsonSerializer.Deserialize<Exam>(json, options);
+
+            // 重新初始化事件监听（修复反序列化后分值更新问题）
+            exam?.ReinitializeEventListeners();
+
+            return Task.FromResult(exam);
         }
         catch (Exception)
         {

@@ -257,6 +257,9 @@ public static class SpecializedExamMappingService
             specializedExam.ModuleType = specializedExam.Modules.First().Type;
         }
 
+        // 重新初始化事件监听（修复反序列化后分值更新问题）
+        specializedExam.ReinitializeEventListeners();
+
         return specializedExam;
     }
 
@@ -758,6 +761,9 @@ public static class SpecializedExamMappingService
             specializedExam.Modules.Add(FromModuleDtoToExamModule(moduleDto));
         }
 
+        // 重新初始化事件监听（修复反序列化后分值更新问题）
+        specializedExam.ReinitializeEventListeners();
+
         return specializedExam;
     }
 
@@ -977,6 +983,9 @@ public static class SpecializedExamMappingService
         {
             specializedExam.ModuleType = specializedExam.Modules.First().Type;
         }
+
+        // 重新初始化事件监听（修复反序列化后分值更新问题）
+        specializedExam.ReinitializeEventListeners();
 
         return specializedExam;
     }
