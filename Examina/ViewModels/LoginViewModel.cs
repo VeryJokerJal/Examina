@@ -12,6 +12,8 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Timer = System.Timers.Timer;
 
+namespace Examina.ViewModels;
+
 /// <summary>
 /// 微信登录信息模型
 /// </summary>
