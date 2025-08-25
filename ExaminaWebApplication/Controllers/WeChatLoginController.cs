@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Services;
 using ExaminaWebApplication.Models.Auth;
@@ -53,12 +53,39 @@ public class WeChatLoginController : Controller
     {
         try
         {
+            _logger.LogInformation("开始获取微信登录配置");
+
+            // 检查微信服务是否可用
+            if (_weChatService == null)
+            {
+                _logger.LogError("微信服务未注册");
+                return Json(new
+                {
+                    success = false,
+                    message = "微信服务不可用"
+                });
+            }
+
             // 生成微信登录二维码信息
             WeChatQrCodeInfo qrCodeInfo = await _weChatService.GenerateLoginQrCodeAsync();
+            _logger.LogInformation("生成二维码信息成功: {QrCodeKey}", qrCodeInfo.QrCodeKey);
 
             // 从配置中获取微信应用信息
             string appId = GetWeChatAppId();
             string redirectUri = GetWeChatRedirectUri();
+
+            _logger.LogInformation("微信配置 - AppId: {AppId}, RedirectUri: {RedirectUri}",
+                string.IsNullOrEmpty(appId) ? "未配置" : appId[..8] + "***", redirectUri);
+
+            if (string.IsNullOrEmpty(appId))
+            {
+                _logger.LogError("微信AppId未配置");
+                return Json(new
+                {
+                    success = false,
+                    message = "微信AppId未配置"
+                });
+            }
 
             var config = new
             {
@@ -86,7 +113,7 @@ public class WeChatLoginController : Controller
             return Json(new
             {
                 success = false,
-                message = "获取微信登录配置失败"
+                message = $"获取微信登录配置失败: {ex.Message}"
             });
         }
     }

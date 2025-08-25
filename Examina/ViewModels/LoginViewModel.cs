@@ -298,7 +298,7 @@ public class LoginViewModel : ViewModelBase
     {
         // 这里应该从配置文件或服务中获取，暂时硬编码
         // 在实际部署时，应该从配置中读取
-        return "https://localhost:7125"; // 开发环境地址
+        return "https://qiuzhenbd.com"; // 开发环境地址
     }
 
 

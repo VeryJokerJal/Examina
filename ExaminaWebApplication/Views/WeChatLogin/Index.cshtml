@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "微信扫码登录";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -52,35 +52,61 @@
 </div>
 
 <!-- 引入微信官方JS SDK（符合官方文档规范） -->
-<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"></script>
+<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"
+        onload="console.log('微信JS SDK加载成功')"
+        onerror="console.error('微信JS SDK加载失败')"></script>
 
 <script>
     let wxLoginObj = null;
     let currentState = null;
     let statusCheckInterval = null;
-    
+
     // 页面加载完成后初始化微信登录
     document.addEventListener('DOMContentLoaded', function() {
-        initWeChatLogin();
+        console.log('页面DOM加载完成');
+        // 延迟一下确保微信JS SDK完全加载
+        setTimeout(() => {
+            initWeChatLogin();
+        }, 1000);
     });
     
     // 初始化微信登录
     async function initWeChatLogin() {
         try {
             showLoading();
-            
+
+            // 检查微信JS SDK是否已加载
+            if (typeof WxLogin === 'undefined') {
+                showError('微信JS SDK未加载，请检查网络连接');
+                return;
+            }
+
             // 获取微信登录配置
             const response = await fetch('/api/auth/wechat/config');
+            if (!response.ok) {
+                showError(`获取配置失败: ${response.status} ${response.statusText}`);
+                return;
+            }
+
             const result = await response.json();
-            
+            console.log('微信登录配置:', result);
+
             if (!result.success) {
                 showError(result.message || '获取微信登录配置失败');
                 return;
             }
-            
+
             const config = result.data.wxLoginConfig;
             currentState = config.state;
-            
+
+            // 验证配置完整性
+            if (!config.appid || !config.redirect_uri || !config.state) {
+                showError('微信登录配置不完整');
+                return;
+            }
+
+            console.log('创建微信登录对象，配置:', config);
+
             // 创建微信登录对象（符合官方文档规范）
             wxLoginObj = new WxLogin({
                 self_redirect: false, // 不在当前窗口跳转
@@ -93,13 +119,18 @@
                 href: "", // 自定义样式链接
                 stylelite: 1 // 使用新版UI样式
             });
-            
+
             // 等待二维码加载完成
             setTimeout(() => {
-                showQRCode();
-                startStatusCheck();
-            }, 2000);
-            
+                const qrContainer = document.getElementById('wechat-login-qrcode');
+                if (qrContainer && qrContainer.innerHTML.trim() !== '') {
+                    showQRCode();
+                    startStatusCheck();
+                } else {
+                    showError('二维码生成失败，请检查微信应用配置');
+                }
+            }, 3000); // 增加等待时间到3秒
+
         } catch (error) {
             console.error('初始化微信登录失败:', error);
             showError('初始化微信登录失败: ' + error.message);
@@ -201,34 +232,52 @@
     
     // 显示加载状态
     function showLoading() {
-        document.getElementById('loading-indicator').style.display = 'block';
-        document.getElementById('wechat-login-qrcode').style.display = 'none';
-        document.getElementById('error-message').style.display = 'none';
-        document.getElementById('status-message').style.display = 'none';
+        const loadingEl = document.getElementById('loading-indicator');
+        const qrcodeEl = document.getElementById('wechat-login-qrcode');
+        const errorEl = document.getElementById('error-message');
+        const statusEl = document.getElementById('status-message');
+
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (qrcodeEl) qrcodeEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'none';
+        if (statusEl) statusEl.style.display = 'none';
     }
-    
+
     // 显示二维码
     function showQRCode() {
-        document.getElementById('loading-indicator').style.display = 'none';
-        document.getElementById('wechat-login-qrcode').style.display = 'block';
-        document.getElementById('error-message').style.display = 'none';
+        const loadingEl = document.getElementById('loading-indicator');
+        const qrcodeEl = document.getElementById('wechat-login-qrcode');
+        const errorEl = document.getElementById('error-message');
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (qrcodeEl) qrcodeEl.style.display = 'block';
+        if (errorEl) errorEl.style.display = 'none';
         showStatus('请使用微信扫描二维码');
     }
-    
+
     // 显示错误
     function showError(message) {
-        document.getElementById('loading-indicator').style.display = 'none';
-        document.getElementById('wechat-login-qrcode').style.display = 'none';
-        document.getElementById('error-message').style.display = 'block';
-        document.getElementById('error-text').textContent = message;
-        document.getElementById('status-message').style.display = 'none';
+        const loadingEl = document.getElementById('loading-indicator');
+        const qrcodeEl = document.getElementById('wechat-login-qrcode');
+        const errorEl = document.getElementById('error-message');
+        const errorTextEl = document.getElementById('error-text');
+        const statusEl = document.getElementById('status-message');
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (qrcodeEl) qrcodeEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'block';
+        if (errorTextEl) errorTextEl.textContent = message;
+        if (statusEl) statusEl.style.display = 'none';
         stopStatusCheck();
     }
-    
+
     // 显示状态
     function showStatus(message) {
-        document.getElementById('status-message').style.display = 'block';
-        document.getElementById('status-text').textContent = message;
+        const statusEl = document.getElementById('status-message');
+        const statusTextEl = document.getElementById('status-text');
+
+        if (statusEl) statusEl.style.display = 'block';
+        if (statusTextEl) statusTextEl.textContent = message;
     }
 
     // 发送消息给Avalonia客户端
@@ -347,7 +396,7 @@
         border: none;
     }
 
-    @media (max-width: 576px) {
+    @@media (max-width: 576px) {
         .card-header, .card-body {
             padding: 1.5rem;
         }
