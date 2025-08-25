@@ -392,13 +392,36 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
+            // 首先尝试专用的verify-sms端点
+            bool result = await TryVerifyWithDedicatedEndpoint(phoneNumber, code);
+            if (result)
+            {
+                return true;
+            }
+
+            // 如果专用端点失败，尝试使用sms-login端点进行验证
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] 专用端点失败，尝试使用sms-login端点验证");
+            return await TryVerifyWithSmsLoginEndpoint(phoneNumber, code);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] 验证短信验证码异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] 异常堆栈: {ex.StackTrace}");
+            return false;
+        }
+    }
+
+    private async Task<bool> TryVerifyWithDedicatedEndpoint(string phoneNumber, string code)
+    {
+        try
+        {
             var request = new { PhoneNumber = phoneNumber, Code = code };
             string json = JsonSerializer.Serialize(request, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 发送请求: {json}");
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] 发送请求到verify-sms: {json}");
 
             StringContent content = new(json, Encoding.UTF8, "application/json");
             string apiUrl = BuildApiUrl("verify-sms");
@@ -443,15 +466,62 @@ public class AuthenticationService : IAuthenticationService
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[SMS验证] API调用失败: {response.StatusCode} - {responseContent}");
+                System.Diagnostics.Debug.WriteLine($"[SMS验证] verify-sms API调用失败: {response.StatusCode} - {responseContent}");
+                return false;
             }
-
-            return false;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 验证短信验证码异常: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 异常堆栈: {ex.StackTrace}");
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] verify-sms端点异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    private async Task<bool> TryVerifyWithSmsLoginEndpoint(string phoneNumber, string code)
+    {
+        try
+        {
+            var request = new { PhoneNumber = phoneNumber, SmsCode = code };
+            string json = JsonSerializer.Serialize(request, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] 发送请求到sms-login: {json}");
+
+            StringContent content = new(json, Encoding.UTF8, "application/json");
+            string apiUrl = BuildApiUrl("sms-login");
+
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] sms-login API URL: {apiUrl}");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
+
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] sms-login 响应状态: {response.StatusCode}");
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] sms-login 响应内容: {responseContent}");
+
+            // 如果sms-login返回成功（200），说明验证码是正确的
+            if (response.IsSuccessStatusCode)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SMS验证] sms-login验证成功，验证码正确");
+                return true;
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                // 401表示验证码错误或过期
+                System.Diagnostics.Debug.WriteLine($"[SMS验证] sms-login验证失败，验证码错误或过期");
+                return false;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[SMS验证] sms-login其他错误: {response.StatusCode}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SMS验证] sms-login端点异常: {ex.Message}");
             return false;
         }
     }
