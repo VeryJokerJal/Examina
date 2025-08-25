@@ -56,12 +56,12 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             _logger.LogInformation("开始BenchSuite评分，考试ID: {ExamId}, 考试类型: {ExamType}, 学生ID: {StudentId}",
                 request.ExamId, request.ExamType, request.StudentUserId);
 
-            // 验证目录结构
-            BenchSuiteDirectoryValidationResult validationResult = await ValidateDirectoryStructureAsync(request.BasePath);
+            // 验证考试目录结构
+            BenchSuiteDirectoryValidationResult validationResult = await ValidateExamDirectoryStructureAsync(request.ExamType, request.ExamId);
             if (!validationResult.IsValid)
             {
                 result.IsSuccess = false;
-                result.ErrorMessage = $"目录结构验证失败: {validationResult.ErrorMessage}";
+                result.ErrorMessage = $"考试目录结构验证失败: {validationResult.ErrorMessage}";
                 return result;
             }
 
@@ -213,6 +213,84 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             _logger.LogError(ex, "验证目录结构时发生异常");
             result.IsValid = false;
             result.ErrorMessage = $"验证目录结构时发生异常: {ex.Message}";
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 验证考试目录结构
+    /// </summary>
+    public async Task<BenchSuiteDirectoryValidationResult> ValidateExamDirectoryStructureAsync(ExamType examType, int examId)
+    {
+        BenchSuiteDirectoryValidationResult result = new();
+
+        try
+        {
+            _logger.LogInformation("验证考试目录结构，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
+
+            string basePath = @"C:\河北对口计算机\";
+            string examTypeFolder = GetExamTypeFolder(examType);
+            string examTypePath = System.IO.Path.Combine(basePath, examTypeFolder);
+            string examIdPath = System.IO.Path.Combine(examTypePath, examId.ToString());
+
+            // 检查基础目录是否存在
+            if (!System.IO.Directory.Exists(basePath))
+            {
+                result.IsValid = false;
+                result.ErrorMessage = $"基础目录不存在: {basePath}";
+                result.MissingDirectories.Add(basePath);
+                return result;
+            }
+
+            // 检查考试类型目录是否存在
+            if (!System.IO.Directory.Exists(examTypePath))
+            {
+                result.IsValid = false;
+                result.ErrorMessage = $"考试类型目录不存在: {examTypePath}";
+                result.MissingDirectories.Add(examTypePath);
+                return result;
+            }
+
+            // 检查考试ID目录是否存在
+            if (!System.IO.Directory.Exists(examIdPath))
+            {
+                result.IsValid = false;
+                result.ErrorMessage = $"考试ID目录不存在: {examIdPath}";
+                result.MissingDirectories.Add(examIdPath);
+                return result;
+            }
+
+            // 检查各科目目录是否存在
+            List<string> missingDirectories = new();
+            foreach (KeyValuePair<BenchSuiteFileType, string> mapping in _directoryMapping)
+            {
+                string subjectPath = System.IO.Path.Combine(examIdPath, mapping.Value);
+                if (!System.IO.Directory.Exists(subjectPath))
+                {
+                    missingDirectories.Add(subjectPath);
+                    _logger.LogWarning("缺失科目目录: {SubjectPath}", subjectPath);
+                }
+            }
+
+            if (missingDirectories.Count > 0)
+            {
+                result.IsValid = false;
+                result.ErrorMessage = $"缺失 {missingDirectories.Count} 个科目目录";
+                result.MissingDirectories.AddRange(missingDirectories);
+                return result;
+            }
+
+            result.IsValid = true;
+            result.Details = "考试目录结构验证通过";
+
+            _logger.LogInformation("考试目录结构验证完成，结果: {IsValid}", result.IsValid);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "验证考试目录结构时发生异常");
+            result.IsValid = false;
+            result.ErrorMessage = $"验证考试目录结构时发生异常: {ex.Message}";
         }
 
         return result;
@@ -380,6 +458,23 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         FieldInfo? field = fileType.GetType().GetField(fileType.ToString());
         DescriptionAttribute? attribute = field?.GetCustomAttribute<DescriptionAttribute>();
         return attribute?.Description ?? fileType.ToString();
+    }
+
+    /// <summary>
+    /// 获取考试类型对应的文件夹名称
+    /// </summary>
+    private static string GetExamTypeFolder(ExamType examType)
+    {
+        return examType switch
+        {
+            ExamType.MockExam => "MockExams",
+            ExamType.FormalExam => "OnlineExams",
+            ExamType.ComprehensiveTraining => "ComprehensiveTraining",
+            ExamType.SpecializedTraining => "SpecializedTraining",
+            ExamType.Practice => "Practice",
+            ExamType.SpecialPractice => "SpecialPractice",
+            _ => "Unknown"
+        };
     }
 
     #endregion

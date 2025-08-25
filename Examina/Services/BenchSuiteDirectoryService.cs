@@ -82,7 +82,7 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 确保目录结构存在
+    /// 确保基础目录结构存在（仅创建基础目录，不创建科目文件夹）
     /// </summary>
     public async Task<BenchSuiteDirectoryValidationResult> EnsureDirectoryStructureAsync()
     {
@@ -90,40 +90,94 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
 
         try
         {
-            _logger.LogInformation("确保BenchSuite目录结构存在，基础路径: {BasePath}", _basePath);
+            _logger.LogInformation("确保BenchSuite基础目录结构存在，基础路径: {BasePath}", _basePath);
 
-            // 创建基础目录
+            // 仅创建基础目录
             if (!System.IO.Directory.Exists(_basePath))
             {
                 _ = System.IO.Directory.CreateDirectory(_basePath);
                 _logger.LogInformation("创建基础目录: {BasePath}", _basePath);
+                result.IsValid = true;
+                result.Details = "成功创建基础目录";
+            }
+            else
+            {
+                result.IsValid = true;
+                result.Details = "基础目录已存在";
             }
 
-            // 创建各子目录
+            _logger.LogInformation("基础目录结构确保完成: {Details}", result.Details);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "确保基础目录结构时发生异常");
+            result.IsValid = false;
+            result.ErrorMessage = $"确保基础目录结构时发生异常: {ex.Message}";
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 确保指定考试的目录结构存在
+    /// </summary>
+    public async Task<BenchSuiteDirectoryValidationResult> EnsureExamDirectoryStructureAsync(ExamType examType, int examId)
+    {
+        BenchSuiteDirectoryValidationResult result = new();
+
+        try
+        {
+            _logger.LogInformation("确保考试目录结构存在，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
+
+            // 首先确保基础目录存在
+            BenchSuiteDirectoryValidationResult baseResult = await EnsureDirectoryStructureAsync();
+            if (!baseResult.IsValid)
+            {
+                return baseResult;
+            }
+
+            // 创建考试类型目录
+            string examTypeFolder = GetExamTypeFolder(examType);
+            string examTypePath = System.IO.Path.Combine(_basePath, examTypeFolder);
+            if (!System.IO.Directory.Exists(examTypePath))
+            {
+                _ = System.IO.Directory.CreateDirectory(examTypePath);
+                _logger.LogInformation("创建考试类型目录: {ExamTypePath}", examTypePath);
+            }
+
+            // 创建考试ID目录
+            string examIdPath = System.IO.Path.Combine(examTypePath, examId.ToString());
+            if (!System.IO.Directory.Exists(examIdPath))
+            {
+                _ = System.IO.Directory.CreateDirectory(examIdPath);
+                _logger.LogInformation("创建考试ID目录: {ExamIdPath}", examIdPath);
+            }
+
+            // 创建各科目目录
             List<string> createdDirectories = [];
             foreach (KeyValuePair<BenchSuiteFileType, string> mapping in _directoryMapping)
             {
-                string directoryPath = System.IO.Path.Combine(_basePath, mapping.Value);
-                if (!System.IO.Directory.Exists(directoryPath))
+                string subjectPath = System.IO.Path.Combine(examIdPath, mapping.Value);
+                if (!System.IO.Directory.Exists(subjectPath))
                 {
-                    _ = System.IO.Directory.CreateDirectory(directoryPath);
-                    createdDirectories.Add(directoryPath);
-                    _logger.LogInformation("创建子目录: {DirectoryPath}", directoryPath);
+                    _ = System.IO.Directory.CreateDirectory(subjectPath);
+                    createdDirectories.Add(subjectPath);
+                    _logger.LogInformation("创建科目目录: {SubjectPath}", subjectPath);
                 }
             }
 
             result.IsValid = true;
             result.Details = createdDirectories.Count > 0
-                ? $"成功创建 {createdDirectories.Count} 个目录"
-                : "目录结构已存在";
+                ? $"成功创建 {createdDirectories.Count} 个科目目录"
+                : "考试目录结构已存在";
 
-            _logger.LogInformation("目录结构确保完成: {Details}", result.Details);
+            _logger.LogInformation("考试目录结构确保完成: {Details}", result.Details);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "确保目录结构时发生异常");
+            _logger.LogError(ex, "确保考试目录结构时发生异常");
             result.IsValid = false;
-            result.ErrorMessage = $"确保目录结构时发生异常: {ex.Message}";
+            result.ErrorMessage = $"确保考试目录结构时发生异常: {ex.Message}";
         }
 
         return result;

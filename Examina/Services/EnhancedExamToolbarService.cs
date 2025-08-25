@@ -383,11 +383,11 @@ public class EnhancedExamToolbarService : IDisposable
                 return null;
             }
 
-            // 确保目录结构存在
-            BenchSuiteDirectoryValidationResult directoryResult = await _benchSuiteDirectoryService.EnsureDirectoryStructureAsync();
+            // 确保考试目录结构存在
+            BenchSuiteDirectoryValidationResult directoryResult = await _benchSuiteDirectoryService.EnsureExamDirectoryStructureAsync(examType, examId);
             if (!directoryResult.IsValid)
             {
-                _logger.LogWarning("BenchSuite目录结构验证失败: {ErrorMessage}", directoryResult.ErrorMessage);
+                _logger.LogWarning("BenchSuite考试目录结构验证失败: {ErrorMessage}", directoryResult.ErrorMessage);
                 return null;
             }
 

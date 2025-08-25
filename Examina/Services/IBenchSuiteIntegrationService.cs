@@ -27,9 +27,17 @@ public interface IBenchSuiteIntegrationService
     IEnumerable<BenchSuiteFileType> GetSupportedFileTypes();
 
     /// <summary>
-    /// 验证文件目录结构
+    /// 验证文件目录结构（旧版本，保持兼容性）
     /// </summary>
     /// <param name="basePath">基础路径</param>
     /// <returns>验证结果</returns>
     Task<BenchSuiteDirectoryValidationResult> ValidateDirectoryStructureAsync(string basePath);
+
+    /// <summary>
+    /// 验证考试目录结构
+    /// </summary>
+    /// <param name="examType">考试类型</param>
+    /// <param name="examId">考试ID</param>
+    /// <returns>验证结果</returns>
+    Task<BenchSuiteDirectoryValidationResult> ValidateExamDirectoryStructureAsync(ExamType examType, int examId);
 }

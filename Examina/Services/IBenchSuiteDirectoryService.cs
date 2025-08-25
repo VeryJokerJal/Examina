@@ -52,10 +52,18 @@ public interface IBenchSuiteDirectoryService
     string GetExamFilePath(ExamType examType, int examId, BenchSuiteFileType fileType, int studentId, string fileName);
 
     /// <summary>
-    /// 确保目录结构存在
+    /// 确保基础目录结构存在（仅创建基础目录，不创建科目文件夹）
     /// </summary>
     /// <returns>操作结果</returns>
     Task<BenchSuiteDirectoryValidationResult> EnsureDirectoryStructureAsync();
+
+    /// <summary>
+    /// 确保指定考试的目录结构存在
+    /// </summary>
+    /// <param name="examType">考试类型</param>
+    /// <param name="examId">考试ID</param>
+    /// <returns>操作结果</returns>
+    Task<BenchSuiteDirectoryValidationResult> EnsureExamDirectoryStructureAsync(ExamType examType, int examId);
 
     /// <summary>
     /// 清理过期的考试文件
