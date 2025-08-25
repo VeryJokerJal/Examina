@@ -1,9 +1,8 @@
 ﻿using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Examina;
 using Examina.Models;
 using Examina.Services;
 using Examina.ViewModels;
@@ -550,7 +549,7 @@ public class LoginViewModel : ViewModelBase
             mainWindow.Show();
 
             // 关闭登录窗口
-            if (desktop.MainWindow is Views.LoginWindow loginWindow)
+            if (desktop.MainWindow is Examina.Views.LoginWindow loginWindow)
             {
                 loginWindow.Close();
             }

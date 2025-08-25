@@ -1152,4 +1152,9 @@ internal class DesignTimeAuthenticationService : IAuthenticationService
     {
         throw new NotImplementedException();
     }
+
+    public void SetAuthenticationToken(string accessToken, string refreshToken, UserInfo? user = null)
+    {
+        // 设计时服务不需要实际实现
+    }
 }
