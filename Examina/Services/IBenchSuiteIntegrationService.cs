@@ -1,3 +1,4 @@
+using Examina.Models;
 using Examina.Models.BenchSuite;
 
 namespace Examina.Services;

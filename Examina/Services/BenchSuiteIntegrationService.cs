@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using Examina.Models;
 using Examina.Models.BenchSuite;
 using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
