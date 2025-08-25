@@ -45,6 +45,25 @@ public class WeChatLoginController : Controller
     }
 
     /// <summary>
+    /// 微信登录配置测试页面
+    /// </summary>
+    [HttpGet]
+    [Route("wechat-login/test")]
+    public IActionResult Test()
+    {
+        try
+        {
+            _logger.LogInformation("显示微信登录配置测试页面");
+            return View();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "显示微信登录配置测试页面失败");
+            return View("Error");
+        }
+    }
+
+    /// <summary>
     /// 获取微信登录配置（用于JS SDK）
     /// </summary>
     [HttpGet]

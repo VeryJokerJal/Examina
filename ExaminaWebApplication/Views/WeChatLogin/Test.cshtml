@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "微信登录配置测试";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">微信登录配置测试</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <button id="test-config-btn" class="btn btn-primary">测试配置API</button>
+                        <button id="test-status-btn" class="btn btn-secondary">测试状态API</button>
+                    </div>
+                    
+                    <div id="result-container">
+                        <h5>测试结果：</h5>
+                        <pre id="result-output" class="bg-light p-3" style="min-height: 200px;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('test-config-btn').addEventListener('click', async function() {
+        const output = document.getElementById('result-output');
+        output.textContent = '正在测试配置API...';
+        
+        try {
+            const response = await fetch('/api/auth/wechat/config');
+            const result = await response.json();
+            
+            output.textContent = JSON.stringify(result, null, 2);
+            
+            if (result.success) {
+                output.style.color = 'green';
+            } else {
+                output.style.color = 'red';
+            }
+        } catch (error) {
+            output.textContent = '错误: ' + error.message;
+            output.style.color = 'red';
+        }
+    });
+    
+    document.getElementById('test-status-btn').addEventListener('click', async function() {
+        const output = document.getElementById('result-output');
+        output.textContent = '正在测试状态API...';
+        
+        try {
+            const response = await fetch('/api/auth/wechat/check-status?state=examina_test123');
+            const result = await response.json();
+            
+            output.textContent = JSON.stringify(result, null, 2);
+            
+            if (result.success) {
+                output.style.color = 'green';
+            } else {
+                output.style.color = 'red';
+            }
+        } catch (error) {
+            output.textContent = '错误: ' + error.message;
+            output.style.color = 'red';
+        }
+    });
+</script>
