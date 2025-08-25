@@ -6,10 +6,9 @@ using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Models.MockExam;
 using Examina.Services;
-using Examina.ViewModels.Dialogs;
 using Examina.Views;
-using Examina.Views.Dialogs;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
 
@@ -22,9 +21,6 @@ public class MockExamViewModel : ViewModelBase
     private readonly IAuthenticationService _authenticationService;
     private readonly EnhancedExamToolbarService? _enhancedExamToolbarService;
 
-    private bool _isLoading;
-    private string? _errorMessage;
-    private bool _hasFullAccess;
     private bool _isUpdatingPermissions = false;
 
     /// <summary>
@@ -40,29 +36,27 @@ public class MockExamViewModel : ViewModelBase
     /// <summary>
     /// 是否正在加载
     /// </summary>
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => this.RaiseAndSetIfChanged(ref _isLoading, value);
-    }
+    [Reactive] public bool IsLoading { get; set; }
 
     /// <summary>
     /// 错误消息
     /// </summary>
-    public string? ErrorMessage
-    {
-        get => _errorMessage;
-        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
-    }
+    [Reactive] public string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 是否有完整访问权限
     /// </summary>
-    public bool HasFullAccess
-    {
-        get => _hasFullAccess;
-        set => this.RaiseAndSetIfChanged(ref _hasFullAccess, value);
-    }
+    [Reactive] public bool HasFullAccess { get; set; }
+
+    /// <summary>
+    /// 是否同意考试规则
+    /// </summary>
+    [Reactive] public bool IsAgreed { get; set; }
+
+    /// <summary>
+    /// 考生姓名
+    /// </summary>
+    [Reactive] public string StudentName { get; set; } = "未知学生";
 
     /// <summary>
     /// 开始按钮文本
@@ -104,6 +98,9 @@ public class MockExamViewModel : ViewModelBase
         // 初始化用户权限状态
         UpdateUserPermissions();
 
+        // 初始化考生姓名
+        UpdateStudentName();
+
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
     }
@@ -125,35 +122,9 @@ public class MockExamViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine("MockExamViewModel: 准备开始模拟考试");
 
-            // 显示规则说明对话框
-            MockExamRulesViewModel rulesViewModel = new();
-            MockExamRulesDialog dialog = new(rulesViewModel);
-
-            // 设置对话框的父窗口
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-                desktop.MainWindow != null)
-            {
-                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 准备显示规则对话框");
-
-                bool? result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
-
-                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 对话框返回结果: {result}");
-
-                if (result == true)
-                {
-                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 用户确认开始模拟考试");
-                    // 用户确认开始，调用快速开始API
-                    await QuickStartMockExamAsync();
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 用户取消了模拟考试");
-                }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 无法获取主窗口");
-            }
+            // 直接开始模拟考试，无需确认对话框
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 直接开始模拟考试");
+            await QuickStartMockExamAsync();
         }
         catch (Exception ex)
         {
@@ -254,11 +225,38 @@ public class MockExamViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 更新考生姓名
+    /// </summary>
+    private void UpdateStudentName()
+    {
+        try
+        {
+            UserInfo? currentUser = _authenticationService.CurrentUser;
+            if (currentUser != null)
+            {
+                StudentName = currentUser.RealName ?? "未知学生";
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 更新考生姓名为: {StudentName}");
+            }
+            else
+            {
+                StudentName = "未知学生";
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 当前用户为空，设置默认姓名");
+            }
+        }
+        catch (Exception ex)
+        {
+            StudentName = "未知学生";
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 更新考生姓名异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// 用户信息更新事件处理
     /// </summary>
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
         UpdateUserPermissions();
+        UpdateStudentName();
     }
 
     /// <summary>
@@ -638,7 +636,7 @@ public class MockExamViewModel : ViewModelBase
                                     System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 权限验证失败，考试ID: {examId}");
 
                                     // 获取当前用户信息用于调试
-                                    var currentUser = _authenticationService.CurrentUser;
+                                    UserInfo? currentUser = _authenticationService.CurrentUser;
                                     if (currentUser != null)
                                     {
                                         System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 当前用户信息 - ID: {currentUser.Id}, 用户名: {currentUser.Username}, 权限: {currentUser.HasFullAccess}");
@@ -838,7 +836,7 @@ public class MockExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
 
             // 使用新的全屏考试结果窗口
-            await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+            _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
                 examName,
                 examType,
                 isSuccessful,

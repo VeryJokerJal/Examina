@@ -1,142 +1,54 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:Examina.ViewModels.Pages"
-             xmlns:models="using:Examina.Models.MockExam"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Examina.Views.Pages.MockExamView"
-             x:DataType="vm:MockExamViewModel">
+﻿<UserControl x:Class="Examina.Views.Pages.MockExamView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Examina.Models.MockExam" xmlns:vm="using:Examina.ViewModels.Pages" d:DesignHeight="450" d:DesignWidth="800" x:DataType="vm:MockExamViewModel" mc:Ignorable="d">
 
     <Design.DataContext>
         <vm:MockExamViewModel />
     </Design.DataContext>
 
     <Grid RowDefinitions="Auto,*">
-        <!-- 标题栏 -->
-        <Border Grid.Row="0" Background="{DynamicResource SystemAccentColor}" Padding="20,15">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="🎯" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBlock Text="模拟考试" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                <TextBlock Text="智能题库随机抽取，真实考试体验"
-                          FontSize="14" Foreground="White" Opacity="0.8"
-                          VerticalAlignment="Center" Margin="20,0,0,0"/>
+
+        <!--  标题栏  -->
+        <Border Grid.Row="0" Padding="20,15" Background="{DynamicResource SystemAccentColor}">
+            <StackPanel>
+                <TextBlock VerticalAlignment="Center" FontSize="20" FontWeight="Bold" Foreground="White" Text="准备参加模拟考试" />
+                <TextBlock VerticalAlignment="Center" FontSize="14" Foreground="White" Text="模拟考试是对实际考试环境的模拟您将面对随机出题的试卷考试结束后可以查看成绩及排名情况。" />
             </StackPanel>
         </Border>
 
-        <!-- 主内容区域 -->
+        <!--  主内容区域  -->
         <Grid Grid.Row="1" Margin="40">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="30" MaxWidth="600">
-                <!-- 错误消息 -->
-                <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                        Background="#FFEBEE" BorderBrush="#F44336" BorderThickness="1"
-                        CornerRadius="5" Padding="15">
+            <StackPanel MaxWidth="600" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="30">
+
+                <!--  错误消息  -->
+                <Border Padding="15" Background="#FFEBEE" BorderBrush="#F44336" BorderThickness="1" CornerRadius="5" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#D32F2F" VerticalAlignment="Center"/>
+                        <TextBlock VerticalAlignment="Center" Foreground="#D32F2F" Text="{Binding ErrorMessage}" />
                     </StackPanel>
                 </Border>
 
-                <!-- 模拟考试介绍 -->
-                <StackPanel Spacing="20" HorizontalAlignment="Center">
-                    <TextBlock Text="🎯" FontSize="80" HorizontalAlignment="Center" Opacity="0.8"/>
-                    <TextBlock Text="模拟考试系统" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="基于综合训练题库的智能抽题系统，为您提供真实的考试体验"
-                              FontSize="16" HorizontalAlignment="Center" TextAlignment="Center"
-                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <!--  考试须知  -->
+                <StackPanel Spacing="10">
+                    <TextBlock FontSize="18" FontWeight="Bold" Text="考试须知" />
+                    <TextBlock Text="1. 模拟考试中请勿退出题目页面，退出后将无法继续答题" TextWrapping="Wrap" />
+                    <TextBlock Text="2. 模拟考试中请勿切换至其他应用程序，切换后将无法继续答题" TextWrapping="Wrap" />
+                    <TextBlock Text="3. 模拟考试中请勿进行任何形式的作弊行为" TextWrapping="Wrap" />
+                    <TextBlock Text="4. 模拟考试结束后请及时提交试卷" TextWrapping="Wrap" />
+                    <TextBlock Text="5. 模拟考试成绩仅供参考，不计入班级成绩" TextWrapping="Wrap" />
                 </StackPanel>
 
-                <!-- 功能特色 -->
-                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                        CornerRadius="12" Padding="30" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                        BorderThickness="1">
-                    <StackPanel Spacing="20">
-                        <TextBlock Text="✨ 功能特色" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                  Foreground="{DynamicResource SystemAccentColor}"/>
-
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="30" RowSpacing="15">
-                            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="🎲" FontSize="18"/>
-                                <StackPanel>
-                                    <TextBlock Text="智能随机抽题" FontWeight="SemiBold"/>
-                                    <TextBlock Text="从题库中随机抽取题目" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="⏱️" FontSize="18"/>
-                                <StackPanel>
-                                    <TextBlock Text="真实考试体验" FontWeight="SemiBold"/>
-                                    <TextBlock Text="2小时限时考试" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="📊" FontSize="18"/>
-                                <StackPanel>
-                                    <TextBlock Text="科学分值分配" FontWeight="SemiBold"/>
-                                    <TextBlock Text="编程题+操作题组合" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="💾" FontSize="18"/>
-                                <StackPanel>
-                                    <TextBlock Text="自动保存进度" FontWeight="SemiBold"/>
-                                    <TextBlock Text="防止意外丢失答案" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="📈" FontSize="18"/>
-                                <StackPanel>
-                                    <TextBlock Text="详细成绩报告" FontWeight="SemiBold"/>
-                                    <TextBlock Text="考后分析与建议" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="🔒" FontSize="18"/>
-                                <StackPanel>
-                                    <TextBlock Text="公平公正" FontWeight="SemiBold"/>
-                                    <TextBlock Text="每次抽题都不相同" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- 开始按钮 -->
-                <StackPanel Spacing="15" HorizontalAlignment="Center">
-                    <Button Command="{Binding StartMockExamCommand}"
-                            Classes="accent"
-                            FontSize="18"
-                            Padding="40,15"
-                            MinWidth="200"
-                            IsEnabled="{Binding !IsLoading}">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="🚀" FontSize="20" IsVisible="{Binding HasFullAccess}"/>
-                                <TextBlock Text="🔒" FontSize="20" IsVisible="{Binding !HasFullAccess}"/>
-                                <TextBlock Text="{Binding StartButtonText}" FontWeight="SemiBold"/>
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-
-                    <TextBlock Text="点击开始后将显示考试规则说明"
-                              FontSize="12" HorizontalAlignment="Center"
-                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <!--  考试信息  -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{Binding StudentName, StringFormat='考生姓名：{0}'}" />
+                    <TextBlock Text="考试时长：120分钟" />
                 </StackPanel>
 
-                <!-- 加载指示器 -->
-                <Border IsVisible="{Binding IsLoading}"
-                        Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                        CornerRadius="5" Padding="20">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="🔄" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="正在生成模拟考试..." VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
+                <!--  同意勾选  -->
+                <CheckBox Content="我已阅读并同意" IsChecked="{Binding IsAgreed}" />
+
+                <!--  开始按钮  -->
+                <Button MinWidth="200" Padding="40,15" Classes="accent" Command="{Binding StartMockExamCommand}" FontSize="18" IsEnabled="{Binding IsAgreed}">
+                    <TextBlock FontWeight="SemiBold" Text="开始模拟考试" />
+                </Button>
+
             </StackPanel>
         </Grid>
     </Grid>
