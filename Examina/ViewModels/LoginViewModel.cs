@@ -6,6 +6,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Examina.Models;
 using Examina.Services;
+using Examina.ViewModels;
+using Examina.Views;
 using Prism.Commands;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -20,8 +22,6 @@ public class WeChatLoginInfo
     public string RefreshToken { get; set; } = string.Empty;
     public UserInfo? User { get; set; }
 }
-
-namespace Examina.ViewModels;
 
 /// <summary>
 /// 登录视图模型
@@ -326,7 +326,7 @@ public class LoginViewModel : ViewModelBase
                         try
                         {
                             // 解析登录数据
-                            var loginInfo = JsonSerializer.Deserialize<WeChatLoginInfo>(loginData);
+                            WeChatLoginInfo? loginInfo = JsonSerializer.Deserialize<WeChatLoginInfo>(loginData);
                             if (loginInfo != null && !string.IsNullOrEmpty(loginInfo.AccessToken))
                             {
                                 // 删除状态文件
@@ -385,24 +385,19 @@ public class LoginViewModel : ViewModelBase
             _authenticationService.SetAuthenticationToken(loginInfo.AccessToken, loginInfo.RefreshToken, loginInfo.User);
 
             // 验证令牌是否有效
-            if (await _authenticationService.ValidateTokenAsync())
-            {
-                return new AuthenticationResult
+            return await _authenticationService.ValidateTokenAsync(loginInfo.AccessToken)
+                ? new AuthenticationResult
                 {
                     IsSuccess = true,
                     AccessToken = loginInfo.AccessToken,
                     RefreshToken = loginInfo.RefreshToken,
                     User = loginInfo.User
-                };
-            }
-            else
-            {
-                return new AuthenticationResult
+                }
+                : new AuthenticationResult
                 {
                     IsSuccess = false,
                     ErrorMessage = "登录令牌验证失败"
                 };
-            }
         }
         catch (Exception ex)
         {
@@ -516,11 +511,11 @@ public class LoginViewModel : ViewModelBase
         if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             UserInfoCompletionViewModel userInfoViewModel = new(_authenticationService);
-            Views.UserInfoCompletionWindow userInfoWindow = new(userInfoViewModel);
+            UserInfoCompletionWindow userInfoWindow = new(userInfoViewModel);
             userInfoWindow.Show();
 
             // 关闭登录窗口
-            if (desktop.MainWindow is Views.LoginWindow loginWindow)
+            if (desktop.MainWindow is LoginWindow loginWindow)
             {
                 loginWindow.Close();
             }
@@ -536,7 +531,7 @@ public class LoginViewModel : ViewModelBase
     {
         if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            Views.MainWindow mainWindow = new();
+            MainWindow mainWindow = new();
 
             // 为MainView设置MainViewModel
             if (Avalonia.Application.Current is App app)
@@ -545,7 +540,7 @@ public class LoginViewModel : ViewModelBase
                 if (mainViewModel != null)
                 {
                     // 找到MainView并设置DataContext
-                    if (mainWindow.Content is Views.MainView mainView)
+                    if (mainWindow.Content is MainView mainView)
                     {
                         mainView.DataContext = mainViewModel;
                     }

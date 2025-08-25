@@ -178,6 +178,14 @@ public interface IAuthenticationService
     /// 是否需要刷新令牌
     /// </summary>
     bool NeedsTokenRefresh { get; }
+
+    /// <summary>
+    /// 设置认证令牌（用于外部登录成功后设置状态）
+    /// </summary>
+    /// <param name="accessToken">访问令牌</param>
+    /// <param name="refreshToken">刷新令牌</param>
+    /// <param name="user">用户信息</param>
+    void SetAuthenticationToken(string accessToken, string refreshToken, UserInfo? user = null);
 }
 
 /// <summary>
