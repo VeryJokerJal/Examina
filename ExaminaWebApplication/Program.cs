@@ -27,27 +27,6 @@ builder.WebHost.ConfigureKestrel(options =>
     int requestTimeoutSeconds = builder.Configuration.GetValue<int>("Performance:RequestTimeoutSeconds", 600);
     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(requestTimeoutSeconds);
     options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
-
-    if (builder.Environment.IsDevelopment())
-    {
-        // 开发环境使用launchSettings.json中的配置
-        options.ListenLocalhost(5117); // HTTP
-        // 开发环境的HTTPS配置由launchSettings.json处理
-    }
-    else
-    {
-        // 生产环境只配置HTTP端口，避免HTTPS证书问题
-        options.ListenAnyIP(5000); // HTTP - 监听所有IP地址
-        options.ListenLocalhost(8080); // HTTP localhost备用端口
-
-        // 如果需要HTTPS，请先配置证书：
-        // dotnet dev-certs https --trust
-        // 然后取消注释下面的代码：
-        // options.ListenAnyIP(5001, listenOptions =>
-        // {
-        //     listenOptions.UseHttps(); // HTTPS
-        // });
-    }
 });
 
 // 配置日志记录

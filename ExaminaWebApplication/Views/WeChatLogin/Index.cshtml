@@ -1,482 +1,505 @@
 ﻿@{
-    Layout = null;
+	Layout = null;
 }
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>微信扫码登录 - 河北对口计算机上机考试系统</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>微信扫码登录 - 河北对口计算机上机考试系统</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+		}
 
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
-        }
+		.login-container {
+			background: white;
+			border-radius: 20px;
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+			padding: 40px;
+			max-width: 450px;
+			width: 100%;
+			text-align: center;
+		}
 
-        .login-header {
-            margin-bottom: 30px;
-        }
+		.login-header {
+			margin-bottom: 30px;
+		}
 
-        .login-title {
-            font-size: 28px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
+		.login-title {
+			font-size: 28px;
+			font-weight: 600;
+			color: #333;
+			margin-bottom: 8px;
+		}
 
-        .login-subtitle {
-            font-size: 16px;
-            color: #666;
-        }
+		.login-subtitle {
+			font-size: 16px;
+			color: #666;
+		}
 
-        .qrcode-container {
-            margin: 30px 0;
-        }
+		.qrcode-container {
+			margin: 30px 0;
+		}
 
-        .loading-indicator {
-            display: block;
-        }
+		.loading-indicator {
+			display: block;
+		}
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
+		.spinner {
+			width: 40px;
+			height: 40px;
+			border: 4px solid #f3f3f3;
+			border-top: 4px solid #667eea;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			margin: 0 auto 15px;
+		}
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+		@@keyframes spin {
+			0% {
+				transform: rotate(0deg);
+			}
 
-        .loading-text {
-            color: #666;
-            font-size: 14px;
-        }
+			100% {
+				transform: rotate(360deg);
+			}
+		}
 
-        #wechat-login-qrcode {
-            display: none;
-            min-height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed #e0e0e0;
-            border-radius: 12px;
-            margin: 20px 0;
-        }
+		.loading-text {
+			color: #666;
+			font-size: 14px;
+		}
 
-        .error-message {
-            display: none;
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
+		#wechat-login-qrcode {
+			display: none;
+			min-height: 220px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border: 2px dashed #e0e0e0;
+			border-radius: 12px;
+			margin: 20px 0;
+		}
 
-        .status-message {
-            display: none;
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            color: #1976d2;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
+		.error-message {
+			display: none;
+			background: #fee;
+			border: 1px solid #fcc;
+			color: #c33;
+			padding: 15px;
+			border-radius: 8px;
+			margin: 20px 0;
+		}
 
-        .refresh-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+		.status-message {
+			display: none;
+			background: #e3f2fd;
+			border: 1px solid #90caf9;
+			color: #1976d2;
+			padding: 15px;
+			border-radius: 8px;
+			margin: 20px 0;
+		}
 
-        .refresh-btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
+		.refresh-btn {
+			background: #667eea;
+			color: white;
+			border: none;
+			padding: 12px 24px;
+			border-radius: 25px;
+			font-size: 16px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
 
-        .refresh-btn:active {
-            transform: translateY(0);
-        }
+			.refresh-btn:hover {
+				background: #5a6fd8;
+				transform: translateY(-2px);
+			}
 
-        .footer-text {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #999;
-        }
+			.refresh-btn:active {
+				transform: translateY(0);
+			}
 
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 30px 20px;
-                margin: 10px;
-            }
+		.footer-text {
+			margin-top: 30px;
+			font-size: 12px;
+			color: #999;
+		}
 
-            .login-title {
-                font-size: 24px;
-            }
-        }
-    </style>
+		@@media (max-width: 480px) {
+			.login-container {
+				padding: 30px 20px;
+				margin: 10px;
+			}
+
+			.login-title {
+				font-size: 24px;
+			}
+		}
+	</style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1 class="login-title">微信扫码登录</h1>
-            <p class="login-subtitle">请使用微信扫描二维码完成登录</p>
-        </div>
+	<div class="login-container">
+		<div class="login-header">
+			<h1 class="login-title">微信扫码登录</h1>
+			<p class="login-subtitle">请使用微信扫描二维码完成登录</p>
+		</div>
 
-        <div class="qrcode-container">
-            <!-- 加载指示器 -->
-            <div id="loading-indicator" class="loading-indicator">
-                <div class="spinner"></div>
-                <p class="loading-text">正在生成微信登录二维码...</p>
-            </div>
+		<div class="qrcode-container">
+			<!-- 加载指示器 -->
+			<div id="loading-indicator" class="loading-indicator">
+				<div class="spinner"></div>
+				<p class="loading-text">正在生成微信登录二维码...</p>
+			</div>
 
-            <!-- 微信官方二维码将在这里显示 -->
-            <div id="wechat-login-qrcode"></div>
+			<!-- 微信官方二维码将在这里显示 -->
+			<div id="wechat-login-qrcode"></div>
 
-            <!-- 错误提示 -->
-            <div id="error-message" class="error-message">
-                <span id="error-text">加载失败，请刷新页面重试</span>
-            </div>
+			<!-- 错误提示 -->
+			<div id="error-message" class="error-message">
+				<span id="error-text">加载失败，请刷新页面重试</span>
+			</div>
 
-            <!-- 状态提示 -->
-            <div id="status-message" class="status-message">
-                <span id="status-text">等待扫码...</span>
-            </div>
-        </div>
+			<!-- 状态提示 -->
+			<div id="status-message" class="status-message">
+				<span id="status-text">等待扫码...</span>
+			</div>
+		</div>
 
-        <!-- 刷新按钮 -->
-        <button id="refresh-btn" class="refresh-btn" onclick="refreshQRCode()">
-            🔄 刷新二维码
-        </button>
+		<!-- 刷新按钮 -->
+		<button id="refresh-btn" class="refresh-btn" onclick="refreshQRCode()">
+			🔄 刷新二维码
+		</button>
 
-        <p class="footer-text">河北对口计算机上机考试系统</p>
-    </div>
+		<p class="footer-text">河北对口计算机上机考试系统</p>
+	</div>
 
-    <!-- 引入微信官方JS SDK -->
-    <script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"
-            onload="console.log('微信JS SDK加载成功')"
-            onerror="console.error('微信JS SDK加载失败')"></script>
+	<!-- 引入微信官方JS SDK -->
+	<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"></script>
 
-    <script>
-        let wxLoginObj = null;
-        let currentState = null;
-        let statusCheckInterval = null;
+	<script>
+			let wxLoginObj = null;
+			let currentState = null;
+			let statusCheckInterval = null;
 
-        // 页面加载完成后初始化微信登录
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('页面DOM加载完成');
-            // 延迟一下确保微信JS SDK完全加载
-            setTimeout(() => {
-                initWeChatLogin();
-            }, 1000);
-        });
-    
-    // 初始化微信登录
-    async function initWeChatLogin() {
-        try {
-            showLoading();
+			// 页面加载完成后初始化微信登录
+			document.addEventListener('DOMContentLoaded', function() {
+				setTimeout(() => {
+					initWeChatLogin();
+				}, 1000);
+			});
 
-            // 检查微信JS SDK是否已加载
-            if (typeof WxLogin === 'undefined') {
-                showError('微信JS SDK未加载，请检查网络连接');
-                return;
-            }
+		// 初始化微信登录
+		async function initWeChatLogin() {
+			try {
+				showLoading();
 
-            // 获取微信登录配置
-            const response = await fetch('/api/auth/wechat/config');
-            if (!response.ok) {
-                showError(`获取配置失败: ${response.status} ${response.statusText}`);
-                return;
-            }
+				if (typeof WxLogin === 'undefined') {
+					showError('微信JS SDK未加载，请检查网络连接');
+					return;
+				}
 
-            const result = await response.json();
-            console.log('微信登录配置:', result);
+				const response = await fetch('/api/auth/wechat/config');
+				if (!response.ok) {
+					showError(`获取配置失败: ${response.status} ${response.statusText}`);
+					return;
+				}
 
-            if (!result.success) {
-                showError(result.message || '获取微信登录配置失败');
-                return;
-            }
+				const result = await response.json();
 
-            const config = result.data.wxLoginConfig;
-            currentState = config.state;
+				if (!result.success) {
+					showError(result.message || '获取微信登录配置失败');
+					return;
+				}
 
-            // 验证配置完整性
-            if (!config.appid || !config.redirect_uri || !config.state) {
-                showError('微信登录配置不完整');
-                return;
-            }
+				const config = result.data.wxLoginConfig;
+				currentState = config.state;
 
-            console.log('创建微信登录对象，配置:', config);
+				if (!config.appid || !config.redirect_uri || !config.state) {
+					showError('微信登录配置不完整');
+					return;
+				}
 
-            // 创建微信登录对象（符合官方文档规范）
-            wxLoginObj = new WxLogin({
-                self_redirect: false, // 不在当前窗口跳转
-                id: "wechat-login-qrcode", // 二维码容器ID
-                appid: config.appid, // 微信开放平台应用ID
-                scope: "snsapi_login", // 网站应用微信登录授权作用域
-                redirect_uri: encodeURIComponent(config.redirect_uri), // 回调地址
-                state: config.state, // 状态码，防CSRF攻击
-                style: "black", // 二维码样式：black或white
-                href: "", // 自定义样式链接
-                stylelite: 1 // 使用新版UI样式
-            });
+				wxLoginObj = new WxLogin({
+					self_redirect: false,
+					id: "wechat-login-qrcode",
+					appid: config.appid,
+					scope: "snsapi_login",
+					redirect_uri: encodeURIComponent(config.redirect_uri),
+					state: config.state,
+					style: "black",
+					href: "",
+					stylelite: 1
+				});
 
-            // 等待二维码加载完成
-            setTimeout(() => {
-                const qrContainer = document.getElementById('wechat-login-qrcode');
-                if (qrContainer && qrContainer.innerHTML.trim() !== '') {
-                    showQRCode();
-                    startStatusCheck();
-                } else {
-                    showError('二维码生成失败，请检查微信应用配置');
-                }
-            }, 3000); // 增加等待时间到3秒
+				setTimeout(() => {
+					const qrContainer = document.getElementById('wechat-login-qrcode');
+					if (qrContainer && qrContainer.innerHTML.trim() !== '') {
+						showQRCode();
+						startStatusCheck();
+					} else {
+						showError('二维码生成失败，请检查微信应用配置');
+					}
+				}, 3000);
 
-        } catch (error) {
-            console.error('初始化微信登录失败:', error);
-            showError('初始化微信登录失败: ' + error.message);
-        }
-    }
-    
-    // 开始状态检查
-    function startStatusCheck() {
-        if (statusCheckInterval) {
-            clearInterval(statusCheckInterval);
-        }
-        
-        // 每3秒检查一次登录状态
-        statusCheckInterval = setInterval(async function() {
-            if (!currentState) return;
-            
-            try {
-                const response = await fetch(`/api/auth/wechat/check-status?state=${encodeURIComponent(currentState)}`);
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    const status = result.data.status;
-                    const message = result.data.message;
-                    
-                    switch (status) {
-                        case 'scanned':
-                            showStatus('扫描成功，请在手机上确认登录');
-                            break;
-                        case 'confirmed':
-                        case 'success':
-                            showStatus('登录成功，正在跳转...');
-                            if (result.data.hasCallback && result.data.code) {
-                                // 发送登录成功消息给Avalonia客户端
-                                sendMessageToClient({
-                                    type: 'wechat_auth_success',
-                                    data: {
-                                        code: result.data.code,
-                                        state: currentState
-                                    }
-                                });
+			} catch (error) {
+				showError('初始化微信登录失败: ' + error.message);
+			}
+		}
 
-                                // 如果不是在WebView中，则跳转到主页
-                                if (!isInWebView()) {
-                                    setTimeout(() => {
-                                        window.location.href = '/';
-                                    }, 1000);
-                                }
-                            }
-                            break;
-                        case 'cancelled':
-                            showStatus('用户取消登录');
-                            setTimeout(() => refreshQRCode(), 3000);
-                            break;
-                        case 'expired':
-                            showStatus('二维码已过期，正在刷新...');
-                            setTimeout(() => refreshQRCode(), 2000);
-                            break;
-                        case 'error':
-                            showError(message || '登录过程中发生错误');
-                            break;
-                    }
-                }
-            } catch (error) {
-                console.error('检查登录状态失败:', error);
-                // 网络错误不停止轮询，继续尝试
-            }
-        }, 3000);
-        
-        // 5分钟后停止轮询，防止二维码过期后无限轮询
-        setTimeout(() => {
-            if (statusCheckInterval) {
-                clearInterval(statusCheckInterval);
-                showError('二维码已过期，请刷新重试');
-            }
-        }, 5 * 60 * 1000);
-    }
-    
-    // 停止状态检查
-    function stopStatusCheck() {
-        if (statusCheckInterval) {
-            clearInterval(statusCheckInterval);
-            statusCheckInterval = null;
-        }
-    }
-    
-    // 刷新二维码
-    function refreshQRCode() {
-        stopStatusCheck();
-        
-        // 清空二维码容器
-        const qrContainer = document.getElementById('wechat-login-qrcode');
-        if (qrContainer) {
-            qrContainer.innerHTML = '';
-        }
-        
-        // 重新初始化
-        initWeChatLogin();
-    }
-    
-    // 显示加载状态
-    function showLoading() {
-        const loadingEl = document.getElementById('loading-indicator');
-        const qrcodeEl = document.getElementById('wechat-login-qrcode');
-        const errorEl = document.getElementById('error-message');
-        const statusEl = document.getElementById('status-message');
+		// 开始状态检查
+		function startStatusCheck() {
+			if (statusCheckInterval) {
+				clearInterval(statusCheckInterval);
+			}
 
-        if (loadingEl) loadingEl.style.display = 'block';
-        if (qrcodeEl) qrcodeEl.style.display = 'none';
-        if (errorEl) errorEl.style.display = 'none';
-        if (statusEl) statusEl.style.display = 'none';
-    }
+			statusCheckInterval = setInterval(async function() {
+				if (!currentState) return;
 
-    // 显示二维码
-    function showQRCode() {
-        const loadingEl = document.getElementById('loading-indicator');
-        const qrcodeEl = document.getElementById('wechat-login-qrcode');
-        const errorEl = document.getElementById('error-message');
+				try {
+					const response = await fetch(`/api/auth/wechat/check-status?state=${encodeURIComponent(currentState)}`);
+					const result = await response.json();
 
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (qrcodeEl) {
-            qrcodeEl.style.display = 'flex';
-            qrcodeEl.style.border = 'none'; // 移除虚线边框，因为有内容了
-        }
-        if (errorEl) errorEl.style.display = 'none';
-        showStatus('请使用微信扫描二维码');
-    }
+					if (result.success && result.data) {
+						const status = result.data.status;
+						const message = result.data.message;
 
-    // 显示错误
-    function showError(message) {
-        const loadingEl = document.getElementById('loading-indicator');
-        const qrcodeEl = document.getElementById('wechat-login-qrcode');
-        const errorEl = document.getElementById('error-message');
-        const errorTextEl = document.getElementById('error-text');
-        const statusEl = document.getElementById('status-message');
+						switch (status) {
+							case 'scanned':
+								showStatus('扫描成功，请在手机上确认登录');
+								break;
+							case 'confirmed':
+							case 'success':
+								showStatus('微信授权成功，正在登录...');
+								if (result.data.hasCallback && result.data.code) {
+									// 停止状态检查，避免重复登录
+									stopStatusCheck();
+									// 执行实际的登录操作
+									await performWeChatLogin(currentState.replace('examina_', ''));
+								}
+								break;
+							case 'cancelled':
+								showStatus('用户取消登录');
+								setTimeout(() => refreshQRCode(), 3000);
+								break;
+							case 'expired':
+								showStatus('二维码已过期，正在刷新...');
+								setTimeout(() => refreshQRCode(), 2000);
+								break;
+							case 'error':
+								showError(message || '登录过程中发生错误');
+								break;
+						}
+					}
+				} catch (error) {
+					// 网络错误不停止轮询
+				}
+			}, 3000);
 
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (qrcodeEl) qrcodeEl.style.display = 'none';
-        if (errorEl) errorEl.style.display = 'block';
-        if (errorTextEl) errorTextEl.textContent = message;
-        if (statusEl) statusEl.style.display = 'none';
-        stopStatusCheck();
-    }
+			setTimeout(() => {
+				if (statusCheckInterval) {
+					clearInterval(statusCheckInterval);
+					showError('二维码已过期，请刷新重试');
+				}
+			}, 5 * 60 * 1000);
+		}
 
-    // 显示状态
-    function showStatus(message) {
-        const statusEl = document.getElementById('status-message');
-        const statusTextEl = document.getElementById('status-text');
+		function stopStatusCheck() {
+			if (statusCheckInterval) {
+				clearInterval(statusCheckInterval);
+				statusCheckInterval = null;
+			}
+		}
 
-        if (statusEl) statusEl.style.display = 'block';
-        if (statusTextEl) statusTextEl.textContent = message;
-    }
+		function refreshQRCode() {
+			stopStatusCheck();
+			const qrContainer = document.getElementById('wechat-login-qrcode');
+			if (qrContainer) {
+				qrContainer.innerHTML = '';
+			}
+			initWeChatLogin();
+		}
 
-    // 发送消息给Avalonia客户端
-    function sendMessageToClient(message) {
-        try {
-            console.log('发送消息给客户端:', message);
+		function showLoading() {
+			const loadingEl = document.getElementById('loading-indicator');
+			const qrcodeEl = document.getElementById('wechat-login-qrcode');
+			const errorEl = document.getElementById('error-message');
+			const statusEl = document.getElementById('status-message');
 
-            // 方法1: 通过window.chrome.webview.postMessage (适用于WebView2)
-            if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {
-                window.chrome.webview.postMessage(JSON.stringify(message));
-                return;
-            }
+			if (loadingEl) loadingEl.style.display = 'block';
+			if (qrcodeEl) qrcodeEl.style.display = 'none';
+			if (errorEl) errorEl.style.display = 'none';
+			if (statusEl) statusEl.style.display = 'none';
+		}
 
-            // 方法2: 通过window.external.notify (适用于旧版WebView)
-            if (window.external && window.external.notify) {
-                window.external.notify(JSON.stringify(message));
-                return;
-            }
+		function showQRCode() {
+			const loadingEl = document.getElementById('loading-indicator');
+			const qrcodeEl = document.getElementById('wechat-login-qrcode');
+			const errorEl = document.getElementById('error-message');
 
-            // 方法3: 通过postMessage到父窗口 (适用于iframe)
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage(message, '*');
-                return;
-            }
+			if (loadingEl) loadingEl.style.display = 'none';
+			if (qrcodeEl) {
+				qrcodeEl.style.display = 'flex';
+				qrcodeEl.style.border = 'none';
+			}
+			if (errorEl) errorEl.style.display = 'none';
+			showStatus('请使用微信扫描二维码');
+		}
 
-            // 方法4: 通过自定义事件
-            const event = new CustomEvent('wechat_auth_success', { detail: message });
-            window.dispatchEvent(event);
+		function showError(message) {
+			const loadingEl = document.getElementById('loading-indicator');
+			const qrcodeEl = document.getElementById('wechat-login-qrcode');
+			const errorEl = document.getElementById('error-message');
+			const errorTextEl = document.getElementById('error-text');
+			const statusEl = document.getElementById('status-message');
 
-        } catch (error) {
-            console.error('发送消息给客户端失败:', error);
-        }
-    }
+			if (loadingEl) loadingEl.style.display = 'none';
+			if (qrcodeEl) qrcodeEl.style.display = 'none';
+			if (errorEl) errorEl.style.display = 'block';
+			if (errorTextEl) errorTextEl.textContent = message;
+			if (statusEl) statusEl.style.display = 'none';
+			stopStatusCheck();
+		}
 
-    // 检测是否在WebView环境中
-    function isInWebView() {
-        // 检测WebView2
-        if (window.chrome && window.chrome.webview) {
-            return true;
-        }
+		function showStatus(message) {
+			const statusEl = document.getElementById('status-message');
+			const statusTextEl = document.getElementById('status-text');
 
-        // 检测旧版WebView
-        if (window.external && window.external.notify) {
-            return true;
-        }
+			if (statusEl) statusEl.style.display = 'block';
+			if (statusTextEl) statusTextEl.textContent = message;
+		}
 
-        // 检测iframe
-        if (window.parent && window.parent !== window) {
-            return true;
-        }
+		function sendMessageToClient(message) {
+			try {
+				if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {
+					window.chrome.webview.postMessage(JSON.stringify(message));
+					return;
+				}
+				if (window.external && window.external.notify) {
+					window.external.notify(JSON.stringify(message));
+					return;
+				}
+				if (window.parent && window.parent !== window) {
+					window.parent.postMessage(message, '*');
+					return;
+				}
+				const event = new CustomEvent('wechat_auth_success', { detail: message });
+				window.dispatchEvent(event);
+			} catch (error) {
+				// 忽略客户端消息错误
+			}
+		}
 
-        // 检测User Agent
-        const userAgent = navigator.userAgent.toLowerCase();
-        if (userAgent.includes('webview') || userAgent.includes('avalonia')) {
-            return true;
-        }
+		// 执行微信登录
+		async function performWeChatLogin(qrCodeKey) {
+			try {
+				showStatus('正在登录系统...');
 
-        return false;
-    }
+				const loginRequest = {
+					loginType: 'WeChat',
+					qrCode: qrCodeKey,
+					deviceInfo: {
+						deviceId: getDeviceId(),
+						deviceName: getDeviceName(),
+						platform: 'Web',
+						osVersion: navigator.userAgent,
+						appVersion: '1.0.0'
+					}
+				};
 
-        // 页面卸载时清理
-        window.addEventListener('beforeunload', function() {
-            stopStatusCheck();
-        });
-    </script>
+				const response = await fetch('/api/student/login', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(loginRequest)
+				});
+
+				const loginResult = await response.json();
+
+				if (response.ok && loginResult.accessToken) {
+					showStatus('登录成功！正在跳转...');
+
+					// 发送登录成功消息给Avalonia客户端
+					sendMessageToClient({
+						type: 'wechat_login_success',
+						data: {
+							accessToken: loginResult.accessToken,
+							refreshToken: loginResult.refreshToken,
+							user: loginResult.user
+						}
+					});
+
+					// 如果不是在WebView中，则跳转到主页
+					if (!isInWebView()) {
+						setTimeout(() => {
+							window.location.href = '/';
+						}, 1000);
+					}
+				} else {
+					showError(loginResult.message || '登录失败，请重试');
+				}
+			} catch (error) {
+				console.error('登录失败:', error);
+				showError('登录过程中发生错误，请重试');
+			}
+		}
+
+		// 获取设备ID
+		function getDeviceId() {
+			let deviceId = localStorage.getItem('deviceId');
+			if (!deviceId) {
+				deviceId = 'web_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+				localStorage.setItem('deviceId', deviceId);
+			}
+			return deviceId;
+		}
+
+		// 获取设备名称
+		function getDeviceName() {
+			const userAgent = navigator.userAgent;
+			if (userAgent.includes('Windows')) return 'Windows PC';
+			if (userAgent.includes('Mac')) return 'Mac';
+			if (userAgent.includes('Linux')) return 'Linux PC';
+			if (userAgent.includes('Android')) return 'Android Device';
+			if (userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS Device';
+			return 'Unknown Device';
+		}
+
+		function isInWebView() {
+			if (window.chrome && window.chrome.webview) {
+				return true;
+			}
+			if (window.external && window.external.notify) {
+				return true;
+			}
+			if (window.parent && window.parent !== window) {
+				return true;
+			}
+			const userAgent = navigator.userAgent.toLowerCase();
+			if (userAgent.includes('webview') || userAgent.includes('avalonia')) {
+				return true;
+			}
+			return false;
+		}
+
+		window.addEventListener('beforeunload', function() {
+			stopStatusCheck();
+		});
+	</script>
 </body>
 </html>
