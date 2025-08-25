@@ -1,74 +1,206 @@
 ﻿@{
-    ViewData["Title"] = "微信扫码登录";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null;
 }
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信扫码登录 - 河北对口计算机上机考试系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<div class="login-container">
-    <div class="card">
-        <div class="card-header text-center">
-            <h3 class="card-title">微信扫码登录</h3>
-            <p class="text-muted">请使用微信扫描二维码完成登录</p>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .qrcode-container {
+            margin: 30px 0;
+        }
+
+        .loading-indicator {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        #wechat-login-qrcode {
+            display: none;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #e0e0e0;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .error-message {
+            display: none;
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .status-message {
+            display: none;
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+
+        .footer-text {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .login-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1 class="login-title">微信扫码登录</h1>
+            <p class="login-subtitle">请使用微信扫描二维码完成登录</p>
         </div>
-        
-        <div class="card-body">
-            <!-- 微信二维码容器 -->
-            <div id="wechat-qrcode-container" class="text-center mb-4">
-                <div id="loading-indicator" class="mb-3">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">加载中...</span>
-                    </div>
-                    <p class="mt-2">正在生成微信登录二维码...</p>
-                </div>
-                
-                <!-- 微信官方二维码将在这里显示 -->
-                <div id="wechat-login-qrcode" style="display: none;"></div>
-                
-                <!-- 错误提示 -->
-                <div id="error-message" class="alert alert-danger" style="display: none;">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <span id="error-text">加载失败，请刷新页面重试</span>
-                </div>
+
+        <div class="qrcode-container">
+            <!-- 加载指示器 -->
+            <div id="loading-indicator" class="loading-indicator">
+                <div class="spinner"></div>
+                <p class="loading-text">正在生成微信登录二维码...</p>
             </div>
-            
+
+            <!-- 微信官方二维码将在这里显示 -->
+            <div id="wechat-login-qrcode"></div>
+
+            <!-- 错误提示 -->
+            <div id="error-message" class="error-message">
+                <span id="error-text">加载失败，请刷新页面重试</span>
+            </div>
+
             <!-- 状态提示 -->
-            <div id="status-message" class="text-center mb-3" style="display: none;">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    <span id="status-text">等待扫码...</span>
-                </div>
-            </div>
-            
-            <!-- 操作按钮 -->
-            <div class="text-center">
-                <button id="refresh-btn" class="btn btn-outline-primary me-2" onclick="refreshQRCode()">
-                    <i class="bi bi-arrow-clockwise"></i> 刷新二维码
-                </button>
-                <a href="@Url.Action("Login", "Login")" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> 返回登录
-                </a>
+            <div id="status-message" class="status-message">
+                <span id="status-text">等待扫码...</span>
             </div>
         </div>
+
+        <!-- 刷新按钮 -->
+        <button id="refresh-btn" class="refresh-btn" onclick="refreshQRCode()">
+            🔄 刷新二维码
+        </button>
+
+        <p class="footer-text">河北对口计算机上机考试系统</p>
     </div>
-</div>
 
-<!-- 引入微信官方JS SDK（符合官方文档规范） -->
-<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"
-        onload="console.log('微信JS SDK加载成功')"
-        onerror="console.error('微信JS SDK加载失败')"></script>
+    <!-- 引入微信官方JS SDK -->
+    <script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"
+            onload="console.log('微信JS SDK加载成功')"
+            onerror="console.error('微信JS SDK加载失败')"></script>
 
-<script>
-    let wxLoginObj = null;
-    let currentState = null;
-    let statusCheckInterval = null;
+    <script>
+        let wxLoginObj = null;
+        let currentState = null;
+        let statusCheckInterval = null;
 
-    // 页面加载完成后初始化微信登录
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('页面DOM加载完成');
-        // 延迟一下确保微信JS SDK完全加载
-        setTimeout(() => {
-            initWeChatLogin();
-        }, 1000);
-    });
+        // 页面加载完成后初始化微信登录
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面DOM加载完成');
+            // 延迟一下确保微信JS SDK完全加载
+            setTimeout(() => {
+                initWeChatLogin();
+            }, 1000);
+        });
     
     // 初始化微信登录
     async function initWeChatLogin() {
@@ -250,7 +382,10 @@
         const errorEl = document.getElementById('error-message');
 
         if (loadingEl) loadingEl.style.display = 'none';
-        if (qrcodeEl) qrcodeEl.style.display = 'block';
+        if (qrcodeEl) {
+            qrcodeEl.style.display = 'flex';
+            qrcodeEl.style.border = 'none'; // 移除虚线边框，因为有内容了
+        }
         if (errorEl) errorEl.style.display = 'none';
         showStatus('请使用微信扫描二维码');
     }
@@ -338,71 +473,10 @@
         return false;
     }
 
-    // 页面卸载时清理
-    window.addEventListener('beforeunload', function() {
-        stopStatusCheck();
-    });
-</script>
-
-<style>
-    .login-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 20px;
-    }
-
-    .card {
-        max-width: 500px;
-        width: 100%;
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        background: white;
-    }
-
-    .card-header {
-        background: transparent;
-        border-bottom: 1px solid #eee;
-        padding: 2rem 2rem 1rem;
-    }
-
-    .card-body {
-        padding: 2rem;
-    }
-
-    #wechat-login-qrcode {
-        min-height: 220px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .spinner-border {
-        width: 3rem;
-        height: 3rem;
-    }
-
-    .btn {
-        border-radius: 25px;
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-    }
-
-    .alert {
-        border-radius: 10px;
-        border: none;
-    }
-
-    @@media (max-width: 576px) {
-        .card-header, .card-body {
-            padding: 1.5rem;
-        }
-
-        .login-container {
-            padding: 10px;
-        }
-    }
-</style>
+        // 页面卸载时清理
+        window.addEventListener('beforeunload', function() {
+            stopStatusCheck();
+        });
+    </script>
+</body>
+</html>

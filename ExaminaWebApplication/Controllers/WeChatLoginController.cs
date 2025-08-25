@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ExaminaWebApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ExaminaWebApplication.Services;
-using ExaminaWebApplication.Models.Auth;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -155,7 +154,7 @@ public class WeChatLoginController : Controller
                 });
             }
 
-            string qrCodeKey = state.Substring("examina_".Length);
+            string qrCodeKey = state["examina_".Length..];
             WeChatScanStatus status = await _weChatService.CheckQrCodeStatusAsync(qrCodeKey);
 
             var result = new
