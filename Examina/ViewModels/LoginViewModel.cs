@@ -254,6 +254,23 @@ public class LoginViewModel : ViewModelBase
                 QrCodeUrl = qrCodeInfo.QrCodeUrl;
                 QrCodeStatus = "请使用微信扫描二维码";
 
+                try
+                {
+                    // 打开系统默认浏览器，导航到EW微信授权页面（便于在桌面端完成扫码授权）
+                    System.Diagnostics.ProcessStartInfo startInfo = new()
+                    {
+                        FileName = QrCodeUrl,
+                        UseShellExecute = true,
+                        Verb = "open"
+                    };
+                    using System.Diagnostics.Process? process = System.Diagnostics.Process.Start(startInfo);
+                    _ = process; // 忽略返回值，仅触发浏览器打开
+                }
+                catch (Exception)
+                {
+                    // 忽略浏览器打开异常，用户仍可手动扫码
+                }
+
                 // 开始轮询二维码状态
                 StartQrCodeStatusTimer();
             }
@@ -319,7 +336,7 @@ public class LoginViewModel : ViewModelBase
                 {
                     // 二维码已确认，执行登录
                     StopQrCodeStatusTimer();
-                    _currentQrCodeKey = status.Code;
+                    // 不要覆盖二维码Key，后端使用该Key查询状态；授权码在服务端使用
                     await ExecuteLoginAsync();
                 }
                 else if (status.Status == 3)
