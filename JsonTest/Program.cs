@@ -41,7 +41,6 @@ try
     // 添加自定义转换器
     options.Converters.Add(new ModuleTypeJsonConverter());
     options.Converters.Add(new ParameterTypeJsonConverter());
-    options.Converters.Add(new BenchSuite.Converters.CSharpQuestionTypeJsonConverter());
 
     Console.WriteLine("开始反序列化...");
 

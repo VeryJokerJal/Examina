@@ -106,6 +106,22 @@
                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="题目详情" />
                                 <TextBox Header="题目标题" Text="{Binding CurrentContentViewModel.SelectedQuestion.Title, Mode=TwoWay}" />
                                 <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay}" TextWrapping="Wrap" />
+
+                                <!--  Excel文档文件路径  -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontSize="14" FontWeight="SemiBold" Text="Excel文档文件路径" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Margin="0,0,8,0" PlaceholderText="选择或输入Excel文档文件路径（可选）" Text="{Binding CurrentContentViewModel.SelectedQuestion.DocumentFilePath, Mode=TwoWay}" TextWrapping="NoWrap" />
+                                        <Button Grid.Column="1" Margin="0,0,4,0" Command="{Binding CurrentContentViewModel.SelectDocumentFileCommand}" Content="浏览..." Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="选择Excel文档文件" />
+                                        <Button Grid.Column="2" Command="{Binding CurrentContentViewModel.ClearDocumentFilePathCommand}" Content="清除" Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="清除文件路径" />
+                                    </Grid>
+                                </StackPanel>
+
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="题目总分" FontWeight="SemiBold" />
                                     <TextBlock Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" FontSize="16" Foreground="{ThemeResource SystemAccentColor}" />

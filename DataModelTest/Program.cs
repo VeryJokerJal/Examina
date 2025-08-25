@@ -94,23 +94,16 @@ static void TestBenchSuiteModelExtensions()
     // JSON序列化测试
     try
     {
-        JsonSerializerOptions jsonOptions = new()
+        string json = JsonSerializer.Serialize(examModel, new JsonSerializerOptions
         {
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
-
-        // 添加自定义转换器
-        jsonOptions.Converters.Add(new BenchSuite.Converters.ModuleTypeJsonConverter());
-        jsonOptions.Converters.Add(new BenchSuite.Converters.ParameterTypeJsonConverter());
-        jsonOptions.Converters.Add(new BenchSuite.Converters.CSharpQuestionTypeJsonConverter());
-
-        string json = JsonSerializer.Serialize(examModel, jsonOptions);
+        });
 
         Console.WriteLine($"✅ JSON序列化成功，长度: {json.Length}字符");
 
         // 反序列化测试
-        var deserializedModel = JsonSerializer.Deserialize<ExamModel>(json, jsonOptions);
+        var deserializedModel = JsonSerializer.Deserialize<ExamModel>(json);
         Console.WriteLine($"✅ JSON反序列化成功: {deserializedModel?.Name}");
     }
     catch (Exception ex)
