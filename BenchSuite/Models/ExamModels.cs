@@ -356,6 +356,31 @@ public class QuestionModel
     public string? ExpectedOutput { get; set; }
 
     /// <summary>
+    /// C#题目类型（仅C#模块使用）
+    /// </summary>
+    public string? CSharpQuestionType { get; set; }
+
+    /// <summary>
+    /// C#代码文件路径（仅C#模块使用）
+    /// </summary>
+    public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// C#题目直接分数（仅调试纠错和编写实现类型使用）
+    /// </summary>
+    public double? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// 代码补全填空处集合（仅C#模块代码补全类型使用）
+    /// </summary>
+    public List<CodeBlankModel>? CodeBlanks { get; set; }
+
+    /// <summary>
+    /// Office文档文件路径（仅Office模块使用）
+    /// </summary>
+    public string? DocumentFilePath { get; set; }
+
+    /// <summary>
     /// 排序顺序 (ExamLab兼容)
     /// </summary>
     [JsonPropertyName("sortOrder")]
@@ -650,4 +675,50 @@ public enum ExcelKnowledgeType
     ChartAreaFormat = 156,               // 操作点156：设置图表区域格式
     ChartFloorColor = 159,               // 操作点159：显示图表基底颜色
     ChartBorder = 160                    // 操作点160：设置图表边框线
+}
+
+/// <summary>
+/// 代码填空处模型 - 兼容ExamLab
+/// </summary>
+public class CodeBlankModel
+{
+    /// <summary>
+    /// 填空处ID
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 填空处名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 填空处描述
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 填空处分数
+    /// </summary>
+    public double Score { get; set; } = 1.0;
+
+    /// <summary>
+    /// 填空处顺序
+    /// </summary>
+    public int Order { get; set; } = 1;
+
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 标准答案
+    /// </summary>
+    public string? StandardAnswer { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public string CreatedTime { get; set; } = string.Empty;
 }

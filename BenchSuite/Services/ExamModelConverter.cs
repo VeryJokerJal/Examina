@@ -244,13 +244,27 @@ public static class ExamModelConverter
                 CreatedAt = GetDateTimeProperty(questionElement, "createdAt") ?? DateTime.UtcNow,
                 UpdatedAt = GetDateTimeProperty(questionElement, "updatedAt"),
                 ProgramInput = GetStringProperty(questionElement, "programInput"),
-                ExpectedOutput = GetStringProperty(questionElement, "expectedOutput")
+                ExpectedOutput = GetStringProperty(questionElement, "expectedOutput"),
+
+                // C#编程题目特有字段
+                CSharpQuestionType = GetStringProperty(questionElement, "csharpQuestionType"),
+                CodeFilePath = GetStringProperty(questionElement, "codeFilePath"),
+                CSharpDirectScore = GetNullableDoubleProperty(questionElement, "csharpDirectScore"),
+
+                // Office文档题目特有字段
+                DocumentFilePath = GetStringProperty(questionElement, "documentFilePath")
             };
 
             // 转换操作点
             if (questionElement.TryGetProperty("operationPoints", out var operationPoints) && operationPoints.ValueKind == JsonValueKind.Array)
             {
                 question.OperationPoints = ConvertOperationPointsFromExamLab(operationPoints).ToList();
+            }
+
+            // 转换代码填空处
+            if (questionElement.TryGetProperty("codeBlanks", out var codeBlanks) && codeBlanks.ValueKind == JsonValueKind.Array)
+            {
+                question.CodeBlanks = ConvertCodeBlanksFromExamLab(codeBlanks).ToList();
             }
 
             yield return question;
@@ -398,8 +412,18 @@ public static class ExamModelConverter
                 updatedAt = question.UpdatedAt,
                 programInput = question.ProgramInput,
                 expectedOutput = question.ExpectedOutput,
+
+                // C#编程题目特有字段
+                csharpQuestionType = question.CSharpQuestionType,
+                codeFilePath = question.CodeFilePath,
+                csharpDirectScore = question.CSharpDirectScore,
+                codeBlanks = question.CodeBlanks != null ? ConvertCodeBlanksToExamLab(question.CodeBlanks) : null,
+
+                // Office文档题目特有字段
+                documentFilePath = question.DocumentFilePath,
+
                 operationPoints = ConvertOperationPointsToExamLab(question.OperationPoints),
-                
+
                 // 根据导出级别决定是否包含答案
                 standardAnswer = exportLevel == "Complete" ? question.StandardAnswer : null,
                 scoringRules = exportLevel == "Complete" ? question.ScoringRules : null,
@@ -619,5 +643,77 @@ public static class ExamModelConverter
 
         // 直接用逗号连接，因为选项已经是正确解析的格式
         return string.Join(",", options);
+    }
+
+    /// <summary>
+    /// 转换ExamLab代码填空处为BenchSuite代码填空处
+    /// </summary>
+    private static IEnumerable<CodeBlankModel> ConvertCodeBlanksFromExamLab(JsonElement codeBlanks)
+    {
+        foreach (var codeBlankElement in codeBlanks.EnumerateArray())
+        {
+            var codeBlank = new CodeBlankModel
+            {
+                Id = GetStringProperty(codeBlankElement, "id"),
+                Name = GetStringProperty(codeBlankElement, "name"),
+                Description = GetStringProperty(codeBlankElement, "description"),
+                Score = GetDoubleProperty(codeBlankElement, "score", 1.0),
+                Order = GetIntProperty(codeBlankElement, "order", 1),
+                IsEnabled = GetBoolProperty(codeBlankElement, "isEnabled", true),
+                StandardAnswer = GetStringProperty(codeBlankElement, "standardAnswer"),
+                CreatedTime = GetStringProperty(codeBlankElement, "createdTime")
+            };
+
+            yield return codeBlank;
+        }
+    }
+
+    /// <summary>
+    /// 获取可空的double属性值
+    /// </summary>
+    private static double? GetNullableDoubleProperty(JsonElement element, string propertyName)
+    {
+        if (element.TryGetProperty(propertyName, out var property))
+        {
+            if (property.ValueKind == JsonValueKind.Number)
+            {
+                return property.GetDouble();
+            }
+            else if (property.ValueKind == JsonValueKind.String)
+            {
+                string? stringValue = property.GetString();
+                if (double.TryParse(stringValue, out double result))
+                {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 获取double属性值
+    /// </summary>
+    private static double GetDoubleProperty(JsonElement element, string propertyName, double defaultValue = 0.0)
+    {
+        return GetNullableDoubleProperty(element, propertyName) ?? defaultValue;
+    }
+
+    /// <summary>
+    /// 转换BenchSuite代码填空处为ExamLab格式
+    /// </summary>
+    private static object[] ConvertCodeBlanksToExamLab(List<CodeBlankModel> codeBlanks)
+    {
+        return codeBlanks.Select(codeBlank => new
+        {
+            id = codeBlank.Id,
+            name = codeBlank.Name,
+            description = codeBlank.Description,
+            score = codeBlank.Score,
+            order = codeBlank.Order,
+            isEnabled = codeBlank.IsEnabled,
+            standardAnswer = codeBlank.StandardAnswer,
+            createdTime = codeBlank.CreatedTime
+        }).ToArray();
     }
 }
