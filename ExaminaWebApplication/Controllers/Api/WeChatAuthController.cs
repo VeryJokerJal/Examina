@@ -23,6 +23,7 @@ namespace ExaminaWebApplication.Controllers.Api
         /// 微信OAuth回调：?code=xxx&state=examina_{qrCodeKey}
         /// 将对应二维码状态更新为“已确认”，并写入授权码，以便桌面端轮询后完成登录
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("callback")]
         public IActionResult Callback([FromQuery] string code, [FromQuery] string state)
         {

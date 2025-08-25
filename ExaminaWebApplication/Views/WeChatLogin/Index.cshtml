@@ -410,7 +410,7 @@
 				showStatus('正在登录系统...');
 
 				const loginRequest = {
-					loginType: 'WeChat',
+					loginType: 3, // WeChat = 3 (对应后端LoginType枚举)
 					qrCode: qrCodeKey,
 					deviceInfo: {
 						deviceId: getDeviceId(),
