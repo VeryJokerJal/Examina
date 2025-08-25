@@ -50,6 +50,7 @@ public class LoginViewModel : ViewModelBase
         SwitchToCredentialsCommand = new DelegateCommand(SwitchToCredentials);
         SwitchToSmsCommand = new DelegateCommand(SwitchToSms);
         SendSmsCodeCommand = new DelegateCommand(async () => await SendSmsCodeAsync(), CanSendSmsCode);
+        TestWeChatFileCommand = new DelegateCommand(TestWeChatFilePolling);
         // RefreshQrCodeCommand 已移除，微信登录改为直接跳转浏览器
     }
 
@@ -117,6 +118,7 @@ public class LoginViewModel : ViewModelBase
     public ICommand SwitchToCredentialsCommand { get; private set; } = null!;
     public ICommand SwitchToSmsCommand { get; private set; } = null!;
     public ICommand SendSmsCodeCommand { get; private set; } = null!;
+    public ICommand TestWeChatFileCommand { get; private set; } = null!;
     // RefreshQrCodeCommand 已移除，微信登录改为直接跳转浏览器
 
     private bool CanExecuteLogin()
@@ -488,7 +490,51 @@ public class LoginViewModel : ViewModelBase
         #endif
     }
 
+    /// <summary>
+    /// 测试微信文件轮询机制
+    /// </summary>
+    private async void TestWeChatFilePolling()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[微信登录测试] 开始测试文件轮询机制");
 
+            // 创建测试登录文件
+            string filePath = GetWeChatLoginStatusFilePath();
+            var testLoginInfo = new WeChatLoginInfo
+            {
+                AccessToken = "test_access_token_12345",
+                RefreshToken = "test_refresh_token_67890",
+                User = new UserInfo
+                {
+                    Id = "test_user_id",
+                    Username = "test_user",
+                    RealName = "测试用户"
+                }
+            };
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            };
+
+            string json = JsonSerializer.Serialize(testLoginInfo, options);
+            await File.WriteAllTextAsync(filePath, json);
+
+            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 已创建测试文件: {filePath}");
+            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 文件内容: {json}");
+
+            // 启动轮询测试
+            var result = await WaitForWeChatLoginAsync();
+
+            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 轮询结果: Success={result.IsSuccess}, Message={result.ErrorMessage}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 测试失败: {ex.Message}");
+        }
+    }
 
     private void StartSmsCodeCountdown()
     {
