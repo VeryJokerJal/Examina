@@ -209,14 +209,20 @@ public class WeChatLoginController : Controller
     {
         try
         {
+            _logger.LogInformation("收到写入登录信息请求");
+
             if (loginInfo == null || string.IsNullOrEmpty(loginInfo.AccessToken))
             {
+                _logger.LogWarning("登录信息无效: loginInfo={LoginInfo}, AccessToken={AccessToken}",
+                    loginInfo?.ToString() ?? "null", loginInfo?.AccessToken ?? "null");
                 return BadRequest(new { message = "登录信息无效" });
             }
 
             // 获取临时文件路径
             string tempPath = Path.GetTempPath();
             string filePath = Path.Combine(tempPath, "examina_wechat_login.json");
+
+            _logger.LogInformation("准备写入文件: {FilePath}", filePath);
 
             // 序列化登录信息
             string json = JsonSerializer.Serialize(loginInfo, new JsonSerializerOptions
@@ -225,12 +231,25 @@ public class WeChatLoginController : Controller
                 WriteIndented = true
             });
 
+            _logger.LogInformation("序列化后的JSON: {Json}", json);
+
             // 写入文件
             System.IO.File.WriteAllText(filePath, json);
 
+            // 验证文件是否成功写入
+            if (System.IO.File.Exists(filePath))
+            {
+                string verifyContent = System.IO.File.ReadAllText(filePath);
+                _logger.LogInformation("文件写入成功，验证内容: {Content}", verifyContent);
+            }
+            else
+            {
+                _logger.LogError("文件写入失败，文件不存在: {FilePath}", filePath);
+            }
+
             _logger.LogInformation("微信登录信息已写入文件: {FilePath}", filePath);
 
-            return Ok(new { message = "登录信息已保存" });
+            return Ok(new { message = "登录信息已保存", filePath = filePath });
         }
         catch (Exception ex)
         {

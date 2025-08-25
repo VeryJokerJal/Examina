@@ -493,6 +493,8 @@
 		// 将登录信息写入本地文件（通过后端API）
 		async function writeLoginInfoToFile(loginInfo) {
 			try {
+				console.log('准备写入登录信息:', loginInfo);
+
 				const response = await fetch('/api/auth/wechat/write-login-info', {
 					method: 'POST',
 					headers: {
@@ -501,10 +503,14 @@
 					body: JSON.stringify(loginInfo)
 				});
 
+				console.log('API响应状态:', response.status, response.statusText);
+
 				if (response.ok) {
-					console.log('登录信息已写入本地文件');
+					const result = await response.json();
+					console.log('登录信息已写入本地文件，响应:', result);
 				} else {
-					console.error('写入登录信息失败:', response.statusText);
+					const errorText = await response.text();
+					console.error('写入登录信息失败:', response.status, response.statusText, errorText);
 				}
 			} catch (error) {
 				console.error('写入登录信息异常:', error);

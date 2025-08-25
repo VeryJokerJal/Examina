@@ -301,16 +301,19 @@ public class LoginViewModel : ViewModelBase
 
         string loginStatusFile = GetWeChatLoginStatusFilePath();
 
+        System.Diagnostics.Debug.WriteLine($"[微信登录] 开始轮询登录状态文件: {loginStatusFile}");
+
         // 清理可能存在的旧状态文件
         if (File.Exists(loginStatusFile))
         {
             try
             {
                 File.Delete(loginStatusFile);
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 已删除旧的状态文件");
             }
-            catch
+            catch (Exception ex)
             {
-                // 忽略删除错误
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 删除旧状态文件失败: {ex.Message}");
             }
         }
 
@@ -318,53 +321,79 @@ public class LoginViewModel : ViewModelBase
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 第 {attempt + 1}/{maxAttempts} 次检查登录状态文件");
+
                 // 检查登录状态文件是否存在
                 if (File.Exists(loginStatusFile))
                 {
+                    System.Diagnostics.Debug.WriteLine($"[微信登录] 发现登录状态文件，开始读取");
+
                     string loginData = await File.ReadAllTextAsync(loginStatusFile);
+                    System.Diagnostics.Debug.WriteLine($"[微信登录] 读取到的数据: {loginData}");
+
                     if (!string.IsNullOrEmpty(loginData))
                     {
                         try
                         {
                             // 解析登录数据
-                            WeChatLoginInfo? loginInfo = JsonSerializer.Deserialize<WeChatLoginInfo>(loginData);
+                            var options = new JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                                PropertyNameCaseInsensitive = true
+                            };
+                            WeChatLoginInfo? loginInfo = JsonSerializer.Deserialize<WeChatLoginInfo>(loginData, options);
+
+                            System.Diagnostics.Debug.WriteLine($"[微信登录] JSON解析成功，AccessToken: {loginInfo?.AccessToken?[..Math.Min(10, loginInfo.AccessToken.Length)]}...");
+
                             if (loginInfo != null && !string.IsNullOrEmpty(loginInfo.AccessToken))
                             {
                                 // 删除状态文件
                                 File.Delete(loginStatusFile);
+                                System.Diagnostics.Debug.WriteLine($"[微信登录] 已删除状态文件，开始处理登录成功");
 
                                 // 使用获取到的令牌设置认证状态
                                 return await ProcessWeChatLoginSuccess(loginInfo);
                             }
                         }
-                        catch (JsonException)
+                        catch (JsonException ex)
                         {
+                            System.Diagnostics.Debug.WriteLine($"[微信登录] JSON解析失败: {ex.Message}");
                             // JSON解析失败，删除无效文件
                             File.Delete(loginStatusFile);
                         }
+                    }
+                }
+                else
+                {
+                    if (attempt % 12 == 0) // 每分钟输出一次日志
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[微信登录] 状态文件不存在，继续等待...");
                     }
                 }
 
                 // 等待下次检查
                 await Task.Delay(intervalSeconds * 1000);
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 检查过程中发生异常: {ex.Message}");
                 // 忽略检查错误，继续等待
                 await Task.Delay(intervalSeconds * 1000);
             }
         }
 
         // 超时，清理状态文件
+        System.Diagnostics.Debug.WriteLine($"[微信登录] 轮询超时，清理状态文件");
         if (File.Exists(loginStatusFile))
         {
             try
             {
                 File.Delete(loginStatusFile);
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 已清理超时的状态文件");
             }
-            catch
+            catch (Exception ex)
             {
-                // 忽略删除错误
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 清理状态文件失败: {ex.Message}");
             }
         }
 
@@ -382,26 +411,40 @@ public class LoginViewModel : ViewModelBase
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"[微信登录] 开始处理登录成功，用户: {loginInfo.User?.ToString() ?? "null"}");
+
             // 设置认证令牌
             _authenticationService.SetAuthenticationToken(loginInfo.AccessToken, loginInfo.RefreshToken, loginInfo.User);
+            System.Diagnostics.Debug.WriteLine($"[微信登录] 已设置认证令牌");
 
             // 验证令牌是否有效
-            return await _authenticationService.ValidateTokenAsync(loginInfo.AccessToken)
-                ? new AuthenticationResult
+            bool isValid = await _authenticationService.ValidateTokenAsync(loginInfo.AccessToken);
+            System.Diagnostics.Debug.WriteLine($"[微信登录] 令牌验证结果: {isValid}");
+
+            if (isValid)
+            {
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 登录成功，准备返回结果");
+                return new AuthenticationResult
                 {
                     IsSuccess = true,
                     AccessToken = loginInfo.AccessToken,
                     RefreshToken = loginInfo.RefreshToken,
                     User = loginInfo.User
-                }
-                : new AuthenticationResult
+                };
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 令牌验证失败");
+                return new AuthenticationResult
                 {
                     IsSuccess = false,
                     ErrorMessage = "登录令牌验证失败"
                 };
+            }
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[微信登录] 处理登录信息异常: {ex.Message}");
             return new AuthenticationResult
             {
                 IsSuccess = false,
@@ -416,7 +459,9 @@ public class LoginViewModel : ViewModelBase
     private static string GetWeChatLoginStatusFilePath()
     {
         string tempPath = Path.GetTempPath();
-        return Path.Combine(tempPath, "examina_wechat_login.json");
+        string filePath = Path.Combine(tempPath, "examina_wechat_login.json");
+        System.Diagnostics.Debug.WriteLine($"[微信登录] 状态文件路径: {filePath}");
+        return filePath;
     }
 
     /// <summary>
@@ -436,7 +481,11 @@ public class LoginViewModel : ViewModelBase
     {
         // 这里应该从配置文件或服务中获取，暂时硬编码
         // 在实际部署时，应该从配置中读取
-        return "https://qiuzhenbd.com"; // 开发环境地址
+        #if DEBUG
+        return "https://localhost:7125"; // 开发环境地址
+        #else
+        return "https://qiuzhenbd.com"; // 生产环境地址
+        #endif
     }
 
 
