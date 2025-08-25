@@ -47,7 +47,14 @@ public class Question : ReactiveObject
     /// </summary>
     private double CalculateTotalScore()
     {
-        // C#模块：根据题目类型计算分数
+        // 首先检查是否有操作点，如果有操作点则优先使用操作点分数
+        // 这适用于Excel、Word、PowerPoint、Windows等模块
+        if (OperationPoints != null && OperationPoints.Count > 0)
+        {
+            return (double)OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+        }
+
+        // 如果没有操作点，则检查C#模块的特殊计算方式
         if (CSharpQuestionType == CSharpQuestionType.CodeCompletion)
         {
             // 代码补全类型：使用填空处分数总和
@@ -55,7 +62,6 @@ public class Question : ReactiveObject
             {
                 return CodeBlanks.Where(cb => cb.IsEnabled).Sum(cb => cb.Score);
             }
-            return 0;
         }
         else if (CSharpQuestionType == CSharpQuestionType.Debugging ||
                  CSharpQuestionType == CSharpQuestionType.Implementation)
@@ -64,10 +70,8 @@ public class Question : ReactiveObject
             return CSharpDirectScore;
         }
 
-        // 其他模块：使用操作点分数总和
-        if (OperationPoints == null || OperationPoints.Count == 0)
-            return 0;
-        return (double)OperationPoints.Where(op => op.IsEnabled).Sum(op => op.Score);
+        // 默认返回0
+        return 0;
     }
 
 

@@ -29,6 +29,9 @@ public static class ScoreUpdateTest
         
         Console.WriteLine($"初始状态:");
         Console.WriteLine($"  操作点分值: {operationPoint.Score}");
+        Console.WriteLine($"  操作点启用状态: {operationPoint.IsEnabled}");
+        Console.WriteLine($"  题目操作点数量: {question.OperationPoints.Count}");
+        Console.WriteLine($"  题目C#类型: {question.CSharpQuestionType}");
         Console.WriteLine($"  题目总分: {question.TotalScore}");
         Console.WriteLine($"  模块总分: {module.TotalScore}");
         
@@ -63,6 +66,8 @@ public static class ScoreUpdateTest
         
         Console.WriteLine($"\n修改后状态:");
         Console.WriteLine($"  操作点分值: {operationPoint.Score}");
+        Console.WriteLine($"  操作点启用状态: {operationPoint.IsEnabled}");
+        Console.WriteLine($"  题目操作点数量: {question.OperationPoints.Count}");
         Console.WriteLine($"  题目总分: {question.TotalScore}");
         Console.WriteLine($"  模块总分: {module.TotalScore}");
         
@@ -212,6 +217,8 @@ public static class ScoreUpdateTest
             Content = "用于测试的题目内容",
             Order = 1,
             IsEnabled = true
+            // 不设置CSharpQuestionType，使用默认值
+            // 由于我们会添加操作点，CalculateTotalScore会优先使用操作点分数
         };
     }
     
