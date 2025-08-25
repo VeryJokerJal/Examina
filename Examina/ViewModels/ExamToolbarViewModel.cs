@@ -1157,4 +1157,10 @@ internal class DesignTimeAuthenticationService : IAuthenticationService
     {
         // 设计时服务不需要实际实现
     }
+
+    public Task<bool> VerifySmsCodeAsync(string phoneNumber, string code)
+    {
+        // 设计时服务不需要实际实现
+        return Task.FromResult(true);
+    }
 }

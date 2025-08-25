@@ -4,6 +4,7 @@ using Examina.Models;
 using Examina.Services;
 using Prism.Commands;
 using ReactiveUI.Fody.Helpers;
+using Timer = System.Timers.Timer;
 
 namespace Examina.ViewModels;
 
@@ -21,7 +22,7 @@ public class UserInfoCompletionViewModel : ViewModelBase
     {
         _authenticationService = null;
         CompleteInfoCommand = new DelegateCommand(async () => await CompleteInfoAsync(), CanCompleteInfo);
-        SkipCommand = new DelegateCommand(Skip);
+        SendSmsCodeCommand = new DelegateCommand(async () => await SendSmsCodeAsync(), CanSendSmsCode);
     }
 
     public UserInfoCompletionViewModel(IAuthenticationService authenticationService)
@@ -29,7 +30,7 @@ public class UserInfoCompletionViewModel : ViewModelBase
         _authenticationService = authenticationService;
 
         CompleteInfoCommand = new DelegateCommand(async () => await CompleteInfoAsync(), CanCompleteInfo);
-        SkipCommand = new DelegateCommand(Skip);
+        SendSmsCodeCommand = new DelegateCommand(async () => await SendSmsCodeAsync(), CanSendSmsCode);
 
         // 初始化当前用户信息
         InitializeUserInfo();
@@ -79,6 +80,36 @@ public class UserInfoCompletionViewModel : ViewModelBase
     [Reactive]
     public UserInfo? CurrentUser { get; set; }
 
+    /// <summary>
+    /// 手机号码
+    /// </summary>
+    [Reactive]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 短信验证码
+    /// </summary>
+    [Reactive]
+    public string SmsCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 手机号是否已验证
+    /// </summary>
+    [Reactive]
+    public bool IsPhoneVerified { get; set; }
+
+    /// <summary>
+    /// 发送验证码按钮文本
+    /// </summary>
+    [Reactive]
+    public string SmsCodeButtonText { get; set; } = "发送验证码";
+
+    /// <summary>
+    /// 是否可以发送验证码
+    /// </summary>
+    [Reactive]
+    public bool CanSendSmsCodeValue { get; set; } = true;
+
     #endregion
 
     #region 命令
@@ -89,11 +120,23 @@ public class UserInfoCompletionViewModel : ViewModelBase
     public ICommand CompleteInfoCommand { get; }
 
     /// <summary>
-    /// 跳过命令
+    /// 发送短信验证码命令
     /// </summary>
-    public ICommand SkipCommand { get; }
+    public ICommand SendSmsCodeCommand { get; }
 
     #endregion
+
+    #region 私有字段
+
+    /// <summary>
+    /// 短信验证码倒计时定时器
+    /// </summary>
+    private Timer? _smsCodeTimer;
+
+    /// <summary>
+    /// 短信验证码倒计时秒数
+    /// </summary>
+    private int _smsCodeCountdown;
 
     #region 方法
 
@@ -117,7 +160,15 @@ public class UserInfoCompletionViewModel : ViewModelBase
     /// </summary>
     private bool CanCompleteInfo()
     {
-        return !IsProcessing;
+        return !IsProcessing && IsPhoneVerified && !string.IsNullOrWhiteSpace(PhoneNumber);
+    }
+
+    /// <summary>
+    /// 是否可以发送短信验证码
+    /// </summary>
+    private bool CanSendSmsCode()
+    {
+        return CanSendSmsCodeValue && !string.IsNullOrWhiteSpace(PhoneNumber) && PhoneNumber.Length == 11;
     }
 
     /// <summary>
@@ -148,10 +199,26 @@ public class UserInfoCompletionViewModel : ViewModelBase
                 return;
             }
 
+            // 验证手机号验证码
+            if (!IsPhoneVerified)
+            {
+                ErrorMessage = "请先验证手机号";
+                return;
+            }
+
+            // 验证短信验证码
+            bool isCodeValid = await _authenticationService.VerifySmsCodeAsync(PhoneNumber, SmsCode);
+            if (!isCodeValid)
+            {
+                ErrorMessage = "验证码错误或已过期";
+                return;
+            }
+
             CompleteUserInfoRequest request = new()
             {
                 Username = string.IsNullOrWhiteSpace(Username) ? null : Username.Trim(),
-                Password = string.IsNullOrWhiteSpace(Password) ? null : Password
+                Password = string.IsNullOrWhiteSpace(Password) ? null : Password,
+                PhoneNumber = PhoneNumber.Trim()
             };
 
             UserInfo? updatedUser = await _authenticationService.CompleteUserInfoAsync(request);
@@ -182,10 +249,98 @@ public class UserInfoCompletionViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 发送短信验证码
+    /// </summary>
+    private async Task SendSmsCodeAsync()
+    {
+        if (_authenticationService == null)
+        {
+            ErrorMessage = "服务不可用";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(PhoneNumber) || PhoneNumber.Length != 11)
+        {
+            ErrorMessage = "请输入正确的手机号码";
+            return;
+        }
+
+        try
+        {
+            ErrorMessage = string.Empty;
+            bool success = await _authenticationService.SendSmsCodeAsync(PhoneNumber);
+
+            if (success)
+            {
+                SuccessMessage = "验证码已发送，请查收短信";
+                StartSmsCodeCountdown();
+            }
+            else
+            {
+                ErrorMessage = "发送验证码失败，请稍后重试";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"发送验证码时发生错误: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 开始短信验证码倒计时
+    /// </summary>
+    private void StartSmsCodeCountdown()
+    {
+        _smsCodeCountdown = 60;
+        CanSendSmsCodeValue = false;
+        SmsCodeButtonText = $"重新发送({_smsCodeCountdown}s)";
+
+        _smsCodeTimer = new Timer(1000);
+        _smsCodeTimer.Elapsed += (sender, e) =>
+        {
+            _smsCodeCountdown--;
+            if (_smsCodeCountdown <= 0)
+            {
+                _smsCodeTimer?.Stop();
+                _smsCodeTimer?.Dispose();
+                _smsCodeTimer = null;
+
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    CanSendSmsCodeValue = true;
+                    SmsCodeButtonText = "发送验证码";
+                });
+            }
+            else
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    SmsCodeButtonText = $"重新发送({_smsCodeCountdown}s)";
+                });
+            }
+        };
+        _smsCodeTimer.Start();
+    }
+
+    /// <summary>
     /// 验证输入
     /// </summary>
     private bool ValidateInput()
     {
+        // 验证手机号
+        if (string.IsNullOrWhiteSpace(PhoneNumber) || PhoneNumber.Length != 11)
+        {
+            ErrorMessage = "请输入正确的手机号码";
+            return false;
+        }
+
+        // 验证短信验证码
+        if (string.IsNullOrWhiteSpace(SmsCode))
+        {
+            ErrorMessage = "请输入短信验证码";
+            return false;
+        }
+
         if (!string.IsNullOrWhiteSpace(Password))
         {
             if (Password.Length < 6)
@@ -213,44 +368,7 @@ public class UserInfoCompletionViewModel : ViewModelBase
         return true;
     }
 
-    /// <summary>
-    /// 跳过完善信息
-    /// </summary>
-    private async void Skip()
-    {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine($"Skip: 开始跳过流程，当前用户IsFirstLogin: {CurrentUser?.IsFirstLogin}");
 
-            if (_authenticationService == null)
-            {
-                NavigateToMainWindow();
-                return;
-            }
-
-            // 即使跳过，也需要调用API更新IsFirstLogin状态
-            CompleteUserInfoRequest request = new();
-            UserInfo? updatedUser = await _authenticationService.CompleteUserInfoAsync(request);
-            if (updatedUser != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Skip: API调用成功，返回的IsFirstLogin: {updatedUser.IsFirstLogin}");
-                CurrentUser = updatedUser;
-                System.Diagnostics.Debug.WriteLine($"Skip: 更新CurrentUser后，IsFirstLogin: {CurrentUser?.IsFirstLogin}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("Skip: API调用失败，返回null");
-            }
-        }
-        catch (Exception ex)
-        {
-            // 记录错误但不阻止导航
-            System.Diagnostics.Debug.WriteLine($"跳过时更新用户状态失败: {ex.Message}");
-        }
-
-        System.Diagnostics.Debug.WriteLine("Skip: 准备导航到主窗口");
-        NavigateToMainWindow();
-    }
 
     /// <summary>
     /// 导航到主窗口

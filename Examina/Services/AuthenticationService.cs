@@ -1,7 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http;
-using Examina.Models;
 using Examina.Converters;
+using Examina.Models;
 
 namespace Examina.Services;
 
@@ -46,14 +45,14 @@ public class AuthenticationService : IAuthenticationService
     {
         get
         {
-            System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser getter called, value: {(_currentUser?.Username ?? "null")}");
+            System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser getter called, value: {_currentUser?.Username ?? "null"}");
             return _currentUser;
         }
         private set
         {
             if (_currentUser != value)
             {
-                System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser setter: {(_currentUser?.Username ?? "null")} -> {(value?.Username ?? "null")}");
+                System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser setter: {_currentUser?.Username ?? "null"} -> {value?.Username ?? "null"}");
                 _currentUser = value;
                 UserInfoUpdated?.Invoke(this, value);
             }
@@ -261,16 +260,32 @@ public class AuthenticationService : IAuthenticationService
             HttpResponseMessage response = await _httpClient.PostAsync(BuildApiUrl("login"), content);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, CreateJsonOptions());
-
-                if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.AccessToken))
+                if (response.IsSuccessStatusCode)
                 {
-                    return SetAuthenticationState(loginResponse);
+                    LoginResponse? loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, CreateJsonOptions());
+
+                    if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.AccessToken))
+                    {
+                        return SetAuthenticationState(loginResponse);
+                    }
+                }
+                else
+                {
+                    ApiResponse<object>? apiError = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, CreateJsonOptions());
+                    string errorMessage = apiError?.Message ?? "微信登录失败";
+                    return new AuthenticationResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = errorMessage
+                    };
                 }
             }
+            catch (Exception)
+            {
 
+            }
             return new AuthenticationResult
             {
                 IsSuccess = false,
@@ -369,6 +384,37 @@ public class AuthenticationService : IAuthenticationService
         {
             System.Diagnostics.Debug.WriteLine($"发送短信验证码异常: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
+            return false;
+        }
+    }
+
+    public async Task<bool> VerifySmsCodeAsync(string phoneNumber, string code)
+    {
+        try
+        {
+            var request = new { PhoneNumber = phoneNumber, Code = code };
+            string json = JsonSerializer.Serialize(request, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            StringContent content = new(json, Encoding.UTF8, "application/json");
+            string apiUrl = BuildApiUrl("verify-sms");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                return result != null && result.ContainsKey("success") && result["success"].ToString() == "True";
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"验证短信验证码异常: {ex.Message}");
             return false;
         }
     }

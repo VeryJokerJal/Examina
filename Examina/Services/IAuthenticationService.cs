@@ -42,6 +42,14 @@ public interface IAuthenticationService
     Task<bool> SendSmsCodeAsync(string phoneNumber);
 
     /// <summary>
+    /// 验证短信验证码
+    /// </summary>
+    /// <param name="phoneNumber">手机号</param>
+    /// <param name="code">验证码</param>
+    /// <returns>是否验证成功</returns>
+    Task<bool> VerifySmsCodeAsync(string phoneNumber, string code);
+
+    /// <summary>
     /// 获取微信登录二维码
     /// </summary>
     /// <returns>二维码信息</returns>

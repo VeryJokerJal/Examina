@@ -85,6 +85,11 @@ public class CompleteUserInfoRequest
     public string? Password { get; set; }
 
     /// <summary>
+    /// 手机号码（必填）
+    /// </summary>
+    public string? PhoneNumber { get; set; }
+
+    /// <summary>
     /// 微信OpenId（用于绑定微信）
     /// </summary>
     public string? WeChatOpenId { get; set; }

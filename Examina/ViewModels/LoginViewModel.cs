@@ -137,8 +137,6 @@ public class LoginViewModel : ViewModelBase
 
     private async Task ExecuteLoginAsync()
     {
-
-
         IsLoading = true;
         ErrorMessage = string.Empty;
         SuccessMessage = string.Empty;
@@ -166,16 +164,30 @@ public class LoginViewModel : ViewModelBase
                 // 延迟一下显示成功消息
                 await Task.Delay(1000);
 
-                // 检查是否需要完善用户信息
-                if (_authenticationService.RequiresUserInfoCompletion())
+                // 根据登录方式决定导航逻辑
+                if (LoginMode == LoginMode.SmsCode)
                 {
-                    // 导航到用户信息完善页面
+                    // 手机号登录直接进入主界面（已验证手机号）
+                    NavigateToMainWindow();
+                }
+                else if (LoginMode == LoginMode.WeChat)
+                {
+                    // 微信登录必须进入用户信息完善界面进行手机号验证
                     NavigateToUserInfoCompletion();
                 }
                 else
                 {
-                    // 登录成功，导航到主页面
-                    NavigateToMainWindow();
+                    // 用户名密码登录，检查是否需要完善用户信息
+                    if (_authenticationService.RequiresUserInfoCompletion())
+                    {
+                        // 导航到用户信息完善页面
+                        NavigateToUserInfoCompletion();
+                    }
+                    else
+                    {
+                        // 登录成功，导航到主页面
+                        NavigateToMainWindow();
+                    }
                 }
             }
             else
@@ -248,29 +260,34 @@ public class LoginViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 执行微信登录 - 跳转到微信登录页面并轮询状态
+    /// 执行微信登录 - 通过服务端生成二维码并轮询服务端状态（无本地文件）
     /// </summary>
     private async Task<AuthenticationResult> ExecuteWeChatLoginAsync()
     {
         try
         {
-            // 构建微信登录页面URL
-            string weChatLoginUrl = GetWeChatLoginPageUrl();
+            // 1) 向服务端请求二维码信息
+            WeChatQrCodeInfo? qr = await _authenticationService.GetWeChatQrCodeAsync();
+            if (qr == null || string.IsNullOrEmpty(qr.QrCodeUrl) || string.IsNullOrEmpty(qr.QrCodeKey))
+            {
+                return new AuthenticationResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "无法获取微信二维码，请稍后再试"
+                };
+            }
 
+            // 2) 打开浏览器至微信授权页
             try
             {
-                // 打开微信登录页面
                 System.Diagnostics.ProcessStartInfo startInfo = new()
                 {
-                    FileName = weChatLoginUrl,
+                    FileName = qr.QrCodeUrl,
                     UseShellExecute = true,
                     Verb = "open"
                 };
                 using System.Diagnostics.Process? process = System.Diagnostics.Process.Start(startInfo);
-                _ = process; // 忽略返回值，仅触发浏览器打开
-
-                // 开始轮询登录状态
-                return await WaitForWeChatLoginAsync();
+                _ = process;
             }
             catch (Exception ex)
             {
@@ -280,6 +297,9 @@ public class LoginViewModel : ViewModelBase
                     ErrorMessage = $"无法打开微信登录页面: {ex.Message}"
                 };
             }
+
+            // 3) 轮询服务端二维码状态，检测到确认后，由服务端完成登录并返回令牌
+            return await WaitForWeChatServerStatusAndLoginAsync(qr.QrCodeKey);
         }
         catch (Exception ex)
         {
@@ -292,82 +312,35 @@ public class LoginViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 等待微信登录完成 - 通过轮询检查本地登录状态文件
+    /// 等待微信登录完成 - 改为轮询服务端二维码状态并在确认后完成登录
     /// </summary>
-    private async Task<AuthenticationResult> WaitForWeChatLoginAsync()
+    private async Task<AuthenticationResult> WaitForWeChatServerStatusAndLoginAsync(string qrCodeKey)
     {
         const int maxAttempts = 120; // 最多等待10分钟（每5秒检查一次）
         const int intervalSeconds = 5;
 
-        string loginStatusFile = GetWeChatLoginStatusFilePath();
-
-        System.Diagnostics.Debug.WriteLine($"[微信登录] 开始轮询登录状态文件: {loginStatusFile}");
-
-        // 清理可能存在的旧状态文件
-        if (File.Exists(loginStatusFile))
-        {
-            try
-            {
-                File.Delete(loginStatusFile);
-                System.Diagnostics.Debug.WriteLine($"[微信登录] 已删除旧的状态文件");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[微信登录] 删除旧状态文件失败: {ex.Message}");
-            }
-        }
+        System.Diagnostics.Debug.WriteLine($"[微信登录] 开始轮询服务端二维码状态: {qrCodeKey}");
 
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[微信登录] 第 {attempt + 1}/{maxAttempts} 次检查登录状态文件");
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 第 {attempt + 1}/{maxAttempts} 次检查服务端状态");
 
-                // 检查登录状态文件是否存在
-                if (File.Exists(loginStatusFile))
+                WeChatScanStatus? status = await _authenticationService.CheckWeChatStatusAsync(qrCodeKey);
+                if (status != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[微信登录] 发现登录状态文件，开始读取");
-
-                    string loginData = await File.ReadAllTextAsync(loginStatusFile);
-                    System.Diagnostics.Debug.WriteLine($"[微信登录] 读取到的数据: {loginData}");
-
-                    if (!string.IsNullOrEmpty(loginData))
+                    System.Diagnostics.Debug.WriteLine($"[微信登录] 服务端状态: {status.Status} {status.Message}");
+                    if (status.Status == 2) // confirmed
                     {
-                        try
-                        {
-                            // 解析登录数据
-                            JsonSerializerOptions options = new()
-                            {
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                                PropertyNameCaseInsensitive = true
-                            };
-                            WeChatLoginInfo? loginInfo = JsonSerializer.Deserialize<WeChatLoginInfo>(loginData, options);
-
-                            System.Diagnostics.Debug.WriteLine($"[微信登录] JSON解析成功，AccessToken: {loginInfo?.AccessToken?[..Math.Min(10, loginInfo.AccessToken.Length)]}...");
-
-                            if (loginInfo != null && !string.IsNullOrEmpty(loginInfo.AccessToken))
-                            {
-                                // 删除状态文件
-                                File.Delete(loginStatusFile);
-                                System.Diagnostics.Debug.WriteLine($"[微信登录] 已删除状态文件，开始处理登录成功");
-
-                                // 使用获取到的令牌设置认证状态
-                                return await ProcessWeChatLoginSuccess(loginInfo);
-                            }
-                        }
-                        catch (JsonException ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[微信登录] JSON解析失败: {ex.Message}");
-                            // JSON解析失败，删除无效文件
-                            File.Delete(loginStatusFile);
-                        }
+                        // 服务端标记为已确认，此时直接走服务端登录流程
+                        System.Diagnostics.Debug.WriteLine("[微信登录] 检测到已确认，开始调用服务端登录");
+                        AuthenticationResult result = await _authenticationService.LoginWithWeChatAsync(qrCodeKey);
+                        return result;
                     }
-                }
-                else
-                {
-                    if (attempt % 12 == 0) // 每分钟输出一次日志
+                    else if (status.Status == 3) // expired
                     {
-                        System.Diagnostics.Debug.WriteLine($"[微信登录] 状态文件不存在，继续等待...");
+                        return new AuthenticationResult { IsSuccess = false, ErrorMessage = "二维码已过期，请重试" };
                     }
                 }
 
@@ -376,24 +349,8 @@ public class LoginViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[微信登录] 检查过程中发生异常: {ex.Message}");
-                // 忽略检查错误，继续等待
+                System.Diagnostics.Debug.WriteLine($"[微信登录] 服务端状态检查异常: {ex.Message}");
                 await Task.Delay(intervalSeconds * 1000);
-            }
-        }
-
-        // 超时，清理状态文件
-        System.Diagnostics.Debug.WriteLine($"[微信登录] 轮询超时，清理状态文件");
-        if (File.Exists(loginStatusFile))
-        {
-            try
-            {
-                File.Delete(loginStatusFile);
-                System.Diagnostics.Debug.WriteLine($"[微信登录] 已清理超时的状态文件");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[微信登录] 清理状态文件失败: {ex.Message}");
             }
         }
 
@@ -483,44 +440,35 @@ public class LoginViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 测试微信文件轮询机制
+    /// 测试微信登录（服务端状态轮询版）
     /// </summary>
     private async void TestWeChatFilePolling()
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("[微信登录测试] 开始测试文件轮询机制");
+            System.Diagnostics.Debug.WriteLine("[微信登录测试] 开始测试服务端轮询登录");
 
-            // 创建测试登录文件
-            string filePath = GetWeChatLoginStatusFilePath();
-            WeChatLoginInfo testLoginInfo = new()
+            // 1) 请求二维码
+            WeChatQrCodeInfo? qr = await _authenticationService.GetWeChatQrCodeAsync();
+            if (qr == null || string.IsNullOrEmpty(qr.QrCodeUrl) || string.IsNullOrEmpty(qr.QrCodeKey))
             {
-                AccessToken = "test_access_token_12345",
-                RefreshToken = "test_refresh_token_67890",
-                User = new UserInfo
-                {
-                    Id = "test_user_id",
-                    Username = "test_user",
-                    RealName = "测试用户"
-                }
-            };
+                System.Diagnostics.Debug.WriteLine("[微信登录测试] 获取二维码失败");
+                return;
+            }
 
-            JsonSerializerOptions options = new()
+            // 2) 打开浏览器
+            System.Diagnostics.ProcessStartInfo startInfo = new()
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
+                FileName = qr.QrCodeUrl,
+                UseShellExecute = true,
+                Verb = "open"
             };
+            using System.Diagnostics.Process? process = System.Diagnostics.Process.Start(startInfo);
+            _ = process;
 
-            string json = JsonSerializer.Serialize(testLoginInfo, options);
-            await File.WriteAllTextAsync(filePath, json);
-
-            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 已创建测试文件: {filePath}");
-            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 文件内容: {json}");
-
-            // 启动轮询测试
-            AuthenticationResult result = await WaitForWeChatLoginAsync();
-
-            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 轮询结果: Success={result.IsSuccess}, Message={result.ErrorMessage}");
+            // 3) 服务端轮询等待确认并登录
+            AuthenticationResult result = await WaitForWeChatServerStatusAndLoginAsync(qr.QrCodeKey);
+            System.Diagnostics.Debug.WriteLine($"[微信登录测试] 结果: Success={result.IsSuccess}, Message={result.ErrorMessage}");
         }
         catch (Exception ex)
         {

@@ -46,6 +46,27 @@
                     <TextBox Height="40" PasswordChar="*" Text="{Binding ConfirmPassword}" Watermark="请再次输入密码" />
                 </StackPanel>
 
+                <!--  手机号码（必填）  -->
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,5" FontWeight="Bold" Foreground="Red" Text="手机号码 *" />
+                    <TextBox Height="40" Text="{Binding PhoneNumber}" Watermark="请输入11位手机号码" MaxLength="11" />
+                    <TextBlock Margin="0,5,0,0" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="手机号用于接收验证码和重要通知" />
+                </StackPanel>
+
+                <!--  短信验证码（必填）  -->
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,5" FontWeight="Bold" Foreground="Red" Text="短信验证码 *" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Height="40" Text="{Binding SmsCode}" Watermark="请输入6位验证码" MaxLength="6" Margin="0,0,10,0" />
+                        <Button Grid.Column="1" Width="120" Height="40" Content="{Binding SmsCodeButtonText}" Command="{Binding SendSmsCodeCommand}" IsEnabled="{Binding CanSendSmsCodeValue}" />
+                    </Grid>
+                    <TextBlock Margin="0,5,0,0" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="验证码将发送到您的手机，请注意查收" />
+                </StackPanel>
+
                 <!--  错误消息  -->
                 <TextBlock FontWeight="Bold" Foreground="{DynamicResource SystemFillColorCriticalBrush}" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
 
@@ -56,9 +77,7 @@
 
         <!--  按钮区域  -->
         <StackPanel Grid.Row="2" Margin="0,30,0,0" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="15">
-            <Button Width="100" Height="40" Background="{DynamicResource SystemControlBackgroundBaseMediumBrush}" Command="{Binding SkipCommand}" Content="跳过" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" IsEnabled="{Binding !IsProcessing}" />
-
-            <Button Width="100" Height="40" Background="{DynamicResource SystemAccentColor}" Command="{Binding CompleteInfoCommand}" Content="完成" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" IsEnabled="{Binding !IsProcessing}" />
+            <Button Width="120" Height="40" Background="{DynamicResource SystemAccentColor}" Command="{Binding CompleteInfoCommand}" Content="完成验证" Foreground="{DynamicResource SystemControlForegroundChromeWhiteBrush}" IsEnabled="{Binding !IsProcessing}" />
         </StackPanel>
 
         <!--  加载指示器  -->
