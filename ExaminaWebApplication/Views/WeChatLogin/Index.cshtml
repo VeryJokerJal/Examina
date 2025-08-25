@@ -432,9 +432,16 @@
 				const loginResult = await response.json();
 
 				if (response.ok && loginResult.accessToken) {
-					showStatus('登录成功！正在跳转...');
+					showStatus('登录成功！正在通知客户端...');
 
-					// 发送登录成功消息给Avalonia客户端
+					// 将登录信息写入本地文件供Avalonia客户端读取
+					await writeLoginInfoToFile({
+						accessToken: loginResult.accessToken,
+						refreshToken: loginResult.refreshToken,
+						user: loginResult.user
+					});
+
+					// 发送登录成功消息给Avalonia客户端（如果在WebView中）
 					sendMessageToClient({
 						type: 'wechat_login_success',
 						data: {
@@ -444,11 +451,14 @@
 						}
 					});
 
-					// 如果不是在WebView中，则跳转到主页
+					// 显示成功提示
+					showStatus('登录成功！请返回客户端查看');
+
+					// 如果不是在WebView中，延迟跳转
 					if (!isInWebView()) {
 						setTimeout(() => {
 							window.location.href = '/';
-						}, 1000);
+						}, 3000);
 					}
 				} else {
 					showError(loginResult.message || '登录失败，请重试');
@@ -478,6 +488,27 @@
 			if (userAgent.includes('Android')) return 'Android Device';
 			if (userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS Device';
 			return 'Unknown Device';
+		}
+
+		// 将登录信息写入本地文件（通过后端API）
+		async function writeLoginInfoToFile(loginInfo) {
+			try {
+				const response = await fetch('/api/auth/wechat/write-login-info', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(loginInfo)
+				});
+
+				if (response.ok) {
+					console.log('登录信息已写入本地文件');
+				} else {
+					console.error('写入登录信息失败:', response.statusText);
+				}
+			} catch (error) {
+				console.error('写入登录信息异常:', error);
+			}
 		}
 
 		function isInWebView() {

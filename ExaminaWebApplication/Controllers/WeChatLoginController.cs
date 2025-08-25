@@ -1,6 +1,8 @@
 ﻿using ExaminaWebApplication.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
+using System.Text.Json;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -196,4 +198,54 @@ public class WeChatLoginController : Controller
             _ => "error"
         };
     }
+
+    /// <summary>
+    /// 写入登录信息到本地文件（供Avalonia客户端读取）
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost]
+    [Route("api/auth/wechat/write-login-info")]
+    public IActionResult WriteLoginInfo([FromBody] WeChatLoginInfoDto loginInfo)
+    {
+        try
+        {
+            if (loginInfo == null || string.IsNullOrEmpty(loginInfo.AccessToken))
+            {
+                return BadRequest(new { message = "登录信息无效" });
+            }
+
+            // 获取临时文件路径
+            string tempPath = Path.GetTempPath();
+            string filePath = Path.Combine(tempPath, "examina_wechat_login.json");
+
+            // 序列化登录信息
+            string json = JsonSerializer.Serialize(loginInfo, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            });
+
+            // 写入文件
+            System.IO.File.WriteAllText(filePath, json);
+
+            _logger.LogInformation("微信登录信息已写入文件: {FilePath}", filePath);
+
+            return Ok(new { message = "登录信息已保存" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "写入微信登录信息失败");
+            return StatusCode(500, new { message = "保存登录信息失败" });
+        }
+    }
+}
+
+/// <summary>
+/// 微信登录信息DTO
+/// </summary>
+public class WeChatLoginInfoDto
+{
+    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public object? User { get; set; }
 }

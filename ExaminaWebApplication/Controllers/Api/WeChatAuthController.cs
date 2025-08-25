@@ -1,8 +1,7 @@
-using System;
+﻿using ExaminaWebApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using ExaminaWebApplication.Services;
 
 namespace ExaminaWebApplication.Controllers.Api
 {
@@ -40,7 +39,7 @@ namespace ExaminaWebApplication.Controllers.Api
                     return BadRequest("无效的state参数");
                 }
 
-                string qrCodeKey = state.Substring(statePrefix.Length);
+                string qrCodeKey = state[statePrefix.Length..];
                 if (string.IsNullOrWhiteSpace(qrCodeKey))
                 {
                     return BadRequest("无效的二维码标识");
@@ -50,7 +49,7 @@ namespace ExaminaWebApplication.Controllers.Api
                 string cacheKey = "wechat_qrcode_" + qrCodeKey;
 
                 // 更新缓存中的二维码状态：2=已确认，并附带授权码
-                WeChatScanStatus status = new WeChatScanStatus
+                WeChatScanStatus status = new()
                 {
                     Status = 2,
                     Message = "已确认，等待客户端完成登录",
@@ -59,7 +58,7 @@ namespace ExaminaWebApplication.Controllers.Api
                 };
 
                 // 设置一个较短的有效期，足够桌面端轮询并完成登录
-                _cache.Set(cacheKey, status, TimeSpan.FromMinutes(3));
+                _ = _cache.Set(cacheKey, status, TimeSpan.FromMinutes(3));
 
                 _logger.LogInformation("微信回调成功，二维码已确认。QrKey={QrKey}", qrCodeKey);
 

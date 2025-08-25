@@ -1146,6 +1146,27 @@ public class AuthenticationService : IAuthenticationService
     }
 
     /// <summary>
+    /// 设置认证令牌（用于外部登录成功后设置状态）
+    /// </summary>
+    /// <param name="accessToken">访问令牌</param>
+    /// <param name="refreshToken">刷新令牌</param>
+    /// <param name="user">用户信息</param>
+    public void SetAuthenticationToken(string accessToken, string refreshToken, UserInfo? user = null)
+    {
+        CurrentAccessToken = accessToken;
+        CurrentRefreshToken = refreshToken;
+        TokenExpiresAt = DateTime.Now.AddHours(24); // 默认24小时过期
+        CurrentUser = user;
+        IsAuthenticated = true;
+
+        // 设置HTTP客户端的认证头
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CurrentAccessToken);
+
+        System.Diagnostics.Debug.WriteLine($"已设置认证令牌，用户: {user?.Username ?? "未知"}");
+    }
+
+    /// <summary>
     /// 刷新用户信息
     /// </summary>
     public async Task<bool> RefreshUserInfoAsync()

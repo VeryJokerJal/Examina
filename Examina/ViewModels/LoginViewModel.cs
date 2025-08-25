@@ -1,4 +1,7 @@
-﻿using System.Windows.Input;
+﻿using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Examina.Models;
@@ -7,6 +10,16 @@ using Prism.Commands;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Timer = System.Timers.Timer;
+
+/// <summary>
+/// 微信登录信息模型
+/// </summary>
+public class WeChatLoginInfo
+{
+    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public UserInfo? User { get; set; }
+}
 
 namespace Examina.ViewModels;
 
@@ -234,9 +247,9 @@ public class LoginViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 执行微信登录 - 跳转到微信登录页面
+    /// 执行微信登录 - 跳转到微信登录页面并轮询状态
     /// </summary>
-    private Task<AuthenticationResult> ExecuteWeChatLoginAsync()
+    private async Task<AuthenticationResult> ExecuteWeChatLoginAsync()
     {
         try
         {
@@ -255,30 +268,159 @@ public class LoginViewModel : ViewModelBase
                 using System.Diagnostics.Process? process = System.Diagnostics.Process.Start(startInfo);
                 _ = process; // 忽略返回值，仅触发浏览器打开
 
-                // 返回提示信息，告知用户在浏览器中完成登录
-                return Task.FromResult(new AuthenticationResult
-                {
-                    IsSuccess = false, // 暂时返回false，因为需要用户在浏览器中完成授权
-                    ErrorMessage = "已打开微信登录页面，请在浏览器中完成微信扫码登录"
-                });
+                // 开始轮询登录状态
+                return await WaitForWeChatLoginAsync();
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new AuthenticationResult
+                return new AuthenticationResult
                 {
                     IsSuccess = false,
                     ErrorMessage = $"无法打开微信登录页面: {ex.Message}"
-                });
+                };
             }
         }
         catch (Exception ex)
         {
-            return Task.FromResult(new AuthenticationResult
+            return new AuthenticationResult
             {
                 IsSuccess = false,
                 ErrorMessage = $"微信登录失败: {ex.Message}"
-            });
+            };
         }
+    }
+
+    /// <summary>
+    /// 等待微信登录完成 - 通过轮询检查本地登录状态文件
+    /// </summary>
+    private async Task<AuthenticationResult> WaitForWeChatLoginAsync()
+    {
+        const int maxAttempts = 120; // 最多等待10分钟（每5秒检查一次）
+        const int intervalSeconds = 5;
+
+        string loginStatusFile = GetWeChatLoginStatusFilePath();
+
+        // 清理可能存在的旧状态文件
+        if (File.Exists(loginStatusFile))
+        {
+            try
+            {
+                File.Delete(loginStatusFile);
+            }
+            catch
+            {
+                // 忽略删除错误
+            }
+        }
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                // 检查登录状态文件是否存在
+                if (File.Exists(loginStatusFile))
+                {
+                    string loginData = await File.ReadAllTextAsync(loginStatusFile);
+                    if (!string.IsNullOrEmpty(loginData))
+                    {
+                        try
+                        {
+                            // 解析登录数据
+                            var loginInfo = JsonSerializer.Deserialize<WeChatLoginInfo>(loginData);
+                            if (loginInfo != null && !string.IsNullOrEmpty(loginInfo.AccessToken))
+                            {
+                                // 删除状态文件
+                                File.Delete(loginStatusFile);
+
+                                // 使用获取到的令牌设置认证状态
+                                return await ProcessWeChatLoginSuccess(loginInfo);
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // JSON解析失败，删除无效文件
+                            File.Delete(loginStatusFile);
+                        }
+                    }
+                }
+
+                // 等待下次检查
+                await Task.Delay(intervalSeconds * 1000);
+            }
+            catch
+            {
+                // 忽略检查错误，继续等待
+                await Task.Delay(intervalSeconds * 1000);
+            }
+        }
+
+        // 超时，清理状态文件
+        if (File.Exists(loginStatusFile))
+        {
+            try
+            {
+                File.Delete(loginStatusFile);
+            }
+            catch
+            {
+                // 忽略删除错误
+            }
+        }
+
+        return new AuthenticationResult
+        {
+            IsSuccess = false,
+            ErrorMessage = "微信登录超时，请重新尝试"
+        };
+    }
+
+    /// <summary>
+    /// 处理微信登录成功
+    /// </summary>
+    private async Task<AuthenticationResult> ProcessWeChatLoginSuccess(WeChatLoginInfo loginInfo)
+    {
+        try
+        {
+            // 设置认证令牌
+            _authenticationService.SetAuthenticationToken(loginInfo.AccessToken, loginInfo.RefreshToken, loginInfo.User);
+
+            // 验证令牌是否有效
+            if (await _authenticationService.ValidateTokenAsync())
+            {
+                return new AuthenticationResult
+                {
+                    IsSuccess = true,
+                    AccessToken = loginInfo.AccessToken,
+                    RefreshToken = loginInfo.RefreshToken,
+                    User = loginInfo.User
+                };
+            }
+            else
+            {
+                return new AuthenticationResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "登录令牌验证失败"
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            return new AuthenticationResult
+            {
+                IsSuccess = false,
+                ErrorMessage = $"处理登录信息失败: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// 获取微信登录状态文件路径
+    /// </summary>
+    private static string GetWeChatLoginStatusFilePath()
+    {
+        string tempPath = Path.GetTempPath();
+        return Path.Combine(tempPath, "examina_wechat_login.json");
     }
 
     /// <summary>
