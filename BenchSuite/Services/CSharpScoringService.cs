@@ -4,10 +4,20 @@ using BenchSuite.Models;
 namespace BenchSuite.Services;
 
 /// <summary>
-/// C#编程题打分服务 - 支持三种评分模式
+/// C#编程题打分服务 - 支持三种评分模式，包括AI逻辑性判分
 /// </summary>
 public class CSharpScoringService : ICSharpScoringService
 {
+    private readonly IAILogicalScoringService? _aiScoringService;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="aiScoringService">AI逻辑性判分服务（可选）</param>
+    public CSharpScoringService(IAILogicalScoringService? aiScoringService = null)
+    {
+        _aiScoringService = aiScoringService;
+    }
     /// <summary>
     /// 对C#代码进行评分
     /// </summary>
@@ -176,7 +186,7 @@ public class CSharpScoringService : ICSharpScoringService
     }
 
     /// <summary>
-    /// 编写实现模式评分
+    /// 编写实现模式评分 - 包含AI逻辑性判分
     /// </summary>
     private async Task ScoreImplementationAsync(CSharpScoringResult result, string studentCode, List<string> expectedImplementations)
     {
@@ -205,33 +215,153 @@ public class CSharpScoringService : ICSharpScoringService
         UnitTestResult testResult = await RunUnitTestsAsync(studentCode, testCode);
 
         result.UnitTestResult = testResult;
-        result.TotalScore = testResult.TotalTests + 1; // +1 for compilation
-        result.AchievedScore = testResult.PassedTests + 1; // +1 for successful compilation
-        result.IsSuccess = true;
 
-        if (testResult.IsSuccess)
+        // 3. AI逻辑性判分（如果可用）
+        AILogicalScoringResult? aiResult = null;
+        if (_aiScoringService != null)
         {
-            result.Details = $"实现完成。编译成功，所有测试通过。总测试数: {testResult.TotalTests}, 执行耗时: {testResult.ExecutionTimeMs}ms";
+            try
+            {
+                // 构建题目描述（从测试代码中提取或使用默认描述）
+                string problemDescription = ExtractProblemDescriptionFromTest(testCode);
+
+                aiResult = await _aiScoringService.ScoreLogicalReasoningAsync(
+                    studentCode,
+                    problemDescription,
+                    null, // 期望输出
+                    null  // 测试用例
+                );
+
+                result.AILogicalResult = aiResult;
+            }
+            catch (Exception ex)
+            {
+                // AI判分失败不影响整体评分，只记录错误
+                result.Details += $"\nAI逻辑性判分失败: {ex.Message}";
+            }
+        }
+
+        // 4. 计算综合评分
+        CalculateComprehensiveScore(result, testResult, aiResult);
+
+        // 5. 生成详细报告
+        GenerateImplementationDetails(result, testResult, aiResult);
+    }
+
+    /// <summary>
+    /// 从测试代码中提取题目描述
+    /// </summary>
+    private static string ExtractProblemDescriptionFromTest(string testCode)
+    {
+        // 简化实现：从测试代码的注释中提取描述，或使用默认描述
+        if (testCode.Contains("//") && testCode.Contains("题目") || testCode.Contains("问题"))
+        {
+            string[] lines = testCode.Split('\n');
+            foreach (string line in lines)
+            {
+                if (line.Trim().StartsWith("//") && (line.Contains("题目") || line.Contains("问题")))
+                {
+                    return line.Trim().TrimStart('/').Trim();
+                }
+            }
+        }
+
+        return "C#编程实现题：请根据测试用例实现相应的功能";
+    }
+
+    /// <summary>
+    /// 计算综合评分（结合单元测试和AI逻辑性判分）
+    /// </summary>
+    private static void CalculateComprehensiveScore(CSharpScoringResult result, UnitTestResult testResult, AILogicalScoringResult? aiResult)
+    {
+        // 基础评分：编译 + 单元测试
+        decimal baseScore = testResult.TotalTests + 1; // +1 for compilation
+        decimal achievedBaseScore = testResult.PassedTests + 1; // +1 for successful compilation
+
+        if (aiResult?.IsSuccess == true)
+        {
+            // 如果有AI判分结果，将其纳入综合评分
+            // AI逻辑性评分权重为30%，单元测试权重为70%
+            decimal testWeight = 0.7m;
+            decimal aiWeight = 0.3m;
+
+            decimal testScoreRatio = baseScore > 0 ? achievedBaseScore / baseScore : 0;
+            decimal aiScoreRatio = aiResult.LogicalScore / 100m;
+
+            decimal comprehensiveRatio = (testScoreRatio * testWeight) + (aiScoreRatio * aiWeight);
+
+            result.TotalScore = baseScore;
+            result.AchievedScore = Math.Round(baseScore * comprehensiveRatio, 2);
         }
         else
         {
-            result.Details = $"实现部分完成。编译成功，但部分测试失败。通过: {testResult.PassedTests}/{testResult.TotalTests}";
+            // 没有AI判分结果，使用原有评分方式
+            result.TotalScore = baseScore;
+            result.AchievedScore = achievedBaseScore;
+        }
+
+        result.IsSuccess = true;
+    }
+
+    /// <summary>
+    /// 生成实现模式的详细报告
+    /// </summary>
+    private static void GenerateImplementationDetails(CSharpScoringResult result, UnitTestResult testResult, AILogicalScoringResult? aiResult)
+    {
+        List<string> details = [];
+
+        // 基础测试结果
+        if (testResult.IsSuccess)
+        {
+            details.Add($"✅ 实现完成。编译成功，所有测试通过。总测试数: {testResult.TotalTests}, 执行耗时: {testResult.ExecutionTimeMs}ms");
+        }
+        else
+        {
+            details.Add($"⚠️ 实现部分完成。编译成功，但部分测试失败。通过: {testResult.PassedTests}/{testResult.TotalTests}");
 
             if (!string.IsNullOrEmpty(testResult.ErrorMessage))
             {
-                result.Details += $"\n错误信息: {testResult.ErrorMessage}";
+                details.Add($"错误信息: {testResult.ErrorMessage}");
             }
 
             List<TestCaseResult> failedTests = testResult.TestCaseResults.Where(t => !t.Passed).Take(3).ToList();
             if (failedTests.Count > 0)
             {
-                result.Details += "\n失败的测试:";
+                details.Add("失败的测试:");
                 foreach (TestCaseResult failedTest in failedTests)
                 {
-                    result.Details += $"\n  {failedTest.TestName}: {failedTest.ErrorMessage}";
+                    details.Add($"  {failedTest.TestName}: {failedTest.ErrorMessage}");
                 }
             }
         }
+
+        // AI逻辑性判分结果
+        if (aiResult?.IsSuccess == true)
+        {
+            details.Add($"\n🤖 AI逻辑性分析:");
+            details.Add($"逻辑性评分: {aiResult.LogicalScore}/100");
+            details.Add($"处理耗时: {aiResult.ProcessingTimeMs}ms");
+
+            if (aiResult.Steps.Count > 0)
+            {
+                details.Add("主要分析步骤:");
+                foreach (ReasoningStep step in aiResult.Steps.Take(3))
+                {
+                    details.Add($"  • {step.Explanation}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(aiResult.FinalAnswer))
+            {
+                details.Add($"AI评估结论: {aiResult.FinalAnswer}");
+            }
+        }
+        else if (aiResult != null && !aiResult.IsSuccess)
+        {
+            details.Add($"\n⚠️ AI逻辑性分析失败: {aiResult.ErrorMessage}");
+        }
+
+        result.Details = string.Join("\n", details);
     }
 
     #region IScoringService 基础接口实现

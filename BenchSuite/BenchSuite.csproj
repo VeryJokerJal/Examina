@@ -96,6 +96,7 @@
 
 
   <ItemGroup>
+    <PackageReference Include="OpenAI" Version="2.1.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.8" />
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
     <!-- Roslyn packages for C# code analysis and compilation -->
@@ -105,6 +106,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.8.0" />
     <!-- For unit testing support -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <!-- OpenAI SDK for AI-powered logical scoring -->
+    <PackageReference Include="OpenAI" Version="2.1.0" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BenchSuite.Interfaces;
 
 namespace BenchSuite.Models;
 
@@ -245,6 +246,11 @@ public class CSharpScoringResult
     /// 调试结果（调试纠错模式）
     /// </summary>
     public DebuggingResult? DebuggingResult { get; set; }
+
+    /// <summary>
+    /// AI逻辑性判分结果（实现模式）
+    /// </summary>
+    public AILogicalScoringResult? AILogicalResult { get; set; }
 
     /// <summary>
     /// 开始时间
