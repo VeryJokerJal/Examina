@@ -117,9 +117,23 @@
                         </div>
 
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h4 class="text-warning mb-1">@Model.MaxRetakeCount</h4>
-                                <small class="text-muted">重考次数</small>
+                            <div class="border rounded p-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">最大重考次数</h6>
+                                        <small class="text-muted">学生可以重考的最大次数</small>
+                                    </div>
+                                    <div class="input-group" style="width: 120px;">
+                                        <input type="number"
+                                               class="form-control text-center"
+                                               id="maxRetakeCountInput"
+                                               value="@Model.MaxRetakeCount"
+                                               min="0"
+                                               max="10"
+                                               onchange="updateMaxRetakeCount(this.value)">
+                                        <span class="input-group-text">次</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -751,6 +765,62 @@
             .finally(() => {
                 // 恢复开关可用状态
                 switchElement.disabled = false;
+            });
+        }
+
+        // 更新最大重考次数
+        function updateMaxRetakeCount(value) {
+            const examId = @Model.Id;
+            const inputElement = document.getElementById('maxRetakeCountInput');
+            const originalValue = inputElement.defaultValue;
+
+            // 验证输入值
+            const retakeCount = parseInt(value);
+            if (isNaN(retakeCount) || retakeCount < 0 || retakeCount > 10) {
+                showToast('error', '重考次数必须在0-10之间');
+                inputElement.value = originalValue;
+                return;
+            }
+
+            // 禁用输入框防止重复提交
+            inputElement.disabled = true;
+
+            fetch(`/ExamManagement/update-retake-count/${examId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ maxRetakeCount: retakeCount })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新默认值
+                    inputElement.defaultValue = retakeCount;
+
+                    // 显示成功提示
+                    showToast('success', `最大重考次数已更新为 ${retakeCount} 次`);
+                } else {
+                    // 更新失败，恢复原值
+                    inputElement.value = originalValue;
+
+                    // 显示错误提示
+                    showToast('error', data.message || '更新失败');
+                }
+            })
+            .catch(error => {
+                console.error('更新最大重考次数失败:', error);
+
+                // 恢复原值
+                inputElement.value = originalValue;
+
+                // 显示错误提示
+                showToast('error', '网络错误，请稍后重试');
+            })
+            .finally(() => {
+                // 恢复输入框可用状态
+                inputElement.disabled = false;
             });
         }
 

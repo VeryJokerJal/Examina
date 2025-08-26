@@ -576,6 +576,43 @@ public class ExamManagementController : Controller
     }
 
     /// <summary>
+    /// 更新最大重考次数
+    /// </summary>
+    [HttpPost("update-retake-count/{id}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateRetakeCount(int id, [FromBody] UpdateRetakeCountRequest request)
+    {
+        try
+        {
+            // 验证输入
+            if (request.MaxRetakeCount < 0 || request.MaxRetakeCount > 10)
+            {
+                return Json(new { success = false, message = "重考次数必须在0-10之间" });
+            }
+
+            // 获取考试
+            ImportedExam? exam = await _examImportService.GetImportedExamDetailsAsync(id);
+            if (exam == null)
+            {
+                return Json(new { success = false, message = "考试不存在" });
+            }
+
+            // 更新最大重考次数
+            exam.MaxRetakeCount = request.MaxRetakeCount;
+            await _examImportService.UpdateImportedExamAsync(exam);
+
+            _logger.LogInformation("用户更新考试 {ExamId} 的最大重考次数为 {MaxRetakeCount}", id, request.MaxRetakeCount);
+
+            return Json(new { success = true, message = "最大重考次数更新成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新最大重考次数失败，考试ID: {ExamId}", id);
+            return Json(new { success = false, message = "更新失败，请稍后重试" });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     private int GetCurrentUserId()
@@ -609,4 +646,12 @@ public class UpdateExamSettingRequest
 {
     public string SettingName { get; set; } = string.Empty;
     public bool Value { get; set; }
+}
+
+/// <summary>
+/// 更新最大重考次数请求
+/// </summary>
+public class UpdateRetakeCountRequest
+{
+    public int MaxRetakeCount { get; set; }
 }

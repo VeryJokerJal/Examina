@@ -56,19 +56,12 @@
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="联考开始时间：" />
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Exam.StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
                                             </StackPanel>
-                                            <!-- 考试状态消息 -->
-                                            <TextBlock FontSize="12"
-                                                       Foreground="{Binding ., Converter={StaticResource ExamPermissionStatusColorConverter}}"
-                                                       Text="{Binding ., Converter={StaticResource ExamStatusMessageConverter}}" />
-                                            <!-- 考试次数统计 -->
-                                            <TextBlock FontSize="11"
-                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                       Text="{Binding ., Converter={StaticResource ExamAttemptCountTextConverter}}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <!-- 正式考试按钮 -->
-                                            <Button Padding="16,8"
+                                            <!--  主要操作按钮（动态显示文本和功能）  -->
+                                            <Button Width="110"
+                                                    Padding="16,8"
                                                     Background="{DynamicResource AccentFillColorDefaultBrush}"
                                                     BorderBrush="{DynamicResource AccentFillColorDefaultBrush}"
                                                     BorderThickness="1"
@@ -79,39 +72,6 @@
                                                     Foreground="White"
                                                     IsEnabled="{Binding ., Converter={StaticResource ExamPermissionButtonEnabledConverter}}"
                                                     IsVisible="{Binding ., Converter={StaticResource ExamPermissionButtonVisibilityConverter}}" />
-
-                                            <!-- 重新考试按钮 -->
-                                            <Button Padding="16,8"
-                                                    Background="{DynamicResource SystemFillColorCautionBrush}"
-                                                    BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
-                                                    BorderThickness="1"
-                                                    Command="{Binding $parent[UserControl].DataContext.RetakeExamCommand}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="重新考试"
-                                                    CornerRadius="4"
-                                                    Foreground="White"
-                                                    IsVisible="{Binding Exam.AllowRetake}" />
-
-                                            <!-- 练习模式按钮 -->
-                                            <Button Padding="16,8"
-                                                    Background="{DynamicResource SystemFillColorSuccessBrush}"
-                                                    BorderBrush="{DynamicResource SystemFillColorSuccessBrush}"
-                                                    BorderThickness="1"
-                                                    Command="{Binding $parent[UserControl].DataContext.PracticeExamCommand}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="练习模式"
-                                                    CornerRadius="4"
-                                                    Foreground="White"
-                                                    IsVisible="{Binding Exam.AllowPractice}" />
-
-                                            <!-- 联考已完成文本 -->
-                                            <TextBlock HorizontalAlignment="Center"
-                                                       FontSize="12"
-                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                       Text="联考已完成"
-                                                       IsVisible="{Binding ., Converter={StaticResource ExamCompletedNoOptionsConverter}}" />
-
-                                            <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding ., Converter={StaticResource ExamStatusConverter}}" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -206,19 +166,12 @@
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="联考开始时间：" />
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Exam.StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
                                             </StackPanel>
-                                            <!-- 考试状态消息 -->
-                                            <TextBlock FontSize="12"
-                                                       Foreground="{Binding ., Converter={StaticResource ExamPermissionStatusColorConverter}}"
-                                                       Text="{Binding ., Converter={StaticResource ExamStatusMessageConverter}}" />
-                                            <!-- 考试次数统计 -->
-                                            <TextBlock FontSize="11"
-                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                       Text="{Binding ., Converter={StaticResource ExamAttemptCountTextConverter}}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <!-- 正式考试按钮 -->
-                                            <Button Padding="16,8"
+                                            <!--  主要操作按钮（动态显示文本和功能）  -->
+                                            <Button Width="110"
+                                                    Padding="16,8"
                                                     Background="{DynamicResource AccentFillColorDefaultBrush}"
                                                     BorderBrush="{DynamicResource AccentFillColorDefaultBrush}"
                                                     BorderThickness="1"
@@ -229,39 +182,6 @@
                                                     Foreground="White"
                                                     IsEnabled="{Binding ., Converter={StaticResource ExamPermissionButtonEnabledConverter}}"
                                                     IsVisible="{Binding ., Converter={StaticResource ExamPermissionButtonVisibilityConverter}}" />
-
-                                            <!-- 重新考试按钮 -->
-                                            <Button Padding="16,8"
-                                                    Background="{DynamicResource SystemFillColorCautionBrush}"
-                                                    BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
-                                                    BorderThickness="1"
-                                                    Command="{Binding $parent[UserControl].DataContext.RetakeExamCommand}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="重新考试"
-                                                    CornerRadius="4"
-                                                    Foreground="White"
-                                                    IsVisible="{Binding Exam.AllowRetake}" />
-
-                                            <!-- 练习模式按钮 -->
-                                            <Button Padding="16,8"
-                                                    Background="{DynamicResource SystemFillColorSuccessBrush}"
-                                                    BorderBrush="{DynamicResource SystemFillColorSuccessBrush}"
-                                                    BorderThickness="1"
-                                                    Command="{Binding $parent[UserControl].DataContext.PracticeExamCommand}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="练习模式"
-                                                    CornerRadius="4"
-                                                    Foreground="White"
-                                                    IsVisible="{Binding Exam.AllowPractice}" />
-
-                                            <!-- 联考已完成文本 -->
-                                            <TextBlock HorizontalAlignment="Center"
-                                                       FontSize="12"
-                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                       Text="联考已完成"
-                                                       IsVisible="{Binding ., Converter={StaticResource ExamCompletedNoOptionsConverter}}" />
-
-                                            <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding ., Converter={StaticResource ExamStatusConverter}}" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
