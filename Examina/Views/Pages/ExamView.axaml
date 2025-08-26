@@ -7,6 +7,13 @@
              x:Class="Examina.Views.Pages.ExamView"
              x:DataType="vm:ExamViewModel">
 
+  <UserControl.Resources>
+    <!-- 内置转换器 -->
+    <x:Static x:Key="StringConverters.IsNotNullOrEmpty" Member="StringConverters.IsNotNullOrEmpty"/>
+    <x:Static x:Key="ObjectConverters.IsNotNull" Member="ObjectConverters.IsNotNull"/>
+    <x:Static x:Key="IntConverters.IsGreaterThan" Member="IntConverters.IsGreaterThan"/>
+  </UserControl.Resources>
+
   <ScrollViewer>
     <StackPanel Margin="24" Spacing="24">
       
@@ -17,22 +24,93 @@
                  FontFamily="Microsoft YaHei"
                  Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
       
+      <!-- 考试选择卡片 -->
+      <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              CornerRadius="12"
+              Padding="24">
+        <StackPanel Spacing="16">
+
+          <!-- 考试选择标题 -->
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="📝" FontSize="32"/>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="选择考试"
+                         FontSize="20"
+                         FontWeight="SemiBold"
+                         FontFamily="Microsoft YaHei"
+                         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+              <TextBlock Text="请选择要参加的考试"
+                         FontSize="14"
+                         FontFamily="Microsoft YaHei"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- 考试列表 -->
+          <ComboBox ItemsSource="{Binding AvailableExams}"
+                    SelectedItem="{Binding SelectedExam}"
+                    DisplayMemberBinding="{Binding Name}"
+                    PlaceholderText="请选择考试"
+                    FontFamily="Microsoft YaHei"
+                    MinWidth="300"/>
+
+          <!-- 考试次数限制信息 -->
+          <StackPanel IsVisible="{Binding SelectedExam, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      Spacing="12">
+            <Separator/>
+
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="考试状态"
+                           FontSize="12"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <TextBlock Text="{Binding ExamStatusDescription}"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                           Margin="0,4,0,0"/>
+              </StackPanel>
+
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="次数统计"
+                           FontSize="12"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <TextBlock Text="{Binding AttemptCountDescription}"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           FontFamily="Microsoft YaHei"
+                           Foreground="{DynamicResource SystemAccentColor}"
+                           Margin="0,4,0,0"/>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
       <!-- 考试状态卡片 -->
       <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
               CornerRadius="12"
               Padding="24">
         <StackPanel Spacing="16">
-          
+
           <!-- 考试状态图标和标题 -->
           <StackPanel Orientation="Horizontal" Spacing="12">
             <TextBlock Text="📋" FontSize="32"/>
             <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="考试状态" 
-                         FontSize="20" 
+              <TextBlock Text="考试状态"
+                         FontSize="20"
                          FontWeight="SemiBold"
                          FontFamily="Microsoft YaHei"
                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-              <TextBlock Text="{Binding ExamStatus}" 
+              <TextBlock Text="{Binding ExamStatus}"
                          FontSize="14"
                          FontFamily="Microsoft YaHei"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
@@ -78,25 +156,54 @@
           </StackPanel>
           
           <!-- 操作按钮 -->
-          <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
-            <Button Content="{Binding StartExamButtonText}"
-                    Classes="accent"
-                    Command="{Binding StartExamCommand}"
-                    IsVisible="{Binding !HasActiveExam}"
-                    Padding="20,10"
-                    FontFamily="Microsoft YaHei"/>
+          <StackPanel Spacing="12">
+            <!-- 主要操作按钮 -->
+            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+              <Button Content="{Binding StartExamButtonText}"
+                      Classes="accent"
+                      Command="{Binding StartExamCommand}"
+                      IsVisible="{Binding !HasActiveExam}"
+                      IsEnabled="{Binding SelectedExam, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      Padding="20,10"
+                      FontFamily="Microsoft YaHei"/>
 
-            <Button Content="继续考试"
-                    Classes="accent"
-                    Command="{Binding ContinueExamCommand}"
-                    IsVisible="{Binding HasActiveExam}"
-                    Padding="20,10"
-                    FontFamily="Microsoft YaHei"/>
+              <Button Content="继续考试"
+                      Classes="accent"
+                      Command="{Binding ContinueExamCommand}"
+                      IsVisible="{Binding HasActiveExam}"
+                      Padding="20,10"
+                      FontFamily="Microsoft YaHei"/>
 
-            <Button Content="刷新状态"
-                    Command="{Binding RefreshExamStatusCommand}"
-                    Padding="20,10"
-                    FontFamily="Microsoft YaHei"/>
+              <Button Content="刷新状态"
+                      Command="{Binding RefreshExamStatusCommand}"
+                      Padding="20,10"
+                      FontFamily="Microsoft YaHei"/>
+            </StackPanel>
+
+            <!-- 重考和练习按钮 -->
+            <StackPanel Orientation="Horizontal"
+                        Spacing="12"
+                        HorizontalAlignment="Center"
+                        IsVisible="{Binding SelectedExam, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <Button Content="{Binding RetakeButtonText}"
+                      Classes="secondary"
+                      Command="{Binding RetakeExamCommand}"
+                      IsVisible="{Binding CanRetake}"
+                      Padding="16,8"
+                      FontFamily="Microsoft YaHei"/>
+
+              <Button Content="重做练习"
+                      Classes="secondary"
+                      Command="{Binding PracticeExamCommand}"
+                      IsVisible="{Binding CanPractice}"
+                      Padding="16,8"
+                      FontFamily="Microsoft YaHei"/>
+
+              <Button Content="查看历史"
+                      Command="{Binding ViewExamHistoryCommand}"
+                      Padding="16,8"
+                      FontFamily="Microsoft YaHei"/>
+            </StackPanel>
           </StackPanel>
 
           <!-- 错误消息显示 -->
@@ -115,6 +222,102 @@
                          VerticalAlignment="Center"/>
             </StackPanel>
           </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- 考试历史记录 -->
+      <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              CornerRadius="12"
+              Padding="24"
+              IsVisible="{Binding ExamAttemptHistory.Count, Converter={x:Static IntConverters.IsGreaterThan}, ConverterParameter=0}">
+        <StackPanel Spacing="16">
+
+          <!-- 历史记录标题 -->
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="📊" FontSize="32"/>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="考试历史"
+                         FontSize="20"
+                         FontWeight="SemiBold"
+                         FontFamily="Microsoft YaHei"
+                         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+              <TextBlock Text="{Binding ExamAttemptHistory.Count, StringFormat='共 {0} 次考试记录'}"
+                         FontSize="14"
+                         FontFamily="Microsoft YaHei"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- 历史记录列表 -->
+          <ScrollViewer MaxHeight="300">
+            <ItemsControl ItemsSource="{Binding ExamAttemptHistory}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                          CornerRadius="8"
+                          Padding="16"
+                          Margin="0,0,0,8">
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+
+                      <StackPanel Grid.Column="0">
+                        <TextBlock Text="{Binding AttemptTypeDisplay}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                        <TextBlock Text="{Binding StartedAt, StringFormat='开始时间: {0:yyyy-MM-dd HH:mm}'}"
+                                   FontSize="12"
+                                   FontFamily="Microsoft YaHei"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                      </StackPanel>
+
+                      <StackPanel Grid.Column="1" Margin="16,0">
+                        <TextBlock Text="{Binding StatusDisplay}"
+                                   FontSize="12"
+                                   FontFamily="Microsoft YaHei"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        <TextBlock Text="{Binding ScorePercentageDisplay}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei"
+                                   Foreground="{DynamicResource SystemAccentColor}"/>
+                      </StackPanel>
+
+                      <StackPanel Grid.Column="2" Margin="16,0">
+                        <TextBlock Text="用时"
+                                   FontSize="12"
+                                   FontFamily="Microsoft YaHei"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        <TextBlock Text="{Binding DurationDisplay}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                      </StackPanel>
+
+                      <Border Grid.Column="3"
+                              Background="{DynamicResource SystemAccentColor}"
+                              CornerRadius="12"
+                              Padding="8,4"
+                              IsVisible="{Binding IsRanked}">
+                        <TextBlock Text="计分"
+                                   FontSize="10"
+                                   FontFamily="Microsoft YaHei"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"/>
+                      </Border>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
         </StackPanel>
       </Border>
 
