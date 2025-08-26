@@ -25,14 +25,24 @@ public class UnifiedExamViewModel : ViewModelBase
     #region 属性
 
     /// <summary>
-    /// 全省统考列表
+    /// 全省统考列表（进行中的考试）
     /// </summary>
     [Reactive] public ObservableCollection<StudentExamDto> ProvincialExams { get; set; } = [];
 
     /// <summary>
-    /// 学校统考列表
+    /// 学校统考列表（进行中的考试）
     /// </summary>
     [Reactive] public ObservableCollection<StudentExamDto> SchoolExams { get; set; } = [];
+
+    /// <summary>
+    /// 已结束的全省统考列表
+    /// </summary>
+    [Reactive] public ObservableCollection<StudentExamDto> CompletedProvincialExams { get; set; } = [];
+
+    /// <summary>
+    /// 已结束的学校统考列表
+    /// </summary>
+    [Reactive] public ObservableCollection<StudentExamDto> CompletedSchoolExams { get; set; } = [];
 
     /// <summary>
     /// 全省统考总数
@@ -185,16 +195,27 @@ public class UnifiedExamViewModel : ViewModelBase
             ProvincialExamCount = await _studentExamService.GetAvailableExamCountByCategoryAsync(ExamCategory.Provincial);
 
             // 获取第一页数据
-            List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
+            List<StudentExamDto> allExams = await _studentExamService.GetAvailableExamsByCategoryAsync(
                 ExamCategory.Provincial, ProvincialCurrentPage, PageSize);
+
+            // 按状态过滤考试
+            List<StudentExamDto> activeExams = FilterActiveExams(allExams);
+            List<StudentExamDto> completedExams = FilterCompletedExams(allExams);
 
             // 更新UI
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ProvincialExams.Clear();
-                foreach (StudentExamDto exam in exams)
+                CompletedProvincialExams.Clear();
+
+                foreach (StudentExamDto exam in activeExams)
                 {
                     ProvincialExams.Add(exam);
+                }
+
+                foreach (StudentExamDto exam in completedExams)
+                {
+                    CompletedProvincialExams.Add(exam);
                 }
             });
 
@@ -226,16 +247,27 @@ public class UnifiedExamViewModel : ViewModelBase
             SchoolExamCount = await _studentExamService.GetAvailableExamCountByCategoryAsync(ExamCategory.School);
 
             // 获取第一页数据
-            List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
+            List<StudentExamDto> allExams = await _studentExamService.GetAvailableExamsByCategoryAsync(
                 ExamCategory.School, SchoolCurrentPage, PageSize);
+
+            // 按状态过滤考试
+            List<StudentExamDto> activeExams = FilterActiveExams(allExams);
+            List<StudentExamDto> completedExams = FilterCompletedExams(allExams);
 
             // 更新UI
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 SchoolExams.Clear();
-                foreach (StudentExamDto exam in exams)
+                CompletedSchoolExams.Clear();
+
+                foreach (StudentExamDto exam in activeExams)
                 {
                     SchoolExams.Add(exam);
+                }
+
+                foreach (StudentExamDto exam in completedExams)
+                {
+                    CompletedSchoolExams.Add(exam);
                 }
             });
 
@@ -459,6 +491,55 @@ public class UnifiedExamViewModel : ViewModelBase
         }
 
         return "时间待定";
+    }
+
+    /// <summary>
+    /// 过滤进行中的考试
+    /// </summary>
+    /// <param name="exams">所有考试列表</param>
+    /// <returns>进行中的考试列表</returns>
+    private static List<StudentExamDto> FilterActiveExams(List<StudentExamDto> exams)
+    {
+        DateTime now = DateTime.Now;
+        return exams.Where(exam =>
+        {
+            // 状态为已发布或进行中
+            if (exam.Status == "Published" || exam.Status == "InProgress")
+            {
+                // 如果有时间设置，检查是否在时间范围内
+                if (exam.StartTime.HasValue && exam.EndTime.HasValue)
+                {
+                    return now >= exam.StartTime.Value && now <= exam.EndTime.Value;
+                }
+                // 如果没有时间设置，根据状态判断
+                return exam.Status == "Published" || exam.Status == "InProgress";
+            }
+            return false;
+        }).ToList();
+    }
+
+    /// <summary>
+    /// 过滤已结束的考试
+    /// </summary>
+    /// <param name="exams">所有考试列表</param>
+    /// <returns>已结束的考试列表</returns>
+    private static List<StudentExamDto> FilterCompletedExams(List<StudentExamDto> exams)
+    {
+        DateTime now = DateTime.Now;
+        return exams.Where(exam =>
+        {
+            // 状态为已完成
+            if (exam.Status == "Completed")
+            {
+                return true;
+            }
+            // 或者当前时间超过结束时间
+            if (exam.EndTime.HasValue && now > exam.EndTime.Value)
+            {
+                return true;
+            }
+            return false;
+        }).ToList();
     }
 
     #endregion
