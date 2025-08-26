@@ -12,6 +12,8 @@
         <converters:ExamStatusConverter x:Key="ExamStatusConverter" />
         <converters:ExamButtonTextConverter x:Key="ExamButtonTextConverter" />
         <converters:ExamButtonEnabledConverter x:Key="ExamButtonEnabledConverter" />
+        <converters:ExamCanStartConverter x:Key="ExamCanStartConverter" />
+        <converters:ExamCompletedNoOptionsConverter x:Key="ExamCompletedNoOptionsConverter" />
 
         <!--  统计卡片自定义颜色方案  -->
 

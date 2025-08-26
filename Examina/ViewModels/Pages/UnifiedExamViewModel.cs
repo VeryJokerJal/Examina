@@ -143,6 +143,21 @@ public class UnifiedExamViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<StudentExamDto, Unit> ViewSchoolExamDetailsCommand { get; }
 
+    /// <summary>
+    /// 开始考试命令
+    /// </summary>
+    public ReactiveCommand<StudentExamDto, Unit> StartExamCommand { get; }
+
+    /// <summary>
+    /// 重新考试命令（记录分数和排名）
+    /// </summary>
+    public ReactiveCommand<StudentExamDto, Unit> RetakeExamCommand { get; }
+
+    /// <summary>
+    /// 练习模式命令（不记录分数和排名）
+    /// </summary>
+    public ReactiveCommand<StudentExamDto, Unit> PracticeExamCommand { get; }
+
     #endregion
 
     #region 构造函数
@@ -162,6 +177,9 @@ public class UnifiedExamViewModel : ViewModelBase
         LoadMoreSchoolExamsCommand = ReactiveCommand.CreateFromTask(LoadMoreSchoolExamsAsync);
         ViewProvincialExamDetailsCommand = ReactiveCommand.Create<StudentExamDto>(ViewProvincialExamDetails);
         ViewSchoolExamDetailsCommand = ReactiveCommand.Create<StudentExamDto>(ViewSchoolExamDetails);
+        StartExamCommand = ReactiveCommand.Create<StudentExamDto>(StartExam);
+        RetakeExamCommand = ReactiveCommand.Create<StudentExamDto>(RetakeExam);
+        PracticeExamCommand = ReactiveCommand.Create<StudentExamDto>(PracticeExam);
 
         // 初始化用户权限状态
         UpdateUserPermissions();
@@ -586,6 +604,40 @@ public class UnifiedExamViewModel : ViewModelBase
 
         System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] 过滤结果: {result.Count} 个已结束的考试");
         return result;
+    }
+
+    #endregion
+
+    #region 考试操作方法
+
+    /// <summary>
+    /// 开始考试
+    /// </summary>
+    private void StartExam(StudentExamDto exam)
+    {
+        System.Diagnostics.Debug.WriteLine($"[StartExam] 开始考试: {exam.Name}");
+        // TODO: 实现开始考试逻辑
+        // 这里应该导航到考试界面，传递考试模式为正式考试
+    }
+
+    /// <summary>
+    /// 重新考试（记录分数和排名）
+    /// </summary>
+    private void RetakeExam(StudentExamDto exam)
+    {
+        System.Diagnostics.Debug.WriteLine($"[RetakeExam] 重新考试: {exam.Name}");
+        // TODO: 实现重新考试逻辑
+        // 这里应该导航到考试界面，传递考试模式为重考模式（记录分数）
+    }
+
+    /// <summary>
+    /// 练习模式（不记录分数和排名）
+    /// </summary>
+    private void PracticeExam(StudentExamDto exam)
+    {
+        System.Diagnostics.Debug.WriteLine($"[PracticeExam] 练习模式: {exam.Name}");
+        // TODO: 实现练习模式逻辑
+        // 这里应该导航到考试界面，传递考试模式为练习模式（不记录分数）
     }
 
     #endregion

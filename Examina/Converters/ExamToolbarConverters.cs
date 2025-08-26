@@ -157,3 +157,53 @@ public class BoolToSubmitTextConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// 考试是否可以开始转换器
+/// </summary>
+public class ExamCanStartConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is Examina.Models.Exam.StudentExamDto exam)
+        {
+            // 考试可以开始的条件：状态为Published或InProgress，且在时间范围内，且未完成
+            bool canStart = (exam.Status == "Published" || exam.Status == "InProgress") &&
+                           exam.StartTime.HasValue && exam.EndTime.HasValue &&
+                           DateTime.Now >= exam.StartTime.Value && DateTime.Now <= exam.EndTime.Value;
+
+            System.Diagnostics.Debug.WriteLine($"[ExamCanStartConverter] {exam.Name}: Status={exam.Status}, CanStart={canStart}");
+            return canStart;
+        }
+        return false;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// 考试已完成且无重考/重做选项转换器
+/// </summary>
+public class ExamCompletedNoOptionsConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is Examina.Models.Exam.StudentExamDto exam)
+        {
+            // 显示"联考已完成"的条件：考试已结束且不允许重考和重做
+            bool showCompleted = exam.Status == "Completed" && !exam.AllowRetake && !exam.AllowPractice;
+
+            System.Diagnostics.Debug.WriteLine($"[ExamCompletedNoOptionsConverter] {exam.Name}: Status={exam.Status}, AllowRetake={exam.AllowRetake}, AllowPractice={exam.AllowPractice}, ShowCompleted={showCompleted}");
+            return showCompleted;
+        }
+        return false;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
