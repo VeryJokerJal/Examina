@@ -11,6 +11,7 @@ namespace ExaminaWebApplication.Controllers;
 /// 考试管理控制器
 /// </summary>
 [Authorize(Policy = "TeacherOrAdminPolicy")]
+[Route("ExamManagement")]
 public class ExamManagementController : Controller
 {
     private readonly ExamImportService _examImportService;
@@ -33,6 +34,8 @@ public class ExamManagementController : Controller
     /// <summary>
     /// 考试管理首页
     /// </summary>
+    [HttpGet("")]
+    [HttpGet("Index")]
     public async Task<IActionResult> Index()
     {
         try
@@ -52,6 +55,7 @@ public class ExamManagementController : Controller
     /// <summary>
     /// 考试列表页面
     /// </summary>
+    [HttpGet("ExamList")]
     public async Task<IActionResult> ExamList()
     {
         try
@@ -73,6 +77,7 @@ public class ExamManagementController : Controller
     /// <summary>
     /// 考试详情页面
     /// </summary>
+    [HttpGet("ExamDetails/{id}")]
     public async Task<IActionResult> ExamDetails(int id)
     {
         try
@@ -113,7 +118,7 @@ public class ExamManagementController : Controller
     /// <summary>
     /// 处理考试导入
     /// </summary>
-    [HttpPost]
+    [HttpPost("ImportExam")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportExam(IFormFile examFile)
     {
@@ -171,9 +176,8 @@ public class ExamManagementController : Controller
     /// <summary>
     /// 删除导入的考试
     /// </summary>
-    [HttpPost]
+    [HttpPost("DeleteExam")]
     [ValidateAntiForgeryToken]
-    [Route("ExamManagement/DeleteExam")]
     public async Task<IActionResult> DeleteExam(int id)
     {
         try
@@ -205,7 +209,7 @@ public class ExamManagementController : Controller
     /// <param name="id">考试ID</param>
     /// <param name="examCategory">考试类型</param>
     /// <returns>更新结果</returns>
-    [HttpPost]
+    [HttpPost("UpdateExamCategory")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateExamCategory(int id, ExamCategory examCategory)
     {
@@ -238,6 +242,7 @@ public class ExamManagementController : Controller
     /// </summary>
     /// <param name="id">考试ID</param>
     /// <returns>时间设置页面</returns>
+    [HttpGet("ExamSchedule/{id}")]
     public async Task<IActionResult> ExamSchedule(int id)
     {
         try
@@ -272,7 +277,7 @@ public class ExamManagementController : Controller
     /// <param name="status">考试状态</param>
     /// <param name="examCategory">考试类型</param>
     /// <returns>更新结果</returns>
-    [HttpPost]
+    [HttpPost("UpdateExamSchedule")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateExamSchedule(int id, DateTime startTime, DateTime endTime, string status, ExamCategory examCategory)
     {
@@ -339,7 +344,7 @@ public class ExamManagementController : Controller
     /// 创建测试数据
     /// </summary>
     /// <returns>创建结果</returns>
-    [HttpPost]
+    [HttpPost("CreateTestData")]
     public async Task<IActionResult> CreateTestData()
     {
         try
