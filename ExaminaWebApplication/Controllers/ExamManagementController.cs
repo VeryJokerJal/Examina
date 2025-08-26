@@ -226,4 +226,97 @@ public class ExamManagementController : Controller
             return Json(new { success = false, message = "更新失败，请稍后重试" });
         }
     }
+
+    /// <summary>
+    /// 考试时间设置页面
+    /// </summary>
+    /// <param name="id">考试ID</param>
+    /// <returns>时间设置页面</returns>
+    public async Task<IActionResult> ExamSchedule(int id)
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            ImportedExam? exam = await _examImportService.GetImportedExamByIdAsync(id, userId);
+
+            if (exam == null)
+            {
+                TempData["ErrorMessage"] = "考试不存在或您没有权限访问";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(exam);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取考试时间设置页面失败，考试ID: {ExamId}", id);
+            TempData["ErrorMessage"] = "获取考试信息失败，请稍后重试";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
+    /// <summary>
+    /// 更新考试时间和状态
+    /// </summary>
+    /// <param name="id">考试ID</param>
+    /// <param name="startTime">开始时间</param>
+    /// <param name="endTime">结束时间</param>
+    /// <param name="status">考试状态</param>
+    /// <param name="examCategory">考试类型</param>
+    /// <returns>更新结果</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateExamSchedule(int id, DateTime startTime, DateTime endTime, string status, ExamCategory examCategory)
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            // 验证时间
+            if (endTime <= startTime)
+            {
+                TempData["ErrorMessage"] = "结束时间必须晚于开始时间";
+                return RedirectToAction(nameof(ExamSchedule), new { id });
+            }
+
+            // 更新考试时间
+            bool timeUpdateSuccess = await _examImportService.UpdateExamScheduleAsync(id, userId, startTime, endTime);
+            if (!timeUpdateSuccess)
+            {
+                TempData["ErrorMessage"] = "更新考试时间失败，考试不存在或您没有权限";
+                return RedirectToAction(nameof(ExamSchedule), new { id });
+            }
+
+            // 更新考试状态
+            bool statusUpdateSuccess = await _examImportService.UpdateExamStatusAsync(id, userId, status);
+            if (!statusUpdateSuccess)
+            {
+                TempData["ErrorMessage"] = "更新考试状态失败";
+                return RedirectToAction(nameof(ExamSchedule), new { id });
+            }
+
+            // 更新考试类型
+            bool categoryUpdateSuccess = await _examImportService.UpdateExamCategoryAsync(id, examCategory, userId);
+            if (!categoryUpdateSuccess)
+            {
+                TempData["ErrorMessage"] = "更新考试类型失败";
+                return RedirectToAction(nameof(ExamSchedule), new { id });
+            }
+
+            TempData["SuccessMessage"] = "考试设置更新成功！";
+            _logger.LogInformation("用户 {UserId} 成功更新考试设置: 考试ID {ExamId}, 开始时间 {StartTime}, 结束时间 {EndTime}, 状态 {Status}, 类型 {Category}",
+                userId, id, startTime, endTime, status, examCategory);
+
+            return RedirectToAction(nameof(ExamDetails), new { id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试设置失败，考试ID: {ExamId}", id);
+            TempData["ErrorMessage"] = "更新考试设置失败，请稍后重试";
+            return RedirectToAction(nameof(ExamSchedule), new { id });
+        }
+    }
 }

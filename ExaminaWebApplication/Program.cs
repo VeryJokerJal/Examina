@@ -145,6 +145,9 @@ builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecia
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecialPracticeService, ExaminaWebApplication.Services.Student.StudentSpecialPracticeService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentMockExamService, ExaminaWebApplication.Services.Student.StudentMockExamService>();
 
+// 注册管理员端服务
+builder.Services.AddScoped<ExaminaWebApplication.Services.Admin.IAdminExamManagementService, ExaminaWebApplication.Services.Admin.AdminExamManagementService>();
+
 // 注册排行榜服务
 builder.Services.AddScoped<RankingService>();
 

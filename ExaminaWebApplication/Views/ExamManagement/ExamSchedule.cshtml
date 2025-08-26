@@ -1,0 +1,258 @@
+@model ExaminaWebApplication.Models.ImportedExam.ImportedExam
+@{
+    ViewData["Title"] = "考试时间设置";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">考试时间设置 - @Model.Name</h3>
+                    <div class="card-tools">
+                        <a href="@Url.Action("ExamDetails", new { id = Model.Id })" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> 返回详情
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="UpdateExamSchedule" method="post" id="scheduleForm">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">考试基本信息</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">考试名称</label>
+                                            <input type="text" class="form-control" value="@Model.Name" readonly />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">考试类型</label>
+                                            <input type="text" class="form-control" value="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "全省统考" : "学校统考")" readonly />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">考试时长</label>
+                                            <input type="text" class="form-control" value="@Model.DurationMinutes 分钟" readonly />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">当前状态</label>
+                                            <span class="badge bg-@(GetStatusBadgeClass(Model.Status))">@GetStatusDisplayText(Model.Status)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">时间设置</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="startTime" class="form-label">开始时间 <span class="text-danger">*</span></label>
+                                            <input type="datetime-local" 
+                                                   id="startTime" 
+                                                   name="startTime" 
+                                                   class="form-control" 
+                                                   value="@(Model.StartTime?.ToString("yyyy-MM-ddTHH:mm"))" 
+                                                   required />
+                                            <div class="form-text">考试开始的时间</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="endTime" class="form-label">结束时间 <span class="text-danger">*</span></label>
+                                            <input type="datetime-local" 
+                                                   id="endTime" 
+                                                   name="endTime" 
+                                                   class="form-control" 
+                                                   value="@(Model.EndTime?.ToString("yyyy-MM-ddTHH:mm"))" 
+                                                   required />
+                                            <div class="form-text">考试结束的时间</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">计算时长</label>
+                                            <div id="calculatedDuration" class="form-control-plaintext text-muted">
+                                                请设置开始和结束时间
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">状态管理</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="status" class="form-label">考试状态</label>
+                                            <select id="status" name="status" class="form-select">
+                                                <option value="Draft" @(Model.Status == "Draft" ? "selected" : "")>草稿</option>
+                                                <option value="Scheduled" @(Model.Status == "Scheduled" ? "selected" : "")>已安排</option>
+                                                <option value="Published" @(Model.Status == "Published" ? "selected" : "")>已发布</option>
+                                                <option value="InProgress" @(Model.Status == "InProgress" ? "selected" : "")>进行中</option>
+                                                <option value="Completed" @(Model.Status == "Completed" ? "selected" : "")>已结束</option>
+                                                <option value="Cancelled" @(Model.Status == "Cancelled" ? "selected" : "")>已取消</option>
+                                            </select>
+                                            <div class="form-text">
+                                                <strong>状态说明：</strong><br>
+                                                • 草稿：考试正在准备中<br>
+                                                • 已安排：考试时间已设置<br>
+                                                • 已发布：考试对学生可见<br>
+                                                • 进行中：考试正在进行<br>
+                                                • 已结束：考试已完成<br>
+                                                • 已取消：考试已取消
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="examCategory" class="form-label">考试类型</label>
+                                            <select id="examCategory" name="examCategory" class="form-select">
+                                                <option value="School" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School ? "selected" : "")>学校统考</option>
+                                                <option value="Provincial" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "selected" : "")>全省统考</option>
+                                            </select>
+                                            <div class="form-text">选择考试的类型范围</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="@Url.Action("ExamDetails", new { id = Model.Id })" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> 取消
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> 保存设置
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // 计算时长
+            function calculateDuration() {
+                const startTime = $('#startTime').val();
+                const endTime = $('#endTime').val();
+                
+                if (startTime && endTime) {
+                    const start = new Date(startTime);
+                    const end = new Date(endTime);
+                    
+                    if (end > start) {
+                        const diffMs = end - start;
+                        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                        
+                        $('#calculatedDuration').text(`${diffHours}小时${diffMinutes}分钟`);
+                        $('#calculatedDuration').removeClass('text-danger').addClass('text-success');
+                    } else {
+                        $('#calculatedDuration').text('结束时间必须晚于开始时间');
+                        $('#calculatedDuration').removeClass('text-success').addClass('text-danger');
+                    }
+                } else {
+                    $('#calculatedDuration').text('请设置开始和结束时间');
+                    $('#calculatedDuration').removeClass('text-success text-danger').addClass('text-muted');
+                }
+            }
+            
+            // 监听时间变化
+            $('#startTime, #endTime').on('change', calculateDuration);
+            
+            // 初始计算
+            calculateDuration();
+            
+            // 表单验证
+            $('#scheduleForm').on('submit', function(e) {
+                const startTime = $('#startTime').val();
+                const endTime = $('#endTime').val();
+                
+                if (!startTime || !endTime) {
+                    e.preventDefault();
+                    alert('请设置开始时间和结束时间');
+                    return false;
+                }
+                
+                const start = new Date(startTime);
+                const end = new Date(endTime);
+                
+                if (end <= start) {
+                    e.preventDefault();
+                    alert('结束时间必须晚于开始时间');
+                    return false;
+                }
+                
+                if (start <= new Date()) {
+                    if (!confirm('开始时间早于或等于当前时间，确定要继续吗？')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetStatusDisplayText(string status)
+    {
+        return status switch
+        {
+            "Draft" => "草稿",
+            "Scheduled" => "已安排",
+            "Published" => "已发布",
+            "InProgress" => "进行中",
+            "Completed" => "已结束",
+            "Cancelled" => "已取消",
+            _ => "未知状态"
+        };
+    }
+    
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Draft" => "secondary",
+            "Scheduled" => "info",
+            "Published" => "success",
+            "InProgress" => "warning",
+            "Completed" => "primary",
+            "Cancelled" => "danger",
+            _ => "secondary"
+        };
+    }
+}

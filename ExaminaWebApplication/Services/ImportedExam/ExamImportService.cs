@@ -522,4 +522,121 @@ public class ExamImportService
             return false;
         }
     }
+
+    /// <summary>
+    /// 更新考试时间安排
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="userId">操作用户ID</param>
+    /// <param name="startTime">开始时间</param>
+    /// <param name="endTime">结束时间</param>
+    /// <returns>更新是否成功</returns>
+    public async Task<bool> UpdateExamScheduleAsync(int examId, int userId, DateTime startTime, DateTime endTime)
+    {
+        try
+        {
+            Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在，考试ID: {ExamId}", examId);
+                return false;
+            }
+
+            _logger.LogInformation("用户 {UserId} 尝试更新考试 {ExamName} (ID: {ExamId}) 的时间安排，开始时间: {StartTime}, 结束时间: {EndTime}",
+                userId, exam.Name, examId, startTime, endTime);
+
+            // 更新考试时间
+            exam.StartTime = startTime;
+            exam.EndTime = endTime;
+
+            // 如果状态是草稿，自动更新为已安排
+            if (exam.Status == "Draft")
+            {
+                exam.Status = "Scheduled";
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("考试时间安排更新成功，考试 {ExamName} (ID: {ExamId})",
+                exam.Name, examId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试时间安排失败，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 更新考试状态
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="userId">操作用户ID</param>
+    /// <param name="status">新状态</param>
+    /// <returns>更新是否成功</returns>
+    public async Task<bool> UpdateExamStatusAsync(int examId, int userId, string status)
+    {
+        try
+        {
+            Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在，考试ID: {ExamId}", examId);
+                return false;
+            }
+
+            string oldStatus = exam.Status;
+
+            _logger.LogInformation("用户 {UserId} 尝试更新考试 {ExamName} (ID: {ExamId}) 的状态从 {OldStatus} 到 {NewStatus}",
+                userId, exam.Name, examId, oldStatus, status);
+
+            // 验证状态转换是否合法
+            if (!IsValidStatusTransition(oldStatus, status))
+            {
+                _logger.LogWarning("无效的状态转换，考试ID: {ExamId}, 当前状态: {CurrentStatus}, 目标状态: {TargetStatus}",
+                    examId, oldStatus, status);
+                return false;
+            }
+
+            // 更新考试状态
+            exam.Status = status;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("考试状态更新成功，考试 {ExamName} (ID: {ExamId}) 状态从 {OldStatus} 更新为 {NewStatus}",
+                exam.Name, examId, oldStatus, status);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试状态失败，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 验证状态转换是否合法
+    /// </summary>
+    /// <param name="currentStatus">当前状态</param>
+    /// <param name="targetStatus">目标状态</param>
+    /// <returns>是否合法</returns>
+    private static bool IsValidStatusTransition(string currentStatus, string targetStatus)
+    {
+        return currentStatus switch
+        {
+            "Draft" => targetStatus is "Scheduled" or "Published" or "Cancelled",
+            "Scheduled" => targetStatus is "Published" or "Cancelled" or "Draft",
+            "Published" => targetStatus is "InProgress" or "Cancelled",
+            "InProgress" => targetStatus is "Completed" or "Cancelled",
+            "Completed" => false, // 已完成的考试不能再改变状态
+            "Cancelled" => targetStatus == "Draft", // 已取消的考试只能回到草稿状态
+            _ => false
+        };
+    }
 }
