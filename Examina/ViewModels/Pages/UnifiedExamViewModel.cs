@@ -293,20 +293,35 @@ public class UnifiedExamViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 全省统考过滤结果: 进行中 {activeExams.Count} 个, 已结束 {completedExams.Count} 个");
 
+            // 在后台线程中创建包含权限信息的对象
+            List<ExamWithPermissionsDto> activeExamsWithPermissions = new();
+            foreach (StudentExamDto exam in activeExams)
+            {
+                ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
+                activeExamsWithPermissions.Add(examWithPermissions);
+            }
+
+            List<ExamWithPermissionsDto> completedExamsWithPermissions = new();
+            foreach (StudentExamDto exam in completedExams)
+            {
+                ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
+                completedExamsWithPermissions.Add(examWithPermissions);
+            }
+
             // 更新UI
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ProvincialExams.Clear();
                 CompletedProvincialExams.Clear();
 
-                foreach (StudentExamDto exam in activeExams)
+                foreach (ExamWithPermissionsDto examWithPermissions in activeExamsWithPermissions)
                 {
-                    ProvincialExams.Add(exam);
+                    ProvincialExams.Add(examWithPermissions);
                 }
 
-                foreach (StudentExamDto exam in completedExams)
+                foreach (ExamWithPermissionsDto examWithPermissions in completedExamsWithPermissions)
                 {
-                    CompletedProvincialExams.Add(exam);
+                    CompletedProvincialExams.Add(examWithPermissions);
                 }
             });
 
@@ -353,20 +368,35 @@ public class UnifiedExamViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 学校统考过滤结果: 进行中 {activeExams.Count} 个, 已结束 {completedExams.Count} 个");
 
+            // 在后台线程中创建包含权限信息的对象
+            List<ExamWithPermissionsDto> activeExamsWithPermissions = new();
+            foreach (StudentExamDto exam in activeExams)
+            {
+                ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
+                activeExamsWithPermissions.Add(examWithPermissions);
+            }
+
+            List<ExamWithPermissionsDto> completedExamsWithPermissions = new();
+            foreach (StudentExamDto exam in completedExams)
+            {
+                ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
+                completedExamsWithPermissions.Add(examWithPermissions);
+            }
+
             // 更新UI
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 SchoolExams.Clear();
                 CompletedSchoolExams.Clear();
 
-                foreach (StudentExamDto exam in activeExams)
+                foreach (ExamWithPermissionsDto examWithPermissions in activeExamsWithPermissions)
                 {
-                    SchoolExams.Add(exam);
+                    SchoolExams.Add(examWithPermissions);
                 }
 
-                foreach (StudentExamDto exam in completedExams)
+                foreach (ExamWithPermissionsDto examWithPermissions in completedExamsWithPermissions)
                 {
-                    CompletedSchoolExams.Add(exam);
+                    CompletedSchoolExams.Add(examWithPermissions);
                 }
             });
 
