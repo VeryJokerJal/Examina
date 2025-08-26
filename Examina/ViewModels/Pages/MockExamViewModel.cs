@@ -84,7 +84,6 @@ public class MockExamViewModel : ViewModelBase
 
         // 初始化命令（设计时不执行实际逻辑）
         StartMockExamCommand = ReactiveCommand.Create(() => { });
-        RefreshCommand = ReactiveCommand.Create(() => { });
     }
 
     public MockExamViewModel(IStudentMockExamService mockExamService, IAuthenticationService authenticationService)

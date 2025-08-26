@@ -213,10 +213,12 @@ public class TrainingResultViewModel : ViewModelBase
                 FileType = kvp.Key
             };
 
-            // 如果是C#模块且有AI分析结果，添加AI反馈信息
-            if (kvp.Key == BenchSuiteFileType.CSharp && fileResult.ScoringResult is BenchSuite.Models.CSharpScoringResult csharpResult)
+            // 如果是C#模块，尝试从详细信息中解析AI分析结果
+            if (kvp.Key == BenchSuiteFileType.CSharp)
             {
-                ProcessCSharpAIAnalysis(moduleItem, csharpResult);
+                // 注意：当前FileTypeScoringResult不包含原始CSharpScoringResult
+                // 这里可以在未来版本中添加对AI分析结果的支持
+                // ProcessCSharpAIAnalysis(moduleItem, csharpResult);
             }
             
             ModuleResults.Add(moduleItem);
