@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
 
         // 注册其他应用程序服务
         // services.AddSingleton<IOtherService, OtherService>();
-        
+
         return services;
     }
 
@@ -35,10 +35,10 @@ public static class ServiceCollectionExtensions
     public static async Task<IServiceProvider> BuildAndInitializeAsync(this IServiceCollection services)
     {
         IServiceProvider serviceProvider = services.BuildServiceProvider();
-        
+
         // 初始化BenchSuite服务
         await serviceProvider.InitializeBenchSuiteServicesAsync();
-        
+
         return serviceProvider;
     }
 }
