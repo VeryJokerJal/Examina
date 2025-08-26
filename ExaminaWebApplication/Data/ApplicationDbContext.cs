@@ -72,6 +72,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<ComprehensiveTrainingFileAssociation> ComprehensiveTrainingFileAssociations { get; set; }
     public DbSet<SpecializedTrainingFileAssociation> SpecializedTrainingFileAssociations { get; set; }
 
+    // 考试学校关联实体
+    public DbSet<ExamSchoolAssociation> ExamSchoolAssociations { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -328,6 +331,9 @@ public class ApplicationDbContext : DbContext
 
         // 配置模拟考试相关实体
         ConfigureMockExamEntities(modelBuilder);
+
+        // 配置考试学校关联实体
+        ConfigureExamSchoolAssociationEntity(modelBuilder);
     }
 
     /// <summary>
@@ -1154,6 +1160,47 @@ public class ApplicationDbContext : DbContext
             _ = entity.HasOne(e => e.File)
                   .WithMany(f => f.SpecializedTrainingAssociations)
                   .HasForeignKey(e => e.FileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    /// <summary>
+    /// 配置考试学校关联实体
+    /// </summary>
+    private static void ConfigureExamSchoolAssociationEntity(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<ExamSchoolAssociation>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => new { e.ExamId, e.SchoolId }).IsUnique();
+            _ = entity.HasIndex(e => e.ExamId);
+            _ = entity.HasIndex(e => e.SchoolId);
+            _ = entity.HasIndex(e => e.CreatedBy);
+            _ = entity.HasIndex(e => e.CreatedAt);
+            _ = entity.HasIndex(e => e.IsActive);
+
+            // 配置属性
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.CreatedBy).IsRequired();
+            _ = entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            _ = entity.Property(e => e.Remarks).HasMaxLength(500);
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Exam)
+                  .WithMany()
+                  .HasForeignKey(e => e.ExamId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasOne(e => e.School)
+                  .WithMany()
+                  .HasForeignKey(e => e.SchoolId)
                   .OnDelete(DeleteBehavior.Cascade);
 
             _ = entity.HasOne(e => e.Creator)

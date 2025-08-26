@@ -215,6 +215,30 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- 学校配置区域（仅在学校统考时显示） -->
+                    <div class="row mt-3" id="schoolConfigSection" style="display: @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School ? "block" : "none")">
+                        <div class="col-12">
+                            <div class="glass-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-buildings me-2"></i>配置可用学校
+                                    </h5>
+                                    <button type="button" class="glass-btn glass-btn-primary" onclick="showAddSchoolModal()">
+                                        <i class="bi bi-plus-circle me-1"></i>添加学校
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="associatedSchoolsList">
+                                        <div class="text-center text-muted py-3">
+                                            <i class="bi bi-hourglass-split display-4 mb-2"></i>
+                                            <p>正在加载学校列表...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -367,6 +391,43 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加学校模态框 -->
+<div class="modal fade" id="addSchoolModal" tabindex="-1" aria-labelledby="addSchoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white" id="addSchoolModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>添加可用学校
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="schoolSearch" class="form-label text-white">搜索学校</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control glass-input" id="schoolSearch" placeholder="输入学校名称进行搜索...">
+                        <button class="glass-btn glass-btn-outline" type="button" onclick="searchSchools()">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="availableSchoolsList">
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-search display-4 mb-2"></i>
+                        <p>请输入关键词搜索学校</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="glass-btn glass-btn-primary" onclick="addSelectedSchools()" id="addSchoolsBtn" disabled>
+                    <i class="bi bi-plus-circle me-1"></i>添加选中学校
+                </button>
             </div>
         </div>
     </div>
@@ -536,9 +597,10 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // 页面加载完成后加载已关联的文件
+        // 页面加载完成后加载已关联的文件和学校配置
         document.addEventListener('DOMContentLoaded', function() {
             loadAssociatedFiles();
+            loadAssociatedSchools();
         });
 
         function deleteExam(examId, examName) {
@@ -601,6 +663,15 @@
                 if (data.success) {
                     // 显示成功提示
                     showToast('success', data.message);
+
+                    // 根据考试类型显示/隐藏学校配置区域
+                    const schoolConfigSection = document.getElementById('schoolConfigSection');
+                    if (categoryValue === '0') { // 学校统考
+                        schoolConfigSection.style.display = 'block';
+                        loadAssociatedSchools(); // 加载学校配置
+                    } else { // 全省统考
+                        schoolConfigSection.style.display = 'none';
+                    }
                 } else {
                     // 更新失败，恢复原来的选择
                     const originalValue = categoryValue === '0' ? '1' : '0';
@@ -733,5 +804,237 @@
                 }, 3000);
             }
         }
+
+        // ========== 学校配置相关函数 ==========
+
+        // 加载已关联的学校列表
+        function loadAssociatedSchools() {
+            const examId = @Model.Id;
+
+            fetch(`/api/ExamSchoolConfiguration/exam/${examId}/schools`)
+                .then(response => response.json())
+                .then(schools => {
+                    displayAssociatedSchools(schools);
+                })
+                .catch(error => {
+                    console.error('加载学校列表失败:', error);
+                    document.getElementById('associatedSchoolsList').innerHTML = `
+                        <div class="text-center text-danger py-3">
+                            <i class="bi bi-exclamation-triangle display-4 mb-2"></i>
+                            <p>加载学校列表失败</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // 显示已关联的学校列表
+        function displayAssociatedSchools(schools) {
+            const container = document.getElementById('associatedSchoolsList');
+
+            if (schools.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-buildings display-4 mb-2"></i>
+                        <p>暂无关联学校</p>
+                        <small class="text-muted">点击"添加学校"按钮来配置可参与此次统考的学校</small>
+                    </div>
+                `;
+                return;
+            }
+
+            const schoolsHtml = schools.map(school => `
+                <div class="school-item d-flex justify-content-between align-items-center p-3 border rounded mb-2 glass-card-light">
+                    <div class="school-info d-flex align-items-center">
+                        <i class="bi bi-building me-3 text-primary" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <div class="fw-medium text-white">${school.name}</div>
+                            <small class="text-white-50">学校ID: ${school.id}</small>
+                        </div>
+                    </div>
+                    <div class="school-actions">
+                        <button type="button" class="glass-btn glass-btn-outline glass-btn-sm" onclick="removeSchoolAssociation(${school.id})">
+                            <i class="bi bi-trash"></i> 移除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = schoolsHtml;
+        }
+
+        // 显示添加学校模态框
+        function showAddSchoolModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addSchoolModal'));
+            modal.show();
+
+            // 清空搜索框和结果
+            document.getElementById('schoolSearch').value = '';
+            document.getElementById('availableSchoolsList').innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-search display-4 mb-2"></i>
+                    <p>请输入关键词搜索学校</p>
+                </div>
+            `;
+            document.getElementById('addSchoolsBtn').disabled = true;
+        }
+
+        // 搜索学校
+        function searchSchools() {
+            const keyword = document.getElementById('schoolSearch').value.trim();
+            if (!keyword) {
+                showToast('error', '请输入搜索关键词');
+                return;
+            }
+
+            const container = document.getElementById('availableSchoolsList');
+            container.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    正在搜索学校...
+                </div>
+            `;
+
+            // 这里应该调用搜索学校的API
+            // 暂时使用模拟数据
+            setTimeout(() => {
+                const mockSchools = [
+                    { id: 1, name: '示例学校A', type: 0 },
+                    { id: 2, name: '示例学校B', type: 0 },
+                    { id: 3, name: '示例学校C', type: 0 }
+                ].filter(school => school.name.includes(keyword));
+
+                displayAvailableSchools(mockSchools);
+            }, 1000);
+        }
+
+        // 显示可用学校列表
+        function displayAvailableSchools(schools) {
+            const container = document.getElementById('availableSchoolsList');
+
+            if (schools.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-search display-4 mb-2"></i>
+                        <p>未找到匹配的学校</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const schoolsHtml = schools.map(school => `
+                <div class="form-check p-3 border rounded mb-2">
+                    <input class="form-check-input" type="checkbox" value="${school.id}" id="school_${school.id}" onchange="updateAddButton()">
+                    <label class="form-check-label text-white w-100" for="school_${school.id}">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-building me-3 text-primary"></i>
+                            <div>
+                                <div class="fw-medium">${school.name}</div>
+                                <small class="text-white-50">学校ID: ${school.id}</small>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            `).join('');
+
+            container.innerHTML = schoolsHtml;
+        }
+
+        // 更新添加按钮状态
+        function updateAddButton() {
+            const checkboxes = document.querySelectorAll('#availableSchoolsList input[type="checkbox"]:checked');
+            document.getElementById('addSchoolsBtn').disabled = checkboxes.length === 0;
+        }
+
+        // 添加选中的学校
+        function addSelectedSchools() {
+            const checkboxes = document.querySelectorAll('#availableSchoolsList input[type="checkbox"]:checked');
+            const schoolIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (schoolIds.length === 0) {
+                showToast('error', '请选择要添加的学校');
+                return;
+            }
+
+            const examId = @Model.Id;
+            const addBtn = document.getElementById('addSchoolsBtn');
+            addBtn.disabled = true;
+            addBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>添加中...';
+
+            // 批量添加学校关联
+            fetch(`/api/ExamSchoolConfiguration/exam/${examId}/schools/batch`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    schoolIds: schoolIds,
+                    remarks: '通过考试详情页面添加'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.successCount > 0) {
+                    showToast('success', data.message);
+                    loadAssociatedSchools(); // 重新加载学校列表
+
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addSchoolModal'));
+                    modal.hide();
+                } else {
+                    showToast('error', data.message || '添加学校失败');
+                }
+            })
+            .catch(error => {
+                console.error('添加学校失败:', error);
+                showToast('error', '添加学校时发生错误');
+            })
+            .finally(() => {
+                addBtn.disabled = false;
+                addBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>添加选中学校';
+            });
+        }
+
+        // 移除学校关联
+        function removeSchoolAssociation(schoolId) {
+            if (!confirm('确定要移除这个学校的关联吗？')) {
+                return;
+            }
+
+            const examId = @Model.Id;
+
+            fetch(`/api/ExamSchoolConfiguration/exam/${examId}/schools/${schoolId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    showToast('success', data.message);
+                    loadAssociatedSchools(); // 重新加载学校列表
+                } else {
+                    showToast('error', data.message || '移除学校失败');
+                }
+            })
+            .catch(error => {
+                console.error('移除学校失败:', error);
+                showToast('error', '移除学校时发生错误');
+            });
+        }
+
+        // 搜索框回车事件
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('schoolSearch');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchSchools();
+                    }
+                });
+            }
+        });
     </script>
 }

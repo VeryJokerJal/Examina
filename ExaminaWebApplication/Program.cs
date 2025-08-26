@@ -138,6 +138,9 @@ builder.Services.AddScoped<ITeacherOrganizationService, TeacherOrganizationServi
 builder.Services.AddScoped<INonOrganizationStudentService, NonOrganizationStudentService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
+// 注册学校权限验证服务
+builder.Services.AddScoped<ExaminaWebApplication.Services.School.ISchoolPermissionService, ExaminaWebApplication.Services.School.SchoolPermissionService>();
+
 // 注册学生端服务
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentExamService, ExaminaWebApplication.Services.Student.StudentExamService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentComprehensiveTrainingService, ExaminaWebApplication.Services.Student.StudentComprehensiveTrainingService>();

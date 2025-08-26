@@ -2,6 +2,7 @@ using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedExam;
+using ExaminaWebApplication.Services.School;
 using Microsoft.EntityFrameworkCore;
 using ImportedExamEntity = ExaminaWebApplication.Models.ImportedExam.ImportedExam;
 
@@ -14,11 +15,16 @@ public class StudentExamService : IStudentExamService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<StudentExamService> _logger;
+    private readonly ISchoolPermissionService _schoolPermissionService;
 
-    public StudentExamService(ApplicationDbContext context, ILogger<StudentExamService> logger)
+    public StudentExamService(
+        ApplicationDbContext context,
+        ILogger<StudentExamService> logger,
+        ISchoolPermissionService schoolPermissionService)
     {
         _context = context;
         _logger = logger;
+        _schoolPermissionService = schoolPermissionService;
     }
 
     /// <summary>
@@ -116,22 +122,40 @@ public class StudentExamService : IStudentExamService
             }
 
             // 验证考试存在且启用
-            bool examExists = await _context.ImportedExams
-                .AnyAsync(e => e.Id == examId && e.IsEnabled);
+            ImportedExamEntity? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId && e.IsEnabled);
 
-            if (!examExists)
+            if (exam == null)
             {
                 _logger.LogWarning("考试不存在或已禁用，考试ID: {ExamId}", examId);
                 return false;
             }
 
-            // 目前简化权限验证：所有启用的考试都对学生可见
-            // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
-            return true;
+            // 根据考试类型进行权限验证
+            if (exam.ExamCategory == ExamCategory.School)
+            {
+                // 学校统考：需要验证学生是否属于有权限的学校
+                bool hasSchoolAccess = await _schoolPermissionService.HasAccessToSchoolExamAsync(studentUserId, examId);
+                _logger.LogInformation("学校统考权限验证结果，学生ID: {StudentUserId}, 考试ID: {ExamId}, 有权限: {HasAccess}",
+                    studentUserId, examId, hasSchoolAccess);
+                return hasSchoolAccess;
+            }
+            else if (exam.ExamCategory == ExamCategory.Provincial)
+            {
+                // 全省统考：所有学生都可以访问
+                _logger.LogInformation("全省统考权限验证通过，学生ID: {StudentUserId}, 考试ID: {ExamId}",
+                    studentUserId, examId);
+                return true;
+            }
+            else
+            {
+                _logger.LogWarning("未知的考试类型，考试ID: {ExamId}, 类型: {ExamCategory}", examId, exam.ExamCategory);
+                return false;
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "检查考试访问权限失败，学生ID: {StudentUserId}, 考试ID: {ExamId}", 
+            _logger.LogError(ex, "检查考试访问权限失败，学生ID: {StudentUserId}, 考试ID: {ExamId}",
                 studentUserId, examId);
             return false;
         }
@@ -167,14 +191,43 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            // 目前简化权限验证：所有启用的考试都对学生可见
-            // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
-            List<ImportedExamEntity> exams = await _context.ImportedExams
-                .Where(e => e.IsEnabled && e.ExamCategory == examCategory)
-                .OrderByDescending(e => e.ImportedAt)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            List<ImportedExamEntity> exams;
+
+            if (examCategory == ExamCategory.School)
+            {
+                // 学校统考：只返回学生所属学校有权限的考试
+                List<int> accessibleExamIds = await _schoolPermissionService.GetAccessibleSchoolExamIdsAsync(studentUserId);
+
+                exams = await _context.ImportedExams
+                    .Where(e => e.IsEnabled &&
+                               e.ExamCategory == examCategory &&
+                               accessibleExamIds.Contains(e.Id))
+                    .OrderByDescending(e => e.ImportedAt)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                _logger.LogInformation("获取学校统考列表，学生ID: {StudentUserId}, 可访问考试数: {AccessibleCount}, 返回数量: {Count}",
+                    studentUserId, accessibleExamIds.Count, exams.Count);
+            }
+            else if (examCategory == ExamCategory.Provincial)
+            {
+                // 全省统考：所有启用的全省统考都对学生可见
+                exams = await _context.ImportedExams
+                    .Where(e => e.IsEnabled && e.ExamCategory == examCategory)
+                    .OrderByDescending(e => e.ImportedAt)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                _logger.LogInformation("获取全省统考列表，学生ID: {StudentUserId}, 返回数量: {Count}",
+                    studentUserId, exams.Count);
+            }
+            else
+            {
+                _logger.LogWarning("未知的考试类型，学生ID: {StudentUserId}, 考试类型: {ExamCategory}", studentUserId, examCategory);
+                return [];
+            }
 
             List<StudentExamDto> result = exams.Select(MapToStudentExamDto).ToList();
 
@@ -197,9 +250,35 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            // 目前简化权限验证：所有启用的考试都对学生可见
-            int count = await _context.ImportedExams
-                .CountAsync(e => e.IsEnabled && e.ExamCategory == examCategory);
+            int count;
+
+            if (examCategory == ExamCategory.School)
+            {
+                // 学校统考：只计算学生所属学校有权限的考试
+                List<int> accessibleExamIds = await _schoolPermissionService.GetAccessibleSchoolExamIdsAsync(studentUserId);
+
+                count = await _context.ImportedExams
+                    .CountAsync(e => e.IsEnabled &&
+                                    e.ExamCategory == examCategory &&
+                                    accessibleExamIds.Contains(e.Id));
+
+                _logger.LogInformation("获取学校统考总数，学生ID: {StudentUserId}, 可访问考试总数: {Count}",
+                    studentUserId, count);
+            }
+            else if (examCategory == ExamCategory.Provincial)
+            {
+                // 全省统考：所有启用的全省统考都对学生可见
+                count = await _context.ImportedExams
+                    .CountAsync(e => e.IsEnabled && e.ExamCategory == examCategory);
+
+                _logger.LogInformation("获取全省统考总数，学生ID: {StudentUserId}, 总数: {Count}",
+                    studentUserId, count);
+            }
+            else
+            {
+                _logger.LogWarning("未知的考试类型，学生ID: {StudentUserId}, 考试类型: {ExamCategory}", studentUserId, examCategory);
+                return 0;
+            }
 
             _logger.LogInformation("按类型获取学生可访问考试总数成功，学生ID: {StudentUserId}, 考试类型: {ExamCategory}, 总数: {Count}",
                 studentUserId, examCategory, count);
