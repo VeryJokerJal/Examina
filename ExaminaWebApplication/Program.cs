@@ -665,6 +665,11 @@ static async Task InitializeTestDataAsync(ApplicationDbContext context, ILogger 
     {
         // 按要求：不再创建任何测试学生用户
         logger.LogInformation("跳过测试数据初始化：不创建测试学生用户");
+
+        // 但是创建考试测试数据
+        await ExaminaWebApplication.Data.SeedTestExamData.SeedAsync(context);
+        logger.LogInformation("✅ 考试测试数据初始化完成");
+
         await Task.CompletedTask;
     }
     catch (Exception ex)
