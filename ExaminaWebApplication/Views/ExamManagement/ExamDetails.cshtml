@@ -397,20 +397,22 @@
 </div>
 
 <!-- 添加学校模态框 -->
-<div class="modal fade" id="addSchoolModal" tabindex="-1" aria-labelledby="addSchoolModalLabel" aria-hidden="true">
+<div class="modal fade glass-modal" id="addSchoolModal" tabindex="-1" aria-labelledby="addSchoolModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content glass-modal">
-            <div class="modal-header">
-                <h5 class="modal-title text-white" id="addSchoolModalLabel">
+        <div class="modal-content">
+            <div class="modal-header glass-modal-header">
+                <h5 class="modal-title" id="addSchoolModalLabel">
                     <i class="bi bi-plus-circle me-2"></i>添加可用学校
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="glass-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="schoolSearch" class="form-label text-white">搜索学校</label>
+                    <label for="schoolSearch" class="glass-form-label">搜索学校</label>
                     <div class="input-group">
-                        <input type="text" class="form-control glass-input" id="schoolSearch" placeholder="输入学校名称进行搜索...">
+                        <input type="text" class="glass-form-control" id="schoolSearch" placeholder="输入学校名称进行搜索...">
                         <button class="glass-btn glass-btn-outline" type="button" onclick="searchSchools()">
                             <i class="bi bi-search"></i>
                         </button>
@@ -423,8 +425,10 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">取消</button>
+            <div class="modal-footer glass-modal-footer">
+                <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>取消
+                </button>
                 <button type="button" class="glass-btn glass-btn-primary" onclick="addSelectedSchools()" id="addSchoolsBtn" disabled>
                     <i class="bi bi-plus-circle me-1"></i>添加选中学校
                 </button>
@@ -894,17 +898,24 @@
                 </div>
             `;
 
-            // 这里应该调用搜索学校的API
-            // 暂时使用模拟数据
-            setTimeout(() => {
-                const mockSchools = [
-                    { id: 1, name: '示例学校A', type: 0 },
-                    { id: 2, name: '示例学校B', type: 0 },
-                    { id: 3, name: '示例学校C', type: 0 }
-                ].filter(school => school.name.includes(keyword));
+            const examId = @Model.Id;
 
-                displayAvailableSchools(mockSchools);
-            }, 1000);
+            // 调用搜索学校的API
+            fetch(`/api/ExamSchoolConfiguration/schools/search?keyword=${encodeURIComponent(keyword)}&examId=${examId}`)
+                .then(response => response.json())
+                .then(schools => {
+                    displayAvailableSchools(schools);
+                })
+                .catch(error => {
+                    console.error('搜索学校失败:', error);
+                    container.innerHTML = `
+                        <div class="text-center text-danger py-3">
+                            <i class="bi bi-exclamation-triangle display-4 mb-2"></i>
+                            <p>搜索学校失败</p>
+                            <small>请检查网络连接后重试</small>
+                        </div>
+                    `;
+                });
         }
 
         // 显示可用学校列表
@@ -922,17 +933,19 @@
             }
 
             const schoolsHtml = schools.map(school => `
-                <div class="form-check p-3 border rounded mb-2">
-                    <input class="form-check-input" type="checkbox" value="${school.id}" id="school_${school.id}" onchange="updateAddButton()">
-                    <label class="form-check-label text-white w-100" for="school_${school.id}">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-building me-3 text-primary"></i>
-                            <div>
-                                <div class="fw-medium">${school.name}</div>
-                                <small class="text-white-50">学校ID: ${school.id}</small>
+                <div class="glass-card-light p-3 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="${school.id}" id="school_${school.id}" onchange="updateAddButton()">
+                        <label class="form-check-label w-100" for="school_${school.id}">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-building me-3 text-primary"></i>
+                                <div>
+                                    <div class="fw-medium text-white">${school.name}</div>
+                                    <small class="text-white-50">学校ID: ${school.id}</small>
+                                </div>
                             </div>
-                        </div>
-                    </label>
+                        </label>
+                    </div>
                 </div>
             `).join('');
 

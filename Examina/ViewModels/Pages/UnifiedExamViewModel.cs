@@ -1,14 +1,11 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Threading.Tasks;
-using Avalonia.Threading;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Services;
-using Examina.ViewModels;
 using Examina.Views;
-using Examina.Configuration;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
@@ -219,7 +216,7 @@ public class UnifiedExamViewModel : ViewModelBase
         }
 
         // 初始加载数据
-        _ = Task.Run(async () => await RefreshAllAsync());
+        _ = Task.Run(RefreshAllAsync);
     }
 
     #endregion
@@ -371,7 +368,9 @@ public class UnifiedExamViewModel : ViewModelBase
     private async Task LoadMoreProvincialExamsAsync()
     {
         if (IsLoadingProvincialExams || ProvincialExams.Count >= ProvincialExamCount)
+        {
             return;
+        }
 
         try
         {
@@ -406,7 +405,9 @@ public class UnifiedExamViewModel : ViewModelBase
     private async Task LoadMoreSchoolExamsAsync()
     {
         if (IsLoadingSchoolExams || SchoolExams.Count >= SchoolExamCount)
+        {
             return;
+        }
 
         try
         {
@@ -483,7 +484,7 @@ public class UnifiedExamViewModel : ViewModelBase
         {
             if (_authenticationService != null)
             {
-                await _authenticationService.RefreshUserInfoAsync();
+                _ = await _authenticationService.RefreshUserInfoAsync();
                 UpdateUserPermissions();
             }
         }
@@ -510,18 +511,7 @@ public class UnifiedExamViewModel : ViewModelBase
         if (exam.StartTime.HasValue && exam.EndTime.HasValue)
         {
             DateTime now = DateTime.Now;
-            if (now < exam.StartTime.Value)
-            {
-                return "即将开始";
-            }
-            else if (now > exam.EndTime.Value)
-            {
-                return "联考已结束";
-            }
-            else
-            {
-                return "联考正在进行中";
-            }
+            return now < exam.StartTime.Value ? "即将开始" : now > exam.EndTime.Value ? "联考已结束" : "联考正在进行中";
         }
 
         return exam.Status switch
@@ -573,7 +563,7 @@ public class UnifiedExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 结束时间: {exam.EndTime}");
 
             // 状态为已发布、已安排或进行中
-            if (exam.Status == "Published" || exam.Status == "Scheduled" || exam.Status == "InProgress")
+            if (exam.Status is "Published" or "Scheduled" or "InProgress")
             {
                 System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 状态符合条件");
                 // 如果有时间设置，检查是否在时间范围内或即将开始
@@ -713,7 +703,7 @@ public class UnifiedExamViewModel : ViewModelBase
             }
 
             // 启动考试界面
-            _ = Task.Run(async () => await StartExamInterfaceAsync(exam, mode));
+            StartExamInterfaceAsync(exam, mode);
         }
         catch (Exception ex)
         {
@@ -725,12 +715,13 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 启动考试界面
     /// </summary>
-    private async Task StartExamInterfaceAsync(StudentExamDto exam, ExamMode mode)
+    private void StartExamInterfaceAsync(StudentExamDto exam, ExamMode mode)
     {
         System.Diagnostics.Debug.WriteLine($"[StartExamInterfaceAsync] 开始启动考试界面: {exam.Name}");
 
         if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
-            desktop.MainWindow == null)
+            desktop.MainWindow == null ||
+            _authenticationService == null)
         {
             throw new InvalidOperationException("无法获取主窗口引用");
         }

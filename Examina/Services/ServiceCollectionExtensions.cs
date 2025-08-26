@@ -17,7 +17,10 @@ public static class ServiceCollectionExtensions
     {
         // 注册BenchSuite相关服务
         services.AddBenchSuiteServices();
-        
+
+        // 注册考试尝试服务
+        services.AddSingleton<IExamAttemptService, ExamAttemptService>();
+
         // 注册其他应用程序服务
         // services.AddSingleton<IOtherService, OtherService>();
         

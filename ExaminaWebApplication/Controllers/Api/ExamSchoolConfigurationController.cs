@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using ExaminaWebApplication.Data;
 using OrganizationEntity = ExaminaWebApplication.Models.Organization.Organization;
 using OrganizationType = ExaminaWebApplication.Models.Organization.OrganizationType;
 using ExaminaWebApplication.Services.School;
@@ -16,13 +18,16 @@ namespace ExaminaWebApplication.Controllers.Api;
 public class ExamSchoolConfigurationController : ControllerBase
 {
     private readonly ISchoolPermissionService _schoolPermissionService;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<ExamSchoolConfigurationController> _logger;
 
     public ExamSchoolConfigurationController(
         ISchoolPermissionService schoolPermissionService,
+        ApplicationDbContext context,
         ILogger<ExamSchoolConfigurationController> logger)
     {
         _schoolPermissionService = schoolPermissionService;
+        _context = context;
         _logger = logger;
     }
 
@@ -191,6 +196,65 @@ public class ExamSchoolConfigurationController : ControllerBase
         {
             _logger.LogError(ex, "批量移除考试学校关联失败，考试ID: {ExamId}", examId);
             return StatusCode(500, new { message = "批量移除学校关联失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 搜索学校
+    /// </summary>
+    /// <param name="keyword">搜索关键词</param>
+    /// <param name="examId">考试ID（用于排除已关联的学校）</param>
+    /// <returns>学校列表</returns>
+    [HttpGet("schools/search")]
+    public async Task<ActionResult<List<OrganizationDto>>> SearchSchools([FromQuery] string keyword, [FromQuery] int? examId = null)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return BadRequest(new { message = "搜索关键词不能为空" });
+            }
+
+            // 获取已关联的学校ID列表（如果提供了examId）
+            List<int> associatedSchoolIds = [];
+            if (examId.HasValue)
+            {
+                associatedSchoolIds = await _context.ExamSchoolAssociations
+                    .Where(esa => esa.ExamId == examId.Value && esa.IsActive)
+                    .Select(esa => esa.SchoolId)
+                    .ToListAsync();
+            }
+
+            // 搜索学校（排除已关联的学校）
+            List<OrganizationEntity> schools = await _context.Organizations
+                .Where(o => o.Type == OrganizationType.School &&
+                           o.IsActive &&
+                           o.Name.Contains(keyword) &&
+                           !associatedSchoolIds.Contains(o.Id))
+                .OrderBy(o => o.Name)
+                .Take(20) // 限制返回数量
+                .ToListAsync();
+
+            List<OrganizationDto> result = schools.Select(s => new OrganizationDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Type = s.Type,
+                ParentOrganizationId = s.ParentOrganizationId,
+                CreatedAt = s.CreatedAt,
+                CreatedBy = s.CreatedBy,
+                IsActive = s.IsActive
+            }).ToList();
+
+            _logger.LogInformation("搜索学校成功，关键词: {Keyword}, 考试ID: {ExamId}, 返回数量: {Count}",
+                keyword, examId, result.Count);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "搜索学校失败，关键词: {Keyword}, 考试ID: {ExamId}", keyword, examId);
+            return StatusCode(500, new { message = "搜索学校失败", error = ex.Message });
         }
     }
 
