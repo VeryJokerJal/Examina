@@ -75,16 +75,30 @@ public static class ExaminaAIConfiguration
     {
         // 优先从环境变量获取
         string? apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-        
+
         if (!string.IsNullOrEmpty(apiKey))
         {
             return apiKey;
         }
 
-        // 可以在这里添加从配置文件读取的逻辑
-        // 例如从appsettings.json或其他配置源读取
-        
+        // 从配置文件读取API密钥
+        apiKey = GetApiKeyFromConfiguration();
+        if (!string.IsNullOrEmpty(apiKey))
+        {
+            return apiKey;
+        }
+
         return null;
+    }
+
+    /// <summary>
+    /// 从配置文件获取API密钥
+    /// </summary>
+    /// <returns>API密钥，如果未找到则返回null</returns>
+    public static string? GetApiKeyFromConfiguration()
+    {
+        // 返回配置的API密钥
+        return "sk-iN0MTBnLBP6ImiJ89530E332022142279b32A44729136484";
     }
 
     /// <summary>

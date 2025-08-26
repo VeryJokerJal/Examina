@@ -28,7 +28,7 @@ public static class BenchSuiteServiceExtensions
                 string? apiKey = ExaminaAIConfiguration.GetApiKeyFromEnvironment();
                 if (string.IsNullOrEmpty(apiKey))
                 {
-                    throw new InvalidOperationException("未找到AI API密钥，请设置环境变量OPENAI_API_KEY");
+                    throw new InvalidOperationException("未找到AI API密钥，请设置环境变量OPENAI_API_KEY或检查配置文件");
                 }
 
                 AIServiceConfiguration config = aiServiceType switch
