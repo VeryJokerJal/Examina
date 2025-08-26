@@ -48,7 +48,7 @@
             <div class="glass-card text-center">
                 <div class="card-body">
                     <i class="bi bi-collection text-success mb-2" style="font-size: 2rem;"></i>
-                    <h4 class="fw-bold text-success">@Model.Sum(e => e.Subjects.Count)</h4>
+                    <h4 class="fw-bold text-success">@Model.Sum(e => e.SubjectCount)</h4>
                     <p class="text-muted mb-0">总科目数</p>
                 </div>
             </div>
@@ -57,7 +57,7 @@
             <div class="glass-card text-center">
                 <div class="card-body">
                     <i class="bi bi-grid-3x3-gap text-info mb-2" style="font-size: 2rem;"></i>
-                    <h4 class="fw-bold text-info">@Model.Sum(e => e.Modules.Count)</h4>
+                    <h4 class="fw-bold text-info">@Model.Sum(e => e.ModuleCount)</h4>
                     <p class="text-muted mb-0">总模块数</p>
                 </div>
             </div>
@@ -66,7 +66,7 @@
             <div class="glass-card text-center">
                 <div class="card-body">
                     <i class="bi bi-question-circle text-warning mb-2" style="font-size: 2rem;"></i>
-                    <h4 class="fw-bold text-warning">@(Model.Sum(e => e.Subjects.Sum(s => s.QuestionCount)) + Model.Sum(e => e.Modules.Sum(m => m.Questions.Count)))</h4>
+                    <h4 class="fw-bold text-warning">@Model.Sum(e => e.QuestionCount)</h4>
                     <p class="text-muted mb-0">总题目数</p>
                 </div>
             </div>
@@ -132,8 +132,8 @@
                                             </td>
                                             <td>@exam.TotalScore 分</td>
                                             <td>@exam.DurationMinutes 分钟</td>
-                                            <td>@exam.Subjects.Count</td>
-                                            <td>@exam.Modules.Count</td>
+                                            <td>@exam.SubjectCount</td>
+                                            <td>@exam.ModuleCount</td>
                                             <td>
                                                 <small>@exam.ImportedAt.ToString("yyyy-MM-dd HH:mm")</small>
                                             </td>

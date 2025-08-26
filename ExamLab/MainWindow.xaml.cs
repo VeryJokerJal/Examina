@@ -22,11 +22,13 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeIcon();
         ExtendsContentIntoTitleBar = true;
         AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
 
         ViewModel = new MainWindowViewModel();
         mainGrid.DataContext = ViewModel;
+
 
         // 设置XamlRoot - 使用Activated事件，确保Content已经初始化
         Activated += OnMainWindowActivated;
@@ -34,6 +36,14 @@ public sealed partial class MainWindow : Window
 
         // 设置默认选中的导航项
         MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+    }
+
+    private void InitializeIcon()
+    {
+        nint hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        Microsoft.UI.WindowId windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+        AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+        appWindow.SetIcon("app.ico");
     }
 
     private void OnMainWindowActivated(object sender, WindowActivatedEventArgs e)
