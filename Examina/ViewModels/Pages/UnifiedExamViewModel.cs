@@ -43,7 +43,7 @@ public class UnifiedExamViewModel : ViewModelBase
     #region 私有字段
 
     private readonly IStudentExamService _studentExamService;
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IAuthenticationService? _authenticationService;
     private readonly MainViewModel? _mainViewModel;
 
     #endregion
@@ -190,7 +190,7 @@ public class UnifiedExamViewModel : ViewModelBase
 
     public UnifiedExamViewModel(
         IStudentExamService studentExamService,
-        IAuthenticationService authenticationService,
+        IAuthenticationService? authenticationService,
         MainViewModel? mainViewModel = null)
     {
         _studentExamService = studentExamService;
@@ -698,7 +698,7 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 导航到考试界面
     /// </summary>
-    private async void NavigateToExam(StudentExamDto exam, ExamMode mode)
+    private void NavigateToExam(StudentExamDto exam, ExamMode mode)
     {
         System.Diagnostics.Debug.WriteLine($"[NavigateToExam] 启动考试: {exam.Name}, 模式: {mode}");
 
@@ -713,7 +713,7 @@ public class UnifiedExamViewModel : ViewModelBase
             }
 
             // 启动考试界面
-            await StartExamInterfaceAsync(exam, mode);
+            _ = Task.Run(async () => await StartExamInterfaceAsync(exam, mode));
         }
         catch (Exception ex)
         {
@@ -790,6 +790,8 @@ public class UnifiedExamViewModel : ViewModelBase
             throw new Exception($"启动考试界面失败: {ex.Message}", ex);
         }
     }
+
+    #endregion
 
     #region 考试事件处理
 
