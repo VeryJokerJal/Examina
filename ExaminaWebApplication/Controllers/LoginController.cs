@@ -40,7 +40,7 @@ public class LoginController : Controller
     public IActionResult Login(string? returnUrl = null)
     {
         // 如果已经登录，重定向到相应页面
-        if (User.Identity.IsAuthenticated)
+        if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectToRoleBasedHome();
         }

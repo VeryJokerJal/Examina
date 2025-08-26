@@ -126,7 +126,7 @@
                         </li>
 
                         <!-- 组织管理菜单（管理员和教师） -->
-                        @if (User.Identity.IsAuthenticated && (User.IsInRole("Administrator") || User.IsInRole("Teacher")))
+                        @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Administrator") || User.IsInRole("Teacher")))
                         {
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="organizationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -187,7 +187,7 @@
 
                     <!-- 右侧用户信息和状态 -->
                     <ul class="navbar-nav">
-                        @if (User.Identity.IsAuthenticated)
+                        @if (User.Identity?.IsAuthenticated == true)
                         {
                             <!-- 用户信息下拉菜单 -->
                             <li class="nav-item dropdown">

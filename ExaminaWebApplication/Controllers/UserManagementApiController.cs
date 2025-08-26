@@ -39,10 +39,10 @@ public class UserManagementApiController : ControllerBase
             if (!ModelState.IsValid)
             {
                 var errors = ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
+                    .Where(x => x.Value?.Errors.Count > 0)
                     .ToDictionary(
                         kvp => kvp.Key,
-                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray() ?? Array.Empty<string>()
                     );
 
                 _logger.LogWarning("创建用户请求模型验证失败: {Errors}", System.Text.Json.JsonSerializer.Serialize(errors));
