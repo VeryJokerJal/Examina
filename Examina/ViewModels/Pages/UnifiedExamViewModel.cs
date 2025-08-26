@@ -198,9 +198,17 @@ public class UnifiedExamViewModel : ViewModelBase
             List<StudentExamDto> allExams = await _studentExamService.GetAvailableExamsByCategoryAsync(
                 ExamCategory.Provincial, ProvincialCurrentPage, PageSize);
 
+            System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 全省统考原始数据: {allExams.Count} 个考试");
+            foreach (StudentExamDto exam in allExams)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 全省统考: {exam.Name}, 状态: {exam.Status}, 开始: {exam.StartTime}, 结束: {exam.EndTime}");
+            }
+
             // 按状态过滤考试
             List<StudentExamDto> activeExams = FilterActiveExams(allExams);
             List<StudentExamDto> completedExams = FilterCompletedExams(allExams);
+
+            System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 全省统考过滤结果: 进行中 {activeExams.Count} 个, 已结束 {completedExams.Count} 个");
 
             // 更新UI
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -250,9 +258,17 @@ public class UnifiedExamViewModel : ViewModelBase
             List<StudentExamDto> allExams = await _studentExamService.GetAvailableExamsByCategoryAsync(
                 ExamCategory.School, SchoolCurrentPage, PageSize);
 
+            System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 学校统考原始数据: {allExams.Count} 个考试");
+            foreach (StudentExamDto exam in allExams)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 学校统考: {exam.Name}, 状态: {exam.Status}, 开始: {exam.StartTime}, 结束: {exam.EndTime}");
+            }
+
             // 按状态过滤考试
             List<StudentExamDto> activeExams = FilterActiveExams(allExams);
             List<StudentExamDto> completedExams = FilterCompletedExams(allExams);
+
+            System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 学校统考过滤结果: 进行中 {activeExams.Count} 个, 已结束 {completedExams.Count} 个");
 
             // 更新UI
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -501,21 +517,39 @@ public class UnifiedExamViewModel : ViewModelBase
     private static List<StudentExamDto> FilterActiveExams(List<StudentExamDto> exams)
     {
         DateTime now = DateTime.Now;
-        return exams.Where(exam =>
+        System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] 当前时间: {now:yyyy-MM-dd HH:mm:ss}");
+
+        List<StudentExamDto> result = exams.Where(exam =>
         {
-            // 状态为已发布或进行中
-            if (exam.Status == "Published" || exam.Status == "InProgress")
+            System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] 检查考试: {exam.Name}");
+            System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 状态: {exam.Status}");
+            System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 开始时间: {exam.StartTime}");
+            System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 结束时间: {exam.EndTime}");
+
+            // 状态为已发布、已安排或进行中
+            if (exam.Status == "Published" || exam.Status == "Scheduled" || exam.Status == "InProgress")
             {
-                // 如果有时间设置，检查是否在时间范围内
+                System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 状态符合条件");
+                // 如果有时间设置，检查是否在时间范围内或即将开始
                 if (exam.StartTime.HasValue && exam.EndTime.HasValue)
                 {
-                    return now >= exam.StartTime.Value && now <= exam.EndTime.Value;
+                    // 对于已安排的考试，如果还没到开始时间，也显示为可参加
+                    // 对于已发布和进行中的考试，检查是否在时间范围内
+                    bool canParticipate = (exam.Status == "Scheduled" && now <= exam.EndTime.Value) ||
+                                         (now >= exam.StartTime.Value && now <= exam.EndTime.Value);
+                    System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 时间范围检查: {canParticipate}");
+                    return canParticipate;
                 }
                 // 如果没有时间设置，根据状态判断
-                return exam.Status == "Published" || exam.Status == "InProgress";
+                System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 无时间设置，根据状态判断: true");
+                return true;
             }
+            System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] - 状态不符合条件: false");
             return false;
         }).ToList();
+
+        System.Diagnostics.Debug.WriteLine($"[FilterActiveExams] 过滤结果: {result.Count} 个进行中的考试");
+        return result;
     }
 
     /// <summary>
@@ -526,20 +560,32 @@ public class UnifiedExamViewModel : ViewModelBase
     private static List<StudentExamDto> FilterCompletedExams(List<StudentExamDto> exams)
     {
         DateTime now = DateTime.Now;
-        return exams.Where(exam =>
+        System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] 当前时间: {now:yyyy-MM-dd HH:mm:ss}");
+
+        List<StudentExamDto> result = exams.Where(exam =>
         {
+            System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] 检查考试: {exam.Name}");
+            System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] - 状态: {exam.Status}");
+            System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] - 结束时间: {exam.EndTime}");
+
             // 状态为已完成
             if (exam.Status == "Completed")
             {
+                System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] - 状态为已完成: true");
                 return true;
             }
             // 或者当前时间超过结束时间
             if (exam.EndTime.HasValue && now > exam.EndTime.Value)
             {
+                System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] - 时间已过期: true");
                 return true;
             }
+            System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] - 不符合已结束条件: false");
             return false;
         }).ToList();
+
+        System.Diagnostics.Debug.WriteLine($"[FilterCompletedExams] 过滤结果: {result.Count} 个已结束的考试");
+        return result;
     }
 
     #endregion

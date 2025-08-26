@@ -160,21 +160,39 @@ public class StudentExamService : IStudentExamService
             await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/exams/category/{(int)examCategory}?pageNumber={pageNumber}&pageSize={pageSize}";
+            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 调用API: {endpoint}");
+            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 考试类型: {examCategory} (值: {(int)examCategory})");
+
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+            System.Diagnostics.Debug.WriteLine($"[StudentExamService] API响应状态: {response.StatusCode}");
 
             if (response.IsSuccessStatusCode)
             {
                 string content = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"[StudentExamService] API响应内容: {content}");
+
                 List<StudentExamDto>? exams = JsonSerializer.Deserialize<List<StudentExamDto>>(content, JsonOptions);
+                System.Diagnostics.Debug.WriteLine($"[StudentExamService] 反序列化结果: {exams?.Count ?? 0} 个考试");
+
+                if (exams != null && exams.Count > 0)
+                {
+                    foreach (StudentExamDto exam in exams)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[StudentExamService] 考试: {exam.Name}, 状态: {exam.Status}, 开始时间: {exam.StartTime}, 结束时间: {exam.EndTime}");
+                    }
+                }
+
                 return exams ?? [];
             }
 
-            System.Diagnostics.Debug.WriteLine($"按类型获取考试列表失败: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+            string errorContent = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 按类型获取考试列表失败: {response.StatusCode} - {errorContent}");
             return [];
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"按类型获取考试列表异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 按类型获取考试列表异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 异常堆栈: {ex.StackTrace}");
             return [];
         }
     }
