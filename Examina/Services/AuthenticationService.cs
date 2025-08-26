@@ -34,7 +34,7 @@ public class AuthenticationService : IAuthenticationService
     /// 用户信息更新事件
     /// </summary>
     public event EventHandler<UserInfo?>? UserInfoUpdated;
-    private const string BaseUrl = "https://qiuzhenbd.com/api";
+    private const string BaseUrl = "https://qiuzhenbd.com";
     private const string StudentAuthUrl = "student/auth";
     private const string PersistentLoginKey = "persistent_login_data";
 
@@ -44,10 +44,7 @@ public class AuthenticationService : IAuthenticationService
     public bool IsAuthenticated { get; private set; }
     public UserInfo? CurrentUser
     {
-        get
-        {
-            return _currentUser;
-        }
+        get => _currentUser;
         private set
         {
             if (_currentUser != value)
@@ -332,7 +329,7 @@ public class AuthenticationService : IAuthenticationService
 
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return false;
         }
@@ -345,7 +342,7 @@ public class AuthenticationService : IAuthenticationService
             // 只使用专用的verify-sms端点，避免使用可能创建新用户的sms-login端点
             return await TryVerifyWithDedicatedEndpoint(phoneNumber, code);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return false;
         }
@@ -373,7 +370,7 @@ public class AuthenticationService : IAuthenticationService
                 try
                 {
                     // 尝试解析为包含success字段的响应
-                    var result = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(responseContent, new JsonSerializerOptions
+                    Dictionary<string, JsonElement>? result = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(responseContent, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     });
@@ -386,7 +383,7 @@ public class AuthenticationService : IAuthenticationService
 
                     return false;
                 }
-                catch (JsonException jsonEx)
+                catch (JsonException)
                 {
                     // 尝试简单的字符串检查
                     bool success = responseContent.Contains("\"success\":true") || responseContent.Contains("\"success\": true");
@@ -398,7 +395,7 @@ public class AuthenticationService : IAuthenticationService
                 return false;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return false;
         }

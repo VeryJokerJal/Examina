@@ -7,7 +7,7 @@ namespace Examina.Services;
 /// </summary>
 public class ConfigurationService : IConfigurationService
 {
-    public string ApiBaseUrl => "https://qiuzhenbd.com/api";
+    public string ApiBaseUrl => "https://qiuzhenbd.com";
 
     public string StudentAuthEndpoint => "student/auth";
 

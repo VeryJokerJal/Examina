@@ -688,8 +688,8 @@ public class StudentMockExamService : IStudentMockExamService
     private string BuildApiUrl(string endpoint)
     {
         string baseUrl = _configurationService.ApiBaseUrl.TrimEnd('/');
-        // 使用学生API端点，而不是认证端点
+        // 使用学生API端点，现在baseUrl不包含/api，需要添加完整路径
         // 模拟考试功能在 /api/student/mock-exams/ 路径下
-        return $"{baseUrl}/student/{endpoint}";
+        return $"{baseUrl}/api/student/{endpoint}";
     }
 }
