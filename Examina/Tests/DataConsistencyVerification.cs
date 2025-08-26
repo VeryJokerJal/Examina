@@ -15,81 +15,128 @@ public static class DataConsistencyVerification
     public static async Task VerifyExamAttemptConsistency()
     {
         Debug.WriteLine("=== 考试次数统计数据一致性验证 ===");
-        
+        Debug.WriteLine($"验证开始时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
         try
         {
+            Debug.WriteLine("获取服务实例...");
             IAuthenticationService? authService = AppServiceManager.GetService<IAuthenticationService>();
             IConfigurationService? configService = AppServiceManager.GetService<IConfigurationService>();
-            
+
             if (authService == null || configService == null)
             {
                 Debug.WriteLine("✗ 无法获取必要的服务实例");
+                Debug.WriteLine($"AuthService: {(authService != null ? "✓" : "✗")}");
+                Debug.WriteLine($"ConfigService: {(configService != null ? "✓" : "✗")}");
                 return;
             }
+            Debug.WriteLine("✓ 服务实例获取成功");
 
             // 检查认证状态
+            Debug.WriteLine("检查用户认证状态...");
             bool isAuthenticated = authService.IsAuthenticated;
+            Debug.WriteLine($"认证状态: {(isAuthenticated ? "已认证" : "未认证")}");
+
             if (!isAuthenticated)
             {
                 Debug.WriteLine("⚠ 用户未认证，无法验证数据一致性");
                 Debug.WriteLine("请先登录后再运行此验证");
+
+                // 尝试获取当前用户信息
+                var currentUser = authService.CurrentUser;
+                Debug.WriteLine($"当前用户: {(currentUser != null ? $"ID={currentUser.Id}, Username={currentUser.Username}" : "无")}");
                 return;
             }
 
+            Debug.WriteLine("获取认证令牌...");
             string? token = await authService.GetAccessTokenAsync();
             if (string.IsNullOrEmpty(token))
             {
                 Debug.WriteLine("✗ 无法获取认证令牌");
+                Debug.WriteLine($"令牌过期时间: {authService.TokenExpiresAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "未知"}");
+                Debug.WriteLine($"需要刷新令牌: {authService.NeedsTokenRefresh}");
                 return;
             }
 
+            Debug.WriteLine($"✓ 成功获取认证令牌，长度: {token.Length} 字符");
+            Debug.WriteLine($"令牌前缀: {token.Substring(0, Math.Min(20, token.Length))}...");
             Debug.WriteLine("✓ 用户已认证，开始验证数据一致性");
 
             // 创建HttpClient来直接调用API
+            Debug.WriteLine("创建HTTP客户端...");
             using HttpClient httpClient = new();
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            Debug.WriteLine("✓ HTTP请求头设置完成");
 
             string baseUrl = configService.ApiBaseUrl;
             string apiUrl = $"{baseUrl}/api/student/exams/completions";
 
-            Debug.WriteLine($"调用API: {apiUrl}");
+            Debug.WriteLine($"API基础URL: {baseUrl}");
+            Debug.WriteLine($"完整API URL: {apiUrl}");
+            Debug.WriteLine("发送API请求...");
 
             // 调用API获取考试完成记录
+            DateTime requestStart = DateTime.Now;
             HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
-            
+            TimeSpan requestDuration = DateTime.Now - requestStart;
+
+            Debug.WriteLine($"API响应状态: {response.StatusCode} ({(int)response.StatusCode})");
+            Debug.WriteLine($"请求耗时: {requestDuration.TotalMilliseconds:F0} 毫秒");
+            Debug.WriteLine($"响应头信息:");
+            foreach (var header in response.Headers)
+            {
+                Debug.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+            }
+
             if (response.IsSuccessStatusCode)
             {
                 string jsonContent = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine($"API响应状态: {response.StatusCode}");
+                Debug.WriteLine($"✓ API调用成功");
                 Debug.WriteLine($"响应内容长度: {jsonContent.Length} 字符");
+                Debug.WriteLine($"Content-Type: {response.Content.Headers.ContentType?.ToString() ?? "未知"}");
+
+                // 显示响应内容预览
+                if (jsonContent.Length > 0)
+                {
+                    string preview = jsonContent.Length > 500 ? jsonContent.Substring(0, 500) + "..." : jsonContent;
+                    Debug.WriteLine($"响应内容预览: {preview}");
+                }
 
                 // 尝试解析JSON
+                Debug.WriteLine("开始解析JSON响应...");
                 try
                 {
                     using JsonDocument doc = JsonDocument.Parse(jsonContent);
                     JsonElement root = doc.RootElement;
+                    Debug.WriteLine($"JSON根元素类型: {root.ValueKind}");
 
                     if (root.ValueKind == JsonValueKind.Array)
                     {
                         int recordCount = root.GetArrayLength();
-                        Debug.WriteLine($"✓ 成功获取到 {recordCount} 条考试完成记录");
+                        Debug.WriteLine($"✓ JSON解析成功，获取到 {recordCount} 条考试完成记录");
 
                         if (recordCount > 0)
                         {
                             Debug.WriteLine("考试完成记录详情:");
                             int displayCount = Math.Min(recordCount, 5); // 只显示前5条
-                            
+
                             for (int i = 0; i < displayCount; i++)
                             {
                                 JsonElement record = root[i];
-                                
+
+                                int id = record.TryGetProperty("id", out JsonElement idElement) ? idElement.GetInt32() : 0;
                                 int examId = record.TryGetProperty("examId", out JsonElement examIdElement) ? examIdElement.GetInt32() : 0;
+                                int studentUserId = record.TryGetProperty("studentUserId", out JsonElement studentUserIdElement) ? studentUserIdElement.GetInt32() : 0;
                                 string status = record.TryGetProperty("status", out JsonElement statusElement) ? statusElement.GetString() ?? "Unknown" : "Unknown";
+                                string startedAt = record.TryGetProperty("startedAt", out JsonElement startedAtElement) ? startedAtElement.GetString() ?? "未开始" : "未开始";
                                 string completedAt = record.TryGetProperty("completedAt", out JsonElement completedAtElement) ? completedAtElement.GetString() ?? "未完成" : "未完成";
-                                
-                                Debug.WriteLine($"  记录 {i + 1}: 考试ID={examId}, 状态={status}, 完成时间={completedAt}");
+                                string createdAt = record.TryGetProperty("createdAt", out JsonElement createdAtElement) ? createdAtElement.GetString() ?? "未知" : "未知";
+
+                                Debug.WriteLine($"  记录 {i + 1}: ID={id}, ExamId={examId}, StudentUserId={studentUserId}");
+                                Debug.WriteLine($"    状态={status}, 开始时间={startedAt}, 完成时间={completedAt}");
+                                Debug.WriteLine($"    创建时间={createdAt}");
                             }
 
                             if (recordCount > 5)
@@ -129,20 +176,37 @@ public static class DataConsistencyVerification
                 catch (JsonException ex)
                 {
                     Debug.WriteLine($"✗ JSON解析失败: {ex.Message}");
-                    Debug.WriteLine($"响应内容: {jsonContent}");
+                    Debug.WriteLine($"JSON异常位置: Line {ex.LineNumber}, Position {ex.BytePositionInLine}");
+                    Debug.WriteLine($"原始响应内容: {jsonContent}");
                 }
             }
             else
             {
                 Debug.WriteLine($"✗ API调用失败: {response.StatusCode}");
+                Debug.WriteLine($"状态码说明: {response.ReasonPhrase}");
                 string errorContent = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"错误响应长度: {errorContent.Length} 字符");
                 Debug.WriteLine($"错误内容: {errorContent}");
+
+                // 显示响应头以便调试
+                Debug.WriteLine("错误响应头:");
+                foreach (var header in response.Headers)
+                {
+                    Debug.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+                }
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"✗ 数据一致性验证失败: {ex.Message}");
-            Debug.WriteLine($"异常详情: {ex}");
+            Debug.WriteLine($"=== 数据一致性验证异常 ===");
+            Debug.WriteLine($"异常类型: {ex.GetType().Name}");
+            Debug.WriteLine($"异常消息: {ex.Message}");
+            Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Debug.WriteLine($"内部异常: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
+            }
+            Debug.WriteLine($"=== 数据一致性验证异常结束 ===");
         }
         
         Debug.WriteLine("");
