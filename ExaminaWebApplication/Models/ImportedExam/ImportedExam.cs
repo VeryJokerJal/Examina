@@ -363,17 +363,17 @@ public class ImportedExam
     /// <summary>
     /// 是否允许重考（记录分数和排名）
     /// </summary>
-    public bool AllowRetake { get; set; } = false;
+    public bool AllowRetake { get; set; } = true;
 
     /// <summary>
     /// 是否允许重做（不记录分数和排名，类似模拟考试）
     /// </summary>
-    public bool AllowPractice { get; set; } = false;
+    public bool AllowPractice { get; set; } = true;
 
     /// <summary>
     /// 最大重考次数
     /// </summary>
-    public int MaxRetakeCount { get; set; } = 0;
+    public int MaxRetakeCount { get; set; } = 3;
 
     /// <summary>
     /// 及格分数

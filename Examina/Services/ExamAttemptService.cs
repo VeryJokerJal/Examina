@@ -62,19 +62,7 @@ public class ExamAttemptService : IExamAttemptService
                 };
             }
 
-            // 临时修复：如果考试配置不允许重考或练习，为了测试目的启用它们
-            if (!exam.AllowRetake)
-            {
-                System.Diagnostics.Debug.WriteLine($"考试 {examId} 默认不允许重考，临时启用重考功能");
-                exam.AllowRetake = true;
-                exam.MaxRetakeCount = Math.Max(exam.MaxRetakeCount, 3); // 至少允许3次重考
-            }
 
-            if (!exam.AllowPractice)
-            {
-                System.Diagnostics.Debug.WriteLine($"考试 {examId} 默认不允许练习，临时启用练习功能");
-                exam.AllowPractice = true;
-            }
 
             // 获取学生的考试尝试历史
             System.Diagnostics.Debug.WriteLine($"开始获取考试尝试历史...");
