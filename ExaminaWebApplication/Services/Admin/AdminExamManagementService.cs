@@ -3,6 +3,7 @@ using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Api.Admin;
 using ExaminaWebApplication.Models.ImportedExam;
 using ExaminaWebApplication.Models;
+using ImportedExamEntity = ExaminaWebApplication.Models.ImportedExam.ImportedExam;
 
 namespace ExaminaWebApplication.Services.Admin;
 
@@ -29,20 +30,20 @@ public class AdminExamManagementService : IAdminExamManagementService
     {
         try
         {
-            IQueryable<ImportedExam> query = _context.ImportedExams
+            IQueryable<ImportedExamEntity> query = _context.ImportedExams
                 .Where(e => e.ImportedBy == userId)
                 .Include(e => e.Subjects)
                 .Include(e => e.Modules)
                 .OrderByDescending(e => e.ImportedAt);
 
-            List<ImportedExam> exams = await query
+            List<ImportedExamEntity> exams = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
             List<AdminExamDto> result = new();
 
-            foreach (ImportedExam exam in exams)
+            foreach (ImportedExamEntity exam in exams)
             {
                 // 获取统计信息
                 int participantCount = await _context.ExamCompletions
@@ -106,7 +107,7 @@ public class AdminExamManagementService : IAdminExamManagementService
     {
         try
         {
-            ImportedExam? exam = await _context.ImportedExams
+            ImportedExamEntity? exam = await _context.ImportedExams
                 .Include(e => e.Subjects)
                     .ThenInclude(s => s.Questions)
                 .Include(e => e.Modules)
@@ -177,7 +178,7 @@ public class AdminExamManagementService : IAdminExamManagementService
     {
         try
         {
-            ImportedExam? exam = await _context.ImportedExams
+            ImportedExamEntity? exam = await _context.ImportedExams
                 .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
 
             if (exam == null)
@@ -217,7 +218,7 @@ public class AdminExamManagementService : IAdminExamManagementService
     {
         try
         {
-            ImportedExam? exam = await _context.ImportedExams
+            ImportedExamEntity? exam = await _context.ImportedExams
                 .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
 
             if (exam == null)
@@ -254,7 +255,7 @@ public class AdminExamManagementService : IAdminExamManagementService
     {
         try
         {
-            ImportedExam? exam = await _context.ImportedExams
+            ImportedExamEntity? exam = await _context.ImportedExams
                 .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
 
             if (exam == null)
@@ -283,7 +284,7 @@ public class AdminExamManagementService : IAdminExamManagementService
     {
         try
         {
-            ImportedExam? exam = await _context.ImportedExams
+            ImportedExamEntity? exam = await _context.ImportedExams
                 .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
 
             if (exam == null)
@@ -366,7 +367,7 @@ public class AdminExamManagementService : IAdminExamManagementService
     {
         try
         {
-            ImportedExam? exam = await _context.ImportedExams
+            ImportedExamEntity? exam = await _context.ImportedExams
                 .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
 
             if (exam == null)

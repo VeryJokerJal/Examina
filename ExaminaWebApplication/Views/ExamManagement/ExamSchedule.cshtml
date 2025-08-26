@@ -111,12 +111,12 @@
                                         <div class="mb-3">
                                             <label for="status" class="form-label">考试状态</label>
                                             <select id="status" name="status" class="form-select">
-                                                <option value="Draft" @(Model.Status == "Draft" ? "selected" : "")>草稿</option>
-                                                <option value="Scheduled" @(Model.Status == "Scheduled" ? "selected" : "")>已安排</option>
-                                                <option value="Published" @(Model.Status == "Published" ? "selected" : "")>已发布</option>
-                                                <option value="InProgress" @(Model.Status == "InProgress" ? "selected" : "")>进行中</option>
-                                                <option value="Completed" @(Model.Status == "Completed" ? "selected" : "")>已结束</option>
-                                                <option value="Cancelled" @(Model.Status == "Cancelled" ? "selected" : "")>已取消</option>
+                                                <option value="Draft" selected="@(Model.Status == "Draft")">草稿</option>
+                                                <option value="Scheduled" selected="@(Model.Status == "Scheduled")">已安排</option>
+                                                <option value="Published" selected="@(Model.Status == "Published")">已发布</option>
+                                                <option value="InProgress" selected="@(Model.Status == "InProgress")">进行中</option>
+                                                <option value="Completed" selected="@(Model.Status == "Completed")">已结束</option>
+                                                <option value="Cancelled" selected="@(Model.Status == "Cancelled")">已取消</option>
                                             </select>
                                             <div class="form-text">
                                                 <strong>状态说明：</strong><br>
@@ -132,8 +132,8 @@
                                         <div class="mb-3">
                                             <label for="examCategory" class="form-label">考试类型</label>
                                             <select id="examCategory" name="examCategory" class="form-select">
-                                                <option value="School" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School ? "selected" : "")>学校统考</option>
-                                                <option value="Provincial" @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "selected" : "")>全省统考</option>
+                                                <option value="School" selected="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School)">学校统考</option>
+                                                <option value="Provincial" selected="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial)">全省统考</option>
                                             </select>
                                             <div class="form-text">选择考试的类型范围</div>
                                         </div>

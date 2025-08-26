@@ -639,4 +639,37 @@ public class ExamImportService
             _ => false
         };
     }
+
+    /// <summary>
+    /// 根据ID获取导入的考试
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="userId">用户ID</param>
+    /// <returns>考试实体，如果不存在或无权限则返回null</returns>
+    public async Task<Models.ImportedExam.ImportedExam?> GetImportedExamByIdAsync(int examId, int userId)
+    {
+        try
+        {
+            Models.ImportedExam.ImportedExam? exam = await _context.ImportedExams
+                .Include(e => e.Subjects)
+                .Include(e => e.Modules)
+                .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在或用户无权限访问，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+                return null;
+            }
+
+            _logger.LogInformation("成功获取考试信息，考试ID: {ExamId}, 考试名称: {ExamName}, 用户ID: {UserId}",
+                examId, exam.Name, userId);
+
+            return exam;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取考试信息失败，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+            return null;
+        }
+    }
 }
