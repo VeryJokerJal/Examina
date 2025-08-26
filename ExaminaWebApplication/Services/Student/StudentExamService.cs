@@ -161,6 +161,59 @@ public class StudentExamService : IStudentExamService
     }
 
     /// <summary>
+    /// 按考试类型获取学生可访问的考试列表
+    /// </summary>
+    public async Task<List<StudentExamDto>> GetAvailableExamsByCategoryAsync(int studentUserId, ExamCategory examCategory, int pageNumber = 1, int pageSize = 50)
+    {
+        try
+        {
+            // 目前简化权限验证：所有启用的考试都对学生可见
+            // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
+            List<ImportedExamEntity> exams = await _context.ImportedExams
+                .Where(e => e.IsEnabled && e.ExamCategory == examCategory)
+                .OrderByDescending(e => e.ImportedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            List<StudentExamDto> result = exams.Select(MapToStudentExamDto).ToList();
+
+            _logger.LogInformation("按类型获取学生可访问考试列表成功，学生ID: {StudentUserId}, 考试类型: {ExamCategory}, 返回数量: {Count}",
+                studentUserId, examCategory, result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "按类型获取学生可访问考试列表失败，学生ID: {StudentUserId}, 考试类型: {ExamCategory}", studentUserId, examCategory);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 按考试类型获取学生可访问的考试总数
+    /// </summary>
+    public async Task<int> GetAvailableExamCountByCategoryAsync(int studentUserId, ExamCategory examCategory)
+    {
+        try
+        {
+            // 目前简化权限验证：所有启用的考试都对学生可见
+            int count = await _context.ImportedExams
+                .CountAsync(e => e.IsEnabled && e.ExamCategory == examCategory);
+
+            _logger.LogInformation("按类型获取学生可访问考试总数成功，学生ID: {StudentUserId}, 考试类型: {ExamCategory}, 总数: {Count}",
+                studentUserId, examCategory, count);
+
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "按类型获取学生可访问考试总数失败，学生ID: {StudentUserId}, 考试类型: {ExamCategory}", studentUserId, examCategory);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 映射到学生端考试DTO（不包含详细信息）
     /// </summary>
     private static StudentExamDto MapToStudentExamDto(ImportedExamEntity exam)

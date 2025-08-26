@@ -1,0 +1,480 @@
+using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Threading.Tasks;
+using Avalonia.Threading;
+using Examina.Models;
+using Examina.Models.Exam;
+using Examina.Services;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+
+namespace Examina.ViewModels.Pages;
+
+/// <summary>
+/// 统考ViewModel，支持全省统考和学校统考两个独立列表
+/// </summary>
+public class UnifiedExamViewModel : ViewModelBase
+{
+    #region 私有字段
+
+    private readonly IStudentExamService _studentExamService;
+    private readonly IAuthenticationService _authenticationService;
+
+    #endregion
+
+    #region 属性
+
+    /// <summary>
+    /// 全省统考列表
+    /// </summary>
+    [Reactive] public ObservableCollection<StudentExamDto> ProvincialExams { get; set; } = [];
+
+    /// <summary>
+    /// 学校统考列表
+    /// </summary>
+    [Reactive] public ObservableCollection<StudentExamDto> SchoolExams { get; set; } = [];
+
+    /// <summary>
+    /// 全省统考总数
+    /// </summary>
+    [Reactive] public int ProvincialExamCount { get; set; }
+
+    /// <summary>
+    /// 学校统考总数
+    /// </summary>
+    [Reactive] public int SchoolExamCount { get; set; }
+
+    /// <summary>
+    /// 是否正在加载全省统考
+    /// </summary>
+    [Reactive] public bool IsLoadingProvincialExams { get; set; }
+
+    /// <summary>
+    /// 是否正在加载学校统考
+    /// </summary>
+    [Reactive] public bool IsLoadingSchoolExams { get; set; }
+
+    /// <summary>
+    /// 错误消息
+    /// </summary>
+    [Reactive] public string ErrorMessage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 当前选中的全省统考
+    /// </summary>
+    [Reactive] public StudentExamDto? SelectedProvincialExam { get; set; }
+
+    /// <summary>
+    /// 当前选中的学校统考
+    /// </summary>
+    [Reactive] public StudentExamDto? SelectedSchoolExam { get; set; }
+
+    /// <summary>
+    /// 全省统考当前页码
+    /// </summary>
+    [Reactive] public int ProvincialCurrentPage { get; set; } = 1;
+
+    /// <summary>
+    /// 学校统考当前页码
+    /// </summary>
+    [Reactive] public int SchoolCurrentPage { get; set; } = 1;
+
+    /// <summary>
+    /// 页大小
+    /// </summary>
+    public int PageSize { get; } = 20;
+
+    /// <summary>
+    /// 用户是否有完整权限
+    /// </summary>
+    [Reactive] public bool HasFullAccess { get; set; }
+
+    /// <summary>
+    /// 用户权限状态描述
+    /// </summary>
+    [Reactive] public string UserPermissionStatus { get; set; } = string.Empty;
+
+    #endregion
+
+    #region 命令
+
+    /// <summary>
+    /// 刷新全省统考命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RefreshProvincialExamsCommand { get; }
+
+    /// <summary>
+    /// 刷新学校统考命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RefreshSchoolExamsCommand { get; }
+
+    /// <summary>
+    /// 刷新所有数据命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RefreshAllCommand { get; }
+
+    /// <summary>
+    /// 加载更多全省统考命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> LoadMoreProvincialExamsCommand { get; }
+
+    /// <summary>
+    /// 加载更多学校统考命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> LoadMoreSchoolExamsCommand { get; }
+
+    /// <summary>
+    /// 查看全省统考详情命令
+    /// </summary>
+    public ReactiveCommand<StudentExamDto, Unit> ViewProvincialExamDetailsCommand { get; }
+
+    /// <summary>
+    /// 查看学校统考详情命令
+    /// </summary>
+    public ReactiveCommand<StudentExamDto, Unit> ViewSchoolExamDetailsCommand { get; }
+
+    #endregion
+
+    #region 构造函数
+
+    public UnifiedExamViewModel(
+        IStudentExamService studentExamService,
+        IAuthenticationService authenticationService)
+    {
+        _studentExamService = studentExamService;
+        _authenticationService = authenticationService;
+
+        // 初始化命令
+        RefreshProvincialExamsCommand = ReactiveCommand.CreateFromTask(RefreshProvincialExamsAsync);
+        RefreshSchoolExamsCommand = ReactiveCommand.CreateFromTask(RefreshSchoolExamsAsync);
+        RefreshAllCommand = ReactiveCommand.CreateFromTask(RefreshAllAsync);
+        LoadMoreProvincialExamsCommand = ReactiveCommand.CreateFromTask(LoadMoreProvincialExamsAsync);
+        LoadMoreSchoolExamsCommand = ReactiveCommand.CreateFromTask(LoadMoreSchoolExamsAsync);
+        ViewProvincialExamDetailsCommand = ReactiveCommand.Create<StudentExamDto>(ViewProvincialExamDetails);
+        ViewSchoolExamDetailsCommand = ReactiveCommand.Create<StudentExamDto>(ViewSchoolExamDetails);
+
+        // 初始化用户权限状态
+        UpdateUserPermissions();
+
+        // 监听用户信息更新事件
+        if (_authenticationService != null)
+        {
+            _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
+        }
+
+        // 初始加载数据
+        _ = Task.Run(async () => await RefreshAllAsync());
+    }
+
+    #endregion
+
+    #region 方法
+
+    /// <summary>
+    /// 刷新全省统考数据
+    /// </summary>
+    private async Task RefreshProvincialExamsAsync()
+    {
+        try
+        {
+            IsLoadingProvincialExams = true;
+            ErrorMessage = string.Empty;
+            ProvincialCurrentPage = 1;
+
+            // 获取总数
+            ProvincialExamCount = await _studentExamService.GetAvailableExamCountByCategoryAsync(ExamCategory.Provincial);
+
+            // 获取第一页数据
+            List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
+                ExamCategory.Provincial, ProvincialCurrentPage, PageSize);
+
+            // 更新UI
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ProvincialExams.Clear();
+                foreach (StudentExamDto exam in exams)
+                {
+                    ProvincialExams.Add(exam);
+                }
+            });
+
+            System.Diagnostics.Debug.WriteLine($"刷新全省统考成功，共 {ProvincialExamCount} 项，当前显示 {ProvincialExams.Count} 项");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"加载全省统考失败：{ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"刷新全省统考失败: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingProvincialExams = false;
+        }
+    }
+
+    /// <summary>
+    /// 刷新学校统考数据
+    /// </summary>
+    private async Task RefreshSchoolExamsAsync()
+    {
+        try
+        {
+            IsLoadingSchoolExams = true;
+            ErrorMessage = string.Empty;
+            SchoolCurrentPage = 1;
+
+            // 获取总数
+            SchoolExamCount = await _studentExamService.GetAvailableExamCountByCategoryAsync(ExamCategory.School);
+
+            // 获取第一页数据
+            List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
+                ExamCategory.School, SchoolCurrentPage, PageSize);
+
+            // 更新UI
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                SchoolExams.Clear();
+                foreach (StudentExamDto exam in exams)
+                {
+                    SchoolExams.Add(exam);
+                }
+            });
+
+            System.Diagnostics.Debug.WriteLine($"刷新学校统考成功，共 {SchoolExamCount} 项，当前显示 {SchoolExams.Count} 项");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"加载学校统考失败：{ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"刷新学校统考失败: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingSchoolExams = false;
+        }
+    }
+
+    /// <summary>
+    /// 刷新所有数据
+    /// </summary>
+    private async Task RefreshAllAsync()
+    {
+        await Task.WhenAll(RefreshProvincialExamsAsync(), RefreshSchoolExamsAsync());
+
+        // 数据刷新完成后，强制更新用户权限状态
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("UnifiedExamViewModel: 刷新完成，开始更新用户权限状态");
+            _ = UpdateUserPermissionsAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 更新用户权限状态失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 加载更多全省统考
+    /// </summary>
+    private async Task LoadMoreProvincialExamsAsync()
+    {
+        if (IsLoadingProvincialExams || ProvincialExams.Count >= ProvincialExamCount)
+            return;
+
+        try
+        {
+            IsLoadingProvincialExams = true;
+            ProvincialCurrentPage++;
+
+            List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
+                ExamCategory.Provincial, ProvincialCurrentPage, PageSize);
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                foreach (StudentExamDto exam in exams)
+                {
+                    ProvincialExams.Add(exam);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"加载更多全省统考失败：{ex.Message}";
+            ProvincialCurrentPage--; // 回退页码
+        }
+        finally
+        {
+            IsLoadingProvincialExams = false;
+        }
+    }
+
+    /// <summary>
+    /// 加载更多学校统考
+    /// </summary>
+    private async Task LoadMoreSchoolExamsAsync()
+    {
+        if (IsLoadingSchoolExams || SchoolExams.Count >= SchoolExamCount)
+            return;
+
+        try
+        {
+            IsLoadingSchoolExams = true;
+            SchoolCurrentPage++;
+
+            List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
+                ExamCategory.School, SchoolCurrentPage, PageSize);
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                foreach (StudentExamDto exam in exams)
+                {
+                    SchoolExams.Add(exam);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"加载更多学校统考失败：{ex.Message}";
+            SchoolCurrentPage--; // 回退页码
+        }
+        finally
+        {
+            IsLoadingSchoolExams = false;
+        }
+    }
+
+    /// <summary>
+    /// 查看全省统考详情
+    /// </summary>
+    private void ViewProvincialExamDetails(StudentExamDto exam)
+    {
+        SelectedProvincialExam = exam;
+        // TODO: 实现考试详情查看逻辑
+        System.Diagnostics.Debug.WriteLine($"查看全省统考详情: {exam.Name}");
+    }
+
+    /// <summary>
+    /// 查看学校统考详情
+    /// </summary>
+    private void ViewSchoolExamDetails(StudentExamDto exam)
+    {
+        SelectedSchoolExam = exam;
+        // TODO: 实现考试详情查看逻辑
+        System.Diagnostics.Debug.WriteLine($"查看学校统考详情: {exam.Name}");
+    }
+
+    /// <summary>
+    /// 更新用户权限状态
+    /// </summary>
+    private void UpdateUserPermissions()
+    {
+        if (_authenticationService?.CurrentUser != null)
+        {
+            HasFullAccess = _authenticationService.CurrentUser.HasFullAccess;
+            UserPermissionStatus = _authenticationService.CurrentUser.PermissionStatusDescription;
+        }
+        else
+        {
+            HasFullAccess = false;
+            UserPermissionStatus = "用户未登录";
+        }
+
+        System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}, Status: {UserPermissionStatus}");
+    }
+
+    /// <summary>
+    /// 异步更新用户权限状态
+    /// </summary>
+    private async Task UpdateUserPermissionsAsync()
+    {
+        try
+        {
+            if (_authenticationService != null)
+            {
+                await _authenticationService.RefreshUserInfoAsync();
+                UpdateUserPermissions();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 异步更新用户权限状态失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 用户信息更新事件处理
+    /// </summary>
+    private void OnUserInfoUpdated(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("UnifiedExamViewModel: 收到用户信息更新事件");
+        UpdateUserPermissions();
+    }
+
+    /// <summary>
+    /// 获取考试状态显示文本
+    /// </summary>
+    public static string GetExamStatusText(StudentExamDto exam)
+    {
+        if (exam.StartTime.HasValue && exam.EndTime.HasValue)
+        {
+            DateTime now = DateTime.Now;
+            if (now < exam.StartTime.Value)
+            {
+                return "未开始";
+            }
+            else if (now > exam.EndTime.Value)
+            {
+                return "已结束";
+            }
+            else
+            {
+                return "进行中";
+            }
+        }
+
+        return exam.Status switch
+        {
+            "Published" => "已发布",
+            "InProgress" => "进行中",
+            "Completed" => "已结束",
+            "Draft" => "草稿",
+            _ => "未知状态"
+        };
+    }
+
+    /// <summary>
+    /// 获取考试时间显示文本
+    /// </summary>
+    public static string GetExamTimeText(StudentExamDto exam)
+    {
+        if (exam.StartTime.HasValue && exam.EndTime.HasValue)
+        {
+            return $"{exam.StartTime.Value:yyyy-MM-dd HH:mm} - {exam.EndTime.Value:yyyy-MM-dd HH:mm}";
+        }
+        else if (exam.StartTime.HasValue)
+        {
+            return $"开始时间：{exam.StartTime.Value:yyyy-MM-dd HH:mm}";
+        }
+        else if (exam.EndTime.HasValue)
+        {
+            return $"结束时间：{exam.EndTime.Value:yyyy-MM-dd HH:mm}";
+        }
+
+        return "时间待定";
+    }
+
+    #endregion
+
+    #region 析构函数
+
+    /// <summary>
+    /// 析构函数，取消事件订阅
+    /// </summary>
+    ~UnifiedExamViewModel()
+    {
+        if (_authenticationService != null)
+        {
+            _authenticationService.UserInfoUpdated -= OnUserInfoUpdated;
+        }
+    }
+
+    #endregion
+}

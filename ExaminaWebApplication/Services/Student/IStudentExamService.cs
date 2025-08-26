@@ -1,5 +1,6 @@
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Models.ImportedExam;
 
 namespace ExaminaWebApplication.Services.Student;
 
@@ -39,6 +40,24 @@ public interface IStudentExamService
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>考试总数</returns>
     Task<int> GetAvailableExamCountAsync(int studentUserId);
+
+    /// <summary>
+    /// 按考试类型获取学生可访问的考试列表
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="examCategory">考试类型（全省统考或学校统考）</param>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>指定类型的考试列表</returns>
+    Task<List<StudentExamDto>> GetAvailableExamsByCategoryAsync(int studentUserId, ExamCategory examCategory, int pageNumber = 1, int pageSize = 50);
+
+    /// <summary>
+    /// 按考试类型获取学生可访问的考试总数
+    /// </summary>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="examCategory">考试类型（全省统考或学校统考）</param>
+    /// <returns>指定类型的考试总数</returns>
+    Task<int> GetAvailableExamCountByCategoryAsync(int studentUserId, ExamCategory examCategory);
 
     /// <summary>
     /// 开始正式考试

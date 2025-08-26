@@ -37,6 +37,22 @@ public interface IStudentExamService
     Task<int> GetAvailableExamCountAsync();
 
     /// <summary>
+    /// 按考试类型获取学生可访问的考试列表
+    /// </summary>
+    /// <param name="examCategory">考试类型（全省统考或学校统考）</param>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>指定类型的考试列表</returns>
+    Task<List<StudentExamDto>> GetAvailableExamsByCategoryAsync(ExamCategory examCategory, int pageNumber = 1, int pageSize = 50);
+
+    /// <summary>
+    /// 按考试类型获取学生可访问的考试总数
+    /// </summary>
+    /// <param name="examCategory">考试类型（全省统考或学校统考）</param>
+    /// <returns>指定类型的考试总数</returns>
+    Task<int> GetAvailableExamCountByCategoryAsync(ExamCategory examCategory);
+
+    /// <summary>
     /// 获取学生专项练习进度统计
     /// </summary>
     /// <returns>专项练习进度统计</returns>

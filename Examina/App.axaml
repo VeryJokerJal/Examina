@@ -151,6 +151,9 @@
         <DataTemplate DataType="{x:Type vm:ExamListViewModel}">
             <views:ExamListView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UnifiedExamViewModel}">
+            <views:UnifiedExamView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ComprehensiveTrainingListViewModel}">
             <views:ComprehensiveTrainingListView />
         </DataTemplate>

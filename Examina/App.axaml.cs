@@ -249,6 +249,12 @@ public partial class App : Application
             EnhancedExamToolbarService? enhancedService = provider.GetService<EnhancedExamToolbarService>();
             return new ExamListViewModel(examService, formalExamService, authService, enhancedService);
         });
+        _ = services.AddTransient<UnifiedExamViewModel>(provider =>
+        {
+            IStudentExamService examService = provider.GetRequiredService<IStudentExamService>();
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new UnifiedExamViewModel(examService, authService);
+        });
         _ = services.AddTransient<ComprehensiveTrainingListViewModel>(provider =>
         {
             IStudentComprehensiveTrainingService trainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();

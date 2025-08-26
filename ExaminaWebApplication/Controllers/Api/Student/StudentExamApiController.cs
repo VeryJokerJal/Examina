@@ -4,6 +4,7 @@ using ExaminaWebApplication.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Models.ImportedExam;
 
 namespace ExaminaWebApplication.Controllers.Api.Student;
 
@@ -147,6 +148,75 @@ public class StudentExamApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取学生可访问考试总数失败");
+            return StatusCode(500, new { message = "获取考试总数失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 按考试类型获取学生可访问的考试列表
+    /// </summary>
+    /// <param name="category">考试类型（School=学校统考, Provincial=全省统考）</param>
+    /// <param name="pageNumber">页码，默认为1</param>
+    /// <param name="pageSize">页大小，默认为50</param>
+    /// <returns>指定类型的考试列表</returns>
+    [HttpGet("category/{category}")]
+    public async Task<ActionResult<List<StudentExamDto>>> GetAvailableExamsByCategory(
+        ExamCategory category,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 50)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            // 验证分页参数
+            if (pageNumber < 1)
+            {
+                pageNumber = 1;
+            }
+
+            if (pageSize is < 1 or > 100)
+            {
+                pageSize = 50;
+            }
+
+            List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
+                studentUserId, category, pageNumber, pageSize);
+
+            _logger.LogInformation("学生按类型获取可访问考试列表成功，学生ID: {StudentUserId}, 考试类型: {Category}, 页码: {PageNumber}, 页大小: {PageSize}, 返回数量: {Count}",
+                studentUserId, category, pageNumber, pageSize, exams.Count);
+
+            return Ok(exams);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "按类型获取学生可访问考试列表失败，考试类型: {Category}", category);
+            return StatusCode(500, new { message = "获取考试列表失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 按考试类型获取学生可访问的考试总数
+    /// </summary>
+    /// <param name="category">考试类型（School=学校统考, Provincial=全省统考）</param>
+    /// <returns>指定类型的考试总数</returns>
+    [HttpGet("category/{category}/count")]
+    public async Task<ActionResult<int>> GetAvailableExamCountByCategory(ExamCategory category)
+    {
+        try
+        {
+            int studentUserId = GetCurrentUserId();
+
+            int count = await _studentExamService.GetAvailableExamCountByCategoryAsync(studentUserId, category);
+
+            _logger.LogInformation("学生按类型获取可访问考试总数成功，学生ID: {StudentUserId}, 考试类型: {Category}, 总数: {Count}",
+                studentUserId, category, count);
+
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "按类型获取学生可访问考试总数失败，考试类型: {Category}", category);
             return StatusCode(500, new { message = "获取考试总数失败", error = ex.Message });
         }
     }

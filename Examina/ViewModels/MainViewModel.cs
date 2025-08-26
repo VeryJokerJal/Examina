@@ -455,7 +455,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             CurrentPageViewModel = pageTag switch
             {
                 "overview" => CreateOverviewViewModel(),
-                "exam" => CreateExamListViewModel(),
+                "exam" => CreateUnifiedExamViewModel(),
                 "practice" => CreatePracticeViewModel(),
                 "mock-exam" => CreateMockExamViewModel(),
 
@@ -642,6 +642,41 @@ public class MainViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ExamListViewModel时发生异常: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 创建UnifiedExamViewModel实例
+    /// </summary>
+    private ViewModelBase? CreateUnifiedExamViewModel()
+    {
+        try
+        {
+            // 首先尝试从DI容器获取
+            UnifiedExamViewModel? viewModel = ((App)Application.Current!).GetService<UnifiedExamViewModel>();
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取UnifiedExamViewModel");
+                return viewModel;
+            }
+
+            // 如果DI容器无法提供，手动创建
+            IStudentExamService? examService = ((App)Application.Current!).GetService<IStudentExamService>();
+            if (examService != null && _authenticationService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建UnifiedExamViewModel");
+                return new UnifiedExamViewModel(examService, _authenticationService);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentExamService，无法创建UnifiedExamViewModel");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建UnifiedExamViewModel时发生异常: {ex.Message}");
         }
 
         return null;

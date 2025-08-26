@@ -151,6 +151,62 @@ public class StudentExamService : IStudentExamService
     }
 
     /// <summary>
+    /// 按考试类型获取学生可访问的考试列表
+    /// </summary>
+    public async Task<List<StudentExamDto>> GetAvailableExamsByCategoryAsync(ExamCategory examCategory, int pageNumber = 1, int pageSize = 50)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/exams/category/{(int)examCategory}?pageNumber={pageNumber}&pageSize={pageSize}";
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                List<StudentExamDto>? exams = JsonSerializer.Deserialize<List<StudentExamDto>>(content, JsonOptions);
+                return exams ?? [];
+            }
+
+            System.Diagnostics.Debug.WriteLine($"按类型获取考试列表失败: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+            return [];
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"按类型获取考试列表异常: {ex.Message}");
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// 按考试类型获取学生可访问的考试总数
+    /// </summary>
+    public async Task<int> GetAvailableExamCountByCategoryAsync(ExamCategory examCategory)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+
+            string endpoint = $"/api/student/exams/category/{(int)examCategory}/count";
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<int>(content, JsonOptions);
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"按类型获取考试总数异常: {ex.Message}");
+            return 0;
+        }
+    }
+
+    /// <summary>
     /// 确保用户已认证并设置Authorization头
     /// </summary>
     private async Task EnsureAuthenticatedAsync()
