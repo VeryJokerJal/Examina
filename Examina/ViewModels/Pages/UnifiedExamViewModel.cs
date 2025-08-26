@@ -773,6 +773,10 @@ public class UnifiedExamViewModel : ViewModelBase
             // 显示工具栏窗口
             examToolbar.Show();
             System.Diagnostics.Debug.WriteLine("[StartExamInterfaceAsync] 考试工具栏窗口已显示");
+
+            // 开始考试（启动倒计时器并设置状态为进行中）
+            toolbarViewModel.StartExam();
+            System.Diagnostics.Debug.WriteLine($"[StartExamInterfaceAsync] 考试已开始，剩余时间: {toolbarViewModel.RemainingTimeSeconds}秒, 状态: {toolbarViewModel.CurrentExamStatus}");
         }
         catch (Exception ex)
         {
