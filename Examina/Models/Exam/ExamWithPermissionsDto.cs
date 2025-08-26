@@ -1,5 +1,4 @@
-using Examina.Models.ExamAttempt;
-using Examina.ViewModels.Pages;
+﻿using Examina.ViewModels.Pages;
 
 namespace Examina.Models.Exam;
 
@@ -21,8 +20,8 @@ public class ExamWithPermissionsDto
     /// <summary>
     /// 是否可以开始考试（任何模式）
     /// </summary>
-    public bool CanStartAnyMode => AttemptLimit?.CanStartExam == true || 
-                                   AttemptLimit?.CanRetake == true || 
+    public bool CanStartAnyMode => AttemptLimit?.CanStartExam == true ||
+                                   AttemptLimit?.CanRetake == true ||
                                    AttemptLimit?.CanPractice == true;
 
     /// <summary>
@@ -33,18 +32,26 @@ public class ExamWithPermissionsDto
         get
         {
             if (AttemptLimit == null)
-                return "加载中...";
+            {
+                return "开始考试";
+            }
 
             // 如果没有完成首次考试，显示"开始考试"
             if (!AttemptLimit.HasCompletedFirstAttempt)
+            {
                 return "开始考试";
+            }
 
             // 如果已完成首次考试，根据可用选项显示文本
             if (AttemptLimit.CanRetake)
+            {
                 return "重新考试";
-            
+            }
+
             if (AttemptLimit.CanPractice)
+            {
                 return "练习模式";
+            }
 
             // 如果都不能，显示完成状态
             return "考试已完成";
@@ -66,9 +73,9 @@ public class ExamWithPermissionsDto
             // 检查考试时间和状态
             bool timeValid = Exam.StartTime.HasValue && Exam.EndTime.HasValue &&
                            DateTime.Now >= Exam.StartTime.Value && DateTime.Now <= Exam.EndTime.Value;
-            
-            bool statusValid = Exam.Status == "Published" || Exam.Status == "InProgress";
-            
+
+            bool statusValid = Exam.Status is "Published" or "InProgress";
+
             return timeValid && statusValid;
         }
     }
@@ -81,32 +88,22 @@ public class ExamWithPermissionsDto
         get
         {
             if (AttemptLimit == null)
-                return "正在检查权限...";
+            {
+                return "";
+            }
 
             if (!IsPrimaryButtonVisible)
             {
                 if (DateTime.Now < Exam.StartTime)
+                {
                     return "考试尚未开始";
-                if (DateTime.Now > Exam.EndTime)
-                    return "考试已结束";
-                return "考试不可用";
+                }
+
+                return DateTime.Now > Exam.EndTime ? "考试已结束" : "";
             }
 
-            if (!CanStartAnyMode)
-                return AttemptLimit.LimitReason ?? "无法参加考试";
-
-            if (AttemptLimit.HasCompletedFirstAttempt)
-            {
-                var options = new List<string>();
-                if (AttemptLimit.CanRetake)
-                    options.Add($"重考({AttemptLimit.RetakeAttempts}/{Exam.MaxRetakeCount})");
-                if (AttemptLimit.CanPractice)
-                    options.Add("练习");
-                
-                return options.Count > 0 ? $"可选择: {string.Join(", ", options)}" : "考试已完成";
-            }
-
-            return "可以开始考试";
+            // 不显示技术性的限制原因和详细信息，保持界面简洁
+            return "";
         }
     }
 
@@ -117,21 +114,8 @@ public class ExamWithPermissionsDto
     {
         get
         {
-            if (AttemptLimit == null)
-                return "";
-
-            if (AttemptLimit.TotalAttempts == 0)
-                return "尚未参加";
-
-            var parts = new List<string> { $"总计{AttemptLimit.TotalAttempts}次" };
-            
-            if (AttemptLimit.RetakeAttempts > 0)
-                parts.Add($"重考{AttemptLimit.RetakeAttempts}次");
-            
-            if (AttemptLimit.PracticeAttempts > 0)
-                parts.Add($"练习{AttemptLimit.PracticeAttempts}次");
-
-            return string.Join(", ", parts);
+            // 不显示考试次数统计，保持界面简洁
+            return "";
         }
     }
 
@@ -141,18 +125,21 @@ public class ExamWithPermissionsDto
     public ExamMode GetRecommendedMode()
     {
         if (AttemptLimit == null)
+        {
             return ExamMode.Normal;
+        }
 
         if (!AttemptLimit.HasCompletedFirstAttempt)
+        {
             return ExamMode.Normal;
+        }
 
         if (AttemptLimit.CanRetake)
+        {
             return ExamMode.Retake;
+        }
 
-        if (AttemptLimit.CanPractice)
-            return ExamMode.Practice;
-
-        return ExamMode.Normal;
+        return AttemptLimit.CanPractice ? ExamMode.Practice : ExamMode.Normal;
     }
 }
 

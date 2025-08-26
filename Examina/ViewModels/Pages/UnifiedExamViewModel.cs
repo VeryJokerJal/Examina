@@ -258,6 +258,21 @@ public class UnifiedExamViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] 检查考试权限失败: {ex.Message}");
+
+            // 提供默认的权限设置，允许用户开始考试
+            examWithPermissions.AttemptLimit = new ExamAttemptLimitDto
+            {
+                ExamId = exam.Id,
+                StudentId = 0,
+                CanStartExam = true,
+                CanRetake = false,
+                CanPractice = false,
+                TotalAttempts = 0,
+                RetakeAttempts = 0,
+                PracticeAttempts = 0,
+                HasCompletedFirstAttempt = false,
+                LimitReason = null
+            };
         }
 
         return examWithPermissions;
@@ -294,14 +309,14 @@ public class UnifiedExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 全省统考过滤结果: 进行中 {activeExams.Count} 个, 已结束 {completedExams.Count} 个");
 
             // 在后台线程中创建包含权限信息的对象
-            List<ExamWithPermissionsDto> activeExamsWithPermissions = new();
+            List<ExamWithPermissionsDto> activeExamsWithPermissions = [];
             foreach (StudentExamDto exam in activeExams)
             {
                 ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
                 activeExamsWithPermissions.Add(examWithPermissions);
             }
 
-            List<ExamWithPermissionsDto> completedExamsWithPermissions = new();
+            List<ExamWithPermissionsDto> completedExamsWithPermissions = [];
             foreach (StudentExamDto exam in completedExams)
             {
                 ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
@@ -369,14 +384,14 @@ public class UnifiedExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"[UnifiedExamViewModel] 学校统考过滤结果: 进行中 {activeExams.Count} 个, 已结束 {completedExams.Count} 个");
 
             // 在后台线程中创建包含权限信息的对象
-            List<ExamWithPermissionsDto> activeExamsWithPermissions = new();
+            List<ExamWithPermissionsDto> activeExamsWithPermissions = [];
             foreach (StudentExamDto exam in activeExams)
             {
                 ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
                 activeExamsWithPermissions.Add(examWithPermissions);
             }
 
-            List<ExamWithPermissionsDto> completedExamsWithPermissions = new();
+            List<ExamWithPermissionsDto> completedExamsWithPermissions = [];
             foreach (StudentExamDto exam in completedExams)
             {
                 ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
@@ -451,7 +466,7 @@ public class UnifiedExamViewModel : ViewModelBase
                 ExamCategory.Provincial, ProvincialCurrentPage, PageSize);
 
             // 为每个考试创建包含权限信息的对象
-            List<ExamWithPermissionsDto> examsWithPermissions = new();
+            List<ExamWithPermissionsDto> examsWithPermissions = [];
             foreach (StudentExamDto exam in exams)
             {
                 ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
@@ -496,7 +511,7 @@ public class UnifiedExamViewModel : ViewModelBase
                 ExamCategory.School, SchoolCurrentPage, PageSize);
 
             // 为每个考试创建包含权限信息的对象
-            List<ExamWithPermissionsDto> examsWithPermissions = new();
+            List<ExamWithPermissionsDto> examsWithPermissions = [];
             foreach (StudentExamDto exam in exams)
             {
                 ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
