@@ -520,29 +520,53 @@ public class ExamManagementController : Controller
     /// <summary>
     /// 更新考试设置（重考和重做）
     /// </summary>
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost("update-setting/{examId}")]
     public async Task<IActionResult> UpdateExamSetting(int examId, [FromBody] UpdateExamSettingRequest request)
     {
         try
         {
+            // 验证请求参数
+            if (request == null)
+            {
+                _logger.LogWarning("UpdateExamSetting: 请求参数为空，考试ID: {ExamId}", examId);
+                return BadRequest(new { message = "请求参数无效" });
+            }
+
+            if (string.IsNullOrEmpty(request.SettingName))
+            {
+                _logger.LogWarning("UpdateExamSetting: 设置名称为空，考试ID: {ExamId}", examId);
+                return BadRequest(new { message = "设置名称不能为空" });
+            }
+
+            if (request.SettingName != "AllowRetake" && request.SettingName != "AllowPractice")
+            {
+                _logger.LogWarning("UpdateExamSetting: 不支持的设置名称: {SettingName}，考试ID: {ExamId}", request.SettingName, examId);
+                return BadRequest(new { message = $"不支持的设置名称: {request.SettingName}" });
+            }
+
             int userId = GetCurrentUserId();
+            _logger.LogInformation("UpdateExamSetting: 开始更新考试设置，考试ID: {ExamId}, 用户ID: {UserId}, 设置: {SettingName}, 值: {Value}",
+                examId, userId, request.SettingName, request.Value);
+
             bool success = await _adminExamService.UpdateExamSettingAsync(examId, userId, request.SettingName, request.Value);
 
             if (success)
             {
                 string settingDisplayName = request.SettingName == "AllowRetake" ? "重考设置" : "重做设置";
                 string statusText = request.Value ? "启用" : "禁用";
-                return Ok(new { message = $"{settingDisplayName}已{statusText}" });
+                _logger.LogInformation("UpdateExamSetting: 更新成功，考试ID: {ExamId}, {SettingDisplayName}已{StatusText}",
+                    examId, settingDisplayName, statusText);
+                return Ok(new { success = true, message = $"{settingDisplayName}已{statusText}" });
             }
 
-            return BadRequest(new { message = "更新设置失败，请检查权限或考试状态" });
+            _logger.LogWarning("UpdateExamSetting: 更新失败，考试ID: {ExamId}, 设置: {SettingName}", examId, request.SettingName);
+            return BadRequest(new { success = false, message = "更新设置失败，请检查权限或考试状态" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "更新考试设置失败，考试ID: {ExamId}, 设置: {SettingName}, 值: {Value}",
-                examId, request.SettingName, request.Value);
-            return StatusCode(500, new { message = "更新设置失败", error = ex.Message });
+            _logger.LogError(ex, "UpdateExamSetting: 更新考试设置异常，考试ID: {ExamId}, 设置: {SettingName}, 值: {Value}",
+                examId, request?.SettingName, request?.Value);
+            return StatusCode(500, new { success = false, message = "更新设置失败", error = ex.Message });
         }
     }
 

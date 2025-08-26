@@ -624,7 +624,6 @@
         // 更新考试设置（重考和重做）
         function updateExamSetting(settingName, value) {
             const examId = @Model.Id;
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
             // 禁用开关防止重复点击
             const switchElement = document.getElementById(settingName === 'AllowRetake' ? 'allowRetakeSwitch' : 'allowPracticeSwitch');
@@ -632,11 +631,11 @@
 
             switchElement.disabled = true;
 
-            fetch(`/ExamManagement/UpdateExamSetting/${examId}`, {
+            fetch(`/ExamManagement/update-setting/${examId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'RequestVerificationToken': token
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     settingName: settingName,

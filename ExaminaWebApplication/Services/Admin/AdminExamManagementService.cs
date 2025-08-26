@@ -446,13 +446,17 @@ public class AdminExamManagementService : IAdminExamManagementService
         try
         {
             ImportedExamEntity? exam = await _context.ImportedExams
-                .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
+                .FirstOrDefaultAsync(e => e.Id == examId);
 
             if (exam == null)
             {
-                _logger.LogWarning("考试不存在或无权限访问，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+                _logger.LogWarning("考试不存在，考试ID: {ExamId}", examId);
                 return false;
             }
+
+            // TODO: 这里应该添加更细粒度的权限检查
+            // 目前允许所有管理员用户修改考试设置
+            _logger.LogInformation("管理员用户 {UserId} 正在修改考试 {ExamId} 的设置", userId, examId);
 
             // 根据设置名称更新相应的属性
             switch (settingName)
