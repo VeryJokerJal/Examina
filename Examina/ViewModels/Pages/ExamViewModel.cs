@@ -1,16 +1,15 @@
-﻿using System.Windows.Input;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Prism.Commands;
-using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.Views;
-using Examina.ViewModels;
+using Prism.Commands;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
 
@@ -35,7 +34,7 @@ public class ExamViewModel : ViewModelBase
     /// 考试状态
     /// </summary>
     [Reactive]
-    public string ExamStatus { get; set; } = "暂无正在进行的考试";
+    public string ExamStatusMessage { get; set; } = "暂无正在进行的考试";
 
     /// <summary>
     /// 是否有正在进行的考试
@@ -223,12 +222,12 @@ public class ExamViewModel : ViewModelBase
         }
 
         // 监听选中考试变化
-        this.WhenAnyValue(x => x.SelectedExam)
+        _ = this.WhenAnyValue(x => x.SelectedExam)
             .Subscribe(async exam => await OnSelectedExamChanged(exam));
 
         // 监听考试状态变化，实时同步到工具栏
-        this.WhenAnyValue(x => x.CurrentExamAttempt)
-            .Subscribe(attempt => SyncToolbarStatus(attempt));
+        _ = this.WhenAnyValue(x => x.CurrentExamAttempt)
+            .Subscribe(SyncToolbarStatus);
 
         LoadExamStatus();
     }
@@ -246,7 +245,7 @@ public class ExamViewModel : ViewModelBase
         {
             if (_studentExamService == null || _examAttemptService == null)
             {
-                ExamStatus = "服务未初始化";
+                ExamStatusMessage = "服务未初始化";
                 return;
             }
 
@@ -270,21 +269,21 @@ public class ExamViewModel : ViewModelBase
                         ExamAttemptStatus.TimedOut => "考试已超时",
                         _ => "考试状态未知"
                     };
-                    ExamStatus = $"{statusText} - {CurrentExamAttempt.AttemptTypeDisplay}";
+                    ExamStatusMessage = $"{statusText} - {CurrentExamAttempt.AttemptTypeDisplay}";
 
                     // 加载当前考试的详情
                     SelectedExam = await _studentExamService.GetExamDetailsAsync(CurrentExamAttempt.ExamId);
                 }
                 else
                 {
-                    ExamStatus = "暂无正在进行的考试";
+                    ExamStatusMessage = "暂无正在进行的考试";
                 }
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = $"加载考试状态失败: {ex.Message}";
-            ExamStatus = "加载失败";
+            ExamStatusMessage = "加载失败";
         }
     }
 
@@ -296,7 +295,9 @@ public class ExamViewModel : ViewModelBase
         try
         {
             if (_studentExamService == null)
+            {
                 return;
+            }
 
             List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsAsync();
             AvailableExams.Clear();
@@ -392,7 +393,9 @@ public class ExamViewModel : ViewModelBase
         try
         {
             if (SelectedExam == null || _examAttemptService == null)
+            {
                 return;
+            }
 
             UserInfo? currentUser = _authenticationService?.CurrentUser;
             if (currentUser == null || !int.TryParse(currentUser.Id, out int studentId))
@@ -419,12 +422,12 @@ public class ExamViewModel : ViewModelBase
             {
                 CurrentExamAttempt = attempt;
                 HasActiveExam = true;
-                ExamStatus = $"考试进行中 - {attempt.AttemptTypeDisplay}";
+                ExamStatusMessage = $"考试进行中 - {attempt.AttemptTypeDisplay}";
 
                 // 启动考试工具栏
-                await StartExamToolbarAsync(SelectedExam, attemptType);
+                StartExamToolbar(SelectedExam, attemptType);
 
-                System.Diagnostics.Debug.WriteLine($"开始考试尝试: {attemptType}, ID: {attempt.Id}, 状态: {ExamStatus}");
+                System.Diagnostics.Debug.WriteLine($"开始考试尝试: {attemptType}, ID: {attempt.Id}, 状态: {ExamStatusMessage}");
             }
             else
             {
@@ -496,7 +499,9 @@ public class ExamViewModel : ViewModelBase
 
             UserInfo? currentUser = _authenticationService?.CurrentUser;
             if (currentUser == null || !int.TryParse(currentUser.Id, out int studentId))
+            {
                 return;
+            }
 
             // 检查考试次数限制
             ExamAttemptLimit = await _examAttemptService.CheckExamAttemptLimitAsync(exam.Id, studentId);
@@ -544,7 +549,7 @@ public class ExamViewModel : ViewModelBase
     /// <summary>
     /// 启动考试工具栏
     /// </summary>
-    private async Task StartExamToolbarAsync(StudentExamDto exam, ExamAttemptType attemptType)
+    private void StartExamToolbar(StudentExamDto exam, ExamAttemptType attemptType)
     {
         try
         {
@@ -568,6 +573,15 @@ public class ExamViewModel : ViewModelBase
 
                 // 计算总题目数
                 int totalQuestions = exam.Subjects.Sum(s => s.QuestionCount) + exam.Modules.Sum(m => m.Questions.Count);
+
+                // 如果QuestionCount为0，尝试从Questions集合计算
+                if (totalQuestions == 0)
+                {
+                    totalQuestions = exam.Subjects.Sum(s => s.Questions.Count) + exam.Modules.Sum(m => m.Questions.Count);
+                    System.Diagnostics.Debug.WriteLine($"ExamViewModel: 从Questions集合计算题目数: {totalQuestions}");
+                }
+
+                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试题目统计 - 科目数: {exam.Subjects.Count}, 模块数: {exam.Modules.Count}, 总题目数: {totalQuestions}");
 
                 // 设置考试信息
                 toolbarViewModel.SetExamInfo(
@@ -642,7 +656,7 @@ public class ExamViewModel : ViewModelBase
                 {
                     CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
                     HasActiveExam = false;
-                    ExamStatus = "考试已完成 - 自动提交";
+                    ExamStatusMessage = "考试已完成 - 自动提交";
 
                     System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试自动提交完成");
                 }
@@ -681,7 +695,7 @@ public class ExamViewModel : ViewModelBase
                 {
                     CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
                     HasActiveExam = false;
-                    ExamStatus = "考试已完成 - 手动提交";
+                    ExamStatusMessage = "考试已完成 - 手动提交";
 
                     System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试手动提交完成");
                 }
@@ -718,7 +732,9 @@ public class ExamViewModel : ViewModelBase
     private void SyncToolbarStatus(ExamAttemptDto? attempt)
     {
         if (_currentToolbarViewModel == null || attempt == null)
+        {
             return;
+        }
 
         try
         {

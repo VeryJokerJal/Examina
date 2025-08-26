@@ -197,21 +197,29 @@ public class LoadingViewModel : ViewModelBase
                 MainViewModel? mainViewModel = app.GetService<MainViewModel>();
                 if (mainViewModel != null)
                 {
-                    // 找到MainView并设置DataContext
-                    if (mainWindow.Content is Views.MainView mainView)
-                    {
-                        mainView.DataContext = mainViewModel;
-                    }
-
-                    // 异步初始化MainViewModel
+                    // 先初始化MainViewModel，再设置DataContext
                     try
                     {
+                        System.Diagnostics.Debug.WriteLine("开始初始化MainViewModel...");
                         await mainViewModel.InitializeAsync();
                         System.Diagnostics.Debug.WriteLine("MainViewModel初始化完成");
+
+                        // 初始化完成后再设置DataContext，避免UI绑定错误
+                        if (mainWindow.Content is Views.MainView mainView)
+                        {
+                            mainView.DataContext = mainViewModel;
+                            System.Diagnostics.Debug.WriteLine("MainView DataContext已设置");
+                        }
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($"MainViewModel初始化失败: {ex.Message}");
+
+                        // 即使初始化失败，也要设置DataContext以避免UI错误
+                        if (mainWindow.Content is Views.MainView mainView)
+                        {
+                            mainView.DataContext = mainViewModel;
+                        }
                     }
                 }
             }

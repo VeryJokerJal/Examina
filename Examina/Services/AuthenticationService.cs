@@ -39,6 +39,7 @@ public class AuthenticationService : IAuthenticationService
     private const string PersistentLoginKey = "persistent_login_data";
 
     private UserInfo? _currentUser;
+    private bool _isAutoAuthenticating = false;
 
     public bool IsAuthenticated { get; private set; }
     public UserInfo? CurrentUser
@@ -1094,11 +1095,15 @@ public class AuthenticationService : IAuthenticationService
     /// <returns>验证结果</returns>
     public async Task<AuthenticationResult> AutoAuthenticateAsync()
     {
+        _isAutoAuthenticating = true;
         try
         {
+            System.Diagnostics.Debug.WriteLine("AutoAuthenticateAsync: 开始自动认证");
+
             PersistentLoginData? loginData = await LoadLoginDataAsync();
             if (loginData == null)
             {
+                System.Diagnostics.Debug.WriteLine("AutoAuthenticateAsync: 没有找到本地登录信息");
                 return new AuthenticationResult
                 {
                     IsSuccess = false,
@@ -1194,6 +1199,11 @@ public class AuthenticationService : IAuthenticationService
                 ErrorMessage = $"自动认证过程中发生错误: {ex.Message}"
             };
         }
+        finally
+        {
+            _isAutoAuthenticating = false;
+            System.Diagnostics.Debug.WriteLine("AutoAuthenticateAsync: 自动认证流程结束");
+        }
     }
 
     /// <summary>
@@ -1268,12 +1278,35 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     public async Task<string?> GetAccessTokenAsync()
     {
+        // 如果正在进行自动认证，等待完成
+        if (_isAutoAuthenticating)
+        {
+            System.Diagnostics.Debug.WriteLine("GetAccessTokenAsync: 等待自动认证完成...");
+
+            // 等待自动认证完成，最多等待10秒
+            int waitCount = 0;
+            while (_isAutoAuthenticating && waitCount < 100)
+            {
+                await Task.Delay(100);
+                waitCount++;
+            }
+
+            if (_isAutoAuthenticating)
+            {
+                System.Diagnostics.Debug.WriteLine("GetAccessTokenAsync: 等待自动认证超时");
+                return null;
+            }
+
+            System.Diagnostics.Debug.WriteLine("GetAccessTokenAsync: 自动认证已完成");
+        }
+
         // 如果需要刷新令牌，先尝试刷新
         if (NeedsTokenRefresh)
         {
             AuthenticationResult refreshResult = await RefreshTokenAsync();
             if (!refreshResult.IsSuccess)
             {
+                System.Diagnostics.Debug.WriteLine($"GetAccessTokenAsync: 令牌刷新失败: {refreshResult.ErrorMessage}");
                 // 刷新失败，返回当前令牌（可能已过期）
                 return CurrentAccessToken;
             }

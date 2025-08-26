@@ -168,8 +168,13 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            // 设置认证头并检查是否成功
+            bool authSuccess = await SetAuthenticationHeaderAsync();
+            if (!authSuccess)
+            {
+                System.Diagnostics.Debug.WriteLine("StudentMockExamService: 认证失败，跳过API调用");
+                return new List<StudentMockExamDto>();
+            }
 
             string apiUrl = BuildApiUrl($"mock-exams?pageNumber={pageNumber}&pageSize={pageSize}");
 
@@ -651,7 +656,7 @@ public class StudentMockExamService : IStudentMockExamService
     /// <summary>
     /// 设置认证头
     /// </summary>
-    private async Task SetAuthenticationHeaderAsync()
+    private async Task<bool> SetAuthenticationHeaderAsync()
     {
         try
         {
@@ -660,15 +665,20 @@ public class StudentMockExamService : IStudentMockExamService
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 System.Diagnostics.Debug.WriteLine("StudentMockExamService: 已设置JWT认证头");
+                return true;
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("StudentMockExamService: 警告 - 无法获取访问令牌");
+                System.Diagnostics.Debug.WriteLine("StudentMockExamService: 警告 - 无法获取访问令牌，可能认证尚未完成");
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+                return false;
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 设置认证头异常: {ex.Message}");
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            return false;
         }
     }
 

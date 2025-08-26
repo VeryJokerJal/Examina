@@ -40,7 +40,12 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            bool authSuccess = await EnsureAuthenticatedAsync();
+            if (!authSuccess)
+            {
+                System.Diagnostics.Debug.WriteLine("获取考试列表: 认证失败，返回空列表");
+                return [];
+            }
 
             string endpoint = $"/api/student/exams?pageNumber={pageNumber}&pageSize={pageSize}";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -227,21 +232,16 @@ public class StudentExamService : IStudentExamService
     /// <summary>
     /// 确保用户已认证并设置Authorization头
     /// </summary>
-    private async Task EnsureAuthenticatedAsync()
+    private async Task<bool> EnsureAuthenticatedAsync()
     {
         System.Diagnostics.Debug.WriteLine($"StudentExamService: 检查认证状态，IsAuthenticated: {_authenticationService.IsAuthenticated}");
 
-        if (!_authenticationService.IsAuthenticated)
-        {
-            throw new UnauthorizedAccessException("用户未认证");
-        }
-
-        // 获取当前访问令牌
+        // 获取当前访问令牌（这会等待认证完成）
         string? accessToken = await _authenticationService.GetAccessTokenAsync();
         if (string.IsNullOrEmpty(accessToken))
         {
-            System.Diagnostics.Debug.WriteLine("StudentExamService: 无法获取访问令牌");
-            throw new UnauthorizedAccessException("无法获取访问令牌");
+            System.Diagnostics.Debug.WriteLine("StudentExamService: 无法获取访问令牌，可能认证尚未完成");
+            return false;
         }
 
         System.Diagnostics.Debug.WriteLine($"StudentExamService: 成功获取访问令牌，长度: {accessToken.Length}");
@@ -249,6 +249,7 @@ public class StudentExamService : IStudentExamService
         // 设置Authorization头
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         System.Diagnostics.Debug.WriteLine("StudentExamService: 已设置Authorization头");
+        return true;
     }
 
     /// <summary>

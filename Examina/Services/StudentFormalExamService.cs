@@ -34,12 +34,29 @@ public class StudentFormalExamService : IStudentFormalExamService
     /// <summary>
     /// 设置认证头
     /// </summary>
-    private async Task SetAuthenticationHeaderAsync()
+    private async Task<bool> SetAuthenticationHeaderAsync()
     {
-        string? token = await _authenticationService.GetAccessTokenAsync();
-        if (!string.IsNullOrEmpty(token))
+        try
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            string? token = await _authenticationService.GetAccessTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                System.Diagnostics.Debug.WriteLine("StudentFormalExamService: 已设置JWT认证头");
+                return true;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("StudentFormalExamService: 警告 - 无法获取访问令牌，可能认证尚未完成");
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentFormalExamService: 设置认证头异常: {ex.Message}");
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            return false;
         }
     }
 
@@ -58,7 +75,12 @@ public class StudentFormalExamService : IStudentFormalExamService
     {
         try
         {
-            await SetAuthenticationHeaderAsync();
+            bool authSuccess = await SetAuthenticationHeaderAsync();
+            if (!authSuccess)
+            {
+                System.Diagnostics.Debug.WriteLine("StudentFormalExamService: 认证失败，无法开始考试");
+                return false;
+            }
 
             string apiUrl = BuildApiUrl($"{examId}/start");
             System.Diagnostics.Debug.WriteLine($"StudentFormalExamService: 发送开始正式考试请求到 {apiUrl}");
