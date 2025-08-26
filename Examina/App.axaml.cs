@@ -322,6 +322,9 @@ public partial class App : Application
             // 测试排行榜类型初始化一致性
             Tests.LeaderboardViewModelDependencyTest.TestLeaderboardTypeInitializationConsistency();
 
+            // 测试API URL构建
+            Tests.ApiUrlVerificationTest.RunAllTests();
+
             // 测试ExamAttemptService功能
             _ = Task.Run(async () =>
             {
