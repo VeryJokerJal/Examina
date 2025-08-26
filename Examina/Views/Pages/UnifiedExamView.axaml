@@ -64,7 +64,10 @@
                     IsAddTabButtonVisible="False">
 
             <!-- 全省统考标签页 -->
-            <ui:TabViewItem Header="全省统考" IconSource="Globe">
+            <ui:TabViewItem Header="全省统考">
+                <ui:TabViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Globe" />
+                </ui:TabViewItem.IconSource>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -88,9 +91,9 @@
                                            FontWeight="Medium"
                                            VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <ProgressRing IsVisible="{Binding IsLoadingProvincialExams}"
-                                              Width="16"
-                                              Height="16" />
+                                <ui:ProgressRing IsVisible="{Binding IsLoadingProvincialExams}"
+                                                 Width="16"
+                                                 Height="16" />
                             </StackPanel>
 
                             <Button Grid.Column="1"
@@ -194,7 +197,10 @@
             </ui:TabViewItem>
 
             <!-- 学校统考标签页 -->
-            <ui:TabViewItem Header="学校统考" IconSource="Home">
+            <ui:TabViewItem Header="学校统考">
+                <ui:TabViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Home" />
+                </ui:TabViewItem.IconSource>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -218,9 +224,9 @@
                                            FontWeight="Medium"
                                            VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <ProgressRing IsVisible="{Binding IsLoadingSchoolExams}"
-                                              Width="16"
-                                              Height="16" />
+                                <ui:ProgressRing IsVisible="{Binding IsLoadingSchoolExams}"
+                                                 Width="16"
+                                                 Height="16" />
                             </StackPanel>
 
                             <Button Grid.Column="1"
@@ -333,7 +339,7 @@
                 IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
                 VerticalAlignment="Bottom">
             <StackPanel Orientation="Horizontal" Spacing="12">
-                <ui:SymbolIcon Symbol="ErrorCircle"
+                <ui:SymbolIcon Symbol="Important"
                                FontSize="16"
                                Foreground="White" />
                 <TextBlock Text="{Binding ErrorMessage}"
