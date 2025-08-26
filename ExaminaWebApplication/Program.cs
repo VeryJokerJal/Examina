@@ -418,6 +418,9 @@ using (IServiceScope scope = app.Services.CreateScope())
                 _ = db.Users.Add(admin);
                 _ = db.SaveChanges();
             }
+
+            // 创建测试考试数据
+            await SeedTestExamData.SeedAsync(db);
         }
     }
     catch (Exception seedingEx)

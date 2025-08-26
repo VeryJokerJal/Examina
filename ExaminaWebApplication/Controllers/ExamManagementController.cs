@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Services.ImportedExam;
+using ExaminaWebApplication.Services.Admin;
 using ExaminaWebApplication.Models.ImportedExam;
 using ExaminaWebApplication.Data;
 
@@ -13,15 +14,18 @@ namespace ExaminaWebApplication.Controllers;
 public class ExamManagementController : Controller
 {
     private readonly ExamImportService _examImportService;
+    private readonly IAdminExamManagementService _adminExamService;
     private readonly ApplicationDbContext _context;
     private readonly ILogger<ExamManagementController> _logger;
 
     public ExamManagementController(
         ExamImportService examImportService,
+        IAdminExamManagementService adminExamService,
         ApplicationDbContext context,
         ILogger<ExamManagementController> logger)
     {
         _examImportService = examImportService;
+        _adminExamService = adminExamService;
         _context = context;
         _logger = logger;
     }
@@ -33,17 +37,15 @@ public class ExamManagementController : Controller
     {
         try
         {
-            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            int userId = 1; // 使用管理员用户ID
-
-            List<ImportedExam> exams = await _examImportService.GetImportedExamsAsync(userId);
+            int userId = GetCurrentUserId();
+            List<ExaminaWebApplication.Models.Api.Admin.AdminExamDto> exams = await _adminExamService.GetExamsAsync(userId);
             return View(exams);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取考试列表失败");
             TempData["ErrorMessage"] = "获取考试列表失败，请稍后重试";
-            return View(new List<ImportedExam>());
+            return View(new List<ExaminaWebApplication.Models.Api.Admin.AdminExamDto>());
         }
     }
 
@@ -389,4 +391,155 @@ public class ExamManagementController : Controller
             return StatusCode(500, new { message = "重新创建测试数据失败", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// 设置考试时间
+    /// </summary>
+    [HttpPost("set-schedule/{examId}")]
+    public async Task<IActionResult> SetExamSchedule(int examId, [FromBody] SetScheduleRequest request)
+    {
+        try
+        {
+            int userId = GetCurrentUserId();
+            bool success = await _adminExamService.SetExamScheduleAsync(examId, userId, request.StartTime, request.EndTime);
+
+            if (success)
+            {
+                return Ok(new { message = "考试时间设置成功" });
+            }
+
+            return BadRequest(new { message = "考试时间设置失败，请检查权限或考试状态" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "设置考试时间失败，考试ID: {ExamId}", examId);
+            return StatusCode(500, new { message = "设置考试时间失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 更新考试状态
+    /// </summary>
+    [HttpPost("update-status/{examId}")]
+    public async Task<IActionResult> UpdateExamStatus(int examId, [FromBody] UpdateStatusRequest request)
+    {
+        try
+        {
+            int userId = GetCurrentUserId();
+            bool success = await _adminExamService.UpdateExamStatusAsync(examId, userId, request.Status);
+
+            if (success)
+            {
+                return Ok(new { message = $"考试状态已更新为: {request.Status}" });
+            }
+
+            return BadRequest(new { message = "考试状态更新失败，请检查权限或状态转换规则" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试状态失败，考试ID: {ExamId}, 状态: {Status}", examId, request.Status);
+            return StatusCode(500, new { message = "更新考试状态失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 发布考试
+    /// </summary>
+    [HttpPost("publish/{examId}")]
+    public async Task<IActionResult> PublishExam(int examId)
+    {
+        try
+        {
+            int userId = GetCurrentUserId();
+            bool success = await _adminExamService.PublishExamAsync(examId, userId);
+
+            if (success)
+            {
+                return Ok(new { message = "考试已发布" });
+            }
+
+            return BadRequest(new { message = "考试发布失败，请检查权限或考试状态" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "发布考试失败，考试ID: {ExamId}", examId);
+            return StatusCode(500, new { message = "发布考试失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 开始考试
+    /// </summary>
+    [HttpPost("start/{examId}")]
+    public async Task<IActionResult> StartExam(int examId)
+    {
+        try
+        {
+            int userId = GetCurrentUserId();
+            bool success = await _adminExamService.StartExamAsync(examId, userId);
+
+            if (success)
+            {
+                return Ok(new { message = "考试已开始" });
+            }
+
+            return BadRequest(new { message = "考试开始失败，请检查权限或考试状态" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "开始考试失败，考试ID: {ExamId}", examId);
+            return StatusCode(500, new { message = "开始考试失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 结束考试
+    /// </summary>
+    [HttpPost("end/{examId}")]
+    public async Task<IActionResult> EndExam(int examId)
+    {
+        try
+        {
+            int userId = GetCurrentUserId();
+            bool success = await _adminExamService.EndExamAsync(examId, userId);
+
+            if (success)
+            {
+                return Ok(new { message = "考试已结束" });
+            }
+
+            return BadRequest(new { message = "考试结束失败，请检查权限或考试状态" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "结束考试失败，考试ID: {ExamId}", examId);
+            return StatusCode(500, new { message = "结束考试失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 获取当前用户ID
+    /// </summary>
+    private int GetCurrentUserId()
+    {
+        // 简化实现，实际应该从认证信息中获取
+        return 1; // 假设当前用户ID为1
+    }
+}
+
+/// <summary>
+/// 设置考试时间请求
+/// </summary>
+public class SetScheduleRequest
+{
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+}
+
+/// <summary>
+/// 更新考试状态请求
+/// </summary>
+public class UpdateStatusRequest
+{
+    public string Status { get; set; } = string.Empty;
 }

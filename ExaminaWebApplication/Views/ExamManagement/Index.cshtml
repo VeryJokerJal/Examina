@@ -1,4 +1,4 @@
-﻿@model List<ExaminaWebApplication.Models.ImportedExam.ImportedExam>
+﻿@model List<ExaminaWebApplication.Models.Api.Admin.AdminExamDto>
 @{
     ViewData["Title"] = "考试管理";
 }
@@ -181,6 +181,131 @@
     </div>
 </div>
 
+<!-- 考试管理 -->
+@if (Model.Any())
+{
+    <div class="container mb-5">
+        <div class="row text-center mb-4">
+            <div class="col-md-12">
+                <h2 class="fw-bold mb-3">考试管理</h2>
+                <p class="text-muted">设置考试时间和状态</p>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>考试名称</th>
+                                <th>状态</th>
+                                <th>类型</th>
+                                <th>开始时间</th>
+                                <th>结束时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var exam in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@exam.Name</strong>
+                                        @if (!string.IsNullOrEmpty(exam.Description))
+                                        {
+                                            <br><small class="text-muted">@exam.Description</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@(exam.Status switch {
+                                            "Draft" => "secondary",
+                                            "Scheduled" => "info",
+                                            "Published" => "primary",
+                                            "InProgress" => "success",
+                                            "Completed" => "dark",
+                                            "Cancelled" => "danger",
+                                            _ => "secondary"
+                                        })">
+                                            @(exam.Status switch {
+                                                "Draft" => "草稿",
+                                                "Scheduled" => "已安排",
+                                                "Published" => "已发布",
+                                                "InProgress" => "进行中",
+                                                "Completed" => "已结束",
+                                                "Cancelled" => "已取消",
+                                                _ => exam.Status
+                                            })
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@(exam.ExamCategory.ToString() == "Provincial" ? "warning" : "info")">
+                                            @(exam.ExamCategory.ToString() == "Provincial" ? "全省统考" : "学校统考")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (exam.StartTime.HasValue)
+                                        {
+                                            @exam.StartTime.Value.ToString("yyyy-MM-dd HH:mm")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">未设置</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (exam.EndTime.HasValue)
+                                        {
+                                            @exam.EndTime.Value.ToString("yyyy-MM-dd HH:mm")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">未设置</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    onclick="setExamSchedule(@exam.Id, '@exam.Name')">
+                                                设置时间
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    onclick="updateExamStatus(@exam.Id, '@exam.Name', '@exam.Status')">
+                                                更改状态
+                                            </button>
+                                            @if (exam.Status == "Draft" || exam.Status == "Scheduled")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                        onclick="publishExam(@exam.Id, '@exam.Name')">
+                                                    发布
+                                                </button>
+                                            }
+                                            @if (exam.Status == "Published")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-warning"
+                                                        onclick="startExam(@exam.Id, '@exam.Name')">
+                                                    开始
+                                                </button>
+                                            }
+                                            @if (exam.Status == "InProgress")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick="endExam(@exam.Id, '@exam.Name')">
+                                                    结束
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- 快速操作 -->
 <div class="glass-card py-5">
     <div class="container">
@@ -245,6 +370,110 @@
 
         function refreshStatistics() {
             location.reload();
+        }
+
+        // 考试管理功能
+        function setExamSchedule(examId, examName) {
+            const startTime = prompt(`设置考试 "${examName}" 的开始时间 (格式: YYYY-MM-DD HH:MM):`);
+            if (!startTime) return;
+
+            const endTime = prompt(`设置考试 "${examName}" 的结束时间 (格式: YYYY-MM-DD HH:MM):`);
+            if (!endTime) return;
+
+            $.ajax({
+                url: `/ExamManagement/set-schedule/${examId}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    startTime: startTime,
+                    endTime: endTime
+                }),
+                success: function(response) {
+                    alert('考试时间设置成功');
+                    location.reload();
+                },
+                error: function() {
+                    alert('考试时间设置失败');
+                }
+            });
+        }
+
+        function updateExamStatus(examId, examName, currentStatus) {
+            const statuses = ['Draft', 'Scheduled', 'Published', 'InProgress', 'Completed', 'Cancelled'];
+            const statusNames = ['草稿', '已安排', '已发布', '进行中', '已结束', '已取消'];
+
+            let options = '';
+            for (let i = 0; i < statuses.length; i++) {
+                const selected = statuses[i] === currentStatus ? 'selected' : '';
+                options += `<option value="${statuses[i]}" ${selected}>${statusNames[i]}</option>`;
+            }
+
+            const newStatus = prompt(`选择考试 "${examName}" 的新状态:\n${statusNames.join(', ')}\n\n请输入状态英文名称:`);
+            if (!newStatus || !statuses.includes(newStatus)) return;
+
+            $.ajax({
+                url: `/ExamManagement/update-status/${examId}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    status: newStatus
+                }),
+                success: function(response) {
+                    alert('考试状态更新成功');
+                    location.reload();
+                },
+                error: function() {
+                    alert('考试状态更新失败');
+                }
+            });
+        }
+
+        function publishExam(examId, examName) {
+            if (confirm(`确定要发布考试 "${examName}" 吗？`)) {
+                $.ajax({
+                    url: `/ExamManagement/publish/${examId}`,
+                    type: 'POST',
+                    success: function(response) {
+                        alert('考试发布成功');
+                        location.reload();
+                    },
+                    error: function() {
+                        alert('考试发布失败');
+                    }
+                });
+            }
+        }
+
+        function startExam(examId, examName) {
+            if (confirm(`确定要开始考试 "${examName}" 吗？`)) {
+                $.ajax({
+                    url: `/ExamManagement/start/${examId}`,
+                    type: 'POST',
+                    success: function(response) {
+                        alert('考试已开始');
+                        location.reload();
+                    },
+                    error: function() {
+                        alert('考试开始失败');
+                    }
+                });
+            }
+        }
+
+        function endExam(examId, examName) {
+            if (confirm(`确定要结束考试 "${examName}" 吗？`)) {
+                $.ajax({
+                    url: `/ExamManagement/end/${examId}`,
+                    type: 'POST',
+                    success: function(response) {
+                        alert('考试已结束');
+                        location.reload();
+                    },
+                    error: function() {
+                        alert('考试结束失败');
+                    }
+                });
+            }
         }
     </script>
 }
