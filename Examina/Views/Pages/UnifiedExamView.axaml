@@ -219,8 +219,14 @@
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
 
-                <!-- 学校统考列表 -->
-                <ItemsControl ItemsSource="{Binding SchoolExams}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="正在进行中："
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+                    <!-- 学校统考列表 -->
+                    <ItemsControl ItemsSource="{Binding SchoolExams}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Background="{DynamicResource SystemFillColorAttentionBrush}"
@@ -275,45 +281,45 @@
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ItemsControl>
 
-                <!-- 学校统考空状态提示 -->
-                <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                        CornerRadius="8"
-                        Padding="20"
-                        IsVisible="{Binding SchoolExams.Count, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}">
-                    <StackPanel Spacing="8" HorizontalAlignment="Center">
-                        <ui:SymbolIcon Symbol="Home" FontSize="32" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        <TextBlock Text="暂无学校统考"
-                                   FontSize="14"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Border>
+                    <!-- 学校统考空状态提示 -->
+                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                            CornerRadius="8"
+                            Padding="20"
+                            IsVisible="{Binding SchoolExams.Count, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}">
+                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                            <ui:SymbolIcon Symbol="Home" FontSize="32" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            <TextBlock Text="暂无学校统考"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
 
-                <!-- 学校统考加载状态 -->
-                <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                        CornerRadius="8"
-                        Padding="20"
-                        IsVisible="{Binding IsLoadingSchoolExams}">
-                    <StackPanel Spacing="8" HorizontalAlignment="Center" Orientation="Horizontal">
-                        <ui:ProgressRing Width="20" Height="20" />
-                        <TextBlock Text="正在加载学校统考..."
-                                   FontSize="14"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                </Border>
+                    <!-- 学校统考加载状态 -->
+                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                            CornerRadius="8"
+                            Padding="20"
+                            IsVisible="{Binding IsLoadingSchoolExams}">
+                        <StackPanel Spacing="8" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <ui:ProgressRing Width="20" Height="20" />
+                            <TextBlock Text="正在加载学校统考..."
+                                       FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
 
-                <TextBlock Text="已结束："
-                           FontSize="14"
-                           FontWeight="Medium"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           Margin="0,16,0,0"
-                           IsVisible="{Binding CompletedSchoolExams.Count, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=0}" />
+                    <TextBlock Text="已结束："
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Margin="0,16,0,0"
+                               IsVisible="{Binding CompletedSchoolExams.Count, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=0}" />
 
-                <!-- 已结束的学校统考列表 -->
-                <ItemsControl ItemsSource="{Binding CompletedSchoolExams}">
+                    <!-- 已结束的学校统考列表 -->
+                    <ItemsControl ItemsSource="{Binding CompletedSchoolExams}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
@@ -369,7 +375,8 @@
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ItemsControl>
+                </StackPanel>
             </StackPanel>
 
             <!-- 错误消息显示 -->
@@ -377,7 +384,7 @@
                     CornerRadius="8"
                     Padding="16,12"
                     Margin="0,16,0,0"
-                    IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <ui:SymbolIcon Symbol="Important"
                                    FontSize="16"
