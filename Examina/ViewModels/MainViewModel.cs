@@ -654,20 +654,12 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            // 首先尝试从DI容器获取
-            UnifiedExamViewModel? viewModel = ((App)Application.Current!).GetService<UnifiedExamViewModel>();
-            if (viewModel != null)
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取UnifiedExamViewModel");
-                return viewModel;
-            }
-
-            // 如果DI容器无法提供，手动创建
+            // 直接创建UnifiedExamViewModel，避免循环依赖
             IStudentExamService? examService = ((App)Application.Current!).GetService<IStudentExamService>();
             if (examService != null && _authenticationService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建UnifiedExamViewModel");
-                return new UnifiedExamViewModel(examService, _authenticationService);
+                System.Diagnostics.Debug.WriteLine("MainViewModel: 创建UnifiedExamViewModel");
+                return new UnifiedExamViewModel(examService, _authenticationService, this);
             }
             else
             {

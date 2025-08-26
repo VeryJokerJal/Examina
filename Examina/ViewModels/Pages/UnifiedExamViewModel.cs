@@ -2,13 +2,38 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Services;
+using Examina.ViewModels;
+using Examina.Views;
+using Examina.Configuration;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
 namespace Examina.ViewModels.Pages;
+
+/// <summary>
+/// 考试模式枚举
+/// </summary>
+public enum ExamMode
+{
+    /// <summary>
+    /// 正式考试模式
+    /// </summary>
+    Normal,
+
+    /// <summary>
+    /// 重考模式（记录分数和排名）
+    /// </summary>
+    Retake,
+
+    /// <summary>
+    /// 练习模式（不记录分数和排名）
+    /// </summary>
+    Practice
+}
 
 /// <summary>
 /// 统考ViewModel，支持全省统考和学校统考两个独立列表
@@ -19,6 +44,7 @@ public class UnifiedExamViewModel : ViewModelBase
 
     private readonly IStudentExamService _studentExamService;
     private readonly IAuthenticationService _authenticationService;
+    private readonly MainViewModel? _mainViewModel;
 
     #endregion
 
@@ -164,10 +190,12 @@ public class UnifiedExamViewModel : ViewModelBase
 
     public UnifiedExamViewModel(
         IStudentExamService studentExamService,
-        IAuthenticationService authenticationService)
+        IAuthenticationService authenticationService,
+        MainViewModel? mainViewModel = null)
     {
         _studentExamService = studentExamService;
         _authenticationService = authenticationService;
+        _mainViewModel = mainViewModel;
 
         // 初始化命令
         RefreshProvincialExamsCommand = ReactiveCommand.CreateFromTask(RefreshProvincialExamsAsync);
@@ -615,9 +643,18 @@ public class UnifiedExamViewModel : ViewModelBase
     /// </summary>
     private void StartExam(StudentExamDto exam)
     {
-        System.Diagnostics.Debug.WriteLine($"[StartExam] 开始考试: {exam.Name}");
-        // TODO: 实现开始考试逻辑
-        // 这里应该导航到考试界面，传递考试模式为正式考试
+        System.Diagnostics.Debug.WriteLine($"[StartExam] 开始考试: {exam.Name} (ID: {exam.Id})");
+
+        try
+        {
+            // 导航到考试界面，传递考试模式为正式考试
+            NavigateToExam(exam, ExamMode.Normal);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[StartExam] 开始考试失败: {ex.Message}");
+            ErrorMessage = $"开始考试失败: {ex.Message}";
+        }
     }
 
     /// <summary>
@@ -625,9 +662,18 @@ public class UnifiedExamViewModel : ViewModelBase
     /// </summary>
     private void RetakeExam(StudentExamDto exam)
     {
-        System.Diagnostics.Debug.WriteLine($"[RetakeExam] 重新考试: {exam.Name}");
-        // TODO: 实现重新考试逻辑
-        // 这里应该导航到考试界面，传递考试模式为重考模式（记录分数）
+        System.Diagnostics.Debug.WriteLine($"[RetakeExam] 重新考试: {exam.Name} (ID: {exam.Id})");
+
+        try
+        {
+            // 导航到考试界面，传递考试模式为重考模式（记录分数）
+            NavigateToExam(exam, ExamMode.Retake);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RetakeExam] 重新考试失败: {ex.Message}");
+            ErrorMessage = $"重新考试失败: {ex.Message}";
+        }
     }
 
     /// <summary>
@@ -635,9 +681,192 @@ public class UnifiedExamViewModel : ViewModelBase
     /// </summary>
     private void PracticeExam(StudentExamDto exam)
     {
-        System.Diagnostics.Debug.WriteLine($"[PracticeExam] 练习模式: {exam.Name}");
-        // TODO: 实现练习模式逻辑
-        // 这里应该导航到考试界面，传递考试模式为练习模式（不记录分数）
+        System.Diagnostics.Debug.WriteLine($"[PracticeExam] 练习模式: {exam.Name} (ID: {exam.Id})");
+
+        try
+        {
+            // 导航到考试界面，传递考试模式为练习模式（不记录分数）
+            NavigateToExam(exam, ExamMode.Practice);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PracticeExam] 练习模式失败: {ex.Message}");
+            ErrorMessage = $"练习模式失败: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 导航到考试界面
+    /// </summary>
+    private async void NavigateToExam(StudentExamDto exam, ExamMode mode)
+    {
+        System.Diagnostics.Debug.WriteLine($"[NavigateToExam] 启动考试: {exam.Name}, 模式: {mode}");
+
+        try
+        {
+            // 检查用户权限
+            if (!HasFullAccess)
+            {
+                ErrorMessage = "您需要解锁权限才能开始考试。请加入学校组织或联系管理员进行解锁。";
+                System.Diagnostics.Debug.WriteLine("[NavigateToExam] 用户没有完整权限，无法开始考试");
+                return;
+            }
+
+            // 启动考试界面
+            await StartExamInterfaceAsync(exam, mode);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NavigateToExam] 启动考试失败: {ex.Message}");
+            ErrorMessage = $"启动考试失败: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 启动考试界面
+    /// </summary>
+    private async Task StartExamInterfaceAsync(StudentExamDto exam, ExamMode mode)
+    {
+        System.Diagnostics.Debug.WriteLine($"[StartExamInterfaceAsync] 开始启动考试界面: {exam.Name}");
+
+        if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+            desktop.MainWindow == null)
+        {
+            throw new InvalidOperationException("无法获取主窗口引用");
+        }
+
+        try
+        {
+            // 隐藏主窗口
+            desktop.MainWindow.Hide();
+            System.Diagnostics.Debug.WriteLine("[StartExamInterfaceAsync] 主窗口已隐藏");
+
+            // 创建考试工具栏 ViewModel
+            IBenchSuiteDirectoryService? benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+            ExamToolbarViewModel toolbarViewModel = new(_authenticationService, null, benchSuiteDirectoryService);
+
+            // 计算总题目数
+            int totalQuestions = exam.Subjects.Sum(s => s.Questions.Count) + exam.Modules.Sum(m => m.Questions.Count);
+
+            // 根据考试模式设置考试类型
+            ExamType examType = mode switch
+            {
+                ExamMode.Normal => ExamType.FormalExam,
+                ExamMode.Retake => ExamType.FormalExam, // 重考也是正式考试
+                ExamMode.Practice => ExamType.MockExam, // 练习模式使用模拟考试类型
+                _ => ExamType.FormalExam
+            };
+
+            // 设置考试信息
+            toolbarViewModel.SetExamInfo(
+                examType,
+                exam.Id,
+                exam.Name,
+                totalQuestions,
+                exam.DurationMinutes * 60 // 转换为秒
+            );
+
+            // 创建考试工具栏窗口并设置 ViewModel
+            ExamToolbarWindow examToolbar = new();
+            examToolbar.SetViewModel(toolbarViewModel);
+
+            System.Diagnostics.Debug.WriteLine($"[StartExamInterfaceAsync] 考试工具栏已配置 - 考试ID: {exam.Id}, 题目数: {totalQuestions}, 时长: {exam.DurationMinutes}分钟, 模式: {mode}");
+
+            // 订阅考试事件
+            examToolbar.ExamAutoSubmitted += (sender, e) => OnExamAutoSubmitted(examType, exam.Id);
+            examToolbar.ExamManualSubmitted += (sender, e) => OnExamManualSubmitted(examType, exam.Id);
+            examToolbar.ViewQuestionsRequested += (sender, e) => OnViewQuestionsRequested(exam);
+
+            System.Diagnostics.Debug.WriteLine("[StartExamInterfaceAsync] 已订阅考试工具栏事件");
+
+            // 显示工具栏窗口
+            examToolbar.Show();
+            System.Diagnostics.Debug.WriteLine("[StartExamInterfaceAsync] 考试工具栏窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            // 如果启动失败，确保主窗口重新显示
+            desktop.MainWindow?.Show();
+            throw new Exception($"启动考试界面失败: {ex.Message}", ex);
+        }
+    }
+
+    #region 考试事件处理
+
+    /// <summary>
+    /// 处理考试自动提交事件
+    /// </summary>
+    private void OnExamAutoSubmitted(ExamType examType, int examId)
+    {
+        System.Diagnostics.Debug.WriteLine($"[OnExamAutoSubmitted] 考试自动提交: {examType}, ID: {examId}");
+
+        // TODO: 实现考试自动提交逻辑
+        // 这里可以调用相应的API提交考试结果
+
+        // 显示主窗口
+        ShowMainWindow();
+    }
+
+    /// <summary>
+    /// 处理考试手动提交事件
+    /// </summary>
+    private void OnExamManualSubmitted(ExamType examType, int examId)
+    {
+        System.Diagnostics.Debug.WriteLine($"[OnExamManualSubmitted] 考试手动提交: {examType}, ID: {examId}");
+
+        // TODO: 实现考试手动提交逻辑
+        // 这里可以调用相应的API提交考试结果
+
+        // 显示主窗口
+        ShowMainWindow();
+    }
+
+    /// <summary>
+    /// 处理查看题目请求事件
+    /// </summary>
+    private void OnViewQuestionsRequested(StudentExamDto exam)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"[OnViewQuestionsRequested] 用户请求查看题目: {exam.Name}");
+
+            // 创建通用题目详情窗口
+            ExamQuestionDetailsViewModel detailsViewModel = new();
+            detailsViewModel.SetExamData(exam);
+
+            ExamQuestionDetailsWindow detailsWindow = new()
+            {
+                DataContext = detailsViewModel
+            };
+
+            // 显示题目详情窗口
+            detailsWindow.Show();
+            System.Diagnostics.Debug.WriteLine("[OnViewQuestionsRequested] 题目详情窗口已显示");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[OnViewQuestionsRequested] 显示题目详情窗口异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 显示主窗口
+    /// </summary>
+    private void ShowMainWindow()
+    {
+        try
+        {
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+                desktop.MainWindow != null)
+            {
+                desktop.MainWindow.Show();
+                System.Diagnostics.Debug.WriteLine("[ShowMainWindow] 主窗口已显示");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ShowMainWindow] 显示主窗口失败: {ex.Message}");
+        }
     }
 
     #endregion

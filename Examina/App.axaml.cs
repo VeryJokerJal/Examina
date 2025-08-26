@@ -249,12 +249,7 @@ public partial class App : Application
             EnhancedExamToolbarService? enhancedService = provider.GetService<EnhancedExamToolbarService>();
             return new ExamListViewModel(examService, formalExamService, authService, enhancedService);
         });
-        _ = services.AddTransient<UnifiedExamViewModel>(provider =>
-        {
-            IStudentExamService examService = provider.GetRequiredService<IStudentExamService>();
-            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
-            return new UnifiedExamViewModel(examService, authService);
-        });
+        // UnifiedExamViewModel不在DI容器中注册，由MainViewModel直接创建以避免循环依赖
         _ = services.AddTransient<ComprehensiveTrainingListViewModel>(provider =>
         {
             IStudentComprehensiveTrainingService trainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();
