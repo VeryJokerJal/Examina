@@ -13,17 +13,37 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="20" Spacing="20">
 
-            <!-- 说明文字 -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="说明："
-                           FontSize="16"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                <TextBlock Text="上机考试由后台管理员及老师发起，统考结果展后台可以重新练习"
-                           FontSize="14"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           TextWrapping="Wrap" />
-            </StackPanel>
+            <!-- 标题和刷新按钮 -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="8">
+                    <TextBlock Text="说明："
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="上机考试由后台管理员及老师发起，统考结果展后台可以重新练习"
+                               FontSize="14"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="刷新全部"
+                        Command="{Binding RefreshAllCommand}"
+                        Classes="accent"
+                        VerticalAlignment="Top">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ui:SymbolIcon Symbol="Refresh" FontSize="14" />
+                            <TextBlock Text="刷新" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+            </Grid>
 
             <!-- 全省统考 -->
             <StackPanel Spacing="12">
@@ -42,7 +62,7 @@
                     <ItemsControl ItemsSource="{Binding ProvincialExams}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#90EE90"
+                                <Border Background="{DynamicResource SystemFillColorSuccessBrush}"
                                         CornerRadius="8"
                                         Padding="16,12"
                                         Margin="0,0,0,8">
@@ -56,9 +76,9 @@
                                             <TextBlock Text="{Binding Name}"
                                                        FontSize="16"
                                                        FontWeight="SemiBold"
-                                                       Foreground="Black" />
+                                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock FontSize="12" Foreground="#666">
+                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                     <Run Text="考试时长：" />
                                                     <Run Text="{Binding DurationMinutes}" />
                                                     <Run Text="分钟" />
@@ -67,26 +87,27 @@
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock Text="联考开始时间："
                                                            FontSize="12"
-                                                           Foreground="#666" />
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                                 <TextBlock Text="{Binding StartTime, StringFormat='yyyy年MM月dd日HH:mm'}"
                                                            FontSize="12"
-                                                           Foreground="#666" />
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             </StackPanel>
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <Button Content="开始考试"
-                                                    Background="White"
-                                                    Foreground="Black"
-                                                    BorderBrush="#CCC"
+                                            <Button Content="{Binding ., Converter={StaticResource ExamButtonTextConverter}}"
+                                                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="4"
                                                     Padding="16,8"
+                                                    IsEnabled="{Binding ., Converter={StaticResource ExamButtonEnabledConverter}}"
                                                     Command="{Binding $parent[UserControl].DataContext.ViewProvincialExamDetailsCommand}"
                                                     CommandParameter="{Binding}" />
-                                            <TextBlock Text="联考正在进行中"
+                                            <TextBlock Text="{Binding ., Converter={StaticResource ExamStatusConverter}}"
                                                        FontSize="11"
-                                                       Foreground="#666"
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                        HorizontalAlignment="Center" />
                                         </StackPanel>
                                     </Grid>
@@ -95,14 +116,42 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
+                    <!-- 全省统考空状态提示 -->
+                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                            CornerRadius="8"
+                            Padding="20"
+                            IsVisible="{Binding ProvincialExams.Count, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}">
+                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                            <ui:SymbolIcon Symbol="Document" FontSize="32" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            <TextBlock Text="暂无全省统考"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 全省统考加载状态 -->
+                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                            CornerRadius="8"
+                            Padding="20"
+                            IsVisible="{Binding IsLoadingProvincialExams}">
+                        <StackPanel Spacing="8" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <ui:ProgressRing Width="20" Height="20" />
+                            <TextBlock Text="正在加载全省统考..."
+                                       FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
                     <TextBlock Text="已结束："
                                FontSize="14"
                                FontWeight="Medium"
                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                Margin="0,16,0,0" />
 
-                    <!-- 已结束的考试示例 -->
-                    <Border Background="#90EE90"
+                    <!-- 已结束的考试 - 这里可以绑定已结束的考试数据 -->
+                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
                             CornerRadius="8"
                             Padding="16,12"
                             Opacity="0.7">
@@ -116,30 +165,31 @@
                                 <TextBlock Text="第一次全省联考"
                                            FontSize="16"
                                            FontWeight="SemiBold"
-                                           Foreground="Black" />
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Text="考试时长：150分钟"
                                                FontSize="12"
-                                               Foreground="#666" />
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Text="联考开始时间：2025年07月09日15:00"
                                                FontSize="12"
-                                               Foreground="#666" />
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 </StackPanel>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Spacing="4">
-                                <Button Content="开始考试"
-                                        Background="White"
-                                        Foreground="Black"
-                                        BorderBrush="#CCC"
+                                <Button Content="查看结果"
+                                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                                         BorderThickness="1"
                                         CornerRadius="4"
-                                        Padding="16,8" />
+                                        Padding="16,8"
+                                        IsEnabled="False" />
                                 <TextBlock Text="联考已结束"
                                            FontSize="11"
-                                           Foreground="#666"
+                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                            HorizontalAlignment="Center" />
                             </StackPanel>
                         </Grid>
@@ -158,7 +208,7 @@
                 <ItemsControl ItemsSource="{Binding SchoolExams}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="#90EE90"
+                            <Border Background="{DynamicResource SystemFillColorAttentionBrush}"
                                     CornerRadius="8"
                                     Padding="16,12"
                                     Margin="0,0,0,8">
@@ -172,9 +222,9 @@
                                         <TextBlock Text="{Binding Name}"
                                                    FontSize="16"
                                                    FontWeight="SemiBold"
-                                                   Foreground="Black" />
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock FontSize="12" Foreground="#666">
+                                            <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                 <Run Text="考试时长：" />
                                                 <Run Text="{Binding DurationMinutes}" />
                                                 <Run Text="分钟" />
@@ -183,26 +233,27 @@
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <TextBlock Text="联考开始时间："
                                                        FontSize="12"
-                                                       Foreground="#666" />
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             <TextBlock Text="{Binding StartTime, StringFormat='yyyy年MM月dd日HH:mm'}"
                                                        FontSize="12"
-                                                       Foreground="#666" />
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1" Spacing="4">
-                                        <Button Content="开始考试"
-                                                Background="White"
-                                                Foreground="Black"
-                                                BorderBrush="#CCC"
+                                        <Button Content="{Binding ., Converter={StaticResource ExamButtonTextConverter}}"
+                                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="4"
                                                 Padding="16,8"
+                                                IsEnabled="{Binding ., Converter={StaticResource ExamButtonEnabledConverter}}"
                                                 Command="{Binding $parent[UserControl].DataContext.ViewSchoolExamDetailsCommand}"
                                                 CommandParameter="{Binding}" />
-                                        <TextBlock Text="联考正在进行中"
+                                        <TextBlock Text="{Binding ., Converter={StaticResource ExamStatusConverter}}"
                                                    FontSize="11"
-                                                   Foreground="#666"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Grid>
@@ -211,14 +262,42 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
+                <!-- 学校统考空状态提示 -->
+                <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                        CornerRadius="8"
+                        Padding="20"
+                        IsVisible="{Binding SchoolExams.Count, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}">
+                    <StackPanel Spacing="8" HorizontalAlignment="Center">
+                        <ui:SymbolIcon Symbol="Home" FontSize="32" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        <TextBlock Text="暂无学校统考"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 学校统考加载状态 -->
+                <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                        CornerRadius="8"
+                        Padding="20"
+                        IsVisible="{Binding IsLoadingSchoolExams}">
+                    <StackPanel Spacing="8" HorizontalAlignment="Center" Orientation="Horizontal">
+                        <ui:ProgressRing Width="20" Height="20" />
+                        <TextBlock Text="正在加载学校统考..."
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
                 <TextBlock Text="已结束："
                            FontSize="14"
                            FontWeight="Medium"
                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                            Margin="0,16,0,0" />
 
-                <!-- 已结束的学校考试示例 -->
-                <Border Background="#90EE90"
+                <!-- 已结束的学校考试 - 这里可以绑定已结束的考试数据 -->
+                <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
                         CornerRadius="8"
                         Padding="16,12"
                         Opacity="0.7">
@@ -229,33 +308,34 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="第一次全省联考"
+                            <TextBlock Text="第一次学校联考"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="Black" />
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="考试时长：150分钟"
                                            FontSize="12"
-                                           Foreground="#666" />
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="联考开始时间：2025年07月09日15:00"
                                            FontSize="12"
-                                           Foreground="#666" />
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Spacing="4">
-                            <Button Content="开始考试"
-                                    Background="White"
-                                    Foreground="Black"
-                                    BorderBrush="#CCC"
+                            <Button Content="查看结果"
+                                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                                     BorderThickness="1"
                                     CornerRadius="4"
-                                    Padding="16,8" />
+                                    Padding="16,8"
+                                    IsEnabled="False" />
                             <TextBlock Text="联考已结束"
                                        FontSize="11"
-                                       Foreground="#666"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
                     </Grid>

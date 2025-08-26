@@ -418,25 +418,25 @@ public class UnifiedExamViewModel : ViewModelBase
             DateTime now = DateTime.Now;
             if (now < exam.StartTime.Value)
             {
-                return "未开始";
+                return "即将开始";
             }
             else if (now > exam.EndTime.Value)
             {
-                return "已结束";
+                return "联考已结束";
             }
             else
             {
-                return "进行中";
+                return "联考正在进行中";
             }
         }
 
         return exam.Status switch
         {
-            "Published" => "已发布",
-            "InProgress" => "进行中",
-            "Completed" => "已结束",
-            "Draft" => "草稿",
-            _ => "未知状态"
+            "Published" => "联考正在进行中",
+            "InProgress" => "联考正在进行中",
+            "Completed" => "联考已结束",
+            "Draft" => "即将开始",
+            _ => "联考正在进行中"
         };
     }
 

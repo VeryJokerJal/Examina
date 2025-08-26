@@ -9,6 +9,9 @@
         <converters:BooleanInverseConverter x:Key="BooleanInverseConverter" />
         <converters:FileSizeConverter x:Key="FileSizeConverter" />
         <converters:ProgressPercentageConverter x:Key="ProgressPercentageConverter" />
+        <converters:ExamStatusConverter x:Key="ExamStatusConverter" />
+        <converters:ExamButtonTextConverter x:Key="ExamButtonTextConverter" />
+        <converters:ExamButtonEnabledConverter x:Key="ExamButtonEnabledConverter" />
 
         <!--  统计卡片自定义颜色方案  -->
 
