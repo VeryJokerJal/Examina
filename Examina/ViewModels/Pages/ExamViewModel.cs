@@ -1,12 +1,15 @@
 ﻿using System.Windows.Input;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Prism.Commands;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Services;
+using Examina.Views;
 
 namespace Examina.ViewModels.Pages;
 
@@ -139,6 +142,16 @@ public class ExamViewModel : ViewModelBase
     /// </summary>
     public string AttemptCountDescription => ExamAttemptLimit?.AttemptCountDisplay ?? "";
 
+    /// <summary>
+    /// 当前考试工具栏窗口
+    /// </summary>
+    private ExamToolbarWindow? _currentExamToolbar;
+
+    /// <summary>
+    /// 当前考试工具栏ViewModel
+    /// </summary>
+    private ExamToolbarViewModel? _currentToolbarViewModel;
+
     #endregion
 
     #region 命令
@@ -212,6 +225,10 @@ public class ExamViewModel : ViewModelBase
         this.WhenAnyValue(x => x.SelectedExam)
             .Subscribe(async exam => await OnSelectedExamChanged(exam));
 
+        // 监听考试状态变化，实时同步到工具栏
+        this.WhenAnyValue(x => x.CurrentExamAttempt)
+            .Subscribe(attempt => SyncToolbarStatus(attempt));
+
         LoadExamStatus();
     }
 
@@ -244,7 +261,15 @@ public class ExamViewModel : ViewModelBase
 
                 if (HasActiveExam && CurrentExamAttempt != null)
                 {
-                    ExamStatus = $"正在进行考试: {CurrentExamAttempt.AttemptTypeDisplay}";
+                    string statusText = CurrentExamAttempt.Status switch
+                    {
+                        ExamAttemptStatus.InProgress => "考试进行中",
+                        ExamAttemptStatus.Completed => "考试已完成",
+                        ExamAttemptStatus.Abandoned => "考试已放弃",
+                        ExamAttemptStatus.TimedOut => "考试已超时",
+                        _ => "考试状态未知"
+                    };
+                    ExamStatus = $"{statusText} - {CurrentExamAttempt.AttemptTypeDisplay}";
 
                     // 加载当前考试的详情
                     SelectedExam = await _studentExamService.GetExamDetailsAsync(CurrentExamAttempt.ExamId);
@@ -393,10 +418,12 @@ public class ExamViewModel : ViewModelBase
             {
                 CurrentExamAttempt = attempt;
                 HasActiveExam = true;
-                ExamStatus = $"正在进行考试: {attempt.AttemptTypeDisplay}";
+                ExamStatus = $"考试进行中 - {attempt.AttemptTypeDisplay}";
 
-                // TODO: 打开考试窗口或导航到考试页面
-                System.Diagnostics.Debug.WriteLine($"开始考试尝试: {attemptType}, ID: {attempt.Id}");
+                // 启动考试工具栏
+                await StartExamToolbarAsync(SelectedExam, attemptType);
+
+                System.Diagnostics.Debug.WriteLine($"开始考试尝试: {attemptType}, ID: {attempt.Id}, 状态: {ExamStatus}");
             }
             else
             {
@@ -511,6 +538,210 @@ public class ExamViewModel : ViewModelBase
     private bool CanViewExamHistory()
     {
         return SelectedExam != null && ExamAttemptHistory.Count > 0;
+    }
+
+    /// <summary>
+    /// 启动考试工具栏
+    /// </summary>
+    private async Task StartExamToolbarAsync(StudentExamDto exam, ExamAttemptType attemptType)
+    {
+        try
+        {
+            // 获取主窗口
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // 创建工具栏ViewModel
+                ExamToolbarViewModel toolbarViewModel = new(
+                    _authenticationService ?? throw new InvalidOperationException("认证服务未初始化"),
+                    Microsoft.Extensions.Logging.Abstractions.NullLogger<ExamToolbarViewModel>.Instance
+                );
+
+                // 设置考试信息
+                ExamType examType = attemptType switch
+                {
+                    ExamAttemptType.FirstAttempt => ExamType.FormalExam,
+                    ExamAttemptType.Retake => ExamType.FormalExam,
+                    ExamAttemptType.Practice => ExamType.Practice,
+                    _ => ExamType.FormalExam
+                };
+
+                // 计算总题目数
+                int totalQuestions = exam.Subjects.Sum(s => s.QuestionCount) + exam.Modules.Sum(m => m.Questions.Count);
+
+                // 设置考试信息
+                toolbarViewModel.SetExamInfo(
+                    examType,
+                    exam.Id,
+                    exam.Name,
+                    totalQuestions,
+                    exam.DurationMinutes * 60 // 转换为秒
+                );
+
+                // 设置学生信息
+                UserInfo? currentUser = _authenticationService?.CurrentUser;
+                if (currentUser != null)
+                {
+                    toolbarViewModel.StudentName = currentUser.Username;
+                }
+
+                // 创建考试工具栏窗口
+                ExamToolbarWindow examToolbar = new();
+                examToolbar.SetViewModel(toolbarViewModel);
+
+                // 保存工具栏实例以便后续状态同步
+                _currentExamToolbar = examToolbar;
+                _currentToolbarViewModel = toolbarViewModel;
+
+                // 订阅工具栏事件
+                examToolbar.ExamAutoSubmitted += OnExamAutoSubmitted;
+                examToolbar.ExamManualSubmitted += OnExamManualSubmitted;
+
+                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试工具栏已配置 - 考试ID: {exam.Id}, 题目数: {totalQuestions}, 时长: {exam.DurationMinutes}分钟, 类型: {attemptType}");
+
+                // 显示工具栏窗口
+                examToolbar.Show();
+                System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试工具栏窗口已显示");
+
+                // 开始考试（启动倒计时器并设置状态为进行中）
+                toolbarViewModel.StartExam();
+                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试已开始，剩余时间: {toolbarViewModel.RemainingTimeSeconds}秒, 状态: {toolbarViewModel.CurrentExamStatus}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ExamViewModel: 无法获取主窗口，启动考试界面失败");
+                ErrorMessage = "无法启动考试界面，请重试";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 启动考试工具栏异常: {ex.Message}");
+            ErrorMessage = $"启动考试界面失败: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 考试自动提交事件处理
+    /// </summary>
+    private async void OnExamAutoSubmitted(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (CurrentExamAttempt != null && _examAttemptService != null)
+            {
+                // 更新考试尝试状态为已完成
+                bool success = await _examAttemptService.CompleteExamAttemptAsync(
+                    CurrentExamAttempt.Id,
+                    null, // 分数由具体的考试模块计算
+                    null, // 最大分数
+                    null, // 用时
+                    "自动提交"
+                );
+
+                if (success)
+                {
+                    CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
+                    HasActiveExam = false;
+                    ExamStatus = "考试已完成 - 自动提交";
+
+                    System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试自动提交完成");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 处理考试自动提交异常: {ex.Message}");
+        }
+        finally
+        {
+            // 清理工具栏引用
+            CleanupToolbar();
+        }
+    }
+
+    /// <summary>
+    /// 考试手动提交事件处理
+    /// </summary>
+    private async void OnExamManualSubmitted(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (CurrentExamAttempt != null && _examAttemptService != null)
+            {
+                // 更新考试尝试状态为已完成
+                bool success = await _examAttemptService.CompleteExamAttemptAsync(
+                    CurrentExamAttempt.Id,
+                    null, // 分数由具体的考试模块计算
+                    null, // 最大分数
+                    null, // 用时
+                    "手动提交"
+                );
+
+                if (success)
+                {
+                    CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
+                    HasActiveExam = false;
+                    ExamStatus = "考试已完成 - 手动提交";
+
+                    System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试手动提交完成");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 处理考试手动提交异常: {ex.Message}");
+        }
+        finally
+        {
+            // 清理工具栏引用
+            CleanupToolbar();
+        }
+    }
+
+    /// <summary>
+    /// 清理工具栏引用
+    /// </summary>
+    private void CleanupToolbar()
+    {
+        if (_currentExamToolbar != null)
+        {
+            _currentExamToolbar.ExamAutoSubmitted -= OnExamAutoSubmitted;
+            _currentExamToolbar.ExamManualSubmitted -= OnExamManualSubmitted;
+            _currentExamToolbar = null;
+        }
+        _currentToolbarViewModel = null;
+    }
+
+    /// <summary>
+    /// 同步工具栏状态
+    /// </summary>
+    private void SyncToolbarStatus(ExamAttemptDto? attempt)
+    {
+        if (_currentToolbarViewModel == null || attempt == null)
+            return;
+
+        try
+        {
+            // 将ExamAttemptStatus映射到ExamStatus
+            ExamStatus toolbarStatus = attempt.Status switch
+            {
+                ExamAttemptStatus.InProgress => ExamStatus.InProgress,
+                ExamAttemptStatus.Completed => ExamStatus.Submitted,
+                ExamAttemptStatus.Abandoned => ExamStatus.Ended,
+                ExamAttemptStatus.TimedOut => ExamStatus.Ended,
+                _ => ExamStatus.Preparing
+            };
+
+            // 更新工具栏状态
+            if (_currentToolbarViewModel.CurrentExamStatus != toolbarStatus)
+            {
+                _currentToolbarViewModel.CurrentExamStatus = toolbarStatus;
+                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 工具栏状态已同步 - {toolbarStatus}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 同步工具栏状态异常: {ex.Message}");
+        }
     }
 
     #endregion

@@ -48,9 +48,9 @@ public class ExamStatusToStringConverter : IValueConverter
             return status switch
             {
                 ExamStatus.Preparing => "准备中",
-                ExamStatus.InProgress => "进行中",
+                ExamStatus.InProgress => "考试进行中",
                 ExamStatus.AboutToEnd => "即将结束",
-                ExamStatus.Ended => "已结束",
+                ExamStatus.Ended => "考试已结束",
                 ExamStatus.Submitted => "已提交",
                 _ => "未知状态"
             };
