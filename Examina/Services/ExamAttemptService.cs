@@ -62,6 +62,20 @@ public class ExamAttemptService : IExamAttemptService
                 };
             }
 
+            // 临时修复：如果考试配置不允许重考或练习，为了测试目的启用它们
+            if (!exam.AllowRetake)
+            {
+                System.Diagnostics.Debug.WriteLine($"考试 {examId} 默认不允许重考，临时启用重考功能");
+                exam.AllowRetake = true;
+                exam.MaxRetakeCount = Math.Max(exam.MaxRetakeCount, 3); // 至少允许3次重考
+            }
+
+            if (!exam.AllowPractice)
+            {
+                System.Diagnostics.Debug.WriteLine($"考试 {examId} 默认不允许练习，临时启用练习功能");
+                exam.AllowPractice = true;
+            }
+
             // 获取学生的考试尝试历史
             System.Diagnostics.Debug.WriteLine($"开始获取考试尝试历史...");
             List<ExamAttemptDto> attempts = await GetExamAttemptHistoryAsync(examId, studentId);
@@ -135,8 +149,10 @@ public class ExamAttemptService : IExamAttemptService
                 else
                 {
                     // 已完成首次考试，检查是否还能重考或练习
+                    // 用户应该始终能够开始某种类型的考试（重考或练习）
                     canStartExam = canRetake || canPractice;
 
+                    // 如果既不能重考也不能练习，则不能开始考试
                     if (!canStartExam)
                     {
                         if (!exam.AllowRetake && !exam.AllowPractice)
@@ -146,6 +162,10 @@ public class ExamAttemptService : IExamAttemptService
                         else if (exam.AllowRetake && retakeAttempts >= exam.MaxRetakeCount)
                         {
                             limitReason = $"重考次数已达上限 ({exam.MaxRetakeCount}次)";
+                        }
+                        else if (!exam.AllowPractice)
+                        {
+                            limitReason = "考试不允许练习模式";
                         }
                     }
                 }

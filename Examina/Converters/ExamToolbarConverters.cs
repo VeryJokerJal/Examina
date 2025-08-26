@@ -167,12 +167,17 @@ public class ExamCanStartConverter : IValueConverter
     {
         if (value is Examina.Models.Exam.StudentExamDto exam)
         {
-            // 考试可以开始的条件：状态为Published或InProgress，且在时间范围内，且未完成
-            bool canStart = (exam.Status == "Published" || exam.Status == "InProgress") &&
-                           exam.StartTime.HasValue && exam.EndTime.HasValue &&
+            // 考试可以开始的条件：状态为Published或InProgress，且在时间范围内
+            bool timeValid = exam.StartTime.HasValue && exam.EndTime.HasValue &&
                            DateTime.Now >= exam.StartTime.Value && DateTime.Now <= exam.EndTime.Value;
 
-            System.Diagnostics.Debug.WriteLine($"[ExamCanStartConverter] {exam.Name}: Status={exam.Status}, CanStart={canStart}");
+            bool statusValid = exam.Status == "Published" || exam.Status == "InProgress";
+
+            // 简化逻辑：只要时间和状态有效就显示按钮，具体的权限检查由ViewModel处理
+            bool canStart = statusValid && timeValid;
+
+            System.Diagnostics.Debug.WriteLine($"[ExamCanStartConverter] {exam.Name}: Status={exam.Status}, TimeValid={timeValid}, CanStart={canStart}");
+            System.Diagnostics.Debug.WriteLine($"  StartTime={exam.StartTime}, EndTime={exam.EndTime}, Now={DateTime.Now}");
             return canStart;
         }
         return false;
