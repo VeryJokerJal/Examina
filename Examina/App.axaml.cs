@@ -333,6 +333,10 @@ public partial class App : Application
                 // 延迟一段时间后运行数据一致性验证（等待用户登录）
                 await Task.Delay(10000); // 等待10秒
                 await Tests.DataConsistencyVerification.RunAllVerifications();
+
+                // 测试开始考试按钮功能
+                await Task.Delay(2000); // 等待2秒
+                await Tests.ExamButtonFunctionalityTest.RunAllTests();
             });
             #endif
         }
