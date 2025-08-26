@@ -81,6 +81,7 @@ public class MockExamViewModel : ViewModelBase
         IsLoading = false;
         HasFullAccess = true;
         ErrorMessage = null;
+        StudentName = "设计时学生";
 
         // 初始化命令（设计时不执行实际逻辑）
         StartMockExamCommand = ReactiveCommand.Create(() => { });

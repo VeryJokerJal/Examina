@@ -369,7 +369,7 @@ public class UnifiedExamViewModel : ViewModelBase
         if (_authenticationService?.CurrentUser != null)
         {
             HasFullAccess = _authenticationService.CurrentUser.HasFullAccess;
-            UserPermissionStatus = _authenticationService.CurrentUser.PermissionStatusDescription;
+            UserPermissionStatus = HasFullAccess ? "拥有完整功能权限" : "权限受限，需要绑定学校";
         }
         else
         {
@@ -402,7 +402,7 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 用户信息更新事件处理
     /// </summary>
-    private void OnUserInfoUpdated(object? sender, EventArgs e)
+    private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
         System.Diagnostics.Debug.WriteLine("UnifiedExamViewModel: 收到用户信息更新事件");
         UpdateUserPermissions();
