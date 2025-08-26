@@ -628,14 +628,20 @@ public class ExamImportService
     /// <returns>是否合法</returns>
     private static bool IsValidStatusTransition(string currentStatus, string targetStatus)
     {
+        // 如果状态相同，允许（无需转换）
+        if (currentStatus == targetStatus)
+        {
+            return true;
+        }
+
         return currentStatus switch
         {
             "Draft" => targetStatus is "Scheduled" or "Published" or "Cancelled",
-            "Scheduled" => targetStatus is "Published" or "Cancelled" or "Draft",
-            "Published" => targetStatus is "InProgress" or "Cancelled",
-            "InProgress" => targetStatus is "Completed" or "Cancelled",
-            "Completed" => false, // 已完成的考试不能再改变状态
-            "Cancelled" => targetStatus == "Draft", // 已取消的考试只能回到草稿状态
+            "Scheduled" => targetStatus is "Draft" or "Published" or "InProgress" or "Cancelled",
+            "Published" => targetStatus is "Draft" or "Scheduled" or "InProgress" or "Cancelled",
+            "InProgress" => targetStatus is "Published" or "Completed" or "Cancelled",
+            "Completed" => targetStatus is "Draft" or "Scheduled" or "Published", // 允许管理员重新设置已完成的考试
+            "Cancelled" => targetStatus is "Draft" or "Scheduled" or "Published", // 允许重新激活已取消的考试
             _ => false
         };
     }

@@ -1,9 +1,9 @@
+﻿using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models.ImportedExam;
+using ExaminaWebApplication.Services.Admin;
+using ExaminaWebApplication.Services.ImportedExam;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ExaminaWebApplication.Services.ImportedExam;
-using ExaminaWebApplication.Services.Admin;
-using ExaminaWebApplication.Models.ImportedExam;
-using ExaminaWebApplication.Data;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -139,7 +139,7 @@ public class ExamManagementController : Controller
 
         // 验证文件类型
         string fileExtension = Path.GetExtension(examFile.FileName).ToLowerInvariant();
-        if (fileExtension != ".json" && fileExtension != ".xml")
+        if (fileExtension is not ".json" and not ".xml")
         {
             TempData["ErrorMessage"] = "只支持 JSON 和 XML 格式的考试文件";
             return View();
@@ -160,8 +160,8 @@ public class ExamManagementController : Controller
             {
                 TempData["SuccessMessage"] = $"考试 '{result.ImportedExamName}' 导入成功！" +
                     $"共导入 {result.TotalSubjects} 个科目，{result.TotalModules} 个模块，{result.TotalQuestions} 道题目";
-                
-                _logger.LogInformation("用户 {UserId} 成功导入考试: {ExamName} (ID: {ExamId})", 
+
+                _logger.LogInformation("用户 {UserId} 成功导入考试: {ExamName} (ID: {ExamId})",
                     userId, result.ImportedExamName, result.ImportedExamId);
 
                 return RedirectToAction(nameof(ExamDetails), new { id = result.ImportedExamId });
@@ -169,7 +169,7 @@ public class ExamManagementController : Controller
             else
             {
                 TempData["ErrorMessage"] = $"导入失败: {result.ErrorMessage}";
-                _logger.LogWarning("用户 {UserId} 导入考试失败: {FileName}, 错误: {Error}", 
+                _logger.LogWarning("用户 {UserId} 导入考试失败: {FileName}, 错误: {Error}",
                     userId, examFile.FileName, result.ErrorMessage);
                 return View();
             }
@@ -338,15 +338,6 @@ public class ExamManagementController : Controller
             TempData["ErrorMessage"] = "更新考试设置失败，请稍后重试";
             return RedirectToAction(nameof(ExamSchedule), new { id });
         }
-    }
-
-    /// <summary>
-    /// API测试页面
-    /// </summary>
-    /// <returns>API测试页面</returns>
-    public IActionResult ApiTest()
-    {
-        return View();
     }
 
     /// <summary>
@@ -552,7 +543,7 @@ public class ExamManagementController : Controller
                 return BadRequest(new { message = "设置名称不能为空" });
             }
 
-            if (request.SettingName != "AllowRetake" && request.SettingName != "AllowPractice")
+            if (request.SettingName is not "AllowRetake" and not "AllowPractice")
             {
                 _logger.LogWarning("UpdateExamSetting: 不支持的设置名称: {SettingName}，考试ID: {ExamId}", request.SettingName, examId);
                 return BadRequest(new { message = $"不支持的设置名称: {request.SettingName}" });
