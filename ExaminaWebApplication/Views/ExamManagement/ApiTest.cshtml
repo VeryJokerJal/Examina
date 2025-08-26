@@ -77,6 +77,22 @@
                                             发布考试
                                         </button>
                                     </div>
+                                    <div class="mb-3">
+                                        <button type="button" class="btn btn-secondary" onclick="testUpdateExamSetting('AllowRetake', true)">
+                                            启用重考设置
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="testUpdateExamSetting('AllowRetake', false)">
+                                            禁用重考设置
+                                        </button>
+                                    </div>
+                                    <div class="mb-3">
+                                        <button type="button" class="btn btn-success" onclick="testUpdateExamSetting('AllowPractice', true)">
+                                            启用重做设置
+                                        </button>
+                                        <button type="button" class="btn btn-success" onclick="testUpdateExamSetting('AllowPractice', false)">
+                                            禁用重做设置
+                                        </button>
+                                    </div>
                                     <div id="adminApiResult" class="mt-3">
                                         <h6>测试结果：</h6>
                                         <pre id="adminApiOutput" class="bg-light p-3" style="max-height: 400px; overflow-y: auto;"></pre>
@@ -248,6 +264,31 @@
                     `发布考试 (${response.status}):\n` + JSON.stringify(data, null, 2);
             } catch (error) {
                 document.getElementById('adminApiOutput').textContent = 
+                    `错误: ${error.message}`;
+            }
+        }
+
+        async function testUpdateExamSetting(settingName, value) {
+            const examId = document.getElementById('testExamId').value;
+
+            try {
+                const response = await fetch(`/ExamManagement/update-setting/${examId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        settingName: settingName,
+                        value: value
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('adminApiOutput').textContent =
+                    `更新考试设置 ${settingName}=${value} (${response.status}):\n` + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('adminApiOutput').textContent =
                     `错误: ${error.message}`;
             }
         }

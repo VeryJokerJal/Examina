@@ -75,6 +75,15 @@ public class ExamManagementController : Controller
     }
 
     /// <summary>
+    /// API测试页面
+    /// </summary>
+    [HttpGet("ApiTest")]
+    public IActionResult ApiTest()
+    {
+        return View();
+    }
+
+    /// <summary>
     /// 考试详情页面
     /// </summary>
     [HttpGet("ExamDetails/{id}")]
