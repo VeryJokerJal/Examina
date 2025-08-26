@@ -548,7 +548,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             ExamListViewModel? viewModel = ((App)Application.Current!).GetService<ExamListViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ExamListViewModel");
                 return viewModel;
             }
 
@@ -556,7 +555,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             IStudentExamService? examService = ((App)Application.Current!).GetService<IStudentExamService>();
             if (examService != null && _authenticationService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ExamListViewModel");
                 IStudentFormalExamService? formalExamService = AppServiceManager.GetService<IStudentFormalExamService>();
                 EnhancedExamToolbarService? enhancedService = AppServiceManager.GetService<EnhancedExamToolbarService>();
 
@@ -564,19 +562,11 @@ public class MainViewModel : ViewModelBase, IDisposable
                 {
                     return new ExamListViewModel(examService, formalExamService, _authenticationService, enhancedService);
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentFormalExamService");
-                }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentExamService，无法创建ExamListViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ExamListViewModel时发生异常: {ex.Message}");
+            // 创建ExamListViewModel时发生异常，静默处理
         }
 
         return null;
@@ -595,17 +585,12 @@ public class MainViewModel : ViewModelBase, IDisposable
 
             if (examService != null && _authenticationService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 创建UnifiedExamViewModel");
                 return new UnifiedExamViewModel(examService, _authenticationService, examAttemptService, this);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentExamService，无法创建UnifiedExamViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建UnifiedExamViewModel时发生异常: {ex.Message}");
+            // 创建UnifiedExamViewModel时发生异常，静默处理
         }
 
         return null;
@@ -624,7 +609,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             ComprehensiveTrainingListViewModel? viewModel = ((App)Application.Current!).GetService<ComprehensiveTrainingListViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ComprehensiveTrainingListViewModel");
                 return viewModel;
             }
 
@@ -632,17 +616,12 @@ public class MainViewModel : ViewModelBase, IDisposable
             IStudentComprehensiveTrainingService? trainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
             if (trainingService != null && _authenticationService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ComprehensiveTrainingListViewModel");
                 return new ComprehensiveTrainingListViewModel(trainingService, _authenticationService);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentComprehensiveTrainingService，无法创建ComprehensiveTrainingListViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ComprehensiveTrainingListViewModel时发生异常: {ex.Message}");
+            // 创建ComprehensiveTrainingListViewModel时发生异常，静默处理
         }
 
         return null;
@@ -659,7 +638,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             SpecializedTrainingListViewModel? viewModel = ((App)Application.Current!).GetService<SpecializedTrainingListViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取SpecializedTrainingListViewModel");
                 return viewModel;
             }
 
@@ -668,17 +646,12 @@ public class MainViewModel : ViewModelBase, IDisposable
             if (trainingService != null && _authenticationService != null)
             {
                 SpecializedTrainingListViewModel newViewModel = new(trainingService, _authenticationService);
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建SpecializedTrainingListViewModel");
                 return newViewModel;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentSpecializedTrainingService，无法创建SpecializedTrainingListViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建SpecializedTrainingListViewModel时发生异常: {ex.Message}");
+            // 创建SpecializedTrainingListViewModel时发生异常，静默处理
         }
 
         return null;
@@ -697,7 +670,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             MockExamViewModel? viewModel = ((App)Application.Current!).GetService<MockExamViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取MockExamViewModel");
                 return viewModel;
             }
 
@@ -705,17 +677,12 @@ public class MainViewModel : ViewModelBase, IDisposable
             IStudentMockExamService? mockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
             if (mockExamService != null && _authenticationService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建MockExamViewModel");
                 return new MockExamViewModel(mockExamService, _authenticationService);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IStudentMockExamService，无法创建MockExamViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建MockExamViewModel时发生异常: {ex.Message}");
+            // 创建MockExamViewModel时发生异常，静默处理
         }
 
         return null;
@@ -728,12 +695,10 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("MainViewModel: 创建PracticeViewModel，传递MainViewModel引用");
             return new PracticeViewModel(this);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建PracticeViewModel时发生异常: {ex.Message}");
             // 如果创建失败，返回无参构造的实例
             return new PracticeViewModel();
         }
@@ -746,30 +711,20 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("开始退出登录流程");
-
             // 调用认证服务退出登录
             if (_authenticationService != null)
             {
                 await _authenticationService.LogoutAsync();
-                System.Diagnostics.Debug.WriteLine("认证服务退出登录完成");
             }
 
             // 使用窗口管理服务导航回登录页面
             if (_windowManagerService != null)
             {
                 _windowManagerService.NavigateToLogin();
-                System.Diagnostics.Debug.WriteLine("已导航到登录窗口");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("窗口管理服务未注入，无法导航到登录窗口");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"退出登录失败: {ex.Message}");
-
             // 即使出现错误，也尝试导航到登录窗口
             try
             {
@@ -777,7 +732,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             }
             catch (Exception navEx)
             {
-                System.Diagnostics.Debug.WriteLine($"导航到登录窗口失败: {navEx.Message}");
+                // 导航到登录窗口失败，静默处理
             }
         }
     }
@@ -793,17 +748,15 @@ public class MainViewModel : ViewModelBase, IDisposable
             ExamViewModel? viewModel = ((App)Application.Current!).GetService<ExamViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ExamViewModel");
                 return viewModel;
             }
 
             // 如果DI容器无法提供，手动创建
-            System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ExamViewModel");
             return new ExamViewModel(_authenticationService);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ExamViewModel时发生异常: {ex.Message}");
+            // 创建ExamViewModel时发生异常，静默处理
         }
 
         return null;
@@ -823,13 +776,11 @@ public class MainViewModel : ViewModelBase, IDisposable
             // 优先使用带类型的工厂方法，确保一次性正确初始化
             if (!string.IsNullOrEmpty(rankingTypeId) && _leaderboardViewModelWithTypeFactory != null)
             {
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 使用带类型工厂创建LeaderboardViewModel，类型: {rankingTypeId}");
                 LeaderboardViewModel viewModel = _leaderboardViewModelWithTypeFactory(rankingTypeId);
                 return viewModel;
             }
             else if (_leaderboardViewModelFactory != null)
             {
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 使用默认工厂创建LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
                 LeaderboardViewModel viewModel = _leaderboardViewModelFactory();
 
                 // 如果指定了排行榜类型，设置对应的类型
@@ -847,8 +798,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 工厂未注入，尝试手动获取服务创建LeaderboardViewModel，类型: {rankingTypeId ?? "默认"}");
-
                 // 尝试手动获取服务
                 RankingService? rankingService = ((App)Application.Current!).GetService<RankingService>();
                 IStudentComprehensiveTrainingService? comprehensiveTrainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
@@ -858,12 +807,10 @@ public class MainViewModel : ViewModelBase, IDisposable
                 LeaderboardViewModel viewModel;
                 if (rankingService != null && comprehensiveTrainingService != null && studentExamService != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取服务，创建带依赖的LeaderboardViewModel");
                     viewModel = new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取所需服务，创建默认LeaderboardViewModel");
                     viewModel = new LeaderboardViewModel();
                 }
 
@@ -883,8 +830,6 @@ public class MainViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建LeaderboardViewModel失败: {ex.Message}");
-
             // 尝试手动获取服务创建回退实例
             try
             {
@@ -896,12 +841,10 @@ public class MainViewModel : ViewModelBase, IDisposable
                 LeaderboardViewModel fallbackViewModel;
                 if (rankingService != null && comprehensiveTrainingService != null && studentExamService != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 异常回退时成功获取服务");
                     fallbackViewModel = new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 异常回退时无法获取服务，使用默认构造函数");
                     fallbackViewModel = new LeaderboardViewModel();
                 }
 
@@ -910,7 +853,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             }
             catch (Exception fallbackEx)
             {
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 回退创建也失败: {fallbackEx.Message}");
                 LeaderboardViewModel defaultViewModel = new LeaderboardViewModel();
                 defaultViewModel.LoadInitialData();
                 return defaultViewModel;

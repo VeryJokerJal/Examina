@@ -43,7 +43,6 @@ public class StudentExamService : IStudentExamService
             bool authSuccess = await EnsureAuthenticatedAsync();
             if (!authSuccess)
             {
-                System.Diagnostics.Debug.WriteLine("获取考试列表: 认证失败，返回空列表");
                 return [];
             }
 

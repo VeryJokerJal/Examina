@@ -347,8 +347,6 @@ public class AuthenticationService : IAuthenticationService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 验证短信验证码异常: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 异常堆栈: {ex.StackTrace}");
             return false;
         }
     }
@@ -363,19 +361,12 @@ public class AuthenticationService : IAuthenticationService
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 发送请求到verify-sms: {json}");
-
             StringContent content = new(json, Encoding.UTF8, "application/json");
             string apiUrl = BuildApiUrl("verify-sms");
 
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] API URL: {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
 
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 响应状态: {response.StatusCode}");
-
             string responseContent = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] 响应内容: {responseContent}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -390,31 +381,25 @@ public class AuthenticationService : IAuthenticationService
                     if (result != null && result.ContainsKey("success"))
                     {
                         bool success = result["success"].GetBoolean();
-                        System.Diagnostics.Debug.WriteLine($"[SMS验证] 解析结果: {success}");
                         return success;
                     }
 
-                    System.Diagnostics.Debug.WriteLine($"[SMS验证] 响应中未找到success字段");
                     return false;
                 }
                 catch (JsonException jsonEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SMS验证] JSON解析失败: {jsonEx.Message}");
                     // 尝试简单的字符串检查
                     bool success = responseContent.Contains("\"success\":true") || responseContent.Contains("\"success\": true");
-                    System.Diagnostics.Debug.WriteLine($"[SMS验证] 字符串检查结果: {success}");
                     return success;
                 }
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[SMS验证] verify-sms API调用失败: {response.StatusCode} - {responseContent}");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SMS验证] verify-sms端点异常: {ex.Message}");
             return false;
         }
     }
