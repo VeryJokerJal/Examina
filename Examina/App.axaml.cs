@@ -221,9 +221,6 @@ public partial class App : Application
         // 注册窗口管理服务
         _ = services.AddSingleton<IWindowManagerService, WindowManagerService>();
 
-        // 注册考试次数限制服务
-        _ = services.AddTransient<IExamAttemptService, ExamAttemptService>();
-
         // 注册ViewModels
         _ = services.AddTransient<LoginViewModel>();
         _ = services.AddTransient<MainViewModel>(provider =>
@@ -324,6 +321,16 @@ public partial class App : Application
 
             // 测试排行榜类型初始化一致性
             Tests.LeaderboardViewModelDependencyTest.TestLeaderboardTypeInitializationConsistency();
+
+            // 测试ExamAttemptService功能
+            _ = Task.Run(async () =>
+            {
+                await Tests.ExamAttemptServiceTest.RunAllTests();
+
+                // 延迟一段时间后运行数据一致性验证（等待用户登录）
+                await Task.Delay(10000); // 等待10秒
+                await Tests.DataConsistencyVerification.RunAllVerifications();
+            });
             #endif
         }
 

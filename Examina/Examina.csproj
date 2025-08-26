@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BenchSuite\BenchSuite.csproj" />
+    <ProjectReference Include="..\ExaminaWebApplication\ExaminaWebApplication.csproj" />
   </ItemGroup>
 
   <ItemGroup>

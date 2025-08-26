@@ -18,8 +18,23 @@ public static class ServiceCollectionExtensions
         // 注册BenchSuite相关服务
         services.AddBenchSuiteServices();
 
-        // 注册考试尝试服务
-        services.AddSingleton<IExamAttemptService, ExamAttemptService>();
+        // 为ExamAttemptService配置HttpClient
+        services.AddHttpClient<IExamAttemptService, ExamAttemptService>(client =>
+        {
+            client.BaseAddress = new Uri("https://qiuzhenbd.com");
+            client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            return new HttpClientHandler()
+            {
+                AllowAutoRedirect = false,
+                UseProxy = true,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+            };
+        });
 
         // 注册其他应用程序服务
         // services.AddSingleton<IOtherService, OtherService>();

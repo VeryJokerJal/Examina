@@ -1,5 +1,8 @@
 using System.Text.Json;
+using System.Text;
 using Examina.Models.Exam;
+using Examina.Services.Interfaces;
+using ExaminaWebApplication.Models;
 
 namespace Examina.Services;
 
@@ -10,15 +13,30 @@ public class ExamAttemptService : IExamAttemptService
 {
     private readonly IStudentExamService _studentExamService;
     private readonly IConfigurationService _configurationService;
-    private readonly List<ExamAttemptDto> _examAttempts; // 模拟数据存储
+    private readonly IAuthenticationService _authenticationService;
+    private readonly HttpClient _httpClient;
+    private readonly List<ExamAttemptDto> _examAttempts; // 本地缓存，用于临时存储
     private int _nextAttemptId = 1;
+
+    /// <summary>
+    /// JSON序列化选项
+    /// </summary>
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public ExamAttemptService(
         IStudentExamService studentExamService,
-        IConfigurationService configurationService)
+        IConfigurationService configurationService,
+        IAuthenticationService authenticationService,
+        HttpClient httpClient)
     {
         _studentExamService = studentExamService;
         _configurationService = configurationService;
+        _authenticationService = authenticationService;
+        _httpClient = httpClient;
         _examAttempts = [];
     }
 
@@ -269,11 +287,46 @@ public class ExamAttemptService : IExamAttemptService
     /// </summary>
     public async Task<List<ExamAttemptDto>> GetExamAttemptHistoryAsync(int examId, int studentId)
     {
-        await Task.CompletedTask;
-        return _examAttempts
-            .Where(a => a.ExamId == examId && a.StudentId == studentId)
-            .OrderBy(a => a.StartedAt)
-            .ToList();
+        try
+        {
+            // 从后端API获取考试完成记录
+            List<ExamCompletion> completions = await GetExamCompletionsFromApiAsync(examId);
+
+            // 将ExamCompletion转换为ExamAttemptDto
+            List<ExamAttemptDto> attempts = completions.Select(completion => new ExamAttemptDto
+            {
+                Id = completion.Id,
+                ExamId = completion.ExamId,
+                StudentId = completion.StudentUserId,
+                AttemptNumber = 1, // 暂时设为1，后续可以根据需要调整
+                AttemptType = ExamAttemptType.FirstAttempt, // 暂时设为首次考试
+                Status = MapCompletionStatusToAttemptStatus(completion.Status),
+                StartedAt = completion.StartedAt ?? completion.CreatedAt,
+                CompletedAt = completion.CompletedAt,
+                Score = completion.Score,
+                MaxScore = completion.MaxScore,
+                DurationSeconds = completion.DurationSeconds,
+                Notes = completion.Notes,
+                IsRanked = true
+            }).ToList();
+
+            // 合并本地缓存的数据（用于正在进行的考试）
+            List<ExamAttemptDto> localAttempts = _examAttempts
+                .Where(a => a.ExamId == examId && a.StudentId == studentId)
+                .ToList();
+
+            attempts.AddRange(localAttempts);
+
+            return attempts.OrderBy(a => a.StartedAt).ToList();
+        }
+        catch (Exception)
+        {
+            // 如果API调用失败，返回本地缓存的数据
+            return _examAttempts
+                .Where(a => a.ExamId == examId && a.StudentId == studentId)
+                .OrderBy(a => a.StartedAt)
+                .ToList();
+        }
     }
 
     /// <summary>
@@ -281,13 +334,52 @@ public class ExamAttemptService : IExamAttemptService
     /// </summary>
     public async Task<List<ExamAttemptDto>> GetStudentExamAttemptHistoryAsync(int studentId, int pageNumber = 1, int pageSize = 50)
     {
-        await Task.CompletedTask;
-        return _examAttempts
-            .Where(a => a.StudentId == studentId)
-            .OrderByDescending(a => a.StartedAt)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
+        try
+        {
+            // 从后端API获取所有考试完成记录
+            List<ExamCompletion> completions = await GetExamCompletionsFromApiAsync();
+
+            // 将ExamCompletion转换为ExamAttemptDto
+            List<ExamAttemptDto> attempts = completions.Select(completion => new ExamAttemptDto
+            {
+                Id = completion.Id,
+                ExamId = completion.ExamId,
+                StudentId = completion.StudentUserId,
+                AttemptNumber = 1,
+                AttemptType = ExamAttemptType.FirstAttempt,
+                Status = MapCompletionStatusToAttemptStatus(completion.Status),
+                StartedAt = completion.StartedAt ?? completion.CreatedAt,
+                CompletedAt = completion.CompletedAt,
+                Score = completion.Score,
+                MaxScore = completion.MaxScore,
+                DurationSeconds = completion.DurationSeconds,
+                Notes = completion.Notes,
+                IsRanked = true
+            }).ToList();
+
+            // 合并本地缓存的数据
+            List<ExamAttemptDto> localAttempts = _examAttempts
+                .Where(a => a.StudentId == studentId)
+                .ToList();
+
+            attempts.AddRange(localAttempts);
+
+            return attempts
+                .OrderByDescending(a => a.StartedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+        }
+        catch (Exception)
+        {
+            // 如果API调用失败，返回本地缓存的数据
+            return _examAttempts
+                .Where(a => a.StudentId == studentId)
+                .OrderByDescending(a => a.StartedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+        }
     }
 
     /// <summary>
@@ -423,5 +515,64 @@ public class ExamAttemptService : IExamAttemptService
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 从后端API获取考试完成记录
+    /// </summary>
+    private async Task<List<ExamCompletion>> GetExamCompletionsFromApiAsync(int? examId = null)
+    {
+        try
+        {
+            // 获取认证令牌
+            string? token = await _authenticationService.GetTokenAsync();
+            if (string.IsNullOrEmpty(token))
+            {
+                return [];
+            }
+
+            // 设置请求头
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+            // 构建API URL
+            string baseUrl = await _configurationService.GetApiBaseUrlAsync();
+            string url = $"{baseUrl}/api/student/exams/completions";
+            if (examId.HasValue)
+            {
+                url += $"?examId={examId.Value}";
+            }
+
+            // 发送请求
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonContent = await response.Content.ReadAsStringAsync();
+                List<ExamCompletion>? completions = JsonSerializer.Deserialize<List<ExamCompletion>>(jsonContent, JsonOptions);
+                return completions ?? [];
+            }
+
+            return [];
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// 将ExamCompletionStatus转换为ExamAttemptStatus
+    /// </summary>
+    private static ExamAttemptStatus MapCompletionStatusToAttemptStatus(ExamCompletionStatus status)
+    {
+        return status switch
+        {
+            ExamCompletionStatus.NotStarted => ExamAttemptStatus.InProgress,
+            ExamCompletionStatus.InProgress => ExamAttemptStatus.InProgress,
+            ExamCompletionStatus.Completed => ExamAttemptStatus.Completed,
+            ExamCompletionStatus.Expired => ExamAttemptStatus.TimedOut,
+            ExamCompletionStatus.Cancelled => ExamAttemptStatus.Abandoned,
+            _ => ExamAttemptStatus.InProgress
+        };
     }
 }
