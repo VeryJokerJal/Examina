@@ -351,4 +351,42 @@ public class ExamManagementController : Controller
             return StatusCode(500, new { message = "创建测试数据失败", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// 检查测试数据
+    /// </summary>
+    [HttpGet("check-test-data")]
+    public async Task<IActionResult> CheckTestData()
+    {
+        try
+        {
+            TestDataChecker checker = new(_context);
+            await checker.CheckTestDataAsync();
+            return Ok(new { message = "测试数据检查完成，请查看控制台输出" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查测试数据失败");
+            return StatusCode(500, new { message = "检查测试数据失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// 重新创建测试数据
+    /// </summary>
+    [HttpPost("recreate-test-data")]
+    public async Task<IActionResult> RecreateTestData()
+    {
+        try
+        {
+            TestDataChecker checker = new(_context);
+            await checker.RecreateTestDataAsync();
+            return Ok(new { message = "测试数据重新创建完成，请查看控制台输出" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "重新创建测试数据失败");
+            return StatusCode(500, new { message = "重新创建测试数据失败", error = ex.Message });
+        }
+    }
 }
