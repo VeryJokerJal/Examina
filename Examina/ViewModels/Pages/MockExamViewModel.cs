@@ -68,6 +68,25 @@ public class MockExamViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> StartMockExamCommand { get; }
 
+    /// <summary>
+    /// 设计时构造函数
+    /// </summary>
+    public MockExamViewModel()
+    {
+        _mockExamService = null!;
+        _authenticationService = null!;
+        _enhancedExamToolbarService = null;
+
+        // 设计时数据
+        IsLoading = false;
+        HasFullAccess = true;
+        ErrorMessage = null;
+
+        // 初始化命令（设计时不执行实际逻辑）
+        StartMockExamCommand = ReactiveCommand.Create(() => { });
+        RefreshCommand = ReactiveCommand.Create(() => { });
+    }
+
     public MockExamViewModel(IStudentMockExamService mockExamService, IAuthenticationService authenticationService)
     {
         _mockExamService = mockExamService;

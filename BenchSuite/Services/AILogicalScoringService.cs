@@ -4,6 +4,7 @@ using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using OpenAI;
 using OpenAI.Chat;
+using System.ClientModel;
 
 namespace BenchSuite.Services;
 
@@ -35,7 +36,8 @@ public class AILogicalScoringService : IAILogicalScoringService
             Endpoint = new Uri(_configuration.ApiEndpoint)
         };
 
-        OpenAIClient openAIClient = new(_configuration.ApiKey, clientOptions);
+        ApiKeyCredential credential = new(_configuration.ApiKey);
+        OpenAIClient openAIClient = new(credential, clientOptions);
         _chatClient = openAIClient.GetChatClient(_configuration.ModelName);
     }
 
