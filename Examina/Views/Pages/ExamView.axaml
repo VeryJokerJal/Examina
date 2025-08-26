@@ -8,10 +8,7 @@
              x:DataType="vm:ExamViewModel">
 
   <UserControl.Resources>
-    <!-- 内置转换器 -->
-    <x:Static x:Key="StringConverters.IsNotNullOrEmpty" Member="StringConverters.IsNotNullOrEmpty"/>
-    <x:Static x:Key="ObjectConverters.IsNotNull" Member="ObjectConverters.IsNotNull"/>
-    <x:Static x:Key="IntConverters.IsGreaterThan" Member="IntConverters.IsGreaterThan"/>
+    <!-- 暂时移除转换器引用，使用简单的绑定 -->
   </UserControl.Resources>
 
   <ScrollViewer>
@@ -55,7 +52,7 @@
                     MinWidth="300"/>
 
           <!-- 考试次数限制信息 -->
-          <StackPanel IsVisible="{Binding SelectedExam, Converter={x:Static ObjectConverters.IsNotNull}}"
+          <StackPanel IsVisible="{Binding !!SelectedExam}"
                       Spacing="12">
             <Separator/>
 
@@ -110,7 +107,7 @@
                          FontWeight="SemiBold"
                          FontFamily="Microsoft YaHei"
                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-              <TextBlock Text="{Binding ExamStatus}"
+              <TextBlock Text="{Binding ExamStatusDescription}"
                          FontSize="14"
                          FontFamily="Microsoft YaHei"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
@@ -163,7 +160,7 @@
                       Classes="accent"
                       Command="{Binding StartExamCommand}"
                       IsVisible="{Binding !HasActiveExam}"
-                      IsEnabled="{Binding SelectedExam, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      IsEnabled="{Binding !!SelectedExam}"
                       Padding="20,10"
                       FontFamily="Microsoft YaHei"/>
 
@@ -184,7 +181,7 @@
             <StackPanel Orientation="Horizontal"
                         Spacing="12"
                         HorizontalAlignment="Center"
-                        IsVisible="{Binding SelectedExam, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        IsVisible="{Binding !!SelectedExam}">
               <Button Content="{Binding RetakeButtonText}"
                       Classes="secondary"
                       Command="{Binding RetakeExamCommand}"
@@ -211,7 +208,7 @@
                   CornerRadius="6"
                   Padding="15,10"
                   Margin="0,10,0,0"
-                  IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  IsVisible="{Binding !!ErrorMessage}">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center"/>
               <TextBlock Text="{Binding ErrorMessage}"
@@ -229,7 +226,7 @@
       <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
               CornerRadius="12"
               Padding="24"
-              IsVisible="{Binding ExamAttemptHistory.Count, Converter={x:Static IntConverters.IsGreaterThan}, ConverterParameter=0}">
+              IsVisible="{Binding !!ExamAttemptHistory.Count}">
         <StackPanel Spacing="16">
 
           <!-- 历史记录标题 -->
