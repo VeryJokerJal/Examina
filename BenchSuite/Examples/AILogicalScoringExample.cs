@@ -13,9 +13,10 @@ public static class AILogicalScoringExample
     /// <summary>
     /// 运行AI逻辑性判分示例
     /// </summary>
-    /// <param name="apiKey">OpenAI API密钥</param>
+    /// <param name="apiKey">API密钥</param>
+    /// <param name="customEndpoint">自定义API端点（可选）</param>
     /// <returns>示例运行结果</returns>
-    public static async Task<bool> RunExampleAsync(string apiKey)
+    public static async Task<bool> RunExampleAsync(string apiKey, string? customEndpoint = null)
     {
         Console.WriteLine("=== AI逻辑性判分功能示例 ===\n");
 
@@ -25,7 +26,8 @@ public static class AILogicalScoringExample
             AIServiceConfiguration config = new()
             {
                 ApiKey = apiKey,
-                ModelName = "gpt-4o-mini",
+                ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
+                ModelName = "gpt-5-2025-08-07",
                 MaxTokens = 2000,
                 Temperature = 0.1m,
                 TimeoutSeconds = 30,
@@ -263,21 +265,17 @@ public static class AILogicalScoringExample
     /// <summary>
     /// 测试完整的C#评分服务集成
     /// </summary>
-    /// <param name="apiKey">OpenAI API密钥</param>
+    /// <param name="apiKey">API密钥</param>
+    /// <param name="customEndpoint">自定义API端点（可选）</param>
     /// <returns>测试结果</returns>
-    public static async Task<bool> TestCSharpScoringServiceIntegrationAsync(string apiKey)
+    public static async Task<bool> TestCSharpScoringServiceIntegrationAsync(string apiKey, string? customEndpoint = null)
     {
         Console.WriteLine("\n=== 测试C#评分服务AI集成 ===");
 
         try
         {
             // 1. 配置AI服务
-            AIServiceConfiguration config = new()
-            {
-                ApiKey = apiKey,
-                ModelName = "gpt-4o-mini",
-                EnableStructuredOutput = true
-            };
+            AIServiceConfiguration config = AILogicalScoringConfiguration.CreateDefaultConfiguration(apiKey, customEndpoint);
 
             IAILogicalScoringService aiService = new AILogicalScoringService(config);
 

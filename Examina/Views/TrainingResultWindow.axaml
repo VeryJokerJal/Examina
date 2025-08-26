@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:Examina.ViewModels"
+    xmlns:conv="using:Examina.Converters"
     Title="{Binding Title}"
     Width="1000"
     Height="800"
@@ -212,37 +213,102 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Classes="module-item">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
-                                                <TextBlock Classes="content" Text="{Binding Details}" TextWrapping="Wrap" />
-                                            </StackPanel>
-                                            
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Classes="content"
-                                                Margin="8,0"
-                                                Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
-                                            
-                                            <TextBlock
-                                                Grid.Column="2"
-                                                Classes="content"
-                                                Margin="8,0"
-                                                Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
-                                            
-                                            <TextBlock
-                                                Grid.Column="3"
-                                                Classes="content"
-                                                Margin="8,0"
-                                                Text="{Binding ScoreRate, StringFormat={}({0:F1}%)}" />
-                                        </Grid>
+                                        <StackPanel>
+                                            <!-- 基本信息行 -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
+                                                    <TextBlock Classes="content" Text="{Binding Details}" TextWrapping="Wrap" />
+                                                </StackPanel>
+
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Classes="content"
+                                                    Margin="8,0"
+                                                    Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    Classes="content"
+                                                    Margin="8,0"
+                                                    Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
+
+                                                <TextBlock
+                                                    Grid.Column="3"
+                                                    Classes="content"
+                                                    Margin="8,0"
+                                                    Text="{Binding ScoreRate, StringFormat={}({0:F1}%)}" />
+                                            </Grid>
+
+                                            <!-- AI分析结果（仅C#模块显示） -->
+                                            <Border IsVisible="{Binding HasAIAnalysis}"
+                                                    Background="{DynamicResource SystemFillColorAttentionBackground}"
+                                                    CornerRadius="6"
+                                                    Padding="12"
+                                                    Margin="0,8,0,0">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock Grid.Column="0"
+                                                                   Classes="subheader"
+                                                                   Text="🤖 AI逻辑性分析"
+                                                                   Foreground="{DynamicResource SystemFillColorAttention}" />
+
+                                                        <TextBlock Grid.Column="1"
+                                                                   Classes="content"
+                                                                   Margin="8,0"
+                                                                   Text="{Binding AILogicalScore, StringFormat={}评分: {0}/100}"
+                                                                   FontWeight="SemiBold" />
+
+                                                        <TextBlock Grid.Column="2"
+                                                                   Classes="content"
+                                                                   Margin="8,0"
+                                                                   Text="{Binding AIScoreGrade, StringFormat={}({0})}"
+                                                                   FontWeight="SemiBold" />
+                                                    </Grid>
+
+                                                    <!-- AI最终答案 -->
+                                                    <TextBlock IsVisible="{Binding AIFinalAnswer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                               Classes="content"
+                                                               Text="{Binding AIFinalAnswer, StringFormat={}评估结论: {0}}"
+                                                               TextWrapping="Wrap"
+                                                               Margin="0,4,0,0" />
+
+                                                    <!-- AI推理步骤 -->
+                                                    <ItemsControl ItemsSource="{Binding AIReasoningSteps}"
+                                                                  IsVisible="{Binding AIReasoningSteps.Count, Converter={x:Static conv:IntToBoolConverter.Instance}}"
+                                                                  Margin="0,8,0,0">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Classes="content"
+                                                                           Text="{Binding FormattedDescription, StringFormat={}• {0}}"
+                                                                           TextWrapping="Wrap"
+                                                                           Margin="0,2" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+
+                                                    <!-- 处理时间 -->
+                                                    <TextBlock Classes="content"
+                                                               Text="{Binding AIProcessingTime, StringFormat={}处理耗时: {0}ms}"
+                                                               Foreground="{DynamicResource TextFillColorSecondary}"
+                                                               FontSize="11"
+                                                               Margin="0,4,0,0" />
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

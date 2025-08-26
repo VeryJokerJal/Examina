@@ -236,9 +236,14 @@ public class AIServiceConfiguration
     public string ApiKey { get; set; } = string.Empty;
 
     /// <summary>
+    /// API端点地址
+    /// </summary>
+    public string ApiEndpoint { get; set; } = "https://api.gptnb.ai/v1/chat/completions";
+
+    /// <summary>
     /// 使用的模型名称
     /// </summary>
-    public string ModelName { get; set; } = "gpt-4o-mini";
+    public string ModelName { get; set; } = "gpt-5-2025-08-07";
 
     /// <summary>
     /// 最大令牌数
@@ -259,4 +264,28 @@ public class AIServiceConfiguration
     /// 是否启用结构化输出
     /// </summary>
     public bool EnableStructuredOutput { get; set; } = true;
+
+    /// <summary>
+    /// 验证配置有效性
+    /// </summary>
+    /// <returns>验证结果</returns>
+    public bool IsValid()
+    {
+        return !string.IsNullOrEmpty(ApiKey) &&
+               !string.IsNullOrEmpty(ApiEndpoint) &&
+               !string.IsNullOrEmpty(ModelName) &&
+               MaxTokens > 0 &&
+               TimeoutSeconds > 0 &&
+               Temperature >= 0;
+    }
+
+    /// <summary>
+    /// 验证自定义端点的有效性
+    /// </summary>
+    /// <returns>端点是否有效</returns>
+    public bool IsValidEndpoint()
+    {
+        return Uri.TryCreate(ApiEndpoint, UriKind.Absolute, out Uri? uri) &&
+               (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+    }
 }

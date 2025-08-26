@@ -1,7 +1,8 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
+using OpenAI;
 using OpenAI.Chat;
 
 namespace BenchSuite.Services;
@@ -17,22 +18,34 @@ public class AILogicalScoringService : IAILogicalScoringService
     public AILogicalScoringService(AIServiceConfiguration configuration)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-        
-        if (string.IsNullOrEmpty(_configuration.ApiKey))
+
+        if (!_configuration.IsValid())
         {
-            throw new ArgumentException("OpenAI API密钥不能为空", nameof(configuration));
+            throw new ArgumentException("AI服务配置无效", nameof(configuration));
         }
 
-        _chatClient = new ChatClient(_configuration.ModelName, _configuration.ApiKey);
+        if (!_configuration.IsValidEndpoint())
+        {
+            throw new ArgumentException("API端点地址无效", nameof(configuration));
+        }
+
+        // 创建OpenAI客户端，支持自定义端点
+        OpenAIClientOptions clientOptions = new()
+        {
+            Endpoint = new Uri(_configuration.ApiEndpoint)
+        };
+
+        OpenAIClient openAIClient = new(_configuration.ApiKey, clientOptions);
+        _chatClient = openAIClient.GetChatClient(_configuration.ModelName);
     }
 
     /// <summary>
     /// 使用AI进行逻辑性判分，返回结构化的JSON格式结果
     /// </summary>
     public async Task<AILogicalScoringResult> ScoreLogicalReasoningAsync(
-        string sourceCode, 
-        string problemDescription, 
-        string? expectedOutput = null, 
+        string sourceCode,
+        string problemDescription,
+        string? expectedOutput = null,
         List<string>? testCases = null)
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -46,7 +59,7 @@ public class AILogicalScoringService : IAILogicalScoringService
             // 配置聊天完成选项
             ChatCompletionOptions options = new()
             {
-                MaxTokens = _configuration.MaxTokens,
+                MaxOutputTokenCount = _configuration.MaxTokens,
                 Temperature = (float)_configuration.Temperature
             };
 
@@ -175,7 +188,7 @@ public class AILogicalScoringService : IAILogicalScoringService
             List<ChatMessage> testMessages = [new UserChatMessage("测试连接")];
             ChatCompletionOptions options = new()
             {
-                MaxTokens = 10,
+                MaxOutputTokenCount = 1000,
                 Temperature = 0.1f
             };
 
@@ -201,8 +214,8 @@ public class AILogicalScoringService : IAILogicalScoringService
     /// </summary>
     private static string BuildLogicalAnalysisPrompt(string sourceCode, string problemDescription, string? expectedOutput, List<string>? testCases)
     {
-        string expectedOutputSection = string.IsNullOrEmpty(expectedOutput) 
-            ? "" 
+        string expectedOutputSection = string.IsNullOrEmpty(expectedOutput)
+            ? ""
             : $"\n期望输出：\n{expectedOutput}\n";
 
         if (testCases?.Count > 0)

@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using BenchSuite.Interfaces;
+using BenchSuite.Services;
+using Examina.Configuration;
 
 namespace Examina.Services;
 
@@ -12,11 +15,40 @@ public static class BenchSuiteServiceExtensions
     /// 注册BenchSuite相关服务
     /// </summary>
     /// <param name="services">服务集合</param>
+    /// <param name="enableAI">是否启用AI功能</param>
+    /// <param name="aiServiceType">AI服务类型</param>
     /// <returns>服务集合</returns>
-    public static IServiceCollection AddBenchSuiteServices(this IServiceCollection services)
+    public static IServiceCollection AddBenchSuiteServices(this IServiceCollection services, bool enableAI = false, AIServiceType aiServiceType = AIServiceType.Default)
     {
+        // 注册AI逻辑性判分服务（如果启用）
+        if (enableAI)
+        {
+            services.AddSingleton<IAILogicalScoringService>(provider =>
+            {
+                string? apiKey = ExaminaAIConfiguration.GetApiKeyFromEnvironment();
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    throw new InvalidOperationException("未找到AI API密钥，请设置环境变量OPENAI_API_KEY");
+                }
+
+                AIServiceConfiguration config = aiServiceType switch
+                {
+                    AIServiceType.ComprehensiveTraining => ExaminaAIConfiguration.CreateComprehensiveTrainingConfiguration(apiKey),
+                    AIServiceType.SpecializedTraining => ExaminaAIConfiguration.CreateSpecializedTrainingConfiguration(apiKey),
+                    _ => ExaminaAIConfiguration.CreateDefaultConfiguration(apiKey)
+                };
+
+                return new AILogicalScoringService(config);
+            });
+        }
+
         // 注册BenchSuite集成服务
-        _ = services.AddSingleton<IBenchSuiteIntegrationService, BenchSuiteIntegrationService>();
+        services.AddSingleton<IBenchSuiteIntegrationService>(provider =>
+        {
+            ILogger<BenchSuiteIntegrationService> logger = provider.GetRequiredService<ILogger<BenchSuiteIntegrationService>>();
+            IAILogicalScoringService? aiService = enableAI ? provider.GetService<IAILogicalScoringService>() : null;
+            return new BenchSuiteIntegrationService(logger, aiService);
+        });
 
         // 注册BenchSuite目录服务
         _ = services.AddSingleton<IBenchSuiteDirectoryService, BenchSuiteDirectoryService>();

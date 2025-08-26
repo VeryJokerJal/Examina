@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Examina.Models;
 using Examina.Models.BenchSuite;
+using Examina.Configuration;
 using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
@@ -18,10 +19,13 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     private readonly ILogger<BenchSuiteIntegrationService> _logger;
     private readonly Dictionary<BenchSuiteFileType, string> _directoryMapping;
     private readonly Dictionary<BenchSuiteFileType, IScoringService> _scoringServices;
+    private readonly IAILogicalScoringService? _aiScoringService;
 
-    public BenchSuiteIntegrationService(ILogger<BenchSuiteIntegrationService> logger)
+    public BenchSuiteIntegrationService(ILogger<BenchSuiteIntegrationService> logger, IAILogicalScoringService? aiScoringService = null)
     {
         _logger = logger;
+        _aiScoringService = aiScoringService;
+
         _directoryMapping = new Dictionary<BenchSuiteFileType, string>
         {
             { BenchSuiteFileType.CSharp, "CSharp" },
@@ -31,15 +35,24 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             { BenchSuiteFileType.Windows, "WINDOWS" }
         };
 
-        // 初始化真实的BenchSuite评分服务
+        // 初始化真实的BenchSuite评分服务，C#服务支持AI功能
         _scoringServices = new Dictionary<BenchSuiteFileType, IScoringService>
         {
             { BenchSuiteFileType.Word, new WordScoringService() },
             { BenchSuiteFileType.Excel, new ExcelScoringService() },
             { BenchSuiteFileType.PowerPoint, new PowerPointScoringService() },
             { BenchSuiteFileType.Windows, new WindowsScoringService() },
-            { BenchSuiteFileType.CSharp, new CSharpScoringService() }
+            { BenchSuiteFileType.CSharp, new CSharpScoringService(_aiScoringService) }
         };
+
+        if (_aiScoringService != null)
+        {
+            _logger.LogInformation("BenchSuite集成服务已启用AI逻辑性判分功能");
+        }
+        else
+        {
+            _logger.LogInformation("BenchSuite集成服务使用传统判分模式（未启用AI功能）");
+        }
     }
 
     /// <summary>

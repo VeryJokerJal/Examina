@@ -2,7 +2,7 @@
 
 ## 概述
 
-BenchSuite项目现已集成AI逻辑性判分功能，使用OpenAI API对C#代码进行智能分析和评分。该功能提供结构化的JSON格式输出，包含详细的推理步骤和最终评估结果。
+BenchSuite项目现已集成AI逻辑性判分功能，使用自定义API端点对C#代码进行智能分析和评分。该功能提供结构化的JSON格式输出，包含详细的推理步骤和最终评估结果。
 
 ## 主要特性
 
@@ -20,7 +20,8 @@ BenchSuite项目现已集成AI逻辑性判分功能，使用OpenAI API对C#代�
 - 代码效率分析
 
 ### 🔧 灵活配置
-- 支持多种AI模型（gpt-4, gpt-4o-mini, gpt-3.5-turbo）
+- 支持自定义API端点（默认：https://api.gptnb.ai/v1/chat/completions）
+- 使用最新AI模型（gpt-5-2025-08-07）
 - 可调节温度参数和令牌限制
 - 自定义超时设置
 - 可选的结构化输出模式
@@ -37,8 +38,9 @@ using BenchSuite.Services;
 // 配置AI服务
 AIServiceConfiguration config = new()
 {
-    ApiKey = "your-openai-api-key",
-    ModelName = "gpt-4o-mini",
+    ApiKey = "your-api-key",
+    ApiEndpoint = "https://api.gptnb.ai/v1/chat/completions", // 自定义端点
+    ModelName = "gpt-5-2025-08-07", // 最新模型
     MaxTokens = 2000,
     Temperature = 0.1m,
     EnableStructuredOutput = true
@@ -59,26 +61,17 @@ Console.WriteLine($"逻辑评分: {result.LogicalScore}/100");
 Console.WriteLine($"最终评估: {result.FinalAnswer}");
 ```
 
-### 2. 集成到C#评分服务
+### 2. 集成到Examina项目
 
 ```csharp
-// 创建带AI功能的C#评分服务
-CSharpScoringService scoringService = new(aiService);
-
-// 执行Implementation模式评分（自动包含AI逻辑性判分）
-CSharpScoringResult result = await scoringService.ScoreCodeAsync(
-    templateCode: "",
-    studentCode: studentCode,
-    expectedImplementations: new List<string> { testCode },
-    mode: CSharpScoringMode.Implementation
+// 在Startup.cs或Program.cs中注册服务
+services.AddBenchSuiteServices(
+    enableAI: true, 
+    aiServiceType: AIServiceType.ComprehensiveTraining
 );
 
-// AI判分结果
-if (result.AILogicalResult?.IsSuccess == true)
-{
-    Console.WriteLine($"AI逻辑评分: {result.AILogicalResult.LogicalScore}/100");
-    Console.WriteLine($"推理步骤数: {result.AILogicalResult.Steps.Count}");
-}
+// 环境变量配置
+Environment.SetEnvironmentVariable("OPENAI_API_KEY", "your-api-key");
 ```
 
 ## 配置选项
@@ -86,23 +79,24 @@ if (result.AILogicalResult?.IsSuccess == true)
 ### 预定义配置
 
 ```csharp
-// 默认配置（推荐用于生产环境）
-var defaultConfig = AILogicalScoringConfiguration.CreateDefaultConfiguration(apiKey);
+// 默认配置
+var defaultConfig = ExaminaAIConfiguration.CreateDefaultConfiguration(apiKey);
 
-// 高精度配置（使用gpt-4模型）
-var highPrecisionConfig = AILogicalScoringConfiguration.CreateHighPrecisionConfiguration(apiKey);
+// 综合实训配置（更详细的分析）
+var comprehensiveConfig = ExaminaAIConfiguration.CreateComprehensiveTrainingConfiguration(apiKey);
 
-// 快速响应配置（使用gpt-3.5-turbo）
-var fastConfig = AILogicalScoringConfiguration.CreateFastResponseConfiguration(apiKey);
+// 专项训练配置
+var specializedConfig = ExaminaAIConfiguration.CreateSpecializedTrainingConfiguration(apiKey);
 ```
 
-### 自定义配置
+### 自定义端点配置
 
 ```csharp
 AIServiceConfiguration customConfig = new()
 {
     ApiKey = "your-api-key",
-    ModelName = "gpt-4",
+    ApiEndpoint = "https://your-custom-endpoint.com/v1/chat/completions",
+    ModelName = "gpt-5-2025-08-07",
     MaxTokens = 3000,
     Temperature = 0.05m,
     TimeoutSeconds = 60,
@@ -110,9 +104,28 @@ AIServiceConfiguration customConfig = new()
 };
 ```
 
+## UI功能增强
+
+### 综合实训结果显示
+
+在综合实训完成后，结果页面现在会显示：
+
+1. **按模块显示详细的对错情况**
+2. **C#模块的AI分析详细反馈**：
+   - 🤖 AI逻辑性分析标识
+   - 逻辑性评分（0-100分）
+   - 评分等级（优秀/良好/中等/及格/不及格）
+   - AI评估结论
+   - 详细的推理步骤
+   - 处理耗时信息
+
+### 专项训练结果显示
+
+专项训练同样支持AI分析结果的详细展示，提供与综合实训相同的功能。
+
 ## JSON Schema格式
 
-AI返回的结构化JSON格式如下：
+AI返回的结构化JSON格式：
 
 ```json
 {
@@ -166,20 +179,14 @@ AI逻辑性判分采用以下评分标准：
 最终得分 = (单元测试得分率 × 0.7) + (AI逻辑评分 × 0.3) × 总分
 ```
 
-## 错误处理
-
-AI判分失败不会影响整体评分流程：
+## 配置验证
 
 ```csharp
-// AI判分失败时，系统会：
-// 1. 记录错误信息到Details中
-// 2. 继续使用传统评分方式
-// 3. 确保评分流程的稳定性
-
-if (result.AILogicalResult?.IsSuccess == false)
+// 验证配置有效性
+var validationResult = ExaminaAIConfiguration.ValidateConfiguration(config);
+if (!validationResult.IsValid)
 {
-    Console.WriteLine($"AI判分失败: {result.AILogicalResult.ErrorMessage}");
-    // 仍然可以获得基于单元测试的评分
+    throw new InvalidOperationException(validationResult.ErrorMessage);
 }
 ```
 
@@ -187,9 +194,12 @@ if (result.AILogicalResult?.IsSuccess == false)
 
 ### 1. API密钥管理
 ```csharp
-// 从环境变量或配置文件读取API密钥
-string apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") 
-    ?? throw new InvalidOperationException("未设置OpenAI API密钥");
+// 从环境变量读取API密钥
+string? apiKey = ExaminaAIConfiguration.GetApiKeyFromEnvironment();
+if (string.IsNullOrEmpty(apiKey))
+{
+    throw new InvalidOperationException("未设置API密钥");
+}
 ```
 
 ### 2. 服务可用性检查
@@ -203,56 +213,58 @@ if (!isAvailable)
 }
 ```
 
-### 3. 配置验证
+### 3. 自定义端点配置
 ```csharp
-// 验证配置有效性
-var validationResult = await AILogicalScoringConfiguration
-    .ValidateConfigurationAsync(config);
-    
-if (!validationResult.IsValid)
-{
-    throw new InvalidOperationException(validationResult.ErrorMessage);
-}
+// 支持多种API端点
+var config = ExaminaAIConfiguration.CreateDefaultConfiguration(
+    apiKey, 
+    customEndpoint: "https://your-custom-endpoint.com/v1/chat/completions"
+);
 ```
 
-## 示例代码
+## 更新内容
 
-完整的示例代码请参考：
-- `BenchSuite/Examples/AILogicalScoringExample.cs` - 基本使用示例
-- `BenchSuite/Examples/AILogicalScoringConfiguration.cs` - 配置示例
-
-## 注意事项
-
-1. **API成本**: AI判分会产生OpenAI API调用费用，请合理控制使用频率
-2. **网络依赖**: 需要稳定的网络连接访问OpenAI API
-3. **响应时间**: AI判分可能需要几秒到几十秒的处理时间
-4. **模型限制**: 不同模型有不同的令牌限制和能力差异
-
-## 故障排除
-
-### 常见问题
-
-1. **API密钥错误**
-   - 检查API密钥是否正确
-   - 确认API密钥有足够的配额
-
-2. **网络连接问题**
-   - 检查网络连接
-   - 确认防火墙设置
-
-3. **JSON解析失败**
-   - 检查是否启用了结构化输出
-   - 验证JSON Schema配置
-
-4. **超时问题**
-   - 增加TimeoutSeconds设置
-   - 减少MaxTokens以加快响应
-
-## 更新日志
+### v2.0.0 (2025-08-26)
+- ✅ 添加自定义API端点支持
+- ✅ 更新默认模型为gpt-5-2025-08-07
+- ✅ 增强UI显示，支持AI分析结果展示
+- ✅ 同步配置到Examina.Desktop项目
+- ✅ 添加配置验证功能
+- ✅ 支持综合实训和专项训练的AI分析
 
 ### v1.0.0 (2025-08-25)
 - ✅ 集成OpenAI API
 - ✅ 实现结构化JSON输出
 - ✅ 添加AI逻辑性判分服务
 - ✅ 集成到CSharpScoringService
-- ✅ 提供配置和示例代码
+
+## 故障排除
+
+### 常见问题
+
+1. **API密钥错误**
+   - 检查环境变量OPENAI_API_KEY是否正确设置
+   - 确认API密钥有足够的配额
+
+2. **自定义端点连接问题**
+   - 验证端点URL格式是否正确
+   - 检查网络连接和防火墙设置
+   - 确认端点支持OpenAI兼容的API格式
+
+3. **JSON解析失败**
+   - 检查是否启用了结构化输出
+   - 验证JSON Schema配置
+   - 确认API端点返回的格式符合预期
+
+4. **超时问题**
+   - 增加TimeoutSeconds设置
+   - 减少MaxTokens以加快响应
+   - 检查网络延迟
+
+## 技术支持
+
+如遇到问题，请检查：
+1. API密钥配置是否正确
+2. 网络连接是否正常
+3. 自定义端点是否支持OpenAI格式
+4. 日志中的详细错误信息

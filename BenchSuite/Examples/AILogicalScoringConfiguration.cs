@@ -12,14 +12,16 @@ public static class AILogicalScoringConfiguration
     /// <summary>
     /// 创建默认的AI服务配置
     /// </summary>
-    /// <param name="apiKey">OpenAI API密钥</param>
+    /// <param name="apiKey">API密钥</param>
+    /// <param name="customEndpoint">自定义API端点（可选）</param>
     /// <returns>AI服务配置</returns>
-    public static AIServiceConfiguration CreateDefaultConfiguration(string apiKey)
+    public static AIServiceConfiguration CreateDefaultConfiguration(string apiKey, string? customEndpoint = null)
     {
         return new AIServiceConfiguration
         {
             ApiKey = apiKey,
-            ModelName = "gpt-4o-mini", // 使用成本较低的模型
+            ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
+            ModelName = "gpt-5-2025-08-07", // 使用最新模型
             MaxTokens = 2000,
             Temperature = 0.1m, // 低温度确保一致性
             TimeoutSeconds = 30,
@@ -30,14 +32,16 @@ public static class AILogicalScoringConfiguration
     /// <summary>
     /// 创建高精度的AI服务配置
     /// </summary>
-    /// <param name="apiKey">OpenAI API密钥</param>
+    /// <param name="apiKey">API密钥</param>
+    /// <param name="customEndpoint">自定义API端点（可选）</param>
     /// <returns>高精度AI服务配置</returns>
-    public static AIServiceConfiguration CreateHighPrecisionConfiguration(string apiKey)
+    public static AIServiceConfiguration CreateHighPrecisionConfiguration(string apiKey, string? customEndpoint = null)
     {
         return new AIServiceConfiguration
         {
             ApiKey = apiKey,
-            ModelName = "gpt-4", // 使用更强大的模型
+            ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
+            ModelName = "gpt-5-2025-08-07", // 使用最新模型
             MaxTokens = 3000,
             Temperature = 0.05m, // 更低的温度
             TimeoutSeconds = 60, // 更长的超时时间
@@ -48,14 +52,16 @@ public static class AILogicalScoringConfiguration
     /// <summary>
     /// 创建快速响应的AI服务配置
     /// </summary>
-    /// <param name="apiKey">OpenAI API密钥</param>
+    /// <param name="apiKey">API密钥</param>
+    /// <param name="customEndpoint">自定义API端点（可选）</param>
     /// <returns>快速响应AI服务配置</returns>
-    public static AIServiceConfiguration CreateFastResponseConfiguration(string apiKey)
+    public static AIServiceConfiguration CreateFastResponseConfiguration(string apiKey, string? customEndpoint = null)
     {
         return new AIServiceConfiguration
         {
             ApiKey = apiKey,
-            ModelName = "gpt-3.5-turbo",
+            ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
+            ModelName = "gpt-5-2025-08-07", // 使用最新模型
             MaxTokens = 1500,
             Temperature = 0.2m,
             TimeoutSeconds = 15,

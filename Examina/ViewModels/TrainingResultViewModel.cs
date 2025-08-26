@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using ReactiveUI;
 using Examina.Models.BenchSuite;
+using BenchSuite.Interfaces;
 
 namespace Examina.ViewModels;
 
@@ -208,8 +209,15 @@ public class TrainingResultViewModel : ViewModelBase
                 ScoreRate = fileResult.TotalScore > 0 ? fileResult.AchievedScore / fileResult.TotalScore * 100 : 0,
                 IsSuccess = fileResult.IsSuccess,
                 Details = fileResult.Details,
-                ErrorMessage = fileResult.ErrorMessage
+                ErrorMessage = fileResult.ErrorMessage,
+                FileType = kvp.Key
             };
+
+            // 如果是C#模块且有AI分析结果，添加AI反馈信息
+            if (kvp.Key == BenchSuiteFileType.CSharp && fileResult.ScoringResult is BenchSuite.Models.CSharpScoringResult csharpResult)
+            {
+                ProcessCSharpAIAnalysis(moduleItem, csharpResult);
+            }
             
             ModuleResults.Add(moduleItem);
         }
@@ -243,6 +251,75 @@ public class TrainingResultViewModel : ViewModelBase
             };
             
             QuestionResults.Add(questionItem);
+        }
+    }
+
+    /// <summary>
+    /// 处理C# AI分析结果
+    /// </summary>
+    /// <param name="moduleItem">模块结果项</param>
+    /// <param name="csharpResult">C#评分结果</param>
+    private static void ProcessCSharpAIAnalysis(ModuleResultItem moduleItem, BenchSuite.Models.CSharpScoringResult csharpResult)
+    {
+        if (csharpResult.AILogicalResult?.IsSuccess == true)
+        {
+            AILogicalScoringResult aiResult = csharpResult.AILogicalResult;
+
+            // 设置AI分析信息
+            moduleItem.HasAIAnalysis = true;
+            moduleItem.AILogicalScore = aiResult.LogicalScore;
+            moduleItem.AIFinalAnswer = aiResult.FinalAnswer;
+            moduleItem.AIProcessingTime = aiResult.ProcessingTimeMs;
+
+            // 处理推理步骤
+            moduleItem.AIReasoningSteps.Clear();
+            foreach (ReasoningStep step in aiResult.Steps)
+            {
+                moduleItem.AIReasoningSteps.Add(new AIReasoningStepItem
+                {
+                    Explanation = step.Explanation,
+                    Output = step.Output
+                });
+            }
+
+            // 增强详细信息，包含AI分析
+            string enhancedDetails = moduleItem.Details;
+            if (!string.IsNullOrEmpty(enhancedDetails))
+            {
+                enhancedDetails += "\n\n";
+            }
+
+            enhancedDetails += $"🤖 AI逻辑性分析:\n";
+            enhancedDetails += $"逻辑性评分: {aiResult.LogicalScore}/100\n";
+            enhancedDetails += $"处理耗时: {aiResult.ProcessingTimeMs}ms\n";
+
+            if (aiResult.Steps.Count > 0)
+            {
+                enhancedDetails += "主要分析步骤:\n";
+                foreach (ReasoningStep step in aiResult.Steps.Take(3))
+                {
+                    enhancedDetails += $"  • {step.Explanation}\n";
+                }
+            }
+
+            if (!string.IsNullOrEmpty(aiResult.FinalAnswer))
+            {
+                enhancedDetails += $"AI评估结论: {aiResult.FinalAnswer}";
+            }
+
+            moduleItem.Details = enhancedDetails;
+        }
+        else if (csharpResult.AILogicalResult != null && !csharpResult.AILogicalResult.IsSuccess)
+        {
+            // AI分析失败的情况
+            moduleItem.HasAIAnalysis = false;
+            string enhancedDetails = moduleItem.Details;
+            if (!string.IsNullOrEmpty(enhancedDetails))
+            {
+                enhancedDetails += "\n\n";
+            }
+            enhancedDetails += $"⚠️ AI逻辑性分析失败: {csharpResult.AILogicalResult.ErrorMessage}";
+            moduleItem.Details = enhancedDetails;
         }
     }
 
@@ -312,6 +389,61 @@ public class ModuleResultItem
     /// 错误信息
     /// </summary>
     public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// 文件类型
+    /// </summary>
+    public BenchSuiteFileType FileType { get; set; }
+
+    /// <summary>
+    /// 是否有AI分析结果
+    /// </summary>
+    public bool HasAIAnalysis { get; set; }
+
+    /// <summary>
+    /// AI逻辑性评分（0-100）
+    /// </summary>
+    public decimal AILogicalScore { get; set; }
+
+    /// <summary>
+    /// AI最终答案
+    /// </summary>
+    public string AIFinalAnswer { get; set; } = string.Empty;
+
+    /// <summary>
+    /// AI处理耗时（毫秒）
+    /// </summary>
+    public long AIProcessingTime { get; set; }
+
+    /// <summary>
+    /// AI推理步骤列表
+    /// </summary>
+    public ObservableCollection<AIReasoningStepItem> AIReasoningSteps { get; } = [];
+
+    /// <summary>
+    /// 是否为C#模块
+    /// </summary>
+    public bool IsCSharpModule => FileType == BenchSuiteFileType.CSharp;
+
+    /// <summary>
+    /// AI评分等级描述
+    /// </summary>
+    public string AIScoreGrade
+    {
+        get
+        {
+            if (!HasAIAnalysis) return "无AI分析";
+
+            return AILogicalScore switch
+            {
+                >= 90 => "优秀",
+                >= 80 => "良好",
+                >= 70 => "中等",
+                >= 60 => "及格",
+                _ => "不及格"
+            };
+        }
+    }
 }
 
 /// <summary>
@@ -373,4 +505,30 @@ public class QuestionResultItem
     /// 状态颜色
     /// </summary>
     public string StatusColor => IsCorrect ? "Green" : "Red";
+}
+
+/// <summary>
+/// AI推理步骤项
+/// </summary>
+public class AIReasoningStepItem
+{
+    /// <summary>
+    /// 步骤说明
+    /// </summary>
+    public string Explanation { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 步骤输出
+    /// </summary>
+    public string Output { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 步骤类型（可选）
+    /// </summary>
+    public string StepType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 格式化的步骤描述
+    /// </summary>
+    public string FormattedDescription => $"{Explanation}: {Output}";
 }
