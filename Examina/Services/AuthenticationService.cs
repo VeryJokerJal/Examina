@@ -46,14 +46,12 @@ public class AuthenticationService : IAuthenticationService
     {
         get
         {
-            System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser getter called, value: {_currentUser?.Username ?? "null"}");
             return _currentUser;
         }
         private set
         {
             if (_currentUser != value)
             {
-                System.Diagnostics.Debug.WriteLine($"AuthenticationService.CurrentUser setter: {_currentUser?.Username ?? "null"} -> {value?.Username ?? "null"}");
                 _currentUser = value;
                 UserInfoUpdated?.Invoke(this, value);
             }
@@ -83,24 +81,17 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     private void EnsureHttpClientConfiguration()
     {
-        // 调试信息：记录当前HttpClient配置
-        System.Diagnostics.Debug.WriteLine($"=== HttpClient配置检查 ===");
-        System.Diagnostics.Debug.WriteLine($"当前BaseAddress: {_httpClient.BaseAddress}");
-        System.Diagnostics.Debug.WriteLine($"AuthenticationService BaseUrl常量: {BaseUrl}");
-
         // 如果基础地址未设置，则设置它（但优先使用依赖注入配置的地址）
         if (_httpClient.BaseAddress == null)
         {
             // 只设置域名部分，路径在BuildApiUrl中构建
             _httpClient.BaseAddress = new Uri("https://qiuzhenbd.com");
-            System.Diagnostics.Debug.WriteLine($"设置BaseAddress为: {_httpClient.BaseAddress}");
         }
         else
         {
             // 验证BaseAddress是否使用HTTPS
             if (_httpClient.BaseAddress.Scheme != "https")
             {
-                System.Diagnostics.Debug.WriteLine($"警告：BaseAddress使用的不是HTTPS协议: {_httpClient.BaseAddress.Scheme}");
                 // 强制使用HTTPS
                 UriBuilder builder = new(_httpClient.BaseAddress)
                 {
@@ -108,7 +99,6 @@ public class AuthenticationService : IAuthenticationService
                     Port = _httpClient.BaseAddress.Port == 80 ? 443 : _httpClient.BaseAddress.Port
                 };
                 _httpClient.BaseAddress = builder.Uri;
-                System.Diagnostics.Debug.WriteLine($"已强制修改为HTTPS: {_httpClient.BaseAddress}");
             }
         }
 
@@ -122,8 +112,6 @@ public class AuthenticationService : IAuthenticationService
         {
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         }
-
-        System.Diagnostics.Debug.WriteLine($"最终BaseAddress: {_httpClient.BaseAddress}");
     }
 
     /// <summary>
@@ -313,78 +301,39 @@ public class AuthenticationService : IAuthenticationService
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            // 调试信息：记录发送的JSON内容
-            System.Diagnostics.Debug.WriteLine($"发送的JSON: {json}");
             StringContent content = new(json, Encoding.UTF8, "application/json");
 
             // 使用改进的URL构建方法
             string apiUrl = BuildApiUrl("send-sms");
 
-            // 验证URL构建是否正确
-            System.Diagnostics.Debug.WriteLine($"BuildApiUrl结果: {apiUrl}");
-
-            // 调试信息：记录HttpClient配置和实际请求URL
-            System.Diagnostics.Debug.WriteLine($"=== SMS API调用调试信息 ===");
-            System.Diagnostics.Debug.WriteLine($"HttpClient BaseAddress: {_httpClient.BaseAddress}");
-            System.Diagnostics.Debug.WriteLine($"相对API URL: {apiUrl}");
-
-            // 构建完整URL用于调试
-            Uri? fullUrl = _httpClient.BaseAddress != null ? new Uri(_httpClient.BaseAddress, apiUrl) : new Uri(apiUrl);
-            System.Diagnostics.Debug.WriteLine($"完整请求URL: {fullUrl}");
-            System.Diagnostics.Debug.WriteLine($"协议: {fullUrl.Scheme}");
-            System.Diagnostics.Debug.WriteLine($"主机: {fullUrl.Host}");
-            System.Diagnostics.Debug.WriteLine($"端口: {fullUrl.Port}");
-            System.Diagnostics.Debug.WriteLine($"路径: {fullUrl.AbsolutePath}");
-            System.Diagnostics.Debug.WriteLine($"查询字符串: {fullUrl.Query}");
-
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
 
             // 添加详细的响应日志
             string responseContent = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"响应状态码: {response.StatusCode}");
-            System.Diagnostics.Debug.WriteLine($"响应内容: {responseContent}");
 
             // 如果收到重定向响应，手动处理重定向到HTTPS
             if ((int)response.StatusCode is >= 300 and < 400)
             {
                 string? location = response.Headers.Location?.ToString();
-                System.Diagnostics.Debug.WriteLine($"收到重定向: {response.StatusCode} -> {location}");
 
                 if (!string.IsNullOrEmpty(location) && location.StartsWith("https://"))
                 {
-                    System.Diagnostics.Debug.WriteLine($"手动重定向到HTTPS: {location}");
-
                     // 手动发送HTTPS请求
                     HttpResponseMessage redirectResponse = await _httpClient.PostAsync(location, content);
                     string redirectResponseContent = await redirectResponse.Content.ReadAsStringAsync();
-
-                    System.Diagnostics.Debug.WriteLine($"重定向后响应状态码: {redirectResponse.StatusCode}");
-                    System.Diagnostics.Debug.WriteLine($"重定向后响应内容: {redirectResponseContent}");
 
                     return redirectResponse.IsSuccessStatusCode;
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"无效的重定向位置: {location}");
                     return false;
                 }
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                System.Diagnostics.Debug.WriteLine($"SMS API调用失败: {response.StatusCode}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"SMS API调用成功");
             }
 
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"发送短信验证码异常: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
             return false;
         }
     }

@@ -49,7 +49,6 @@ public class MainViewModel : ViewModelBase, IDisposable
         get => _currentPageViewModel;
         set
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: CurrentPageViewModel setter called, old: {_currentPageViewModel?.GetType().Name ?? "null"}, new: {value?.GetType().Name ?? "null"}");
             this.RaiseAndSetIfChanged(ref _currentPageViewModel, value);
         }
     }
@@ -264,7 +263,6 @@ public class MainViewModel : ViewModelBase, IDisposable
         {
             if (_authenticationService == null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: AuthenticationService为null");
                 return;
             }
 
@@ -274,36 +272,23 @@ public class MainViewModel : ViewModelBase, IDisposable
             // 如果CurrentUser为null，尝试从本地存储加载
             if (CurrentUser == null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: CurrentUser为null，尝试从本地存储加载");
-
                 // 检查是否有本地登录数据
                 PersistentLoginData? loginData = await _authenticationService.LoadLoginDataAsync();
                 if (loginData != null && loginData.User != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"MainViewModel: 从本地存储加载到用户信息: {loginData.User.Username}");
                     CurrentUser = loginData.User;
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 本地存储中没有用户信息");
                 }
             }
 
             if (CurrentUser != null)
             {
-                System.Diagnostics.Debug.WriteLine($"MainViewModel: 成功加载用户信息: {CurrentUser.Username}, HasFullAccess: {CurrentUser.HasFullAccess}");
-
                 // 重新初始化底部导航以反映用户权限状态
                 InitializeFooterNavigation();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法加载用户信息");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 加载用户信息时发生异常: {ex.Message}");
+            // 加载用户信息时发生异常，静默处理
         }
     }
 
@@ -320,7 +305,6 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// </summary>
     public async Task InitializeAsync()
     {
-        System.Diagnostics.Debug.WriteLine("MainViewModel.InitializeAsync called");
         await LoadCurrentUserAsync();
     }
 
@@ -329,9 +313,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// </summary>
     public void TestNavigateToSchoolBinding()
     {
-        System.Diagnostics.Debug.WriteLine("MainViewModel: TestNavigateToSchoolBinding called");
         NavigateToPageInternal("school-binding");
-        System.Diagnostics.Debug.WriteLine($"MainViewModel: CurrentPageViewModel after navigation = {CurrentPageViewModel?.GetType().Name ?? "null"}");
     }
 
     /// <summary>
@@ -339,9 +321,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// </summary>
     public void TestSetSimpleViewModel()
     {
-        System.Diagnostics.Debug.WriteLine("MainViewModel: TestSetSimpleViewModel called");
         CurrentPageViewModel = new OverviewViewModel();
-        System.Diagnostics.Debug.WriteLine($"MainViewModel: CurrentPageViewModel set to = {CurrentPageViewModel?.GetType().Name ?? "null"}");
     }
 
     /// <summary>
@@ -355,13 +335,10 @@ public class MainViewModel : ViewModelBase, IDisposable
         CurrentUser = userInfo;
         bool currentHasFullAccess = userInfo?.HasFullAccess ?? false;
 
-        System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户信息已更新，用户名={userInfo?.Username}，权限状态={currentHasFullAccess}");
-
         // 如果用户权限状态发生变化，重新初始化底部导航
         if (previousHasFullAccess != currentHasFullAccess)
         {
             InitializeFooterNavigation();
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户权限状态变化，重新初始化底部导航");
         }
     }
 
@@ -374,22 +351,15 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("MainViewModel: 收到概览页面刷新请求");
-
             // 如果当前页面是概览页面，刷新数据
             if (CurrentPageViewModel is OverviewViewModel overviewViewModel)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面是概览页面，开始刷新统计数据");
                 await overviewViewModel.RefreshStatisticsAsync();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面不是概览页面，跳过刷新");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 处理概览页面刷新请求异常: {ex.Message}");
+            // 处理概览页面刷新请求异常，静默处理
         }
     }
 
@@ -402,23 +372,16 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("MainViewModel: 收到排行榜页面刷新请求");
-
             // 如果当前页面是排行榜页面，刷新数据
             if (CurrentPageViewModel is LeaderboardViewModel leaderboardViewModel)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面是排行榜页面，开始刷新排行榜数据");
                 // 使用Task.Run来异步调用刷新方法
                 await Task.Run(() => leaderboardViewModel.RefreshLeaderboardCommand?.Execute(null));
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 当前页面不是排行榜页面，跳过刷新");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 处理排行榜页面刷新请求异常: {ex.Message}");
+            // 处理排行榜页面刷新请求异常，静默处理
         }
     }
 
@@ -450,8 +413,6 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 导航到页面 {pageTag}");
-
             CurrentPageViewModel = pageTag switch
             {
                 "overview" => CreateOverviewViewModel(),
@@ -470,12 +431,9 @@ public class MainViewModel : ViewModelBase, IDisposable
                 "exam-view" => CreateExamViewModel(),
                 _ => CreateOverviewViewModel()
             };
-
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 成功创建页面ViewModel: {CurrentPageViewModel?.GetType().Name ?? "null"}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 导航到页面 {pageTag} 时发生异常: {ex.Message}");
             CurrentPageViewModel = new OverviewViewModel(); // 回退到概览页面
         }
     }
@@ -487,8 +445,6 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("MainViewModel: 开始创建OverviewViewModel");
-
             // 获取综合实训服务
             IStudentComprehensiveTrainingService? comprehensiveTrainingService = ((App)Application.Current!).GetService<IStudentComprehensiveTrainingService>();
 
@@ -500,28 +456,23 @@ public class MainViewModel : ViewModelBase, IDisposable
 
             if (comprehensiveTrainingService != null && studentExamService != null && studentMockExamService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 成功获取所有服务，创建带完整服务注入的OverviewViewModel");
                 return new OverviewViewModel(comprehensiveTrainingService, studentExamService, studentMockExamService);
             }
             else if (comprehensiveTrainingService != null && studentExamService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 获取到综合实训和考试服务，创建带部分服务注入的OverviewViewModel");
                 return new OverviewViewModel(comprehensiveTrainingService, studentExamService);
             }
             else if (comprehensiveTrainingService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 仅获取到综合实训服务，创建部分服务注入的OverviewViewModel");
                 return new OverviewViewModel(comprehensiveTrainingService);
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取服务，创建默认OverviewViewModel");
                 return new OverviewViewModel();
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建OverviewViewModel失败: {ex.Message}");
             return new OverviewViewModel();
         }
     }
@@ -537,7 +488,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             SchoolBindingViewModel? viewModel = ((App)Application.Current!).GetService<SchoolBindingViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取SchoolBindingViewModel");
                 return viewModel;
             }
 
@@ -547,22 +497,13 @@ public class MainViewModel : ViewModelBase, IDisposable
                 IOrganizationService? organizationService = ((App)Application.Current!).GetService<IOrganizationService>();
                 if (organizationService != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建SchoolBindingViewModel");
                     return new SchoolBindingViewModel(organizationService, _authenticationService);
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("MainViewModel: 无法获取IOrganizationService，无法创建SchoolBindingViewModel");
-                }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: AuthenticationService为null，无法创建SchoolBindingViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建SchoolBindingViewModel时发生异常: {ex.Message}");
+            // 创建SchoolBindingViewModel时发生异常，静默处理
         }
 
         return null;
@@ -579,24 +520,18 @@ public class MainViewModel : ViewModelBase, IDisposable
             ProfileViewModel? viewModel = ((App)Application.Current!).GetService<ProfileViewModel>();
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 从DI容器成功获取ProfileViewModel");
                 return viewModel;
             }
 
             // 如果DI容器无法提供，手动创建
             if (_authenticationService != null)
             {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: 手动创建ProfileViewModel");
                 return new ProfileViewModel(_authenticationService);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainViewModel: AuthenticationService为null，无法创建ProfileViewModel");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 创建ProfileViewModel时发生异常: {ex.Message}");
+            // 创建ProfileViewModel时发生异常，静默处理
         }
 
         return null;
