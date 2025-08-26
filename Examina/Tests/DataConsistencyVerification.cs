@@ -129,7 +129,19 @@ public static class DataConsistencyVerification
                                 int id = record.TryGetProperty("id", out JsonElement idElement) ? idElement.GetInt32() : 0;
                                 int examId = record.TryGetProperty("examId", out JsonElement examIdElement) ? examIdElement.GetInt32() : 0;
                                 int studentUserId = record.TryGetProperty("studentUserId", out JsonElement studentUserIdElement) ? studentUserIdElement.GetInt32() : 0;
-                                string status = record.TryGetProperty("status", out JsonElement statusElement) ? statusElement.GetString() ?? "Unknown" : "Unknown";
+
+                                // status是数字类型，需要转换为字符串描述
+                                int statusValue = record.TryGetProperty("status", out JsonElement statusElement) ? statusElement.GetInt32() : 0;
+                                string status = statusValue switch
+                                {
+                                    0 => "未开始",
+                                    1 => "进行中",
+                                    2 => "已完成",
+                                    3 => "已过期",
+                                    4 => "已取消",
+                                    _ => $"未知({statusValue})"
+                                };
+
                                 string startedAt = record.TryGetProperty("startedAt", out JsonElement startedAtElement) ? startedAtElement.GetString() ?? "未开始" : "未开始";
                                 string completedAt = record.TryGetProperty("completedAt", out JsonElement completedAtElement) ? completedAtElement.GetString() ?? "未完成" : "未完成";
                                 string createdAt = record.TryGetProperty("createdAt", out JsonElement createdAtElement) ? createdAtElement.GetString() ?? "未知" : "未知";
