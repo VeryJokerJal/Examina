@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ExaminaWebApplication.Models.ImportedExam;
-using ExaminaWebApplication.Models.Organization;
+using ImportedExamEntity = ExaminaWebApplication.Models.ImportedExam.ImportedExam;
+using OrganizationEntity = ExaminaWebApplication.Models.Organization.Organization;
 
 namespace ExaminaWebApplication.Models;
 
@@ -61,12 +61,12 @@ public class ExamSchoolAssociation
     /// <summary>
     /// 关联的考试
     /// </summary>
-    public virtual ImportedExam Exam { get; set; } = null!;
+    public virtual ImportedExamEntity Exam { get; set; } = null!;
 
     /// <summary>
     /// 关联的学校组织
     /// </summary>
-    public virtual Organization School { get; set; } = null!;
+    public virtual OrganizationEntity School { get; set; } = null!;
 
     /// <summary>
     /// 关联创建者

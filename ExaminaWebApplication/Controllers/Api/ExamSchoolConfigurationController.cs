@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using ExaminaWebApplication.Models.Organization;
+using OrganizationEntity = ExaminaWebApplication.Models.Organization.Organization;
+using OrganizationType = ExaminaWebApplication.Models.Organization.OrganizationType;
 using ExaminaWebApplication.Services.School;
 
 namespace ExaminaWebApplication.Controllers.Api;
@@ -35,7 +36,7 @@ public class ExamSchoolConfigurationController : ControllerBase
     {
         try
         {
-            List<Organization> schools = await _schoolPermissionService.GetExamAssociatedSchoolsAsync(examId);
+            List<OrganizationEntity> schools = await _schoolPermissionService.GetExamAssociatedSchoolsAsync(examId);
 
             List<OrganizationDto> result = schools.Select(s => new OrganizationDto
             {

@@ -3,6 +3,8 @@ using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.ImportedExam;
+using OrganizationEntity = ExaminaWebApplication.Models.Organization.Organization;
+using ImportedExamEntity = ExaminaWebApplication.Models.ImportedExam.ImportedExam;
 
 namespace ExaminaWebApplication.Services.School;
 
@@ -80,7 +82,7 @@ public class SchoolPermissionService : ISchoolPermissionService
     /// <summary>
     /// 获取学生所属的学校信息
     /// </summary>
-    public async Task<Organization?> GetStudentSchoolAsync(int studentUserId)
+    public async Task<OrganizationEntity?> GetStudentSchoolAsync(int studentUserId)
     {
         try
         {
@@ -108,9 +110,9 @@ public class SchoolPermissionService : ISchoolPermissionService
         try
         {
             // 检查考试是否存在且为学校统考
-            ImportedExam? exam = await _context.ImportedExams
-                .FirstOrDefaultAsync(e => e.Id == examId && 
-                                         e.IsEnabled && 
+            ImportedExamEntity? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId &&
+                                         e.IsEnabled &&
                                          e.ExamCategory == ExamCategory.School);
 
             if (exam == null)
@@ -138,11 +140,11 @@ public class SchoolPermissionService : ISchoolPermissionService
     /// <summary>
     /// 获取考试关联的所有学校列表
     /// </summary>
-    public async Task<List<Organization>> GetExamAssociatedSchoolsAsync(int examId)
+    public async Task<List<OrganizationEntity>> GetExamAssociatedSchoolsAsync(int examId)
     {
         try
         {
-            List<Organization> schools = await _context.ExamSchoolAssociations
+            List<OrganizationEntity> schools = await _context.ExamSchoolAssociations
                 .Where(esa => esa.ExamId == examId && esa.IsActive)
                 .Include(esa => esa.School)
                 .Select(esa => esa.School)

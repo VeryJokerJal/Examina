@@ -1,5 +1,5 @@
 using ExaminaWebApplication.Models;
-using ExaminaWebApplication.Models.Organization;
+using OrganizationEntity = ExaminaWebApplication.Models.Organization.Organization;
 
 namespace ExaminaWebApplication.Services.School;
 
@@ -28,7 +28,7 @@ public interface ISchoolPermissionService
     /// </summary>
     /// <param name="studentUserId">学生用户ID</param>
     /// <returns>学校信息，如果未加入学校则返回null</returns>
-    Task<Organization?> GetStudentSchoolAsync(int studentUserId);
+    Task<OrganizationEntity?> GetStudentSchoolAsync(int studentUserId);
 
     /// <summary>
     /// 检查考试是否对指定学校开放
@@ -43,7 +43,7 @@ public interface ISchoolPermissionService
     /// </summary>
     /// <param name="examId">考试ID</param>
     /// <returns>学校列表</returns>
-    Task<List<Organization>> GetExamAssociatedSchoolsAsync(int examId);
+    Task<List<OrganizationEntity>> GetExamAssociatedSchoolsAsync(int examId);
 
     /// <summary>
     /// 为考试添加学校关联
