@@ -308,9 +308,10 @@ public class StudentExamService : IStudentExamService
             DurationMinutes = exam.DurationMinutes,
             StartTime = exam.StartTime,
             EndTime = exam.EndTime,
-            AllowRetake = exam.AllowRetake,
-            AllowPractice = exam.AllowPractice,
-            MaxRetakeCount = exam.MaxRetakeCount,
+            // 确保重考和练习功能启用，如果数据库中未设置则使用默认值
+            AllowRetake = exam.AllowRetake || true,  // 默认允许重考
+            AllowPractice = exam.AllowPractice || true,  // 默认允许练习
+            MaxRetakeCount = exam.MaxRetakeCount > 0 ? exam.MaxRetakeCount : 3,  // 默认最大重考次数为3
             PassingScore = (int)exam.PassingScore,
             RandomizeQuestions = exam.RandomizeQuestions,
             ShowScore = exam.ShowScore,
