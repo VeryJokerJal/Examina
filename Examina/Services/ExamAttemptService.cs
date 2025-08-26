@@ -70,33 +70,24 @@ public class ExamAttemptService : IExamAttemptService
             }
             else
             {
+                // 检查是否已完成首次考试
+                bool hasCompletedFirstAttempt = attempts.Any(a =>
+                    a.AttemptType == ExamAttemptType.FirstAttempt &&
+                    a.Status == ExamAttemptStatus.Completed);
+
                 // 检查重考权限
                 if (exam.AllowRetake && retakeAttempts < exam.MaxRetakeCount)
                 {
-                    // 必须先完成首次考试才能重考
-                    bool hasCompletedFirstAttempt = attempts.Any(a => 
-                        a.AttemptType == ExamAttemptType.FirstAttempt && 
-                        a.Status == ExamAttemptStatus.Completed);
-
                     canRetake = hasCompletedFirstAttempt;
                 }
 
                 // 检查练习权限
                 if (exam.AllowPractice)
                 {
-                    // 必须先完成首次考试才能练习
-                    bool hasCompletedFirstAttempt = attempts.Any(a => 
-                        a.AttemptType == ExamAttemptType.FirstAttempt && 
-                        a.Status == ExamAttemptStatus.Completed);
-
                     canPractice = hasCompletedFirstAttempt;
                 }
 
                 // 如果没有完成首次考试，可以开始首次考试
-                bool hasCompletedFirstAttempt = attempts.Any(a => 
-                    a.AttemptType == ExamAttemptType.FirstAttempt && 
-                    a.Status == ExamAttemptStatus.Completed);
-
                 if (!hasCompletedFirstAttempt)
                 {
                     canStartExam = true;

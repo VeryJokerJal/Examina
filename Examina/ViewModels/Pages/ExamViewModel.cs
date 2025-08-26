@@ -237,9 +237,9 @@ public class ExamViewModel : ViewModelBase
 
             // 检查是否有进行中的考试
             UserInfo? currentUser = _authenticationService?.CurrentUser;
-            if (currentUser != null)
+            if (currentUser != null && int.TryParse(currentUser.Id, out int studentId))
             {
-                CurrentExamAttempt = await _examAttemptService.GetCurrentExamAttemptAsync(currentUser.Id);
+                CurrentExamAttempt = await _examAttemptService.GetCurrentExamAttemptAsync(studentId);
                 HasActiveExam = CurrentExamAttempt != null;
 
                 if (HasActiveExam && CurrentExamAttempt != null)
@@ -369,15 +369,15 @@ public class ExamViewModel : ViewModelBase
                 return;
 
             UserInfo? currentUser = _authenticationService?.CurrentUser;
-            if (currentUser == null)
+            if (currentUser == null || !int.TryParse(currentUser.Id, out int studentId))
             {
-                ErrorMessage = "用户未登录";
+                ErrorMessage = "用户未登录或用户ID无效";
                 return;
             }
 
             // 验证权限
             (bool isValid, string? errorMessage) = await _examAttemptService.ValidateExamAttemptPermissionAsync(
-                SelectedExam.Id, currentUser.Id, attemptType);
+                SelectedExam.Id, studentId, attemptType);
 
             if (!isValid)
             {
@@ -387,7 +387,7 @@ public class ExamViewModel : ViewModelBase
 
             // 开始考试尝试
             ExamAttemptDto? attempt = await _examAttemptService.StartExamAttemptAsync(
-                SelectedExam.Id, currentUser.Id, attemptType);
+                SelectedExam.Id, studentId, attemptType);
 
             if (attempt != null)
             {
@@ -467,18 +467,18 @@ public class ExamViewModel : ViewModelBase
             }
 
             UserInfo? currentUser = _authenticationService?.CurrentUser;
-            if (currentUser == null)
+            if (currentUser == null || !int.TryParse(currentUser.Id, out int studentId))
                 return;
 
             // 检查考试次数限制
-            ExamAttemptLimit = await _examAttemptService.CheckExamAttemptLimitAsync(exam.Id, currentUser.Id);
+            ExamAttemptLimit = await _examAttemptService.CheckExamAttemptLimitAsync(exam.Id, studentId);
 
             // 更新按钮状态
             CanRetake = ExamAttemptLimit.CanRetake;
             CanPractice = ExamAttemptLimit.CanPractice;
 
             // 加载考试历史
-            List<ExamAttemptDto> history = await _examAttemptService.GetExamAttemptHistoryAsync(exam.Id, currentUser.Id);
+            List<ExamAttemptDto> history = await _examAttemptService.GetExamAttemptHistoryAsync(exam.Id, studentId);
             ExamAttemptHistory.Clear();
             foreach (ExamAttemptDto attempt in history)
             {
