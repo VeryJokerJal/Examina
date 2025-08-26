@@ -221,6 +221,9 @@ public partial class App : Application
         // 注册窗口管理服务
         _ = services.AddSingleton<IWindowManagerService, WindowManagerService>();
 
+        // 注册考试次数限制服务
+        _ = services.AddTransient<IExamAttemptService, ExamAttemptService>();
+
         // 注册ViewModels
         _ = services.AddTransient<LoginViewModel>();
         _ = services.AddTransient<MainViewModel>(provider =>

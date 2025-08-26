@@ -41,6 +41,7 @@ public class UnifiedExamViewModel : ViewModelBase
 
     private readonly IStudentExamService _studentExamService;
     private readonly IAuthenticationService? _authenticationService;
+    private readonly IExamAttemptService? _examAttemptService;
     private readonly MainViewModel? _mainViewModel;
 
     #endregion
@@ -188,10 +189,12 @@ public class UnifiedExamViewModel : ViewModelBase
     public UnifiedExamViewModel(
         IStudentExamService studentExamService,
         IAuthenticationService? authenticationService,
+        IExamAttemptService? examAttemptService = null,
         MainViewModel? mainViewModel = null)
     {
         _studentExamService = studentExamService;
         _authenticationService = authenticationService;
+        _examAttemptService = examAttemptService;
         _mainViewModel = mainViewModel;
 
         // 初始化命令
@@ -626,17 +629,92 @@ public class UnifiedExamViewModel : ViewModelBase
 
     #endregion
 
+    #region 考试权限检查
+
+    /// <summary>
+    /// 检查考试次数限制权限
+    /// </summary>
+    private async Task<bool> CheckExamAttemptPermissionAsync(StudentExamDto exam, ExamMode mode)
+    {
+        try
+        {
+            // 如果没有考试次数限制服务，跳过检查
+            if (_examAttemptService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[CheckExamAttemptPermissionAsync] 考试次数限制服务未注入，跳过检查");
+                return true;
+            }
+
+            // 获取当前用户ID
+            if (_authenticationService?.CurrentUser == null)
+            {
+                ErrorMessage = "用户未登录，无法开始考试";
+                return false;
+            }
+
+            if (!int.TryParse(_authenticationService.CurrentUser.Id, out int studentId))
+            {
+                ErrorMessage = "用户ID格式错误，无法开始考试";
+                return false;
+            }
+
+            // 检查考试次数限制
+            ExamAttemptLimitDto limitCheck = await _examAttemptService.CheckExamAttemptLimitAsync(exam.Id, studentId);
+
+            // 根据考试模式检查权限
+            bool canStart = mode switch
+            {
+                ExamMode.Normal => limitCheck.CanStartExam,
+                ExamMode.Retake => limitCheck.CanRetake,
+                ExamMode.Practice => limitCheck.CanPractice,
+                _ => false
+            };
+
+            if (!canStart)
+            {
+                string modeText = mode switch
+                {
+                    ExamMode.Normal => "开始考试",
+                    ExamMode.Retake => "重新考试",
+                    ExamMode.Practice => "练习模式",
+                    _ => "考试"
+                };
+
+                ErrorMessage = $"无法{modeText}：{limitCheck.LimitReason ?? "权限不足"}";
+                System.Diagnostics.Debug.WriteLine($"[CheckExamAttemptPermissionAsync] {modeText}权限检查失败: {limitCheck.LimitReason}");
+                return false;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[CheckExamAttemptPermissionAsync] 考试权限检查通过，模式: {mode}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"检查考试权限时发生错误: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[CheckExamAttemptPermissionAsync] 检查考试权限异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    #endregion
+
     #region 考试操作方法
 
     /// <summary>
     /// 开始考试
     /// </summary>
-    private void StartExam(StudentExamDto exam)
+    private async void StartExam(StudentExamDto exam)
     {
         System.Diagnostics.Debug.WriteLine($"[StartExam] 开始考试: {exam.Name} (ID: {exam.Id})");
 
         try
         {
+            // 检查考试次数限制
+            if (!await CheckExamAttemptPermissionAsync(exam, ExamMode.Normal))
+            {
+                return; // 错误消息已在CheckExamAttemptPermissionAsync中设置
+            }
+
             // 导航到考试界面，传递考试模式为正式考试
             NavigateToExam(exam, ExamMode.Normal);
         }
@@ -650,12 +728,18 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 重新考试（记录分数和排名）
     /// </summary>
-    private void RetakeExam(StudentExamDto exam)
+    private async void RetakeExam(StudentExamDto exam)
     {
         System.Diagnostics.Debug.WriteLine($"[RetakeExam] 重新考试: {exam.Name} (ID: {exam.Id})");
 
         try
         {
+            // 检查考试次数限制
+            if (!await CheckExamAttemptPermissionAsync(exam, ExamMode.Retake))
+            {
+                return; // 错误消息已在CheckExamAttemptPermissionAsync中设置
+            }
+
             // 导航到考试界面，传递考试模式为重考模式（记录分数）
             NavigateToExam(exam, ExamMode.Retake);
         }
@@ -669,12 +753,18 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 练习模式（不记录分数和排名）
     /// </summary>
-    private void PracticeExam(StudentExamDto exam)
+    private async void PracticeExam(StudentExamDto exam)
     {
         System.Diagnostics.Debug.WriteLine($"[PracticeExam] 练习模式: {exam.Name} (ID: {exam.Id})");
 
         try
         {
+            // 检查考试次数限制
+            if (!await CheckExamAttemptPermissionAsync(exam, ExamMode.Practice))
+            {
+                return; // 错误消息已在CheckExamAttemptPermissionAsync中设置
+            }
+
             // 导航到考试界面，传递考试模式为练习模式（不记录分数）
             NavigateToExam(exam, ExamMode.Practice);
         }

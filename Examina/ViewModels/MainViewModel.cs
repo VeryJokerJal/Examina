@@ -656,10 +656,12 @@ public class MainViewModel : ViewModelBase, IDisposable
         {
             // 直接创建UnifiedExamViewModel，避免循环依赖
             IStudentExamService? examService = ((App)Application.Current!).GetService<IStudentExamService>();
+            IExamAttemptService? examAttemptService = ((App)Application.Current!).GetService<IExamAttemptService>();
+
             if (examService != null && _authenticationService != null)
             {
                 System.Diagnostics.Debug.WriteLine("MainViewModel: 创建UnifiedExamViewModel");
-                return new UnifiedExamViewModel(examService, _authenticationService, this);
+                return new UnifiedExamViewModel(examService, _authenticationService, examAttemptService, this);
             }
             else
             {
