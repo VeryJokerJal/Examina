@@ -90,7 +90,7 @@
                                                     Content="重新考试"
                                                     CornerRadius="4"
                                                     Foreground="White"
-                                                    IsVisible="{Binding AllowRetake}" />
+                                                    IsVisible="{Binding Exam.AllowRetake}" />
 
                                             <!-- 练习模式按钮 -->
                                             <Button Padding="16,8"
@@ -102,7 +102,7 @@
                                                     Content="练习模式"
                                                     CornerRadius="4"
                                                     Foreground="White"
-                                                    IsVisible="{Binding AllowPractice}" />
+                                                    IsVisible="{Binding Exam.AllowPractice}" />
 
                                             <!-- 联考已完成文本 -->
                                             <TextBlock HorizontalAlignment="Center"
@@ -149,17 +149,17 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Exam.Name}" />
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                     <Run Text="考试时长：" />
-                                                    <Run Text="{Binding DurationMinutes}" />
+                                                    <Run Text="{Binding Exam.DurationMinutes}" />
                                                     <Run Text="分钟" />
                                                 </TextBlock>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="联考开始时间：" />
-                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
+                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Exam.StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
                                             </StackPanel>
                                         </StackPanel>
 
@@ -240,7 +240,7 @@
                                                     Content="重新考试"
                                                     CornerRadius="4"
                                                     Foreground="White"
-                                                    IsVisible="{Binding AllowRetake}" />
+                                                    IsVisible="{Binding Exam.AllowRetake}" />
 
                                             <!-- 练习模式按钮 -->
                                             <Button Padding="16,8"
@@ -252,7 +252,7 @@
                                                     Content="练习模式"
                                                     CornerRadius="4"
                                                     Foreground="White"
-                                                    IsVisible="{Binding AllowPractice}" />
+                                                    IsVisible="{Binding Exam.AllowPractice}" />
 
                                             <!-- 联考已完成文本 -->
                                             <TextBlock HorizontalAlignment="Center"
@@ -299,17 +299,17 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Exam.Name}" />
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                     <Run Text="考试时长：" />
-                                                    <Run Text="{Binding DurationMinutes}" />
+                                                    <Run Text="{Binding Exam.DurationMinutes}" />
                                                     <Run Text="分钟" />
                                                 </TextBlock>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="联考开始时间：" />
-                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
+                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Exam.StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
                                             </StackPanel>
                                         </StackPanel>
 
