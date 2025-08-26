@@ -44,18 +44,26 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Exam.Name}" />
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                     <Run Text="考试时长：" />
-                                                    <Run Text="{Binding DurationMinutes}" />
+                                                    <Run Text="{Binding Exam.DurationMinutes}" />
                                                     <Run Text="分钟" />
                                                 </TextBlock>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="联考开始时间：" />
-                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
+                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Exam.StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
                                             </StackPanel>
+                                            <!-- 考试状态消息 -->
+                                            <TextBlock FontSize="12"
+                                                       Foreground="{Binding ., Converter={StaticResource ExamPermissionStatusColorConverter}}"
+                                                       Text="{Binding ., Converter={StaticResource ExamStatusMessageConverter}}" />
+                                            <!-- 考试次数统计 -->
+                                            <TextBlock FontSize="11"
+                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                       Text="{Binding ., Converter={StaticResource ExamAttemptCountTextConverter}}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4">
@@ -66,10 +74,11 @@
                                                     BorderThickness="1"
                                                     Command="{Binding $parent[UserControl].DataContext.StartExamCommand}"
                                                     CommandParameter="{Binding}"
-                                                    Content="开始考试"
+                                                    Content="{Binding ., Converter={StaticResource ExamPermissionButtonTextConverter}}"
                                                     CornerRadius="4"
                                                     Foreground="White"
-                                                    IsVisible="{Binding ., Converter={StaticResource ExamCanStartConverter}}" />
+                                                    IsEnabled="{Binding ., Converter={StaticResource ExamPermissionButtonEnabledConverter}}"
+                                                    IsVisible="{Binding ., Converter={StaticResource ExamPermissionButtonVisibilityConverter}}" />
 
                                             <!-- 重新考试按钮 -->
                                             <Button Padding="16,8"
@@ -185,18 +194,26 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Exam.Name}" />
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                     <Run Text="考试时长：" />
-                                                    <Run Text="{Binding DurationMinutes}" />
+                                                    <Run Text="{Binding Exam.DurationMinutes}" />
                                                     <Run Text="分钟" />
                                                 </TextBlock>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="联考开始时间：" />
-                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
+                                                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Exam.StartTime, StringFormat='yyyy年MM月dd日HH:mm'}" />
                                             </StackPanel>
+                                            <!-- 考试状态消息 -->
+                                            <TextBlock FontSize="12"
+                                                       Foreground="{Binding ., Converter={StaticResource ExamPermissionStatusColorConverter}}"
+                                                       Text="{Binding ., Converter={StaticResource ExamStatusMessageConverter}}" />
+                                            <!-- 考试次数统计 -->
+                                            <TextBlock FontSize="11"
+                                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                       Text="{Binding ., Converter={StaticResource ExamAttemptCountTextConverter}}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4">
@@ -207,10 +224,11 @@
                                                     BorderThickness="1"
                                                     Command="{Binding $parent[UserControl].DataContext.StartExamCommand}"
                                                     CommandParameter="{Binding}"
-                                                    Content="开始考试"
+                                                    Content="{Binding ., Converter={StaticResource ExamPermissionButtonTextConverter}}"
                                                     CornerRadius="4"
                                                     Foreground="White"
-                                                    IsVisible="{Binding ., Converter={StaticResource ExamCanStartConverter}}" />
+                                                    IsEnabled="{Binding ., Converter={StaticResource ExamPermissionButtonEnabledConverter}}"
+                                                    IsVisible="{Binding ., Converter={StaticResource ExamPermissionButtonVisibilityConverter}}" />
 
                                             <!-- 重新考试按钮 -->
                                             <Button Padding="16,8"

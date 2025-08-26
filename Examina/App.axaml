@@ -14,6 +14,12 @@
         <converters:ExamButtonEnabledConverter x:Key="ExamButtonEnabledConverter" />
         <converters:ExamCanStartConverter x:Key="ExamCanStartConverter" />
         <converters:ExamCompletedNoOptionsConverter x:Key="ExamCompletedNoOptionsConverter" />
+        <converters:ExamPermissionButtonTextConverter x:Key="ExamPermissionButtonTextConverter" />
+        <converters:ExamPermissionButtonEnabledConverter x:Key="ExamPermissionButtonEnabledConverter" />
+        <converters:ExamPermissionButtonVisibilityConverter x:Key="ExamPermissionButtonVisibilityConverter" />
+        <converters:ExamStatusMessageConverter x:Key="ExamStatusMessageConverter" />
+        <converters:ExamAttemptCountTextConverter x:Key="ExamAttemptCountTextConverter" />
+        <converters:ExamPermissionStatusColorConverter x:Key="ExamPermissionStatusColorConverter" />
 
         <!--  统计卡片自定义颜色方案  -->
 

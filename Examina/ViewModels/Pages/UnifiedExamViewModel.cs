@@ -51,22 +51,22 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 全省统考列表（进行中的考试）
     /// </summary>
-    [Reactive] public ObservableCollection<StudentExamDto> ProvincialExams { get; set; } = [];
+    [Reactive] public ObservableCollection<ExamWithPermissionsDto> ProvincialExams { get; set; } = [];
 
     /// <summary>
     /// 学校统考列表（进行中的考试）
     /// </summary>
-    [Reactive] public ObservableCollection<StudentExamDto> SchoolExams { get; set; } = [];
+    [Reactive] public ObservableCollection<ExamWithPermissionsDto> SchoolExams { get; set; } = [];
 
     /// <summary>
     /// 已结束的全省统考列表
     /// </summary>
-    [Reactive] public ObservableCollection<StudentExamDto> CompletedProvincialExams { get; set; } = [];
+    [Reactive] public ObservableCollection<ExamWithPermissionsDto> CompletedProvincialExams { get; set; } = [];
 
     /// <summary>
     /// 已结束的学校统考列表
     /// </summary>
-    [Reactive] public ObservableCollection<StudentExamDto> CompletedSchoolExams { get; set; } = [];
+    [Reactive] public ObservableCollection<ExamWithPermissionsDto> CompletedSchoolExams { get; set; } = [];
 
     /// <summary>
     /// 全省统考总数
@@ -96,12 +96,12 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 当前选中的全省统考
     /// </summary>
-    [Reactive] public StudentExamDto? SelectedProvincialExam { get; set; }
+    [Reactive] public ExamWithPermissionsDto? SelectedProvincialExam { get; set; }
 
     /// <summary>
     /// 当前选中的学校统考
     /// </summary>
-    [Reactive] public StudentExamDto? SelectedSchoolExam { get; set; }
+    [Reactive] public ExamWithPermissionsDto? SelectedSchoolExam { get; set; }
 
     /// <summary>
     /// 全省统考当前页码
@@ -160,27 +160,27 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 查看全省统考详情命令
     /// </summary>
-    public ReactiveCommand<StudentExamDto, Unit> ViewProvincialExamDetailsCommand { get; }
+    public ReactiveCommand<ExamWithPermissionsDto, Unit> ViewProvincialExamDetailsCommand { get; }
 
     /// <summary>
     /// 查看学校统考详情命令
     /// </summary>
-    public ReactiveCommand<StudentExamDto, Unit> ViewSchoolExamDetailsCommand { get; }
+    public ReactiveCommand<ExamWithPermissionsDto, Unit> ViewSchoolExamDetailsCommand { get; }
 
     /// <summary>
     /// 开始考试命令
     /// </summary>
-    public ReactiveCommand<StudentExamDto, Unit> StartExamCommand { get; }
+    public ReactiveCommand<ExamWithPermissionsDto, Unit> StartExamCommand { get; }
 
     /// <summary>
     /// 重新考试命令（记录分数和排名）
     /// </summary>
-    public ReactiveCommand<StudentExamDto, Unit> RetakeExamCommand { get; }
+    public ReactiveCommand<ExamWithPermissionsDto, Unit> RetakeExamCommand { get; }
 
     /// <summary>
     /// 练习模式命令（不记录分数和排名）
     /// </summary>
-    public ReactiveCommand<StudentExamDto, Unit> PracticeExamCommand { get; }
+    public ReactiveCommand<ExamWithPermissionsDto, Unit> PracticeExamCommand { get; }
 
     #endregion
 
@@ -203,11 +203,11 @@ public class UnifiedExamViewModel : ViewModelBase
         RefreshAllCommand = ReactiveCommand.CreateFromTask(RefreshAllAsync);
         LoadMoreProvincialExamsCommand = ReactiveCommand.CreateFromTask(LoadMoreProvincialExamsAsync);
         LoadMoreSchoolExamsCommand = ReactiveCommand.CreateFromTask(LoadMoreSchoolExamsAsync);
-        ViewProvincialExamDetailsCommand = ReactiveCommand.Create<StudentExamDto>(ViewProvincialExamDetails);
-        ViewSchoolExamDetailsCommand = ReactiveCommand.Create<StudentExamDto>(ViewSchoolExamDetails);
-        StartExamCommand = ReactiveCommand.Create<StudentExamDto>(StartExam);
-        RetakeExamCommand = ReactiveCommand.Create<StudentExamDto>(RetakeExam);
-        PracticeExamCommand = ReactiveCommand.Create<StudentExamDto>(PracticeExam);
+        ViewProvincialExamDetailsCommand = ReactiveCommand.Create<ExamWithPermissionsDto>(ViewProvincialExamDetails);
+        ViewSchoolExamDetailsCommand = ReactiveCommand.Create<ExamWithPermissionsDto>(ViewSchoolExamDetails);
+        StartExamCommand = ReactiveCommand.Create<ExamWithPermissionsDto>(StartExam);
+        RetakeExamCommand = ReactiveCommand.Create<ExamWithPermissionsDto>(RetakeExam);
+        PracticeExamCommand = ReactiveCommand.Create<ExamWithPermissionsDto>(PracticeExam);
 
         // 初始化用户权限状态
         UpdateUserPermissions();
@@ -225,6 +225,43 @@ public class UnifiedExamViewModel : ViewModelBase
     #endregion
 
     #region 方法
+
+    /// <summary>
+    /// 创建包含权限信息的考试对象
+    /// </summary>
+    private async Task<ExamWithPermissionsDto> CreateExamWithPermissionsAsync(StudentExamDto exam)
+    {
+        ExamWithPermissionsDto examWithPermissions = new()
+        {
+            Exam = exam
+        };
+
+        try
+        {
+            // 检查用户认证状态
+            if (_authenticationService?.CurrentUser != null &&
+                int.TryParse(_authenticationService.CurrentUser.Id, out int studentId))
+            {
+                // 获取考试权限信息
+                examWithPermissions.AttemptLimit = await _examAttemptService.CheckExamAttemptLimitAsync(exam.Id, studentId);
+
+                System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] {exam.Name}: " +
+                    $"CanStartExam={examWithPermissions.AttemptLimit.CanStartExam}, " +
+                    $"CanRetake={examWithPermissions.AttemptLimit.CanRetake}, " +
+                    $"CanPractice={examWithPermissions.AttemptLimit.CanPractice}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] 用户未认证，无法检查考试权限");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] 检查考试权限失败: {ex.Message}");
+        }
+
+        return examWithPermissions;
+    }
 
     /// <summary>
     /// 刷新全省统考数据
@@ -383,11 +420,19 @@ public class UnifiedExamViewModel : ViewModelBase
             List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
                 ExamCategory.Provincial, ProvincialCurrentPage, PageSize);
 
+            // 为每个考试创建包含权限信息的对象
+            List<ExamWithPermissionsDto> examsWithPermissions = new();
+            foreach (StudentExamDto exam in exams)
+            {
+                ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
+                examsWithPermissions.Add(examWithPermissions);
+            }
+
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                foreach (StudentExamDto exam in exams)
+                foreach (ExamWithPermissionsDto examWithPermissions in examsWithPermissions)
                 {
-                    ProvincialExams.Add(exam);
+                    ProvincialExams.Add(examWithPermissions);
                 }
             });
         }
@@ -420,11 +465,19 @@ public class UnifiedExamViewModel : ViewModelBase
             List<StudentExamDto> exams = await _studentExamService.GetAvailableExamsByCategoryAsync(
                 ExamCategory.School, SchoolCurrentPage, PageSize);
 
+            // 为每个考试创建包含权限信息的对象
+            List<ExamWithPermissionsDto> examsWithPermissions = new();
+            foreach (StudentExamDto exam in exams)
+            {
+                ExamWithPermissionsDto examWithPermissions = await CreateExamWithPermissionsAsync(exam);
+                examsWithPermissions.Add(examWithPermissions);
+            }
+
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                foreach (StudentExamDto exam in exams)
+                foreach (ExamWithPermissionsDto examWithPermissions in examsWithPermissions)
                 {
-                    SchoolExams.Add(exam);
+                    SchoolExams.Add(examWithPermissions);
                 }
             });
         }
@@ -442,21 +495,21 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 查看全省统考详情
     /// </summary>
-    private void ViewProvincialExamDetails(StudentExamDto exam)
+    private void ViewProvincialExamDetails(ExamWithPermissionsDto examWithPermissions)
     {
-        SelectedProvincialExam = exam;
+        SelectedProvincialExam = examWithPermissions;
         // TODO: 实现考试详情查看逻辑
-        System.Diagnostics.Debug.WriteLine($"查看全省统考详情: {exam.Name}");
+        System.Diagnostics.Debug.WriteLine($"查看全省统考详情: {examWithPermissions.Exam.Name}");
     }
 
     /// <summary>
     /// 查看学校统考详情
     /// </summary>
-    private void ViewSchoolExamDetails(StudentExamDto exam)
+    private void ViewSchoolExamDetails(ExamWithPermissionsDto examWithPermissions)
     {
-        SelectedSchoolExam = exam;
+        SelectedSchoolExam = examWithPermissions;
         // TODO: 实现考试详情查看逻辑
-        System.Diagnostics.Debug.WriteLine($"查看学校统考详情: {exam.Name}");
+        System.Diagnostics.Debug.WriteLine($"查看学校统考详情: {examWithPermissions.Exam.Name}");
     }
 
     /// <summary>
@@ -703,20 +756,24 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 开始考试
     /// </summary>
-    private async void StartExam(StudentExamDto exam)
+    private async void StartExam(ExamWithPermissionsDto examWithPermissions)
     {
+        StudentExamDto exam = examWithPermissions.Exam;
         System.Diagnostics.Debug.WriteLine($"[StartExam] 开始考试: {exam.Name} (ID: {exam.Id})");
 
         try
         {
+            // 使用推荐的考试模式
+            ExamMode mode = examWithPermissions.GetRecommendedMode();
+
             // 检查考试次数限制
-            if (!await CheckExamAttemptPermissionAsync(exam, ExamMode.Normal))
+            if (!await CheckExamAttemptPermissionAsync(exam, mode))
             {
                 return; // 错误消息已在CheckExamAttemptPermissionAsync中设置
             }
 
-            // 导航到考试界面，传递考试模式为正式考试
-            NavigateToExam(exam, ExamMode.Normal);
+            // 导航到考试界面
+            NavigateToExam(exam, mode);
         }
         catch (Exception ex)
         {
@@ -728,8 +785,9 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 重新考试（记录分数和排名）
     /// </summary>
-    private async void RetakeExam(StudentExamDto exam)
+    private async void RetakeExam(ExamWithPermissionsDto examWithPermissions)
     {
+        StudentExamDto exam = examWithPermissions.Exam;
         System.Diagnostics.Debug.WriteLine($"[RetakeExam] 重新考试: {exam.Name} (ID: {exam.Id})");
 
         try
@@ -753,8 +811,9 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 练习模式（不记录分数和排名）
     /// </summary>
-    private async void PracticeExam(StudentExamDto exam)
+    private async void PracticeExam(ExamWithPermissionsDto examWithPermissions)
     {
+        StudentExamDto exam = examWithPermissions.Exam;
         System.Diagnostics.Debug.WriteLine($"[PracticeExam] 练习模式: {exam.Name} (ID: {exam.Id})");
 
         try
