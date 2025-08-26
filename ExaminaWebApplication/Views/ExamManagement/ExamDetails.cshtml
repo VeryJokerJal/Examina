@@ -464,28 +464,33 @@
         }
 
         // 取消文件关联
-        function removeFileAssociation(fileId) {
-            if (!confirm('确定要取消此文件的关联吗？')) {
+        async function removeFileAssociation(fileId) {
+            if (!confirm('确定要取消关联这个文件吗？文件本身不会被删除，只是取消与当前考试的关联。')) {
                 return;
             }
 
-            // 这里需要实现取消关联的API
-            // 暂时使用删除文件的方式
-            fetch(`/api/fileupload/${fileId}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(result => {
+            try {
+                const examId = @Model.Id;
+                const response = await fetch(`/api/fileupload/disassociate/exam/${examId}/file/${fileId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
                 if (result.success) {
-                    loadAssociatedFiles();
                     showToast('文件关联已取消', 'success');
+                    await loadAssociatedFiles(); // 重新加载文件列表
                 } else {
-                    showToast('取消关联失败: ' + result.message, 'error');
+                    showToast(result.message || '取消关联失败', 'error');
                 }
-            })
-            .catch(error => {
-                showToast('取消关联过程中发生错误: ' + error.message, 'error');
-            });
+            } catch (error) {
+                console.error('取消文件关联时发生错误:', error);
+                showToast('取消文件关联时发生错误', 'error');
+            }
         }
 
         // 获取文件图标

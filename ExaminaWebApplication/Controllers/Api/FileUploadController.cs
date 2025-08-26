@@ -606,4 +606,127 @@ public class FileUploadController : ControllerBase
             });
         }
     }
+
+    /// <summary>
+    /// 取消文件与考试的关联
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="fileId">文件ID</param>
+    /// <returns>取消关联结果</returns>
+    [HttpDelete("disassociate/exam/{examId}/file/{fileId}")]
+    public async Task<IActionResult> DisassociateFileFromExam(int examId, int fileId)
+    {
+        try
+        {
+            bool success = await _fileUploadService.DisassociateFileFromExamAsync(examId, fileId);
+
+            if (success)
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "文件关联已取消"
+                });
+            }
+            else
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "关联不存在或取消失败"
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消文件与考试关联API异常: ExamId={ExamId}, FileId={FileId}", examId, fileId);
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "服务器内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 取消文件与综合训练的关联
+    /// </summary>
+    /// <param name="comprehensiveTrainingId">综合训练ID</param>
+    /// <param name="fileId">文件ID</param>
+    /// <returns>取消关联结果</returns>
+    [HttpDelete("disassociate/comprehensive-training/{comprehensiveTrainingId}/file/{fileId}")]
+    public async Task<IActionResult> DisassociateFileFromComprehensiveTraining(int comprehensiveTrainingId, int fileId)
+    {
+        try
+        {
+            bool success = await _fileUploadService.DisassociateFileFromComprehensiveTrainingAsync(comprehensiveTrainingId, fileId);
+
+            if (success)
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "文件关联已取消"
+                });
+            }
+            else
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "关联不存在或取消失败"
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消文件与综合训练关联API异常: ComprehensiveTrainingId={ComprehensiveTrainingId}, FileId={FileId}", comprehensiveTrainingId, fileId);
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "服务器内部错误"
+            });
+        }
+    }
+
+    /// <summary>
+    /// 取消文件与专项训练的关联
+    /// </summary>
+    /// <param name="specializedTrainingId">专项训练ID</param>
+    /// <param name="fileId">文件ID</param>
+    /// <returns>取消关联结果</returns>
+    [HttpDelete("disassociate/specialized-training/{specializedTrainingId}/file/{fileId}")]
+    public async Task<IActionResult> DisassociateFileFromSpecializedTraining(int specializedTrainingId, int fileId)
+    {
+        try
+        {
+            bool success = await _fileUploadService.DisassociateFileFromSpecializedTrainingAsync(specializedTrainingId, fileId);
+
+            if (success)
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "文件关联已取消"
+                });
+            }
+            else
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "关联不存在或取消失败"
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消文件与专项训练关联API异常: SpecializedTrainingId={SpecializedTrainingId}, FileId={FileId}", specializedTrainingId, fileId);
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "服务器内部错误"
+            });
+        }
+    }
 }

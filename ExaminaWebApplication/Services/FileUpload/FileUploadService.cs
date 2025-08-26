@@ -451,4 +451,88 @@ public class FileUploadService : IFileUploadService
             return false;
         }
     }
+
+    /// <summary>
+    /// 取消文件与考试的关联
+    /// </summary>
+    public async Task<bool> DisassociateFileFromExamAsync(int examId, int fileId)
+    {
+        try
+        {
+            ExamFileAssociation? association = await _context.ExamFileAssociations
+                .FirstOrDefaultAsync(a => a.ExamId == examId && a.FileId == fileId);
+
+            if (association == null)
+            {
+                return false;
+            }
+
+            _context.ExamFileAssociations.Remove(association);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("取消文件与考试关联成功: ExamId={ExamId}, FileId={FileId}", examId, fileId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消文件与考试关联失败: ExamId={ExamId}, FileId={FileId}", examId, fileId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 取消文件与综合训练的关联
+    /// </summary>
+    public async Task<bool> DisassociateFileFromComprehensiveTrainingAsync(int comprehensiveTrainingId, int fileId)
+    {
+        try
+        {
+            ComprehensiveTrainingFileAssociation? association = await _context.ComprehensiveTrainingFileAssociations
+                .FirstOrDefaultAsync(a => a.ComprehensiveTrainingId == comprehensiveTrainingId && a.FileId == fileId);
+
+            if (association == null)
+            {
+                return false;
+            }
+
+            _context.ComprehensiveTrainingFileAssociations.Remove(association);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("取消文件与综合训练关联成功: ComprehensiveTrainingId={ComprehensiveTrainingId}, FileId={FileId}", comprehensiveTrainingId, fileId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消文件与综合训练关联失败: ComprehensiveTrainingId={ComprehensiveTrainingId}, FileId={FileId}", comprehensiveTrainingId, fileId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 取消文件与专项训练的关联
+    /// </summary>
+    public async Task<bool> DisassociateFileFromSpecializedTrainingAsync(int specializedTrainingId, int fileId)
+    {
+        try
+        {
+            SpecializedTrainingFileAssociation? association = await _context.SpecializedTrainingFileAssociations
+                .FirstOrDefaultAsync(a => a.SpecializedTrainingId == specializedTrainingId && a.FileId == fileId);
+
+            if (association == null)
+            {
+                return false;
+            }
+
+            _context.SpecializedTrainingFileAssociations.Remove(association);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("取消文件与专项训练关联成功: SpecializedTrainingId={SpecializedTrainingId}, FileId={FileId}", specializedTrainingId, fileId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取消文件与专项训练关联失败: SpecializedTrainingId={SpecializedTrainingId}, FileId={FileId}", specializedTrainingId, fileId);
+            return false;
+        }
+    }
 }

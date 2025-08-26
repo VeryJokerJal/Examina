@@ -113,6 +113,30 @@ public interface IFileUploadService
     Task<List<UploadedFile>> GetSpecializedTrainingFilesAsync(int specializedTrainingId);
 
     /// <summary>
+    /// 取消文件与考试的关联
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="fileId">文件ID</param>
+    /// <returns>是否取消成功</returns>
+    Task<bool> DisassociateFileFromExamAsync(int examId, int fileId);
+
+    /// <summary>
+    /// 取消文件与综合训练的关联
+    /// </summary>
+    /// <param name="comprehensiveTrainingId">综合训练ID</param>
+    /// <param name="fileId">文件ID</param>
+    /// <returns>是否取消成功</returns>
+    Task<bool> DisassociateFileFromComprehensiveTrainingAsync(int comprehensiveTrainingId, int fileId);
+
+    /// <summary>
+    /// 取消文件与专项训练的关联
+    /// </summary>
+    /// <param name="specializedTrainingId">专项训练ID</param>
+    /// <param name="fileId">文件ID</param>
+    /// <returns>是否取消成功</returns>
+    Task<bool> DisassociateFileFromSpecializedTrainingAsync(int specializedTrainingId, int fileId);
+
+    /// <summary>
     /// 计算文件哈希值
     /// </summary>
     /// <param name="stream">文件流</param>
