@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Examina.Models.Exam;
 using Examina.Services;
-using Examina.Services.Interfaces;
 
 namespace Examina.Tests;
 

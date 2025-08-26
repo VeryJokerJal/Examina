@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text;
 using Examina.Models.Exam;
-using Examina.Services.Interfaces;
 using ExaminaWebApplication.Models;
 
 namespace Examina.Services;
@@ -525,7 +524,7 @@ public class ExamAttemptService : IExamAttemptService
         try
         {
             // 获取认证令牌
-            string? token = await _authenticationService.GetTokenAsync();
+            string? token = await _authenticationService.GetAccessTokenAsync();
             if (string.IsNullOrEmpty(token))
             {
                 return [];
@@ -536,7 +535,7 @@ public class ExamAttemptService : IExamAttemptService
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
             // 构建API URL
-            string baseUrl = await _configurationService.GetApiBaseUrlAsync();
+            string baseUrl = _configurationService.ApiBaseUrl;
             string url = $"{baseUrl}/api/student/exams/completions";
             if (examId.HasValue)
             {

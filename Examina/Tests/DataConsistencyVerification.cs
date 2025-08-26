@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
-using Examina.Services.Interfaces;
+using Examina.Services;
 
 namespace Examina.Tests;
 
@@ -28,7 +28,7 @@ public static class DataConsistencyVerification
             }
 
             // 检查认证状态
-            bool isAuthenticated = await authService.IsAuthenticatedAsync();
+            bool isAuthenticated = authService.IsAuthenticated;
             if (!isAuthenticated)
             {
                 Debug.WriteLine("⚠ 用户未认证，无法验证数据一致性");
@@ -36,7 +36,7 @@ public static class DataConsistencyVerification
                 return;
             }
 
-            string? token = await authService.GetTokenAsync();
+            string? token = await authService.GetAccessTokenAsync();
             if (string.IsNullOrEmpty(token))
             {
                 Debug.WriteLine("✗ 无法获取认证令牌");
@@ -51,7 +51,7 @@ public static class DataConsistencyVerification
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
-            string baseUrl = await configService.GetApiBaseUrlAsync();
+            string baseUrl = configService.ApiBaseUrl;
             string apiUrl = $"{baseUrl}/api/student/exams/completions";
 
             Debug.WriteLine($"调用API: {apiUrl}");
@@ -166,7 +166,7 @@ public static class DataConsistencyVerification
                 return;
             }
 
-            string? token = await authService.GetTokenAsync();
+            string? token = await authService.GetAccessTokenAsync();
             if (string.IsNullOrEmpty(token))
             {
                 Debug.WriteLine("✗ 无法获取认证令牌");
@@ -178,7 +178,7 @@ public static class DataConsistencyVerification
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
-            string baseUrl = await configService.GetApiBaseUrlAsync();
+            string baseUrl = configService.ApiBaseUrl;
 
             // 检查模拟考试记录
             string mockExamUrl = $"{baseUrl}/api/student/mock-exams";
