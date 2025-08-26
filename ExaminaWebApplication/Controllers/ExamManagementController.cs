@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Services.ImportedExam;
 using ExaminaWebApplication.Models.ImportedExam;
+using ExaminaWebApplication.Data;
 
 namespace ExaminaWebApplication.Controllers;
 
@@ -12,13 +13,16 @@ namespace ExaminaWebApplication.Controllers;
 public class ExamManagementController : Controller
 {
     private readonly ExamImportService _examImportService;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<ExamManagementController> _logger;
 
     public ExamManagementController(
         ExamImportService examImportService,
+        ApplicationDbContext context,
         ILogger<ExamManagementController> logger)
     {
         _examImportService = examImportService;
+        _context = context;
         _logger = logger;
     }
 
@@ -317,6 +321,34 @@ public class ExamManagementController : Controller
             _logger.LogError(ex, "更新考试设置失败，考试ID: {ExamId}", id);
             TempData["ErrorMessage"] = "更新考试设置失败，请稍后重试";
             return RedirectToAction(nameof(ExamSchedule), new { id });
+        }
+    }
+
+    /// <summary>
+    /// API测试页面
+    /// </summary>
+    /// <returns>API测试页面</returns>
+    public IActionResult ApiTest()
+    {
+        return View();
+    }
+
+    /// <summary>
+    /// 创建测试数据
+    /// </summary>
+    /// <returns>创建结果</returns>
+    [HttpPost]
+    public async Task<IActionResult> CreateTestData()
+    {
+        try
+        {
+            await ExaminaWebApplication.Data.SeedTestExamData.SeedAsync(_context);
+            return Ok(new { message = "测试数据创建成功" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "创建测试数据失败");
+            return StatusCode(500, new { message = "创建测试数据失败", error = ex.Message });
         }
     }
 }
