@@ -230,6 +230,7 @@ public class StudentExamService : IStudentExamService
             StartTime = exam.StartTime,
             EndTime = exam.EndTime,
             AllowRetake = exam.AllowRetake,
+            AllowPractice = exam.AllowPractice,
             MaxRetakeCount = exam.MaxRetakeCount,
             PassingScore = (int)exam.PassingScore,
             RandomizeQuestions = exam.RandomizeQuestions,

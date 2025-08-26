@@ -53,9 +53,14 @@ public class StudentExamDto
     public DateTime? EndTime { get; set; }
 
     /// <summary>
-    /// 是否允许重考
+    /// 是否允许重考（记录分数和排名）
     /// </summary>
     public bool AllowRetake { get; set; }
+
+    /// <summary>
+    /// 是否允许重做（不记录分数和排名，类似模拟考试）
+    /// </summary>
+    public bool AllowPractice { get; set; }
 
     /// <summary>
     /// 最大重考次数

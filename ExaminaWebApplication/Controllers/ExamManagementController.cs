@@ -518,6 +518,35 @@ public class ExamManagementController : Controller
     }
 
     /// <summary>
+    /// 更新考试设置（重考和重做）
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateExamSetting(int examId, [FromBody] UpdateExamSettingRequest request)
+    {
+        try
+        {
+            int userId = GetCurrentUserId();
+            bool success = await _adminExamService.UpdateExamSettingAsync(examId, userId, request.SettingName, request.Value);
+
+            if (success)
+            {
+                string settingDisplayName = request.SettingName == "AllowRetake" ? "重考设置" : "重做设置";
+                string statusText = request.Value ? "启用" : "禁用";
+                return Ok(new { message = $"{settingDisplayName}已{statusText}" });
+            }
+
+            return BadRequest(new { message = "更新设置失败，请检查权限或考试状态" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试设置失败，考试ID: {ExamId}, 设置: {SettingName}, 值: {Value}",
+                examId, request.SettingName, request.Value);
+            return StatusCode(500, new { message = "更新设置失败", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     private int GetCurrentUserId()
@@ -542,4 +571,13 @@ public class SetScheduleRequest
 public class UpdateStatusRequest
 {
     public string Status { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 更新考试设置请求
+/// </summary>
+public class UpdateExamSettingRequest
+{
+    public string SettingName { get; set; } = string.Empty;
+    public bool Value { get; set; }
 }

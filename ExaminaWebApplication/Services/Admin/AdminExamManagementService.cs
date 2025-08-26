@@ -71,6 +71,7 @@ public class AdminExamManagementService : IAdminExamManagementService
                     StartTime = exam.StartTime,
                     EndTime = exam.EndTime,
                     AllowRetake = exam.AllowRetake,
+                    AllowPractice = exam.AllowPractice,
                     MaxRetakeCount = exam.MaxRetakeCount,
                     PassingScore = exam.PassingScore,
                     RandomizeQuestions = exam.RandomizeQuestions,
@@ -145,6 +146,7 @@ public class AdminExamManagementService : IAdminExamManagementService
                 StartTime = exam.StartTime,
                 EndTime = exam.EndTime,
                 AllowRetake = exam.AllowRetake,
+                AllowPractice = exam.AllowPractice,
                 MaxRetakeCount = exam.MaxRetakeCount,
                 PassingScore = exam.PassingScore,
                 RandomizeQuestions = exam.RandomizeQuestions,
@@ -434,5 +436,53 @@ public class AdminExamManagementService : IAdminExamManagementService
             "Cancelled" => targetStatus == "Draft", // 已取消的考试只能回到草稿状态
             _ => false
         };
+    }
+
+    /// <summary>
+    /// 更新考试设置（重考和重做）
+    /// </summary>
+    public async Task<bool> UpdateExamSettingAsync(int examId, int userId, string settingName, bool value)
+    {
+        try
+        {
+            ImportedExamEntity? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId && e.ImportedBy == userId);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在或无权限访问，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+                return false;
+            }
+
+            // 根据设置名称更新相应的属性
+            switch (settingName)
+            {
+                case "AllowRetake":
+                    exam.AllowRetake = value;
+                    _logger.LogInformation("更新考试重考设置，考试ID: {ExamId}, 用户ID: {UserId}, 值: {Value}",
+                        examId, userId, value);
+                    break;
+                case "AllowPractice":
+                    exam.AllowPractice = value;
+                    _logger.LogInformation("更新考试重做设置，考试ID: {ExamId}, 用户ID: {UserId}, 值: {Value}",
+                        examId, userId, value);
+                    break;
+                default:
+                    _logger.LogWarning("不支持的设置名称: {SettingName}", settingName);
+                    return false;
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("考试设置更新成功，考试ID: {ExamId}, 设置: {SettingName}, 值: {Value}",
+                examId, settingName, value);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试设置失败，考试ID: {ExamId}, 用户ID: {UserId}, 设置: {SettingName}, 值: {Value}",
+                examId, userId, settingName, value);
+            return false;
+        }
     }
 }

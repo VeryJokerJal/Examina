@@ -100,6 +100,16 @@ public interface IAdminExamManagementService
     /// <param name="userId">用户ID</param>
     /// <returns>统计信息</returns>
     Task<ExamStatisticsDto?> GetExamStatisticsAsync(int examId, int userId);
+
+    /// <summary>
+    /// 更新考试设置（重考和重做）
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="userId">用户ID</param>
+    /// <param name="settingName">设置名称（AllowRetake或AllowPractice）</param>
+    /// <param name="value">设置值</param>
+    /// <returns>是否成功</returns>
+    Task<bool> UpdateExamSettingAsync(int examId, int userId, string settingName, bool value);
 }
 
 /// <summary>

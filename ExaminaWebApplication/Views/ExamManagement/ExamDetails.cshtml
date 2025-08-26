@@ -126,20 +126,59 @@
                     
                     <hr>
                     
+                    <!-- 考试模式设置 -->
                     <div class="row">
                         <div class="col-12">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" @(Model.AllowRetake ? "checked" : "") disabled>
-                                <label class="form-check-label">允许重考</label>
-                            </div>
+                            <h6 class="mb-3">
+                                <i class="bi bi-gear me-2"></i>考试模式设置
+                            </h6>
+                        </div>
+                    </div>
 
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" @(Model.ShowScore ? "checked" : "") disabled>
-                                <label class="form-check-label">显示分数</label>
+                    <div class="row g-4 mb-4">
+                        <!-- 允许重考设置 -->
+                        <div class="col-md-6">
+                            <div class="glass-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="bi bi-arrow-repeat text-primary me-3" style="font-size: 1.5rem;"></i>
+                                        <div>
+                                            <h6 class="mb-1">允许重考</h6>
+                                            <small class="text-muted">学生可以重新参加考试，成绩将被记录和排名</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="allowRetakeSwitch"
+                                               @(Model.AllowRetake ? "checked" : "")
+                                               onchange="updateExamSetting('AllowRetake', this.checked)">
+                                        <label class="form-check-label" for="allowRetakeSwitch">
+                                            <span id="allowRetakeLabel">@(Model.AllowRetake ? "已启用" : "已禁用")</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" @(Model.ShowAnswers ? "checked" : "") disabled>
-                                <label class="form-check-label">显示答案</label>
+                        </div>
+
+                        <!-- 允许重做设置 -->
+                        <div class="col-md-6">
+                            <div class="glass-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="bi bi-play-circle text-success me-3" style="font-size: 1.5rem;"></i>
+                                        <div>
+                                            <h6 class="mb-1">允许重做</h6>
+                                            <small class="text-muted">学生可以练习考试，但不记录分数和排名</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="allowPracticeSwitch"
+                                               @(Model.AllowPractice ? "checked" : "")
+                                               onchange="updateExamSetting('AllowPractice', this.checked)">
+                                        <label class="form-check-label" for="allowPracticeSwitch">
+                                            <span id="allowPracticeLabel">@(Model.AllowPractice ? "已启用" : "已禁用")</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -579,6 +618,60 @@
             .finally(() => {
                 // 恢复单选按钮可用状态
                 radioButtons.forEach(radio => radio.disabled = false);
+            });
+        }
+
+        // 更新考试设置（重考和重做）
+        function updateExamSetting(settingName, value) {
+            const examId = @Model.Id;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            // 禁用开关防止重复点击
+            const switchElement = document.getElementById(settingName === 'AllowRetake' ? 'allowRetakeSwitch' : 'allowPracticeSwitch');
+            const labelElement = document.getElementById(settingName === 'AllowRetake' ? 'allowRetakeLabel' : 'allowPracticeLabel');
+
+            switchElement.disabled = true;
+
+            fetch(`/ExamManagement/UpdateExamSetting/${examId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({
+                    settingName: settingName,
+                    value: value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新标签文本
+                    labelElement.textContent = value ? '已启用' : '已禁用';
+
+                    // 显示成功提示
+                    const settingDisplayName = settingName === 'AllowRetake' ? '重考设置' : '重做设置';
+                    showToast('success', `${settingDisplayName}已${value ? '启用' : '禁用'}`);
+                } else {
+                    // 更新失败，恢复开关状态
+                    switchElement.checked = !value;
+
+                    // 显示错误提示
+                    showToast('error', data.message || '更新失败');
+                }
+            })
+            .catch(error => {
+                console.error('更新考试设置失败:', error);
+
+                // 恢复开关状态
+                switchElement.checked = !value;
+
+                // 显示错误提示
+                showToast('error', '网络错误，请稍后重试');
+            })
+            .finally(() => {
+                // 恢复开关可用状态
+                switchElement.disabled = false;
             });
         }
 
