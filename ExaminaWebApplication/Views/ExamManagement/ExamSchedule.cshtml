@@ -3,162 +3,322 @@
     ViewData["Title"] = "考试时间设置";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">考试时间设置 - @Model.Name</h3>
-                    <div class="card-tools">
-                        <a href="@Url.Action("ExamDetails", new { id = Model.Id })" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left"></i> 返回详情
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if (TempData["SuccessMessage"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @TempData["SuccessMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
+@section Styles {
+    <style>
+        /* 拟态玻璃输入框样式 */
+        .glass-input {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
 
-                    @if (TempData["ErrorMessage"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            @TempData["ErrorMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(13, 110, 253, 0.5);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            transform: translateY(-2px);
+        }
 
-                    <form asp-action="UpdateExamSchedule" method="post" id="scheduleForm">
-                        <input type="hidden" asp-for="Id" />
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">考试基本信息</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">考试名称</label>
-                                            <input type="text" class="form-control" value="@Model.Name" readonly />
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">考试类型</label>
-                                            <input type="text" class="form-control" value="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "全省统考" : "学校统考")" readonly />
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">考试时长</label>
-                                            <input type="text" class="form-control" value="@Model.DurationMinutes 分钟" readonly />
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">当前状态</label>
-                                            <span class="badge bg-@(GetStatusBadgeClass(Model.Status))">@GetStatusDisplayText(Model.Status)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">时间设置</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="startTime" class="form-label">开始时间 <span class="text-danger">*</span></label>
-                                            <input type="datetime-local" 
-                                                   id="startTime" 
-                                                   name="startTime" 
-                                                   class="form-control" 
-                                                   value="@(Model.StartTime?.ToString("yyyy-MM-ddTHH:mm"))" 
-                                                   required />
-                                            <div class="form-text">考试开始的时间</div>
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label for="endTime" class="form-label">结束时间 <span class="text-danger">*</span></label>
-                                            <input type="datetime-local" 
-                                                   id="endTime" 
-                                                   name="endTime" 
-                                                   class="form-control" 
-                                                   value="@(Model.EndTime?.ToString("yyyy-MM-ddTHH:mm"))" 
-                                                   required />
-                                            <div class="form-text">考试结束的时间</div>
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label class="form-label">计算时长</label>
-                                            <div id="calculatedDuration" class="form-control-plaintext text-muted">
-                                                请设置开始和结束时间
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">状态管理</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="status" class="form-label">考试状态</label>
-                                            <select id="status" name="status" class="form-select">
-                                                <option value="Draft" selected="@(Model.Status == "Draft")">草稿</option>
-                                                <option value="Scheduled" selected="@(Model.Status == "Scheduled")">已安排</option>
-                                                <option value="Published" selected="@(Model.Status == "Published")">已发布</option>
-                                                <option value="InProgress" selected="@(Model.Status == "InProgress")">进行中</option>
-                                                <option value="Completed" selected="@(Model.Status == "Completed")">已结束</option>
-                                                <option value="Cancelled" selected="@(Model.Status == "Cancelled")">已取消</option>
-                                            </select>
-                                            <div class="form-text">
-                                                <strong>状态说明：</strong><br>
-                                                • 草稿：考试正在准备中<br>
-                                                • 已安排：考试时间已设置<br>
-                                                • 已发布：考试对学生可见<br>
-                                                • 进行中：考试正在进行<br>
-                                                • 已结束：考试已完成<br>
-                                                • 已取消：考试已取消
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label for="examCategory" class="form-label">考试类型</label>
-                                            <select id="examCategory" name="examCategory" class="form-select">
-                                                <option value="School" selected="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School)">学校统考</option>
-                                                <option value="Provincial" selected="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial)">全省统考</option>
-                                            </select>
-                                            <div class="form-text">选择考试的类型范围</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a href="@Url.Action("ExamDetails", new { id = Model.Id })" class="btn btn-secondary">
-                                        <i class="fas fa-times"></i> 取消
-                                    </a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> 保存设置
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+        .glass-input-readonly {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 拟态玻璃按钮样式 */
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 24px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .glass-btn-primary {
+            background: rgba(13, 110, 253, 0.2);
+            border-color: rgba(13, 110, 253, 0.3);
+            color: #0d6efd;
+        }
+
+        .glass-btn-primary:hover {
+            background: rgba(13, 110, 253, 0.3);
+            color: #0d6efd;
+        }
+
+        .glass-btn-secondary {
+            background: rgba(108, 117, 125, 0.2);
+            border-color: rgba(108, 117, 125, 0.3);
+            color: #6c757d;
+        }
+
+        .glass-btn-secondary:hover {
+            background: rgba(108, 117, 125, 0.3);
+            color: #6c757d;
+        }
+
+        .glass-btn-outline {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #666;
+        }
+
+        .glass-btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #333;
+        }
+
+        /* 页面背景 */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* 表单标签样式 */
+        .form-label.fw-semibold {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        /* 表单提示文字 */
+        .form-text {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+}
+
+<!-- 页面标题横幅 -->
+<div class="glass-card glass-card-primary py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    <i class="bi bi-clock me-3"></i>
+                    考试时间设置
+                </h1>
+                <p class="lead mb-0">@Model.Name</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="@Url.Action("ExamDetails", new { id = Model.Id })" class="glass-btn glass-btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>返回详情
+                </a>
             </div>
         </div>
     </div>
+</div>
+
+<div class="container">
+    <!-- 消息提示 -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="glass-card mb-4" style="background: rgba(25, 135, 84, 0.1); border: 1px solid rgba(25, 135, 84, 0.2);">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill text-success me-3" style="font-size: 1.5rem;"></i>
+                    <div class="flex-grow-1">
+                        <strong class="text-success">操作成功</strong>
+                        <p class="mb-0 text-success">@TempData["SuccessMessage"]</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="glass-card mb-4" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.2);">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-3" style="font-size: 1.5rem;"></i>
+                    <div class="flex-grow-1">
+                        <strong class="text-danger">操作失败</strong>
+                        <p class="mb-0 text-danger">@TempData["ErrorMessage"]</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <form asp-action="UpdateExamSchedule" method="post" id="scheduleForm">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-4">
+            <!-- 考试基本信息 -->
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-info-circle me-2"></i>考试基本信息
+                        </h5>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">考试名称</label>
+                            <div class="glass-input-readonly">
+                                <i class="bi bi-clipboard-check me-2"></i>@Model.Name
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">考试类型</label>
+                            <div class="glass-input-readonly">
+                                <i class="bi bi-@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "globe" : "building") me-2"></i>
+                                @(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial ? "全省统考" : "学校统考")
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">考试时长</label>
+                            <div class="glass-input-readonly">
+                                <i class="bi bi-clock me-2"></i>@Model.DurationMinutes 分钟
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">当前状态</label>
+                            <div>
+                                <span class="badge bg-@(GetStatusBadgeClass(Model.Status)) fs-6 px-3 py-2">
+                                    <i class="bi bi-circle-fill me-1"></i>@GetStatusDisplayText(Model.Status)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间设置 -->
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-calendar-event me-2"></i>时间设置
+                        </h5>
+                        <div class="mb-4">
+                            <label for="startTime" class="form-label fw-semibold">
+                                <i class="bi bi-play-circle me-2"></i>开始时间 <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local"
+                                   id="startTime"
+                                   name="startTime"
+                                   class="form-control glass-input"
+                                   value="@(Model.StartTime?.ToString("yyyy-MM-ddTHH:mm"))"
+                                   required />
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>考试开始的时间
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="endTime" class="form-label fw-semibold">
+                                <i class="bi bi-stop-circle me-2"></i>结束时间 <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local"
+                                   id="endTime"
+                                   name="endTime"
+                                   class="form-control glass-input"
+                                   value="@(Model.EndTime?.ToString("yyyy-MM-ddTHH:mm"))"
+                                   required />
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>考试结束的时间
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-calculator me-2"></i>计算时长
+                            </label>
+                            <div id="calculatedDuration" class="glass-input-readonly">
+                                <i class="bi bi-clock me-2"></i>请设置开始和结束时间
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态管理 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-gear me-2"></i>状态管理
+                        </h5>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="status" class="form-label fw-semibold">
+                                    <i class="bi bi-flag me-2"></i>考试状态
+                                </label>
+                                <select id="status" name="status" class="form-select glass-input">
+                                    <option value="Draft" selected="@(Model.Status == "Draft")">📝 草稿</option>
+                                    <option value="Scheduled" selected="@(Model.Status == "Scheduled")">📅 已安排</option>
+                                    <option value="Published" selected="@(Model.Status == "Published")">📢 已发布</option>
+                                    <option value="InProgress" selected="@(Model.Status == "InProgress")">▶️ 进行中</option>
+                                    <option value="Completed" selected="@(Model.Status == "Completed")">✅ 已结束</option>
+                                    <option value="Cancelled" selected="@(Model.Status == "Cancelled")">❌ 已取消</option>
+                                </select>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    <strong>状态说明：</strong>
+                                    草稿→已安排→已发布→进行中→已结束
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="examCategory" class="form-label fw-semibold">
+                                    <i class="bi bi-diagram-3 me-2"></i>考试类型
+                                </label>
+                                <select id="examCategory" name="examCategory" class="form-select glass-input">
+                                    <option value="School" selected="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.School)">🏫 学校统考</option>
+                                    <option value="Provincial" selected="@(Model.ExamCategory == ExaminaWebApplication.Models.ImportedExam.ExamCategory.Provincial)">🌐 全省统考</option>
+                                </select>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>选择考试的类型范围
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="@Url.Action("ExamDetails", new { id = Model.Id })" class="glass-btn glass-btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </a>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="glass-btn glass-btn-outline" onclick="resetForm()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>重置
+                        </button>
+                        <button type="submit" class="glass-btn glass-btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>保存设置
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
@@ -178,14 +338,14 @@
                         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
                         const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                         
-                        $('#calculatedDuration').text(`${diffHours}小时${diffMinutes}分钟`);
+                        $('#calculatedDuration').html(`<i class="bi bi-clock me-2"></i>${diffHours}小时${diffMinutes}分钟`);
                         $('#calculatedDuration').removeClass('text-danger').addClass('text-success');
                     } else {
-                        $('#calculatedDuration').text('结束时间必须晚于开始时间');
+                        $('#calculatedDuration').html('<i class="bi bi-exclamation-triangle me-2"></i>结束时间必须晚于开始时间');
                         $('#calculatedDuration').removeClass('text-success').addClass('text-danger');
                     }
                 } else {
-                    $('#calculatedDuration').text('请设置开始和结束时间');
+                    $('#calculatedDuration').html('<i class="bi bi-clock me-2"></i>请设置开始和结束时间');
                     $('#calculatedDuration').removeClass('text-success text-danger').addClass('text-muted');
                 }
             }
@@ -222,6 +382,31 @@
                         return false;
                     }
                 }
+            });
+        });
+
+        // 重置表单
+        function resetForm() {
+            if (confirm('确定要重置表单吗？所有未保存的更改将丢失。')) {
+                document.getElementById('scheduleForm').reset();
+                calculateDuration();
+            }
+        }
+
+        // 添加拟态玻璃效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为输入框添加焦点效果
+            const inputs = document.querySelectorAll('.glass-input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 8px 32px rgba(31, 38, 135, 0.37)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 4px 16px rgba(31, 38, 135, 0.2)';
+                });
             });
         });
     </script>
