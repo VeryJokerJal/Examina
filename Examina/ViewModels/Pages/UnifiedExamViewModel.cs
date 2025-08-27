@@ -43,6 +43,7 @@ public class UnifiedExamViewModel : ViewModelBase
     private readonly IAuthenticationService? _authenticationService;
     private readonly IExamAttemptService? _examAttemptService;
     private readonly MainViewModel? _mainViewModel;
+    private readonly EnhancedExamToolbarService? _enhancedExamToolbarService;
 
     #endregion
 
@@ -196,6 +197,25 @@ public class UnifiedExamViewModel : ViewModelBase
         _authenticationService = authenticationService;
         _examAttemptService = examAttemptService;
         _mainViewModel = mainViewModel;
+
+        // 尝试获取EnhancedExamToolbarService（可选依赖）
+        try
+        {
+            _enhancedExamToolbarService = AppServiceManager.GetService<EnhancedExamToolbarService>();
+            if (_enhancedExamToolbarService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("UnifiedExamViewModel: 成功获取EnhancedExamToolbarService");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("UnifiedExamViewModel: EnhancedExamToolbarService未注册");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 获取EnhancedExamToolbarService失败: {ex.Message}");
+            _enhancedExamToolbarService = null;
+        }
 
         // 初始化命令
         RefreshProvincialExamsCommand = ReactiveCommand.CreateFromTask(RefreshProvincialExamsAsync);

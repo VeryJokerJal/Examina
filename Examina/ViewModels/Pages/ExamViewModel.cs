@@ -814,9 +814,9 @@ public class ExamViewModel : ViewModelBase
             }
 
             // 计算考试用时
-            if (examAttempt.StartedAt.HasValue && examAttempt.CompletedAt.HasValue)
+            if (examAttempt.CompletedAt.HasValue)
             {
-                TimeSpan duration = examAttempt.CompletedAt.Value - examAttempt.StartedAt.Value;
+                TimeSpan duration = examAttempt.CompletedAt.Value - examAttempt.StartedAt;
                 durationMinutes = (int)duration.TotalMinutes;
             }
 
