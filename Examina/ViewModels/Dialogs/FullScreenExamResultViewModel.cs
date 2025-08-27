@@ -43,7 +43,7 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     /// <summary>
     /// 次要状态消息
     /// </summary>
-    public string SecondaryStatusMessage
+    public new string SecondaryStatusMessage
     {
         get
         {
@@ -59,15 +59,20 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
 
             if (Score.HasValue)
             {
-                return $"您的成绩：{ScoreText}分";
-            }
-            else if (ExamType == ExamType.FormalExam)
-            {
-                return "考试已成功提交，成绩将在稍后公布";
+                return ExamType switch
+                {
+                    ExamType.MockExam => $"感谢您的参与",
+                    ExamType.ComprehensiveTraining => $"感谢您的参与",
+                    ExamType.FormalExam => $"感谢您的参与",
+                    ExamType.Practice => $"感谢您的参与",
+                    ExamType.SpecialPractice => $"感谢您的参与",
+                    ExamType.SpecializedTraining => $"感谢您的参与",
+                    _ => $"感谢您的参与",
+                };
             }
             else
             {
-                return "感谢您的参与";
+                return ExamType == ExamType.FormalExam ? "考试已成功提交，成绩将在稍后公布" : "感谢您的参与";
             }
         }
     }
@@ -85,7 +90,7 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     /// <summary>
     /// 是否显示成绩信息（简单版本）
     /// </summary>
-    public bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring || ExamType == ExamType.FormalExam);
+    public new bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring || ExamType == ExamType.FormalExam);
 
     /// <summary>
     /// 是否显示详细分数信息（全屏模式下强制禁用）
@@ -107,13 +112,9 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
             {
                 return $"{Score:F1}";
             }
-            else if (ExamType == ExamType.FormalExam && IsSubmissionSuccessful)
-            {
-                return "已提交";
-            }
             else
             {
-                return "暂无评分";
+                return ExamType == ExamType.FormalExam && IsSubmissionSuccessful ? "已提交" : "暂无评分";
             }
         }
     }

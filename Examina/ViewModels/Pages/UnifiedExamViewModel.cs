@@ -648,11 +648,7 @@ public class UnifiedExamViewModel : ViewModelBase
 
         List<StudentExamDto> result = exams.Where(exam =>
         {
-            if (exam.Status == "Completed")
-            {
-                return true;
-            }
-            return exam.EndTime.HasValue && now > exam.EndTime.Value;
+            return exam.Status == "Completed" || exam.EndTime.HasValue && now > exam.EndTime.Value;
         }).ToList();
 
         return result;
@@ -993,6 +989,7 @@ public class UnifiedExamViewModel : ViewModelBase
                         submitResult = scoringResult != null;
                         if (scoringResult != null)
                         {
+                            actualDurationSeconds = (int)(scoringResult.ElapsedMilliseconds / 1000);
                             score = scoringResult.AchievedScore;
                             maxScore = scoringResult.TotalScore;
                             System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 模拟考试BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
@@ -1012,13 +1009,15 @@ public class UnifiedExamViewModel : ViewModelBase
                             try
                             {
                                 // 仅进行本地评分，不提交到服务器
-                                Models.BenchSuite.BenchSuiteScoringResult? localScoringResult =
+                                Models.BenchSuite.BenchSuiteScoringResult? scoringResult =
                                     await _enhancedExamToolbarService.PerformLocalScoringAsync(ExamType.Practice, examId, studentId);
 
-                                if (localScoringResult != null)
+                                if (scoringResult != null)
                                 {
-                                    actualDurationSeconds = (int)(localScoringResult.ElapsedMilliseconds / 1000);
-                                    System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 练习模式本地评分完成，得分: {localScoringResult.AchievedScore}/{localScoringResult.TotalScore}");
+                                    actualDurationSeconds = (int)(scoringResult.ElapsedMilliseconds / 1000);
+                                    score = scoringResult.AchievedScore;
+                                    maxScore = scoringResult.TotalScore;
+                                    System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 练习模式本地评分完成，得分: {scoringResult.AchievedScore}/{scoringResult.TotalScore}");
                                 }
                             }
                             catch (Exception ex)
@@ -1034,7 +1033,15 @@ public class UnifiedExamViewModel : ViewModelBase
                 case ExamType.ComprehensiveTraining:
                     if (_enhancedExamToolbarService != null)
                     {
-                        submitResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingAsync(examId);
+                        BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(examId);
+                        submitResult = scoringResult != null;
+                        if (scoringResult != null)
+                        {
+                            actualDurationSeconds = (int)(scoringResult.ElapsedMilliseconds / 1000);
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
+                            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 综合实训BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
+                        }
                     }
                     break;
 
