@@ -105,10 +105,28 @@
 												<i class="bi bi-target text-primary" style="font-size: 1.5rem;"></i>
 											</div>
 											<div>
-												<h6 class="mb-1 fw-bold">
-													<a asp-action="ComprehensiveTrainingDetails" asp-route-id="@comprehensiveTraining.Id" 
-													   class="text-decoration-none">@comprehensiveTraining.Name</a>
-												</h6>
+												<div class="comprehensive-training-name-display" data-training-id="@comprehensiveTraining.Id">
+													<h6 class="mb-1 fw-bold d-inline-block" ondblclick="startEditComprehensiveTrainingName(@comprehensiveTraining.Id, '@comprehensiveTraining.Name')">
+														<a asp-action="ComprehensiveTrainingDetails" asp-route-id="@comprehensiveTraining.Id"
+														   class="text-decoration-none">@comprehensiveTraining.Name</a>
+													</h6>
+													<button type="button" class="btn btn-sm btn-outline-secondary ms-2 edit-name-btn"
+															onclick="startEditComprehensiveTrainingName(@comprehensiveTraining.Id, '@comprehensiveTraining.Name')" title="编辑综合实训名称">
+														<i class="bi bi-pencil"></i>
+													</button>
+												</div>
+												<div class="comprehensive-training-name-edit d-none" data-training-id="@comprehensiveTraining.Id">
+													<div class="input-group input-group-sm">
+														<input type="text" class="form-control comprehensive-training-name-input" value="@comprehensiveTraining.Name" maxlength="200">
+														<button type="button" class="btn btn-success btn-sm" onclick="saveComprehensiveTrainingName(@comprehensiveTraining.Id)" title="保存">
+															<i class="bi bi-check"></i>
+														</button>
+														<button type="button" class="btn btn-secondary btn-sm" onclick="cancelEditComprehensiveTrainingName(@comprehensiveTraining.Id)" title="取消">
+															<i class="bi bi-x"></i>
+														</button>
+													</div>
+													<small class="text-muted">按Enter保存，按Esc取消</small>
+												</div>
 												<small class="text-muted">
 													@if (!string.IsNullOrEmpty(comprehensiveTraining.Description))
 													{
@@ -277,6 +295,125 @@
 			document.getElementById('comprehensiveTrainingName').textContent = name;
 			document.getElementById('deleteForm').action = '@Url.Action("DeleteComprehensiveTraining")/' + id;
 			new bootstrap.Modal(document.getElementById('deleteModal')).show();
+		}
+
+		// 综合实训名称编辑功能
+		function startEditComprehensiveTrainingName(trainingId, currentName) {
+			const displayElement = document.querySelector(`.comprehensive-training-name-display[data-training-id="${trainingId}"]`);
+			const editElement = document.querySelector(`.comprehensive-training-name-edit[data-training-id="${trainingId}"]`);
+			const inputElement = editElement.querySelector('.comprehensive-training-name-input');
+
+			// 隐藏显示元素，显示编辑元素
+			displayElement.classList.add('d-none');
+			editElement.classList.remove('d-none');
+
+			// 设置输入框值并聚焦
+			inputElement.value = currentName;
+			inputElement.focus();
+			inputElement.select();
+
+			// 绑定键盘事件
+			inputElement.onkeydown = function(e) {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					saveComprehensiveTrainingName(trainingId);
+				} else if (e.key === 'Escape') {
+					e.preventDefault();
+					cancelEditComprehensiveTrainingName(trainingId);
+				}
+			};
+		}
+
+		function saveComprehensiveTrainingName(trainingId) {
+			const editElement = document.querySelector(`.comprehensive-training-name-edit[data-training-id="${trainingId}"]`);
+			const inputElement = editElement.querySelector('.comprehensive-training-name-input');
+			const newName = inputElement.value.trim();
+
+			// 输入验证
+			if (!newName) {
+				alert('综合实训名称不能为空');
+				inputElement.focus();
+				return;
+			}
+
+			if (newName.length > 200) {
+				alert('综合实训名称长度不能超过200个字符');
+				inputElement.focus();
+				return;
+			}
+
+			// 检查非法字符
+			const forbiddenChars = ['<', '>', '"', "'", '&', '\\', '/', '?', '*', '|', ':', ';', '%'];
+			if (forbiddenChars.some(char => newName.includes(char))) {
+				alert('综合实训名称包含非法字符，请避免使用: < > " \' & \\ / ? * | : ; %');
+				inputElement.focus();
+				return;
+			}
+
+			// 发送AJAX请求
+			$.ajax({
+				url: `/api/comprehensive-training/${trainingId}/name`,
+				type: 'PUT',
+				contentType: 'application/json',
+				data: JSON.stringify({ name: newName }),
+				success: function(response) {
+					if (response.success) {
+						// 更新显示
+						const displayElement = document.querySelector(`.comprehensive-training-name-display[data-training-id="${trainingId}"]`);
+						const linkElement = displayElement.querySelector('a');
+						linkElement.textContent = response.updatedName;
+
+						// 切换回显示模式
+						cancelEditComprehensiveTrainingName(trainingId);
+
+						// 显示成功消息
+						showMessage('综合实训名称更新成功', 'success');
+					} else {
+						alert('更新失败: ' + response.message);
+					}
+				},
+				error: function(xhr) {
+					let errorMessage = '更新失败，请稍后重试';
+					if (xhr.responseJSON && xhr.responseJSON.message) {
+						errorMessage = xhr.responseJSON.message;
+					}
+					alert(errorMessage);
+				}
+			});
+		}
+
+		function cancelEditComprehensiveTrainingName(trainingId) {
+			const displayElement = document.querySelector(`.comprehensive-training-name-display[data-training-id="${trainingId}"]`);
+			const editElement = document.querySelector(`.comprehensive-training-name-edit[data-training-id="${trainingId}"]`);
+
+			// 显示原始元素，隐藏编辑元素
+			displayElement.classList.remove('d-none');
+			editElement.classList.add('d-none');
+
+			// 清除键盘事件绑定
+			const inputElement = editElement.querySelector('.comprehensive-training-name-input');
+			inputElement.onkeydown = null;
+		}
+
+		function showMessage(message, type) {
+			// 创建临时消息提示
+			const alertDiv = document.createElement('div');
+			alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+			alertDiv.style.top = '20px';
+			alertDiv.style.right = '20px';
+			alertDiv.style.zIndex = '9999';
+			alertDiv.innerHTML = `
+				${message}
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			`;
+			document.body.appendChild(alertDiv);
+
+			// 3秒后自动移除
+			setTimeout(() => {
+				if (alertDiv.parentNode) {
+					alertDiv.parentNode.removeChild(alertDiv);
+				}
+			}, 3000);
 		}
 	</script>
 }

@@ -192,7 +192,25 @@
                                         <div class="d-flex align-items-center">
                                             <i class="bi bi-target text-primary me-2"></i>
                                             <div>
-                                                <strong>@training.Name</strong>
+                                                <div class="specialized-training-name-display" data-training-id="@training.Id">
+                                                    <strong class="d-inline-block" ondblclick="startEditSpecializedTrainingName(@training.Id, '@training.Name')">@training.Name</strong>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2 edit-name-btn"
+                                                            onclick="startEditSpecializedTrainingName(@training.Id, '@training.Name')" title="编辑专项训练名称">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="specialized-training-name-edit d-none" data-training-id="@training.Id">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control specialized-training-name-input" value="@training.Name" maxlength="200">
+                                                        <button type="button" class="btn btn-success btn-sm" onclick="saveSpecializedTrainingName(@training.Id)" title="保存">
+                                                            <i class="bi bi-check"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEditSpecializedTrainingName(@training.Id)" title="取消">
+                                                            <i class="bi bi-x"></i>
+                                                        </button>
+                                                    </div>
+                                                    <small class="text-muted">按Enter保存，按Esc取消</small>
+                                                </div>
                                                 @if (!string.IsNullOrEmpty(training.Description))
                                                 {
                                                     <br>
@@ -340,6 +358,124 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', function()
         });
         
         bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+    }
+
+    // 专项训练名称编辑功能
+    function startEditSpecializedTrainingName(trainingId, currentName) {
+        const displayElement = document.querySelector(`.specialized-training-name-display[data-training-id="${trainingId}"]`);
+        const editElement = document.querySelector(`.specialized-training-name-edit[data-training-id="${trainingId}"]`);
+        const inputElement = editElement.querySelector('.specialized-training-name-input');
+
+        // 隐藏显示元素，显示编辑元素
+        displayElement.classList.add('d-none');
+        editElement.classList.remove('d-none');
+
+        // 设置输入框值并聚焦
+        inputElement.value = currentName;
+        inputElement.focus();
+        inputElement.select();
+
+        // 绑定键盘事件
+        inputElement.onkeydown = function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveSpecializedTrainingName(trainingId);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEditSpecializedTrainingName(trainingId);
+            }
+        };
+    }
+
+    function saveSpecializedTrainingName(trainingId) {
+        const editElement = document.querySelector(`.specialized-training-name-edit[data-training-id="${trainingId}"]`);
+        const inputElement = editElement.querySelector('.specialized-training-name-input');
+        const newName = inputElement.value.trim();
+
+        // 输入验证
+        if (!newName) {
+            alert('专项训练名称不能为空');
+            inputElement.focus();
+            return;
+        }
+
+        if (newName.length > 200) {
+            alert('专项训练名称长度不能超过200个字符');
+            inputElement.focus();
+            return;
+        }
+
+        // 检查非法字符
+        const forbiddenChars = ['<', '>', '"', "'", '&', '\\', '/', '?', '*', '|', ':', ';', '%'];
+        if (forbiddenChars.some(char => newName.includes(char))) {
+            alert('专项训练名称包含非法字符，请避免使用: < > " \' & \\ / ? * | : ; %');
+            inputElement.focus();
+            return;
+        }
+
+        // 发送AJAX请求
+        fetch(`/api/specialized-training/${trainingId}/name`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: newName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 更新显示
+                const displayElement = document.querySelector(`.specialized-training-name-display[data-training-id="${trainingId}"]`);
+                const nameElement = displayElement.querySelector('strong');
+                nameElement.textContent = data.updatedName;
+
+                // 切换回显示模式
+                cancelEditSpecializedTrainingName(trainingId);
+
+                // 显示成功消息
+                showMessage('专项训练名称更新成功', 'success');
+            } else {
+                alert('更新失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('更新失败，请稍后重试');
+        });
+    }
+
+    function cancelEditSpecializedTrainingName(trainingId) {
+        const displayElement = document.querySelector(`.specialized-training-name-display[data-training-id="${trainingId}"]`);
+        const editElement = document.querySelector(`.specialized-training-name-edit[data-training-id="${trainingId}"]`);
+
+        // 显示原始元素，隐藏编辑元素
+        displayElement.classList.remove('d-none');
+        editElement.classList.add('d-none');
+
+        // 清除键盘事件绑定
+        const inputElement = editElement.querySelector('.specialized-training-name-input');
+        inputElement.onkeydown = null;
+    }
+
+    function showMessage(message, type) {
+        // 创建临时消息提示
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.top = '20px';
+        alertDiv.style.right = '20px';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+
+        // 3秒后自动移除
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 3000);
     }
 });
 </script>

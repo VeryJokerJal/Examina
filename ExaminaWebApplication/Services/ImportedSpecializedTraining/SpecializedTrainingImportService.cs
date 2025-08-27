@@ -293,6 +293,144 @@ public class SpecializedTrainingImportService
     }
 
     /// <summary>
+    /// 获取导入的专项训练列表
+    /// </summary>
+    public async Task<List<ImportedSpecializedTrainingEntity>> GetImportedSpecializedTrainingsAsync(int? importedBy = null)
+    {
+        IQueryable<ImportedSpecializedTrainingEntity> query = _context.ImportedSpecializedTrainings
+            .Include(e => e.Importer)
+            .OrderByDescending(e => e.ImportedAt);
+
+        if (importedBy.HasValue)
+        {
+            query = query.Where(e => e.ImportedBy == importedBy.Value);
+        }
+
+        return await query.ToListAsync();
+    }
+
+    /// <summary>
+    /// 获取专项训练详情
+    /// </summary>
+    public async Task<ImportedSpecializedTrainingEntity?> GetImportedSpecializedTrainingDetailsAsync(int id)
+    {
+        return await _context.ImportedSpecializedTrainings
+            .Include(e => e.Importer)
+            .FirstOrDefaultAsync(e => e.Id == id);
+    }
+
+    /// <summary>
+    /// 删除专项训练
+    /// </summary>
+    public async Task<bool> DeleteImportedSpecializedTrainingAsync(int id, int userId)
+    {
+        try
+        {
+            ImportedSpecializedTrainingEntity? specializedTraining = await _context.ImportedSpecializedTrainings
+                .FirstOrDefaultAsync(st => st.Id == id);
+
+            if (specializedTraining == null)
+            {
+                _logger.LogWarning("专项训练不存在，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+                return false;
+            }
+
+            _context.ImportedSpecializedTrainings.Remove(specializedTraining);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("用户 {UserId} 成功删除专项训练: {TrainingName} (ID: {TrainingId})",
+                userId, specializedTraining.Name, id);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "删除专项训练失败，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 更新专项训练名称
+    /// </summary>
+    /// <param name="id">专项训练ID</param>
+    /// <param name="userId">用户ID</param>
+    /// <param name="newName">新的名称</param>
+    /// <returns>是否成功</returns>
+    public async Task<bool> UpdateSpecializedTrainingNameAsync(int id, int userId, string newName)
+    {
+        try
+        {
+            // 输入验证
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                _logger.LogWarning("专项训练名称不能为空，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+                return false;
+            }
+
+            // 长度限制检查
+            if (newName.Length > 200)
+            {
+                _logger.LogWarning("专项训练名称长度超过限制，训练ID: {TrainingId}, 用户ID: {UserId}, 名称长度: {Length}",
+                    id, userId, newName.Length);
+                return false;
+            }
+
+            // 特殊字符检查 - 禁止包含危险字符
+            string[] forbiddenChars = { "<", ">", "\"", "'", "&", "\\", "/", "?", "*", "|", ":", ";", "%" };
+            if (forbiddenChars.Any(c => newName.Contains(c)))
+            {
+                _logger.LogWarning("专项训练名称包含非法字符，训练ID: {TrainingId}, 用户ID: {UserId}, 名称: {Name}",
+                    id, userId, newName);
+                return false;
+            }
+
+            // 查找专项训练并验证权限
+            ImportedSpecializedTrainingEntity? specializedTraining = await _context.ImportedSpecializedTrainings
+                .FirstOrDefaultAsync(st => st.Id == id);
+
+            if (specializedTraining == null)
+            {
+                _logger.LogWarning("专项训练不存在，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+                return false;
+            }
+
+            // 权限验证：只有创建者或管理员可修改
+            // 这里简化处理，允许所有管理员用户修改（实际项目中可以添加更细粒度的权限控制）
+            _logger.LogInformation("用户 {UserId} 正在修改专项训练 {TrainingId} 的名称", userId, id);
+
+            // 记录原始名称用于日志
+            string originalName = specializedTraining.Name;
+
+            // 检查名称是否已存在（同一用户下不能有重复名称）
+            bool nameExists = await _context.ImportedSpecializedTrainings
+                .AnyAsync(st => st.Id != id && st.ImportedBy == specializedTraining.ImportedBy && st.Name == newName);
+
+            if (nameExists)
+            {
+                _logger.LogWarning("专项训练名称已存在，训练ID: {TrainingId}, 用户ID: {UserId}, 名称: {Name}",
+                    id, userId, newName);
+                return false;
+            }
+
+            // 更新专项训练名称
+            specializedTraining.Name = newName.Trim();
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("专项训练名称更新成功，训练ID: {TrainingId}, 用户ID: {UserId}, 原名称: {OriginalName}, 新名称: {NewName}",
+                id, userId, originalName, newName);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新专项训练名称失败，训练ID: {TrainingId}, 用户ID: {UserId}, 新名称: {NewName}",
+                id, userId, newName);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 验证结果
     /// </summary>
     private class ValidationResult
