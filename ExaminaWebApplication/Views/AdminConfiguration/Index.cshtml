@@ -221,7 +221,7 @@
                     @if (Model.AllConfigurations.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table glass-table">
                                 <thead>
                                     <tr>
                                         <th>配置键</th>
@@ -252,11 +252,11 @@
                                             <td>
                                                 @if (config.IsEnabled)
                                                 {
-                                                    <span class="badge bg-success">启用</span>
+                                                    <span class="glass-badge glass-badge-success">启用</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-warning">禁用</span>
+                                                    <span class="glass-badge glass-badge-warning">禁用</span>
                                                 }
                                             </td>
                                             <td>
@@ -270,8 +270,8 @@
                                                 }
                                             </td>
                                             <td>
-                                                <a href="@Url.Action("EditConfiguration", new { configKey = config.ConfigKey })" class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-edit"></i>
+                                                <a href="@Url.Action("EditConfiguration", new { configKey = config.ConfigKey })" class="glass-btn glass-btn-sm glass-btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i>
                                                 </a>
                                             </td>
                                         </tr>
@@ -282,9 +282,10 @@
                     }
                     else
                     {
-                        <div class="text-center text-muted py-4">
-                            <i class="fas fa-cogs fa-3x mb-3"></i>
-                            <p>暂无配置项</p>
+                        <div class="glass-table-empty">
+                            <i class="bi bi-gear"></i>
+                            <h5>暂无配置项</h5>
+                            <p>系统中还没有任何配置项</p>
                         </div>
                     }
                 </div>
@@ -308,54 +309,81 @@
 }
 
 <style>
-.stats-card {
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-}
-
-.stats-card:hover {
-    transform: translateY(-2px);
-}
-
-.stats-icon {
+/* 统计卡片图标容器 */
+.glass-icon-container {
     width: 60px;
     height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 24px;
-    margin-right: 15px;
+    background: var(--glass-secondary);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    transition: all 0.3s ease;
 }
 
-.stats-number {
+.glass-icon-container:hover {
+    transform: scale(1.1);
+    background: var(--glass-primary);
+}
+
+/* 统计内容样式 */
+.glass-stats-content {
+    flex: 1;
+}
+
+.glass-stats-number {
     font-size: 2rem;
-    font-weight: bold;
+    font-weight: 700;
     margin: 0;
-    color: #333;
+    color: var(--text-primary);
+    line-height: 1.2;
 }
 
-.stats-label {
+.glass-stats-label {
     margin: 0;
-    color: #666;
-    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.page-header {
-    margin-bottom: 2rem;
+/* 列表项样式 */
+.glass-list-item {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
 }
 
-.page-title {
-    font-size: 2rem;
+.glass-list-item:hover {
+    background: var(--glass-secondary);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px var(--glass-shadow);
+}
+
+/* 表单标签样式 */
+.glass-form-label {
+    color: var(--text-primary);
     font-weight: 600;
-    color: #333;
-    margin: 0;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
 }
 
-.page-subtitle {
-    color: #666;
-    margin-top: 0.5rem;
+/* 输入组附加元素样式 */
+.glass-input-addon {
+    background: var(--glass-secondary);
+    border-color: var(--glass-border);
+    color: var(--text-secondary);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
 }
 </style>

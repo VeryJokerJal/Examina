@@ -489,4 +489,80 @@ public class AdminExamManagementService : IAdminExamManagementService
             return false;
         }
     }
+
+    /// <summary>
+    /// 更新试卷名称
+    /// </summary>
+    public async Task<bool> UpdateExamNameAsync(int examId, int userId, string newName)
+    {
+        try
+        {
+            // 输入验证
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                _logger.LogWarning("试卷名称不能为空，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+                return false;
+            }
+
+            // 长度限制检查
+            if (newName.Length > 200)
+            {
+                _logger.LogWarning("试卷名称长度超过限制，考试ID: {ExamId}, 用户ID: {UserId}, 名称长度: {Length}",
+                    examId, userId, newName.Length);
+                return false;
+            }
+
+            // 特殊字符检查 - 禁止包含危险字符
+            string[] forbiddenChars = { "<", ">", "\"", "'", "&", "\\", "/", "?", "*", "|", ":", ";", "%" };
+            if (forbiddenChars.Any(c => newName.Contains(c)))
+            {
+                _logger.LogWarning("试卷名称包含非法字符，考试ID: {ExamId}, 用户ID: {UserId}, 名称: {Name}",
+                    examId, userId, newName);
+                return false;
+            }
+
+            // 查找考试并验证权限
+            ImportedExamEntity? exam = await _context.ImportedExams
+                .FirstOrDefaultAsync(e => e.Id == examId);
+
+            if (exam == null)
+            {
+                _logger.LogWarning("考试不存在，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
+                return false;
+            }
+
+            // 权限验证：只有试卷创建者或管理员可修改
+            // 这里简化处理，允许所有管理员用户修改（实际项目中可以添加更细粒度的权限控制）
+            _logger.LogInformation("用户 {UserId} 正在修改考试 {ExamId} 的名称", userId, examId);
+
+            // 记录原始名称用于日志
+            string originalName = exam.Name;
+
+            // 检查名称是否已存在（同一用户下不能有重复名称）
+            bool nameExists = await _context.ImportedExams
+                .AnyAsync(e => e.Id != examId && e.ImportedBy == exam.ImportedBy && e.Name == newName);
+
+            if (nameExists)
+            {
+                _logger.LogWarning("试卷名称已存在，考试ID: {ExamId}, 用户ID: {UserId}, 名称: {Name}",
+                    examId, userId, newName);
+                return false;
+            }
+
+            // 更新试卷名称
+            exam.Name = newName.Trim();
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("试卷名称更新成功，考试ID: {ExamId}, 用户ID: {UserId}, 原名称: {OriginalName}, 新名称: {NewName}",
+                examId, userId, originalName, newName);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新试卷名称失败，考试ID: {ExamId}, 用户ID: {UserId}, 新名称: {NewName}",
+                examId, userId, newName);
+            return false;
+        }
+    }
 }

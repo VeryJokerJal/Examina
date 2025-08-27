@@ -23,4 +23,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Examina\Examina.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Remove="icon.ico" />
+  </ItemGroup>
 </Project>

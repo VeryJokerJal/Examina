@@ -1,4 +1,4 @@
-@model List<ExaminaWebApplication.Models.Admin.SystemConfigurationDto>
+﻿@model List<ExaminaWebApplication.Models.Admin.SystemConfigurationDto>
 @{
     ViewData["Title"] = "系统配置列表";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -7,31 +7,34 @@
 }
 
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="@Url.Action("Index")">
-                                <i class="fas fa-cogs me-1"></i>系统配置
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active">配置列表</li>
-                    </ol>
-                </nav>
-                <h1 class="page-title">
-                    <i class="fas fa-list me-2"></i>系统配置列表
-                </h1>
-                <div class="page-subtitle">
-                    @if (!string.IsNullOrEmpty(currentCategory))
-                    {
-                        <span>分类：@currentCategory</span>
-                    }
-                    else
-                    {
-                        <span>查看和管理所有系统配置项</span>
-                    }
+    <!-- 页面标题 -->
+    <div class="glass-card glass-card-primary mb-4">
+        <div class="card-body">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb glass-breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index")" class="glass-link">
+                            <i class="bi bi-gear me-1"></i>系统配置
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active">配置列表</li>
+                </ol>
+            </nav>
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>系统配置列表
+                    </h2>
+                    <p class="text-muted mb-0">
+                        @if (!string.IsNullOrEmpty(currentCategory))
+                        {
+                            <span>分类：@currentCategory</span>
+                        }
+                        else
+                        {
+                            <span>查看和管理所有系统配置项</span>
+                        }
+                    </p>
                 </div>
             </div>
         </div>
@@ -55,21 +58,21 @@
 
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+            <div class="glass-card">
+                <div class="card-header glass-card-header">
                     <div class="row align-items-center">
                         <div class="col-md-6">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-cog me-2"></i>配置项列表
-                                <span class="badge bg-primary ms-2">@Model.Count</span>
+                                <i class="bi bi-gear me-2"></i>配置项列表
+                                <span class="glass-badge glass-badge-primary ms-2">@Model.Count</span>
                             </h5>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex justify-content-end gap-2">
                                 <!-- 分类筛选 -->
                                 <div class="dropdown">
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-filter me-2"></i>
+                                    <button class="glass-btn glass-btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-funnel me-2"></i>
                                         @if (!string.IsNullOrEmpty(currentCategory))
                                         {
                                             <span>@currentCategory</span>
@@ -79,20 +82,20 @@
                                             <span>所有分类</span>
                                         }
                                     </button>
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu glass-dropdown-menu">
                                         <li>
-                                            <a class="dropdown-item @(string.IsNullOrEmpty(currentCategory) ? "active" : "")" 
+                                            <a class="dropdown-item glass-dropdown-item @(string.IsNullOrEmpty(currentCategory) ? "active" : "")"
                                                href="@Url.Action("SystemConfigurations")">
-                                                <i class="fas fa-list me-2"></i>所有分类
+                                                <i class="bi bi-list-ul me-2"></i>所有分类
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         @foreach (string category in categories)
                                         {
                                             <li>
-                                                <a class="dropdown-item @(currentCategory == category ? "active" : "")" 
+                                                <a class="dropdown-item glass-dropdown-item @(currentCategory == category ? "active" : "")"
                                                    href="@Url.Action("SystemConfigurations", new { category = category })">
-                                                    <i class="fas fa-folder me-2"></i>@category
+                                                    <i class="bi bi-folder me-2"></i>@category
                                                 </a>
                                             </li>
                                         }
@@ -101,9 +104,9 @@
 
                                 <!-- 搜索框 -->
                                 <div class="input-group" style="width: 300px;">
-                                    <input type="text" class="form-control" placeholder="搜索配置项..." id="searchInput">
-                                    <button class="btn btn-outline-secondary" type="button" id="searchButton">
-                                        <i class="fas fa-search"></i>
+                                    <input type="text" class="glass-input" placeholder="搜索配置项..." id="searchInput">
+                                    <button class="glass-btn glass-btn-outline-secondary" type="button" id="searchButton">
+                                        <i class="bi bi-search"></i>
                                     </button>
                                 </div>
                             </div>
@@ -114,8 +117,8 @@
                     @if (Model.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover" id="configurationsTable">
-                                <thead class="table-light">
+                            <table class="table glass-table" id="configurationsTable">
+                                <thead>
                                     <tr>
                                         <th style="width: 25%;">配置键</th>
                                         <th style="width: 25%;">配置值</th>
@@ -156,19 +159,19 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-secondary">@config.Category</span>
+                                                <span class="glass-badge glass-badge-secondary">@config.Category</span>
                                             </td>
                                             <td>
                                                 @if (config.IsEnabled)
                                                 {
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check me-1"></i>启用
+                                                    <span class="glass-badge glass-badge-success">
+                                                        <i class="bi bi-check me-1"></i>启用
                                                     </span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-warning">
-                                                        <i class="fas fa-times me-1"></i>禁用
+                                                    <span class="glass-badge glass-badge-warning">
+                                                        <i class="bi bi-x me-1"></i>禁用
                                                     </span>
                                                 }
                                             </td>
@@ -198,13 +201,13 @@
                                             </td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <a href="@Url.Action("EditConfiguration", new { configKey = config.ConfigKey })" 
-                                                       class="btn btn-sm btn-outline-primary" 
+                                                    <a href="@Url.Action("EditConfiguration", new { configKey = config.ConfigKey })"
+                                                       class="glass-btn glass-btn-sm glass-btn-outline-primary"
                                                        title="编辑配置">
-                                                        <i class="fas fa-edit"></i>
+                                                        <i class="bi bi-pencil"></i>
                                                     </a>
-                                                    <button type="button" 
-                                                            class="btn btn-sm btn-outline-info view-details" 
+                                                    <button type="button"
+                                                            class="glass-btn glass-btn-sm glass-btn-outline-info view-details"
                                                             data-config-id="@config.Id"
                                                             data-config-key="@config.ConfigKey"
                                                             data-config-value="@config.ConfigValue"
@@ -216,7 +219,7 @@
                                                             data-config-creator="@config.CreatorName"
                                                             data-config-updater="@config.UpdaterName"
                                                             title="查看详情">
-                                                        <i class="fas fa-eye"></i>
+                                                        <i class="bi bi-eye"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -228,14 +231,14 @@
                     }
                     else
                     {
-                        <div class="text-center text-muted py-5">
-                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <div class="glass-table-empty">
+                            <i class="bi bi-inbox"></i>
                             <h5>暂无配置项</h5>
                             @if (!string.IsNullOrEmpty(currentCategory))
                             {
                                 <p>当前分类"@currentCategory"下没有配置项</p>
-                                <a href="@Url.Action("SystemConfigurations")" class="btn btn-outline-primary">
-                                    <i class="fas fa-list me-2"></i>查看所有配置
+                                <a href="@Url.Action("SystemConfigurations")" class="glass-btn glass-btn-outline-primary">
+                                    <i class="bi bi-list-ul me-2"></i>查看所有配置
                                 </a>
                             }
                             else
@@ -251,12 +254,12 @@
 </div>
 
 <!-- 配置详情模态框 -->
-<div class="modal fade" id="configDetailsModal" tabindex="-1">
+<div class="modal fade glass-modal" id="configDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header glass-modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-cog me-2"></i>配置详情
+                    <i class="bi bi-gear me-2"></i>配置详情
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -318,10 +321,10 @@
                     <div class="detail-value" id="detailUpdater"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                <a href="#" class="btn btn-primary" id="editConfigLink">
-                    <i class="fas fa-edit me-2"></i>编辑配置
+            <div class="modal-footer glass-modal-footer">
+                <button type="button" class="glass-btn glass-btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <a href="#" class="glass-btn glass-btn-primary" id="editConfigLink">
+                    <i class="bi bi-pencil me-2"></i>编辑配置
                 </a>
             </div>
         </div>
@@ -329,50 +332,113 @@
 </div>
 
 <style>
-.page-header {
-    margin-bottom: 2rem;
-}
-
-.page-title {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #333;
+/* 面包屑导航样式 */
+.glass-breadcrumb {
+    background: transparent;
+    padding: 0;
     margin: 0;
 }
 
-.page-subtitle {
-    color: #666;
-    margin-top: 0.5rem;
+.glass-breadcrumb .breadcrumb-item a.glass-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.3s ease;
 }
 
+.glass-breadcrumb .breadcrumb-item a.glass-link:hover {
+    color: var(--text-primary);
+}
+
+.glass-breadcrumb .breadcrumb-item.active {
+    color: var(--text-muted);
+}
+
+/* 配置值容器样式 */
 .config-value-container {
     position: relative;
 }
 
 .toggle-value {
     font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: var(--glass-accent);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    padding: 0.25rem 0.5rem;
+    transition: all 0.3s ease;
 }
 
+.toggle-value:hover {
+    background: var(--glass-secondary);
+    color: var(--text-primary);
+}
+
+/* 详情项样式 */
 .detail-item {
     margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--glass-accent);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+.detail-item:hover {
+    background: var(--glass-secondary);
+    transform: translateY(-1px);
 }
 
 .detail-label {
     font-weight: 600;
-    color: #495057;
+    color: var(--text-primary);
     margin-bottom: 0.25rem;
     display: block;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .detail-value {
-    color: #212529;
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .detail-value code {
-    background-color: #f8f9fa;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
+    background: var(--glass-primary);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius-sm);
     word-break: break-all;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+}
+
+/* 搜索和筛选区域样式 */
+.input-group .glass-input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group .glass-btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: none;
+}
+
+/* 表格响应式优化 */
+@@media (max-width: 768px) {
+    .config-value-container .config-value-short,
+    .config-value-container .config-value-full {
+        font-size: 0.8rem;
+    }
+
+    .toggle-value {
+        font-size: 0.7rem;
+        padding: 0.125rem 0.25rem;
+    }
 }
 </style>
 

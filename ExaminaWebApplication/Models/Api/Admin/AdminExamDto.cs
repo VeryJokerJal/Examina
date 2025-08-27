@@ -229,3 +229,40 @@ public class UpdateExamCategoryRequestDto
     /// </summary>
     public ExamCategory Category { get; set; }
 }
+
+/// <summary>
+/// 更新试卷名称请求DTO
+/// </summary>
+public class UpdateExamNameRequestDto
+{
+    /// <summary>
+    /// 新的试卷名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 更新试卷名称响应DTO
+/// </summary>
+public class UpdateExamNameResponseDto
+{
+    /// <summary>
+    /// 是否成功
+    /// </summary>
+    public bool Success { get; set; }
+
+    /// <summary>
+    /// 消息
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 更新后的试卷名称
+    /// </summary>
+    public string? UpdatedName { get; set; }
+
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
+}

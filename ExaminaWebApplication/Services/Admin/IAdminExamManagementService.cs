@@ -110,6 +110,15 @@ public interface IAdminExamManagementService
     /// <param name="value">设置值</param>
     /// <returns>是否成功</returns>
     Task<bool> UpdateExamSettingAsync(int examId, int userId, string settingName, bool value);
+
+    /// <summary>
+    /// 更新试卷名称
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="userId">用户ID</param>
+    /// <param name="newName">新的试卷名称</param>
+    /// <returns>是否成功</returns>
+    Task<bool> UpdateExamNameAsync(int examId, int userId, string newName);
 }
 
 /// <summary>

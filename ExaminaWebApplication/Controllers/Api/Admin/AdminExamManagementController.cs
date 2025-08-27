@@ -238,6 +238,65 @@ public class AdminExamManagementController : ControllerBase
     }
 
     /// <summary>
+    /// 更新试卷名称
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="request">名称更新请求</param>
+    /// <returns>操作结果</returns>
+    [HttpPut("{examId}/name")]
+    public async Task<ActionResult<UpdateExamNameResponseDto>> UpdateExamName(int examId, [FromBody] UpdateExamNameRequestDto request)
+    {
+        try
+        {
+            int userId = GetCurrentUserId();
+
+            // 验证请求数据
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                return BadRequest(new UpdateExamNameResponseDto
+                {
+                    Success = false,
+                    Message = "试卷名称不能为空"
+                });
+            }
+
+            bool success = await _adminExamManagementService.UpdateExamNameAsync(
+                examId, userId, request.Name);
+
+            if (!success)
+            {
+                _logger.LogWarning("更新试卷名称失败，用户ID: {UserId}, 考试ID: {ExamId}, 新名称: {NewName}",
+                    userId, examId, request.Name);
+                return BadRequest(new UpdateExamNameResponseDto
+                {
+                    Success = false,
+                    Message = "更新试卷名称失败，试卷不存在、您无权限操作、名称已存在或包含非法字符"
+                });
+            }
+
+            _logger.LogInformation("更新试卷名称成功，用户ID: {UserId}, 考试ID: {ExamId}, 新名称: {NewName}",
+                userId, examId, request.Name);
+
+            return Ok(new UpdateExamNameResponseDto
+            {
+                Success = true,
+                Message = "试卷名称更新成功",
+                UpdatedName = request.Name.Trim(),
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新试卷名称失败，考试ID: {ExamId}", examId);
+            return StatusCode(500, new UpdateExamNameResponseDto
+            {
+                Success = false,
+                Message = "更新试卷名称失败，服务器内部错误"
+            });
+        }
+    }
+
+    /// <summary>
     /// 获取当前用户ID
     /// </summary>
     private int GetCurrentUserId()

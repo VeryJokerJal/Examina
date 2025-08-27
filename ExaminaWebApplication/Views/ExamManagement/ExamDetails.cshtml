@@ -46,7 +46,27 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-8">
-                            <h3 class="mb-3">@Model.Name</h3>
+                            <div class="exam-name-display" data-exam-id="@Model.Id">
+                                <h3 class="mb-3 d-inline-block" ondblclick="startEditExamName(@Model.Id, '@Model.Name')">
+                                    @Model.Name
+                                </h3>
+                                <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+                                        onclick="startEditExamName(@Model.Id, '@Model.Name')" title="编辑试卷名称">
+                                    <i class="bi bi-pencil"></i> 编辑名称
+                                </button>
+                            </div>
+                            <div class="exam-name-edit d-none mb-3" data-exam-id="@Model.Id">
+                                <div class="input-group">
+                                    <input type="text" class="form-control exam-name-input" value="@Model.Name" maxlength="200" placeholder="请输入试卷名称">
+                                    <button type="button" class="btn btn-success" onclick="saveExamName(@Model.Id)" title="保存">
+                                        <i class="bi bi-check"></i> 保存
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="cancelEditExamName(@Model.Id)" title="取消">
+                                        <i class="bi bi-x"></i> 取消
+                                    </button>
+                                </div>
+                                <small class="text-muted">按Enter保存，按Esc取消。名称长度不超过200字符，不能包含特殊字符。</small>
+                            </div>
                             @if (!string.IsNullOrEmpty(Model.Description))
                             {
                                 <p class="text-muted mb-3">@Model.Description</p>
@@ -1119,5 +1139,115 @@
                 });
             }
         });
+
+        // 试卷名称编辑功能
+        function startEditExamName(examId, currentName) {
+            const displayElement = document.querySelector(`.exam-name-display[data-exam-id="${examId}"]`);
+            const editElement = document.querySelector(`.exam-name-edit[data-exam-id="${examId}"]`);
+            const inputElement = editElement.querySelector('.exam-name-input');
+
+            // 隐藏显示元素，显示编辑元素
+            displayElement.classList.add('d-none');
+            editElement.classList.remove('d-none');
+
+            // 设置输入框值并聚焦
+            inputElement.value = currentName;
+            inputElement.focus();
+            inputElement.select();
+
+            // 绑定键盘事件
+            inputElement.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveExamName(examId);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelEditExamName(examId);
+                }
+            };
+        }
+
+        function saveExamName(examId) {
+            const editElement = document.querySelector(`.exam-name-edit[data-exam-id="${examId}"]`);
+            const inputElement = editElement.querySelector('.exam-name-input');
+            const newName = inputElement.value.trim();
+
+            // 输入验证
+            if (!newName) {
+                showToast('error', '试卷名称不能为空');
+                inputElement.focus();
+                return;
+            }
+
+            if (newName.length > 200) {
+                showToast('error', '试卷名称长度不能超过200个字符');
+                inputElement.focus();
+                return;
+            }
+
+            // 检查非法字符
+            const forbiddenChars = ['<', '>', '"', "'", '&', '\\', '/', '?', '*', '|', ':', ';', '%'];
+            if (forbiddenChars.some(char => newName.includes(char))) {
+                showToast('error', '试卷名称包含非法字符，请避免使用: < > " \' & \\ / ? * | : ; %');
+                inputElement.focus();
+                return;
+            }
+
+            // 显示加载状态
+            const saveBtn = editElement.querySelector('.btn-success');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 保存中...';
+            saveBtn.disabled = true;
+
+            // 发送AJAX请求
+            fetch(`/api/admin/exam-management/${examId}/name`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ name: newName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新页面标题和显示
+                    document.title = `考试详情 - ${data.updatedName}`;
+                    const displayElement = document.querySelector(`.exam-name-display[data-exam-id="${examId}"]`);
+                    const nameElement = displayElement.querySelector('h3');
+                    nameElement.childNodes[0].textContent = data.updatedName;
+
+                    // 切换回显示模式
+                    cancelEditExamName(examId);
+
+                    // 显示成功消息
+                    showToast('success', '试卷名称更新成功');
+                } else {
+                    showToast('error', '更新失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', '更新失败，请稍后重试');
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            });
+        }
+
+        function cancelEditExamName(examId) {
+            const displayElement = document.querySelector(`.exam-name-display[data-exam-id="${examId}"]`);
+            const editElement = document.querySelector(`.exam-name-edit[data-exam-id="${examId}"]`);
+
+            // 显示原始元素，隐藏编辑元素
+            displayElement.classList.remove('d-none');
+            editElement.classList.add('d-none');
+
+            // 清除键盘事件绑定
+            const inputElement = editElement.querySelector('.exam-name-input');
+            inputElement.onkeydown = null;
+        }
     </script>
 }
