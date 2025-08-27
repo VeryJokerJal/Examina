@@ -118,16 +118,35 @@ public class ExamAttemptService : IExamAttemptService
                     a.Status == ExamAttemptStatus.Completed);
 
                 // 检查重考权限
+                System.Diagnostics.Debug.WriteLine($"=== 权限检查调试 ===");
+                System.Diagnostics.Debug.WriteLine($"考试ID: {examId}, 考试名称: {exam.Name}");
+                System.Diagnostics.Debug.WriteLine($"exam.AllowRetake: {exam.AllowRetake}");
+                System.Diagnostics.Debug.WriteLine($"exam.AllowPractice: {exam.AllowPractice}");
+                System.Diagnostics.Debug.WriteLine($"exam.MaxRetakeCount: {exam.MaxRetakeCount}");
+                System.Diagnostics.Debug.WriteLine($"retakeAttempts: {retakeAttempts}");
+                System.Diagnostics.Debug.WriteLine($"hasCompletedFirstAttempt: {hasCompletedFirstAttempt}");
+
                 if (exam.AllowRetake && retakeAttempts < exam.MaxRetakeCount)
                 {
                     canRetake = hasCompletedFirstAttempt;
+                    System.Diagnostics.Debug.WriteLine($"重考权限检查通过，canRetake设置为: {canRetake}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"重考权限检查失败，原因: AllowRetake={exam.AllowRetake}, retakeAttempts={retakeAttempts}, MaxRetakeCount={exam.MaxRetakeCount}");
                 }
 
                 // 检查练习权限
                 if (exam.AllowPractice)
                 {
                     canPractice = hasCompletedFirstAttempt;
+                    System.Diagnostics.Debug.WriteLine($"练习权限检查通过，canPractice设置为: {canPractice}");
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"练习权限检查失败，AllowPractice={exam.AllowPractice}");
+                }
+                System.Diagnostics.Debug.WriteLine($"=== 权限检查调试结束 ===");
 
                 // 如果没有完成首次考试，可以开始首次考试
                 if (!hasCompletedFirstAttempt)

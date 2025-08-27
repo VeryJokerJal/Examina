@@ -297,6 +297,14 @@ public class StudentExamService : IStudentExamService
     /// </summary>
     private static StudentExamDto MapToStudentExamDto(ImportedExamEntity exam)
     {
+        // 添加调试输出
+        System.Diagnostics.Debug.WriteLine($"=== MapToStudentExamDto 调试 ===");
+        System.Diagnostics.Debug.WriteLine($"考试ID: {exam.Id}, 考试名称: {exam.Name}");
+        System.Diagnostics.Debug.WriteLine($"数据库中的AllowRetake: {exam.AllowRetake}");
+        System.Diagnostics.Debug.WriteLine($"数据库中的AllowPractice: {exam.AllowPractice}");
+        System.Diagnostics.Debug.WriteLine($"数据库中的MaxRetakeCount: {exam.MaxRetakeCount}");
+        System.Diagnostics.Debug.WriteLine($"=== MapToStudentExamDto 调试结束 ===");
+
         return new StudentExamDto
         {
             Id = exam.Id,
@@ -308,10 +316,10 @@ public class StudentExamService : IStudentExamService
             DurationMinutes = exam.DurationMinutes,
             StartTime = exam.StartTime,
             EndTime = exam.EndTime,
-            // 确保重考和练习功能启用，如果数据库中未设置则使用默认值
-            AllowRetake = exam.AllowRetake || true,  // 默认允许重考
-            AllowPractice = exam.AllowPractice || true,  // 默认允许练习
-            MaxRetakeCount = exam.MaxRetakeCount > 0 ? exam.MaxRetakeCount : 3,  // 默认最大重考次数为3
+            // 使用数据库中的实际配置
+            AllowRetake = exam.AllowRetake,
+            AllowPractice = exam.AllowPractice,
+            MaxRetakeCount = exam.MaxRetakeCount,
             PassingScore = (int)exam.PassingScore,
             RandomizeQuestions = exam.RandomizeQuestions,
             ShowScore = exam.ShowScore,

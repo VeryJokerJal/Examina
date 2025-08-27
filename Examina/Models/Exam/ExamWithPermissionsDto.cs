@@ -31,29 +31,44 @@ public class ExamWithPermissionsDto
     {
         get
         {
+            // 添加调试输出
+            System.Diagnostics.Debug.WriteLine($"=== PrimaryButtonText 计算调试 ===");
+            System.Diagnostics.Debug.WriteLine($"考试ID: {Exam.Id}, 考试名称: {Exam.Name}");
+            System.Diagnostics.Debug.WriteLine($"AttemptLimit == null: {AttemptLimit == null}");
+
             if (AttemptLimit == null)
             {
+                System.Diagnostics.Debug.WriteLine($"AttemptLimit为null，返回'开始考试'");
                 return "开始考试";
             }
+
+            System.Diagnostics.Debug.WriteLine($"HasCompletedFirstAttempt: {AttemptLimit.HasCompletedFirstAttempt}");
+            System.Diagnostics.Debug.WriteLine($"CanRetake: {AttemptLimit.CanRetake}");
+            System.Diagnostics.Debug.WriteLine($"CanPractice: {AttemptLimit.CanPractice}");
 
             // 如果没有完成首次考试，显示"开始考试"
             if (!AttemptLimit.HasCompletedFirstAttempt)
             {
+                System.Diagnostics.Debug.WriteLine($"未完成首次考试，返回'开始考试'");
                 return "开始考试";
             }
 
             // 如果已完成首次考试，根据可用选项显示文本
             if (AttemptLimit.CanRetake)
             {
+                System.Diagnostics.Debug.WriteLine($"可以重考，返回'重新考试'");
                 return "重新考试";
             }
 
             if (AttemptLimit.CanPractice)
             {
+                System.Diagnostics.Debug.WriteLine($"可以练习，返回'练习模式'");
                 return "练习模式";
             }
 
             // 如果都不能，显示完成状态
+            System.Diagnostics.Debug.WriteLine($"都不能，返回'考试已完成'");
+            System.Diagnostics.Debug.WriteLine($"=== PrimaryButtonText 计算调试结束 ===");
             return "考试已完成";
         }
     }
@@ -76,6 +91,8 @@ public class ExamWithPermissionsDto
 
             bool statusValid = Exam.Status is "Published" or "InProgress";
 
+            // 按钮应该始终可见，让用户看到当前状态
+            // 即使没有权限，也应该显示"考试已完成"等状态
             return timeValid && statusValid;
         }
     }
