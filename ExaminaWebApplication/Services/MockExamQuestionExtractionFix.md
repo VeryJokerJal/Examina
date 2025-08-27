@@ -1,4 +1,4 @@
-# 模拟考试题目抽取失败修复说明
+﻿# 模拟考试题目抽取失败修复说明
 
 ## 问题描述
 
@@ -34,7 +34,7 @@ if (student == null)
 
 #### B. 抽取规则总分值不匹配
 ```csharp
-int totalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
+double TotalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
 if (totalScoreFromRules != request.TotalScore)
 {
     _logger.LogWarning("预设抽取规则的总分值({TotalFromRules})与请求的总分值({RequestTotal})不匹配",

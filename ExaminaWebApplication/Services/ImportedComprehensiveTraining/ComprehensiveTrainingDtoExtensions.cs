@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
 namespace ExaminaWebApplication.Services.ImportedComprehensiveTraining;
@@ -41,7 +41,7 @@ public class ComprehensiveTrainingModuleDto
     /// </summary>
     [JsonPropertyName("score")]
     [XmlElement("Score")]
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序

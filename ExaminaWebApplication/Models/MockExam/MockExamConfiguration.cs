@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.MockExam;
@@ -37,7 +37,7 @@ public class MockExamConfiguration
     /// 总分值
     /// </summary>
     [Required]
-    public int TotalScore { get; set; } = 100;
+    public double TotalScore { get; set; } = 100;
 
     /// <summary>
     /// 及格分数
@@ -126,7 +126,7 @@ public class MockExam
     /// 总分值
     /// </summary>
     [Required]
-    public int TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 及格分数
@@ -214,7 +214,7 @@ public class QuestionExtractionRule
     /// <summary>
     /// 每题分值
     /// </summary>
-    public int ScorePerQuestion { get; set; }
+    public double ScorePerQuestion { get; set; }
 
     /// <summary>
     /// 是否必须
@@ -265,7 +265,7 @@ public class ExtractedQuestionInfo
     /// <summary>
     /// 分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 难度等级
@@ -346,7 +346,7 @@ public class ExtractedOperationPointInfo
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序

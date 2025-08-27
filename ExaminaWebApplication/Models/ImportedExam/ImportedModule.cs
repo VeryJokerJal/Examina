@@ -49,7 +49,7 @@ public class ImportedModule
     /// <summary>
     /// 模块分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序

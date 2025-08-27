@@ -342,7 +342,7 @@ public class ModuleDto
     /// </summary>
     [JsonPropertyName("score")]
     [XmlElement("Score")]
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序

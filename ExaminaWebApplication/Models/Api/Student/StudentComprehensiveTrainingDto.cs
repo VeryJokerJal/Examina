@@ -28,7 +28,7 @@ public class StudentComprehensiveTrainingDto
     /// <summary>
     /// 总分
     /// </summary>
-    public int TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 训练时长（分钟）
@@ -124,7 +124,7 @@ public class StudentComprehensiveTrainingSubjectDto
     /// <summary>
     /// 科目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 科目时长（分钟）
@@ -190,7 +190,7 @@ public class StudentComprehensiveTrainingModuleDto
     /// <summary>
     /// 模块分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序
@@ -231,7 +231,7 @@ public class StudentComprehensiveTrainingQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 预计用时（分钟）
@@ -312,7 +312,7 @@ public class StudentComprehensiveTrainingOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序

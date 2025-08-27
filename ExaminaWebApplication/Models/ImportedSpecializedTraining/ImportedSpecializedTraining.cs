@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
@@ -200,7 +200,7 @@ public class ImportedSpecializedTraining
     /// <summary>
     /// 试卷总分
     /// </summary>
-    public int TotalScore { get; set; } = 100;
+    public double TotalScore { get; set; } = 100;
 
     /// <summary>
     /// 考试时长（分钟）

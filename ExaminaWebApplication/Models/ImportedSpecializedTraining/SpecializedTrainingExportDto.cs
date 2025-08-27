@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace ExaminaWebApplication.Models.ImportedSpecializedTraining;
@@ -71,7 +71,7 @@ public class SpecializedTrainingDto
     /// 试卷总分
     /// </summary>
     [JsonPropertyName("totalScore")]
-    public int TotalScore { get; set; } = 100;
+    public double TotalScore { get; set; } = 100;
 
     /// <summary>
     /// 考试时长（分钟）
@@ -143,7 +143,7 @@ public class SpecializedTrainingModuleDto
     /// 模块分值
     /// </summary>
     [JsonPropertyName("score")]
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序

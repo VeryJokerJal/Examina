@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.MockExam;
@@ -55,7 +55,7 @@ public class StudentMockExamService : IStudentMockExamService
             CreateMockExamRequestDto request = CreateDefaultMockExamRequest();
 
             // 验证抽取规则的总分值是否匹配
-            int totalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
+            double totalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
             if (totalScoreFromRules != request.TotalScore)
             {
                 _logger.LogWarning("预设抽取规则的总分值({TotalFromRules})与请求的总分值({RequestTotal})不匹配",
@@ -157,10 +157,10 @@ public class StudentMockExamService : IStudentMockExamService
             }
 
             // 验证抽取规则的总分值是否匹配
-            int totalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
+            double totalScoreFromRules = request.ExtractionRules.Sum(r => r.Count * r.ScorePerQuestion);
             if (totalScoreFromRules != request.TotalScore)
             {
-                _logger.LogWarning("抽取规则的总分值({TotalFromRules})与请求的总分值({RequestTotal})不匹配", 
+                _logger.LogWarning("抽取规则的总分值({TotalFromRules})与请求的总分值({RequestTotal})不匹配",
                     totalScoreFromRules, request.TotalScore);
                 return null;
             }
@@ -832,7 +832,7 @@ public class StudentMockExamService : IStudentMockExamService
                     MockExamId = completion.MockExamId,
                     MockExamName = completion.MockExam?.Name ?? "未知考试",
                     MockExamDescription = completion.MockExam?.Description,
-                    MockExamTotalScore = completion.MockExam?.TotalScore ?? 0,
+                    MockExamTotalScore = (int)Math.Round(completion.MockExam?.TotalScore ?? 0),
                     Status = completion.Status,
                     StartedAt = completion.StartedAt,
                     CompletedAt = completion.CompletedAt,
@@ -1473,7 +1473,7 @@ public class StudentMockExamService : IStudentMockExamService
                 Description = mockExam.Description,
                 ComprehensiveTrainingType = "MockExam",
                 Status = mockExam.Status,
-                TotalScore = mockExam.TotalScore,
+                TotalScore = (decimal)mockExam.TotalScore,
                 DurationMinutes = mockExam.DurationMinutes,
                 StartTime = mockExam.StartedAt,
                 EndTime = mockExam.CompletedAt,
@@ -1526,7 +1526,7 @@ public class StudentMockExamService : IStudentMockExamService
             Description = mockExam.Description,
             ComprehensiveTrainingType = "MockExam",
             Status = mockExam.Status,
-            TotalScore = mockExam.TotalScore,
+            TotalScore = (decimal)mockExam.TotalScore,
             DurationMinutes = mockExam.DurationMinutes,
             StartTime = mockExam.StartedAt,
             EndTime = mockExam.CompletedAt,
@@ -1563,7 +1563,7 @@ public class StudentMockExamService : IStudentMockExamService
                 ModuleId = eq.ModuleId,
                 Title = eq.Title,
                 Content = eq.Content,
-                Score = eq.Score,
+                Score = (decimal)eq.Score,
                 SortOrder = eq.SortOrder,
                 IsRequired = true,
                 IsEnabled = true,
@@ -1755,7 +1755,7 @@ public class StudentMockExamService : IStudentMockExamService
             ModuleId = eq.ModuleId,
             Title = eq.Title,
             Content = eq.Content,
-            Score = eq.Score,
+            Score = (decimal)eq.Score,
             SortOrder = eq.SortOrder,
             IsRequired = true,
             IsEnabled = true,
@@ -1778,7 +1778,7 @@ public class StudentMockExamService : IStudentMockExamService
                 Name = op.Name,
                 Description = op.Description,
                 ModuleType = op.ModuleType,
-                Score = op.Score,
+                Score = (decimal)op.Score,
                 Order = op.Order,
                 IsEnabled = true,
                 CreatedTime = DateTime.UtcNow.ToString(),
@@ -1859,7 +1859,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Name = "PowerPoint演示文稿",
                     Type = "ppt",
                     Description = "PowerPoint演示文稿制作与编辑",
-                    Score = extractedQuestions.Sum(q => q.Score),
+                    Score = (decimal)extractedQuestions.Sum(q => q.Score),
                     Order = 1,
                     IsEnabled = true,
                     ImportedAt = DateTime.UtcNow,
@@ -1893,7 +1893,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Name = originalModule.Name,
                     Type = originalModule.Type,
                     Description = originalModule.Description,
-                    Score = moduleQuestions.Sum(q => q.Score),
+                    Score = (decimal)moduleQuestions.Sum(q => q.Score),
                     Order = originalModule.Order,
                     IsEnabled = originalModule.IsEnabled,
                     ImportedAt = originalModule.ImportedAt,
@@ -1914,7 +1914,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Name = GetModuleDisplayName(GetDefaultModuleType(moduleId)),
                     Type = GetDefaultModuleType(moduleId),
                     Description = $"{GetModuleDisplayName(GetDefaultModuleType(moduleId))}模块考试",
-                    Score = moduleQuestions.Sum(q => q.Score),
+                    Score = (decimal)moduleQuestions.Sum(q => q.Score),
                     Order = moduleId,
                     IsEnabled = true,
                     ImportedAt = DateTime.UtcNow,
@@ -1965,7 +1965,7 @@ public class StudentMockExamService : IStudentMockExamService
                     SubjectType = originalSubject.SubjectType,
                     SubjectName = originalSubject.SubjectName,
                     Description = originalSubject.Description,
-                    Score = subjectQuestions.Sum(q => q.Score),
+                    Score = (decimal)subjectQuestions.Sum(q => q.Score),
                     DurationMinutes = originalSubject.DurationMinutes,
                     SortOrder = originalSubject.SortOrder,
                     IsRequired = originalSubject.IsRequired,

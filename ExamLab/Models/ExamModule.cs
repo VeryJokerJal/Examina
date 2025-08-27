@@ -168,7 +168,7 @@ public class ExamModule : ReactiveObject
     /// <summary>
     /// 模块分值
     /// </summary>
-    [Reactive] public int Score { get; set; }
+    [Reactive] public double Score { get; set; }
 
     /// <summary>
     /// 模块包含的题目

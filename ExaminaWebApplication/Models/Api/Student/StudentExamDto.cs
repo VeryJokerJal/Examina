@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models.Api.Student;
 
@@ -35,7 +35,7 @@ public class StudentExamDto
     /// <summary>
     /// 总分
     /// </summary>
-    public int TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 考试时长（分钟）
@@ -131,7 +131,7 @@ public class StudentSubjectDto
     /// <summary>
     /// 科目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 科目时长（分钟）
@@ -197,7 +197,7 @@ public class StudentModuleDto
     /// <summary>
     /// 模块分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序
@@ -238,7 +238,7 @@ public class StudentQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 预计用时（分钟）
@@ -319,7 +319,7 @@ public class StudentOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序

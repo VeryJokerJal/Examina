@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models.Api.Student;
 
@@ -30,7 +30,7 @@ public class StudentSpecializedTrainingDto
     /// <summary>
     /// 试卷总分
     /// </summary>
-    public int TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 考试时长（分钟）
@@ -121,7 +121,7 @@ public class StudentSpecializedTrainingModuleDto
     /// <summary>
     /// 模块分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序

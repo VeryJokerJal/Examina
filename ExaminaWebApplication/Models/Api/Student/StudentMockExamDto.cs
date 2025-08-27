@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models.Api.Student;
 
@@ -30,7 +30,7 @@ public class StudentMockExamDto
     /// <summary>
     /// 总分值
     /// </summary>
-    public int TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 及格分数
@@ -96,7 +96,7 @@ public class StudentMockExamQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序
@@ -167,7 +167,7 @@ public class StudentMockExamOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序
@@ -251,7 +251,7 @@ public class CreateMockExamRequestDto
     /// </summary>
     [Required]
     [Range(1, 1000)]
-    public int TotalScore { get; set; } = 100;
+    public double TotalScore { get; set; } = 100;
 
     /// <summary>
     /// 及格分数
@@ -307,7 +307,7 @@ public class QuestionExtractionRuleDto
     /// </summary>
     [Required]
     [Range(1, 100)]
-    public int ScorePerQuestion { get; set; }
+    public double ScorePerQuestion { get; set; }
 
     /// <summary>
     /// 是否必须

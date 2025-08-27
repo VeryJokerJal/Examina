@@ -230,9 +230,9 @@ public static class ExportService
         _ = stats.AppendLine("模块统计");
         _ = stats.AppendLine($"模块总数：{exam.Modules.Count}");
 
-        int totalQuestions = exam.Modules.Sum(m => m.Questions.Count);
-        int totalOperationPoints = exam.Modules.SelectMany(m => m.Questions).Sum(q => q.OperationPoints.Count);
-        int totalScore = exam.Modules.Sum(m => m.Score);
+        double totalQuestions = exam.Modules.Sum(m => m.Questions.Count);
+        double totalOperationPoints = exam.Modules.SelectMany(m => m.Questions).Sum(q => q.OperationPoints.Count);
+        double totalScore = exam.Modules.Sum(m => m.Score);
 
         _ = stats.AppendLine($"题目总数：{totalQuestions}");
         _ = stats.AppendLine($"操作点总数：{totalOperationPoints}");
