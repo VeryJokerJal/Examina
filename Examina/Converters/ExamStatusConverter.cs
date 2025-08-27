@@ -1,5 +1,4 @@
-using System;
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia.Data.Converters;
 using Examina.Models.Exam;
 
@@ -12,26 +11,22 @@ public class ExamStatusConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is StudentExamDto exam)
+        if (value is ExamWithPermissionsDto examWithPermissions)
         {
-            if (exam.StartTime.HasValue && exam.EndTime.HasValue)
+            if (examWithPermissions.Exam.StartTime.HasValue && examWithPermissions.Exam.EndTime.HasValue)
             {
                 DateTime now = DateTime.Now;
-                if (now < exam.StartTime.Value)
+                if (now < examWithPermissions.Exam.StartTime.Value)
                 {
                     return "即将开始";
                 }
-                else if (now > exam.EndTime.Value)
-                {
-                    return "联考已结束";
-                }
                 else
                 {
-                    return "联考正在进行中";
+                    return now > examWithPermissions.Exam.EndTime.Value ? "联考已结束" : "联考正在进行中";
                 }
             }
 
-            return exam.Status switch
+            return examWithPermissions.Exam.Status switch
             {
                 "Published" => "联考正在进行中",
                 "InProgress" => "联考正在进行中",
@@ -66,13 +61,9 @@ public class ExamButtonTextConverter : IValueConverter
                 {
                     return "即将开始";
                 }
-                else if (now > exam.EndTime.Value)
-                {
-                    return "查看结果";
-                }
                 else
                 {
-                    return "开始考试";
+                    return now > exam.EndTime.Value ? "查看结果" : "开始考试";
                 }
             }
 

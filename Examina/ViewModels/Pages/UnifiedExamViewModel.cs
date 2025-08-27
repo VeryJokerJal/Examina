@@ -270,7 +270,6 @@ public class UnifiedExamViewModel : ViewModelBase
                 TotalAttempts = 0,
                 RetakeAttempts = 0,
                 PracticeAttempts = 0,
-                HasCompletedFirstAttempt = false,
                 LimitReason = null
             };
         }

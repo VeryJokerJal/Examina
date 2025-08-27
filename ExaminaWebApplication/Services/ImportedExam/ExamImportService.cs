@@ -351,8 +351,10 @@ public class ExamImportService
                 Remarks = questionDto.Remarks,
                 ProgramInput = questionDto.ProgramInput,
                 ExpectedOutput = questionDto.ExpectedOutput,
+                CSharpQuestionType = questionDto.CSharpQuestionType,
                 CodeFilePath = questionDto.CodeFilePath,
                 CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? (decimal)questionDto.CSharpDirectScore.Value : null,
+                CodeBlanks = questionDto.CodeBlanks != null ? JsonSerializer.Serialize(questionDto.CodeBlanks) : null,
                 DocumentFilePath = questionDto.DocumentFilePath,
                 OriginalCreatedAt = questionDto.CreatedAt,
                 OriginalUpdatedAt = questionDto.UpdatedAt,
@@ -676,6 +678,31 @@ public class ExamImportService
         {
             _logger.LogError(ex, "获取考试信息失败，考试ID: {ExamId}, 用户ID: {UserId}", examId, userId);
             return null;
+        }
+    }
+
+    /// <summary>
+    /// 更新导入的考试信息
+    /// </summary>
+    /// <param name="exam">要更新的考试实体</param>
+    /// <returns>更新结果</returns>
+    public async Task<bool> UpdateImportedExamAsync(Models.ImportedExam.ImportedExam exam)
+    {
+        try
+        {
+            _context.ImportedExams.Update(exam);
+            int result = await _context.SaveChangesAsync();
+
+            _logger.LogInformation("成功更新考试信息，考试ID: {ExamId}, 考试名称: {ExamName}",
+                exam.Id, exam.Name);
+
+            return result > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新考试信息失败，考试ID: {ExamId}, 考试名称: {ExamName}",
+                exam.Id, exam.Name);
+            return false;
         }
     }
 }

@@ -1,36 +1,28 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Examina.Models;
+﻿namespace Examina.Models;
 
 /// <summary>
 /// 正式考试完成记录
 /// </summary>
-[Table("ExamCompletions")]
 public class ExamCompletion
 {
     /// <summary>
     /// 主键ID
     /// </summary>
-    [Key]
     public int Id { get; set; }
 
     /// <summary>
     /// 学生用户ID
     /// </summary>
-    [Required]
     public int StudentUserId { get; set; }
 
     /// <summary>
     /// 考试ID
     /// </summary>
-    [Required]
     public int ExamId { get; set; }
 
     /// <summary>
     /// 完成状态
     /// </summary>
-    [Required]
     public ExamCompletionStatus Status { get; set; } = ExamCompletionStatus.NotStarted;
 
     /// <summary>
@@ -66,48 +58,27 @@ public class ExamCompletion
     /// <summary>
     /// 备注信息
     /// </summary>
-    [StringLength(1000)]
     public string? Notes { get; set; }
 
     /// <summary>
     /// BenchSuite评分结果（JSON格式）
     /// </summary>
-    [Column(TypeName = "json")]
     public string? BenchSuiteScoringResult { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [Required]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 更新时间
     /// </summary>
-    [Required]
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// 是否活跃
     /// </summary>
-    [Required]
     public bool IsActive { get; set; } = true;
-
-    #region 导航属性
-
-    /// <summary>
-    /// 关联的学生用户
-    /// </summary>
-    [ForeignKey(nameof(StudentUserId))]
-    public virtual User? Student { get; set; }
-
-    /// <summary>
-    /// 关联的考试
-    /// </summary>
-    [ForeignKey(nameof(ExamId))]
-    public virtual Models.ImportedExam.ImportedExam? Exam { get; set; }
-
-    #endregion
 }
 
 /// <summary>

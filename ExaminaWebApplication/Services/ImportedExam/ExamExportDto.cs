@@ -493,6 +493,12 @@ public class QuestionDto
     public string? ExpectedOutput { get; set; }
 
     /// <summary>
+    /// C#题目类型（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("csharpQuestionType")]
+    public string? CSharpQuestionType { get; set; }
+
+    /// <summary>
     /// C#代码文件路径（仅C#模块使用）
     /// </summary>
     [JsonPropertyName("codeFilePath")]
@@ -505,6 +511,12 @@ public class QuestionDto
     public double? CSharpDirectScore { get; set; }
 
     /// <summary>
+    /// 代码补全填空处集合（仅C#模块代码补全类型使用）
+    /// </summary>
+    [JsonPropertyName("codeBlanks")]
+    public List<CodeBlankDto>? CodeBlanks { get; set; }
+
+    /// <summary>
     /// Office文档文件路径（仅Office模块使用）
     /// </summary>
     [JsonPropertyName("documentFilePath")]
@@ -515,6 +527,60 @@ public class QuestionDto
     /// </summary>
     [JsonPropertyName("operationPoints")]
     public List<OperationPointDto> OperationPoints { get; set; } = [];
+}
+
+/// <summary>
+/// 代码填空处数据传输对象
+/// </summary>
+public class CodeBlankDto
+{
+    /// <summary>
+    /// 填空处ID
+    /// </summary>
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 填空处名称
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 填空处描述
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 填空处分数
+    /// </summary>
+    [JsonPropertyName("score")]
+    public double Score { get; set; } = 1.0;
+
+    /// <summary>
+    /// 填空处顺序
+    /// </summary>
+    [JsonPropertyName("order")]
+    public int Order { get; set; } = 1;
+
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    [JsonPropertyName("isEnabled")]
+    public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 标准答案
+    /// </summary>
+    [JsonPropertyName("standardAnswer")]
+    public string? StandardAnswer { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [JsonPropertyName("createdTime")]
+    public string CreatedTime { get; set; } = string.Empty;
 }
 
 /// <summary>
