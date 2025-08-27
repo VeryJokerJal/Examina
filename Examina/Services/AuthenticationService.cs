@@ -235,12 +235,14 @@ public class AuthenticationService : IAuthenticationService
             else
             {
                 System.Diagnostics.Debug.WriteLine($"AuthenticationService: 短信登录API调用失败 - 状态码: {response.StatusCode}, 响应: {responseContent}");
+                return ParseErrorResponse(responseContent, response.StatusCode);
             }
 
             return new AuthenticationResult
             {
                 IsSuccess = false,
-                ErrorMessage = "短信验证码登录失败"
+                ErrorMessage = "短信验证码登录失败",
+                ErrorType = AuthenticationErrorType.Unknown
             };
         }
         catch (Exception ex)
@@ -1404,5 +1406,162 @@ public class AuthenticationService : IAuthenticationService
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 解析服务器错误响应
+    /// </summary>
+    private AuthenticationResult ParseErrorResponse(string responseContent, System.Net.HttpStatusCode statusCode)
+    {
+        try
+        {
+            // 尝试解析为API响应格式
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, CreateJsonOptions());
+
+            if (apiResponse != null)
+            {
+                return CreateErrorResult(apiResponse.Message, statusCode, apiResponse);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ParseErrorResponse: 解析错误响应失败 - {ex.Message}");
+        }
+
+        // 如果解析失败，返回通用错误
+        return CreateErrorResult("登录失败，请稍后重试", statusCode);
+    }
+
+    /// <summary>
+    /// 创建错误结果
+    /// </summary>
+    private AuthenticationResult CreateErrorResult(string? message, System.Net.HttpStatusCode statusCode, ApiResponse<object>? apiResponse = null)
+    {
+        var result = new AuthenticationResult
+        {
+            IsSuccess = false,
+            ErrorMessage = GetUserFriendlyErrorMessage(message, statusCode),
+            ErrorType = DetermineErrorType(message, statusCode),
+            CanRetry = IsRetryableError(statusCode)
+        };
+
+        // 检查是否是设备数量超限错误
+        if (IsDeviceLimitError(message))
+        {
+            result.ErrorType = AuthenticationErrorType.DeviceLimitExceeded;
+            result.DeviceLimitInfo = ExtractDeviceLimitInfo(apiResponse);
+            result.SuggestedAction = "请在设备管理中解绑不需要的设备，或联系管理员增加设备限制";
+            result.CanRetry = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 获取用户友好的错误消息
+    /// </summary>
+    private string GetUserFriendlyErrorMessage(string? originalMessage, System.Net.HttpStatusCode statusCode)
+    {
+        if (string.IsNullOrEmpty(originalMessage))
+        {
+            return statusCode switch
+            {
+                System.Net.HttpStatusCode.Unauthorized => "用户名或密码错误",
+                System.Net.HttpStatusCode.Forbidden => "账户被锁定或无权限访问",
+                System.Net.HttpStatusCode.TooManyRequests => "请求过于频繁，请稍后重试",
+                System.Net.HttpStatusCode.InternalServerError => "服务器内部错误，请稍后重试",
+                System.Net.HttpStatusCode.BadGateway => "网络连接异常，请检查网络设置",
+                System.Net.HttpStatusCode.ServiceUnavailable => "服务暂时不可用，请稍后重试",
+                System.Net.HttpStatusCode.GatewayTimeout => "网络超时，请检查网络连接",
+                _ => "登录失败，请稍后重试"
+            };
+        }
+
+        // 处理特定的错误消息
+        if (originalMessage.Contains("验证码") && originalMessage.Contains("错误"))
+        {
+            return "短信验证码错误，请重新输入";
+        }
+
+        if (originalMessage.Contains("验证码") && originalMessage.Contains("过期"))
+        {
+            return "短信验证码已过期，请重新获取";
+        }
+
+        if (originalMessage.Contains("设备") && originalMessage.Contains("超出"))
+        {
+            return "绑定设备数量已达上限";
+        }
+
+        if (originalMessage.Contains("账户") && originalMessage.Contains("锁定"))
+        {
+            return "账户已被锁定，请联系管理员";
+        }
+
+        return originalMessage;
+    }
+
+    /// <summary>
+    /// 确定错误类型
+    /// </summary>
+    private AuthenticationErrorType DetermineErrorType(string? message, System.Net.HttpStatusCode statusCode)
+    {
+        if (IsDeviceLimitError(message))
+        {
+            return AuthenticationErrorType.DeviceLimitExceeded;
+        }
+
+        return statusCode switch
+        {
+            System.Net.HttpStatusCode.Unauthorized => AuthenticationErrorType.InvalidCredentials,
+            System.Net.HttpStatusCode.Forbidden => AuthenticationErrorType.AccountLocked,
+            System.Net.HttpStatusCode.InternalServerError => AuthenticationErrorType.ServerError,
+            System.Net.HttpStatusCode.BadGateway => AuthenticationErrorType.NetworkError,
+            System.Net.HttpStatusCode.ServiceUnavailable => AuthenticationErrorType.ServerError,
+            System.Net.HttpStatusCode.GatewayTimeout => AuthenticationErrorType.NetworkError,
+            _ => AuthenticationErrorType.Unknown
+        };
+    }
+
+    /// <summary>
+    /// 检查是否是设备限制错误
+    /// </summary>
+    private bool IsDeviceLimitError(string? message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return false;
+
+        return message.Contains("设备") && (message.Contains("超出") || message.Contains("限制") || message.Contains("上限"));
+    }
+
+    /// <summary>
+    /// 提取设备限制信息
+    /// </summary>
+    private DeviceLimitInfo? ExtractDeviceLimitInfo(ApiResponse<object>? apiResponse)
+    {
+        // 这里可以根据实际的API响应格式来提取设备限制信息
+        // 目前返回默认值，实际使用时需要根据服务器响应格式调整
+        return new DeviceLimitInfo
+        {
+            CurrentDeviceCount = 5, // 从API响应中提取
+            MaxDeviceCount = 3,     // 从API响应中提取
+            DeviceManagementUrl = "https://qiuzhenbd.com/DeviceManagement"
+        };
+    }
+
+    /// <summary>
+    /// 检查是否是可重试的错误
+    /// </summary>
+    private bool IsRetryableError(System.Net.HttpStatusCode statusCode)
+    {
+        return statusCode switch
+        {
+            System.Net.HttpStatusCode.InternalServerError => true,
+            System.Net.HttpStatusCode.BadGateway => true,
+            System.Net.HttpStatusCode.ServiceUnavailable => true,
+            System.Net.HttpStatusCode.GatewayTimeout => true,
+            System.Net.HttpStatusCode.TooManyRequests => true,
+            _ => false
+        };
     }
 }

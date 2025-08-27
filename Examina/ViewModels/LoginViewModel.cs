@@ -105,6 +105,13 @@ public class LoginViewModel : ViewModelBase
     [Reactive] public bool RequireDeviceBinding { get; set; } = false;
     [Reactive] public string DeviceBindingMessage { get; set; } = string.Empty;
 
+    // 增强的错误处理相关
+    [Reactive] public string SuggestedAction { get; set; } = string.Empty;
+    [Reactive] public bool CanRetry { get; set; } = true;
+    [Reactive] public bool ShowDeviceLimitError { get; set; } = false;
+    [Reactive] public DeviceLimitInfo? DeviceLimitInfo { get; set; }
+    [Reactive] public AuthenticationErrorType ErrorType { get; set; } = AuthenticationErrorType.Unknown;
+
     // 便利属性 - 使用Reactive特性确保属性通知
     [Reactive] public bool IsCredentialsMode { get; set; }
     [Reactive] public bool IsSmsMode { get; set; }
@@ -199,7 +206,7 @@ public class LoginViewModel : ViewModelBase
             }
             else
             {
-                ErrorMessage = result.ErrorMessage ?? "登录失败";
+                HandleLoginError(result);
             }
         }
         catch (Exception ex)
@@ -490,6 +497,11 @@ public class LoginViewModel : ViewModelBase
         SuccessMessage = string.Empty;
         RequireDeviceBinding = false;
         DeviceBindingMessage = string.Empty;
+        SuggestedAction = string.Empty;
+        CanRetry = true;
+        ShowDeviceLimitError = false;
+        DeviceLimitInfo = null;
+        ErrorType = AuthenticationErrorType.Unknown;
     }
 
     private void UpdateModeProperties()
@@ -497,6 +509,36 @@ public class LoginViewModel : ViewModelBase
         IsCredentialsMode = LoginMode == LoginMode.Credentials;
         IsSmsMode = LoginMode == LoginMode.SmsCode;
         IsWeChatMode = LoginMode == LoginMode.WeChat;
+    }
+
+    /// <summary>
+    /// 处理登录错误
+    /// </summary>
+    private void HandleLoginError(AuthenticationResult result)
+    {
+        ErrorMessage = result.ErrorMessage ?? "登录失败";
+        ErrorType = result.ErrorType;
+        CanRetry = result.CanRetry;
+        SuggestedAction = result.SuggestedAction ?? string.Empty;
+
+        // 处理设备数量超限错误
+        if (result.ErrorType == AuthenticationErrorType.DeviceLimitExceeded)
+        {
+            ShowDeviceLimitError = true;
+            DeviceLimitInfo = result.DeviceLimitInfo;
+
+            if (result.DeviceLimitInfo != null)
+            {
+                ErrorMessage = $"设备绑定数量已达上限（{result.DeviceLimitInfo.CurrentDeviceCount}/{result.DeviceLimitInfo.MaxDeviceCount}）";
+            }
+        }
+        else
+        {
+            ShowDeviceLimitError = false;
+            DeviceLimitInfo = null;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"LoginViewModel: 登录失败 - 错误类型: {ErrorType}, 错误消息: {ErrorMessage}, 可重试: {CanRetry}");
     }
 
     /// <summary>
@@ -615,6 +657,40 @@ public class LoginViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"LoginViewModel: 导航到主窗口失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 打开设备管理页面
+    /// </summary>
+    public void OpenDeviceManagement()
+    {
+        try
+        {
+            if (DeviceLimitInfo?.DeviceManagementUrl != null)
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = DeviceLimitInfo.DeviceManagementUrl,
+                    UseShellExecute = true
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"LoginViewModel: 打开设备管理页面失败 - {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 重试登录
+    /// </summary>
+    public async Task RetryLoginAsync()
+    {
+        if (CanRetry)
+        {
+            ClearMessages();
+            await ExecuteLoginAsync();
         }
     }
 

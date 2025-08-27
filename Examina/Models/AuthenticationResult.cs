@@ -13,6 +13,98 @@ public class AuthenticationResult
     public UserInfo? User { get; set; }
     public bool RequireDeviceBinding { get; set; }
     public LoginResponse? LoginResponse { get; set; }
+
+    /// <summary>
+    /// 错误类型
+    /// </summary>
+    public AuthenticationErrorType ErrorType { get; set; } = AuthenticationErrorType.Unknown;
+
+    /// <summary>
+    /// 设备限制信息（当ErrorType为DeviceLimitExceeded时使用）
+    /// </summary>
+    public DeviceLimitInfo? DeviceLimitInfo { get; set; }
+
+    /// <summary>
+    /// 是否可以重试
+    /// </summary>
+    public bool CanRetry { get; set; } = true;
+
+    /// <summary>
+    /// 建议的操作
+    /// </summary>
+    public string? SuggestedAction { get; set; }
+}
+
+/// <summary>
+/// 认证错误类型
+/// </summary>
+public enum AuthenticationErrorType
+{
+    /// <summary>
+    /// 未知错误
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// 网络错误
+    /// </summary>
+    NetworkError,
+
+    /// <summary>
+    /// 凭据无效（用户名密码错误）
+    /// </summary>
+    InvalidCredentials,
+
+    /// <summary>
+    /// 短信验证码无效
+    /// </summary>
+    InvalidSmsCode,
+
+    /// <summary>
+    /// 设备数量超出限制
+    /// </summary>
+    DeviceLimitExceeded,
+
+    /// <summary>
+    /// 账户被锁定
+    /// </summary>
+    AccountLocked,
+
+    /// <summary>
+    /// 服务器错误
+    /// </summary>
+    ServerError,
+
+    /// <summary>
+    /// 令牌过期
+    /// </summary>
+    TokenExpired,
+
+    /// <summary>
+    /// 设备未授权
+    /// </summary>
+    DeviceUnauthorized
+}
+
+/// <summary>
+/// 设备限制信息
+/// </summary>
+public class DeviceLimitInfo
+{
+    /// <summary>
+    /// 当前绑定的设备数量
+    /// </summary>
+    public int CurrentDeviceCount { get; set; }
+
+    /// <summary>
+    /// 允许的最大设备数量
+    /// </summary>
+    public int MaxDeviceCount { get; set; }
+
+    /// <summary>
+    /// 设备管理页面URL
+    /// </summary>
+    public string? DeviceManagementUrl { get; set; }
 }
 
 /// <summary>

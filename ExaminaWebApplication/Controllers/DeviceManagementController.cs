@@ -1,3 +1,4 @@
+﻿using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Services;
 using ExaminaWebApplication.Services.Organization;
 using ExaminaWebApplication.ViewModels;
@@ -33,7 +34,7 @@ public class DeviceManagementController : Controller
     {
         try
         {
-            DeviceManagementViewModel viewModel = new DeviceManagementViewModel
+            DeviceManagementViewModel viewModel = new()
             {
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
@@ -51,7 +52,7 @@ public class DeviceManagementController : Controller
             List<Models.DeviceInfo> allDevices = await _deviceService.GetAllDevicesAsync(includeInactive, searchKeyword, userRole);
 
             // 分页
-            var pagedDevices = allDevices
+            List<DeviceInfo> pagedDevices = allDevices
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -77,7 +78,7 @@ public class DeviceManagementController : Controller
     {
         try
         {
-            var devices = await _deviceService.GetUserDevicesAsync(userId);
+            List<DeviceInfo> devices = await _deviceService.GetUserDevicesAsync(userId);
             return Json(new { success = true, data = devices });
         }
         catch (Exception ex)
@@ -191,7 +192,7 @@ public class DeviceManagementController : Controller
             }
 
             _logger.LogInformation("批量解绑设备完成，成功: {SuccessCount}, 失败: {FailCount}", successCount, failCount);
-            
+
             if (failCount == 0)
             {
                 return Json(new { success = true, message = $"成功解绑{successCount}个设备" });
@@ -217,17 +218,17 @@ public class DeviceManagementController : Controller
         try
         {
             // 获取所有用户
-            var users = await _userManagementService.GetUsersAsync(null, false, 1, 10000);
-            
+            List<Models.Organization.Dto.UserDto> users = await _userManagementService.GetUsersAsync(null, false, 1, 10000);
+
             // 统计设备信息
             int totalDevices = 0;
             int activeDevices = 0;
             int trustedDevices = 0;
             int expiredDevices = 0;
-            
-            foreach (var user in users)
+
+            foreach (Models.Organization.Dto.UserDto user in users)
             {
-                var devices = await _deviceService.GetUserDevicesAsync(user.Id);
+                List<DeviceInfo> devices = await _deviceService.GetUserDevicesAsync(user.Id);
                 totalDevices += devices.Count;
                 activeDevices += devices.Count(d => d.IsActive);
                 trustedDevices += devices.Count(d => d.IsTrusted);

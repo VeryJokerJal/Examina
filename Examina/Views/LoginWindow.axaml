@@ -77,9 +77,52 @@
                             <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemFillColorAttentionBrush}" Text="{Binding DeviceBindingMessage}" TextWrapping="Wrap" />
                         </Border>
 
-                        <!--  错误信息  -->
-                        <Border Padding="12,8" Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorCriticalBrush}" BorderThickness="1" CornerRadius="6" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                            <TextBlock HorizontalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemFillColorCriticalBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+                        <!--  设备数量超限错误  -->
+                        <Border Padding="16,12" Background="{DynamicResource SystemFillColorCautionBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorCautionBrush}" BorderThickness="1" CornerRadius="8" IsVisible="{Binding ShowDeviceLimitError}">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                                    <ui:SymbolIcon Symbol="DeviceDesktop" FontSize="20" Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemFillColorCautionBrush}" Text="设备数量超出限制" />
+                                </StackPanel>
+
+                                <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+
+                                <TextBlock HorizontalAlignment="Center" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding SuggestedAction}" TextWrapping="Wrap" />
+
+                                <Button HorizontalAlignment="Center" Padding="16,8" Background="{DynamicResource SystemFillColorCautionBrush}" Foreground="White" CornerRadius="4" Click="OnOpenDeviceManagementClick">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <ui:SymbolIcon Symbol="Settings" FontSize="16" />
+                                        <TextBlock Text="打开设备管理" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  一般错误信息  -->
+                        <Border Padding="12,8" Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorCriticalBrush}" BorderThickness="1" CornerRadius="6">
+                            <Border.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
+                                    <Binding Path="ShowDeviceLimitError" Converter="{x:Static BoolConverters.Not}" />
+                                </MultiBinding>
+                            </Border.IsVisible>
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                                    <ui:SymbolIcon Symbol="ErrorCircle" FontSize="16" Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                                    <TextBlock FontSize="14" FontWeight="Medium" Foreground="{DynamicResource SystemFillColorCriticalBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <!--  建议操作  -->
+                                <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding SuggestedAction}" TextWrapping="Wrap" IsVisible="{Binding SuggestedAction, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                                <!--  重试按钮  -->
+                                <Button HorizontalAlignment="Center" Padding="12,6" Background="{DynamicResource SystemFillColorCriticalBrush}" Foreground="White" CornerRadius="4" IsVisible="{Binding CanRetry}" Click="OnRetryLoginClick">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <ui:SymbolIcon Symbol="ArrowClockwise" FontSize="14" />
+                                        <TextBlock Text="重试" FontSize="12" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </Border>
 
                         <!--  加载指示器  -->
