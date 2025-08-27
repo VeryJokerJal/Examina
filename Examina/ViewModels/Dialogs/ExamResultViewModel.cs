@@ -226,6 +226,32 @@ public class ExamResultViewModel : ViewModelBase
     /// </summary>
     public string PassStatusColor => ScoreDetail != null ? ScoreDetail.IsPassed ? "#4CAF50" : "#F44336" : "#666666";
 
+    /// <summary>
+    /// 是否显示分数信息区域
+    /// </summary>
+    public bool ShowScoreInfo
+    {
+        get
+        {
+            bool result = ExamType == ExamType.FormalExam && IsSubmissionSuccessful;
+            System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: ShowScoreInfo - ExamType: {ExamType}, IsSubmissionSuccessful: {IsSubmissionSuccessful}, Result: {result}");
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// 次要状态消息
+    /// </summary>
+    public string SecondaryStatusMessage
+    {
+        get
+        {
+            string result = ExamType == ExamType.FormalExam && IsSubmissionSuccessful ? "考试已成功提交，成绩将在稍后公布" : "感谢您的参与";
+            System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: SecondaryStatusMessage - ExamType: {ExamType}, IsSubmissionSuccessful: {IsSubmissionSuccessful}, Result: {result}");
+            return result;
+        }
+    }
+
     public ExamResultViewModel()
     {
         // 初始化命令
@@ -251,10 +277,17 @@ public class ExamResultViewModel : ViewModelBase
                 this.RaisePropertyChanged(nameof(SubmissionStatusText));
                 this.RaisePropertyChanged(nameof(SubmissionStatusIcon));
                 this.RaisePropertyChanged(nameof(SubmissionStatusColor));
+                this.RaisePropertyChanged(nameof(ShowScoreInfo));
+                this.RaisePropertyChanged(nameof(SecondaryStatusMessage));
             });
 
         _ = this.WhenAnyValue(x => x.ExamType)
-            .Subscribe(_ => this.RaisePropertyChanged(nameof(ExamTypeText)));
+            .Subscribe(_ =>
+            {
+                this.RaisePropertyChanged(nameof(ExamTypeText));
+                this.RaisePropertyChanged(nameof(ShowScoreInfo));
+                this.RaisePropertyChanged(nameof(SecondaryStatusMessage));
+            });
 
         _ = this.WhenAnyValue(x => x.ErrorMessage)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(HasError)));
@@ -297,7 +330,11 @@ public class ExamResultViewModel : ViewModelBase
         ErrorMessage = errorMessage;
         Notes = notes;
 
-        System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 设置考试结果 - {examName}, 成功: {isSuccessful}, 得分: {score}");
+        // 手动触发计算属性的更新通知
+        this.RaisePropertyChanged(nameof(ShowScoreInfo));
+        this.RaisePropertyChanged(nameof(SecondaryStatusMessage));
+
+        System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 设置考试结果 - {examName}, 类型: {examType}, 成功: {isSuccessful}, 得分: {score}");
     }
 
     /// <summary>
