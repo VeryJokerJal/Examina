@@ -3,7 +3,6 @@
     <UserControl.Resources>
         <converters:DebugMultiValueConverter x:Key="DebugConverter" />
         <converters:TrainingButtonTextConverter x:Key="ButtonTextConverter" />
-        <converters:TrainingButtonEnabledConverter x:Key="ButtonEnabledConverter" />
     </UserControl.Resources>
 
     <Design.DataContext>
@@ -107,10 +106,7 @@
                                                 </MultiBinding>
                                             </Button.Content>
                                             <Button.IsEnabled>
-                                                <MultiBinding Converter="{StaticResource ButtonEnabledConverter}">
-                                                    <Binding Path="$parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).HasFullAccess" />
-                                                    <Binding Path="EnableTrial" />
-                                                </MultiBinding>
+                                                True
                                             </Button.IsEnabled>
                                         </Button>
                                     </StackPanel>

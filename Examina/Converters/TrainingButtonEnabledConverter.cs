@@ -17,12 +17,13 @@ public class TrainingButtonEnabledConverter : IMultiValueConverter
             bool hasFullAccess = values[0] is bool access && access;
             bool enableTrial = values[1] is bool trial && trial;
             
+            // 按钮在所有情况下都应该可用：
             // 有权限用户：始终可以开始训练
-            // 无权限用户：只有在EnableTrial=true时可以试做，EnableTrial=false时可以点击解锁
-            bool isEnabled = hasFullAccess || enableTrial;
-            
+            // 无权限用户：EnableTrial=true时试做，EnableTrial=false时解锁
+            bool isEnabled = true;
+
             System.Diagnostics.Debug.WriteLine($"[TrainingButtonEnabledConverter] HasFullAccess: {hasFullAccess}, EnableTrial: {enableTrial}, 按钮可用: {isEnabled}");
-            
+
             return isEnabled;
         }
         
