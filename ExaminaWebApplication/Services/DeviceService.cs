@@ -127,6 +127,7 @@ public class DeviceService : IDeviceService
         try
         {
             var devices = await _context.UserDevices
+                .Include(d => d.User)
                 .Where(d => d.UserId == userId && d.IsActive)
                 .OrderByDescending(d => d.LastUsedAt)
                 .Select(d => new DeviceInfo
@@ -141,7 +142,18 @@ public class DeviceService : IDeviceService
                     CreatedAt = d.CreatedAt,
                     LastUsedAt = d.LastUsedAt,
                     IsActive = d.IsActive,
-                    IsTrusted = d.IsTrusted
+                    IsTrusted = d.IsTrusted,
+                    UserId = d.UserId,
+                    User = d.User != null ? new DeviceUserInfo
+                    {
+                        Id = d.User.Id,
+                        Username = d.User.Username,
+                        RealName = d.User.RealName,
+                        Email = d.User.Email,
+                        PhoneNumber = d.User.PhoneNumber,
+                        Role = d.User.Role,
+                        IsActive = d.User.IsActive
+                    } : null
                 })
                 .ToListAsync();
 
@@ -150,6 +162,76 @@ public class DeviceService : IDeviceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取用户设备列表失败，用户ID: {UserId}", userId);
+            return [];
+        }
+    }
+
+    public async Task<List<DeviceInfo>> GetAllDevicesAsync(bool includeInactive = false, string? searchKeyword = null, UserRole? userRole = null)
+    {
+        try
+        {
+            var query = _context.UserDevices
+                .Include(d => d.User)
+                .AsQueryable();
+
+            // 筛选活跃状态
+            if (!includeInactive)
+            {
+                query = query.Where(d => d.IsActive);
+            }
+
+            // 用户角色筛选
+            if (userRole.HasValue)
+            {
+                query = query.Where(d => d.User.Role == userRole.Value);
+            }
+
+            // 搜索关键词筛选
+            if (!string.IsNullOrEmpty(searchKeyword))
+            {
+                query = query.Where(d =>
+                    d.DeviceName.Contains(searchKeyword) ||
+                    d.DeviceType.Contains(searchKeyword) ||
+                    (d.OperatingSystem != null && d.OperatingSystem.Contains(searchKeyword)) ||
+                    (d.IpAddress != null && d.IpAddress.Contains(searchKeyword)) ||
+                    d.User.Username.Contains(searchKeyword) ||
+                    (d.User.RealName != null && d.User.RealName.Contains(searchKeyword)));
+            }
+
+            var devices = await query
+                .OrderByDescending(d => d.LastUsedAt)
+                .Select(d => new DeviceInfo
+                {
+                    Id = d.Id,
+                    DeviceName = d.DeviceName,
+                    DeviceType = d.DeviceType,
+                    OperatingSystem = d.OperatingSystem,
+                    BrowserInfo = d.BrowserInfo,
+                    IpAddress = d.IpAddress,
+                    Location = d.Location,
+                    CreatedAt = d.CreatedAt,
+                    LastUsedAt = d.LastUsedAt,
+                    IsActive = d.IsActive,
+                    IsTrusted = d.IsTrusted,
+                    UserId = d.UserId,
+                    User = new DeviceUserInfo
+                    {
+                        Id = d.User.Id,
+                        Username = d.User.Username,
+                        RealName = d.User.RealName,
+                        Email = d.User.Email,
+                        PhoneNumber = d.User.PhoneNumber,
+                        Role = d.User.Role,
+                        IsActive = d.User.IsActive
+                    }
+                })
+                .ToListAsync();
+
+            return devices;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取所有设备列表失败");
             return [];
         }
     }

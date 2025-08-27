@@ -136,4 +136,28 @@ public class DeviceInfo
     public DateTime? LastUsedAt { get; set; }
     public bool IsActive { get; set; }
     public bool IsTrusted { get; set; }
+
+    /// <summary>
+    /// 设备所属用户ID
+    /// </summary>
+    public int UserId { get; set; }
+
+    /// <summary>
+    /// 设备所属用户信息
+    /// </summary>
+    public DeviceUserInfo? User { get; set; }
+}
+
+/// <summary>
+/// 设备关联的用户信息模型
+/// </summary>
+public class DeviceUserInfo
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string? RealName { get; set; }
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+    public UserRole Role { get; set; }
+    public bool IsActive { get; set; }
 }

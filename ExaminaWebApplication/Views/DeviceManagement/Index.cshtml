@@ -49,14 +49,24 @@
     <div class="glass-card mb-4">
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="glass-form-label">搜索设备</label>
                     <div class="glass-input-group">
                         <span class="glass-input-group-text">
                             <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" class="glass-form-control" id="searchKeyword" placeholder="搜索设备名称、类型、IP地址..." value="@Model.SearchKeyword">
+                        <input type="text" class="glass-form-control" id="searchKeyword" placeholder="搜索设备、用户名、真实姓名..." value="@Model.SearchKeyword">
                     </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="glass-form-label">用户角色</label>
+                    <select class="glass-form-control" id="userRoleFilter">
+                        @foreach (var option in Model.UserRoleFilterOptions)
+                        {
+                            string selected = Model.SelectedUserRole == option.Value ? "selected" : "";
+                            <option value="@(option.Value?.ToString() ?? "")" selected="@selected">@option.Text</option>
+                        }
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <label class="glass-form-label">设备类型</label>
@@ -153,6 +163,7 @@
                             <th>
                                 <input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleSelectAll()">
                             </th>
+                            <th>所属用户</th>
                             <th>设备名称</th>
                             <th>设备类型</th>
                             <th>操作系统</th>
@@ -169,6 +180,44 @@
                             <tr>
                                 <td>
                                     <input type="checkbox" class="form-check-input device-checkbox" value="@device.Id" onchange="updateBatchButtons()">
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-2">
+                                            @if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Student)
+                                            {
+                                                <i class="bi bi-person-circle text-primary" title="学生"></i>
+                                            }
+                                            else if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Teacher)
+                                            {
+                                                <i class="bi bi-person-workspace text-success" title="教师"></i>
+                                            }
+                                            else if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Administrator)
+                                            {
+                                                <i class="bi bi-person-gear text-warning" title="管理员"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-person text-muted" title="未知角色"></i>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">
+                                                <a href="/UserManagement?searchKeyword=@device.User?.Username" class="text-decoration-none">
+                                                    @device.User?.Username
+                                                </a>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(device.User?.RealName))
+                                            {
+                                                <small class="text-muted">@device.User.RealName</small>
+                                            }
+                                            <div>
+                                                <small class="badge bg-@(GetRoleBadgeColor(device.User?.Role))">
+                                                    @GetRoleDisplayName(device.User?.Role)
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -251,6 +300,28 @@
             _ => "device-hdd"
         };
     }
+
+    string GetRoleBadgeColor(ExaminaWebApplication.Models.UserRole? role)
+    {
+        return role switch
+        {
+            ExaminaWebApplication.Models.UserRole.Student => "primary",
+            ExaminaWebApplication.Models.UserRole.Teacher => "success",
+            ExaminaWebApplication.Models.UserRole.Administrator => "warning",
+            _ => "secondary"
+        };
+    }
+
+    string GetRoleDisplayName(ExaminaWebApplication.Models.UserRole? role)
+    {
+        return role switch
+        {
+            ExaminaWebApplication.Models.UserRole.Student => "学生",
+            ExaminaWebApplication.Models.UserRole.Teacher => "教师",
+            ExaminaWebApplication.Models.UserRole.Administrator => "管理员",
+            _ => "未知"
+        };
+    }
 }
 
 <!-- 延长有效期模态框 -->
@@ -287,6 +358,7 @@
         // 搜索设备
         function searchDevices() {
             const searchKeyword = document.getElementById('searchKeyword').value;
+            const userRole = document.getElementById('userRoleFilter').value;
             const deviceType = document.getElementById('deviceTypeFilter').value;
             const deviceStatus = document.getElementById('deviceStatusFilter').value;
             const includeInactive = document.getElementById('includeInactive').checked;
@@ -296,6 +368,7 @@
                 includeInactive: includeInactive
             });
 
+            if (userRole) params.append('userRole', userRole);
             if (deviceType) params.append('deviceType', deviceType);
             if (deviceStatus) params.append('deviceStatus', deviceStatus);
 

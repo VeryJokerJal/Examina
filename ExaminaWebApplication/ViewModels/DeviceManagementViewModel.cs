@@ -15,6 +15,7 @@ public class DeviceManagementViewModel : ViewModelBase
     private string _searchKeyword = string.Empty;
     private bool _includeInactive = false;
     private bool _isLoading = false;
+    private UserRole? _selectedUserRole;
     private string? _errorMessage;
     private string? _successMessage;
     private int _currentPage = 1;
@@ -76,6 +77,15 @@ public class DeviceManagementViewModel : ViewModelBase
     {
         get => _includeInactive;
         set => SetProperty(ref _includeInactive, value);
+    }
+
+    /// <summary>
+    /// 选中的用户角色筛选
+    /// </summary>
+    public UserRole? SelectedUserRole
+    {
+        get => _selectedUserRole;
+        set => SetProperty(ref _selectedUserRole, value);
     }
 
     /// <summary>
@@ -179,6 +189,17 @@ public class DeviceManagementViewModel : ViewModelBase
         (null, "全部状态"),
         (true, "活跃"),
         (false, "非活跃")
+    ];
+
+    /// <summary>
+    /// 用户角色筛选选项
+    /// </summary>
+    public List<(UserRole? Value, string Text)> UserRoleFilterOptions { get; } =
+    [
+        (null, "全部用户"),
+        (UserRole.Student, "学生"),
+        (UserRole.Teacher, "教师"),
+        (UserRole.Administrator, "管理员")
     ];
 
     /// <summary>

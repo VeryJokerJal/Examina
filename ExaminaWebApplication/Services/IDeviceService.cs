@@ -31,6 +31,15 @@ public interface IDeviceService
     /// <param name="userId">用户ID</param>
     /// <returns>设备列表</returns>
     Task<List<DeviceInfo>> GetUserDevicesAsync(int userId);
+
+    /// <summary>
+    /// 获取所有设备（用于管理员查看）
+    /// </summary>
+    /// <param name="includeInactive">是否包含非活跃设备</param>
+    /// <param name="searchKeyword">搜索关键词</param>
+    /// <param name="userRole">用户角色筛选</param>
+    /// <returns>设备列表</returns>
+    Task<List<DeviceInfo>> GetAllDevicesAsync(bool includeInactive = false, string? searchKeyword = null, UserRole? userRole = null);
     
     /// <summary>
     /// 解绑设备

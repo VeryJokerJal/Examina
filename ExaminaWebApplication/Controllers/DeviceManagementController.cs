@@ -29,7 +29,7 @@ public class DeviceManagementController : Controller
     /// <summary>
     /// 设备管理首页
     /// </summary>
-    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 50, string? searchKeyword = null, bool includeInactive = false)
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 50, string? searchKeyword = null, bool includeInactive = false, UserRole? userRole = null)
     {
         try
         {
@@ -38,41 +38,20 @@ public class DeviceManagementController : Controller
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
                 SearchKeyword = searchKeyword ?? string.Empty,
-                IncludeInactive = includeInactive
+                IncludeInactive = includeInactive,
+                SelectedUserRole = userRole
             };
 
             // 获取用户列表（用于筛选）
-            List<Models.Organization.Dto.UserDto> users = 
+            List<Models.Organization.Dto.UserDto> users =
                 await _userManagementService.GetUsersAsync(null, false, 1, 1000);
             viewModel.Users = users;
 
-            // 获取所有设备信息
-            List<Models.DeviceInfo> allDevices = [];
-            foreach (var user in users)
-            {
-                var userDevices = await _deviceService.GetUserDevicesAsync(user.Id);
-                allDevices.AddRange(userDevices);
-            }
-
-            // 应用筛选条件
-            var filteredDevices = allDevices.AsQueryable();
-
-            if (!includeInactive)
-            {
-                filteredDevices = filteredDevices.Where(d => d.IsActive);
-            }
-
-            if (!string.IsNullOrEmpty(searchKeyword))
-            {
-                filteredDevices = filteredDevices.Where(d =>
-                    d.DeviceName.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    d.DeviceType.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    (d.OperatingSystem != null && d.OperatingSystem.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase)) ||
-                    (d.IpAddress != null && d.IpAddress.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase)));
-            }
+            // 使用新的GetAllDevicesAsync方法获取设备信息
+            List<Models.DeviceInfo> allDevices = await _deviceService.GetAllDevicesAsync(includeInactive, searchKeyword, userRole);
 
             // 分页
-            var pagedDevices = filteredDevices
+            var pagedDevices = allDevices
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
