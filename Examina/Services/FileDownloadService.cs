@@ -344,6 +344,13 @@ public class FileDownloadService : IFileDownloadService
         return _supportedCompressionFormats.Contains(extension);
     }
 
+    /// <summary>
+    /// 解压文件，支持智能目录扁平化
+    /// </summary>
+    /// <param name="fileInfo">文件下载信息</param>
+    /// <param name="progress">进度报告</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>解压是否成功</returns>
     public async Task<bool> ExtractFileAsync(FileDownloadInfo fileInfo, IProgress<FileDownloadInfo>? progress = null, CancellationToken cancellationToken = default)
     {
         try
@@ -356,29 +363,37 @@ public class FileDownloadService : IFileDownloadService
             _ = Directory.CreateDirectory(fileInfo.ExtractPath);
 
             string extension = Path.GetExtension(fileInfo.LocalFilePath).ToLowerInvariant();
+            _logger.LogInformation("开始解压文件: {FileName}, 格式: {Extension}", fileInfo.FileName, extension);
 
-            if (extension == ".zip")
+            bool extractResult = extension switch
             {
-                await ExtractZipFileAsync(fileInfo.LocalFilePath, fileInfo.ExtractPath, cancellationToken);
+                ".zip" => await ExtractZipFileWithFlatteningAsync(fileInfo.LocalFilePath, fileInfo.ExtractPath, fileInfo.FileName, cancellationToken),
+                ".7z" => await ExtractSevenZipFileWithFlatteningAsync(fileInfo.LocalFilePath, fileInfo.ExtractPath, fileInfo.FileName, cancellationToken),
+                _ => await ExtractWithSharpCompressAndFlatteningAsync(fileInfo.LocalFilePath, fileInfo.ExtractPath, fileInfo.FileName, cancellationToken)
+            };
+
+            if (extractResult)
+            {
+                fileInfo.Status = FileDownloadStatus.Completed;
+                fileInfo.StatusMessage = "解压完成";
+                _logger.LogInformation("文件解压完成: {FileName}", fileInfo.FileName);
             }
             else
             {
-                // 使用SharpCompress处理其他格式
-                await ExtractWithSharpCompressAsync(fileInfo.LocalFilePath, fileInfo.ExtractPath, cancellationToken);
+                fileInfo.Status = FileDownloadStatus.Failed;
+                fileInfo.StatusMessage = "解压失败";
+                _logger.LogError("文件解压失败: {FileName}", fileInfo.FileName);
             }
 
-            fileInfo.Status = FileDownloadStatus.Completed;
-            fileInfo.StatusMessage = "解压完成";
             progress?.Report(fileInfo);
-
-            _logger.LogInformation("文件解压完成: {FileName}", fileInfo.FileName);
-            return true;
+            return extractResult;
         }
         catch (OperationCanceledException)
         {
             fileInfo.Status = FileDownloadStatus.Cancelled;
             fileInfo.StatusMessage = "解压已取消";
             progress?.Report(fileInfo);
+            _logger.LogInformation("文件解压已取消: {FileName}", fileInfo.FileName);
             return false;
         }
         catch (Exception ex)
@@ -388,6 +403,209 @@ public class FileDownloadService : IFileDownloadService
             fileInfo.ErrorMessage = ex.Message;
             fileInfo.StatusMessage = "解压失败";
             progress?.Report(fileInfo);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查是否需要目录扁平化
+    /// </summary>
+    /// <param name="archiveEntries">压缩文件条目列表</param>
+    /// <param name="archiveFileName">压缩文件名（不含扩展名）</param>
+    /// <returns>需要跳过的根目录名称，如果不需要扁平化则返回null</returns>
+    private static string? GetRootDirectoryToSkip(IEnumerable<string> archiveEntries, string archiveFileName)
+    {
+        List<string> entries = archiveEntries.ToList();
+        if (entries.Count == 0)
+        {
+            return null;
+        }
+
+        // 获取所有根级别的条目（不包含路径分隔符的条目，或第一个路径分隔符前的部分）
+        HashSet<string> rootEntries = new();
+        foreach (string entry in entries)
+        {
+            if (string.IsNullOrWhiteSpace(entry))
+            {
+                continue;
+            }
+
+            string normalizedEntry = entry.Replace('\\', '/').Trim('/');
+            if (string.IsNullOrEmpty(normalizedEntry))
+            {
+                continue;
+            }
+
+            int firstSlashIndex = normalizedEntry.IndexOf('/');
+            string rootEntry = firstSlashIndex == -1 ? normalizedEntry : normalizedEntry[..firstSlashIndex];
+            rootEntries.Add(rootEntry);
+        }
+
+        // 如果只有一个根目录，检查是否需要扁平化
+        if (rootEntries.Count == 1)
+        {
+            string singleRootDir = rootEntries.First();
+
+            // 检查根目录名是否与压缩文件名相似
+            if (IsSimilarToArchiveName(singleRootDir, archiveFileName))
+            {
+                System.Diagnostics.Debug.WriteLine($"FileDownloadService: 检测到需要扁平化的根目录: {singleRootDir}");
+                return singleRootDir;
+            }
+        }
+
+        System.Diagnostics.Debug.WriteLine($"FileDownloadService: 不需要目录扁平化，根条目数: {rootEntries.Count}");
+        return null;
+    }
+
+    /// <summary>
+    /// 检查目录名是否与压缩文件名相似
+    /// </summary>
+    /// <param name="directoryName">目录名</param>
+    /// <param name="archiveFileName">压缩文件名（不含扩展名）</param>
+    /// <returns>是否相似</returns>
+    private static bool IsSimilarToArchiveName(string directoryName, string archiveFileName)
+    {
+        if (string.IsNullOrWhiteSpace(directoryName) || string.IsNullOrWhiteSpace(archiveFileName))
+        {
+            return false;
+        }
+
+        string normalizedDirName = directoryName.Trim().ToLowerInvariant();
+        string normalizedArchiveName = archiveFileName.Trim().ToLowerInvariant();
+
+        // 完全匹配
+        if (normalizedDirName == normalizedArchiveName)
+        {
+            return true;
+        }
+
+        // 检查是否包含关系（目录名包含压缩文件名或反之）
+        if (normalizedDirName.Contains(normalizedArchiveName) || normalizedArchiveName.Contains(normalizedDirName))
+        {
+            return true;
+        }
+
+        // 简单的相似度检查：计算编辑距离
+        int editDistance = CalculateLevenshteinDistance(normalizedDirName, normalizedArchiveName);
+        int maxLength = Math.Max(normalizedDirName.Length, normalizedArchiveName.Length);
+
+        // 如果编辑距离小于最大长度的30%，认为相似
+        double similarity = 1.0 - (double)editDistance / maxLength;
+        return similarity >= 0.7;
+    }
+
+    /// <summary>
+    /// 计算两个字符串的编辑距离（Levenshtein距离）
+    /// </summary>
+    /// <param name="source">源字符串</param>
+    /// <param name="target">目标字符串</param>
+    /// <returns>编辑距离</returns>
+    private static int CalculateLevenshteinDistance(string source, string target)
+    {
+        if (string.IsNullOrEmpty(source))
+        {
+            return string.IsNullOrEmpty(target) ? 0 : target.Length;
+        }
+
+        if (string.IsNullOrEmpty(target))
+        {
+            return source.Length;
+        }
+
+        int[,] distance = new int[source.Length + 1, target.Length + 1];
+
+        for (int i = 0; i <= source.Length; i++)
+        {
+            distance[i, 0] = i;
+        }
+
+        for (int j = 0; j <= target.Length; j++)
+        {
+            distance[0, j] = j;
+        }
+
+        for (int i = 1; i <= source.Length; i++)
+        {
+            for (int j = 1; j <= target.Length; j++)
+            {
+                int cost = source[i - 1] == target[j - 1] ? 0 : 1;
+                distance[i, j] = Math.Min(
+                    Math.Min(distance[i - 1, j] + 1, distance[i, j - 1] + 1),
+                    distance[i - 1, j - 1] + cost);
+            }
+        }
+
+        return distance[source.Length, target.Length];
+    }
+
+    /// <summary>
+    /// 解压ZIP文件（支持智能目录扁平化）
+    /// </summary>
+    /// <param name="zipPath">ZIP文件路径</param>
+    /// <param name="extractPath">解压目标路径</param>
+    /// <param name="archiveFileName">压缩文件名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>解压是否成功</returns>
+    private async Task<bool> ExtractZipFileWithFlatteningAsync(string zipPath, string extractPath, string archiveFileName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                using ZipArchive archive = ZipFile.OpenRead(zipPath);
+
+                // 获取压缩文件名（不含扩展名）
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
+
+                // 检查是否需要目录扁平化
+                List<string> entryPaths = archive.Entries.Where(e => !string.IsNullOrEmpty(e.Name)).Select(e => e.FullName).Where(path => !string.IsNullOrEmpty(path)).ToList();
+                string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
+
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (string.IsNullOrEmpty(entry.Name))
+                    {
+                        continue; // 跳过目录条目
+                    }
+
+                    string relativePath = entry.FullName.Replace('\\', '/');
+
+                    // 如果需要扁平化，跳过根目录
+                    if (!string.IsNullOrEmpty(rootDirToSkip))
+                    {
+                        string rootDirPrefix = rootDirToSkip + "/";
+                        if (relativePath.StartsWith(rootDirPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            relativePath = relativePath[rootDirPrefix.Length..];
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(relativePath))
+                    {
+                        continue;
+                    }
+
+                    string destinationPath = Path.Combine(extractPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                    string? destinationDir = Path.GetDirectoryName(destinationPath);
+
+                    if (!string.IsNullOrEmpty(destinationDir))
+                    {
+                        _ = Directory.CreateDirectory(destinationDir);
+                    }
+
+                    entry.ExtractToFile(destinationPath, true);
+                    System.Diagnostics.Debug.WriteLine($"FileDownloadService: 解压文件 {relativePath} -> {destinationPath}");
+                }
+            }, cancellationToken);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ZIP文件解压失败: {ZipPath}", zipPath);
             return false;
         }
     }
@@ -417,6 +635,154 @@ public class FileDownloadService : IFileDownloadService
                 entry.ExtractToFile(destinationPath, true);
             }
         }, cancellationToken);
+    }
+
+    /// <summary>
+    /// 解压7z文件（支持智能目录扁平化）
+    /// </summary>
+    /// <param name="sevenZipPath">7z文件路径</param>
+    /// <param name="extractPath">解压目标路径</param>
+    /// <param name="archiveFileName">压缩文件名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>解压是否成功</returns>
+    private async Task<bool> ExtractSevenZipFileWithFlatteningAsync(string sevenZipPath, string extractPath, string archiveFileName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                using IArchive archive = ArchiveFactory.Open(sevenZipPath);
+
+                // 获取压缩文件名（不含扩展名）
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
+
+                // 检查是否需要目录扁平化
+                List<string> entryPaths = archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!).ToList();
+                string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
+
+                foreach (IArchiveEntry entry in archive.Entries.Where(entry => !entry.IsDirectory))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (string.IsNullOrEmpty(entry.Key))
+                    {
+                        continue;
+                    }
+
+                    string relativePath = entry.Key.Replace('\\', '/');
+
+                    // 如果需要扁平化，跳过根目录
+                    if (!string.IsNullOrEmpty(rootDirToSkip))
+                    {
+                        string rootDirPrefix = rootDirToSkip + "/";
+                        if (relativePath.StartsWith(rootDirPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            relativePath = relativePath[rootDirPrefix.Length..];
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(relativePath))
+                    {
+                        continue;
+                    }
+
+                    string destinationPath = Path.Combine(extractPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                    string? destinationDir = Path.GetDirectoryName(destinationPath);
+
+                    if (!string.IsNullOrEmpty(destinationDir))
+                    {
+                        _ = Directory.CreateDirectory(destinationDir);
+                    }
+
+                    using Stream entryStream = entry.OpenEntryStream();
+                    using FileStream fileStream = File.Create(destinationPath);
+                    entryStream.CopyTo(fileStream);
+
+                    System.Diagnostics.Debug.WriteLine($"FileDownloadService: 解压7z文件 {relativePath} -> {destinationPath}");
+                }
+            }, cancellationToken);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "7z文件解压失败: {SevenZipPath}", sevenZipPath);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 使用SharpCompress解压其他格式文件（支持智能目录扁平化）
+    /// </summary>
+    /// <param name="archivePath">压缩文件路径</param>
+    /// <param name="extractPath">解压目标路径</param>
+    /// <param name="archiveFileName">压缩文件名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>解压是否成功</returns>
+    private async Task<bool> ExtractWithSharpCompressAndFlatteningAsync(string archivePath, string extractPath, string archiveFileName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                using IArchive archive = ArchiveFactory.Open(archivePath);
+
+                // 获取压缩文件名（不含扩展名）
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
+
+                // 检查是否需要目录扁平化
+                List<string> entryPaths = archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!).ToList();
+                string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
+
+                foreach (IArchiveEntry entry in archive.Entries.Where(entry => !entry.IsDirectory))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (string.IsNullOrEmpty(entry.Key))
+                    {
+                        continue;
+                    }
+
+                    string relativePath = entry.Key.Replace('\\', '/');
+
+                    // 如果需要扁平化，跳过根目录
+                    if (!string.IsNullOrEmpty(rootDirToSkip))
+                    {
+                        string rootDirPrefix = rootDirToSkip + "/";
+                        if (relativePath.StartsWith(rootDirPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            relativePath = relativePath[rootDirPrefix.Length..];
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(relativePath))
+                    {
+                        continue;
+                    }
+
+                    string destinationPath = Path.Combine(extractPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                    string? destinationDir = Path.GetDirectoryName(destinationPath);
+
+                    if (!string.IsNullOrEmpty(destinationDir))
+                    {
+                        _ = Directory.CreateDirectory(destinationDir);
+                    }
+
+                    using Stream entryStream = entry.OpenEntryStream();
+                    using FileStream fileStream = File.Create(destinationPath);
+                    entryStream.CopyTo(fileStream);
+
+                    System.Diagnostics.Debug.WriteLine($"FileDownloadService: 解压文件 {relativePath} -> {destinationPath}");
+                }
+            }, cancellationToken);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "压缩文件解压失败: {ArchivePath}", archivePath);
+            return false;
+        }
     }
 
     private async Task ExtractWithSharpCompressAsync(string archivePath, string extractPath, CancellationToken cancellationToken)
