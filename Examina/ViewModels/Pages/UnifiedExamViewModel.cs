@@ -991,29 +991,41 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 处理考试自动提交事件
     /// </summary>
-    private void OnExamAutoSubmitted(ExamType examType, int examId)
+    private async void OnExamAutoSubmitted(ExamType examType, int examId)
     {
         System.Diagnostics.Debug.WriteLine($"[OnExamAutoSubmitted] 考试自动提交: {examType}, ID: {examId}");
 
-        // TODO: 实现考试自动提交逻辑
-        // 这里可以调用相应的API提交考试结果
-
-        // 显示主窗口
-        ShowMainWindow();
+        try
+        {
+            // 执行考试提交并显示结果窗口
+            await HandleExamSubmissionAsync(examType, examId, true);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[OnExamAutoSubmitted] 处理考试自动提交异常: {ex.Message}");
+            // 如果处理失败，至少显示主窗口
+            ShowMainWindow();
+        }
     }
 
     /// <summary>
     /// 处理考试手动提交事件
     /// </summary>
-    private void OnExamManualSubmitted(ExamType examType, int examId)
+    private async void OnExamManualSubmitted(ExamType examType, int examId)
     {
         System.Diagnostics.Debug.WriteLine($"[OnExamManualSubmitted] 考试手动提交: {examType}, ID: {examId}");
 
-        // TODO: 实现考试手动提交逻辑
-        // 这里可以调用相应的API提交考试结果
-
-        // 显示主窗口
-        ShowMainWindow();
+        try
+        {
+            // 执行考试提交并显示结果窗口
+            await HandleExamSubmissionAsync(examType, examId, false);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[OnExamManualSubmitted] 处理考试手动提交异常: {ex.Message}");
+            // 如果处理失败，至少显示主窗口
+            ShowMainWindow();
+        }
     }
 
     /// <summary>
@@ -1076,6 +1088,126 @@ public class UnifiedExamViewModel : ViewModelBase
         if (_authenticationService != null)
         {
             _authenticationService.UserInfoUpdated -= OnUserInfoUpdated;
+        }
+    }
+
+    /// <summary>
+    /// 处理考试提交并显示结果窗口
+    /// </summary>
+    private async Task HandleExamSubmissionAsync(ExamType examType, int examId, bool isAutoSubmit)
+    {
+        System.Diagnostics.Debug.WriteLine($"[HandleExamSubmissionAsync] 开始处理考试提交: {examType}, ID: {examId}, 自动提交: {isAutoSubmit}");
+
+        bool submitResult = false;
+        string errorMessage = "";
+        int? actualDurationSeconds = null;
+
+        try
+        {
+            // 根据考试类型执行相应的提交逻辑
+            switch (examType)
+            {
+                case ExamType.FormalExam:
+                    // 使用EnhancedExamToolbarService进行正式考试提交
+                    if (_enhancedExamToolbarService != null)
+                    {
+                        var scoringResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
+                        submitResult = scoringResult != null;
+                        if (scoringResult != null)
+                        {
+                            actualDurationSeconds = scoringResult.DurationSeconds;
+                        }
+                    }
+                    break;
+
+                case ExamType.MockExam:
+                    // 使用EnhancedExamToolbarService进行模拟考试提交
+                    if (_enhancedExamToolbarService != null)
+                    {
+                        submitResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
+                    }
+                    break;
+
+                case ExamType.ComprehensiveTraining:
+                    // 使用EnhancedExamToolbarService进行综合训练提交
+                    if (_enhancedExamToolbarService != null)
+                    {
+                        submitResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingAsync(examId);
+                    }
+                    break;
+
+                default:
+                    System.Diagnostics.Debug.WriteLine($"[HandleExamSubmissionAsync] 不支持的考试类型: {examType}");
+                    errorMessage = $"不支持的考试类型: {examType}";
+                    break;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[HandleExamSubmissionAsync] 考试提交结果: {submitResult}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[HandleExamSubmissionAsync] 考试提交异常: {ex.Message}");
+            errorMessage = $"考试提交异常: {ex.Message}";
+            submitResult = false;
+        }
+
+        // 显示考试结果窗口
+        await ShowExamResultAsync(examId, examType, submitResult, actualDurationSeconds, errorMessage);
+    }
+
+    /// <summary>
+    /// 显示考试结果窗口
+    /// </summary>
+    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, string errorMessage = "")
+    {
+        try
+        {
+            // 获取考试名称
+            string examName = "考试";
+            try
+            {
+                StudentExamDto? exam = await _studentExamService.GetExamDetailsAsync(examId);
+                if (exam != null)
+                {
+                    examName = exam.Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ShowExamResultAsync] 获取考试名称失败: {ex.Message}");
+            }
+
+            // 转换用时为分钟
+            int? durationMinutes = actualDurationSeconds.HasValue ? (actualDurationSeconds.Value / 60) : null;
+
+            System.Diagnostics.Debug.WriteLine($"[ShowExamResultAsync] 准备显示全屏考试结果窗口 - {examName}");
+
+            // 使用全屏考试结果窗口
+            await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+                examName,
+                examType,
+                isSuccessful,
+                null, // startTime
+                null, // endTime
+                durationMinutes,
+                null, // score - 暂时不显示分数
+                null, // totalScore
+                isSuccessful ? "" : errorMessage,
+                isSuccessful ? "考试提交成功" : "考试提交失败",
+                true, // showContinue
+                false // showClose - 只显示确认按钮
+            );
+
+            System.Diagnostics.Debug.WriteLine($"[ShowExamResultAsync] 全屏考试结果窗口已显示并关闭 - {examName}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ShowExamResultAsync] 显示考试结果窗口异常: {ex.Message}");
+        }
+        finally
+        {
+            // 窗口关闭后显示主窗口
+            ShowMainWindow();
         }
     }
 

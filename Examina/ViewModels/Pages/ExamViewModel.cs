@@ -659,6 +659,14 @@ public class ExamViewModel : ViewModelBase
                     ExamStatusMessage = "考试已完成 - 自动提交";
 
                     System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试自动提交完成");
+
+                    // 显示考试结果窗口
+                    await ShowExamResultAsync(CurrentExamAttempt, true);
+                }
+                else
+                {
+                    // 即使提交失败也显示结果窗口
+                    await ShowExamResultAsync(CurrentExamAttempt, false);
                 }
             }
         }
@@ -698,6 +706,14 @@ public class ExamViewModel : ViewModelBase
                     ExamStatusMessage = "考试已完成 - 手动提交";
 
                     System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试手动提交完成");
+
+                    // 显示考试结果窗口
+                    await ShowExamResultAsync(CurrentExamAttempt, true);
+                }
+                else
+                {
+                    // 即使提交失败也显示结果窗口
+                    await ShowExamResultAsync(CurrentExamAttempt, false);
                 }
             }
         }
@@ -759,6 +775,89 @@ public class ExamViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"ExamViewModel: 同步工具栏状态异常: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 显示考试结果窗口
+    /// </summary>
+    private async Task ShowExamResultAsync(ExamAttemptDto examAttempt, bool isSuccessful)
+    {
+        try
+        {
+            // 获取考试信息
+            string examName = "考试";
+            ExamType examType = ExamType.FormalExam;
+            int? durationMinutes = null;
+
+            if (_studentExamService != null)
+            {
+                try
+                {
+                    StudentExamDto? exam = await _studentExamService.GetExamDetailsAsync(examAttempt.ExamId);
+                    if (exam != null)
+                    {
+                        examName = exam.Name;
+                        // 根据考试类型设置ExamType
+                        examType = exam.ExamType switch
+                        {
+                            "MockExam" => ExamType.MockExam,
+                            "ComprehensiveTraining" => ExamType.ComprehensiveTraining,
+                            "SpecializedTraining" => ExamType.SpecializedTraining,
+                            _ => ExamType.FormalExam
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamViewModel: 获取考试信息失败: {ex.Message}");
+                }
+            }
+
+            // 计算考试用时
+            if (examAttempt.StartedAt.HasValue && examAttempt.CompletedAt.HasValue)
+            {
+                TimeSpan duration = examAttempt.CompletedAt.Value - examAttempt.StartedAt.Value;
+                durationMinutes = (int)duration.TotalMinutes;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
+
+            // 显示全屏考试结果窗口
+            await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+                examName,
+                examType,
+                isSuccessful,
+                examAttempt.StartedAt,
+                examAttempt.CompletedAt,
+                durationMinutes,
+                examAttempt.Score,
+                examAttempt.MaxScore,
+                isSuccessful ? "" : "考试提交失败",
+                GetExamModeDisplayText(examAttempt.AttemptType),
+                true, // showContinue
+                false // showClose - 只显示确认按钮
+            );
+
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 全屏考试结果窗口已显示并关闭 - {examName}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 显示考试结果窗口异常: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 获取考试模式显示文本
+    /// </summary>
+    private string GetExamModeDisplayText(ExamAttemptType attemptType)
+    {
+        return attemptType switch
+        {
+            ExamAttemptType.FirstAttempt => "首次考试完成",
+            ExamAttemptType.Retake => "重考完成",
+            ExamAttemptType.Practice => "练习模式完成",
+            _ => "考试完成"
+        };
     }
 
     #endregion
