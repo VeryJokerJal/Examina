@@ -586,18 +586,27 @@ public class UnifiedExamViewModel : ViewModelBase
     /// </summary>
     private void UpdateUserPermissions()
     {
-        if (_authenticationService?.CurrentUser != null)
+        try
         {
-            HasFullAccess = _authenticationService.CurrentUser.HasFullAccess;
-            UserPermissionStatus = HasFullAccess ? "拥有完整功能权限" : "权限受限，需要绑定学校";
-        }
-        else
-        {
-            HasFullAccess = false;
-            UserPermissionStatus = "用户未登录";
-        }
+            if (_authenticationService?.CurrentUser != null)
+            {
+                HasFullAccess = _authenticationService.CurrentUser.HasFullAccess;
+                UserPermissionStatus = HasFullAccess ? "拥有完整功能权限" : "权限受限，需要绑定学校";
+            }
+            else
+            {
+                HasFullAccess = false;
+                UserPermissionStatus = "用户未登录";
+            }
 
-        System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}, Status: {UserPermissionStatus}");
+            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}, Status: {UserPermissionStatus}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 更新用户权限状态时发生错误: {ex.Message}");
+            HasFullAccess = false;
+            UserPermissionStatus = "权限状态未知";
+        }
     }
 
     /// <summary>

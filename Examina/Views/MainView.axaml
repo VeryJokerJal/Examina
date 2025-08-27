@@ -34,7 +34,13 @@
 
                 <!--  用户信息区域  -->
                 <StackPanel Grid.Column="1" Margin="0,0,120,0" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="0,0,12,0" VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding CurrentUser.Username, StringFormat='欢迎，{0}'}" />
+                    <TextBlock Margin="0,0,12,0" VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="欢迎，{0}">
+                                <Binding Path="CurrentUser.Username" FallbackValue="用户" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
                     <Button Padding="12,6" Classes="accent" Command="{Binding LogoutCommand}" Content="退出登录" FontFamily="Microsoft YaHei" />
                 </StackPanel>
             </Grid>
@@ -45,7 +51,7 @@
 
             <!--  PaneFooter - 解锁广告区域  -->
             <ui:NavigationView.PaneFooter>
-                <Grid IsVisible="{Binding CurrentUser.HasFullAccess, Converter={x:Static BoolConverters.Not}}">
+                <Grid IsVisible="{Binding CurrentUser.HasFullAccess, Converter={x:Static BoolConverters.Not}, FallbackValue=True}">
                     <!--  展开状态的广告区域  -->
                     <Border x:Name="ExpandedAdBorder" Margin="12,8,12,16" Padding="16" BoxShadow="0 2 8 0 #30000000" CornerRadius="12" IsVisible="{Binding IsNavigationPaneOpen}">
                         <Border.Background>

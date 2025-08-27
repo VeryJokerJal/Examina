@@ -546,33 +546,68 @@ public class LoginViewModel : ViewModelBase
     /// </summary>
     private void NavigateToMainWindow()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        try
         {
-            MainWindow mainWindow = new();
-
-            // 为MainView设置MainViewModel
-            if (Avalonia.Application.Current is App app)
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                MainViewModel? mainViewModel = app.GetService<MainViewModel>();
-                if (mainViewModel != null)
+                // 使用WindowManagerService进行统一的窗口管理
+                if (Avalonia.Application.Current is App app)
                 {
-                    // 找到MainView并设置DataContext
-                    if (mainWindow.Content is MainView mainView)
+                    IWindowManagerService? windowManager = app.GetService<IWindowManagerService>();
+                    if (windowManager != null)
                     {
-                        mainView.DataContext = mainViewModel;
+                        System.Diagnostics.Debug.WriteLine("LoginViewModel: 使用WindowManagerService导航到主窗口");
+                        windowManager.NavigateToMain();
+                        return;
                     }
                 }
+
+                // 如果WindowManagerService不可用，回退到直接创建
+                System.Diagnostics.Debug.WriteLine("LoginViewModel: WindowManagerService不可用，直接创建主窗口");
+                MainWindow mainWindow = new();
+
+                // 为MainView设置MainViewModel
+                if (Avalonia.Application.Current is App app2)
+                {
+                    MainViewModel? mainViewModel = app2.GetService<MainViewModel>();
+                    if (mainViewModel != null)
+                    {
+                        // 找到MainView并设置DataContext
+                        if (mainWindow.Content is MainView mainView)
+                        {
+                            mainView.DataContext = mainViewModel;
+                        }
+
+                        // 异步初始化MainViewModel
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await mainViewModel.InitializeAsync();
+                                System.Diagnostics.Debug.WriteLine("LoginViewModel: MainViewModel初始化完成");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"LoginViewModel: MainViewModel初始化失败: {ex.Message}");
+                            }
+                        });
+                    }
+                }
+
+                mainWindow.Show();
+
+                // 关闭登录窗口
+                if (desktop.MainWindow is Examina.Views.LoginWindow loginWindow)
+                {
+                    loginWindow.Close();
+                }
+
+                desktop.MainWindow = mainWindow;
             }
-
-            mainWindow.Show();
-
-            // 关闭登录窗口
-            if (desktop.MainWindow is Examina.Views.LoginWindow loginWindow)
-            {
-                loginWindow.Close();
-            }
-
-            desktop.MainWindow = mainWindow;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"LoginViewModel: 导航到主窗口失败: {ex.Message}");
         }
     }
 

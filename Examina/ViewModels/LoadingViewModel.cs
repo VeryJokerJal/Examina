@@ -58,10 +58,18 @@ public class LoadingViewModel : ViewModelBase
     /// </summary>
     public async Task StartAutoAuthenticationAsync()
     {
-
-
         try
         {
+            // 首先检查是否已经有有效的认证状态
+            if (_authenticationService.IsAuthenticated && _authenticationService.CurrentUser != null)
+            {
+                System.Diagnostics.Debug.WriteLine("LoadingViewModel: 检测到已有有效认证状态，直接进入主界面");
+                UpdateStatus("用户已登录，正在进入主界面...", 100);
+                await Task.Delay(500);
+                NavigateToMainWindow();
+                return;
+            }
+
             // 阶段1：检查本地存储
             UpdateStatus("检查本地登录信息...", 20);
 

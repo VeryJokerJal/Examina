@@ -75,17 +75,17 @@ public class WindowManagerService : IWindowManagerService
                             mainView.DataContext = mainViewModel;
                         }
 
-                        // 异步初始化MainViewModel
-                        _ = Task.Run(async () =>
+                        // 异步初始化MainViewModel，确保在UI线程上执行
+                        _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
                         {
                             try
                             {
                                 await mainViewModel.InitializeAsync();
-                                System.Diagnostics.Debug.WriteLine("MainViewModel初始化完成");
+                                System.Diagnostics.Debug.WriteLine("WindowManagerService: MainViewModel初始化完成");
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"MainViewModel初始化失败: {ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"WindowManagerService: MainViewModel初始化失败: {ex.Message}");
                             }
                         });
                     }
@@ -98,11 +98,11 @@ public class WindowManagerService : IWindowManagerService
 
                 desktop.MainWindow = mainWindow;
 
-                System.Diagnostics.Debug.WriteLine("已导航到主窗口");
+                System.Diagnostics.Debug.WriteLine("WindowManagerService: 已导航到主窗口");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"导航到主窗口失败: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"WindowManagerService: 导航到主窗口失败: {ex.Message}");
             }
         }
     }

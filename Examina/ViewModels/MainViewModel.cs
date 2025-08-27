@@ -331,14 +331,26 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// <param name="userInfo">更新后的用户信息</param>
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
-        bool previousHasFullAccess = CurrentUser?.HasFullAccess ?? false;
-        CurrentUser = userInfo;
-        bool currentHasFullAccess = userInfo?.HasFullAccess ?? false;
-
-        // 如果用户权限状态发生变化，重新初始化底部导航
-        if (previousHasFullAccess != currentHasFullAccess)
+        try
         {
-            InitializeFooterNavigation();
+            bool previousHasFullAccess = CurrentUser?.HasFullAccess ?? false;
+
+            // 安全地更新CurrentUser，确保UI绑定不会出错
+            CurrentUser = userInfo;
+
+            bool currentHasFullAccess = userInfo?.HasFullAccess ?? false;
+
+            // 如果用户权限状态发生变化，重新初始化底部导航
+            if (previousHasFullAccess != currentHasFullAccess)
+            {
+                InitializeFooterNavigation();
+            }
+
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户信息已更新 - Username: {userInfo?.Username ?? "null"}, HasFullAccess: {currentHasFullAccess}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户信息更新时发生错误: {ex.Message}");
         }
     }
 

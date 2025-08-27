@@ -49,8 +49,19 @@ public class AuthenticationService : IAuthenticationService
         {
             if (_currentUser != value)
             {
+                UserInfo? previousUser = _currentUser;
                 _currentUser = value;
-                UserInfoUpdated?.Invoke(this, value);
+
+                // 安全地触发用户信息更新事件
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"AuthenticationService: CurrentUser更新 - 从 {previousUser?.Username ?? "null"} 到 {value?.Username ?? "null"}");
+                    UserInfoUpdated?.Invoke(this, value);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"AuthenticationService: 触发UserInfoUpdated事件时发生错误: {ex.Message}");
+                }
             }
         }
     }
@@ -1031,6 +1042,26 @@ public class AuthenticationService : IAuthenticationService
         {
             System.Diagnostics.Debug.WriteLine("AutoAuthenticateAsync: 开始自动认证");
 
+            // 如果当前已经有认证状态，先检查是否有效
+            if (IsAuthenticated && CurrentUser != null && !string.IsNullOrEmpty(CurrentAccessToken))
+            {
+                System.Diagnostics.Debug.WriteLine("AutoAuthenticateAsync: 当前已有认证状态，检查令牌有效性");
+
+                // 检查令牌是否需要刷新
+                if (!NeedsTokenRefresh)
+                {
+                    System.Diagnostics.Debug.WriteLine("AutoAuthenticateAsync: 当前认证状态有效，无需重新认证");
+                    return new AuthenticationResult
+                    {
+                        IsSuccess = true,
+                        AccessToken = CurrentAccessToken,
+                        RefreshToken = CurrentRefreshToken,
+                        ExpiresAt = TokenExpiresAt,
+                        User = CurrentUser
+                    };
+                }
+            }
+
             PersistentLoginData? loginData = await LoadLoginDataAsync();
             if (loginData == null)
             {
@@ -1123,6 +1154,22 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"自动认证失败: {ex.Message}");
+
+            // 如果当前已有有效的认证状态，不要清除它
+            if (IsAuthenticated && CurrentUser != null && !string.IsNullOrEmpty(CurrentAccessToken))
+            {
+                System.Diagnostics.Debug.WriteLine("AutoAuthenticateAsync: 虽然自动认证失败，但当前认证状态仍然有效，保持现有状态");
+                return new AuthenticationResult
+                {
+                    IsSuccess = true,
+                    AccessToken = CurrentAccessToken,
+                    RefreshToken = CurrentRefreshToken,
+                    ExpiresAt = TokenExpiresAt,
+                    User = CurrentUser
+                };
+            }
+
+            // 只有在没有有效认证状态时才清除本地数据
             _ = await ClearLoginDataAsync();
             return new AuthenticationResult
             {
