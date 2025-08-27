@@ -2,6 +2,9 @@ using System.Reactive;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Examina.Models;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Examina.Models.BenchSuite;
 
 namespace Examina.ViewModels.Dialogs;
 
@@ -144,6 +147,107 @@ public class ExamResultViewModel : ViewModelBase
     /// </summary>
     public bool HasNotes => !string.IsNullOrEmpty(Notes);
 
+    /// <summary>
+    /// 详细分数信息
+    /// </summary>
+    [Reactive] public ExamScoreDetail? ScoreDetail { get; set; }
+
+    /// <summary>
+    /// 是否有详细分数信息
+    /// </summary>
+    public bool HasScoreDetail => ScoreDetail != null;
+
+    /// <summary>
+    /// 是否显示详细分数区域
+    /// </summary>
+    public bool ShowDetailedScore => HasScoreDetail && IsSubmissionSuccessful;
+
+    /// <summary>
+    /// 总分显示文本
+    /// </summary>
+    public string TotalScoreText
+    {
+        get
+        {
+            if (ScoreDetail != null)
+                return $"{ScoreDetail.AchievedScore:F1} / {ScoreDetail.TotalScore:F1}";
+            else if (Score.HasValue && TotalScore.HasValue)
+                return $"{Score:F1} / {TotalScore:F1}";
+            else if (Score.HasValue)
+                return $"{Score:F1}";
+            else
+                return "暂无评分";
+        }
+    }
+
+    /// <summary>
+    /// 得分百分比文本
+    /// </summary>
+    public string ScorePercentageText
+    {
+        get
+        {
+            if (ScoreDetail != null)
+                return $"{ScoreDetail.ScorePercentage:F1}%";
+            else if (Score.HasValue && TotalScore.HasValue && TotalScore > 0)
+                return $"{(Score.Value / TotalScore.Value * 100):F1}%";
+            else
+                return "暂无评分";
+        }
+    }
+
+    /// <summary>
+    /// 成绩等级文本
+    /// </summary>
+    public string GradeText => ScoreDetail?.Grade ?? "暂无评分";
+
+    /// <summary>
+    /// 成绩等级颜色
+    /// </summary>
+    public string GradeColor => ScoreDetail?.GradeColor ?? "#666666";
+
+    /// <summary>
+    /// 通过状态文本
+    /// </summary>
+    public string PassStatusText
+    {
+        get
+        {
+            if (ScoreDetail != null)
+                return ScoreDetail.IsPassed ? "通过" : "未通过";
+            else
+                return "暂无评分";
+        }
+    }
+
+    /// <summary>
+    /// 通过状态图标
+    /// </summary>
+    public string PassStatusIcon
+    {
+        get
+        {
+            if (ScoreDetail != null)
+                return ScoreDetail.IsPassed ? "✓" : "✗";
+            else
+                return "?";
+        }
+    }
+
+    /// <summary>
+    /// 通过状态颜色
+    /// </summary>
+    public string PassStatusColor
+    {
+        get
+        {
+            if (ScoreDetail != null)
+                return ScoreDetail.IsPassed ? "#4CAF50" : "#F44336";
+            else
+                return "#666666";
+        }
+    }
+
     public ExamResultViewModel()
     {
         // 初始化命令
@@ -179,6 +283,22 @@ public class ExamResultViewModel : ViewModelBase
 
         this.WhenAnyValue(x => x.Notes)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(HasNotes)));
+
+        this.WhenAnyValue(x => x.ScoreDetail)
+            .Subscribe(_ =>
+            {
+                this.RaisePropertyChanged(nameof(HasScoreDetail));
+                this.RaisePropertyChanged(nameof(ShowDetailedScore));
+                this.RaisePropertyChanged(nameof(TotalScoreText));
+                this.RaisePropertyChanged(nameof(ScorePercentageText));
+                this.RaisePropertyChanged(nameof(GradeText));
+                this.RaisePropertyChanged(nameof(GradeColor));
+                this.RaisePropertyChanged(nameof(PassStatusText));
+                this.RaisePropertyChanged(nameof(PassStatusIcon));
+                this.RaisePropertyChanged(nameof(PassStatusColor));
+            });
+
+        System.Diagnostics.Debug.WriteLine("ExamResultViewModel: 初始化完成");
     }
 
     /// <summary>
@@ -238,5 +358,96 @@ public class ExamResultViewModel : ViewModelBase
         TotalScore = null;
         ErrorMessage = errorMessage;
         System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 评分失败 - {errorMessage}");
+    }
+
+    /// <summary>
+    /// 设置详细分数信息
+    /// </summary>
+    public void SetScoreDetail(ExamScoreDetail scoreDetail)
+    {
+        ScoreDetail = scoreDetail;
+
+        // 同时更新基础分数信息
+        if (scoreDetail != null)
+        {
+            Score = scoreDetail.AchievedScore;
+            TotalScore = scoreDetail.TotalScore;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: 设置详细分数信息 - 总分: {scoreDetail?.TotalScore}, 得分: {scoreDetail?.AchievedScore}");
+    }
+
+    /// <summary>
+    /// 从BenchSuite评分结果创建详细分数信息
+    /// </summary>
+    public void SetScoreDetailFromBenchSuite(BenchSuiteScoringResult benchSuiteResult, decimal passThreshold = 60)
+    {
+        if (benchSuiteResult == null) return;
+
+        ExamScoreDetail scoreDetail = new()
+        {
+            TotalScore = benchSuiteResult.TotalScore,
+            AchievedScore = benchSuiteResult.AchievedScore,
+            IsPassed = benchSuiteResult.ScoreRate * 100 >= passThreshold,
+            PassThreshold = passThreshold
+        };
+
+        // 处理模块得分
+        foreach (KeyValuePair<BenchSuiteFileType, FileTypeScoringResult> kvp in benchSuiteResult.FileTypeResults)
+        {
+            FileTypeScoringResult fileResult = kvp.Value;
+            string moduleName = GetFileTypeDisplayName(kvp.Key);
+
+            ModuleScoreDetail moduleScore = new()
+            {
+                ModuleId = kvp.Key.ToString(),
+                ModuleName = moduleName,
+                TotalScore = fileResult.TotalScore,
+                AchievedScore = fileResult.AchievedScore,
+                IsPassed = fileResult.IsSuccess && fileResult.AchievedScore >= fileResult.TotalScore * 0.6m,
+                QuestionCount = 1, // BenchSuite中每个文件类型通常对应一个题目
+                CorrectQuestionCount = fileResult.IsSuccess ? 1 : 0
+            };
+
+            scoreDetail.ModuleScores.Add(moduleScore);
+
+            // 创建对应的题目得分
+            QuestionScoreDetail questionScore = new()
+            {
+                QuestionId = kvp.Key.ToString(),
+                QuestionTitle = $"{moduleName}操作题",
+                ModuleName = moduleName,
+                TotalScore = fileResult.TotalScore,
+                AchievedScore = fileResult.AchievedScore,
+                IsCorrect = fileResult.IsSuccess,
+                ErrorDetails = fileResult.ErrorMessage ?? string.Empty
+            };
+
+            scoreDetail.QuestionScores.Add(questionScore);
+        }
+
+        // 更新统计信息
+        scoreDetail.Statistics.TotalQuestions = scoreDetail.QuestionScores.Count;
+        scoreDetail.Statistics.CorrectQuestions = scoreDetail.QuestionScores.Count(q => q.IsCorrect);
+        scoreDetail.Statistics.TotalModules = scoreDetail.ModuleScores.Count;
+        scoreDetail.Statistics.PassedModules = scoreDetail.ModuleScores.Count(m => m.IsPassed);
+
+        SetScoreDetail(scoreDetail);
+    }
+
+    /// <summary>
+    /// 获取文件类型的显示名称
+    /// </summary>
+    private static string GetFileTypeDisplayName(BenchSuiteFileType fileType)
+    {
+        return fileType switch
+        {
+            BenchSuiteFileType.Word => "Word",
+            BenchSuiteFileType.Excel => "Excel",
+            BenchSuiteFileType.PowerPoint => "PowerPoint",
+            BenchSuiteFileType.Windows => "Windows",
+            BenchSuiteFileType.Internet => "Internet",
+            _ => fileType.ToString()
+        };
     }
 }

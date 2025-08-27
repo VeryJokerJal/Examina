@@ -923,8 +923,12 @@ public class ExamListViewModel : ViewModelBase
             {
                 if (scoringResult != null && scoringResult.IsSuccess)
                 {
-                    // 评分成功，更新分数
+                    // 评分成功，更新分数和详细信息
                     resultWindow.UpdateScore(scoringResult.AchievedScore, scoringResult.TotalScore, "BenchSuite自动评分完成");
+
+                    // 设置详细分数信息
+                    resultWindow.SetScoreDetailFromBenchSuite(scoringResult);
+
                     System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {scoringResult.AchievedScore}");
                 }
                 else

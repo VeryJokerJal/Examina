@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Examina.ViewModels.Dialogs;
 using Examina.Models;
+using Examina.Models.BenchSuite;
 using System;
 using System.Threading.Tasks;
 
@@ -192,6 +193,22 @@ public partial class FullScreenExamResultWindow : Window
     }
 
     /// <summary>
+    /// 设置详细分数信息
+    /// </summary>
+    public void SetScoreDetail(ExamScoreDetail scoreDetail)
+    {
+        _viewModel?.SetScoreDetail(scoreDetail);
+    }
+
+    /// <summary>
+    /// 从BenchSuite评分结果设置详细分数信息
+    /// </summary>
+    public void SetScoreDetailFromBenchSuite(BenchSuiteScoringResult benchSuiteResult, decimal passThreshold = 60)
+    {
+        _viewModel?.SetScoreDetailFromBenchSuite(benchSuiteResult, passThreshold);
+    }
+
+    /// <summary>
     /// 显示全屏考试结果窗口（非阻塞）
     /// </summary>
     public static FullScreenExamResultWindow ShowFullScreenExamResult(string examName, ExamType examType,
@@ -249,6 +266,126 @@ public partial class FullScreenExamResultWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"FullScreenExamResultWindow: 显示全屏考试结果窗口并等待关闭异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 显示带详细分数信息的全屏考试结果窗口（非阻塞）
+    /// </summary>
+    public static FullScreenExamResultWindow ShowFullScreenExamResultWithDetail(string examName, ExamType examType,
+        bool isSuccessful, ExamScoreDetail? scoreDetail = null, DateTime? startTime = null, DateTime? endTime = null,
+        int? durationMinutes = null, string errorMessage = "", string notes = "",
+        bool showContinue = true, bool showClose = true)
+    {
+        try
+        {
+            FullScreenExamResultViewModel viewModel = new();
+
+            // 设置基本考试结果信息
+            decimal? score = scoreDetail?.AchievedScore;
+            decimal? totalScore = scoreDetail?.TotalScore;
+
+            viewModel.SetFullScreenExamResult(examName, examType, isSuccessful, startTime, endTime,
+                durationMinutes, score, totalScore, errorMessage, notes, showContinue, showClose);
+
+            // 设置详细分数信息
+            if (scoreDetail != null)
+            {
+                viewModel.SetScoreDetail(scoreDetail);
+            }
+
+            FullScreenExamResultWindow window = new(viewModel);
+            window.Show();
+
+            System.Diagnostics.Debug.WriteLine($"FullScreenExamResultWindow: 带详细分数的全屏考试结果窗口已显示 - {examName}");
+            return window;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"FullScreenExamResultWindow: 显示带详细分数的全屏考试结果窗口异常: {ex.Message}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 显示带详细分数信息的全屏考试结果窗口并等待关闭（阻塞）
+    /// </summary>
+    public static async Task<bool> ShowFullScreenExamResultWithDetailAsync(string examName, ExamType examType,
+        bool isSuccessful, ExamScoreDetail? scoreDetail = null, DateTime? startTime = null, DateTime? endTime = null,
+        int? durationMinutes = null, string errorMessage = "", string notes = "",
+        bool showContinue = true, bool showClose = true)
+    {
+        try
+        {
+            FullScreenExamResultWindow window = ShowFullScreenExamResultWithDetail(examName, examType, isSuccessful,
+                scoreDetail, startTime, endTime, durationMinutes, errorMessage, notes, showContinue, showClose);
+
+            return await window.WaitForCloseAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"FullScreenExamResultWindow: 显示带详细分数的全屏考试结果窗口异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 从BenchSuite评分结果显示全屏考试结果窗口（非阻塞）
+    /// </summary>
+    public static FullScreenExamResultWindow ShowFullScreenExamResultFromBenchSuite(string examName, ExamType examType,
+        bool isSuccessful, BenchSuiteScoringResult? benchSuiteResult = null, DateTime? startTime = null, DateTime? endTime = null,
+        int? durationMinutes = null, string errorMessage = "", string notes = "",
+        bool showContinue = true, bool showClose = true, decimal passThreshold = 60)
+    {
+        try
+        {
+            FullScreenExamResultViewModel viewModel = new();
+
+            // 设置基本考试结果信息
+            decimal? score = benchSuiteResult?.AchievedScore;
+            decimal? totalScore = benchSuiteResult?.TotalScore;
+
+            viewModel.SetFullScreenExamResult(examName, examType, isSuccessful, startTime, endTime,
+                durationMinutes, score, totalScore, errorMessage, notes, showContinue, showClose);
+
+            // 从BenchSuite结果设置详细分数信息
+            if (benchSuiteResult != null)
+            {
+                viewModel.SetScoreDetailFromBenchSuite(benchSuiteResult, passThreshold);
+            }
+
+            FullScreenExamResultWindow window = new(viewModel);
+            window.Show();
+
+            System.Diagnostics.Debug.WriteLine($"FullScreenExamResultWindow: 从BenchSuite结果的全屏考试结果窗口已显示 - {examName}");
+            return window;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"FullScreenExamResultWindow: 显示从BenchSuite结果的全屏考试结果窗口异常: {ex.Message}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 从BenchSuite评分结果显示全屏考试结果窗口并等待关闭（阻塞）
+    /// </summary>
+    public static async Task<bool> ShowFullScreenExamResultFromBenchSuiteAsync(string examName, ExamType examType,
+        bool isSuccessful, BenchSuiteScoringResult? benchSuiteResult = null, DateTime? startTime = null, DateTime? endTime = null,
+        int? durationMinutes = null, string errorMessage = "", string notes = "",
+        bool showContinue = true, bool showClose = true, decimal passThreshold = 60)
+    {
+        try
+        {
+            FullScreenExamResultWindow window = ShowFullScreenExamResultFromBenchSuite(examName, examType, isSuccessful,
+                benchSuiteResult, startTime, endTime, durationMinutes, errorMessage, notes, showContinue, showClose, passThreshold);
+
+            return await window.WaitForCloseAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"FullScreenExamResultWindow: 显示从BenchSuite结果的全屏考试结果窗口异常: {ex.Message}");
             return false;
         }
     }

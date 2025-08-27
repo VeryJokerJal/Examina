@@ -72,9 +72,9 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     public string StatusColor => IsSubmissionSuccessful ? "#4CAF50" : "#FF5722";
 
     /// <summary>
-    /// 是否显示成绩信息
+    /// 是否显示成绩信息（简单版本）
     /// </summary>
-    public bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring);
+    public bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring) && !ShowDetailedScore;
 
     /// <summary>
     /// 是否显示用时信息
@@ -119,6 +119,12 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
                 this.RaisePropertyChanged(nameof(StatusColor));
                 this.RaisePropertyChanged(nameof(ShowScoreInfo));
                 this.RaisePropertyChanged(nameof(ShowErrorInfo));
+            });
+
+        _ = this.WhenAnyValue(x => x.ShowDetailedScore)
+            .Subscribe(_ =>
+            {
+                this.RaisePropertyChanged(nameof(ShowScoreInfo));
             });
 
         _ = this.WhenAnyValue(x => x.Score, x => x.IsScoring)
