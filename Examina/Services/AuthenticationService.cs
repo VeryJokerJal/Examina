@@ -190,6 +190,8 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"AuthenticationService: 开始短信验证码登录 - 手机号: {phoneNumber}");
+
             DeviceBindRequest deviceInfo = _deviceService.GetDeviceInfo();
 
             SmsLoginRequest smsLoginRequest = new()
@@ -205,9 +207,14 @@ public class AuthenticationService : IAuthenticationService
             });
             StringContent content = new(json, Encoding.UTF8, "application/json");
 
+            string apiUrl = BuildApiUrl("sms-login");
+            System.Diagnostics.Debug.WriteLine($"AuthenticationService: 准备调用短信登录API - URL: {apiUrl}");
+
             // 使用新的短信登录端点
-            HttpResponseMessage response = await _httpClient.PostAsync(BuildApiUrl("sms-login"), content);
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
             string responseContent = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"AuthenticationService: 短信登录API响应 - 状态码: {response.StatusCode}, 内容长度: {responseContent.Length}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -215,8 +222,19 @@ public class AuthenticationService : IAuthenticationService
 
                 if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.AccessToken))
                 {
-                    return SetAuthenticationState(loginResponse);
+                    System.Diagnostics.Debug.WriteLine($"AuthenticationService: 短信登录成功，准备设置认证状态 - 用户: {loginResponse.User?.Username}");
+                    AuthenticationResult result = SetAuthenticationState(loginResponse);
+                    System.Diagnostics.Debug.WriteLine($"AuthenticationService: 认证状态设置完成 - IsAuthenticated: {IsAuthenticated}");
+                    return result;
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("AuthenticationService: 短信登录响应无效 - LoginResponse为null或AccessToken为空");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"AuthenticationService: 短信登录API调用失败 - 状态码: {response.StatusCode}, 响应: {responseContent}");
             }
 
             return new AuthenticationResult
@@ -227,6 +245,7 @@ public class AuthenticationService : IAuthenticationService
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"AuthenticationService: 短信登录异常 - {ex.Message}");
             return new AuthenticationResult
             {
                 IsSuccess = false,
@@ -607,15 +626,21 @@ public class AuthenticationService : IAuthenticationService
     /// <returns>认证结果</returns>
     private AuthenticationResult SetAuthenticationState(LoginResponse loginResponse, bool saveToLocal = true)
     {
+        System.Diagnostics.Debug.WriteLine($"AuthenticationService: 开始设置认证状态 - 用户: {loginResponse.User?.Username}, AccessToken长度: {loginResponse.AccessToken?.Length ?? 0}");
+
         CurrentAccessToken = loginResponse.AccessToken;
         CurrentRefreshToken = loginResponse.RefreshToken;
         TokenExpiresAt = loginResponse.ExpiresAt;
         CurrentUser = loginResponse.User;
         IsAuthenticated = true;
 
+        System.Diagnostics.Debug.WriteLine($"AuthenticationService: 认证状态已设置 - IsAuthenticated: {IsAuthenticated}, CurrentUser: {CurrentUser?.Username ?? "null"}");
+
         // 设置HTTP客户端的认证头
         _httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CurrentAccessToken);
+
+        System.Diagnostics.Debug.WriteLine($"AuthenticationService: HTTP客户端Authorization头已设置");
 
         // 异步保存到本地存储（不等待结果，避免阻塞UI）
         if (saveToLocal)
@@ -624,16 +649,17 @@ public class AuthenticationService : IAuthenticationService
             {
                 try
                 {
-                    _ = await SaveLoginDataAsync(loginResponse);
+                    bool saveResult = await SaveLoginDataAsync(loginResponse);
+                    System.Diagnostics.Debug.WriteLine($"AuthenticationService: 本地存储保存结果: {saveResult}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"保存登录数据到本地失败: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"AuthenticationService: 保存登录数据到本地失败: {ex.Message}");
                 }
             });
         }
 
-        return new AuthenticationResult
+        AuthenticationResult result = new()
         {
             IsSuccess = true,
             AccessToken = CurrentAccessToken,
@@ -642,6 +668,9 @@ public class AuthenticationService : IAuthenticationService
             User = CurrentUser,
             RequireDeviceBinding = loginResponse.RequireDeviceBinding
         };
+
+        System.Diagnostics.Debug.WriteLine($"AuthenticationService: SetAuthenticationState完成，返回成功结果");
+        return result;
     }
 
     /// <summary>
@@ -1256,6 +1285,8 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     public async Task<string?> GetAccessTokenAsync()
     {
+        System.Diagnostics.Debug.WriteLine($"GetAccessTokenAsync: 开始获取访问令牌 - IsAuthenticated: {IsAuthenticated}, CurrentAccessToken长度: {CurrentAccessToken?.Length ?? 0}");
+
         // 如果正在进行自动认证，等待完成
         if (_isAutoAuthenticating)
         {
@@ -1281,6 +1312,7 @@ public class AuthenticationService : IAuthenticationService
         // 如果需要刷新令牌，先尝试刷新
         if (NeedsTokenRefresh)
         {
+            System.Diagnostics.Debug.WriteLine("GetAccessTokenAsync: 令牌需要刷新，开始刷新...");
             AuthenticationResult refreshResult = await RefreshTokenAsync();
             if (!refreshResult.IsSuccess)
             {
@@ -1288,8 +1320,10 @@ public class AuthenticationService : IAuthenticationService
                 // 刷新失败，返回当前令牌（可能已过期）
                 return CurrentAccessToken;
             }
+            System.Diagnostics.Debug.WriteLine("GetAccessTokenAsync: 令牌刷新成功");
         }
 
+        System.Diagnostics.Debug.WriteLine($"GetAccessTokenAsync: 返回访问令牌 - 长度: {CurrentAccessToken?.Length ?? 0}, 是否为空: {string.IsNullOrEmpty(CurrentAccessToken)}");
         return CurrentAccessToken;
     }
 

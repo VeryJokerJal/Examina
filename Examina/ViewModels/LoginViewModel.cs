@@ -153,6 +153,9 @@ public class LoginViewModel : ViewModelBase
 
             if (result.IsSuccess)
             {
+                System.Diagnostics.Debug.WriteLine($"LoginViewModel: 登录成功 - 登录方式: {LoginMode}");
+                System.Diagnostics.Debug.WriteLine($"LoginViewModel: 认证服务状态 - IsAuthenticated: {_authenticationService.IsAuthenticated}, CurrentUser: {_authenticationService.CurrentUser?.Username ?? "null"}");
+
                 if (result.RequireDeviceBinding)
                 {
                     RequireDeviceBinding = true;
@@ -164,12 +167,16 @@ public class LoginViewModel : ViewModelBase
                 // 延迟一下显示成功消息
                 await Task.Delay(1000);
 
+                System.Diagnostics.Debug.WriteLine("LoginViewModel: 准备刷新用户信息");
                 // 刷新用户信息以确保获取最新状态
                 await _authenticationService.RefreshUserInfoAsync();
+
+                System.Diagnostics.Debug.WriteLine($"LoginViewModel: 用户信息刷新完成 - IsAuthenticated: {_authenticationService.IsAuthenticated}, CurrentUser: {_authenticationService.CurrentUser?.Username ?? "null"}");
 
                 // 根据登录方式决定导航逻辑
                 if (LoginMode == LoginMode.SmsCode)
                 {
+                    System.Diagnostics.Debug.WriteLine("LoginViewModel: 短信验证码登录，准备导航到主窗口");
                     // 手机号登录直接进入主界面（已验证手机号）
                     NavigateToMainWindow();
                 }

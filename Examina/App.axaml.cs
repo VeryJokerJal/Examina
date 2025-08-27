@@ -222,7 +222,11 @@ public partial class App : Application
         _ = services.AddSingleton<IWindowManagerService, WindowManagerService>();
 
         // 注册ViewModels
-        _ = services.AddTransient<LoginViewModel>();
+        _ = services.AddTransient<LoginViewModel>(provider =>
+        {
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new LoginViewModel(authService);
+        });
         _ = services.AddTransient<MainViewModel>(provider =>
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
@@ -237,7 +241,11 @@ public partial class App : Application
             return new MainViewModel(authService, windowManager, leaderboardFactory, leaderboardWithTypeFactory);
         });
         _ = services.AddTransient<UserInfoCompletionViewModel>();
-        _ = services.AddTransient<LoadingViewModel>();
+        _ = services.AddTransient<LoadingViewModel>(provider =>
+        {
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            return new LoadingViewModel(authService);
+        });
         _ = services.AddTransient<ProfileViewModel>();
         _ = services.AddTransient<ChangePasswordViewModel>();
         _ = services.AddTransient<SchoolBindingViewModel>();
@@ -340,6 +348,8 @@ public partial class App : Application
                     // 若仍未认证则跳过需要鉴权的测试
                     if (auth != null && auth.IsAuthenticated)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[DEBUG Tests] 用户已认证，开始执行需要认证的测试 - 用户: {auth.CurrentUser?.Username}, 令牌长度: {auth.CurrentAccessToken?.Length ?? 0}");
+
                         await Tests.ExamAttemptServiceTest.RunAllTests();
 
                         // 数据一致性验证
@@ -350,7 +360,7 @@ public partial class App : Application
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("[DEBUG Tests] 跳过需要认证的测试：用户尚未登录");
+                        System.Diagnostics.Debug.WriteLine($"[DEBUG Tests] 跳过需要认证的测试：用户尚未登录 - IsAuthenticated: {auth?.IsAuthenticated ?? false}, CurrentUser: {auth?.CurrentUser?.Username ?? "null"}");
                     }
                 }
                 catch (Exception ex)
