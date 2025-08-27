@@ -25,8 +25,8 @@ public partial class App : Application
     {
         ServiceCollection services = new();
 
-        // 配置HttpClient以正确处理HTTPS和重定向
-        _ = services.AddHttpClient<IAuthenticationService, AuthenticationService>(client =>
+        // 为AuthenticationService注册命名HttpClient（避免重复注册IAuthenticationService导致多实例）
+        _ = services.AddHttpClient(nameof(AuthenticationService), client =>
         {
             // 强制使用HTTPS基础地址（不带尾部斜杠，避免URL构建问题）
             client.BaseAddress = new Uri("https://qiuzhenbd.com");
