@@ -773,7 +773,7 @@ public class TrainingRecord
     public string Name { get; set; } = string.Empty;
     public string Duration { get; set; } = string.Empty;
     public DateTime CompletionTime { get; set; }
-    public int Score { get; set; }
+    public double Score { get; set; }
     public StatisticType Type { get; set; }
     public string FormattedCompletionTime => CompletionTime.ToLocalTime().ToString("yyyy年MM月dd日 HH时mm分");
 }

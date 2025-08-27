@@ -360,7 +360,7 @@ public class QuestionManagementViewModel : ViewModelBase
             Name = operationName,
             Description = "请输入操作点描述",
             ModuleType = SelectedModule?.Type ?? ModuleType.Windows,
-            Score = 5.0m,
+            Score = 5.0,
             Order = SelectedQuestion.OperationPoints.Count + 1,
             IsEnabled = true
         };

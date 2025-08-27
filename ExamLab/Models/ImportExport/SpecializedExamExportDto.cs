@@ -85,7 +85,7 @@ public class SpecializedExamDto
     /// 总分
     /// </summary>
     [JsonPropertyName("totalScore")]
-    public int TotalScore { get; set; } = 100;
+    public double TotalScore { get; set; } = 100;
 
     /// <summary>
     /// 考试时长（分钟）

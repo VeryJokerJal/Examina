@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Examina.Models.Exam;
 
@@ -106,13 +105,13 @@ public class StudentComprehensiveTrainingDto
     /// <summary>
     /// 动态计算的总分（基于科目和模块的实际分值，如果计算结果为0则回退到预设总分）
     /// </summary>
-    public int CalculatedTotalScore
+    public double CalculatedTotalScore
     {
         get
         {
-            int subjectsScore = Subjects.Sum(s => s.Questions.Sum(q => q.Score));
-            int modulesScore = Modules.Sum(m => m.Questions.Sum(q => q.Score));
-            int calculatedTotal = subjectsScore + modulesScore;
+            double subjectsScore = Subjects.Sum(s => s.Questions.Sum(q => q.Score));
+            double modulesScore = Modules.Sum(m => m.Questions.Sum(q => q.Score));
+            double calculatedTotal = subjectsScore + modulesScore;
 
             // 如果计算结果为0，则回退到使用预设的总分
             return calculatedTotal > 0 ? calculatedTotal : TotalScore;
@@ -148,7 +147,7 @@ public class StudentComprehensiveTrainingSubjectDto
     /// <summary>
     /// 科目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 科目时长（分钟）
@@ -214,7 +213,7 @@ public class StudentComprehensiveTrainingModuleDto
     /// <summary>
     /// 模块分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块排序
@@ -255,7 +254,7 @@ public class StudentComprehensiveTrainingQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 预计用时（分钟）
@@ -336,7 +335,7 @@ public class StudentComprehensiveTrainingOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序

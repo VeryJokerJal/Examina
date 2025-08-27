@@ -167,7 +167,7 @@
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBox Grid.Column="0" Margin="0,0,8,0" PlaceholderText="选择或输入C#代码文件路径（可选）" Text="{Binding SelectedQuestion.CodeFilePath, Mode=TwoWay, Converter={StaticResource FilePathDisplayConverter}}" TextWrapping="NoWrap" />
+                                            <TextBox Grid.Column="0" Margin="0,0,8,0" PlaceholderText="选择或输入C#代码文件路径（可选）" Text="{Binding SelectedQuestion.CodeFilePath, Mode=TwoWay}" TextWrapping="NoWrap" />
                                             <Button Grid.Column="1" Margin="0,0,4,0" Command="{Binding SelectCodeFileCommand}" Content="浏览..." Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="选择C#代码文件" />
                                             <Button Grid.Column="2" Command="{Binding ClearCodeFilePathCommand}" Content="清除" Style="{ThemeResource DefaultButtonStyle}" ToolTipService.ToolTip="清除文件路径" />
                                         </Grid>

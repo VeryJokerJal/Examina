@@ -50,7 +50,7 @@ public class SpecializedExam : ReactiveObject
     /// <summary>
     /// 试卷总分
     /// </summary>
-    [Reactive] public int TotalScore { get; set; } = 100;
+    [Reactive] public double TotalScore { get; set; } = 100;
 
     /// <summary>
     /// 考试时长（分钟）

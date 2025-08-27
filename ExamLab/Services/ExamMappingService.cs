@@ -215,7 +215,7 @@ public static class ExamMappingService
             Title = question.Title,
             Content = question.Content,
             QuestionType = GetQuestionTypeFromModule(question),
-            Score = (decimal)question.TotalScore,
+            Score = question.TotalScore,
             DifficultyLevel = 1, // ExamLab没有难度级别，默认为1
             EstimatedMinutes = 5, // ExamLab没有预计时间，默认为5分钟
             SortOrder = question.Order,

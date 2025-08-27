@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using ReactiveUI;
 
 namespace Examina.ViewModels;
@@ -71,7 +71,7 @@ public class AnswerAnalysisViewModel : ViewModelBase
     {
         ExamName = examName;
         Title = $"答案解析 - {examName}";
-        
+
         Questions.Clear();
         foreach (QuestionItem question in questions)
         {
@@ -108,7 +108,7 @@ public class QuestionItem
     /// <summary>
     /// 题目分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序

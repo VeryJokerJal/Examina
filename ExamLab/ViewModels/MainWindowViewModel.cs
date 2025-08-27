@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Models.ImportExport;
 using ExamLab.Services;
-using ExamLab.Views;
 using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -487,7 +486,7 @@ public class MainWindowViewModel : ViewModelBase
             else if (IsSpecializedTabSelected && SpecializedExamViewModel != null)
             {
                 // 当前在专项试卷标签页，调用专项试卷保存逻辑
-                await SpecializedExamViewModel.SaveSpecializedExamCommand.Execute();
+                _ = await SpecializedExamViewModel.SaveSpecializedExamCommand.Execute();
             }
             else
             {
@@ -935,7 +934,7 @@ public class MainWindowViewModel : ViewModelBase
             Name = operationName,
             Description = "请输入操作点描述",
             ModuleType = SelectedModule?.Type ?? ModuleType.Windows,
-            Score = 5.0m,
+            Score = 5.0,
             Order = SelectedQuestion.OperationPoints.Count + 1,
             IsEnabled = true
         };

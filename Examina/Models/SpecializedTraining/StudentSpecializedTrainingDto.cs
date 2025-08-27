@@ -173,7 +173,7 @@ public class StudentSpecializedTrainingQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 预计用时（分钟）

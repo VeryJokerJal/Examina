@@ -762,7 +762,7 @@ public class LeaderboardEntry
 {
     public int Rank { get; set; }
     public string Username { get; set; } = string.Empty;
-    public int Score { get; set; }
+    public double Score { get; set; }
     public TimeSpan CompletionTime { get; set; }
     public DateTime CompletionDate { get; set; }
     public string SchoolName { get; set; } = string.Empty;

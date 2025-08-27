@@ -1026,7 +1026,7 @@ public static class SpecializedExamMappingService
             Title = question.Title,
             Content = question.Content,
             QuestionType = "Practice", // 专项试卷默认为练习类型
-            Score = (decimal)question.TotalScore,
+            Score = question.TotalScore,
             DifficultyLevel = 1,
             EstimatedMinutes = 5,
             SortOrder = question.Order,

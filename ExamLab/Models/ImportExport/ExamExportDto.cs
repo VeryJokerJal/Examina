@@ -71,7 +71,7 @@ public class ExamDto
     /// </summary>
     [JsonPropertyName("totalScore")]
     [XmlElement("TotalScore")]
-    public decimal TotalScore { get; set; } = 100.0m;
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 考试时长（分钟）
@@ -249,7 +249,7 @@ public class SubjectDto
     /// 科目分值
     /// </summary>
     [JsonPropertyName("score")]
-    public decimal Score { get; set; } = 20.0m;
+    public double Score { get; set; }
 
     /// <summary>
     /// 科目考试时长（分钟）
@@ -402,7 +402,7 @@ public class QuestionDto
     /// 题目分值
     /// </summary>
     [JsonPropertyName("score")]
-    public decimal Score { get; set; } = 10.0m;
+    public double Score { get; set; }
 
     /// <summary>
     /// 难度级别
@@ -618,7 +618,7 @@ public class OperationPointDto
     /// 操作点分值
     /// </summary>
     [JsonPropertyName("score")]
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 操作点顺序

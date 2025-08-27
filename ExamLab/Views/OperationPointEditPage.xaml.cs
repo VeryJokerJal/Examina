@@ -623,8 +623,8 @@ public sealed partial class OperationPointEditPage : Page
     /// 获取操作点分数
     /// </summary>
     /// <returns>操作点分数</returns>
-    public decimal GetScore()
+    public double GetScore()
     {
-        return (decimal)ScoreNumberBox.Value;
+        return ScoreNumberBox.Value;
     }
 }

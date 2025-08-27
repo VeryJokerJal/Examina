@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace Examina.Models.MockExam;
 
@@ -96,7 +96,7 @@ public class StudentMockExamQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序
@@ -167,7 +167,7 @@ public class StudentMockExamOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public int Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序
@@ -290,7 +290,7 @@ public class QuestionExtractionRuleDto
     /// <summary>
     /// 每题分值
     /// </summary>
-    public int ScorePerQuestion { get; set; }
+    public double ScorePerQuestion { get; set; }
 
     /// <summary>
     /// 是否必须
