@@ -26,7 +26,7 @@ public static class ExamMappingService
             Description = exam.Description,
             ExamType = "UnifiedExam", // ExamLab默认为统一考试
             Status = "Draft", // ExamLab默认为草稿状态
-            TotalScore = exam.TotalScore,
+            TotalScore = (int)Math.Round(exam.CalculatedTotalScore), // 使用动态计算的总分，四舍五入到整数
             DurationMinutes = exam.Duration,
             CreatedAt = DateTime.TryParse(exam.CreatedTime, out DateTime createdTime) ? createdTime : DateTime.UtcNow,
             UpdatedAt = DateTime.TryParse(exam.LastModifiedTime, out DateTime modifiedTime) ? modifiedTime : null,
@@ -133,7 +133,7 @@ public static class ExamMappingService
             Name = module.Name,
             Type = module.Type.ToString(),
             Description = module.Description,
-            Score = (int)module.TotalScore, // 使用动态计算的总分而不是固定的Score
+            Score = module.TotalScore, // 使用动态计算的总分，保持小数精度
             Order = module.Order,
             IsEnabled = module.IsEnabled,
             Questions = module.Questions.Select(ToQuestionDto).ToList()
@@ -150,7 +150,7 @@ public static class ExamMappingService
             Id = moduleDto.Id,
             Name = moduleDto.Name,
             Description = moduleDto.Description,
-            Score = moduleDto.Score,
+            Score = (int)Math.Round(moduleDto.Score), // 转换double为int，四舍五入
             Order = moduleDto.Order,
             IsEnabled = moduleDto.IsEnabled
         };

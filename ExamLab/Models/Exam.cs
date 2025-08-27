@@ -41,9 +41,14 @@ public class Exam : ReactiveObject
     public ObservableCollection<ExamModule> Modules { get; set; } = [];
 
     /// <summary>
-    /// 试卷总分
+    /// 试卷总分（手动设置的固定值）
     /// </summary>
     [Reactive] public int TotalScore { get; set; }
+
+    /// <summary>
+    /// 动态计算的总分（基于所有模块的实际分值）
+    /// </summary>
+    public double CalculatedTotalScore => Modules.Sum(m => m.TotalScore);
 
     /// <summary>
     /// 考试时长（分钟）
