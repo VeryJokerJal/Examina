@@ -4998,3 +4998,91 @@ select.glass-select-native.glass-select-danger {
     color: var(--text-primary);
     font-weight: 500;
 }
+
+/* ===== USER AVATAR STYLES ===== */
+.user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--glass-accent);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 2px solid var(--glass-border);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.user-avatar:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px var(--glass-shadow);
+}
+
+.user-avatar i {
+    font-size: 1.5rem;
+}
+
+/* 在线状态指示器 */
+.user-avatar .online-indicator {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 设备管理特定样式 */
+.device-management .table td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.device-management .user-info {
+    min-width: 150px;
+}
+
+.device-management .device-info {
+    min-width: 200px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .device-management .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .device-management .user-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .device-management .user-avatar i {
+        font-size: 1.25rem;
+    }
+
+    .device-management .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .device-management .glass-card .card-body {
+        padding: 1rem;
+    }
+
+    .device-management .table td {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .device-management .user-info,
+    .device-management .device-info {
+        min-width: auto;
+    }
+}

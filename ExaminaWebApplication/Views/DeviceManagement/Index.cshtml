@@ -3,7 +3,7 @@
     ViewData["Title"] = "设备管理";
 }
 
-<div class="container-fluid">
+<div class="container-fluid device-management">
     <!-- 面包屑导航 -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb glass-breadcrumb">
@@ -172,8 +172,7 @@
                                 <input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleSelectAll()">
                             </th>
                             <th>所属用户</th>
-                            <th>设备名称</th>
-                            <th>设备类型</th>
+                            <th>设备信息</th>
                             <th>操作系统</th>
                             <th>IP地址</th>
                             <th>绑定时间</th>
@@ -191,22 +190,30 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            @if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Student)
+                                        <div class="me-2 position-relative">
+                                            <div class="user-avatar">
+                                                @if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Student)
+                                                {
+                                                    <i class="bi bi-person-circle text-primary fs-4" title="学生"></i>
+                                                }
+                                                else if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Teacher)
+                                                {
+                                                    <i class="bi bi-person-workspace text-success fs-4" title="教师"></i>
+                                                }
+                                                else if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Administrator)
+                                                {
+                                                    <i class="bi bi-person-gear text-warning fs-4" title="管理员"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-person text-muted fs-4" title="未知角色"></i>
+                                                }
+                                            </div>
+                                            @if (device.User?.IsActive == true)
                                             {
-                                                <i class="bi bi-person-circle text-primary" title="学生"></i>
-                                            }
-                                            else if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Teacher)
-                                            {
-                                                <i class="bi bi-person-workspace text-success" title="教师"></i>
-                                            }
-                                            else if (device.User?.Role == ExaminaWebApplication.Models.UserRole.Administrator)
-                                            {
-                                                <i class="bi bi-person-gear text-warning" title="管理员"></i>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-person text-muted" title="未知角色"></i>
+                                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle">
+                                                    <span class="visually-hidden">在线</span>
+                                                </span>
                                             }
                                         </div>
                                         <div>
@@ -228,20 +235,24 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-@(GetDeviceIcon(device.DeviceType)) me-2"></i>
+                                    <div class="d-flex align-items-center device-info">
+                                        <div class="device-icon me-2">
+                                            <i class="bi bi-@(GetDeviceIcon(device.DeviceType)) text-@(GetDeviceIconColor(device.DeviceType)) fs-5"></i>
+                                        </div>
                                         <div>
                                             <div class="fw-medium">@device.DeviceName</div>
+                                            <small class="text-muted">@device.DeviceType</small>
                                             @if (device.IsTrusted)
                                             {
-                                                <small class="text-success">
-                                                    <i class="bi bi-shield-check me-1"></i>受信任
-                                                </small>
+                                                <div>
+                                                    <small class="text-success">
+                                                        <i class="bi bi-shield-check me-1"></i>受信任
+                                                    </small>
+                                                </div>
                                             }
                                         </div>
                                     </div>
                                 </td>
-                                <td>@device.DeviceType</td>
                                 <td>
                                     <small>@device.OperatingSystem</small>
                                 </td>
@@ -453,6 +464,18 @@
             ExaminaWebApplication.Models.UserRole.Teacher => "教师",
             ExaminaWebApplication.Models.UserRole.Administrator => "管理员",
             _ => "未知"
+        };
+    }
+
+    string GetDeviceIconColor(string deviceType)
+    {
+        return deviceType.ToLower() switch
+        {
+            "desktop" => "primary",
+            "mobile" => "success",
+            "tablet" => "info",
+            "web" => "warning",
+            _ => "secondary"
         };
     }
 }
