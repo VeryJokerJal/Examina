@@ -392,62 +392,12 @@ public class ExamResultViewModel : ViewModelBase
             PassThreshold = passThreshold
         };
 
-        // 处理模块得分
-        foreach (KeyValuePair<BenchSuiteFileType, FileTypeScoringResult> kvp in benchSuiteResult.FileTypeResults)
-        {
-            FileTypeScoringResult fileResult = kvp.Value;
-            string moduleName = GetFileTypeDisplayName(kvp.Key);
-
-            ModuleScoreDetail moduleScore = new()
-            {
-                ModuleId = kvp.Key.ToString(),
-                ModuleName = moduleName,
-                TotalScore = fileResult.TotalScore,
-                AchievedScore = fileResult.AchievedScore,
-                IsPassed = fileResult.IsSuccess && fileResult.AchievedScore >= fileResult.TotalScore * 0.6m,
-                QuestionCount = 1, // BenchSuite中每个文件类型通常对应一个题目
-                CorrectQuestionCount = fileResult.IsSuccess ? 1 : 0
-            };
-
-            scoreDetail.ModuleScores.Add(moduleScore);
-
-            // 创建对应的题目得分
-            QuestionScoreDetail questionScore = new()
-            {
-                QuestionId = kvp.Key.ToString(),
-                QuestionTitle = $"{moduleName}操作题",
-                ModuleName = moduleName,
-                TotalScore = fileResult.TotalScore,
-                AchievedScore = fileResult.AchievedScore,
-                IsCorrect = fileResult.IsSuccess,
-                ErrorDetails = fileResult.ErrorMessage ?? string.Empty
-            };
-
-            scoreDetail.QuestionScores.Add(questionScore);
-        }
-
         // 更新统计信息
-        scoreDetail.Statistics.TotalQuestions = scoreDetail.QuestionScores.Count;
-        scoreDetail.Statistics.CorrectQuestions = scoreDetail.QuestionScores.Count(q => q.IsCorrect);
-        scoreDetail.Statistics.TotalModules = scoreDetail.ModuleScores.Count;
-        scoreDetail.Statistics.PassedModules = scoreDetail.ModuleScores.Count(m => m.IsPassed);
+        scoreDetail.Statistics.TotalQuestions = benchSuiteResult.FileTypeResults.Count;
+        scoreDetail.Statistics.CorrectQuestions = benchSuiteResult.FileTypeResults.Count(kvp => kvp.Value.IsSuccess);
 
         SetScoreDetail(scoreDetail);
     }
 
-    /// <summary>
-    /// 获取文件类型的显示名称
-    /// </summary>
-    private static string GetFileTypeDisplayName(BenchSuiteFileType fileType)
-    {
-        return fileType switch
-        {
-            BenchSuiteFileType.Word => "Word",
-            BenchSuiteFileType.Excel => "Excel",
-            BenchSuiteFileType.PowerPoint => "PowerPoint",
-            BenchSuiteFileType.Windows => "Windows",
-            BenchSuiteFileType.Internet => "Internet",
-            _ => fileType.ToString()
-        };
-    }
+
 }

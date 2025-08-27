@@ -115,28 +115,7 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
 
-        <!--  模块项样式  -->
-        <Style Selector="Border.module-item">
-            <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondary}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefault}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="12" />
-            <Setter Property="Margin" Value="4" />
-        </Style>
 
-        <!--  模块名称样式  -->
-        <Style Selector="TextBlock.module-name">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="Margin" Value="0,0,0,4" />
-        </Style>
-
-        <!--  模块分数样式  -->
-        <Style Selector="TextBlock.module-score">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondary}" />
-        </Style>
     </Window.Styles>
 
     <!--  主要布局  -->
@@ -213,31 +192,7 @@
                         </Grid>
                     </StackPanel>
 
-                    <!--  模块得分详情  -->
-                    <StackPanel IsVisible="{Binding HasScoreDetail}" Spacing="8">
-                        <TextBlock Classes="info-text" FontWeight="SemiBold" Text="各模块得分" HorizontalAlignment="Center" />
-                        <ItemsControl ItemsSource="{Binding ScoreDetail.ModuleScores}" MaxHeight="200">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Classes="module-item" MinWidth="120">
-                                        <StackPanel>
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                <TextBlock Classes="module-name" Text="{Binding ModuleName}" />
-                                                <TextBlock Text="{Binding StatusIcon}" Foreground="{Binding StatusColor}" Margin="8,0,0,0" />
-                                            </StackPanel>
-                                            <TextBlock Classes="module-score" Text="{Binding AchievedScore, StringFormat='{}{0:F1}分'}" HorizontalAlignment="Center" />
-                                            <TextBlock Classes="module-score" Text="{Binding ScorePercentage, StringFormat='({0:F1}%)'}" HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
+
                 </StackPanel>
 
                 <!--  用时信息  -->

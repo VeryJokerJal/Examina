@@ -42,55 +42,9 @@ public static class ExamScoreDetailTest
                 PassThreshold = 60
             };
 
-            // 添加模块得分
-            scoreDetail.ModuleScores.Add(new ModuleScoreDetail
-            {
-                ModuleId = "Word",
-                ModuleName = "Word",
-                TotalScore = 40,
-                AchievedScore = 35,
-                IsPassed = true,
-                QuestionCount = 1,
-                CorrectQuestionCount = 1
-            });
-
-            scoreDetail.ModuleScores.Add(new ModuleScoreDetail
-            {
-                ModuleId = "Excel",
-                ModuleName = "Excel",
-                TotalScore = 60,
-                AchievedScore = 50,
-                IsPassed = true,
-                QuestionCount = 1,
-                CorrectQuestionCount = 1
-            });
-
-            // 添加题目得分
-            scoreDetail.QuestionScores.Add(new QuestionScoreDetail
-            {
-                QuestionId = "Q1",
-                QuestionTitle = "Word操作题",
-                ModuleName = "Word",
-                TotalScore = 40,
-                AchievedScore = 35,
-                IsCorrect = true
-            });
-
-            scoreDetail.QuestionScores.Add(new QuestionScoreDetail
-            {
-                QuestionId = "Q2",
-                QuestionTitle = "Excel操作题",
-                ModuleName = "Excel",
-                TotalScore = 60,
-                AchievedScore = 50,
-                IsCorrect = true
-            });
-
             // 更新统计信息
-            scoreDetail.Statistics.TotalQuestions = scoreDetail.QuestionScores.Count;
-            scoreDetail.Statistics.CorrectQuestions = scoreDetail.QuestionScores.Count(q => q.IsCorrect);
-            scoreDetail.Statistics.TotalModules = scoreDetail.ModuleScores.Count;
-            scoreDetail.Statistics.PassedModules = scoreDetail.ModuleScores.Count(m => m.IsPassed);
+            scoreDetail.Statistics.TotalQuestions = 2;
+            scoreDetail.Statistics.CorrectQuestions = 2;
 
             // 验证计算属性
             Console.WriteLine($"总分: {scoreDetail.TotalScore}");
@@ -100,8 +54,6 @@ public static class ExamScoreDetailTest
             Console.WriteLine($"等级: {scoreDetail.Grade}");
             Console.WriteLine($"等级颜色: {scoreDetail.GradeColor}");
             Console.WriteLine($"是否通过: {scoreDetail.IsPassed}");
-            Console.WriteLine($"模块数量: {scoreDetail.Statistics.TotalModules}");
-            Console.WriteLine($"通过模块数量: {scoreDetail.Statistics.PassedModules}");
             Console.WriteLine($"题目数量: {scoreDetail.Statistics.TotalQuestions}");
             Console.WriteLine($"正确题目数量: {scoreDetail.Statistics.CorrectQuestions}");
 
@@ -147,23 +99,7 @@ public static class ExamScoreDetailTest
                 PassThreshold = 60
             };
 
-            scoreDetail.ModuleScores.Add(new ModuleScoreDetail
-            {
-                ModuleId = "Word",
-                ModuleName = "Word",
-                TotalScore = 40,
-                AchievedScore = 35,
-                IsPassed = true
-            });
 
-            scoreDetail.ModuleScores.Add(new ModuleScoreDetail
-            {
-                ModuleId = "Excel",
-                ModuleName = "Excel",
-                TotalScore = 60,
-                AchievedScore = 50,
-                IsPassed = true
-            });
 
             // 设置详细分数信息
             viewModel.SetScoreDetail(scoreDetail);
@@ -243,16 +179,8 @@ public static class ExamScoreDetailTest
             Console.WriteLine($"总分: {viewModel.ScoreDetail?.TotalScore}");
             Console.WriteLine($"得分: {viewModel.ScoreDetail?.AchievedScore}");
             Console.WriteLine($"是否通过: {viewModel.ScoreDetail?.IsPassed}");
-            Console.WriteLine($"模块数量: {viewModel.ScoreDetail?.ModuleScores.Count}");
-            Console.WriteLine($"题目数量: {viewModel.ScoreDetail?.QuestionScores.Count}");
-
-            if (viewModel.ScoreDetail != null)
-            {
-                foreach (ModuleScoreDetail module in viewModel.ScoreDetail.ModuleScores)
-                {
-                    Console.WriteLine($"模块 {module.ModuleName}: {module.AchievedScore}/{module.TotalScore} ({module.ScorePercentage:F1}%) - {(module.IsPassed ? "通过" : "未通过")}");
-                }
-            }
+            Console.WriteLine($"题目数量: {viewModel.ScoreDetail?.Statistics.TotalQuestions}");
+            Console.WriteLine($"正确题目数量: {viewModel.ScoreDetail?.Statistics.CorrectQuestions}");
 
             Console.WriteLine("✓ BenchSuite结果转换测试通过");
         }
