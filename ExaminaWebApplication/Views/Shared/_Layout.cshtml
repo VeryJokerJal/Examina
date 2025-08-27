@@ -42,6 +42,21 @@
             border-radius: var(--border-radius-md);
             box-shadow: 0 8px 32px var(--glass-shadow);
         }
+
+        /* Active navigation item highlighting */
+        .glass-navbar .nav-link.active,
+        .glass-dropdown-item.active {
+            background: rgba(102, 126, 234, 0.2) !important;
+            color: rgba(0, 0, 0, 0.9) !important;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .glass-navbar .nav-link.active:hover,
+        .glass-dropdown-item.active:hover {
+            background: rgba(102, 126, 234, 0.25) !important;
+            transform: none;
+        }
     </style>
 
     @await RenderSectionAsync("Styles", required: false)
@@ -157,6 +172,21 @@
                                         </a></li>
                                         <li><a class="dropdown-item glass-dropdown-item" asp-controller="UserImportManagement" asp-action="Index">
                                             <i class="bi bi-cloud-upload me-2"></i>用户导入管理
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+
+                                        <!-- 系统配置管理 -->
+                                        <li><h6 class="dropdown-header">
+                                            <i class="bi bi-gear-fill me-1"></i>系统配置
+                                        </h6></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="AdminConfiguration" asp-action="Index">
+                                            <i class="bi bi-speedometer2 me-2"></i>配置管理
+                                        </a></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="AdminConfiguration" asp-action="DeviceLimit">
+                                            <i class="bi bi-phone me-2"></i>设备限制配置
+                                        </a></li>
+                                        <li><a class="dropdown-item glass-dropdown-item" asp-controller="AdminConfiguration" asp-action="SystemConfigurations">
+                                            <i class="bi bi-list-check me-2"></i>系统配置列表
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>
                                     }
@@ -344,7 +374,66 @@
             // 更新系统时间
             updateSystemTime();
             setInterval(updateSystemTime, 1000);
+
+            // 导航高亮功能
+            highlightActiveNavigation();
         });
+
+        // Function to highlight active navigation items
+        function highlightActiveNavigation() {
+            // Get current controller and action
+            const currentController = '@ViewContext.RouteData.Values["Controller"]';
+            const currentAction = '@ViewContext.RouteData.Values["Action"]';
+
+            // Remove existing active classes
+            document.querySelectorAll('.nav-link, .glass-dropdown-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Highlight based on current controller and action
+            if (currentController === 'AdminConfiguration') {
+                // Highlight the organization management dropdown toggle
+                const orgDropdown = document.querySelector('a[data-bs-toggle="dropdown"] i.bi-building');
+                if (orgDropdown) {
+                    orgDropdown.closest('a').classList.add('active');
+                }
+
+                // Highlight specific configuration management items
+                if (currentAction === 'Index') {
+                    const configLink = document.querySelector('a[asp-controller="AdminConfiguration"][asp-action="Index"]');
+                    if (configLink) configLink.classList.add('active');
+                } else if (currentAction === 'DeviceLimit') {
+                    const deviceLink = document.querySelector('a[asp-controller="AdminConfiguration"][asp-action="DeviceLimit"]');
+                    if (deviceLink) deviceLink.classList.add('active');
+                } else if (currentAction === 'SystemConfigurations' || currentAction === 'EditConfiguration') {
+                    const listLink = document.querySelector('a[asp-controller="AdminConfiguration"][asp-action="SystemConfigurations"]');
+                    if (listLink) listLink.classList.add('active');
+                }
+            }
+
+            // Highlight other main navigation items
+            const controllerMappings = {
+                'Home': '.nav-link[asp-controller="Home"]',
+                'UserManagement': '.glass-dropdown-item[asp-controller="UserManagement"]',
+                'OrganizationManagement': '.glass-dropdown-item[asp-controller="OrganizationManagement"]',
+                'UserImportManagement': '.glass-dropdown-item[asp-controller="UserImportManagement"]',
+                'ExamManagement': '.glass-dropdown-item[asp-controller="ExamManagement"]',
+                'MockExamManagement': '.glass-dropdown-item[asp-controller="MockExamManagement"]'
+            };
+
+            const selector = controllerMappings[currentController];
+            if (selector) {
+                const element = document.querySelector(selector);
+                if (element) {
+                    element.classList.add('active');
+                    // Also highlight the parent dropdown if it exists
+                    const parentDropdown = element.closest('.dropdown')?.querySelector('a[data-bs-toggle="dropdown"]');
+                    if (parentDropdown) {
+                        parentDropdown.classList.add('active');
+                    }
+                }
+            }
+        }
 
         // 用户相关功能
         function showUserProfile() {
