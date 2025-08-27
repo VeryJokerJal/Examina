@@ -133,7 +133,7 @@ public static class ExamMappingService
             Name = module.Name,
             Type = module.Type.ToString(),
             Description = module.Description,
-            Score = module.Score,
+            Score = (int)module.TotalScore, // 使用动态计算的总分而不是固定的Score
             Order = module.Order,
             IsEnabled = module.IsEnabled,
             Questions = module.Questions.Select(ToQuestionDto).ToList()

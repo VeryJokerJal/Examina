@@ -134,7 +134,7 @@ public class ModuleManagementViewModel : ViewModelBase
             Name = moduleName,
             Type = type,
             Description = GetDefaultModuleDescription(type),
-            Score = 20,
+            Score = 0, // 初始分值为0，将根据题目操作点动态计算
             Order = SelectedExam.Modules.Count + 1,
             IsEnabled = true
         };
@@ -341,7 +341,7 @@ public class ModuleManagementViewModel : ViewModelBase
 
         module.Questions.Clear();
         module.Description = GetDefaultModuleDescription(module.Type);
-        module.Score = 20;
+        module.Score = 0; // 重置分值为0，将根据题目操作点动态计算
 
         UpdateOperationPointsCount(module);
     }

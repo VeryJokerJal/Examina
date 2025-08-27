@@ -863,12 +863,12 @@ public class MainWindowViewModel : ViewModelBase
             Duration = 120
         };
 
-        // 添加模块
-        sampleExam.Modules.Add(new ExamModule { Name = "Windows操作", Type = ModuleType.Windows, Score = 20, Order = 1 });
-        sampleExam.Modules.Add(new ExamModule { Name = "C#编程", Type = ModuleType.CSharp, Score = 20, Order = 2 });
-        sampleExam.Modules.Add(new ExamModule { Name = "PowerPoint操作", Type = ModuleType.PowerPoint, Score = 20, Order = 3 });
-        sampleExam.Modules.Add(new ExamModule { Name = "Excel操作", Type = ModuleType.Excel, Score = 20, Order = 4 });
-        sampleExam.Modules.Add(new ExamModule { Name = "Word操作", Type = ModuleType.Word, Score = 20, Order = 5 });
+        // 添加模块（分值将根据题目操作点动态计算）
+        sampleExam.Modules.Add(new ExamModule { Name = "Windows操作", Type = ModuleType.Windows, Score = 0, Order = 1 });
+        sampleExam.Modules.Add(new ExamModule { Name = "C#编程", Type = ModuleType.CSharp, Score = 0, Order = 2 });
+        sampleExam.Modules.Add(new ExamModule { Name = "PowerPoint操作", Type = ModuleType.PowerPoint, Score = 0, Order = 3 });
+        sampleExam.Modules.Add(new ExamModule { Name = "Excel操作", Type = ModuleType.Excel, Score = 0, Order = 4 });
+        sampleExam.Modules.Add(new ExamModule { Name = "Word操作", Type = ModuleType.Word, Score = 0, Order = 5 });
 
         Exams.Add(sampleExam);
         SelectedExam = sampleExam;

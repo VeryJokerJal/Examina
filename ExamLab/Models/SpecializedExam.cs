@@ -113,7 +113,7 @@ public class SpecializedExam : ReactiveObject
                 Name = ModuleTypeName,
                 Type = ModuleType,
                 Description = GetDefaultModuleDescription(),
-                Score = TotalScore,
+                Score = 0, // 初始分值为0，将根据题目操作点动态计算
                 Order = 1,
                 IsEnabled = true
             };
