@@ -209,7 +209,7 @@ public class FileDownloadPreparationViewModel : ViewModelBase
             RelatedId = relatedId;
             StatusMessage = "正在获取文件列表...";
 
-            List<FileDownloadInfo> files = taskType is FileDownloadTaskType.MockExam or FileDownloadTaskType.OnlineExam
+            List<FileDownloadInfo> files = taskType is FileDownloadTaskType.OnlineExam
                 ? await _fileDownloadService.GetExamFilesAsync(relatedId, taskType)
                 : await _fileDownloadService.GetTrainingFilesAsync(relatedId, taskType);
             if (files.Count == 0)

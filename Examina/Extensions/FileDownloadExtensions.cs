@@ -111,7 +111,7 @@ public static class FileDownloadHelper
                 return false;
             }
 
-            List<FileDownloadInfo> files = taskType is FileDownloadTaskType.MockExam or FileDownloadTaskType.OnlineExam
+            List<FileDownloadInfo> files = taskType is FileDownloadTaskType.OnlineExam
                 ? await fileDownloadService.GetExamFilesAsync(relatedId, taskType)
                 : await fileDownloadService.GetTrainingFilesAsync(relatedId, taskType);
             return files.Count > 0;

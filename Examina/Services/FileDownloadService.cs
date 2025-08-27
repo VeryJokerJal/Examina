@@ -81,7 +81,7 @@ public class FileDownloadService : IFileDownloadService
             {
                 FileDownloadTaskType.ComprehensiveTraining => $"/api/fileupload/comprehensive-training/{trainingId}/files",
                 FileDownloadTaskType.SpecializedTraining => $"/api/fileupload/specialized-training/{trainingId}/files",
-                _ => throw new ArgumentException($"不支持的训练类型: {trainingType}")
+                _ => $"/api/fileupload/comprehensive-training/{trainingId}/files"
             };
 
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);

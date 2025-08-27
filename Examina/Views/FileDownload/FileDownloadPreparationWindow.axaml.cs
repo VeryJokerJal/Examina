@@ -1,8 +1,7 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Examina.ViewModels.FileDownload;
 using Examina.Models.FileDownload;
-using System.Threading.Tasks;
+using Examina.ViewModels.FileDownload;
 
 namespace Examina.Views.FileDownload;
 
@@ -11,7 +10,7 @@ namespace Examina.Views.FileDownload;
 /// </summary>
 public partial class FileDownloadPreparationWindow : Window
 {
-    private FileDownloadPreparationViewModel? _viewModel;
+    private readonly FileDownloadPreparationViewModel? _viewModel;
 
     public FileDownloadPreparationWindow()
     {
@@ -22,12 +21,9 @@ public partial class FileDownloadPreparationWindow : Window
     {
         _viewModel = viewModel;
         DataContext = viewModel;
-        
+
         // 监听ViewModel的关闭事件
-        if (_viewModel != null)
-        {
-            _viewModel.CloseCommand.Subscribe(_ => Close());
-        }
+        _ = _viewModel?.CloseCommand.Subscribe(_ => Close());
     }
 
     /// <summary>
@@ -62,7 +58,7 @@ public partial class FileDownloadPreparationWindow : Window
         {
             // 这里可以添加确认对话框
             // 暂时直接取消下载
-            _viewModel.CancelDownloadCommand.Execute().Subscribe();
+            _ = _viewModel.CancelDownloadCommand.Execute().Subscribe();
         }
 
         base.OnClosing(e);
@@ -77,27 +73,27 @@ public partial class FileDownloadPreparationWindow : Window
     /// <param name="relatedId">关联ID</param>
     /// <returns>下载是否成功完成</returns>
     public static async Task<bool> ShowDownloadPreparationAsync(
-        Window? parent, 
-        string taskName, 
-        FileDownloadTaskType taskType, 
+        Window? parent,
+        string taskName,
+        FileDownloadTaskType taskType,
         int relatedId)
     {
         try
         {
             // 从应用程序服务容器获取ViewModel
-            var app = Avalonia.Application.Current as App;
-            var viewModel = app?.GetService<FileDownloadPreparationViewModel>();
-            
+            App? app = Avalonia.Application.Current as App;
+            FileDownloadPreparationViewModel? viewModel = app?.GetService<FileDownloadPreparationViewModel>();
+
             if (viewModel == null)
             {
                 return false;
             }
 
-            var window = new FileDownloadPreparationWindow(viewModel);
-            
+            FileDownloadPreparationWindow window = new(viewModel);
+
             // 初始化下载任务
             await window.InitializeAsync(taskName, taskType, relatedId);
-            
+
             // 如果没有文件需要下载，直接返回成功
             if (viewModel.TotalFileCount == 0)
             {
@@ -112,9 +108,9 @@ public partial class FileDownloadPreparationWindow : Window
             else
             {
                 window.Show();
-                
+
                 // 等待窗口关闭
-                var tcs = new TaskCompletionSource<bool>();
+                TaskCompletionSource<bool> tcs = new();
                 window.Closed += (_, _) => tcs.SetResult(viewModel.IsCompleted && !viewModel.HasError);
                 return await tcs.Task;
             }

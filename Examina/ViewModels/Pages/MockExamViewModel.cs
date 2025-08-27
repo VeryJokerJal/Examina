@@ -348,15 +348,15 @@ public class MockExamViewModel : ViewModelBase
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
-                // 文件预下载准备 - 使用正确的ComprehensiveTrainingId
+                // 文件预下载准备 - 使用MockExam类型但传递ComprehensiveTrainingId
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始文件预下载准备");
 
                 // 从题目中提取ComprehensiveTrainingId
                 int? comprehensiveTrainingId = GetComprehensiveTrainingIdFromMockExam(mockExam);
                 if (comprehensiveTrainingId.HasValue)
                 {
-                    bool filesReady = await desktop.MainWindow.PrepareFilesForComprehensiveTrainingAsync(
-                        comprehensiveTrainingId.Value, $"模拟考试: {mockExam.Name}");
+                    bool filesReady = await desktop.MainWindow.PrepareFilesForMockExamAsync(
+                        comprehensiveTrainingId.Value, mockExam.Name);
                     if (!filesReady)
                     {
                         ErrorMessage = "文件准备失败，无法开始模拟考试。请检查网络连接或联系管理员。";
