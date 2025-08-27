@@ -1,6 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 using Examina.Models.Api;
 using Examina.Models.MockExam;
 
@@ -41,33 +39,13 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
-
+            _ = await SetAuthenticationHeaderAsync();
             string apiUrl = BuildApiUrl("mock-exams/quick-start");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送快速开始模拟考试请求到 {apiUrl}");
 
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应内容: {responseContent}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                StudentMockExamDto? mockExam = JsonSerializer.Deserialize<StudentMockExamDto>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功快速开始模拟考试，ID: {mockExam?.Id}");
-                return mockExam;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试失败");
-                System.Diagnostics.Debug.WriteLine($"  状态码: {response.StatusCode}");
-                System.Diagnostics.Debug.WriteLine($"  请求URL: {apiUrl}");
-                System.Diagnostics.Debug.WriteLine($"  响应内容: {responseContent}");
-                return null;
-            }
+            return response.IsSuccessStatusCode ? JsonSerializer.Deserialize<StudentMockExamDto>(responseContent, JsonOptions) : null;
         }
         catch (Exception ex)
         {
@@ -84,33 +62,15 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
-
+            _ = await SetAuthenticationHeaderAsync();
             string apiUrl = BuildApiUrl("mock-exams/quick-start");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送快速开始模拟考试请求（综合训练格式）到 {apiUrl}");
 
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应内容长度: {responseContent.Length}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                MockExamComprehensiveTrainingDto? mockExam = JsonSerializer.Deserialize<MockExamComprehensiveTrainingDto>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功快速开始模拟考试（综合训练格式），ID: {mockExam?.Id}");
-                return mockExam;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 快速开始模拟考试（综合训练格式）失败");
-                System.Diagnostics.Debug.WriteLine($"  状态码: {response.StatusCode}");
-                System.Diagnostics.Debug.WriteLine($"  请求URL: {apiUrl}");
-                System.Diagnostics.Debug.WriteLine($"  响应内容: {responseContent}");
-                return null;
-            }
+            return response.IsSuccessStatusCode
+                ? JsonSerializer.Deserialize<MockExamComprehensiveTrainingDto>(responseContent, JsonOptions)
+                : null;
         }
         catch (Exception ex)
         {
@@ -126,33 +86,16 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl("mock-exams");
             string json = JsonSerializer.Serialize(request, JsonOptions);
             StringContent content = new(json, Encoding.UTF8, "application/json");
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送创建模拟考试请求到 {apiUrl}");
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 请求内容: {json}");
-
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应内容: {responseContent}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                StudentMockExamDto? mockExam = JsonSerializer.Deserialize<StudentMockExamDto>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功创建模拟考试，ID: {mockExam?.Id}");
-                return mockExam;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 创建模拟考试失败，状态码: {response.StatusCode}");
-                return null;
-            }
+            return response.IsSuccessStatusCode ? JsonSerializer.Deserialize<StudentMockExamDto>(responseContent, JsonOptions) : null;
         }
         catch (Exception ex)
         {
@@ -168,34 +111,23 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头并检查是否成功
             bool authSuccess = await SetAuthenticationHeaderAsync();
             if (!authSuccess)
             {
-                System.Diagnostics.Debug.WriteLine("StudentMockExamService: 认证失败，跳过API调用");
-                return new List<StudentMockExamDto>();
+                return [];
             }
 
             string apiUrl = BuildApiUrl($"mock-exams?pageNumber={pageNumber}&pageSize={pageSize}");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送获取模拟考试列表请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
             string responseContent = await response.Content.ReadAsStringAsync();
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
 
             if (response.IsSuccessStatusCode)
             {
                 List<StudentMockExamDto>? mockExams = JsonSerializer.Deserialize<List<StudentMockExamDto>>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功获取模拟考试列表，数量: {mockExams?.Count ?? 0}");
                 return mockExams ?? [];
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取模拟考试列表失败，状态码: {response.StatusCode}");
-                return [];
-            }
+
+            return [];
         }
         catch (Exception ex)
         {
@@ -211,29 +143,13 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送获取模拟考试详情请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                StudentMockExamDto? mockExam = JsonSerializer.Deserialize<StudentMockExamDto>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功获取模拟考试详情，ID: {mockExam?.Id}");
-                return mockExam;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取模拟考试详情失败，状态码: {response.StatusCode}");
-                return null;
-            }
+            return response.IsSuccessStatusCode ? JsonSerializer.Deserialize<StudentMockExamDto>(responseContent, JsonOptions) : null;
         }
         catch (Exception ex)
         {
@@ -249,20 +165,12 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/start");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送开始模拟考试请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-
-            bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 开始模拟考试结果: {success}");
-            return success;
+            return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
@@ -278,20 +186,12 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/complete");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送完成模拟考试请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-
-            bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 完成模拟考试结果: {success}");
-            return success;
+            return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
@@ -307,18 +207,11 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
-            // 提交前进行权限预检查
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交前进行权限预检查，模拟考试ID: {mockExamId}");
             bool hasAccess = await HasAccessToMockExamAsync(mockExamId);
-
             if (!hasAccess)
             {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 权限预检查失败，模拟考试ID: {mockExamId}");
-
-                // 获取详细诊断信息
                 await DiagnoseMockExamAccessAsync(mockExamId);
 
                 return new MockExamSubmissionResponseDto
@@ -330,42 +223,25 @@ public class StudentMockExamService : IStudentMockExamService
                 };
             }
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 权限预检查通过，继续提交，模拟考试ID: {mockExamId}");
-
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/submit");
-
-            // 如果提供了实际用时，添加到查询参数中
             if (actualDurationSeconds.HasValue)
             {
                 apiUrl += $"?actualDurationSeconds={actualDurationSeconds.Value}";
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 传递客户端实际用时: {actualDurationSeconds.Value}秒");
             }
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送提交模拟考试请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, null);
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
 
             if (response.IsSuccessStatusCode)
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应内容: {responseContent}");
-
-                MockExamSubmissionResponseDto? result = JsonSerializer.Deserialize<MockExamSubmissionResponseDto>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试成功，时间状态: {result?.TimeStatusDescription}");
-                return result;
+                return JsonSerializer.Deserialize<MockExamSubmissionResponseDto>(responseContent, JsonOptions);
             }
             else
             {
                 string errorContent = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试失败，错误内容: {errorContent}");
-
-                // 尝试解析错误响应
                 try
                 {
-                    MockExamSubmissionResponseDto? errorResult = JsonSerializer.Deserialize<MockExamSubmissionResponseDto>(errorContent, JsonOptions);
-                    return errorResult;
+                    return JsonSerializer.Deserialize<MockExamSubmissionResponseDto>(errorContent, JsonOptions);
                 }
                 catch
                 {
@@ -399,34 +275,20 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/score");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送提交模拟考试成绩请求到 {apiUrl}");
-
             string jsonContent = JsonSerializer.Serialize(scoreRequest, JsonOptions);
             StringContent content = new(jsonContent, Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-
-            bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交模拟考试成绩结果: {success}");
-
-            if (success)
+            if (!response.IsSuccessStatusCode)
             {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功提交模拟考试成绩，得分: {scoreRequest.Score}/{scoreRequest.MaxScore}");
-            }
-            else
-            {
-                string responseContent = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 提交成绩失败，响应内容: {responseContent}");
+                _ = await response.Content.ReadAsStringAsync();
             }
 
-            return success;
+            return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
@@ -442,29 +304,20 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/completions?pageNumber={pageNumber}&pageSize={pageSize}");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送获取模拟考试成绩列表请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
 
             if (response.IsSuccessStatusCode)
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
                 List<MockExamCompletionDto>? completions = JsonSerializer.Deserialize<List<MockExamCompletionDto>>(responseContent, JsonOptions);
-
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功获取模拟考试成绩列表，数量: {completions?.Count ?? 0}");
                 return completions ?? [];
             }
             else
             {
-                string responseContent = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取成绩列表失败，响应内容: {responseContent}");
+                _ = await response.Content.ReadAsStringAsync();
                 return [];
             }
         }
@@ -482,20 +335,12 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送删除模拟考试请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.DeleteAsync(apiUrl);
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-
-            bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 删除模拟考试结果: {success}");
-            return success;
+            return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
@@ -511,29 +356,13 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl("mock-exams/count");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送获取模拟考试总数请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                int count = JsonSerializer.Deserialize<int>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功获取模拟考试总数: {count}");
-                return count;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取模拟考试总数失败，状态码: {response.StatusCode}");
-                return 0;
-            }
+            return response.IsSuccessStatusCode ? JsonSerializer.Deserialize<int>(responseContent, JsonOptions) : 0;
         }
         catch (Exception ex)
         {
@@ -549,29 +378,13 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl("mock-exams/completed/count");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送获取已完成模拟考试数量请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                int count = JsonSerializer.Deserialize<int>(responseContent, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 成功获取已完成模拟考试数量: {count}");
-                return count;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 获取已完成模拟考试数量失败，状态码: {response.StatusCode}");
-                return 0;
-            }
+            return response.IsSuccessStatusCode ? JsonSerializer.Deserialize<int>(responseContent, JsonOptions) : 0;
         }
         catch (Exception ex)
         {
@@ -587,30 +400,19 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/access");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送检查模拟考试访问权限请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
             string responseContent = await response.Content.ReadAsStringAsync();
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 响应状态码: {response.StatusCode}");
 
             if (response.IsSuccessStatusCode)
             {
                 JsonDocument doc = JsonDocument.Parse(responseContent);
-                bool hasAccess = doc.RootElement.GetProperty("hasAccess").GetBoolean();
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 模拟考试访问权限检查结果: {hasAccess}");
-                return hasAccess;
+                return doc.RootElement.GetProperty("hasAccess").GetBoolean();
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 检查模拟考试访问权限失败，状态码: {response.StatusCode}");
-                return false;
-            }
+
+            return false;
         }
         catch (Exception ex)
         {
@@ -626,26 +428,11 @@ public class StudentMockExamService : IStudentMockExamService
     {
         try
         {
-            // 设置认证头
-            await SetAuthenticationHeaderAsync();
+            _ = await SetAuthenticationHeaderAsync();
 
             string apiUrl = BuildApiUrl($"mock-exams/{mockExamId}/diagnose");
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 发送诊断模拟考试权限请求到 {apiUrl}");
-
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
-            string responseContent = await response.Content.ReadAsStringAsync();
-
-            System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 诊断响应状态码: {response.StatusCode}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 诊断信息: {responseContent}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"StudentMockExamService: 诊断失败，响应内容: {responseContent}");
-            }
+            _ = await response.Content.ReadAsStringAsync();
         }
         catch (Exception ex)
         {
@@ -664,12 +451,10 @@ public class StudentMockExamService : IStudentMockExamService
             if (!string.IsNullOrEmpty(accessToken))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                System.Diagnostics.Debug.WriteLine("StudentMockExamService: 已设置JWT认证头");
                 return true;
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("StudentMockExamService: 警告 - 无法获取访问令牌，可能认证尚未完成");
                 _httpClient.DefaultRequestHeaders.Authorization = null;
                 return false;
             }
@@ -688,8 +473,6 @@ public class StudentMockExamService : IStudentMockExamService
     private string BuildApiUrl(string endpoint)
     {
         string baseUrl = _configurationService.ApiBaseUrl.TrimEnd('/');
-        // 使用学生API端点，现在baseUrl不包含/api，需要添加完整路径
-        // 模拟考试功能在 /api/student/mock-exams/ 路径下
         return $"{baseUrl}/api/student/{endpoint}";
     }
 }

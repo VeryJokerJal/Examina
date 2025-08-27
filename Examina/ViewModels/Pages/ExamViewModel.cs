@@ -321,7 +321,6 @@ public class ExamViewModel : ViewModelBase
         {
             // 用户没有完整权限，显示解锁提示
             ErrorMessage = "您需要解锁权限才能开始考试。请加入学校组织或联系管理员进行解锁。";
-            System.Diagnostics.Debug.WriteLine("用户尝试开始考试但没有完整权限");
             return;
         }
 
@@ -373,8 +372,6 @@ public class ExamViewModel : ViewModelBase
     {
         UserInfo? currentUser = _authenticationService?.CurrentUser;
         HasFullAccess = currentUser?.HasFullAccess ?? false;
-
-        System.Diagnostics.Debug.WriteLine($"ExamViewModel: 用户权限状态更新 - HasFullAccess: {HasFullAccess}");
     }
 
     /// <summary>
@@ -426,8 +423,6 @@ public class ExamViewModel : ViewModelBase
 
                 // 启动考试工具栏
                 StartExamToolbar(SelectedExam, attemptType);
-
-                System.Diagnostics.Debug.WriteLine($"开始考试尝试: {attemptType}, ID: {attempt.Id}, 状态: {ExamStatusMessage}");
             }
             else
             {
@@ -578,10 +573,7 @@ public class ExamViewModel : ViewModelBase
                 if (totalQuestions == 0)
                 {
                     totalQuestions = exam.Subjects.Sum(s => s.Questions.Count) + exam.Modules.Sum(m => m.Questions.Count);
-                    System.Diagnostics.Debug.WriteLine($"ExamViewModel: 从Questions集合计算题目数: {totalQuestions}");
                 }
-
-                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试题目统计 - 科目数: {exam.Subjects.Count}, 模块数: {exam.Modules.Count}, 总题目数: {totalQuestions}");
 
                 // 设置考试信息
                 toolbarViewModel.SetExamInfo(
@@ -611,15 +603,11 @@ public class ExamViewModel : ViewModelBase
                 examToolbar.ExamAutoSubmitted += OnExamAutoSubmitted;
                 examToolbar.ExamManualSubmitted += OnExamManualSubmitted;
 
-                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试工具栏已配置 - 考试ID: {exam.Id}, 题目数: {totalQuestions}, 时长: {exam.DurationMinutes}分钟, 类型: {attemptType}");
-
                 // 显示工具栏窗口
                 examToolbar.Show();
-                System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试工具栏窗口已显示");
 
                 // 开始考试（启动倒计时器并设置状态为进行中）
                 toolbarViewModel.StartExam();
-                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试已开始，剩余时间: {toolbarViewModel.RemainingTimeSeconds}秒, 状态: {toolbarViewModel.CurrentExamStatus}");
             }
             else
             {
@@ -657,8 +645,6 @@ public class ExamViewModel : ViewModelBase
                     CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
                     HasActiveExam = false;
                     ExamStatusMessage = "考试已完成 - 自动提交";
-
-                    System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试自动提交完成");
 
                     // 显示考试结果窗口
                     await ShowExamResultAsync(CurrentExamAttempt, true);
@@ -704,8 +690,6 @@ public class ExamViewModel : ViewModelBase
                     CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
                     HasActiveExam = false;
                     ExamStatusMessage = "考试已完成 - 手动提交";
-
-                    System.Diagnostics.Debug.WriteLine("ExamViewModel: 考试手动提交完成");
 
                     // 显示考试结果窗口
                     await ShowExamResultAsync(CurrentExamAttempt, true);
@@ -768,7 +752,6 @@ public class ExamViewModel : ViewModelBase
             if (_currentToolbarViewModel.CurrentExamStatus != toolbarStatus)
             {
                 _currentToolbarViewModel.CurrentExamStatus = toolbarStatus;
-                System.Diagnostics.Debug.WriteLine($"ExamViewModel: 工具栏状态已同步 - {toolbarStatus}");
             }
         }
         catch (Exception ex)
@@ -823,7 +806,7 @@ public class ExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"ExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
 
             // 显示全屏考试结果窗口
-            await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+            _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
                 examName,
                 examType,
                 isSuccessful,
@@ -837,8 +820,6 @@ public class ExamViewModel : ViewModelBase
                 true, // showContinue
                 false // showClose - 只显示确认按钮
             );
-
-            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 全屏考试结果窗口已显示并关闭 - {examName}");
         }
         catch (Exception ex)
         {

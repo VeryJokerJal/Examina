@@ -363,6 +363,59 @@ public class EnhancedExamToolbarService : IDisposable
         return false;
     }
 
+    /// <summary>
+    /// 执行本地BenchSuite评分（仅评分，不提交到服务器）
+    /// </summary>
+    public async Task<BenchSuiteScoringResult?> PerformLocalScoringAsync(ExamType examType, int examId, int studentId)
+    {
+        try
+        {
+            _logger.LogInformation("开始本地BenchSuite评分，考试类型: {ExamType}, 考试ID: {ExamId}, 学生ID: {StudentId}",
+                examType, examId, studentId);
+
+            // 检查BenchSuite服务是否可用
+            bool serviceAvailable = await _benchSuiteIntegrationService.IsServiceAvailableAsync();
+            if (!serviceAvailable)
+            {
+                _logger.LogWarning("BenchSuite服务不可用，跳过本地评分");
+                return null;
+            }
+
+            // 确保考试目录结构存在
+            BenchSuiteDirectoryValidationResult directoryResult = await _benchSuiteDirectoryService.EnsureExamDirectoryStructureAsync(examType, examId);
+            if (!directoryResult.IsValid)
+            {
+                _logger.LogWarning("BenchSuite考试目录结构验证失败: {ErrorMessage}", directoryResult.ErrorMessage);
+                return null;
+            }
+
+            // 构建评分请求
+            BenchSuiteScoringRequest request = new()
+            {
+                ExamId = examId,
+                ExamType = examType,
+                StudentUserId = studentId,
+                BasePath = _benchSuiteDirectoryService.GetBasePath()
+            };
+
+            // 扫描考试文件
+            await ScanExamFilesAsync(request);
+
+            // 执行评分（仅本地评分，不提交）
+            BenchSuiteScoringResult result = await _benchSuiteIntegrationService.ScoreExamAsync(request);
+
+            _logger.LogInformation("本地BenchSuite评分完成，成功: {IsSuccess}, 总分: {TotalScore}, 得分: {AchievedScore}",
+                result.IsSuccess, result.TotalScore, result.AchievedScore);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "本地BenchSuite评分过程中发生异常");
+            return null;
+        }
+    }
+
     #region 私有方法
 
     /// <summary>

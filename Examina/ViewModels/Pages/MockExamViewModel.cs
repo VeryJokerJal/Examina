@@ -622,6 +622,36 @@ public class MockExamViewModel : ViewModelBase
                     case ExamType.FormalExam:
                         submitResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
                         break;
+                    case ExamType.Practice:
+                        // 练习模式：仅在本地处理，不向API提交
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 练习模式完成，考试ID: {examId}，不向API提交结果");
+
+                        // 执行本地BenchSuite评分（如果可用）
+                        if (_authenticationService?.CurrentUser != null)
+                        {
+                            if (int.TryParse(_authenticationService.CurrentUser.Id, out int studentId))
+                            {
+                                try
+                                {
+                                    // 仅进行本地评分，不提交到服务器
+                                    Models.BenchSuite.BenchSuiteScoringResult? localScoringResult =
+                                        await _enhancedExamToolbarService.PerformLocalScoringAsync(ExamType.Practice, examId, studentId);
+
+                                    if (localScoringResult != null)
+                                    {
+                                        actualDurationSeconds = (int)(localScoringResult.ElapsedMilliseconds / 1000);
+                                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 练习模式本地评分完成，得分: {localScoringResult.AchievedScore}/{localScoringResult.TotalScore}");
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 练习模式本地评分失败: {ex.Message}");
+                                }
+                            }
+                        }
+
+                        submitResult = true; // 练习模式总是返回成功，因为不需要实际提交
+                        break;
                     case ExamType.ComprehensiveTraining:
                         submitResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingAsync(examId);
                         break;
@@ -683,6 +713,12 @@ public class MockExamViewModel : ViewModelBase
                         // 正式考试提交（需要实现）
                         System.Diagnostics.Debug.WriteLine("MockExamViewModel: 正式考试提交功能待实现");
                         submitResult = true; // 临时返回成功
+                        break;
+
+                    case ExamType.Practice:
+                        // 练习模式：仅在本地处理，不向API提交
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 练习模式完成，考试ID: {examId}，不向API提交结果");
+                        submitResult = true; // 练习模式总是返回成功，因为不需要实际提交
                         break;
 
                     case ExamType.ComprehensiveTraining:

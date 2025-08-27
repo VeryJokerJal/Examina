@@ -63,7 +63,6 @@ public class LoadingViewModel : ViewModelBase
             // 首先检查是否已经有有效的认证状态
             if (_authenticationService.IsAuthenticated && _authenticationService.CurrentUser != null)
             {
-                System.Diagnostics.Debug.WriteLine("LoadingViewModel: 检测到已有有效认证状态，直接进入主界面");
                 UpdateStatus("用户已登录，正在进入主界面...", 100);
                 await Task.Delay(500);
                 NavigateToMainWindow();
@@ -208,15 +207,12 @@ public class LoadingViewModel : ViewModelBase
                     // 先初始化MainViewModel，再设置DataContext
                     try
                     {
-                        System.Diagnostics.Debug.WriteLine("开始初始化MainViewModel...");
                         await mainViewModel.InitializeAsync();
-                        System.Diagnostics.Debug.WriteLine("MainViewModel初始化完成");
 
                         // 初始化完成后再设置DataContext，避免UI绑定错误
                         if (mainWindow.Content is Views.MainView mainView)
                         {
                             mainView.DataContext = mainViewModel;
-                            System.Diagnostics.Debug.WriteLine("MainView DataContext已设置");
                         }
                     }
                     catch (Exception ex)

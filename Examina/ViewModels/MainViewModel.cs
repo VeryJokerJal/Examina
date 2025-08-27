@@ -46,11 +46,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     /// </summary>
     public ViewModelBase? CurrentPageViewModel
     {
-        get => _currentPageViewModel;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _currentPageViewModel, value);
-        }
+        get => _currentPageViewModel; set => this.RaiseAndSetIfChanged(ref _currentPageViewModel, value);
     }
     private ViewModelBase? _currentPageViewModel;
 
@@ -286,7 +282,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 InitializeFooterNavigation();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 加载用户信息时发生异常，静默处理
         }
@@ -345,8 +341,6 @@ public class MainViewModel : ViewModelBase, IDisposable
             {
                 InitializeFooterNavigation();
             }
-
-            System.Diagnostics.Debug.WriteLine($"MainViewModel: 用户信息已更新 - Username: {userInfo?.Username ?? "null"}, HasFullAccess: {currentHasFullAccess}");
         }
         catch (Exception ex)
         {
@@ -369,7 +363,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 await overviewViewModel.RefreshStatisticsAsync();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 处理概览页面刷新请求异常，静默处理
         }
@@ -391,7 +385,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 await Task.Run(() => leaderboardViewModel.RefreshLeaderboardCommand?.Execute(null));
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 处理排行榜页面刷新请求异常，静默处理
         }
@@ -444,7 +438,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 _ => CreateOverviewViewModel()
             };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             CurrentPageViewModel = new OverviewViewModel(); // 回退到概览页面
         }
@@ -474,16 +468,12 @@ public class MainViewModel : ViewModelBase, IDisposable
             {
                 return new OverviewViewModel(comprehensiveTrainingService, studentExamService);
             }
-            else if (comprehensiveTrainingService != null)
-            {
-                return new OverviewViewModel(comprehensiveTrainingService);
-            }
             else
             {
-                return new OverviewViewModel();
+                return comprehensiveTrainingService != null ? new OverviewViewModel(comprehensiveTrainingService) : new OverviewViewModel();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return new OverviewViewModel();
         }
@@ -513,7 +503,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建SchoolBindingViewModel时发生异常，静默处理
         }
@@ -541,7 +531,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 return new ProfileViewModel(_authenticationService);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建ProfileViewModel时发生异常，静默处理
         }
@@ -576,7 +566,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建ExamListViewModel时发生异常，静默处理
         }
@@ -600,7 +590,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 return new UnifiedExamViewModel(examService, _authenticationService, examAttemptService, this);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建UnifiedExamViewModel时发生异常，静默处理
         }
@@ -631,7 +621,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 return new ComprehensiveTrainingListViewModel(trainingService, _authenticationService);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建ComprehensiveTrainingListViewModel时发生异常，静默处理
         }
@@ -661,7 +651,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 return newViewModel;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建SpecializedTrainingListViewModel时发生异常，静默处理
         }
@@ -692,7 +682,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 return new MockExamViewModel(mockExamService, _authenticationService);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建MockExamViewModel时发生异常，静默处理
         }
@@ -709,7 +699,7 @@ public class MainViewModel : ViewModelBase, IDisposable
         {
             return new PracticeViewModel(this);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 如果创建失败，返回无参构造的实例
             return new PracticeViewModel();
@@ -730,19 +720,16 @@ public class MainViewModel : ViewModelBase, IDisposable
             }
 
             // 使用窗口管理服务导航回登录页面
-            if (_windowManagerService != null)
-            {
-                _windowManagerService.NavigateToLogin();
-            }
+            _windowManagerService?.NavigateToLogin();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 即使出现错误，也尝试导航到登录窗口
             try
             {
                 _windowManagerService?.NavigateToLogin();
             }
-            catch (Exception navEx)
+            catch (Exception)
             {
                 // 导航到登录窗口失败，静默处理
             }
@@ -766,7 +753,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             // 如果DI容器无法提供，手动创建
             return new ExamViewModel(_authenticationService);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 创建ExamViewModel时发生异常，静默处理
         }
@@ -816,15 +803,9 @@ public class MainViewModel : ViewModelBase, IDisposable
                 IStudentExamService? studentExamService = ((App)Application.Current!).GetService<IStudentExamService>();
                 IStudentMockExamService? studentMockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
 
-                LeaderboardViewModel viewModel;
-                if (rankingService != null && comprehensiveTrainingService != null && studentExamService != null)
-                {
-                    viewModel = new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
-                }
-                else
-                {
-                    viewModel = new LeaderboardViewModel();
-                }
+                LeaderboardViewModel viewModel = rankingService != null && comprehensiveTrainingService != null && studentExamService != null
+                    ? new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService)
+                    : new LeaderboardViewModel();
 
                 // 如果指定了排行榜类型，设置对应的类型
                 if (!string.IsNullOrEmpty(rankingTypeId))
@@ -840,7 +821,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 return viewModel;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 尝试手动获取服务创建回退实例
             try
@@ -850,22 +831,15 @@ public class MainViewModel : ViewModelBase, IDisposable
                 IStudentExamService? studentExamService = ((App)Application.Current!).GetService<IStudentExamService>();
                 IStudentMockExamService? studentMockExamService = ((App)Application.Current!).GetService<IStudentMockExamService>();
 
-                LeaderboardViewModel fallbackViewModel;
-                if (rankingService != null && comprehensiveTrainingService != null && studentExamService != null)
-                {
-                    fallbackViewModel = new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
-                }
-                else
-                {
-                    fallbackViewModel = new LeaderboardViewModel();
-                }
-
+                LeaderboardViewModel fallbackViewModel = rankingService != null && comprehensiveTrainingService != null && studentExamService != null
+                    ? new LeaderboardViewModel(rankingService, null, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService)
+                    : new LeaderboardViewModel();
                 fallbackViewModel.LoadInitialData(); // 确保回退实例也能加载数据
                 return fallbackViewModel;
             }
-            catch (Exception fallbackEx)
+            catch (Exception)
             {
-                LeaderboardViewModel defaultViewModel = new LeaderboardViewModel();
+                LeaderboardViewModel defaultViewModel = new();
                 defaultViewModel.LoadInitialData();
                 return defaultViewModel;
             }

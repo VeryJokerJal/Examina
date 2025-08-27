@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Text.Json;
 using Examina.Models;
 using Examina.Models.Exam;
 
@@ -56,7 +55,6 @@ public class StudentExamService : IStudentExamService
                 return exams ?? [];
             }
 
-            System.Diagnostics.Debug.WriteLine($"获取考试列表失败: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
             return [];
         }
         catch (Exception ex)
@@ -73,7 +71,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/exams/{examId}";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -84,14 +82,7 @@ public class StudentExamService : IStudentExamService
                 return JsonSerializer.Deserialize<StudentExamDto>(content, JsonOptions);
             }
 
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                System.Diagnostics.Debug.WriteLine($"考试不存在或无权限访问: {examId}");
-                return null;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"获取考试详情失败: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-            return null;
+            return response.StatusCode == System.Net.HttpStatusCode.NotFound ? null : null;
         }
         catch (Exception ex)
         {
@@ -107,7 +98,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/exams/{examId}/access";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -134,7 +125,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = "/api/student/exams/count";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -161,36 +152,18 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/exams/category/{(int)examCategory}?pageNumber={pageNumber}&pageSize={pageSize}";
-            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 调用API: {endpoint}");
-            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 考试类型: {examCategory} (值: {(int)examCategory})");
-
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
-            System.Diagnostics.Debug.WriteLine($"[StudentExamService] API响应状态: {response.StatusCode}");
 
             if (response.IsSuccessStatusCode)
             {
                 string content = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"[StudentExamService] API响应内容: {content}");
-
                 List<StudentExamDto>? exams = JsonSerializer.Deserialize<List<StudentExamDto>>(content, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"[StudentExamService] 反序列化结果: {exams?.Count ?? 0} 个考试");
-
-                if (exams != null && exams.Count > 0)
-                {
-                    foreach (StudentExamDto exam in exams)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[StudentExamService] 考试: {exam.Name}, 状态: {exam.Status}, 开始时间: {exam.StartTime}, 结束时间: {exam.EndTime}");
-                    }
-                }
-
                 return exams ?? [];
             }
 
-            string errorContent = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"[StudentExamService] 按类型获取考试列表失败: {response.StatusCode} - {errorContent}");
             return [];
         }
         catch (Exception ex)
@@ -208,7 +181,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/exams/category/{(int)examCategory}/count";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -233,21 +206,13 @@ public class StudentExamService : IStudentExamService
     /// </summary>
     private async Task<bool> EnsureAuthenticatedAsync()
     {
-        System.Diagnostics.Debug.WriteLine($"StudentExamService: 检查认证状态，IsAuthenticated: {_authenticationService.IsAuthenticated}");
-
-        // 获取当前访问令牌（这会等待认证完成）
         string? accessToken = await _authenticationService.GetAccessTokenAsync();
         if (string.IsNullOrEmpty(accessToken))
         {
-            System.Diagnostics.Debug.WriteLine("StudentExamService: 无法获取访问令牌，可能认证尚未完成");
             return false;
         }
 
-        System.Diagnostics.Debug.WriteLine($"StudentExamService: 成功获取访问令牌，长度: {accessToken.Length}");
-
-        // 设置Authorization头
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        System.Diagnostics.Debug.WriteLine("StudentExamService: 已设置Authorization头");
         return true;
     }
 
@@ -258,7 +223,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = "/api/student/special-practices/progress";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -270,7 +235,6 @@ public class StudentExamService : IStudentExamService
                 return progress ?? new SpecialPracticeProgressDto();
             }
 
-            System.Diagnostics.Debug.WriteLine($"获取专项练习进度失败，状态码: {response.StatusCode}");
             return new SpecialPracticeProgressDto();
         }
         catch (Exception ex)
@@ -287,7 +251,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = "/api/student/special-practices/count";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -314,13 +278,12 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/special-practices/{practiceId}/start";
             HttpResponseMessage response = await _httpClient.PostAsync(endpoint, null);
 
             bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"标记专项练习开始结果: {success}, 练习ID: {practiceId}");
             return success;
         }
         catch (Exception ex)
@@ -337,7 +300,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/special-practices/{practiceId}/complete";
             string jsonContent = JsonSerializer.Serialize(request, JsonOptions);
@@ -346,7 +309,6 @@ public class StudentExamService : IStudentExamService
             HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
 
             bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"提交专项练习成绩结果: {success}, 练习ID: {practiceId}, 得分: {request.Score}");
             return success;
         }
         catch (Exception ex)
@@ -363,7 +325,7 @@ public class StudentExamService : IStudentExamService
     {
         try
         {
-            await EnsureAuthenticatedAsync();
+            _ = await EnsureAuthenticatedAsync();
 
             string endpoint = $"/api/student/special-practices/completions?pageNumber={pageNumber}&pageSize={pageSize}";
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
@@ -372,17 +334,9 @@ public class StudentExamService : IStudentExamService
             {
                 string content = await response.Content.ReadAsStringAsync();
                 List<SpecialPracticeCompletionDto>? completions = JsonSerializer.Deserialize<List<SpecialPracticeCompletionDto>>(content, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"成功获取专项练习完成记录，数量: {completions?.Count ?? 0}");
                 return completions ?? [];
             }
 
-            // 读取详细错误信息
-            string errorContent = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"获取专项练习完成记录失败");
-            System.Diagnostics.Debug.WriteLine($"状态码: {response.StatusCode}");
-            System.Diagnostics.Debug.WriteLine($"请求URL: {endpoint}");
-            System.Diagnostics.Debug.WriteLine($"错误内容: {errorContent}");
-            System.Diagnostics.Debug.WriteLine($"响应头: {response.Headers}");
             return [];
         }
         catch (Exception ex)
@@ -437,23 +391,10 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             if (response.IsSuccessStatusCode)
             {
                 string content = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"[StudentExamService] 综合训练API响应内容: {content}");
-
                 List<StudentComprehensiveTrainingDto>? trainings = JsonSerializer.Deserialize<List<StudentComprehensiveTrainingDto>>(content, JsonOptions);
-
-                // 调试：检查反序列化后的EnableTrial属性
-                if (trainings != null)
-                {
-                    foreach (var training in trainings)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[StudentExamService] 反序列化后的训练: {training.Name}, EnableTrial: {training.EnableTrial}");
-                    }
-                }
-
                 return trainings ?? [];
             }
 
-            System.Diagnostics.Debug.WriteLine($"获取综合训练列表失败: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
             return [];
         }
         catch (Exception ex)
@@ -481,14 +422,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 return JsonSerializer.Deserialize<StudentComprehensiveTrainingDto>(content, JsonOptions);
             }
 
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                System.Diagnostics.Debug.WriteLine($"综合训练不存在或无权限访问: {trainingId}");
-                return null;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"获取综合训练详情失败: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-            return null;
+            return response.StatusCode == System.Net.HttpStatusCode.NotFound ? null : null;
         }
         catch (Exception ex)
         {
@@ -570,7 +504,6 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 return progress ?? new ComprehensiveTrainingProgressDto();
             }
 
-            System.Diagnostics.Debug.WriteLine($"获取综合训练进度失败，状态码: {response.StatusCode}");
             return new ComprehensiveTrainingProgressDto();
         }
         catch (Exception ex)
@@ -599,7 +532,6 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 return progress ?? new SpecialPracticeProgressDto();
             }
 
-            System.Diagnostics.Debug.WriteLine($"获取专项练习进度失败，状态码: {response.StatusCode}");
             return new SpecialPracticeProgressDto();
         }
         catch (Exception ex)
@@ -641,26 +573,18 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     /// </summary>
     private async Task EnsureAuthenticatedAsync()
     {
-        System.Diagnostics.Debug.WriteLine($"StudentComprehensiveTrainingService: 检查认证状态，IsAuthenticated: {_authenticationService.IsAuthenticated}");
-
         if (!_authenticationService.IsAuthenticated)
         {
             throw new UnauthorizedAccessException("用户未认证");
         }
 
-        // 获取当前访问令牌
         string? accessToken = await _authenticationService.GetAccessTokenAsync();
         if (string.IsNullOrEmpty(accessToken))
         {
-            System.Diagnostics.Debug.WriteLine("StudentComprehensiveTrainingService: 无法获取访问令牌");
             throw new UnauthorizedAccessException("无法获取访问令牌");
         }
 
-        System.Diagnostics.Debug.WriteLine($"StudentComprehensiveTrainingService: 成功获取访问令牌，长度: {accessToken.Length}");
-
-        // 设置Authorization头
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        System.Diagnostics.Debug.WriteLine("StudentComprehensiveTrainingService: 已设置Authorization头");
     }
 
     /// <summary>
@@ -676,7 +600,6 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             HttpResponseMessage response = await _httpClient.PostAsync(endpoint, null);
 
             bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"标记综合训练开始结果: {success}, 训练ID: {trainingId}");
             return success;
         }
         catch (Exception ex)
@@ -702,7 +625,6 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
 
             bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"提交综合训练成绩结果: {success}, 训练ID: {trainingId}, 得分: {request.Score}");
             return success;
         }
         catch (Exception ex)
@@ -736,7 +658,6 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
 
             bool success = response.IsSuccessStatusCode;
-            System.Diagnostics.Debug.WriteLine($"标记综合训练为已完成结果: {success}, 训练ID: {trainingId}, 得分: {score}");
             return success;
         }
         catch (Exception ex)
@@ -762,17 +683,9 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             {
                 string content = await response.Content.ReadAsStringAsync();
                 List<ComprehensiveTrainingCompletionDto>? completions = JsonSerializer.Deserialize<List<ComprehensiveTrainingCompletionDto>>(content, JsonOptions);
-                System.Diagnostics.Debug.WriteLine($"成功获取综合训练完成记录，数量: {completions?.Count ?? 0}");
                 return completions ?? [];
             }
 
-            // 读取详细错误信息
-            string errorContent = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"获取综合训练完成记录失败");
-            System.Diagnostics.Debug.WriteLine($"状态码: {response.StatusCode}");
-            System.Diagnostics.Debug.WriteLine($"请求URL: {endpoint}");
-            System.Diagnostics.Debug.WriteLine($"错误内容: {errorContent}");
-            System.Diagnostics.Debug.WriteLine($"响应头: {response.Headers}");
             return [];
         }
         catch (Exception ex)

@@ -318,57 +318,6 @@ public partial class App : Application
         if (_serviceProvider != null)
         {
             AppServiceManager.Initialize(_serviceProvider);
-
-            // 测试BenchSuiteDirectoryService是否正确注册
-            #if DEBUG
-            // 基础服务可用性测试（不依赖认证）
-            Tests.BenchSuiteDirectoryServiceTest.TestServiceAvailability();
-            Tests.BenchSuiteDirectoryServiceTest.TestExamToolbarViewModelDependency();
-
-            // 将其余测试延后到用户通过认证后再执行，避免未认证噪声干扰
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    IAuthenticationService? auth = _serviceProvider.GetService<IAuthenticationService>();
-                    int waitedMs = 0;
-                    while (auth != null && !auth.IsAuthenticated && waitedMs < 60000)
-                    {
-                        await Task.Delay(500);
-                        waitedMs += 500;
-                    }
-
-                    // 测试LeaderboardViewModel依赖注入（不强制依赖认证，但此时通常已登录）
-                    Tests.LeaderboardViewModelDependencyTest.TestLeaderboardViewModelDependencies();
-                    Tests.LeaderboardViewModelDependencyTest.TestLeaderboardTypeInitializationConsistency();
-
-                    // 测试API URL构建
-                    Tests.ApiUrlVerificationTest.RunAllTests();
-
-                    // 若仍未认证则跳过需要鉴权的测试
-                    if (auth != null && auth.IsAuthenticated)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[DEBUG Tests] 用户已认证，开始执行需要认证的测试 - 用户: {auth.CurrentUser?.Username}, 令牌长度: {auth.CurrentAccessToken?.Length ?? 0}");
-
-                        await Tests.ExamAttemptServiceTest.RunAllTests();
-
-                        // 数据一致性验证
-                        await Tests.DataConsistencyVerification.RunAllVerifications();
-
-                        // 测试开始考试按钮功能
-                        await Tests.ExamButtonFunctionalityTest.RunAllTests();
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[DEBUG Tests] 跳过需要认证的测试：用户尚未登录 - IsAuthenticated: {auth?.IsAuthenticated ?? false}, CurrentUser: {auth?.CurrentUser?.Username ?? "null"}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[DEBUG Tests] 执行调试测试时发生异常: {ex.Message}");
-                }
-            });
-            #endif
         }
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

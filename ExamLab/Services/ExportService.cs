@@ -68,7 +68,7 @@ public static class ExportService
         StringBuilder csv = new();
 
         // CSV头部
-        _ = csv.AppendLine("模块名称,题目标题,题目内容,题目分值,操作点数量");
+        _ = csv.AppendLine("模块名称,题目标题,题目解析,题目分值,操作点数量");
 
         foreach (ExamModule module in exam.Modules)
         {

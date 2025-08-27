@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ExamLab.Models;
 using ExamLab.Services;
@@ -72,7 +72,7 @@ public abstract class ModuleViewModelBase : ViewModelBase
         Question newQuestion = new()
         {
             Title = "新题目",
-            Content = "请输入题目内容",
+            Content = "请输入题目解析",
             Order = Module.Questions.Count + 1
         };
 

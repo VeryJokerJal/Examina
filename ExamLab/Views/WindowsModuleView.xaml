@@ -106,7 +106,7 @@
                             <StackPanel Grid.Row="0" Spacing="8">
                                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="题目详情" />
                                 <TextBox Header="题目标题" Text="{Binding CurrentContentViewModel.SelectedQuestion.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBox Height="100" AcceptsReturn="True" Header="题目内容" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
+                                <TextBox Height="100" AcceptsReturn="True" Header="题目解析" Text="{Binding CurrentContentViewModel.SelectedQuestion.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="题目总分" FontWeight="SemiBold" />
                                     <TextBlock Text="{Binding CurrentContentViewModel.SelectedQuestion.TotalScore}" FontSize="16" Foreground="{ThemeResource SystemAccentColor}" />

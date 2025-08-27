@@ -93,7 +93,7 @@ public static class ValidationService
 
         if (string.IsNullOrWhiteSpace(question.Content))
         {
-            errors.Add("题目内容不能为空");
+            errors.Add("题目解析不能为空");
         }
 
         if (question.TotalScore < 0)

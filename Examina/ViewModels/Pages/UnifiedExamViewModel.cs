@@ -836,7 +836,7 @@ public class UnifiedExamViewModel : ViewModelBase
             {
                 ExamMode.Normal => ExamType.FormalExam,
                 ExamMode.Retake => ExamType.FormalExam,
-                ExamMode.Practice => ExamType.MockExam,
+                ExamMode.Practice => ExamType.Practice,
                 _ => ExamType.FormalExam
             };
 
@@ -985,6 +985,37 @@ public class UnifiedExamViewModel : ViewModelBase
                     {
                         submitResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
                     }
+                    break;
+
+                case ExamType.Practice:
+                    // 练习模式：仅在本地处理，不向API提交
+                    System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 练习模式完成，考试ID: {examId}，不向API提交结果");
+
+                    // 执行本地BenchSuite评分（如果可用）
+                    if (_enhancedExamToolbarService != null && _authenticationService?.CurrentUser != null)
+                    {
+                        if (int.TryParse(_authenticationService.CurrentUser.Id, out int studentId))
+                        {
+                            try
+                            {
+                                // 仅进行本地评分，不提交到服务器
+                                Models.BenchSuite.BenchSuiteScoringResult? localScoringResult =
+                                    await _enhancedExamToolbarService.PerformLocalScoringAsync(ExamType.Practice, examId, studentId);
+
+                                if (localScoringResult != null)
+                                {
+                                    actualDurationSeconds = (int)(localScoringResult.ElapsedMilliseconds / 1000);
+                                    System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 练习模式本地评分完成，得分: {localScoringResult.AchievedScore}/{localScoringResult.TotalScore}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 练习模式本地评分失败: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    submitResult = true; // 练习模式总是返回成功，因为不需要实际提交
                     break;
 
                 case ExamType.ComprehensiveTraining:

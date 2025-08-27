@@ -42,9 +42,6 @@ public class ExamAttemptService : IExamAttemptService
     /// </summary>
     public async Task<ExamAttemptLimitDto> CheckExamAttemptLimitAsync(int examId, int studentId)
     {
-        System.Diagnostics.Debug.WriteLine($"=== CheckExamAttemptLimitAsync 开始 ===");
-        System.Diagnostics.Debug.WriteLine($"传入参数: ExamId={examId}, StudentId={studentId}");
-
         try
         {
             // 获取考试详情
@@ -62,38 +59,14 @@ public class ExamAttemptService : IExamAttemptService
                 };
             }
 
-
-
             // 获取学生的考试尝试历史
-            System.Diagnostics.Debug.WriteLine($"开始获取考试尝试历史...");
             List<ExamAttemptDto> attempts = await GetExamAttemptHistoryAsync(examId, studentId);
-            System.Diagnostics.Debug.WriteLine($"获取到 {attempts.Count} 条考试尝试记录");
 
             // 统计各类型尝试次数
             int totalAttempts = attempts.Count;
             int retakeAttempts = attempts.Count(a => a.AttemptType == ExamAttemptType.Retake);
             int practiceAttempts = attempts.Count(a => a.AttemptType == ExamAttemptType.Practice);
             ExamAttemptDto? lastAttempt = attempts.OrderByDescending(a => a.StartedAt).FirstOrDefault();
-
-            System.Diagnostics.Debug.WriteLine($"考试记录统计:");
-            System.Diagnostics.Debug.WriteLine($"  总尝试次数: {totalAttempts}");
-            System.Diagnostics.Debug.WriteLine($"  重考次数: {retakeAttempts}");
-            System.Diagnostics.Debug.WriteLine($"  练习次数: {practiceAttempts}");
-            System.Diagnostics.Debug.WriteLine($"  最后一次考试: {(lastAttempt != null ? $"ID={lastAttempt.Id}, 类型={lastAttempt.AttemptTypeDisplay}, 状态={lastAttempt.StatusDisplay}" : "无")}");
-
-            if (attempts.Count > 0)
-            {
-                System.Diagnostics.Debug.WriteLine($"考试记录详情:");
-                for (int i = 0; i < Math.Min(attempts.Count, 3); i++)
-                {
-                    ExamAttemptDto attempt = attempts[i];
-                    System.Diagnostics.Debug.WriteLine($"  记录{i + 1}: ID={attempt.Id}, ExamId={attempt.ExamId}, 类型={attempt.AttemptTypeDisplay}, 状态={attempt.StatusDisplay}, 开始时间={attempt.StartedAt:yyyy-MM-dd HH:mm:ss}");
-                }
-                if (attempts.Count > 3)
-                {
-                    System.Diagnostics.Debug.WriteLine($"  ... 还有 {attempts.Count - 3} 条记录");
-                }
-            }
 
             // 检查是否有进行中的考试
             bool hasActiveAttempt = attempts.Any(a => a.Status == ExamAttemptStatus.InProgress);
@@ -104,7 +77,6 @@ public class ExamAttemptService : IExamAttemptService
             bool canPractice = false;
             string? limitReason = null;
 
-            // 如果有进行中的考试，不能开始新的考试
             if (hasActiveAttempt)
             {
                 canStartExam = false;
@@ -112,54 +84,33 @@ public class ExamAttemptService : IExamAttemptService
             }
             else
             {
-                // 检查是否已完成首次考试
+                // 是否已完成首次考试
                 bool hasCompletedFirstAttempt = attempts.Any(a =>
                     a.AttemptType == ExamAttemptType.FirstAttempt &&
                     a.Status == ExamAttemptStatus.Completed);
 
-                // 检查重考权限
-                System.Diagnostics.Debug.WriteLine($"=== 权限检查调试 ===");
-                System.Diagnostics.Debug.WriteLine($"考试ID: {examId}, 考试名称: {exam.Name}");
-                System.Diagnostics.Debug.WriteLine($"exam.AllowRetake: {exam.AllowRetake}");
-                System.Diagnostics.Debug.WriteLine($"exam.AllowPractice: {exam.AllowPractice}");
-                System.Diagnostics.Debug.WriteLine($"exam.MaxRetakeCount: {exam.MaxRetakeCount}");
-                System.Diagnostics.Debug.WriteLine($"retakeAttempts: {retakeAttempts}");
-                System.Diagnostics.Debug.WriteLine($"hasCompletedFirstAttempt: {hasCompletedFirstAttempt}");
-
+                // 重考权限
                 if (exam.AllowRetake && retakeAttempts < exam.MaxRetakeCount)
                 {
                     canRetake = hasCompletedFirstAttempt;
-                    System.Diagnostics.Debug.WriteLine($"重考权限检查通过，canRetake设置为: {canRetake}");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"重考权限检查失败，原因: AllowRetake={exam.AllowRetake}, retakeAttempts={retakeAttempts}, MaxRetakeCount={exam.MaxRetakeCount}");
                 }
 
-                // 检查练习权限
+                // 练习权限
                 if (exam.AllowPractice)
                 {
                     canPractice = hasCompletedFirstAttempt;
-                    System.Diagnostics.Debug.WriteLine($"练习权限检查通过，canPractice设置为: {canPractice}");
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"练习权限检查失败，AllowPractice={exam.AllowPractice}");
-                }
-                System.Diagnostics.Debug.WriteLine($"=== 权限检查调试结束 ===");
 
-                // 如果没有完成首次考试，可以开始首次考试
+                // 首次考试未完成 -> 可开始首次考试
                 if (!hasCompletedFirstAttempt)
                 {
                     canStartExam = true;
                 }
                 else
                 {
-                    // 已完成首次考试，检查是否还能重考或练习
-                    // 用户应该始终能够开始某种类型的考试（重考或练习）
+                    // 已完成首次考试 -> 看是否还能重考或练习
                     canStartExam = canRetake || canPractice;
 
-                    // 如果既不能重考也不能练习，则不能开始考试
                     if (!canStartExam)
                     {
                         if (!exam.AllowRetake && !exam.AllowPractice)
@@ -194,17 +145,6 @@ public class ExamAttemptService : IExamAttemptService
                 LimitReason = limitReason,
                 LastAttempt = lastAttempt
             };
-
-            System.Diagnostics.Debug.WriteLine($"=== CheckExamAttemptLimitAsync 结果 ===");
-            System.Diagnostics.Debug.WriteLine($"CanStartExam: {result.CanStartExam}");
-            System.Diagnostics.Debug.WriteLine($"CanRetake: {result.CanRetake}");
-            System.Diagnostics.Debug.WriteLine($"CanPractice: {result.CanPractice}");
-            System.Diagnostics.Debug.WriteLine($"TotalAttempts: {result.TotalAttempts}");
-            System.Diagnostics.Debug.WriteLine($"RetakeAttempts: {result.RetakeAttempts}");
-            System.Diagnostics.Debug.WriteLine($"PracticeAttempts: {result.PracticeAttempts}");
-            System.Diagnostics.Debug.WriteLine($"HasCompletedFirstAttempt: {result.HasCompletedFirstAttempt}");
-            System.Diagnostics.Debug.WriteLine($"LimitReason: {result.LimitReason ?? "无"}");
-            System.Diagnostics.Debug.WriteLine($"=== CheckExamAttemptLimitAsync 完成 ===");
 
             return result;
         }
@@ -263,8 +203,9 @@ public class ExamAttemptService : IExamAttemptService
 
             return attempt;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"StartExamAttemptAsync 异常: {ex.Message}");
             return null;
         }
     }
@@ -289,10 +230,21 @@ public class ExamAttemptService : IExamAttemptService
             attempt.DurationSeconds = durationSeconds;
             attempt.Notes = notes;
 
+            // 练习模式的考试尝试仅在本地记录，不提交到API
+            if (attempt.AttemptType == ExamAttemptType.Practice)
+            {
+                System.Diagnostics.Debug.WriteLine($"CompleteExamAttemptAsync: 练习模式考试尝试完成，仅本地记录，不提交到API");
+                return true;
+            }
+
+            // 正式考试和重考需要提交到API（这里可以添加API提交逻辑）
+            System.Diagnostics.Debug.WriteLine($"CompleteExamAttemptAsync: 正式考试尝试完成，类型: {attempt.AttemptType}");
+
             return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"CompleteExamAttemptAsync 异常: {ex.Message}");
             return false;
         }
     }
@@ -316,8 +268,9 @@ public class ExamAttemptService : IExamAttemptService
 
             return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"AbandonExamAttemptAsync 异常: {ex.Message}");
             return false;
         }
     }
@@ -344,8 +297,9 @@ public class ExamAttemptService : IExamAttemptService
 
             return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"TimeoutExamAttemptAsync 异常: {ex.Message}");
             return false;
         }
     }
@@ -355,50 +309,53 @@ public class ExamAttemptService : IExamAttemptService
     /// </summary>
     public async Task<List<ExamAttemptDto>> GetExamAttemptHistoryAsync(int examId, int studentId)
     {
-        System.Diagnostics.Debug.WriteLine($"=== GetExamAttemptHistoryAsync 开始 ===");
-        System.Diagnostics.Debug.WriteLine($"参数: ExamId={examId}, StudentId={studentId}");
-
         try
         {
             // 从后端API获取考试完成记录
-            System.Diagnostics.Debug.WriteLine($"调用GetExamCompletionsFromApiAsync获取后端数据...");
             List<ExamCompletion> completions = await GetExamCompletionsFromApiAsync(examId);
-            System.Diagnostics.Debug.WriteLine($"从API获取到 {completions.Count} 条ExamCompletion记录");
 
-            // 将ExamCompletion转换为ExamAttemptDto
-            System.Diagnostics.Debug.WriteLine($"开始转换ExamCompletion到ExamAttemptDto...");
-            List<ExamAttemptDto> attempts = completions.Select(completion => new ExamAttemptDto
+            // 将ExamCompletion转换为ExamAttemptDto，并根据完成顺序推断考试类型
+            List<ExamCompletion> sortedCompletions = completions
+                .Where(c => c.ExamId == examId && c.StudentUserId == studentId)
+                .OrderBy(c => c.StartedAt ?? c.CreatedAt)
+                .ToList();
+
+            List<ExamAttemptDto> attempts = new List<ExamAttemptDto>();
+            for (int i = 0; i < sortedCompletions.Count; i++)
             {
-                Id = completion.Id,
-                ExamId = completion.ExamId,
-                StudentId = completion.StudentUserId,
-                AttemptNumber = 1, // 暂时设为1，后续可以根据需要调整
-                AttemptType = ExamAttemptType.FirstAttempt, // 暂时设为首次考试
-                Status = MapCompletionStatusToAttemptStatus(completion.Status),
-                StartedAt = completion.StartedAt ?? completion.CreatedAt,
-                CompletedAt = completion.CompletedAt,
-                Score = completion.Score,
-                MaxScore = completion.MaxScore,
-                DurationSeconds = completion.DurationSeconds,
-                Notes = completion.Notes,
-                IsRanked = true
-            }).ToList();
-            System.Diagnostics.Debug.WriteLine($"转换完成，得到 {attempts.Count} 条ExamAttemptDto记录");
+                ExamCompletion completion = sortedCompletions[i];
+
+                // 根据完成顺序推断考试类型
+                ExamAttemptType attemptType = i == 0 ? ExamAttemptType.FirstAttempt : ExamAttemptType.Retake;
+
+                ExamAttemptDto attempt = new ExamAttemptDto
+                {
+                    Id = completion.Id,
+                    ExamId = completion.ExamId,
+                    StudentId = completion.StudentUserId,
+                    AttemptNumber = i + 1,
+                    AttemptType = attemptType,
+                    Status = MapCompletionStatusToAttemptStatus(completion.Status),
+                    StartedAt = completion.StartedAt ?? completion.CreatedAt,
+                    CompletedAt = completion.CompletedAt,
+                    Score = completion.Score,
+                    MaxScore = completion.MaxScore,
+                    DurationSeconds = completion.DurationSeconds,
+                    Notes = completion.Notes,
+                    IsRanked = true
+                };
+
+                attempts.Add(attempt);
+            }
 
             // 合并本地缓存的数据（用于正在进行的考试）
-            System.Diagnostics.Debug.WriteLine($"检查本地缓存数据...");
             List<ExamAttemptDto> localAttempts = _examAttempts
                 .Where(a => a.ExamId == examId && a.StudentId == studentId)
                 .ToList();
-            System.Diagnostics.Debug.WriteLine($"本地缓存中有 {localAttempts.Count} 条记录");
 
             attempts.AddRange(localAttempts);
 
-            List<ExamAttemptDto> result = attempts.OrderBy(a => a.StartedAt).ToList();
-            System.Diagnostics.Debug.WriteLine($"=== GetExamAttemptHistoryAsync 完成 ===");
-            System.Diagnostics.Debug.WriteLine($"最终返回 {result.Count} 条考试尝试记录");
-
-            return result;
+            return attempts.OrderBy(a => a.StartedAt).ToList();
         }
         catch (Exception ex)
         {
@@ -430,23 +387,48 @@ public class ExamAttemptService : IExamAttemptService
             // 从后端API获取所有考试完成记录
             List<ExamCompletion> completions = await GetExamCompletionsFromApiAsync();
 
-            // 将ExamCompletion转换为ExamAttemptDto
-            List<ExamAttemptDto> attempts = completions.Select(completion => new ExamAttemptDto
+            // 将ExamCompletion转换为ExamAttemptDto，并根据完成顺序推断考试类型
+            List<ExamCompletion> sortedCompletions = completions
+                .Where(c => c.StudentUserId == studentId)
+                .OrderBy(c => c.StartedAt ?? c.CreatedAt)
+                .ToList();
+
+            List<ExamAttemptDto> attempts = new List<ExamAttemptDto>();
+
+            // 按考试ID分组，为每个考试单独计算尝试次数
+            var examGroups = sortedCompletions.GroupBy(c => c.ExamId);
+
+            foreach (var examGroup in examGroups)
             {
-                Id = completion.Id,
-                ExamId = completion.ExamId,
-                StudentId = completion.StudentUserId,
-                AttemptNumber = 1,
-                AttemptType = ExamAttemptType.FirstAttempt,
-                Status = MapCompletionStatusToAttemptStatus(completion.Status),
-                StartedAt = completion.StartedAt ?? completion.CreatedAt,
-                CompletedAt = completion.CompletedAt,
-                Score = completion.Score,
-                MaxScore = completion.MaxScore,
-                DurationSeconds = completion.DurationSeconds,
-                Notes = completion.Notes,
-                IsRanked = true
-            }).ToList();
+                List<ExamCompletion> examCompletions = examGroup.OrderBy(c => c.StartedAt ?? c.CreatedAt).ToList();
+
+                for (int i = 0; i < examCompletions.Count; i++)
+                {
+                    ExamCompletion completion = examCompletions[i];
+
+                    // 根据完成顺序推断考试类型
+                    ExamAttemptType attemptType = i == 0 ? ExamAttemptType.FirstAttempt : ExamAttemptType.Retake;
+
+                    ExamAttemptDto attempt = new ExamAttemptDto
+                    {
+                        Id = completion.Id,
+                        ExamId = completion.ExamId,
+                        StudentId = completion.StudentUserId,
+                        AttemptNumber = i + 1,
+                        AttemptType = attemptType,
+                        Status = MapCompletionStatusToAttemptStatus(completion.Status),
+                        StartedAt = completion.StartedAt ?? completion.CreatedAt,
+                        CompletedAt = completion.CompletedAt,
+                        Score = completion.Score,
+                        MaxScore = completion.MaxScore,
+                        DurationSeconds = completion.DurationSeconds,
+                        Notes = completion.Notes,
+                        IsRanked = true
+                    };
+
+                    attempts.Add(attempt);
+                }
+            }
 
             // 合并本地缓存的数据
             List<ExamAttemptDto> localAttempts = _examAttempts
@@ -461,8 +443,9 @@ public class ExamAttemptService : IExamAttemptService
                 .Take(pageSize)
                 .ToList();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"GetStudentExamAttemptHistoryAsync 异常: {ex.Message}");
             // 如果API调用失败，返回本地缓存的数据
             return _examAttempts
                 .Where(a => a.StudentId == studentId)
@@ -581,6 +564,7 @@ public class ExamAttemptService : IExamAttemptService
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"ValidateExamAttemptPermissionAsync 异常: {ex.Message}");
             return (false, $"验证权限时发生错误: {ex.Message}");
         }
     }
@@ -602,8 +586,9 @@ public class ExamAttemptService : IExamAttemptService
             // 由于是模拟实现，这里只是简单返回成功
             return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"UpdateExamAttemptProgressAsync 异常: {ex.Message}");
             return false;
         }
     }
@@ -613,23 +598,16 @@ public class ExamAttemptService : IExamAttemptService
     /// </summary>
     private async Task<List<ExamCompletion>> GetExamCompletionsFromApiAsync(int? examId = null)
     {
-        System.Diagnostics.Debug.WriteLine($"=== GetExamCompletionsFromApiAsync 开始 ===");
-        System.Diagnostics.Debug.WriteLine($"请求参数: ExamId={examId?.ToString() ?? "全部"}");
-
         try
         {
             // 获取认证令牌
-            System.Diagnostics.Debug.WriteLine($"开始获取认证令牌...");
             string? token = await _authenticationService.GetAccessTokenAsync();
             if (string.IsNullOrEmpty(token))
             {
-                System.Diagnostics.Debug.WriteLine($"✗ 认证令牌为空，无法调用API");
                 return [];
             }
-            System.Diagnostics.Debug.WriteLine($"✓ 成功获取认证令牌，长度: {token.Length} 字符");
 
             // 设置请求头
-            System.Diagnostics.Debug.WriteLine($"设置HTTP请求头...");
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
@@ -640,63 +618,28 @@ public class ExamAttemptService : IExamAttemptService
             {
                 url += $"?examId={examId.Value}";
             }
-            System.Diagnostics.Debug.WriteLine($"API请求URL: {url}");
 
             // 发送请求
-            System.Diagnostics.Debug.WriteLine($"发送HTTP GET请求...");
             HttpResponseMessage response = await _httpClient.GetAsync(url);
-            System.Diagnostics.Debug.WriteLine($"API响应状态码: {response.StatusCode} ({(int)response.StatusCode})");
 
             if (response.IsSuccessStatusCode)
             {
                 string jsonContent = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"✓ API调用成功，响应内容长度: {jsonContent.Length} 字符");
 
-                if (jsonContent.Length > 0)
+                try
                 {
-                    System.Diagnostics.Debug.WriteLine($"响应内容预览: {(jsonContent.Length > 200 ? jsonContent.Substring(0, 200) + "..." : jsonContent)}");
-
-                    try
-                    {
-                        List<ExamCompletion>? completions = JsonSerializer.Deserialize<List<ExamCompletion>>(jsonContent, JsonOptions);
-                        int count = completions?.Count ?? 0;
-                        System.Diagnostics.Debug.WriteLine($"✓ JSON解析成功，获取到 {count} 条考试完成记录");
-
-                        if (completions != null && completions.Count > 0)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"考试完成记录详情:");
-                            for (int i = 0; i < Math.Min(completions.Count, 3); i++)
-                            {
-                                ExamCompletion completion = completions[i];
-                                System.Diagnostics.Debug.WriteLine($"  记录{i + 1}: ID={completion.Id}, ExamId={completion.ExamId}, StudentUserId={completion.StudentUserId}, Status={completion.Status}, CompletedAt={completion.CompletedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "未完成"}");
-                            }
-                            if (completions.Count > 3)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"  ... 还有 {completions.Count - 3} 条记录");
-                            }
-                        }
-
-                        System.Diagnostics.Debug.WriteLine($"=== GetExamCompletionsFromApiAsync 成功完成 ===");
-                        return completions ?? [];
-                    }
-                    catch (JsonException jsonEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"✗ JSON解析失败: {jsonEx.Message}");
-                        System.Diagnostics.Debug.WriteLine($"原始JSON内容: {jsonContent}");
-                        return [];
-                    }
+                    List<ExamCompletion>? completions = JsonSerializer.Deserialize<List<ExamCompletion>>(jsonContent, JsonOptions);
+                    return completions ?? [];
                 }
-                else
+                catch (JsonException jsonEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"⚠ API返回空内容");
+                    System.Diagnostics.Debug.WriteLine($"GetExamCompletionsFromApiAsync JSON解析失败: {jsonEx.Message}");
                     return [];
                 }
             }
             else
             {
-                string errorContent = await response.Content.ReadAsStringAsync();
-                System.Diagnostics.Debug.WriteLine($"✗ API调用失败: {response.StatusCode}");
-                System.Diagnostics.Debug.WriteLine($"错误内容: {errorContent}");
+                // 非成功状态码，静默返回空（非异常，不输出调试信息）
                 return [];
             }
         }

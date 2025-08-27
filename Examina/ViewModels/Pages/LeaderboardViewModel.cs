@@ -16,7 +16,7 @@ namespace Examina.ViewModels.Pages;
 public class LeaderboardViewModel : ViewModelBase
 {
     private readonly RankingService? _rankingService;
-    private readonly ILogger<LeaderboardViewModel>? _logger;
+    private readonly ILogger<LeaderboardViewModel>? _logger; // 不再使用，仅保留签名兼容
     private readonly IStudentComprehensiveTrainingService? _comprehensiveTrainingService;
     private readonly IStudentExamService? _studentExamService;
     private readonly IStudentMockExamService? _studentMockExamService;
@@ -125,26 +125,6 @@ public class LeaderboardViewModel : ViewModelBase
 
     public LeaderboardViewModel()
     {
-        // 添加详细调试日志和调用栈跟踪
-        System.Diagnostics.StackTrace stackTrace = new(true);
-        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel无参构造函数调用 ===");
-        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        System.Diagnostics.Debug.WriteLine("调用栈:");
-        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
-        {
-            System.Diagnostics.StackFrame? frame = stackTrace.GetFrame(i);
-            if (frame != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
-            }
-        }
-        System.Diagnostics.Debug.WriteLine("服务状态:");
-        System.Diagnostics.Debug.WriteLine($"  - _rankingService: {(_rankingService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - _comprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - _studentExamService: {(_studentExamService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - _studentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
-
         RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
         SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
@@ -154,7 +134,6 @@ public class LeaderboardViewModel : ViewModelBase
         InitializeExamFilters();
         InitializeSortTypes();
 
-        // 监听排行榜类型变化（按ID去重，防止相同类型重复触发）
         _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
             .Where(type => type != null)
             .DistinctUntilChanged(type => type!.Id)
@@ -162,75 +141,51 @@ public class LeaderboardViewModel : ViewModelBase
             {
                 if (_suppressAutoLoad)
                 {
-                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制排行榜类型变化事件（初始化期间）");
                     return;
                 }
+
                 OnLeaderboardTypeChanged(type!);
             });
 
-        // 监听试卷筛选变化
         _ = this.WhenAnyValue(x => x.SelectedExamFilter)
             .Where(filter => filter != null)
             .Subscribe(filter =>
             {
                 if (_suppressAutoLoad)
                 {
-                    System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制试卷筛选变化事件（初始化期间）");
                     return;
                 }
+
                 OnExamFilterChanged(filter!);
             });
 
-        // 监听排序类型变化
         _ = this.WhenAnyValue(x => x.SelectedSortType)
             .Where(sortType => sortType != null)
             .Subscribe(sortType => OnSortTypeChanged(sortType!));
-
-        // 不在构造函数中自动加载数据，等待设置排行榜类型后再加载
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, IStudentMockExamService? studentMockExamService = null)
+    public LeaderboardViewModel(
+        RankingService rankingService,
+        ILogger<LeaderboardViewModel>? logger,
+        IStudentComprehensiveTrainingService comprehensiveTrainingService,
+        IStudentExamService studentExamService,
+        IStudentMockExamService? studentMockExamService = null)
     {
-        // 1) 先注入依赖，保证后续初始化能使用到服务
         _rankingService = rankingService;
-        _logger = logger;
+        _logger = logger; // 不再使用，仅保留签名兼容
         _comprehensiveTrainingService = comprehensiveTrainingService;
         _studentExamService = studentExamService;
         _studentMockExamService = studentMockExamService;
 
-        // 调试跟踪
-        System.Diagnostics.StackTrace stackTrace = new(true);
-        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel依赖注入构造函数调用(单次初始化) ===");
-        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        System.Diagnostics.Debug.WriteLine("调用栈:");
-        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 10); i++)
-        {
-            System.Diagnostics.StackFrame? frame = stackTrace.GetFrame(i);
-            if (frame != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
-            }
-        }
-        System.Diagnostics.Debug.WriteLine("服务注入状态:");
-        System.Diagnostics.Debug.WriteLine($"  - RankingService: {(_rankingService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - Logger: {(_logger != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - ComprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - StudentExamService: {(_studentExamService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - StudentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
-
-        // 2) 初始化命令与基础集合
         RefreshLeaderboardCommand = new DelegateCommand(RefreshLeaderboard);
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
         SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
         SwitchSortTypeCommand = new DelegateCommand<SortTypeItem>(SwitchSortType);
 
-        // 3) 初始化静态数据
         InitializeLeaderboardTypes();
         InitializeExamFilters();
         InitializeSortTypes();
 
-        // 4) 订阅变更（此时服务已可用）
         _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
             .Where(type => type != null)
             .DistinctUntilChanged(type => type!.Id)
@@ -243,17 +198,17 @@ public class LeaderboardViewModel : ViewModelBase
         _ = this.WhenAnyValue(x => x.SelectedSortType)
             .Where(sortType => sortType != null)
             .Subscribe(sortType => OnSortTypeChanged(sortType!));
-
-        // 不在构造中加载默认数据，等待外部显式SetRankingType或LoadInitialData调用
     }
 
-    public LeaderboardViewModel(RankingService rankingService, ILogger<LeaderboardViewModel>? logger, IStudentComprehensiveTrainingService comprehensiveTrainingService, IStudentExamService studentExamService, string? rankingTypeId, IStudentMockExamService? studentMockExamService = null)
+    public LeaderboardViewModel(
+        RankingService rankingService,
+        ILogger<LeaderboardViewModel>? logger,
+        IStudentComprehensiveTrainingService comprehensiveTrainingService,
+        IStudentExamService studentExamService,
+        string? rankingTypeId,
+        IStudentMockExamService? studentMockExamService = null)
         : this(rankingService, logger, comprehensiveTrainingService, studentExamService, studentMockExamService)
     {
-        // 仅负责根据传入的rankingTypeId设置默认类型
-        System.Diagnostics.Debug.WriteLine("=== LeaderboardViewModel带排行榜类型构造函数调用(直接设置类型) ===");
-        System.Diagnostics.Debug.WriteLine($"排行榜类型ID: {rankingTypeId ?? "null"}");
-
         if (!string.IsNullOrEmpty(rankingTypeId))
         {
             SetRankingType(rankingTypeId);
@@ -269,32 +224,8 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private void InitializeLeaderboardTypes()
     {
-        // 添加详细调试日志和调用栈跟踪
-        System.Diagnostics.StackTrace stackTrace = new(true);
-        System.Diagnostics.Debug.WriteLine("=== InitializeLeaderboardTypes方法调用 ===");
-        System.Diagnostics.Debug.WriteLine($"调用时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-        System.Diagnostics.Debug.WriteLine($"线程ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        System.Diagnostics.Debug.WriteLine($"当前LeaderboardTypes数量: {LeaderboardTypes.Count}");
-        System.Diagnostics.Debug.WriteLine($"是否已初始化: {_isInitialized}");
-        System.Diagnostics.Debug.WriteLine("调用栈:");
-        for (int i = 0; i < Math.Min(stackTrace.FrameCount, 15); i++)
-        {
-            System.Diagnostics.StackFrame? frame = stackTrace.GetFrame(i);
-            if (frame != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"  [{i}] {frame.GetMethod()?.DeclaringType?.Name}.{frame.GetMethod()?.Name} (Line: {frame.GetFileLineNumber()})");
-            }
-        }
-        System.Diagnostics.Debug.WriteLine("服务状态:");
-        System.Diagnostics.Debug.WriteLine($"  - _rankingService: {(_rankingService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - _comprehensiveTrainingService: {(_comprehensiveTrainingService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - _studentExamService: {(_studentExamService != null ? "已注入" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - _studentMockExamService: {(_studentMockExamService != null ? "已注入" : "null")}");
-
-        // 检查是否已经初始化过，避免重复初始化
         if (_isInitialized && LeaderboardTypes.Count > 0)
         {
-            System.Diagnostics.Debug.WriteLine("⚠️ 跳过重复初始化，LeaderboardTypes已存在");
             return;
         }
 
@@ -323,9 +254,6 @@ public class LeaderboardViewModel : ViewModelBase
             Description = "综合实训成绩排行榜",
             Icon = "🎯"
         });
-
-        // 不在此处选择默认类型，避免与外部SetRankingType叠加触发
-        System.Diagnostics.Debug.WriteLine("✅ InitializeLeaderboardTypes完成（未设置默认SelectedLeaderboardType）");
     }
 
     /// <summary>
@@ -335,7 +263,6 @@ public class LeaderboardViewModel : ViewModelBase
     {
         ExamFilters.Clear();
 
-        // 添加"全部试卷"选项
         ExamFilters.Add(new ExamFilterItem
         {
             ExamId = null,
@@ -343,7 +270,6 @@ public class LeaderboardViewModel : ViewModelBase
             DisplayName = "全部试卷"
         });
 
-        // 默认选择"全部试卷"
         SelectedExamFilter = ExamFilters.FirstOrDefault();
     }
 
@@ -386,7 +312,6 @@ public class LeaderboardViewModel : ViewModelBase
             Icon = "⏰"
         });
 
-        // 默认选择按分数排序
         SelectedSortType = SortTypes.FirstOrDefault();
     }
 
@@ -397,26 +322,16 @@ public class LeaderboardViewModel : ViewModelBase
     {
         if (_suppressAutoLoad)
         {
-            System.Diagnostics.Debug.WriteLine("[InitGuard] 抑制LoadLeaderboardData（初始化期间）");
             return;
         }
 
         IsLoading = true;
         ErrorMessage = null;
 
-        // 添加服务状态调试日志
-        System.Diagnostics.Debug.WriteLine("LeaderboardViewModel.LoadLeaderboardData: 开始加载数据");
-        System.Diagnostics.Debug.WriteLine($"  - RankingService状态: {(_rankingService != null ? "可用" : "null")}");
-        System.Diagnostics.Debug.WriteLine($"  - SelectedLeaderboardType: {SelectedLeaderboardType?.Id ?? "null"}");
-
         try
         {
             if (_rankingService != null && SelectedLeaderboardType != null)
             {
-                _logger?.LogInformation("开始加载排行榜数据，类型: {Type}, 试卷筛选: {ExamFilter}",
-                    SelectedLeaderboardType.Id, SelectedExamFilter?.DisplayName ?? "无");
-
-                // 根据选中的排行榜类型获取数据
                 RankingType rankingType = SelectedLeaderboardType.Id switch
                 {
                     "exam-ranking" => RankingType.ExamRanking,
@@ -425,10 +340,10 @@ public class LeaderboardViewModel : ViewModelBase
                     _ => RankingType.ExamRanking
                 };
 
-                // 获取试卷筛选ID（null表示全部试卷）
                 int? examId = SelectedExamFilter?.ExamId;
 
-                RankingResponseDto? response = await _rankingService.GetRankingByTypeAsync(rankingType, examId, 1, 50);
+                RankingResponseDto? response =
+                    await _rankingService.GetRankingByTypeAsync(rankingType, examId, 1, 50);
 
                 LeaderboardData.Clear();
                 if (response != null && response.Entries.Any())
@@ -446,20 +361,15 @@ public class LeaderboardViewModel : ViewModelBase
                             ClassName = entry.ClassName ?? "未知班级"
                         });
                     }
-
-                    _logger?.LogInformation("成功加载排行榜数据，记录数: {Count}", response.Entries.Count);
                 }
                 else
                 {
-                    _logger?.LogWarning("未获取到排行榜数据");
                     ErrorMessage = "暂无排行榜数据";
                 }
             }
             else
             {
-                // 如果没有服务注入，使用模拟数据
-                _logger?.LogWarning("排行榜服务未注入，使用模拟数据");
-
+                // 没有服务时使用模拟数据
                 for (int i = 1; i <= 10; i++)
                 {
                     LeaderboardData.Add(new LeaderboardEntry
@@ -477,14 +387,13 @@ public class LeaderboardViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "加载排行榜数据时发生异常");
+            System.Diagnostics.Debug.WriteLine($"加载排行榜数据时发生异常: {ex}");
             ErrorMessage = "加载排行榜数据失败，请稍后重试";
         }
         finally
         {
             IsLoading = false;
 
-            // 数据加载完成后应用排序
             if (LeaderboardData.Any() && SelectedSortType != null)
             {
                 ApplySorting();
@@ -510,7 +419,6 @@ public class LeaderboardViewModel : ViewModelBase
             return;
         }
 
-        // 仅设置类型，数据加载由 OnLeaderboardTypeChanged 和筛选器变化统一触发
         SelectedLeaderboardType = leaderboardType;
     }
 
@@ -545,19 +453,12 @@ public class LeaderboardViewModel : ViewModelBase
     /// <summary>
     /// 排行榜类型变化处理
     /// </summary>
-    private static int _typeChangedCallCount = 0;
     private void OnLeaderboardTypeChanged(LeaderboardTypeItem leaderboardType)
     {
-        int callOrder = System.Threading.Interlocked.Increment(ref _typeChangedCallCount);
-        System.Diagnostics.Debug.WriteLine($"[TypeChanged] #{callOrder} 触发，Id={leaderboardType.Id}; 旧筛选={SelectedExamFilter?.DisplayName ?? "null"}");
-        _logger?.LogInformation("排行榜类型变化: {Type}", leaderboardType.Id);
-
-        // 更新试卷筛选器的显示状态
         ShowExamFilter = leaderboardType.Id is not "mock-exam-ranking";
 
         bool needLoad = true;
 
-        // 如果是模拟考试排行榜，重置筛选器为"全部试卷"
         if (!ShowExamFilter)
         {
             ExamFilterItem? currentFilter = SelectedExamFilter;
@@ -565,8 +466,7 @@ public class LeaderboardViewModel : ViewModelBase
             if (currentFilter?.ExamId != defaultFilter?.ExamId)
             {
                 SelectedExamFilter = defaultFilter;
-                // 此处SelectedExamFilter变化会触发加载，无需再次Load
-                needLoad = false;
+                needLoad = false; // SelectedExamFilter 变化会触发加载
             }
         }
 
@@ -575,7 +475,6 @@ public class LeaderboardViewModel : ViewModelBase
             LoadLeaderboardData();
         }
 
-        // 加载对应类型的试卷列表（异步，不阻塞当前操作）
         _ = LoadExamFiltersAsync(leaderboardType.Id);
     }
 
@@ -584,10 +483,6 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private void OnExamFilterChanged(ExamFilterItem examFilter)
     {
-        _logger?.LogInformation("试卷筛选变化: {Filter}", examFilter?.DisplayName ?? "null");
-
-        // 当筛选条件变化时，重新加载排行榜数据
-        // 但要避免在初始化过程中重复加载
         if (!IsLoading)
         {
             LoadLeaderboardData();
@@ -599,9 +494,6 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     private void OnSortTypeChanged(SortTypeItem sortType)
     {
-        _logger?.LogInformation("排序类型变化: {SortType}", sortType?.Name ?? "null");
-
-        // 当排序类型变化时，重新应用排序
         if (!IsLoading && LeaderboardData.Any())
         {
             ApplySorting();
@@ -615,15 +507,10 @@ public class LeaderboardViewModel : ViewModelBase
     {
         try
         {
-            _logger?.LogInformation("开始加载试卷筛选列表，排行榜类型: {RankingTypeId}", rankingTypeId);
-
-            // 保存当前选中的筛选项
             ExamFilterItem? currentFilter = SelectedExamFilter;
 
-            // 清空现有筛选列表
             ExamFilters.Clear();
 
-            // 添加"全部试卷"选项
             ExamFilters.Add(new ExamFilterItem
             {
                 ExamId = null,
@@ -631,13 +518,12 @@ public class LeaderboardViewModel : ViewModelBase
                 DisplayName = "全部试卷"
             });
 
-            // 根据排行榜类型加载对应的试卷列表
             if (rankingTypeId == "training-ranking" && _comprehensiveTrainingService != null)
             {
                 try
                 {
-                    // 获取综合实训列表
-                    List<Models.Exam.StudentComprehensiveTrainingDto> trainings = await _comprehensiveTrainingService.GetAvailableTrainingsAsync(1, 100);
+                    List<Models.Exam.StudentComprehensiveTrainingDto> trainings =
+                        await _comprehensiveTrainingService.GetAvailableTrainingsAsync(1, 100);
 
                     foreach (Models.Exam.StudentComprehensiveTrainingDto training in trainings)
                     {
@@ -648,14 +534,10 @@ public class LeaderboardViewModel : ViewModelBase
                             DisplayName = training.Name
                         });
                     }
-
-                    _logger?.LogInformation("成功加载 {Count} 个综合实训试卷", trainings.Count);
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogError(ex, "加载综合实训试卷列表失败");
-
-                    // 如果加载失败，使用模拟数据作为备用
+                    System.Diagnostics.Debug.WriteLine($"加载综合实训试卷列表失败: {ex}");
                     for (int i = 1; i <= 10; i++)
                     {
                         ExamFilters.Add(new ExamFilterItem
@@ -671,8 +553,8 @@ public class LeaderboardViewModel : ViewModelBase
             {
                 try
                 {
-                    // 获取正式考试列表
-                    List<Models.Exam.StudentExamDto> exams = await _studentExamService.GetAvailableExamsAsync(1, 100);
+                    List<Models.Exam.StudentExamDto> exams =
+                        await _studentExamService.GetAvailableExamsAsync(1, 100);
 
                     foreach (Models.Exam.StudentExamDto exam in exams)
                     {
@@ -683,14 +565,10 @@ public class LeaderboardViewModel : ViewModelBase
                             DisplayName = exam.Name
                         });
                     }
-
-                    _logger?.LogInformation("成功加载 {Count} 个正式考试试卷", exams.Count);
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogError(ex, "加载正式考试试卷列表失败");
-
-                    // 如果加载失败，使用模拟数据作为备用
+                    System.Diagnostics.Debug.WriteLine($"加载正式考试试卷列表失败: {ex}");
                     for (int i = 1; i <= 10; i++)
                     {
                         ExamFilters.Add(new ExamFilterItem
@@ -706,8 +584,8 @@ public class LeaderboardViewModel : ViewModelBase
             {
                 try
                 {
-                    // 获取模拟考试列表
-                    List<Models.MockExam.StudentMockExamDto> mockExams = await _studentMockExamService.GetStudentMockExamsAsync(1, 100);
+                    List<Models.MockExam.StudentMockExamDto> mockExams =
+                        await _studentMockExamService.GetStudentMockExamsAsync(1, 100);
 
                     foreach (Models.MockExam.StudentMockExamDto mockExam in mockExams)
                     {
@@ -718,14 +596,10 @@ public class LeaderboardViewModel : ViewModelBase
                             DisplayName = mockExam.Name
                         });
                     }
-
-                    _logger?.LogInformation("成功加载 {Count} 个模拟考试试卷", mockExams.Count);
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogError(ex, "加载模拟考试试卷列表失败");
-
-                    // 如果加载失败，使用模拟数据作为备用
+                    System.Diagnostics.Debug.WriteLine($"加载模拟考试试卷列表失败: {ex}");
                     for (int i = 1; i <= 10; i++)
                     {
                         ExamFilters.Add(new ExamFilterItem
@@ -739,9 +613,6 @@ public class LeaderboardViewModel : ViewModelBase
             }
             else
             {
-                // 如果没有对应的服务，使用模拟数据作为备用
-                _logger?.LogWarning("未找到对应的服务，使用模拟数据，排行榜类型: {RankingTypeId}", rankingTypeId);
-
                 await Task.Run(() =>
                 {
                     string examPrefix = rankingTypeId switch
@@ -763,15 +634,12 @@ public class LeaderboardViewModel : ViewModelBase
                 });
             }
 
-            // 恢复之前的选择，如果不存在则选择"全部试卷"
             SelectedExamFilter = ExamFilters.FirstOrDefault(f => f.ExamId == currentFilter?.ExamId)
                                ?? ExamFilters.FirstOrDefault();
-
-            _logger?.LogInformation("试卷筛选列表加载完成，共 {Count} 个选项", ExamFilters.Count);
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "加载试卷筛选列表时发生异常");
+            System.Diagnostics.Debug.WriteLine($"加载试卷筛选列表时发生异常: {ex}");
         }
     }
 
@@ -781,14 +649,10 @@ public class LeaderboardViewModel : ViewModelBase
     /// <param name="rankingTypeId">排行榜类型ID</param>
     public void SetRankingType(string rankingTypeId)
     {
-        _logger?.LogInformation("设置排行榜类型: {RankingTypeId}", rankingTypeId);
-
-        // 根据类型ID找到对应的排行榜类型项
         LeaderboardTypeItem? targetType = LeaderboardTypes.FirstOrDefault(t => t.Id == rankingTypeId);
 
         if (targetType != null)
         {
-            // 避免重复触发：仅当新旧不同才更新
             if (SelectedLeaderboardType?.Id != targetType.Id)
             {
                 SelectedLeaderboardType = targetType;
@@ -797,8 +661,6 @@ public class LeaderboardViewModel : ViewModelBase
         }
         else
         {
-            _logger?.LogWarning("未找到排行榜类型: {RankingTypeId}", rankingTypeId);
-            // 如果没找到，默认选择第一个类型
             LeaderboardTypeItem? first = LeaderboardTypes.FirstOrDefault();
             if (first != null && SelectedLeaderboardType?.Id != first.Id)
             {
@@ -819,7 +681,6 @@ public class LeaderboardViewModel : ViewModelBase
         }
         else
         {
-            // 如果没有选中的类型，选择第一个并加载
             SelectedLeaderboardType = LeaderboardTypes.FirstOrDefault();
             if (SelectedLeaderboardType != null)
             {
@@ -841,8 +702,6 @@ public class LeaderboardViewModel : ViewModelBase
 
         try
         {
-            _logger?.LogInformation("应用排序: {SortType}", SelectedSortType.Id);
-
             List<LeaderboardEntry> sortedData = SelectedSortType.Id switch
             {
                 "score" => LeaderboardData.OrderByDescending(x => x.Score)
@@ -865,24 +724,20 @@ public class LeaderboardViewModel : ViewModelBase
                                    .ToList()
             };
 
-            // 重新分配排名
             for (int i = 0; i < sortedData.Count; i++)
             {
                 sortedData[i].Rank = i + 1;
             }
 
-            // 更新集合
             LeaderboardData.Clear();
             foreach (LeaderboardEntry entry in sortedData)
             {
                 LeaderboardData.Add(entry);
             }
-
-            _logger?.LogInformation("排序完成，共 {Count} 条记录", sortedData.Count);
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "应用排序时发生异常");
+            System.Diagnostics.Debug.WriteLine($"应用排序时发生异常: {ex}");
         }
     }
 
@@ -894,24 +749,9 @@ public class LeaderboardViewModel : ViewModelBase
 /// </summary>
 public class LeaderboardTypeItem
 {
-    /// <summary>
-    /// 排行榜类型ID
-    /// </summary>
     public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 排行榜类型名称
-    /// </summary>
     public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 排行榜类型描述
-    /// </summary>
     public string Description { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 图标
-    /// </summary>
     public string Icon { get; set; } = string.Empty;
 }
 
@@ -920,39 +760,12 @@ public class LeaderboardTypeItem
 /// </summary>
 public class LeaderboardEntry
 {
-    /// <summary>
-    /// 排名
-    /// </summary>
     public int Rank { get; set; }
-
-    /// <summary>
-    /// 用户名
-    /// </summary>
     public string Username { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 分数
-    /// </summary>
     public int Score { get; set; }
-
-    /// <summary>
-    /// 完成时间
-    /// </summary>
     public TimeSpan CompletionTime { get; set; }
-
-    /// <summary>
-    /// 完成日期
-    /// </summary>
     public DateTime CompletionDate { get; set; }
-
-    /// <summary>
-    /// 学校名称
-    /// </summary>
     public string SchoolName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 班级名称
-    /// </summary>
     public string ClassName { get; set; } = string.Empty;
 }
 
@@ -961,19 +774,8 @@ public class LeaderboardEntry
 /// </summary>
 public class ExamFilterItem
 {
-    /// <summary>
-    /// 试卷ID（null表示"全部试卷"）
-    /// </summary>
     public int? ExamId { get; set; }
-
-    /// <summary>
-    /// 试卷名称
-    /// </summary>
     public string ExamName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 显示名称
-    /// </summary>
     public string DisplayName { get; set; } = string.Empty;
 }
 
@@ -982,23 +784,8 @@ public class ExamFilterItem
 /// </summary>
 public class SortTypeItem
 {
-    /// <summary>
-    /// 排序类型ID
-    /// </summary>
     public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 排序类型名称
-    /// </summary>
     public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 排序类型描述
-    /// </summary>
     public string Description { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 图标
-    /// </summary>
     public string Icon { get; set; } = string.Empty;
 }

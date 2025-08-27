@@ -406,7 +406,7 @@ public class SpecializedExamViewModel : ViewModelBase
         Question newQuestion = new()
         {
             Title = questionTitle,
-            Content = "请输入题目内容",
+            Content = "请输入题目解析",
             Order = SelectedModule.Questions.Count + 1,
             IsEnabled = true
         };

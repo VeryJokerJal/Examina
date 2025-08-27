@@ -20,6 +20,12 @@ public class OverviewViewModel : ViewModelBase
     #region 属性
 
     /// <summary>
+    /// 是否正在加载专项练习进度
+    /// </summary>
+    [Reactive]
+    public bool IsLoadingSpecialPracticeProgress { get; set; } = false;
+
+    /// <summary>
     /// 页面标题
     /// </summary>
     [Reactive]
@@ -131,14 +137,6 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     [Reactive]
     public string SpecialPracticeProgressText { get; set; } = "0/0";
-
-    /// <summary>
-    /// 是否正在加载专项练习进度
-    /// </summary>
-    [Reactive]
-    public bool IsLoadingSpecialPracticeProgress { get; set; } = false;
-
-
 
     /// <summary>
     /// 是否正在加载成绩记录
@@ -318,16 +316,13 @@ public class OverviewViewModel : ViewModelBase
             {
                 int completedCount = await _studentMockExamService.GetCompletedMockExamCountAsync();
 
-                // 在UI线程上更新属性
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     MockExamCount = completedCount;
-                    System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 已完成模拟考试数量: {completedCount}");
                 });
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("OverviewViewModel: 模拟考试服务未注入，使用默认值");
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     MockExamCount = 0;
@@ -351,14 +346,12 @@ public class OverviewViewModel : ViewModelBase
     {
         if (_comprehensiveTrainingService == null)
         {
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 综合实训服务未注入，跳过进度加载");
             return;
         }
 
         try
         {
             IsLoadingComprehensiveTrainingProgress = true;
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始加载综合实训进度");
 
             ComprehensiveTrainingProgressDto progress = await _comprehensiveTrainingService.GetTrainingProgressAsync();
 
@@ -366,14 +359,11 @@ public class OverviewViewModel : ViewModelBase
             ComprehensiveTrainingCompletedCount = progress.CompletedCount;
             ComprehensiveTrainingCompletionPercentage = progress.CompletionPercentage;
             ComprehensiveTrainingProgressText = $"{progress.CompletedCount}/{progress.TotalCount}";
-
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 综合实训进度加载成功 - 总数: {progress.TotalCount}, 完成: {progress.CompletedCount}, 百分比: {progress.CompletionPercentage}%");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载综合实训进度失败: {ex.Message}");
 
-            // 设置默认值
             ComprehensiveTrainingTotalCount = 0;
             ComprehensiveTrainingCompletedCount = 0;
             ComprehensiveTrainingCompletionPercentage = 0;
@@ -392,14 +382,12 @@ public class OverviewViewModel : ViewModelBase
     {
         if (_studentExamService == null)
         {
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 学生考试服务未注入，跳过专项练习进度加载");
             return;
         }
 
         try
         {
             IsLoadingSpecialPracticeProgress = true;
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始加载专项练习进度");
 
             SpecialPracticeProgressDto progress = await _studentExamService.GetSpecialPracticeProgressAsync();
 
@@ -407,14 +395,11 @@ public class OverviewViewModel : ViewModelBase
             SpecialPracticeCompletedCount = progress.CompletedCount;
             SpecialPracticeCompletionPercentage = progress.CompletionPercentage;
             SpecialPracticeProgressText = $"{progress.CompletedCount}/{progress.TotalCount}";
-
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 专项练习进度加载成功 - 总数: {progress.TotalCount}, 完成: {progress.CompletedCount}, 百分比: {progress.CompletionPercentage}%");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载专项练习进度失败: {ex.Message}");
 
-            // 设置默认值
             SpecialPracticeTotalCount = 0;
             SpecialPracticeCompletedCount = 0;
             SpecialPracticeCompletionPercentage = 0;
@@ -426,14 +411,11 @@ public class OverviewViewModel : ViewModelBase
         }
     }
 
-
-
     /// <summary>
     /// 刷新综合训练进度
     /// </summary>
     public async Task RefreshComprehensiveTrainingProgressAsync()
     {
-        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新综合训练进度");
         await LoadComprehensiveTrainingProgressAsync();
     }
 
@@ -442,7 +424,6 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     public async Task RefreshSpecialPracticeProgressAsync()
     {
-        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新专项练习进度");
         await LoadSpecialPracticeProgressAsync();
     }
 
@@ -451,15 +432,12 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     public async Task RefreshRecordsAsync()
     {
-        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新成绩记录");
-
         IsLoadingRecords = true;
 
         try
         {
             await LoadAllRecordsAsync();
             FilterRecordsByType();
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 成绩记录刷新完成");
         }
         catch (Exception ex)
         {
@@ -476,12 +454,9 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     public async Task RefreshStatisticsAsync()
     {
-        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新统计数据");
-
         try
         {
             await LoadMockExamCountAsync();
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 统计数据刷新完成");
         }
         catch (Exception ex)
         {
@@ -494,25 +469,16 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     public async Task RefreshAllDataAsync()
     {
-        System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始刷新所有数据");
-
         try
         {
             await LoadMockExamCountAsync();
             await RefreshRecordsAsync();
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 所有数据刷新完成");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 刷新所有数据异常: {ex.Message}");
         }
     }
-
-
-
-
-
-
 
     /// <summary>
     /// 加载所有成绩数据
@@ -523,18 +489,9 @@ public class OverviewViewModel : ViewModelBase
 
         try
         {
-            // 加载综合训练完成记录
             await LoadComprehensiveTrainingRecordsAsync();
-
-            // 加载专项练习完成记录
             await LoadSpecialPracticeRecordsAsync();
-
-            // 加载模拟考试完成记录
             await LoadMockExamRecordsAsync();
-
-            // 上机统考数据（暂无API）
-
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 成功加载 {_allRecords.Count} 条成绩记录");
         }
         catch (Exception ex)
         {
@@ -549,13 +506,13 @@ public class OverviewViewModel : ViewModelBase
     {
         if (_comprehensiveTrainingService == null)
         {
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 综合训练服务未注入，无法加载记录");
             return;
         }
 
         try
         {
-            List<ComprehensiveTrainingCompletionDto> completions = await _comprehensiveTrainingService.GetComprehensiveTrainingCompletionsAsync(1, 50);
+            List<ComprehensiveTrainingCompletionDto> completions =
+                await _comprehensiveTrainingService.GetComprehensiveTrainingCompletionsAsync(1, 50);
 
             foreach (ComprehensiveTrainingCompletionDto completion in completions)
             {
@@ -571,8 +528,6 @@ public class OverviewViewModel : ViewModelBase
                     });
                 }
             }
-
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载了 {completions.Count} 条综合训练记录");
         }
         catch (Exception ex)
         {
@@ -587,13 +542,13 @@ public class OverviewViewModel : ViewModelBase
     {
         if (_studentExamService == null)
         {
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 学生考试服务未注入，无法加载记录");
             return;
         }
 
         try
         {
-            List<SpecialPracticeCompletionDto> completions = await _studentExamService.GetSpecialPracticeCompletionsAsync(1, 50);
+            List<SpecialPracticeCompletionDto> completions =
+                await _studentExamService.GetSpecialPracticeCompletionsAsync(1, 50);
 
             foreach (SpecialPracticeCompletionDto completion in completions)
             {
@@ -609,8 +564,6 @@ public class OverviewViewModel : ViewModelBase
                     });
                 }
             }
-
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 加载了 {completions.Count} 条专项练习记录");
         }
         catch (Exception ex)
         {
@@ -626,7 +579,6 @@ public class OverviewViewModel : ViewModelBase
         if (parameter is string typeString && Enum.TryParse<StatisticType>(typeString, out StatisticType type))
         {
             SelectedStatisticType = type;
-            // 切换统计类型时重置到第一页
             CurrentPage = 1;
             FilterRecordsByType();
         }
@@ -639,17 +591,13 @@ public class OverviewViewModel : ViewModelBase
     {
         if (_studentMockExamService == null)
         {
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 模拟考试服务为null，跳过加载模拟考试记录");
             return;
         }
 
         try
         {
-            System.Diagnostics.Debug.WriteLine("OverviewViewModel: 开始加载模拟考试完成记录");
-
-            List<MockExamCompletionDto> completions = await _studentMockExamService.GetMockExamCompletionsAsync(1, 50);
-
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 获取到 {completions.Count} 条模拟考试完成记录");
+            List<MockExamCompletionDto> completions =
+                await _studentMockExamService.GetMockExamCompletionsAsync(1, 50);
 
             int completedCount = 0;
             foreach (MockExamCompletionDto completion in completions)
@@ -663,16 +611,12 @@ public class OverviewViewModel : ViewModelBase
                         CompletionTime = completion.CompletedAt ?? completion.CreatedAt,
                         Score = (int)(completion.Score ?? 0),
                         Type = StatisticType.MockExam,
-
                     });
                     completedCount++;
                 }
             }
 
-            // 更新是否有模拟考试记录的状态
             HasMockExamRecords = completedCount > 0;
-
-            System.Diagnostics.Debug.WriteLine($"OverviewViewModel: 成功加载 {completedCount} 条模拟考试记录");
         }
         catch (Exception ex)
         {
@@ -689,13 +633,10 @@ public class OverviewViewModel : ViewModelBase
 
         List<TrainingRecord> filteredRecords = _allRecords.Where(r => r.Type == SelectedStatisticType).ToList();
 
-        // 更新总记录数
         TotalRecords = filteredRecords.Count;
 
-        // 计算分页信息
         UpdatePagination();
 
-        // 获取当前页的记录
         List<TrainingRecord> pagedRecords = filteredRecords
             .Skip((CurrentPage - 1) * PageSize)
             .Take(PageSize)
@@ -712,10 +653,8 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     private void UpdatePagination()
     {
-        // 计算总页数
         TotalPages = TotalRecords > 0 ? (int)Math.Ceiling((double)TotalRecords / PageSize) : 1;
 
-        // 确保当前页在有效范围内
         if (CurrentPage > TotalPages)
         {
             CurrentPage = TotalPages;
@@ -725,15 +664,12 @@ public class OverviewViewModel : ViewModelBase
             CurrentPage = 1;
         }
 
-        // 更新分页状态
         HasPreviousPage = CurrentPage > 1;
         HasNextPage = CurrentPage < TotalPages;
         ShowPagination = TotalPages > 1;
 
-        // 生成页码列表（显示当前页前后2页）
         UpdatePageNumbers();
 
-        // 更新命令状态
         ((DelegateCommand)PreviousPageCommand).RaiseCanExecuteChanged();
         ((DelegateCommand)NextPageCommand).RaiseCanExecuteChanged();
     }
@@ -761,9 +697,6 @@ public class OverviewViewModel : ViewModelBase
 
     #region 分页命令方法
 
-    /// <summary>
-    /// 上一页
-    /// </summary>
     private void PreviousPage()
     {
         if (CanExecutePreviousPage())
@@ -773,9 +706,6 @@ public class OverviewViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 下一页
-    /// </summary>
     private void NextPage()
     {
         if (CanExecuteNextPage())
@@ -785,9 +715,6 @@ public class OverviewViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 跳转到指定页
-    /// </summary>
     private void GoToPage(object? parameter)
     {
         if (parameter is int pageNumber && pageNumber >= 1 && pageNumber <= TotalPages)
@@ -797,17 +724,11 @@ public class OverviewViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 是否可以执行上一页
-    /// </summary>
     private bool CanExecutePreviousPage()
     {
         return HasPreviousPage;
     }
 
-    /// <summary>
-    /// 是否可以执行下一页
-    /// </summary>
     private bool CanExecuteNextPage()
     {
         return HasNextPage;
@@ -849,33 +770,10 @@ public enum StatisticType
 /// </summary>
 public class TrainingRecord
 {
-    /// <summary>
-    /// 实训名称
-    /// </summary>
     public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 用时
-    /// </summary>
     public string Duration { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 完成时间
-    /// </summary>
     public DateTime CompletionTime { get; set; }
-
-    /// <summary>
-    /// 得分
-    /// </summary>
     public int Score { get; set; }
-
-    /// <summary>
-    /// 记录类型
-    /// </summary>
     public StatisticType Type { get; set; }
-
-    /// <summary>
-    /// 格式化的完成时间
-    /// </summary>
     public string FormattedCompletionTime => CompletionTime.ToLocalTime().ToString("yyyy年MM月dd日 HH时mm分");
 }

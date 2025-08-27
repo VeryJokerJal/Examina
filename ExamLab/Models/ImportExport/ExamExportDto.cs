@@ -387,7 +387,7 @@ public class QuestionDto
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// 题目内容
+    /// 题目解析
     /// </summary>
     [JsonPropertyName("content")]
     public string Content { get; set; } = string.Empty;
