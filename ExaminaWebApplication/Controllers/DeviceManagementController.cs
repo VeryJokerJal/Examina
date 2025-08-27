@@ -64,11 +64,11 @@ public class DeviceManagementController : Controller
 
             if (!string.IsNullOrEmpty(searchKeyword))
             {
-                filteredDevices = filteredDevices.Where(d => 
+                filteredDevices = filteredDevices.Where(d =>
                     d.DeviceName.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase) ||
                     d.DeviceType.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    d.OperatingSystem?.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase) == true ||
-                    d.IpAddress?.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase) == true);
+                    (d.OperatingSystem != null && d.OperatingSystem.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase)) ||
+                    (d.IpAddress != null && d.IpAddress.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase)));
             }
 
             // 分页

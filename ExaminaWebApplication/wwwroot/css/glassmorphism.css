@@ -4960,3 +4960,41 @@ select.glass-select-native.glass-select-danger {
     margin-bottom: 0.5rem;
     display: block;
 }
+
+/* ===== GLASS BREADCRUMB ===== */
+.glass-breadcrumb {
+    background: var(--glass-primary);
+    backdrop-filter: var(--blur-md);
+    -webkit-backdrop-filter: var(--blur-md);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0;
+}
+
+.glass-breadcrumb .breadcrumb-item {
+    color: var(--text-secondary);
+}
+
+.glass-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: var(--text-muted);
+    font-weight: bold;
+}
+
+.glass-breadcrumb .breadcrumb-item a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.glass-breadcrumb .breadcrumb-item a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.glass-breadcrumb .breadcrumb-item.active {
+    color: var(--text-primary);
+    font-weight: 500;
+}

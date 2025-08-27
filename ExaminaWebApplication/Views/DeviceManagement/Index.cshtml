@@ -4,6 +4,25 @@
 }
 
 <div class="container-fluid">
+    <!-- 面包屑导航 -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb glass-breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/Home" class="text-decoration-none">
+                    <i class="bi bi-house-door me-1"></i>首页
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/UserManagement" class="text-decoration-none">
+                    <i class="bi bi-people-fill me-1"></i>用户管理
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <i class="bi bi-device-hdd me-1"></i>设备管理
+            </li>
+        </ol>
+    </nav>
+
     <!-- 页面标题 -->
     <div class="glass-card glass-card-primary mb-4">
         <div class="card-body">
@@ -171,7 +190,7 @@
                                 </td>
                                 <td>@device.IpAddress</td>
                                 <td>@device.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                <td>@device.LastUsedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@(device.LastUsedAt?.ToString("yyyy-MM-dd HH:mm") ?? "从未使用")</td>
                                 <td>
                                     @if (device.IsActive)
                                     {
