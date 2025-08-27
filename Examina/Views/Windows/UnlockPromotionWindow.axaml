@@ -1,0 +1,26 @@
+﻿<Window x:Class="Examina.Views.Windows.UnlockPromotionWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="using:Examina.ViewModels.Windows" Title="{Binding WindowTitle}" Width="400" Height="500" MinWidth="350" MinHeight="450" d:DesignHeight="500" d:DesignWidth="400" x:DataType="vm:UnlockPromotionWindowViewModel" CanResize="False" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:UnlockPromotionWindowViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  标题  -->
+        <TextBlock Grid.Row="0" Margin="0,0,0,20" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold" Text="解锁完整功能" />
+
+        <!--  二维码图片  -->
+        <Border Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Background="White" BorderBrush="LightGray" ClipToBounds="True" CornerRadius="10">
+            <Image Width="280" Height="320" HorizontalAlignment="Center" VerticalAlignment="Center" Source="/Assets/XuanYeEdu_Lin_BusinessQR.jpg" Stretch="UniformToFill" />
+        </Border>
+
+        <!--  推广文本  -->
+        <TextBlock Grid.Row="2" Margin="0,20,0,20" HorizontalAlignment="Center" FontSize="16" Foreground="DarkOrange" Text="{Binding PromotionText}" TextAlignment="Center" TextWrapping="Wrap" />
+    </Grid>
+</Window>

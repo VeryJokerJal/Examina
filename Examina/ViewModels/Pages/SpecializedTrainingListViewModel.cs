@@ -9,6 +9,7 @@ using Examina.Models.BenchSuite;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
 using Examina.Views;
+using Examina.Views.Windows;
 using ReactiveUI;
 
 namespace Examina.ViewModels.Pages;
@@ -131,8 +132,9 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         get
         {
-            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] StartButtonText被访问 - HasFullAccess: {HasFullAccess}");
-            return "开始答题";
+            string buttonText = HasFullAccess ? "开始答题" : "解锁";
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] StartButtonText被访问 - HasFullAccess: {HasFullAccess}, 按钮文本: {buttonText}");
+            return buttonText;
         }
     }
 
@@ -319,8 +321,9 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         // 检查用户权限
         if (!HasFullAccess)
         {
-            ErrorMessage = "您需要解锁权限才能开始专项训练。请加入学校组织或联系管理员进行解锁。";
-            System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 权限检查失败：用户没有完整权限");
+            // 用户没有权限，显示解锁推广窗口
+            System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 权限检查失败：用户没有完整权限，显示解锁推广窗口");
+            await ShowUnlockPromotionWindowAsync();
             return;
         }
 
@@ -899,6 +902,43 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     private void UpdateUserPermissions()
     {
         HasFullAccess = _authenticationService.IsAuthenticated && _authenticationService.CurrentUser != null && _authenticationService.CurrentUser.HasFullAccess;
+    }
+
+    /// <summary>
+    /// 显示解锁推广窗口
+    /// </summary>
+    private async Task ShowUnlockPromotionWindowAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 开始显示解锁推广窗口");
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    var mainWindow = desktop.MainWindow;
+                    if (mainWindow != null)
+                    {
+                        var unlockWindow = new UnlockPromotionWindow();
+                        System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 解锁推广窗口创建成功，准备显示");
+                        unlockWindow.ShowDialog(mainWindow);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 无法获取主窗口，无法显示解锁推广窗口");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 无法获取桌面应用程序生命周期");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 显示解锁推广窗口异常: {ex.Message}");
+        }
     }
 
     /// <summary>
