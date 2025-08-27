@@ -198,6 +198,64 @@ public class MockExamViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 从模拟考试中提取ComprehensiveTrainingId
+    /// </summary>
+    /// <param name="mockExam">模拟考试数据</param>
+    /// <returns>ComprehensiveTrainingId，如果未找到则返回null</returns>
+    private static int? GetComprehensiveTrainingIdFromMockExam(MockExamComprehensiveTrainingDto mockExam)
+    {
+        try
+        {
+            // 从模块中的题目提取ComprehensiveTrainingId
+            foreach (MockExamModuleDto module in mockExam.Modules)
+            {
+                foreach (MockExamQuestionDto question in module.Questions)
+                {
+                    if (question.ComprehensiveTrainingId > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 从模块 {module.Name} 中找到ComprehensiveTrainingId: {question.ComprehensiveTrainingId}");
+                        return question.ComprehensiveTrainingId;
+                    }
+                }
+            }
+
+            // 从科目中的题目提取ComprehensiveTrainingId
+            foreach (MockExamSubjectDto subject in mockExam.Subjects)
+            {
+                foreach (MockExamQuestionDto question in subject.Questions)
+                {
+                    if (question.ComprehensiveTrainingId > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 从科目 {subject.SubjectName} 中找到ComprehensiveTrainingId: {question.ComprehensiveTrainingId}");
+                        return question.ComprehensiveTrainingId;
+                    }
+                }
+            }
+
+            // 从根级别题目提取ComprehensiveTrainingId
+            if (mockExam.Questions != null)
+            {
+                foreach (MockExamQuestionDto question in mockExam.Questions)
+                {
+                    if (question.ComprehensiveTrainingId > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 从根级别题目中找到ComprehensiveTrainingId: {question.ComprehensiveTrainingId}");
+                        return question.ComprehensiveTrainingId;
+                    }
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 未找到有效的ComprehensiveTrainingId");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 提取ComprehensiveTrainingId时发生异常: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
     /// 更新用户权限状态
     /// </summary>
     private void UpdateUserPermissions()
@@ -290,15 +348,25 @@ public class MockExamViewModel : ViewModelBase
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
-                // 文件预下载准备
+                // 文件预下载准备 - 使用正确的ComprehensiveTrainingId
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始文件预下载准备");
 
-                bool filesReady = await desktop.MainWindow.PrepareFilesForMockExamAsync(mockExam.Id, mockExam.Name);
-                if (!filesReady)
+                // 从题目中提取ComprehensiveTrainingId
+                int? comprehensiveTrainingId = GetComprehensiveTrainingIdFromMockExam(mockExam);
+                if (comprehensiveTrainingId.HasValue)
                 {
-                    ErrorMessage = "文件准备失败，无法开始模拟考试。请检查网络连接或联系管理员。";
-                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 文件预下载失败，取消模拟考试启动");
-                    return;
+                    bool filesReady = await desktop.MainWindow.PrepareFilesForComprehensiveTrainingAsync(
+                        comprehensiveTrainingId.Value, $"模拟考试: {mockExam.Name}");
+                    if (!filesReady)
+                    {
+                        ErrorMessage = "文件准备失败，无法开始模拟考试。请检查网络连接或联系管理员。";
+                        System.Diagnostics.Debug.WriteLine("MockExamViewModel: 文件预下载失败，取消模拟考试启动");
+                        return;
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 未找到ComprehensiveTrainingId，跳过文件下载");
                 }
 
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 文件预下载完成，继续启动模拟考试");
