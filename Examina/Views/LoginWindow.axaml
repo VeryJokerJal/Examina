@@ -81,7 +81,7 @@
                         <Border Padding="16,12" Background="{DynamicResource SystemFillColorCautionBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorCautionBrush}" BorderThickness="1" CornerRadius="8" IsVisible="{Binding ShowDeviceLimitError}">
                             <StackPanel Spacing="12">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-                                    <ui:SymbolIcon Symbol="Computer" FontSize="20" Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+                                    <ui:SymbolIcon Symbol="Phone" FontSize="20" Foreground="{DynamicResource SystemFillColorCautionBrush}" />
                                     <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SystemFillColorCautionBrush}" Text="设备数量超出限制" />
                                 </StackPanel>
 
