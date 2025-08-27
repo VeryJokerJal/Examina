@@ -1135,7 +1135,8 @@ public class UnifiedExamViewModel : ViewModelBase
                         submitResult = scoringResult != null;
                         if (scoringResult != null)
                         {
-                            actualDurationSeconds = scoringResult.DurationSeconds;
+                            // 将毫秒转换为秒
+                            actualDurationSeconds = (int)(scoringResult.ElapsedMilliseconds / 1000);
                         }
                     }
                     break;
