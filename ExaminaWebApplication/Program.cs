@@ -454,6 +454,11 @@ app.MapControllerRoute(
     pattern: "UserManagement/{action=Index}/{id?}",
     defaults: new { controller = "UserManagement" });
 
+app.MapControllerRoute(
+    name: "deviceManagement",
+    pattern: "DeviceManagement/{action=Index}/{id?}",
+    defaults: new { controller = "DeviceManagement" });
+
 // 排行榜相关路由
 app.MapControllerRoute(
     name: "ranking",

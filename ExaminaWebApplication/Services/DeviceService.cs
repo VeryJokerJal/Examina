@@ -286,6 +286,84 @@ public class DeviceService : IDeviceService
         }
     }
 
+    public async Task<bool> UnbindDeviceAsync(int deviceId)
+    {
+        try
+        {
+            var device = await _context.UserDevices.FindAsync(deviceId);
+            if (device == null)
+            {
+                return false;
+            }
+
+            device.IsActive = false;
+            device.LastUsedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("设备解绑成功，设备ID: {DeviceId}", deviceId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "解绑设备失败，设备ID: {DeviceId}", deviceId);
+            return false;
+        }
+    }
+
+    public async Task<bool> SetDeviceTrustAsync(int deviceId, bool isTrusted)
+    {
+        try
+        {
+            var device = await _context.UserDevices.FindAsync(deviceId);
+            if (device == null)
+            {
+                return false;
+            }
+
+            device.IsTrusted = isTrusted;
+            device.LastUsedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("设备信任状态设置成功，设备ID: {DeviceId}, 信任状态: {IsTrusted}", deviceId, isTrusted);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "设置设备信任状态失败，设备ID: {DeviceId}", deviceId);
+            return false;
+        }
+    }
+
+    public async Task<bool> ExtendDeviceExpiryAsync(int deviceId, int days)
+    {
+        try
+        {
+            var device = await _context.UserDevices.FindAsync(deviceId);
+            if (device == null)
+            {
+                return false;
+            }
+
+            // 如果设备已过期，从当前时间开始延长；否则从原有过期时间延长
+            var baseDate = device.ExpiresAt > DateTime.Now ? device.ExpiresAt : DateTime.Now;
+            device.ExpiresAt = baseDate?.AddDays(days) ?? DateTime.Now.AddDays(days);
+            device.LastUsedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("设备有效期延长成功，设备ID: {DeviceId}, 延长天数: {Days}, 新过期时间: {ExpiresAt}",
+                deviceId, days, device.ExpiresAt);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "延长设备有效期失败，设备ID: {DeviceId}", deviceId);
+            return false;
+        }
+    }
+
     public async Task<bool> SetDeviceTrustedAsync(int deviceId, bool isTrusted)
     {
         try

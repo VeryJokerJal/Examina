@@ -1,0 +1,463 @@
+@model ExaminaWebApplication.ViewModels.DeviceManagementViewModel
+@{
+    ViewData["Title"] = "设备管理";
+}
+
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="glass-card glass-card-primary mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="mb-0">
+                        <i class="bi bi-device-hdd me-2"></i>设备管理
+                    </h2>
+                    <p class="text-muted mb-0">管理用户绑定的设备，监控设备状态和安全</p>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="glass-btn glass-btn-secondary me-2" onclick="refreshDeviceList()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>刷新
+                    </button>
+                    <button type="button" class="glass-btn glass-btn-warning" onclick="cleanupExpiredDevices()">
+                        <i class="bi bi-trash me-2"></i>清理过期设备
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索和筛选 -->
+    <div class="glass-card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="glass-form-label">搜索设备</label>
+                    <div class="glass-input-group">
+                        <span class="glass-input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="glass-form-control" id="searchKeyword" placeholder="搜索设备名称、类型、IP地址..." value="@Model.SearchKeyword">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="glass-form-label">设备类型</label>
+                    <select class="glass-form-control" id="deviceTypeFilter">
+                        @foreach (var option in Model.DeviceTypeFilterOptions)
+                        {
+                            <option value="@(option.Value ?? "")">@option.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="glass-form-label">设备状态</label>
+                    <select class="glass-form-control" id="deviceStatusFilter">
+                        @foreach (var option in Model.DeviceStatusFilterOptions)
+                        {
+                            <option value="@(option.Value?.ToString() ?? "")">@option.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="glass-form-label">&nbsp;</label>
+                    <div class="glass-form-check">
+                        <input class="glass-form-check-input" type="checkbox" id="includeInactive" @(Model.IncludeInactive ? "checked" : "")>
+                        <label class="glass-form-check-label" for="includeInactive">
+                            包含非活跃设备
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="glass-form-label">&nbsp;</label>
+                    <button type="button" class="glass-btn glass-btn-secondary w-100" onclick="searchDevices()">
+                        <i class="bi bi-search me-2"></i>搜索
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card glass-card-secondary">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="totalDevices">@Model.TotalDevices</div>
+                    <div class="glass-stat-label">设备总数</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card glass-card-success">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="activeDevices">@Model.ActiveDevices</div>
+                    <div class="glass-stat-label">活跃设备</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card glass-card-info">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="trustedDevices">@Model.TrustedDevices</div>
+                    <div class="glass-stat-label">受信任设备</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card glass-card-warning">
+                <div class="card-body text-center">
+                    <div class="glass-stat-number" id="expiredDevices">@Model.ExpiredDevices</div>
+                    <div class="glass-stat-label">过期设备</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设备列表 -->
+    <div class="glass-card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">设备列表</h5>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="glass-btn glass-btn-sm glass-btn-outline-danger" onclick="batchUnbindDevices()" id="batchUnbindBtn" style="display: none;">
+                        <i class="bi bi-trash me-1"></i>批量解绑
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>设备名称</th>
+                            <th>设备类型</th>
+                            <th>操作系统</th>
+                            <th>IP地址</th>
+                            <th>绑定时间</th>
+                            <th>最后使用</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var device in Model.Devices)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input device-checkbox" value="@device.Id" onchange="updateBatchButtons()">
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-@(GetDeviceIcon(device.DeviceType)) me-2"></i>
+                                        <div>
+                                            <div class="fw-medium">@device.DeviceName</div>
+                                            @if (device.IsTrusted)
+                                            {
+                                                <small class="text-success">
+                                                    <i class="bi bi-shield-check me-1"></i>受信任
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@device.DeviceType</td>
+                                <td>
+                                    <small>@device.OperatingSystem</small>
+                                </td>
+                                <td>@device.IpAddress</td>
+                                <td>@device.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@device.LastUsedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    @if (device.IsActive)
+                                    {
+                                        <span class="badge bg-success">活跃</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">非活跃</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        @if (device.IsActive)
+                                        {
+                                            <button type="button" class="btn btn-outline-warning" onclick="setDeviceTrust(@device.Id, @(!device.IsTrusted).ToString().ToLower())" title="@(device.IsTrusted ? "取消信任" : "设为信任")">
+                                                <i class="bi bi-shield-@(device.IsTrusted ? "slash" : "check")"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info" onclick="extendDeviceExpiry(@device.Id)" title="延长有效期">
+                                                <i class="bi bi-clock-history"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="unbindDevice(@device.Id)" title="解绑设备">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">已解绑</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Devices.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-device-hdd display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">暂无设备数据</h5>
+                    <p class="text-muted">当前筛选条件下没有找到设备信息</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetDeviceIcon(string deviceType)
+    {
+        return deviceType.ToLower() switch
+        {
+            "desktop" => "pc-display",
+            "mobile" => "phone",
+            "tablet" => "tablet",
+            "web" => "globe",
+            _ => "device-hdd"
+        };
+    }
+}
+
+<!-- 延长有效期模态框 -->
+<div class="modal fade" id="extendExpiryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">延长设备有效期</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">延长天数</label>
+                    <select class="form-control" id="extendDays">
+                        <option value="7">7天</option>
+                        <option value="30" selected>30天</option>
+                        <option value="90">90天</option>
+                        <option value="365">365天</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="confirmExtendExpiry()">确认延长</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentDeviceId = null;
+
+        // 搜索设备
+        function searchDevices() {
+            const searchKeyword = document.getElementById('searchKeyword').value;
+            const deviceType = document.getElementById('deviceTypeFilter').value;
+            const deviceStatus = document.getElementById('deviceStatusFilter').value;
+            const includeInactive = document.getElementById('includeInactive').checked;
+
+            const params = new URLSearchParams({
+                searchKeyword: searchKeyword,
+                includeInactive: includeInactive
+            });
+
+            if (deviceType) params.append('deviceType', deviceType);
+            if (deviceStatus) params.append('deviceStatus', deviceStatus);
+
+            window.location.href = '/DeviceManagement?' + params.toString();
+        }
+
+        // 刷新设备列表
+        function refreshDeviceList() {
+            window.location.reload();
+        }
+
+        // 解绑设备
+        function unbindDevice(deviceId) {
+            if (confirm('确定要解绑此设备吗？解绑后用户需要重新绑定设备才能登录。')) {
+                fetch('/DeviceManagement/UnbindDevice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `deviceId=${deviceId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('操作失败，请稍后重试', 'error');
+                });
+            }
+        }
+
+        // 设置设备信任状态
+        function setDeviceTrust(deviceId, isTrusted) {
+            const action = isTrusted ? '设为信任' : '取消信任';
+            if (confirm(`确定要${action}此设备吗？`)) {
+                fetch('/DeviceManagement/SetDeviceTrust', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `deviceId=${deviceId}&isTrusted=${isTrusted}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('操作失败，请稍后重试', 'error');
+                });
+            }
+        }
+
+        // 延长设备有效期
+        function extendDeviceExpiry(deviceId) {
+            currentDeviceId = deviceId;
+            const modal = new bootstrap.Modal(document.getElementById('extendExpiryModal'));
+            modal.show();
+        }
+
+        // 确认延长有效期
+        function confirmExtendExpiry() {
+            const days = document.getElementById('extendDays').value;
+
+            fetch('/DeviceManagement/ExtendDeviceExpiry', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: `deviceId=${currentDeviceId}&days=${days}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('extendExpiryModal'));
+                    modal.hide();
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('操作失败，请稍后重试', 'error');
+            });
+        }
+
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.device-checkbox');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+
+            updateBatchButtons();
+        }
+
+        // 更新批量操作按钮状态
+        function updateBatchButtons() {
+            const checkedBoxes = document.querySelectorAll('.device-checkbox:checked');
+            const batchBtn = document.getElementById('batchUnbindBtn');
+
+            if (checkedBoxes.length > 0) {
+                batchBtn.style.display = 'inline-block';
+            } else {
+                batchBtn.style.display = 'none';
+            }
+        }
+
+        // 批量解绑设备
+        function batchUnbindDevices() {
+            const checkedBoxes = document.querySelectorAll('.device-checkbox:checked');
+            const deviceIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+            if (deviceIds.length === 0) {
+                showNotification('请选择要解绑的设备', 'warning');
+                return;
+            }
+
+            if (confirm(`确定要解绑选中的 ${deviceIds.length} 个设备吗？`)) {
+                fetch('/DeviceManagement/BatchUnbindDevices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify(deviceIds)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('操作失败，请稍后重试', 'error');
+                });
+            }
+        }
+
+        // 清理过期设备
+        function cleanupExpiredDevices() {
+            if (confirm('确定要清理所有过期设备吗？此操作不可撤销。')) {
+                // 这里可以添加清理过期设备的API调用
+                showNotification('清理过期设备功能开发中...', 'info');
+            }
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            // 这里可以使用 Toast 或其他通知组件
+            alert(message);
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 监听复选框变化
+            document.querySelectorAll('.device-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateBatchButtons);
+            });
+        });
+    </script>
+}

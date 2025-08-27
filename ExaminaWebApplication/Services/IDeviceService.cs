@@ -79,10 +79,33 @@ public interface IDeviceService
     /// <param name="isTrusted">是否受信任</param>
     /// <returns>是否成功设置</returns>
     Task<bool> SetDeviceTrustedAsync(int deviceId, bool isTrusted);
-    
+
     /// <summary>
     /// 清理过期设备
     /// </summary>
     /// <returns>清理的设备数量</returns>
     Task<int> CleanupExpiredDevicesAsync();
+
+    /// <summary>
+    /// 解绑设备（管理员操作）
+    /// </summary>
+    /// <param name="deviceId">设备ID</param>
+    /// <returns>是否成功解绑</returns>
+    Task<bool> UnbindDeviceAsync(int deviceId);
+
+    /// <summary>
+    /// 设置设备信任状态
+    /// </summary>
+    /// <param name="deviceId">设备ID</param>
+    /// <param name="isTrusted">是否信任</param>
+    /// <returns>是否成功设置</returns>
+    Task<bool> SetDeviceTrustAsync(int deviceId, bool isTrusted);
+
+    /// <summary>
+    /// 延长设备有效期
+    /// </summary>
+    /// <param name="deviceId">设备ID</param>
+    /// <param name="days">延长天数</param>
+    /// <returns>是否成功延长</returns>
+    Task<bool> ExtendDeviceExpiryAsync(int deviceId, int days);
 }
