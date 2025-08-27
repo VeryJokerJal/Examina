@@ -1,9 +1,11 @@
-﻿using System.Reactive;
+﻿using System.IO;
+using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
 using Examina.Models.Exam;
+using Examina.Models.FileDownload;
 using Examina.Models.MockExam;
 using Examina.Services;
 using Examina.Views;
@@ -177,6 +179,15 @@ public class MockExamViewModel : ViewModelBase
                     System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {module.Name} ({module.Type})，包含 {module.Questions.Count} 道题目，描述: {module.Description}");
                 }
 
+                // 预检查文件状态
+                bool preCheckResult = await PreCheckExamFilesAsync(mockExam.Id, mockExam.Name);
+                if (!preCheckResult)
+                {
+                    ErrorMessage = "文件检测失败，无法开始模拟考试。请检查网络连接或联系管理员。";
+                    System.Diagnostics.Debug.WriteLine("MockExamViewModel: 文件预检查失败，取消模拟考试启动");
+                    return;
+                }
+
                 // 启动模拟考试界面
                 await StartMockExamInterfaceAsync(mockExam);
             }
@@ -194,6 +205,123 @@ public class MockExamViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// 预检查考试文件状态
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <param name="examName">考试名称</param>
+    /// <returns>检查是否成功</returns>
+    private async Task<bool> PreCheckExamFilesAsync(int examId, string examName)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 开始预检查考试文件，考试ID: {examId}");
+
+            // 检查是否有文件需要下载
+            bool hasFilesToDownload = await FileDownloadHelper.HasFilesToDownloadAsync(
+                FileDownloadTaskType.MockExam, examId);
+
+            if (!hasFilesToDownload)
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 没有文件需要下载，预检查通过");
+                return true;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 发现需要下载的文件，考试: {examName}");
+
+            // 检查本地文件是否已存在且完整
+            bool localFilesReady = await CheckLocalFilesIntegrityAsync(examId);
+            if (localFilesReady)
+            {
+                System.Diagnostics.Debug.WriteLine("MockExamViewModel: 本地文件已存在且完整，预检查通过");
+                return true;
+            }
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 本地文件不完整或不存在，需要下载");
+            return true; // 返回true，让后续的PrepareFilesForMockExamAsync处理下载
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 预检查文件状态异常: {ex.Message}");
+            return true; // 异常情况下返回true，让后续流程处理
+        }
+    }
+
+    /// <summary>
+    /// 检查本地文件完整性
+    /// </summary>
+    /// <param name="examId">考试ID</param>
+    /// <returns>文件是否完整</returns>
+    private async Task<bool> CheckLocalFilesIntegrityAsync(int examId)
+    {
+        try
+        {
+            App? app = Avalonia.Application.Current as App;
+            Services.IFileDownloadService? fileDownloadService = app?.GetService<Services.IFileDownloadService>();
+
+            if (fileDownloadService == null)
+            {
+                return false;
+            }
+
+            // 获取应该存在的文件列表
+            List<FileDownloadInfo> expectedFiles = await fileDownloadService.GetExamFilesAsync(
+                examId, FileDownloadTaskType.MockExam);
+
+            if (expectedFiles.Count == 0)
+            {
+                return true; // 没有文件需要检查
+            }
+
+            // 获取下载目录
+            string downloadDir = FileDownloadHelper.GetDownloadDirectoryPath(
+                FileDownloadTaskType.MockExam, examId);
+
+            if (!Directory.Exists(downloadDir))
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 下载目录不存在: {downloadDir}");
+                return false;
+            }
+
+            // 检查每个文件是否存在且大小正确
+            foreach (FileDownloadInfo fileInfo in expectedFiles)
+            {
+                string localFilePath = Path.Combine(downloadDir, fileInfo.FileName);
+
+                if (!File.Exists(localFilePath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 文件不存在: {localFilePath}");
+                    return false;
+                }
+
+                FileInfo localFile = new(localFilePath);
+                if (localFile.Length != fileInfo.TotalSize)
+                {
+                    System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 文件大小不匹配: {localFilePath}, 期望: {fileInfo.TotalSize}, 实际: {localFile.Length}");
+                    return false;
+                }
+
+                // 如果是压缩文件，检查是否已解压
+                if (fileInfo.IsCompressed && !string.IsNullOrEmpty(fileInfo.ExtractPath))
+                {
+                    if (!Directory.Exists(fileInfo.ExtractPath))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 压缩文件未解压: {fileInfo.ExtractPath}");
+                        return false;
+                    }
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("MockExamViewModel: 所有本地文件检查通过");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 检查本地文件完整性异常: {ex.Message}");
+            return false;
         }
     }
 

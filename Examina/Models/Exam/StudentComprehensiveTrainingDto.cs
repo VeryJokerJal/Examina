@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Examina.Models.Exam;
 
@@ -101,6 +102,19 @@ public class StudentComprehensiveTrainingDto
     /// 模块列表
     /// </summary>
     public ObservableCollection<StudentComprehensiveTrainingModuleDto> Modules { get; set; } = [];
+
+    /// <summary>
+    /// 动态计算的总分（基于科目和模块的实际分值）
+    /// </summary>
+    public int CalculatedTotalScore
+    {
+        get
+        {
+            int subjectsScore = Subjects.Sum(s => s.Questions.Sum(q => q.Score));
+            int modulesScore = Modules.Sum(m => m.Questions.Sum(q => q.Score));
+            return subjectsScore + modulesScore;
+        }
+    }
 }
 
 /// <summary>

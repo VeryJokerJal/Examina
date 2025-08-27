@@ -128,6 +128,38 @@ public static class FileDownloadHelper
     /// <param name="taskType">任务类型</param>
     /// <param name="relatedId">关联ID</param>
     /// <returns>下载目录路径</returns>
+    public static string GetDownloadDirectoryPath(FileDownloadTaskType taskType, int relatedId)
+    {
+        try
+        {
+            App? app = Avalonia.Application.Current as App;
+            Services.IFileDownloadService? fileDownloadService = app?.GetService<Services.IFileDownloadService>();
+
+            if (fileDownloadService == null)
+            {
+                // 返回默认路径
+                string baseDownloadPath = @"C:\河北对口计算机";
+                string taskTypeFolder = taskType switch
+                {
+                    FileDownloadTaskType.MockExam => "模拟考试",
+                    FileDownloadTaskType.OnlineExam => "上机统考",
+                    FileDownloadTaskType.ComprehensiveTraining => "综合实训",
+                    FileDownloadTaskType.SpecializedTraining => "专项训练",
+                    _ => "其他"
+                };
+                return Path.Combine(baseDownloadPath, taskTypeFolder, relatedId.ToString());
+            }
+
+            // 使用服务的方法获取路径
+            return fileDownloadService.GetDownloadDirectory(taskType, relatedId);
+        }
+        catch
+        {
+            // 异常情况下返回默认路径
+            string baseDownloadPath = @"C:\河北对口计算机";
+            return Path.Combine(baseDownloadPath, taskType.ToString(), relatedId.ToString());
+        }
+    }
     public static string GetDownloadDirectory(FileDownloadTaskType taskType, int relatedId)
     {
         try

@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.IO;
 using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
@@ -502,7 +503,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 }
                 else
                 {
-                    // 回退到基础提交逻辑，但尝试获取实际用时
+                    // 回退到基础提交逻辑，但尝试获取实际用时和BenchSuite评分
                     CompleteTrainingRequest request = await CreateTrainingRequestAsync(isAutoSubmit);
                     submitResult = await _studentComprehensiveTrainingService
                         .CompleteComprehensiveTrainingAsync(trainingId, request);
@@ -527,12 +528,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 创建训练提交请求
     /// </summary>
-    private Task<CompleteTrainingRequest> CreateTrainingRequestAsync(bool isAutoSubmit)
+    private async Task<CompleteTrainingRequest> CreateTrainingRequestAsync(bool isAutoSubmit)
     {
         try
         {
             // 尝试从当前活动的工具栏窗口获取实际用时
             int? actualDurationSeconds = null;
+            int? currentTrainingId = null;
 
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
@@ -543,30 +545,147 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                         viewModel.CurrentExamType == ExamType.ComprehensiveTraining)
                     {
                         actualDurationSeconds = viewModel.GetActualDurationSeconds();
+                        currentTrainingId = viewModel.CurrentExamId;
                         break;
                     }
                 }
             }
 
+            // 尝试进行BenchSuite评分
+            BenchSuiteScoringResult? scoringResult = null;
+            decimal? score = null;
+            decimal? maxScore = null;
+            string? benchSuiteScoringResultJson = null;
+
+            if (currentTrainingId.HasValue)
+            {
+                try
+                {
+                    IBenchSuiteIntegrationService? benchSuiteService = AppServiceManager.GetService<IBenchSuiteIntegrationService>();
+                    IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+
+                    if (benchSuiteService != null && directoryService != null)
+                    {
+                        // 创建BenchSuite评分请求
+                        BenchSuiteScoringRequest benchSuiteRequest = new()
+                        {
+                            ExamId = currentTrainingId.Value,
+                            ExamType = ExamType.ComprehensiveTraining,
+                            StudentUserId = _authenticationService.CurrentUser?.Id ?? 0,
+                            BasePath = directoryService.GetBasePath(),
+                            FilePaths = new Dictionary<BenchSuiteFileType, List<string>>()
+                        };
+
+                        // 扫描并添加文件路径
+                        await ScanAndAddFilePathsAsync(benchSuiteRequest, currentTrainingId.Value);
+
+                        // 执行BenchSuite评分
+                        scoringResult = await benchSuiteService.ScoreExamAsync(benchSuiteRequest);
+
+                        if (scoringResult.IsSuccess)
+                        {
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
+
+                            // 序列化评分结果
+                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResult, new System.Text.Json.JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                                WriteIndented = true
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // BenchSuite评分失败不影响提交，只记录错误
+                    System.Diagnostics.Debug.WriteLine($"BenchSuite评分失败: {ex.Message}");
+                }
+            }
+
             CompleteTrainingRequest request = new()
             {
-                Score = null,
-                MaxScore = null,
+                Score = score,
+                MaxScore = maxScore,
                 DurationSeconds = actualDurationSeconds,
                 Notes = isAutoSubmit ? "训练时间到期，自动提交" : "学生手动提交训练",
+                BenchSuiteScoringResult = benchSuiteScoringResultJson,
                 CompletedAt = DateTime.UtcNow
             };
 
-            return Task.FromResult(request);
+            return request;
         }
         catch
         {
             // 异常恢复：返回基础请求
-            return Task.FromResult(new CompleteTrainingRequest
+            return new CompleteTrainingRequest
             {
                 Notes = isAutoSubmit ? "训练时间到期，自动提交（异常恢复）" : "学生手动提交训练（异常恢复）",
                 CompletedAt = DateTime.UtcNow
-            });
+            };
+        }
+    }
+
+    /// <summary>
+    /// 扫描并添加文件路径到BenchSuite评分请求
+    /// </summary>
+    private async Task ScanAndAddFilePathsAsync(BenchSuiteScoringRequest request, int trainingId)
+    {
+        try
+        {
+            IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+            if (directoryService == null) return;
+
+            // 获取支持的文件类型
+            BenchSuiteFileType[] supportedFileTypes =
+            {
+                BenchSuiteFileType.Word,
+                BenchSuiteFileType.Excel,
+                BenchSuiteFileType.CSharp,
+                BenchSuiteFileType.Windows
+            };
+
+            foreach (BenchSuiteFileType fileType in supportedFileTypes)
+            {
+                try
+                {
+                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
+
+                    if (Directory.Exists(directoryPath))
+                    {
+                        List<string> filePaths = new();
+
+                        // 根据文件类型扫描相应的文件
+                        string[] extensions = fileType switch
+                        {
+                            BenchSuiteFileType.Word => new[] { "*.docx", "*.doc" },
+                            BenchSuiteFileType.Excel => new[] { "*.xlsx", "*.xls" },
+                            BenchSuiteFileType.CSharp => new[] { "*.cs" },
+                            BenchSuiteFileType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
+                            _ => new[] { "*.*" }
+                        };
+
+                        foreach (string extension in extensions)
+                        {
+                            string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
+                            filePaths.AddRange(files);
+                        }
+
+                        if (filePaths.Count > 0)
+                        {
+                            request.FilePaths[fileType] = filePaths;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"扫描{fileType}文件时发生错误: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"扫描文件路径时发生错误: {ex.Message}");
         }
     }
 

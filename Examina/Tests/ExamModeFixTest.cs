@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Examina.Models;
+﻿using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Services;
+using Examina.ViewModels.Pages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -18,7 +15,7 @@ public class ExamModeFixTest
     /// <summary>
     /// 测试重考模式CanRetake属性计算修复
     /// </summary>
-    public static async Task TestRetakeModeCanRetakeFixAsync()
+    public static void TestRetakeModeCanRetakeFix()
     {
         Console.WriteLine("=== 测试重考模式CanRetake属性计算修复 ===");
 
@@ -26,15 +23,15 @@ public class ExamModeFixTest
         {
             // 创建模拟的ExamAttemptService
             ILogger<ExamAttemptService> logger = NullLogger<ExamAttemptService>.Instance;
-            
+
             // 这里需要模拟服务依赖，实际测试中需要完整的依赖注入
             // ExamAttemptService service = new ExamAttemptService(...);
 
             Console.WriteLine("测试场景1: 学生首次完成考试后，应该能够重考");
-            
+
             // 模拟考试完成记录
-            List<ExamCompletion> mockCompletions = new List<ExamCompletion>
-            {
+            List<ExamCompletion> mockCompletions =
+            [
                 new ExamCompletion
                 {
                     Id = 1,
@@ -46,25 +43,25 @@ public class ExamModeFixTest
                     Score = 85,
                     MaxScore = 100
                 }
-            };
+            ];
 
             Console.WriteLine($"模拟数据: 学生1完成了考试1，得分85/100");
-            
+
             // 验证考试类型推断逻辑
             List<ExamCompletion> sortedCompletions = mockCompletions
                 .Where(c => c.ExamId == 1 && c.StudentUserId == 1)
                 .OrderBy(c => c.StartedAt ?? c.CreatedAt)
                 .ToList();
 
-            List<ExamAttemptDto> attempts = new List<ExamAttemptDto>();
+            List<ExamAttemptDto> attempts = [];
             for (int i = 0; i < sortedCompletions.Count; i++)
             {
                 ExamCompletion completion = sortedCompletions[i];
-                
+
                 // 根据完成顺序推断考试类型
                 ExamAttemptType attemptType = i == 0 ? ExamAttemptType.FirstAttempt : ExamAttemptType.Retake;
-                
-                ExamAttemptDto attempt = new ExamAttemptDto
+
+                ExamAttemptDto attempt = new()
                 {
                     Id = completion.Id,
                     ExamId = completion.ExamId,
@@ -77,7 +74,7 @@ public class ExamModeFixTest
                     Score = completion.Score,
                     MaxScore = completion.MaxScore
                 };
-                
+
                 attempts.Add(attempt);
             }
 
@@ -100,7 +97,7 @@ public class ExamModeFixTest
             int retakeAttempts = attempts.Count(a => a.AttemptType == ExamAttemptType.Retake);
 
             bool canRetake = allowRetake && retakeAttempts < maxRetakeCount && hasCompletedFirstAttempt;
-            
+
             Console.WriteLine($"重考配置: 允许重考={allowRetake}, 最大重考次数={maxRetakeCount}, 已重考次数={retakeAttempts}");
             Console.WriteLine($"计算结果: CanRetake = {canRetake}");
 
@@ -186,7 +183,7 @@ public class ExamModeFixTest
         Console.WriteLine("开始运行考试模式修复测试...");
         Console.WriteLine();
 
-        await TestRetakeModeCanRetakeFixAsync();
+        TestRetakeModeCanRetakeFix();
         TestPracticeModeNoApiSubmission();
 
         Console.WriteLine("所有测试完成。");

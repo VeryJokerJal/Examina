@@ -65,11 +65,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="20">
                                             <StackPanel Orientation="Horizontal" Spacing="5">
                                                 <TextBlock FontSize="14" Text="📊" />
-                                                <TextBlock FontSize="14" Text="{Binding TotalScore, StringFormat={}{0} 分}" />
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock FontSize="14" Text="⏱️" />
-                                                <TextBlock FontSize="14" Text="{Binding DurationMinutes, StringFormat={}{0} 分钟}" />
+                                                <TextBlock FontSize="14" Text="{Binding CalculatedTotalScore, StringFormat={}{0} 分}" />
                                             </StackPanel>
                                         </StackPanel>
 
