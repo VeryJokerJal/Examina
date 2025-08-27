@@ -1,4 +1,8 @@
-﻿<UserControl x:Class="Examina.Views.Pages.ComprehensiveTrainingListView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Examina.Models.Exam" xmlns:vm="using:Examina.ViewModels.Pages" d:DesignHeight="450" d:DesignWidth="800" x:DataType="vm:ComprehensiveTrainingListViewModel" mc:Ignorable="d">
+﻿<UserControl x:Class="Examina.Views.Pages.ComprehensiveTrainingListView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Examina.Models.Exam" xmlns:vm="using:Examina.ViewModels.Pages" xmlns:converters="using:Examina.Converters" d:DesignHeight="450" d:DesignWidth="800" x:DataType="vm:ComprehensiveTrainingListViewModel" mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:DebugMultiValueConverter x:Key="DebugConverter" />
+    </UserControl.Resources>
 
     <Design.DataContext>
         <vm:ComprehensiveTrainingListViewModel />
@@ -96,7 +100,7 @@
                                                 Padding="20,10"
                                                 MinWidth="120">
                                             <Button.IsEnabled>
-                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                <MultiBinding Converter="{StaticResource DebugConverter}">
                                                     <Binding Path="$parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).HasFullAccess" />
                                                     <Binding Path="EnableTrial" />
                                                 </MultiBinding>

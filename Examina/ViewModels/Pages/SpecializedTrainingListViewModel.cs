@@ -127,14 +127,23 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 开始训练按钮文本
     /// </summary>
-    public string StartButtonText => "开始答题";
+    public string StartButtonText
+    {
+        get
+        {
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] StartButtonText被访问 - HasFullAccess: {HasFullAccess}");
+            return "开始答题";
+        }
+    }
 
     /// <summary>
     /// 检查训练是否可以开始（权限和试做支持）
     /// </summary>
     public bool CanStartTraining(StudentSpecializedTrainingDto training)
     {
-        return HasFullAccess && training.EnableTrial;
+        bool canStart = HasFullAccess && training.EnableTrial;
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] CanStartTraining - 训练: {training.Name}, HasFullAccess: {HasFullAccess}, EnableTrial: {training.EnableTrial}, 结果: {canStart}");
+        return canStart;
     }
 
     /// <summary>
@@ -302,10 +311,16 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// </summary>
     private async Task StartTrainingAsync(StudentSpecializedTrainingDto training)
     {
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] StartTrainingAsync被调用");
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 训练信息: ID={training.Id}, Name={training.Name}");
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 当前用户权限状态: HasFullAccess={HasFullAccess}");
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 训练试做支持状态: EnableTrial={training.EnableTrial}");
+
         // 检查用户权限
         if (!HasFullAccess)
         {
             ErrorMessage = "您需要解锁权限才能开始专项训练。请加入学校组织或联系管理员进行解锁。";
+            System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 权限检查失败：用户没有完整权限");
             return;
         }
 
@@ -313,7 +328,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         if (!training.EnableTrial)
         {
             ErrorMessage = "此训练暂不支持试做功能，请联系管理员。";
-            System.Diagnostics.Debug.WriteLine($"训练 {training.Name} 不支持试做功能");
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 试做支持检查失败：训练 {training.Name} 不支持试做功能");
             return;
         }
 
@@ -322,7 +337,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             IsLoading = true;
             ErrorMessage = string.Empty;
 
-            System.Diagnostics.Debug.WriteLine($"开始专项训练: {training.Name}");
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 权限和试做检查通过，开始专项训练: {training.Name}");
 
             // 获取包含模块详细信息的训练数据
             System.Diagnostics.Debug.WriteLine($"获取训练详情，训练ID: {training.Id}");
@@ -846,6 +861,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
         foreach (StudentSpecializedTrainingDto training in trainings)
         {
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 加载训练: {training.Name}, EnableTrial: {training.EnableTrial}");
             Trainings.Add(training);
         }
 

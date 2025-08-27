@@ -80,6 +80,12 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
 
             List<StudentSpecializedTrainingDto> result = trainings.Select(MapToStudentSpecializedTrainingDto).ToList();
 
+            // 调试信息：输出每个训练的EnableTrial状态
+            foreach (var training in trainings)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SpecializedTrainingService] 数据库查询结果: {training.Name}, EnableTrial: {training.EnableTrial}");
+            }
+
             return result;
         }
         catch (Exception ex)
@@ -327,7 +333,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     /// </summary>
     private static StudentSpecializedTrainingDto MapToStudentSpecializedTrainingDto(ImportedSpecializedTrainingEntity training)
     {
-        return new StudentSpecializedTrainingDto
+        var dto = new StudentSpecializedTrainingDto
         {
             Id = training.Id,
             Name = training.Name,
@@ -345,6 +351,9 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             QuestionCount = training.Questions?.Count ?? 0,
             EnableTrial = training.EnableTrial
         };
+
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTrainingService] 映射训练: {dto.Name}, EnableTrial: {training.EnableTrial} -> {dto.EnableTrial}");
+        return dto;
     }
 
     /// <summary>

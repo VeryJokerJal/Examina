@@ -75,6 +75,12 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
 
             List<StudentComprehensiveTrainingDto> result = trainings.Select(MapToStudentComprehensiveTrainingDto).ToList();
 
+            // 调试信息：输出每个训练的EnableTrial状态
+            foreach (var training in trainings)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ComprehensiveTrainingService] 数据库查询结果: {training.Name}, EnableTrial: {training.EnableTrial}");
+            }
+
             return result;
         }
         catch (Exception ex)
@@ -279,7 +285,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     /// </summary>
     private static StudentComprehensiveTrainingDto MapToStudentComprehensiveTrainingDto(ImportedComprehensiveTrainingEntity training)
     {
-        return new StudentComprehensiveTrainingDto
+        var dto = new StudentComprehensiveTrainingDto
         {
             Id = training.Id,
             Name = training.Name,
@@ -300,6 +306,9 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Subjects = [],
             Modules = []
         };
+
+        System.Diagnostics.Debug.WriteLine($"[ComprehensiveTrainingService] 映射训练: {dto.Name}, EnableTrial: {training.EnableTrial} -> {dto.EnableTrial}");
+        return dto;
     }
 
     /// <summary>

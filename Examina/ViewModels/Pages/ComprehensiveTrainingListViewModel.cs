@@ -88,14 +88,23 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 开始训练按钮文本
     /// </summary>
-    public string StartButtonText => "开始答题";
+    public string StartButtonText
+    {
+        get
+        {
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] StartButtonText被访问 - HasFullAccess: {HasFullAccess}");
+            return "开始答题";
+        }
+    }
 
     /// <summary>
     /// 检查训练是否可以开始（权限和试做支持）
     /// </summary>
     public bool CanStartTraining(StudentComprehensiveTrainingDto training)
     {
-        return HasFullAccess && training.EnableTrial;
+        bool canStart = HasFullAccess && training.EnableTrial;
+        System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] CanStartTraining - 训练: {training.Name}, HasFullAccess: {HasFullAccess}, EnableTrial: {training.EnableTrial}, 结果: {canStart}");
+        return canStart;
     }
 
     /// <summary>
@@ -115,6 +124,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
     public ComprehensiveTrainingListViewModel(IStudentComprehensiveTrainingService studentComprehensiveTrainingService, IAuthenticationService authenticationService, EnhancedExamToolbarService? enhancedExamToolbarService = null)
     {
+        System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] ViewModel构造函数开始");
+
         _studentComprehensiveTrainingService = studentComprehensiveTrainingService;
         _authenticationService = authenticationService;
         _enhancedExamToolbarService = enhancedExamToolbarService;
@@ -125,13 +136,17 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         StartTrainingCommand = ReactiveCommand.CreateFromTask<StudentComprehensiveTrainingDto>(StartTrainingAsync);
 
         // 初始化用户权限状态
+        System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] 开始初始化用户权限状态");
         _ = UpdateUserPermissionsAsync();
 
         // 监听用户信息更新事件
         _authenticationService.UserInfoUpdated += OnUserInfoUpdated;
 
         // 初始加载
+        System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] 开始初始数据加载");
         _ = RefreshAsync();
+
+        System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] ViewModel构造函数完成");
     }
 
     /// <summary>
@@ -157,11 +172,12 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 Trainings.Clear();
                 foreach (StudentComprehensiveTrainingDto training in trainings)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 加载训练: {training.Name}, EnableTrial: {training.EnableTrial}");
                     Trainings.Add(training);
                 }
             });
 
-            System.Diagnostics.Debug.WriteLine($"刷新综合训练列表成功，共 {TotalCount} 项，当前显示 {Trainings.Count} 项");
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 刷新综合训练列表成功，共 {TotalCount} 项，当前显示 {Trainings.Count} 项");
 
             // 数据刷新完成后，强制更新用户权限状态
             try
@@ -244,11 +260,16 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] StartTrainingAsync被调用");
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 训练信息: ID={training.Id}, Name={training.Name}");
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 当前用户权限状态: HasFullAccess={HasFullAccess}");
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 训练试做支持状态: EnableTrial={training.EnableTrial}");
+
             // 检查用户权限
             if (!HasFullAccess)
             {
                 ErrorMessage = "您需要解锁权限才能开始训练。请加入学校组织或联系管理员进行解锁。";
-                System.Diagnostics.Debug.WriteLine("用户尝试开始训练但没有完整权限");
+                System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] 权限检查失败：用户没有完整权限");
                 return;
             }
 
@@ -256,12 +277,12 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             if (!training.EnableTrial)
             {
                 ErrorMessage = "此训练暂不支持试做功能，请联系管理员。";
-                System.Diagnostics.Debug.WriteLine($"训练 {training.Name} 不支持试做功能");
+                System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 试做支持检查失败：训练 {training.Name} 不支持试做功能");
                 return;
             }
 
             // 用户有完整权限且训练支持试做，开始训练
-            System.Diagnostics.Debug.WriteLine($"开始综合训练: {training.Name} (ID: {training.Id})");
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 权限和试做检查通过，开始综合训练: {training.Name} (ID: {training.Id})");
 
             // 检查权限
             bool hasAccess = await _studentComprehensiveTrainingService.HasAccessToTrainingAsync(training.Id);
@@ -352,6 +373,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             // 通知UI更新按钮文本
             this.RaisePropertyChanged(nameof(StartButtonText));
+            this.RaisePropertyChanged(nameof(HasFullAccess));
+            System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 权限状态更新完成，通知UI刷新 - HasFullAccess: {HasFullAccess}");
         }
         catch (Exception ex)
         {
