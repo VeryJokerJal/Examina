@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System.Collections.Concurrent;
+using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
@@ -198,6 +199,42 @@ public class MockExamViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 为模拟考试准备文件（使用正确的路径映射）
+    /// </summary>
+    /// <param name="parent">父窗口</param>
+    /// <param name="mockExamId">模拟考试实例ID（用于本地存储路径）</param>
+    /// <param name="comprehensiveTrainingId">综合训练ID（用于API调用获取文件列表）</param>
+    /// <param name="examName">考试名称</param>
+    /// <returns>文件准备是否成功</returns>
+    private static async Task<bool> PrepareFilesForMockExamWithCorrectPathAsync(
+        Avalonia.Controls.Window parent, int mockExamId, int comprehensiveTrainingId, string examName)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备模拟考试文件 - MockExamId: {mockExamId}, ComprehensiveTrainingId: {comprehensiveTrainingId}");
+
+            // 临时设置模拟考试的ID映射
+            MockExamIdMapping.SetMapping(mockExamId, comprehensiveTrainingId);
+
+            try
+            {
+                // 使用MockExamId调用现有的方法，但内部会使用ComprehensiveTrainingId获取文件
+                return await parent.PrepareFilesForMockExamAsync(mockExamId, examName);
+            }
+            finally
+            {
+                // 清理映射
+                MockExamIdMapping.ClearMapping(mockExamId);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备模拟考试文件时发生异常: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 从模拟考试中提取ComprehensiveTrainingId
     /// </summary>
     /// <param name="mockExam">模拟考试数据</param>
@@ -348,15 +385,15 @@ public class MockExamViewModel : ViewModelBase
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
-                // 文件预下载准备 - 使用MockExam类型但传递ComprehensiveTrainingId
+                // 文件预下载准备 - 使用MockExam.Id作为存储路径，ComprehensiveTrainingId获取文件列表
                 System.Diagnostics.Debug.WriteLine("MockExamViewModel: 开始文件预下载准备");
 
                 // 从题目中提取ComprehensiveTrainingId
                 int? comprehensiveTrainingId = GetComprehensiveTrainingIdFromMockExam(mockExam);
                 if (comprehensiveTrainingId.HasValue)
                 {
-                    bool filesReady = await desktop.MainWindow.PrepareFilesForMockExamAsync(
-                        comprehensiveTrainingId.Value, mockExam.Name);
+                    bool filesReady = await PrepareFilesForMockExamWithCorrectPathAsync(
+                        desktop.MainWindow, mockExam.Id, comprehensiveTrainingId.Value, mockExam.Name);
                     if (!filesReady)
                     {
                         ErrorMessage = "文件准备失败，无法开始模拟考试。请检查网络连接或联系管理员。";
@@ -984,6 +1021,54 @@ public class MockExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示全屏考试结果窗口失败: {ex.Message}");
             // 如果显示结果窗口失败，也要显示主窗口
             CloseExamAndShowMainWindow();
+        }
+    }
+}
+
+/// <summary>
+/// 模拟考试ID映射辅助类
+/// 用于在文件下载时将MockExamId映射到ComprehensiveTrainingId
+/// </summary>
+internal static class MockExamIdMapping
+{
+    private static readonly ConcurrentDictionary<int, int> _mappings = new();
+
+    /// <summary>
+    /// 设置ID映射
+    /// </summary>
+    /// <param name="mockExamId">模拟考试ID</param>
+    /// <param name="comprehensiveTrainingId">综合训练ID</param>
+    public static void SetMapping(int mockExamId, int comprehensiveTrainingId)
+    {
+        _mappings[mockExamId] = comprehensiveTrainingId;
+        System.Diagnostics.Debug.WriteLine($"MockExamIdMapping: 设置映射 {mockExamId} -> {comprehensiveTrainingId}");
+    }
+
+    /// <summary>
+    /// 获取映射的综合训练ID
+    /// </summary>
+    /// <param name="mockExamId">模拟考试ID</param>
+    /// <returns>综合训练ID，如果没有映射则返回原始ID</returns>
+    public static int GetComprehensiveTrainingId(int mockExamId)
+    {
+        if (_mappings.TryGetValue(mockExamId, out int comprehensiveTrainingId))
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamIdMapping: 找到映射 {mockExamId} -> {comprehensiveTrainingId}");
+            return comprehensiveTrainingId;
+        }
+        System.Diagnostics.Debug.WriteLine($"MockExamIdMapping: 未找到映射，使用原始ID {mockExamId}");
+        return mockExamId;
+    }
+
+    /// <summary>
+    /// 清理映射
+    /// </summary>
+    /// <param name="mockExamId">模拟考试ID</param>
+    public static void ClearMapping(int mockExamId)
+    {
+        if (_mappings.TryRemove(mockExamId, out int comprehensiveTrainingId))
+        {
+            System.Diagnostics.Debug.WriteLine($"MockExamIdMapping: 清理映射 {mockExamId} -> {comprehensiveTrainingId}");
         }
     }
 }

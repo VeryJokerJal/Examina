@@ -77,11 +77,17 @@ public class FileDownloadService : IFileDownloadService
     {
         try
         {
+            // 对于MockExam类型，使用映射的ComprehensiveTrainingId
+            int actualTrainingId = trainingType == FileDownloadTaskType.MockExam
+                ? ViewModels.Pages.MockExamIdMapping.GetComprehensiveTrainingId(trainingId)
+                : trainingId;
+
             string endpoint = trainingType switch
             {
-                FileDownloadTaskType.ComprehensiveTraining => $"/api/fileupload/comprehensive-training/{trainingId}/files",
-                FileDownloadTaskType.SpecializedTraining => $"/api/fileupload/specialized-training/{trainingId}/files",
-                _ => $"/api/fileupload/comprehensive-training/{trainingId}/files"
+                FileDownloadTaskType.MockExam => $"/api/fileupload/comprehensive-training/{actualTrainingId}/files",
+                FileDownloadTaskType.ComprehensiveTraining => $"/api/fileupload/comprehensive-training/{actualTrainingId}/files",
+                FileDownloadTaskType.SpecializedTraining => $"/api/fileupload/specialized-training/{actualTrainingId}/files",
+                _ => $"/api/fileupload/comprehensive-training/{actualTrainingId}/files"
             };
 
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
