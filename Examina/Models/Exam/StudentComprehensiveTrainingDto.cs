@@ -104,7 +104,7 @@ public class StudentComprehensiveTrainingDto
     public ObservableCollection<StudentComprehensiveTrainingModuleDto> Modules { get; set; } = [];
 
     /// <summary>
-    /// 动态计算的总分（基于科目和模块的实际分值）
+    /// 动态计算的总分（基于科目和模块的实际分值，如果计算结果为0则回退到预设总分）
     /// </summary>
     public int CalculatedTotalScore
     {
@@ -112,7 +112,10 @@ public class StudentComprehensiveTrainingDto
         {
             int subjectsScore = Subjects.Sum(s => s.Questions.Sum(q => q.Score));
             int modulesScore = Modules.Sum(m => m.Questions.Sum(q => q.Score));
-            return subjectsScore + modulesScore;
+            int calculatedTotal = subjectsScore + modulesScore;
+
+            // 如果计算结果为0，则回退到使用预设的总分
+            return calculatedTotal > 0 ? calculatedTotal : TotalScore;
         }
     }
 }

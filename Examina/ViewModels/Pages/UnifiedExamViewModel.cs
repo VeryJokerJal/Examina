@@ -1033,15 +1033,7 @@ public class UnifiedExamViewModel : ViewModelBase
                 case ExamType.ComprehensiveTraining:
                     if (_enhancedExamToolbarService != null)
                     {
-                        BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(examId);
-                        submitResult = scoringResult != null;
-                        if (scoringResult != null)
-                        {
-                            actualDurationSeconds = (int)(scoringResult.ElapsedMilliseconds / 1000);
-                            score = scoringResult.AchievedScore;
-                            maxScore = scoringResult.TotalScore;
-                            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 综合实训BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
-                        }
+                        submitResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingAsync(examId);
                     }
                     break;
 
