@@ -319,7 +319,6 @@ public class ImportedComprehensiveTraining
     /// <summary>
     /// 综合训练描述
     /// </summary>
-    [StringLength(1000)]
     public string? Description { get; set; }
 
     /// <summary>

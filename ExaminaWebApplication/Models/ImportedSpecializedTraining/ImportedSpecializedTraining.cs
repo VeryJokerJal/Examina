@@ -187,7 +187,6 @@ public class ImportedSpecializedTraining
     /// <summary>
     /// 专项训练描述
     /// </summary>
-    [StringLength(1000)]
     public string? Description { get; set; }
 
     /// <summary>

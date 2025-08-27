@@ -326,7 +326,6 @@ public class ImportedExam
     /// <summary>
     /// 考试描述
     /// </summary>
-    [StringLength(1000)]
     public string? Description { get; set; }
 
     /// <summary>

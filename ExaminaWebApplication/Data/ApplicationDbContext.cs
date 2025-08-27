@@ -359,7 +359,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
             _ = entity.Property(e => e.OriginalExamId).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            _ = entity.Property(e => e.Description).HasMaxLength(1000);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.ExamType).IsRequired().HasMaxLength(50).HasDefaultValue("UnifiedExam");
             _ = entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Draft");
             _ = entity.Property(e => e.TotalScore).IsRequired().HasColumnType("decimal(6,2)").HasDefaultValue(100.0m);
@@ -407,7 +407,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.ExamId).IsRequired();
             _ = entity.Property(e => e.SubjectType).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.SubjectName).IsRequired().HasMaxLength(100);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.Score).IsRequired().HasColumnType("decimal(5,2)").HasDefaultValue(20.0m);
             _ = entity.Property(e => e.DurationMinutes).IsRequired().HasDefaultValue(30);
             _ = entity.Property(e => e.SortOrder).IsRequired().HasDefaultValue(1);
@@ -444,7 +444,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.ExamId).IsRequired();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             _ = entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.Score).IsRequired().HasDefaultValue(0);
             _ = entity.Property(e => e.Order).IsRequired().HasDefaultValue(1);
             _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
@@ -529,7 +529,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.OriginalOperationPointId).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.QuestionId).IsRequired();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.ModuleType).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.Score).IsRequired().HasColumnType("decimal(5,2)").HasDefaultValue(0.0m);
             _ = entity.Property(e => e.Order).IsRequired().HasDefaultValue(1);
@@ -561,7 +561,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.OperationPointId).IsRequired();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             _ = entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(100);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.Value).HasMaxLength(1000);
             _ = entity.Property(e => e.DefaultValue).IsRequired().HasMaxLength(1000).HasDefaultValue(string.Empty);
@@ -688,7 +688,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
             _ = entity.Property(e => e.OriginalComprehensiveTrainingId).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            _ = entity.Property(e => e.Description).HasMaxLength(1000);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.ComprehensiveTrainingType).IsRequired().HasMaxLength(50).HasDefaultValue("UnifiedTraining");
             _ = entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Draft");
             _ = entity.Property(e => e.TotalScore).HasColumnType("decimal(6,2)").HasDefaultValue(100.0m);
@@ -732,7 +732,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.ComprehensiveTrainingId).IsRequired();
             _ = entity.Property(e => e.SubjectType).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.SubjectName).IsRequired().HasMaxLength(100);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.Score).HasColumnType("decimal(5,2)").HasDefaultValue(20.0m);
             _ = entity.Property(e => e.DurationMinutes).HasDefaultValue(30);
             _ = entity.Property(e => e.SortOrder).HasDefaultValue(1);
@@ -769,7 +769,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.ComprehensiveTrainingId).IsRequired();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             _ = entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.Score).IsRequired().HasDefaultValue(0);
             _ = entity.Property(e => e.Order).IsRequired().HasDefaultValue(1);
             _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
@@ -859,7 +859,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.OriginalOperationPointId).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.QuestionId).IsRequired();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.ModuleType).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.Score).HasColumnType("decimal(5,2)").HasDefaultValue(0);
             _ = entity.Property(e => e.Order).HasDefaultValue(1);
@@ -891,7 +891,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.OperationPointId).IsRequired();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             _ = entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(100);
-            _ = entity.Property(e => e.Description).HasMaxLength(500);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
             _ = entity.Property(e => e.Value).HasMaxLength(1000);
             _ = entity.Property(e => e.DefaultValue).IsRequired().HasMaxLength(1000).HasDefaultValue(string.Empty);
@@ -929,7 +929,7 @@ public class ApplicationDbContext : DbContext
             // 配置属性
             _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            _ = entity.Property(e => e.Description).HasMaxLength(1000);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.DurationMinutes).IsRequired().HasDefaultValue(120);
             _ = entity.Property(e => e.TotalScore).IsRequired().HasDefaultValue(100);
             _ = entity.Property(e => e.PassingScore).IsRequired().HasDefaultValue(60);
@@ -965,7 +965,7 @@ public class ApplicationDbContext : DbContext
             _ = entity.Property(e => e.ConfigurationId).IsRequired();
             _ = entity.Property(e => e.StudentId).IsRequired();
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            _ = entity.Property(e => e.Description).HasMaxLength(1000);
+            // Description字段移除长度限制以支持长文本
             _ = entity.Property(e => e.DurationMinutes).IsRequired();
             _ = entity.Property(e => e.TotalScore).IsRequired();
             _ = entity.Property(e => e.PassingScore).IsRequired();

@@ -42,7 +42,6 @@ public class ImportedSubject
     /// <summary>
     /// 科目描述
     /// </summary>
-    [StringLength(500)]
     public string? Description { get; set; }
 
     /// <summary>

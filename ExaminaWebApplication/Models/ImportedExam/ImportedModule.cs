@@ -44,7 +44,6 @@ public class ImportedModule
     /// <summary>
     /// 模块描述
     /// </summary>
-    [StringLength(500)]
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
