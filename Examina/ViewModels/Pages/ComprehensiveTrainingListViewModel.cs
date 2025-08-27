@@ -545,7 +545,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                         viewModel.CurrentExamType == ExamType.ComprehensiveTraining)
                     {
                         actualDurationSeconds = viewModel.GetActualDurationSeconds();
-                        currentTrainingId = viewModel.CurrentExamId;
+                        currentTrainingId = viewModel.ExamId;
                         break;
                     }
                 }
@@ -571,7 +571,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                         {
                             ExamId = currentTrainingId.Value,
                             ExamType = ExamType.ComprehensiveTraining,
-                            StudentUserId = _authenticationService.CurrentUser?.Id ?? 0,
+                            StudentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0,
                             BasePath = directoryService.GetBasePath(),
                             FilePaths = new Dictionary<BenchSuiteFileType, List<string>>()
                         };
