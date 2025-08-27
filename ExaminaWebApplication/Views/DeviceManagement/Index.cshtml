@@ -34,6 +34,14 @@
                     <p class="text-muted mb-0">管理用户绑定的设备，监控设备状态和安全</p>
                 </div>
                 <div class="col-auto">
+                    <div class="btn-group me-2" role="group">
+                        <button type="button" class="glass-btn glass-btn-outline-secondary" id="listViewBtn" onclick="switchView('list')">
+                            <i class="bi bi-list-ul me-1"></i>列表视图
+                        </button>
+                        <button type="button" class="glass-btn glass-btn-outline-secondary" id="groupViewBtn" onclick="switchView('group')">
+                            <i class="bi bi-people me-1"></i>按用户分组
+                        </button>
+                    </div>
                     <button type="button" class="glass-btn glass-btn-secondary me-2" onclick="refreshDeviceList()">
                         <i class="bi bi-arrow-clockwise me-2"></i>刷新
                     </button>
@@ -142,7 +150,7 @@
     </div>
 
     <!-- 设备列表 -->
-    <div class="glass-card">
+    <div class="glass-card" id="listView">
         <div class="card-header">
             <div class="row align-items-center">
                 <div class="col">
@@ -203,7 +211,7 @@
                                         </div>
                                         <div>
                                             <div class="fw-medium">
-                                                <a href="/UserManagement?searchKeyword=@device.User?.Username" class="text-decoration-none">
+                                                <a href="javascript:void(0)" onclick="showUserDetail(@device.UserId, '@device.User?.Username')" class="text-decoration-none">
                                                     @device.User?.Username
                                                 </a>
                                             </div>
@@ -286,6 +294,131 @@
             }
         </div>
     </div>
+
+    <!-- 按用户分组视图 -->
+    <div class="glass-card" id="groupView" style="display: none;">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">按用户分组显示</h5>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="userGroupsContainer">
+                @{
+                    var devicesByUser = Model.Devices.GroupBy(d => d.User?.Id ?? 0).ToList();
+                }
+                @foreach (var userGroup in devicesByUser)
+                {
+                    var user = userGroup.First().User;
+                    if (user != null)
+                    {
+                        <div class="glass-card glass-card-secondary mb-3">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        @if (user.Role == ExaminaWebApplication.Models.UserRole.Student)
+                                        {
+                                            <i class="bi bi-person-circle text-primary fs-4" title="学生"></i>
+                                        }
+                                        else if (user.Role == ExaminaWebApplication.Models.UserRole.Teacher)
+                                        {
+                                            <i class="bi bi-person-workspace text-success fs-4" title="教师"></i>
+                                        }
+                                        else if (user.Role == ExaminaWebApplication.Models.UserRole.Administrator)
+                                        {
+                                            <i class="bi bi-person-gear text-warning fs-4" title="管理员"></i>
+                                        }
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="javascript:void(0)" onclick="showUserDetail(@user.Id, '@user.Username')" class="text-decoration-none">
+                                                @user.Username
+                                            </a>
+                                        </h6>
+                                        @if (!string.IsNullOrEmpty(user.RealName))
+                                        {
+                                            <small class="text-muted">@user.RealName</small>
+                                        }
+                                        <div>
+                                            <span class="badge bg-@(GetRoleBadgeColor(user.Role))">
+                                                @GetRoleDisplayName(user.Role)
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">@userGroup.Count() 个设备</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    @foreach (var device in userGroup)
+                                    {
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="glass-card glass-card-accent">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="bi bi-@(GetDeviceIcon(device.DeviceType)) me-2"></i>
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="mb-0">@device.DeviceName</h6>
+                                                            <small class="text-muted">@device.DeviceType</small>
+                                                        </div>
+                                                        @if (device.IsTrusted)
+                                                        {
+                                                            <i class="bi bi-shield-check text-success" title="受信任"></i>
+                                                        }
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <small class="text-muted d-block">
+                                                            <i class="bi bi-geo-alt me-1"></i>@device.IpAddress
+                                                        </small>
+                                                        <small class="text-muted d-block">
+                                                            <i class="bi bi-clock me-1"></i>@(device.LastUsedAt?.ToString("MM-dd HH:mm") ?? "从未使用")
+                                                        </small>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        @if (device.IsActive)
+                                                        {
+                                                            <span class="badge bg-success">活跃</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-secondary">非活跃</span>
+                                                        }
+                                                        @if (device.IsActive)
+                                                        {
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="setDeviceTrust(@device.Id, @(!device.IsTrusted).ToString().ToLower())" title="@(device.IsTrusted ? "取消信任" : "设为信任")">
+                                                                    <i class="bi bi-shield-@(device.IsTrusted ? "slash" : "check")"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="unbindDevice(@device.Id)" title="解绑设备">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                @if (!devicesByUser.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted"></i>
+                        <h5 class="text-muted mt-3">暂无用户设备数据</h5>
+                        <p class="text-muted">当前筛选条件下没有找到用户设备信息</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
 @functions {
@@ -351,9 +484,61 @@
     </div>
 </div>
 
+<!-- 用户详情模态框 -->
+<div class="modal fade" id="userDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">用户详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="userDetailContent">
+                    <!-- 用户详情内容将通过JavaScript动态加载 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <a href="#" class="btn btn-primary" id="goToUserManagement">前往用户管理</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         let currentDeviceId = null;
+        let currentView = 'list'; // 当前视图模式
+
+        // 切换视图
+        function switchView(viewType) {
+            currentView = viewType;
+
+            const listView = document.getElementById('listView');
+            const groupView = document.getElementById('groupView');
+            const listViewBtn = document.getElementById('listViewBtn');
+            const groupViewBtn = document.getElementById('groupViewBtn');
+
+            if (viewType === 'list') {
+                listView.style.display = 'block';
+                groupView.style.display = 'none';
+                listViewBtn.classList.add('active');
+                listViewBtn.classList.remove('glass-btn-outline-secondary');
+                listViewBtn.classList.add('glass-btn-secondary');
+                groupViewBtn.classList.remove('active');
+                groupViewBtn.classList.remove('glass-btn-secondary');
+                groupViewBtn.classList.add('glass-btn-outline-secondary');
+            } else if (viewType === 'group') {
+                listView.style.display = 'none';
+                groupView.style.display = 'block';
+                groupViewBtn.classList.add('active');
+                groupViewBtn.classList.remove('glass-btn-outline-secondary');
+                groupViewBtn.classList.add('glass-btn-secondary');
+                listViewBtn.classList.remove('active');
+                listViewBtn.classList.remove('glass-btn-secondary');
+                listViewBtn.classList.add('glass-btn-outline-secondary');
+            }
+        }
 
         // 搜索设备
         function searchDevices() {
@@ -538,6 +723,116 @@
             }
         }
 
+        // 显示用户详情
+        function showUserDetail(userId, username) {
+            // 构建用户详情内容
+            const userDetailContent = document.getElementById('userDetailContent');
+            const goToUserManagement = document.getElementById('goToUserManagement');
+
+            // 设置跳转链接
+            goToUserManagement.href = `/UserManagement?searchKeyword=${username}`;
+
+            // 显示加载状态
+            userDetailContent.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2 text-muted">正在加载用户详情...</p>
+                </div>
+            `;
+
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
+            modal.show();
+
+            // 获取用户的设备列表
+            fetch(`/DeviceManagement/GetUserDevices?userId=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const devices = data.data;
+                        const activeDevices = devices.filter(d => d.isActive);
+                        const trustedDevices = devices.filter(d => d.isTrusted);
+
+                        userDetailContent.innerHTML = `
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="glass-card glass-card-info text-center">
+                                        <div class="card-body">
+                                            <div class="glass-stat-number">${devices.length}</div>
+                                            <div class="glass-stat-label">设备总数</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="glass-card glass-card-success text-center">
+                                        <div class="card-body">
+                                            <div class="glass-stat-number">${activeDevices.length}</div>
+                                            <div class="glass-stat-label">活跃设备</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="glass-card glass-card-warning text-center">
+                                        <div class="card-body">
+                                            <div class="glass-stat-number">${trustedDevices.length}</div>
+                                            <div class="glass-stat-label">受信任设备</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <h6>设备列表</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>设备名称</th>
+                                                <th>类型</th>
+                                                <th>最后使用</th>
+                                                <th>状态</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${devices.map(device => `
+                                                <tr>
+                                                    <td>${device.deviceName}</td>
+                                                    <td>${device.deviceType}</td>
+                                                    <td>${device.lastUsedAt ? new Date(device.lastUsedAt).toLocaleDateString() : '从未使用'}</td>
+                                                    <td>
+                                                        ${device.isActive ? '<span class="badge bg-success">活跃</span>' : '<span class="badge bg-secondary">非活跃</span>'}
+                                                        ${device.isTrusted ? '<span class="badge bg-warning ms-1">受信任</span>' : ''}
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        userDetailContent.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+                                <h5 class="text-muted mt-3">加载失败</h5>
+                                <p class="text-muted">${data.message || '无法获取用户设备信息'}</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    userDetailContent.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="bi bi-exclamation-triangle display-1 text-danger"></i>
+                            <h5 class="text-muted mt-3">加载错误</h5>
+                            <p class="text-muted">网络错误，请稍后重试</p>
+                        </div>
+                    `;
+                });
+        }
+
         // 显示通知
         function showNotification(message, type) {
             // 这里可以使用 Toast 或其他通知组件
@@ -550,6 +845,9 @@
             document.querySelectorAll('.device-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', updateBatchButtons);
             });
+
+            // 初始化视图状态
+            switchView('list');
         });
     </script>
 }
