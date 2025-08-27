@@ -57,7 +57,18 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
                 return "正在计算成绩，请稍候...";
             }
 
-            return Score.HasValue ? $"您的成绩：{ScoreText}分" : "感谢您的参与";
+            if (Score.HasValue)
+            {
+                return $"您的成绩：{ScoreText}分";
+            }
+            else if (ExamType == ExamType.FormalExam)
+            {
+                return "考试已成功提交，成绩将在稍后公布";
+            }
+            else
+            {
+                return "感谢您的参与";
+            }
         }
     }
 
@@ -74,12 +85,38 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     /// <summary>
     /// 是否显示成绩信息（简单版本）
     /// </summary>
-    public bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring);
+    public bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring || ExamType == ExamType.FormalExam);
 
     /// <summary>
     /// 是否显示详细分数信息（全屏模式下强制禁用）
     /// </summary>
     public new bool ShowDetailedScore => false;
+
+    /// <summary>
+    /// 得分显示文本（重写以支持正式考试的特殊显示）
+    /// </summary>
+    public new string ScoreText
+    {
+        get
+        {
+            if (IsScoring)
+            {
+                return "计算中...";
+            }
+            else if (Score.HasValue)
+            {
+                return $"{Score:F1}";
+            }
+            else if (ExamType == ExamType.FormalExam && IsSubmissionSuccessful)
+            {
+                return "已提交";
+            }
+            else
+            {
+                return "暂无评分";
+            }
+        }
+    }
 
     /// <summary>
     /// 是否显示用时信息
@@ -137,6 +174,7 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
             {
                 this.RaisePropertyChanged(nameof(SecondaryStatusMessage));
                 this.RaisePropertyChanged(nameof(ShowScoreInfo));
+                this.RaisePropertyChanged(nameof(ScoreText));
             });
 
         _ = this.WhenAnyValue(x => x.ActualDurationMinutes)
@@ -151,6 +189,13 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
 
         _ = this.WhenAnyValue(x => x.Notes)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowNotesInfo)));
+
+        _ = this.WhenAnyValue(x => x.ExamType, x => x.IsSubmissionSuccessful)
+            .Subscribe(_ =>
+            {
+                this.RaisePropertyChanged(nameof(ShowScoreInfo));
+                this.RaisePropertyChanged(nameof(ScoreText));
+            });
     }
 
     /// <summary>
