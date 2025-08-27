@@ -88,7 +88,15 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 开始训练按钮文本
     /// </summary>
-    public string StartButtonText => HasFullAccess ? "开始训练" : "解锁";
+    public string StartButtonText => "开始答题";
+
+    /// <summary>
+    /// 检查训练是否可以开始（权限和试做支持）
+    /// </summary>
+    public bool CanStartTraining(StudentComprehensiveTrainingDto training)
+    {
+        return HasFullAccess && training.EnableTrial;
+    }
 
     /// <summary>
     /// 刷新命令
@@ -236,18 +244,32 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            if (HasFullAccess)
+            // 检查用户权限
+            if (!HasFullAccess)
             {
-                // 用户有完整权限，开始训练
-                System.Diagnostics.Debug.WriteLine($"开始综合训练: {training.Name} (ID: {training.Id})");
+                ErrorMessage = "您需要解锁权限才能开始训练。请加入学校组织或联系管理员进行解锁。";
+                System.Diagnostics.Debug.WriteLine("用户尝试开始训练但没有完整权限");
+                return;
+            }
 
-                // 检查权限
-                bool hasAccess = await _studentComprehensiveTrainingService.HasAccessToTrainingAsync(training.Id);
-                if (!hasAccess)
-                {
-                    ErrorMessage = "您没有权限访问此综合训练";
-                    return;
-                }
+            // 检查试卷是否支持试做功能
+            if (!training.EnableTrial)
+            {
+                ErrorMessage = "此训练暂不支持试做功能，请联系管理员。";
+                System.Diagnostics.Debug.WriteLine($"训练 {training.Name} 不支持试做功能");
+                return;
+            }
+
+            // 用户有完整权限且训练支持试做，开始训练
+            System.Diagnostics.Debug.WriteLine($"开始综合训练: {training.Name} (ID: {training.Id})");
+
+            // 检查权限
+            bool hasAccess = await _studentComprehensiveTrainingService.HasAccessToTrainingAsync(training.Id);
+            if (!hasAccess)
+            {
+                ErrorMessage = "您没有权限访问此综合训练";
+                return;
+            }
 
                 // 显示规则说明对话框
                 ComprehensiveTrainingRulesViewModel rulesViewModel = new();
@@ -278,13 +300,6 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 {
                     System.Diagnostics.Debug.WriteLine("ComprehensiveTrainingListViewModel: 无法获取主窗口");
                 }
-            }
-            else
-            {
-                // 用户没有完整权限，显示解锁提示
-                ErrorMessage = "您需要解锁权限才能开始训练。请加入学校组织或联系管理员进行解锁。";
-                System.Diagnostics.Debug.WriteLine("用户尝试开始训练但没有完整权限");
-            }
         }
         catch (UnauthorizedAccessException)
         {

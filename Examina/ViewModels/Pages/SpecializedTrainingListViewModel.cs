@@ -127,7 +127,15 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 开始训练按钮文本
     /// </summary>
-    public string StartButtonText => HasFullAccess ? "开始训练" : "解锁";
+    public string StartButtonText => "开始答题";
+
+    /// <summary>
+    /// 检查训练是否可以开始（权限和试做支持）
+    /// </summary>
+    public bool CanStartTraining(StudentSpecializedTrainingDto training)
+    {
+        return HasFullAccess && training.EnableTrial;
+    }
 
     /// <summary>
     /// 刷新命令
@@ -294,9 +302,18 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// </summary>
     private async Task StartTrainingAsync(StudentSpecializedTrainingDto training)
     {
+        // 检查用户权限
         if (!HasFullAccess)
         {
             ErrorMessage = "您需要解锁权限才能开始专项训练。请加入学校组织或联系管理员进行解锁。";
+            return;
+        }
+
+        // 检查试卷是否支持试做功能
+        if (!training.EnableTrial)
+        {
+            ErrorMessage = "此训练暂不支持试做功能，请联系管理员。";
+            System.Diagnostics.Debug.WriteLine($"训练 {training.Name} 不支持试做功能");
             return;
         }
 

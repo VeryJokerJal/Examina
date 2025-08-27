@@ -51,6 +51,7 @@ public class ImportedSpecializedTraining
             RandomizeQuestions = export.SpecializedTraining.RandomizeQuestions,
             Tags = export.SpecializedTraining.Tags,
             IsEnabled = true, // 导入时默认启用
+            EnableTrial = true, // 导入时默认启用试做功能
             ImportedBy = importedBy,
             ImportedAt = now,
             OriginalCreatedTime = ParseDateTimeOrDefault(export.SpecializedTraining.CreatedTime),
@@ -226,6 +227,11 @@ public class ImportedSpecializedTraining
     /// 是否启用
     /// </summary>
     public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 是否启用试做功能
+    /// </summary>
+    public bool EnableTrial { get; set; } = true;
 
     /// <summary>
     /// 导入者ID

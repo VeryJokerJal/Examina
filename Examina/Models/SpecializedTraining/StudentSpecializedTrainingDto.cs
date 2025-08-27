@@ -73,6 +73,11 @@ public class StudentSpecializedTrainingDto
     public int QuestionCount { get; set; }
 
     /// <summary>
+    /// 是否启用试做功能
+    /// </summary>
+    public bool EnableTrial { get; set; } = true;
+
+    /// <summary>
     /// 模块列表
     /// </summary>
     public ObservableCollection<StudentSpecializedTrainingModuleDto> Modules { get; set; } = [];

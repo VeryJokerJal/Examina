@@ -342,7 +342,8 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             OriginalLastModifiedTime = training.OriginalLastModifiedTime,
             ImportedAt = training.ImportedAt,
             ModuleCount = training.Modules?.Count ?? 0,
-            QuestionCount = training.Questions?.Count ?? 0
+            QuestionCount = training.Questions?.Count ?? 0,
+            EnableTrial = training.EnableTrial
         };
     }
 

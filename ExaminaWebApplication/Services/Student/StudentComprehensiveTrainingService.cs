@@ -296,6 +296,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             ShowScore = training.ShowScore,
             ShowAnswers = training.ShowAnswers,
             Tags = training.Tags,
+            EnableTrial = training.EnableTrial,
             Subjects = [],
             Modules = []
         };

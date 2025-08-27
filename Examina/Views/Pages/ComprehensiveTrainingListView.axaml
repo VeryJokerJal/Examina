@@ -94,7 +94,14 @@
                                                 Content="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartButtonText}"
                                                 Classes="accent"
                                                 Padding="20,10"
-                                                MinWidth="120" />
+                                                MinWidth="120">
+                                            <Button.IsEnabled>
+                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                    <Binding Path="$parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).HasFullAccess" />
+                                                    <Binding Path="EnableTrial" />
+                                                </MultiBinding>
+                                            </Button.IsEnabled>
+                                        </Button>
                                     </StackPanel>
                                 </Grid>
                             </Border>

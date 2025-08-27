@@ -115,7 +115,17 @@
 
                                     <!--  操作按钮  -->
                                     <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-                                        <Button MinWidth="100" Padding="15,8" Classes="accent" Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartTrainingCommand}" CommandParameter="{Binding}" Content="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartButtonText}" />
+                                        <Button MinWidth="100" Padding="15,8" Classes="accent"
+                                                Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartTrainingCommand}"
+                                                CommandParameter="{Binding}"
+                                                Content="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartButtonText}">
+                                            <Button.IsEnabled>
+                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                    <Binding Path="$parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).HasFullAccess" />
+                                                    <Binding Path="EnableTrial" />
+                                                </MultiBinding>
+                                            </Button.IsEnabled>
+                                        </Button>
                                     </StackPanel>
                                 </Grid>
                             </Border>
