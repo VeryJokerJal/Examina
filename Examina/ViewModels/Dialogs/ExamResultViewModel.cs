@@ -228,13 +228,16 @@ public class ExamResultViewModel : ViewModelBase
 
     /// <summary>
     /// 是否显示分数信息区域
+    /// 对于上机统考（正式考试、重考）显示分数区域，对于练习模式不显示
     /// </summary>
     public bool ShowScoreInfo
     {
         get
         {
-            bool result = ExamType == ExamType.FormalExam && IsSubmissionSuccessful;
-            System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: ShowScoreInfo - ExamType: {ExamType}, IsSubmissionSuccessful: {IsSubmissionSuccessful}, Result: {result}");
+            // 上机统考包括正式考试和重考，都应该显示分数区域
+            bool isOnlineExam = ExamType == ExamType.FormalExam;
+            bool result = isOnlineExam && IsSubmissionSuccessful;
+            System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: ShowScoreInfo - ExamType: {ExamType}, IsSubmissionSuccessful: {IsSubmissionSuccessful}, IsOnlineExam: {isOnlineExam}, Result: {result}");
             return result;
         }
     }
@@ -246,7 +249,23 @@ public class ExamResultViewModel : ViewModelBase
     {
         get
         {
-            string result = ExamType == ExamType.FormalExam && IsSubmissionSuccessful ? "考试已成功提交，成绩将在稍后公布" : "感谢您的参与";
+            string result;
+            if (ExamType == ExamType.FormalExam && IsSubmissionSuccessful)
+            {
+                // 上机统考（包括正式考试和重考）成功提交时的消息
+                result = "考试已成功提交，成绩将在稍后公布";
+            }
+            else if (ExamType == ExamType.Practice && IsSubmissionSuccessful)
+            {
+                // 练习模式成功提交时的消息
+                result = "练习已完成，感谢您的参与";
+            }
+            else
+            {
+                // 其他情况（提交失败或其他考试类型）
+                result = "感谢您的参与";
+            }
+
             System.Diagnostics.Debug.WriteLine($"ExamResultViewModel: SecondaryStatusMessage - ExamType: {ExamType}, IsSubmissionSuccessful: {IsSubmissionSuccessful}, Result: {result}");
             return result;
         }

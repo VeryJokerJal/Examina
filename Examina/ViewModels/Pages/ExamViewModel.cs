@@ -772,6 +772,18 @@ public class ExamViewModel : ViewModelBase
             ExamType examType = ExamType.FormalExam;
             int? durationMinutes = null;
 
+            // 根据考试尝试类型确定ExamType
+            // 正式考试和重考都应该显示分数区域，练习模式不显示
+            examType = examAttempt.AttemptType switch
+            {
+                ExamAttemptType.FirstAttempt => ExamType.FormalExam,
+                ExamAttemptType.Retake => ExamType.FormalExam,
+                ExamAttemptType.Practice => ExamType.Practice,
+                _ => ExamType.FormalExam
+            };
+
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试尝试类型: {examAttempt.AttemptType} -> ExamType: {examType}");
+
             if (_studentExamService != null)
             {
                 try
@@ -786,8 +798,12 @@ public class ExamViewModel : ViewModelBase
                             "MockExam" => ExamType.MockExam,
                             "ComprehensiveTraining" => ExamType.ComprehensiveTraining,
                             "SpecializedTraining" => ExamType.SpecializedTraining,
+                            "FormalExam" => ExamType.FormalExam,
+                            "Practice" => ExamType.Practice,
                             _ => ExamType.FormalExam
                         };
+
+                        System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试类型映射 - 原始: '{exam.ExamType}' -> 映射后: {examType}");
                     }
                 }
                 catch (Exception ex)
