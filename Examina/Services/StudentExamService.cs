@@ -437,7 +437,19 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             if (response.IsSuccessStatusCode)
             {
                 string content = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"[StudentExamService] 综合训练API响应内容: {content}");
+
                 List<StudentComprehensiveTrainingDto>? trainings = JsonSerializer.Deserialize<List<StudentComprehensiveTrainingDto>>(content, JsonOptions);
+
+                // 调试：检查反序列化后的EnableTrial属性
+                if (trainings != null)
+                {
+                    foreach (var training in trainings)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[StudentExamService] 反序列化后的训练: {training.Name}, EnableTrial: {training.EnableTrial}");
+                    }
+                }
+
                 return trainings ?? [];
             }
 

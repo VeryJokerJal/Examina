@@ -45,7 +45,20 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
 
             if (response.IsSuccessStatusCode)
             {
-                List<StudentSpecializedTrainingDto>? trainings = await response.Content.ReadFromJsonAsync<List<StudentSpecializedTrainingDto>>(_jsonOptions);
+                string content = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"[StudentSpecializedTrainingService] 专项训练API响应内容: {content}");
+
+                List<StudentSpecializedTrainingDto>? trainings = JsonSerializer.Deserialize<List<StudentSpecializedTrainingDto>>(content, _jsonOptions);
+
+                // 调试：检查反序列化后的EnableTrial属性
+                if (trainings != null)
+                {
+                    foreach (var training in trainings)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[StudentSpecializedTrainingService] 反序列化后的训练: {training.Name}, EnableTrial: {training.EnableTrial}");
+                    }
+                }
+
                 return trainings ?? [];
             }
 

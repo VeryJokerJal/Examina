@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace Examina.Models.Exam;
 
@@ -90,7 +90,7 @@ public class StudentComprehensiveTrainingDto
     /// <summary>
     /// 是否启用试做功能
     /// </summary>
-    public bool EnableTrial { get; set; } = true;
+    public bool EnableTrial { get; set; } = false;
 
     /// <summary>
     /// 科目列表

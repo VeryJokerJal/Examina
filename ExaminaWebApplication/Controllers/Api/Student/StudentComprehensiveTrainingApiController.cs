@@ -55,6 +55,12 @@ public class StudentComprehensiveTrainingApiController : ControllerBase
             List<StudentComprehensiveTrainingDto> trainings = await _studentComprehensiveTrainingService.GetAvailableTrainingsAsync(
                 studentUserId, pageNumber, pageSize);
 
+            // 调试：输出每个训练的EnableTrial状态
+            foreach (var training in trainings)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ComprehensiveTrainingApiController] API返回训练: {training.Name}, EnableTrial: {training.EnableTrial}");
+            }
+
             _logger.LogInformation("学生获取可访问综合训练列表成功，学生ID: {StudentUserId}, 页码: {PageNumber}, 页大小: {PageSize}, 返回数量: {Count}",
                 studentUserId, pageNumber, pageSize, trainings.Count);
 

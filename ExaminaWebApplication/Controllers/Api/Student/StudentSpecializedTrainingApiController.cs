@@ -54,6 +54,12 @@ public class StudentSpecializedTrainingApiController : ControllerBase
             List<StudentSpecializedTrainingDto> trainings = await _studentSpecializedTrainingService.GetAvailableTrainingsAsync(
                 studentUserId, pageNumber, pageSize);
 
+            // 调试：输出每个训练的EnableTrial状态
+            foreach (var training in trainings)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SpecializedTrainingApiController] API返回训练: {training.Name}, EnableTrial: {training.EnableTrial}");
+            }
+
             _logger.LogInformation("学生获取可访问专项训练列表成功，学生ID: {StudentUserId}, 页码: {PageNumber}, 页大小: {PageSize}, 返回数量: {Count}",
                 studentUserId, pageNumber, pageSize, trainings.Count);
 

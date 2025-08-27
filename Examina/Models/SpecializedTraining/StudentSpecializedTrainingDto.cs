@@ -75,7 +75,7 @@ public class StudentSpecializedTrainingDto
     /// <summary>
     /// 是否启用试做功能
     /// </summary>
-    public bool EnableTrial { get; set; } = true;
+    public bool EnableTrial { get; set; } = false;
 
     /// <summary>
     /// 模块列表

@@ -53,6 +53,11 @@ public class StudentSpecializedTrainingDto
     public string? Tags { get; set; }
 
     /// <summary>
+    /// 是否启用试做功能
+    /// </summary>
+    public bool EnableTrial { get; set; } = true;
+
+    /// <summary>
     /// 原始创建时间（来自ExamLab）
     /// </summary>
     public DateTime OriginalCreatedTime { get; set; }
