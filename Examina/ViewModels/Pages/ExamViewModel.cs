@@ -21,7 +21,7 @@ public class ExamViewModel : ViewModelBase
     private readonly IAuthenticationService? _authenticationService;
     private readonly IStudentExamService? _studentExamService;
     private readonly IExamAttemptService? _examAttemptService;
-    private readonly IEnhancedExamToolbarService? _enhancedExamToolbarService;
+    private readonly EnhancedExamToolbarService? _enhancedExamToolbarService;
 
     #region 属性
 
@@ -199,13 +199,21 @@ public class ExamViewModel : ViewModelBase
     public ExamViewModel(
         IAuthenticationService? authenticationService = null,
         IStudentExamService? studentExamService = null,
-        IExamAttemptService? examAttemptService = null,
-        IEnhancedExamToolbarService? enhancedExamToolbarService = null)
+        IExamAttemptService? examAttemptService = null)
     {
         _authenticationService = authenticationService;
         _studentExamService = studentExamService;
         _examAttemptService = examAttemptService;
-        _enhancedExamToolbarService = enhancedExamToolbarService;
+
+        // 尝试获取EnhancedExamToolbarService（可选依赖）
+        try
+        {
+            _enhancedExamToolbarService = AppServiceManager.GetService<EnhancedExamToolbarService>();
+        }
+        catch
+        {
+            _enhancedExamToolbarService = null;
+        }
 
         StartExamCommand = new DelegateCommand(StartExam, CanStartExam);
         ContinueExamCommand = new DelegateCommand(ContinueExam, CanContinueExam);
