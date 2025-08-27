@@ -21,6 +21,7 @@ public class ExamViewModel : ViewModelBase
     private readonly IAuthenticationService? _authenticationService;
     private readonly IStudentExamService? _studentExamService;
     private readonly IExamAttemptService? _examAttemptService;
+    private readonly IEnhancedExamToolbarService? _enhancedExamToolbarService;
 
     #region 属性
 
@@ -198,11 +199,13 @@ public class ExamViewModel : ViewModelBase
     public ExamViewModel(
         IAuthenticationService? authenticationService = null,
         IStudentExamService? studentExamService = null,
-        IExamAttemptService? examAttemptService = null)
+        IExamAttemptService? examAttemptService = null,
+        IEnhancedExamToolbarService? enhancedExamToolbarService = null)
     {
         _authenticationService = authenticationService;
         _studentExamService = studentExamService;
         _examAttemptService = examAttemptService;
+        _enhancedExamToolbarService = enhancedExamToolbarService;
 
         StartExamCommand = new DelegateCommand(StartExam, CanStartExam);
         ContinueExamCommand = new DelegateCommand(ContinueExam, CanContinueExam);
@@ -631,18 +634,52 @@ public class ExamViewModel : ViewModelBase
         {
             if (CurrentExamAttempt != null && _examAttemptService != null)
             {
-                // 更新考试尝试状态为已完成
+                decimal? score = null;
+                decimal? maxScore = null;
+                string notes = "自动提交";
+
+                // 尝试获取BenchSuite评分结果
+                if (_enhancedExamToolbarService != null && CurrentExamAttempt.AttemptType != ExamAttemptType.Practice)
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine("ExamViewModel: 开始获取BenchSuite评分结果（自动提交）");
+                        Models.BenchSuite.BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(CurrentExamAttempt.ExamId);
+
+                        if (scoringResult != null)
+                        {
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
+                            notes = scoringResult.IsSuccess ? "BenchSuite自动评分完成（自动提交）" : "BenchSuite评分失败（自动提交）";
+                            System.Diagnostics.Debug.WriteLine($"ExamViewModel: BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("ExamViewModel: BenchSuite评分结果为空");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"ExamViewModel: 获取BenchSuite评分结果异常: {ex.Message}");
+                        notes = $"评分异常: {ex.Message}（自动提交）";
+                    }
+                }
+
+                // 更新考试尝试状态为已完成，包含分数信息
                 bool success = await _examAttemptService.CompleteExamAttemptAsync(
                     CurrentExamAttempt.Id,
-                    null, // 分数由具体的考试模块计算
-                    null, // 最大分数
+                    score,
+                    maxScore,
                     null, // 用时
-                    "自动提交"
+                    notes
                 );
 
                 if (success)
                 {
                     CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
+                    // 更新CurrentExamAttempt中的分数信息
+                    CurrentExamAttempt.Score = score;
+                    CurrentExamAttempt.MaxScore = maxScore;
                     HasActiveExam = false;
                     ExamStatusMessage = "考试已完成 - 自动提交";
 
@@ -676,18 +713,52 @@ public class ExamViewModel : ViewModelBase
         {
             if (CurrentExamAttempt != null && _examAttemptService != null)
             {
-                // 更新考试尝试状态为已完成
+                decimal? score = null;
+                decimal? maxScore = null;
+                string notes = "手动提交";
+
+                // 尝试获取BenchSuite评分结果
+                if (_enhancedExamToolbarService != null && CurrentExamAttempt.AttemptType != ExamAttemptType.Practice)
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine("ExamViewModel: 开始获取BenchSuite评分结果（手动提交）");
+                        Models.BenchSuite.BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(CurrentExamAttempt.ExamId);
+
+                        if (scoringResult != null)
+                        {
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
+                            notes = scoringResult.IsSuccess ? "BenchSuite自动评分完成（手动提交）" : "BenchSuite评分失败（手动提交）";
+                            System.Diagnostics.Debug.WriteLine($"ExamViewModel: BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("ExamViewModel: BenchSuite评分结果为空");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"ExamViewModel: 获取BenchSuite评分结果异常: {ex.Message}");
+                        notes = $"评分异常: {ex.Message}（手动提交）";
+                    }
+                }
+
+                // 更新考试尝试状态为已完成，包含分数信息
                 bool success = await _examAttemptService.CompleteExamAttemptAsync(
                     CurrentExamAttempt.Id,
-                    null, // 分数由具体的考试模块计算
-                    null, // 最大分数
+                    score,
+                    maxScore,
                     null, // 用时
-                    "手动提交"
+                    notes
                 );
 
                 if (success)
                 {
                     CurrentExamAttempt.Status = ExamAttemptStatus.Completed;
+                    // 更新CurrentExamAttempt中的分数信息
+                    CurrentExamAttempt.Score = score;
+                    CurrentExamAttempt.MaxScore = maxScore;
                     HasActiveExam = false;
                     ExamStatusMessage = "考试已完成 - 手动提交";
 
@@ -820,6 +891,8 @@ public class ExamViewModel : ViewModelBase
             }
 
             System.Diagnostics.Debug.WriteLine($"ExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 分数信息 - Score: {examAttempt.Score}, MaxScore: {examAttempt.MaxScore}");
+            System.Diagnostics.Debug.WriteLine($"ExamViewModel: 考试尝试信息 - ID: {examAttempt.Id}, ExamId: {examAttempt.ExamId}, AttemptType: {examAttempt.AttemptType}");
 
             // 显示全屏考试结果窗口
             _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
