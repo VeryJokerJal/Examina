@@ -998,43 +998,23 @@ public class MockExamViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
 
-            // 如果有BenchSuite评分结果，使用带详细分数的窗口
-            if (scoringResult != null && isSuccessful)
-            {
-                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 使用BenchSuite评分结果显示详细分数 - 总分: {scoringResult.TotalScore}, 得分: {scoringResult.AchievedScore}");
+            // 使用简化的全屏考试结果窗口，只显示最终得分
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示简化分数结果 - 得分: {scoringResult?.AchievedScore}");
 
-                _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultFromBenchSuiteAsync(
-                    examName,
-                    examType,
-                    isSuccessful,
-                    scoringResult,
-                    null, // startTime
-                    null, // endTime
-                    durationMinutes,
-                    isSuccessful ? "" : "考试提交失败",
-                    isSuccessful ? "模拟考试提交成功，BenchSuite自动评分完成" : "请检查网络连接或联系管理员",
-                    true, // showContinue
-                    false // showClose - 只显示确认按钮
-                );
-            }
-            else
-            {
-                // 使用普通的全屏考试结果窗口
-                _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
-                    examName,
-                    examType,
-                    isSuccessful,
-                    null, // startTime
-                    null, // endTime
-                    durationMinutes,
-                    scoringResult?.AchievedScore, // 如果有评分结果，显示得分
-                    scoringResult?.TotalScore, // 如果有评分结果，显示总分
-                    isSuccessful ? "" : "考试提交失败",
-                    isSuccessful ? "模拟考试提交成功" : "请检查网络连接或联系管理员",
-                    true, // showContinue
-                    false // showClose - 只显示确认按钮
-                );
-            }
+            _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+                examName,
+                examType,
+                isSuccessful,
+                null, // startTime
+                null, // endTime
+                durationMinutes,
+                scoringResult?.AchievedScore, // 只显示最终得分，不显示总分
+                null, // 不传递总分，避免显示"得分/总分"格式
+                isSuccessful ? "" : "考试提交失败",
+                isSuccessful ? "模拟考试提交成功" : "请检查网络连接或联系管理员",
+                true, // showContinue
+                false // showClose - 只显示确认按钮
+            );
 
             System.Diagnostics.Debug.WriteLine("MockExamViewModel: 全屏考试结果窗口已显示并关闭");
 

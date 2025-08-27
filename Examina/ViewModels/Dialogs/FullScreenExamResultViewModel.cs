@@ -74,7 +74,12 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     /// <summary>
     /// 是否显示成绩信息（简单版本）
     /// </summary>
-    public bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring) && !ShowDetailedScore;
+    public bool ShowScoreInfo => IsSubmissionSuccessful && (Score.HasValue || IsScoring);
+
+    /// <summary>
+    /// 是否显示详细分数信息（全屏模式下强制禁用）
+    /// </summary>
+    public new bool ShowDetailedScore => false;
 
     /// <summary>
     /// 是否显示用时信息

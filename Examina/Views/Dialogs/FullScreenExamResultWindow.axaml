@@ -115,6 +115,14 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
 
+        <!--  主要分数显示样式  -->
+        <Style Selector="TextBlock.score-display">
+            <Setter Property="FontSize" Value="48" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+
 
     </Window.Styles>
 
@@ -141,58 +149,15 @@
                 <!--  次要状态消息  -->
                 <TextBlock Classes="info-text" Text="{Binding SecondaryStatusMessage}" />
 
-                <!--  成绩信息  -->
-                <StackPanel IsVisible="{Binding ShowScoreInfo}" Spacing="8">
-                    <TextBlock Classes="info-text" FontWeight="SemiBold" Text="考试成绩" />
-                    <TextBlock Classes="status-text" Foreground="{DynamicResource AccentFillColorDefault}" Text="{Binding ScoreText}" />
-                </StackPanel>
-
-                <!--  详细分数信息  -->
-                <StackPanel IsVisible="{Binding ShowDetailedScore}" Spacing="16">
-                    <!--  分数概览  -->
-                    <StackPanel Spacing="12">
-                        <TextBlock Classes="info-text" FontWeight="SemiBold" Text="成绩详情" HorizontalAlignment="Center" />
-
-                        <!--  分数卡片组  -->
-                        <Grid ColumnDefinitions="*,*,*,*" MaxWidth="600">
-                            <!--  总分  -->
-                            <Border Classes="score-card" Grid.Column="0">
-                                <StackPanel>
-                                    <TextBlock Classes="score-title" Text="总分" HorizontalAlignment="Center" />
-                                    <TextBlock Classes="score-value" Text="{Binding TotalScoreText}" Foreground="{DynamicResource AccentFillColorDefault}" />
-                                </StackPanel>
-                            </Border>
-
-                            <!--  得分率  -->
-                            <Border Classes="score-card" Grid.Column="1">
-                                <StackPanel>
-                                    <TextBlock Classes="score-title" Text="得分率" HorizontalAlignment="Center" />
-                                    <TextBlock Classes="score-value" Text="{Binding ScorePercentageText}" Foreground="{Binding GradeColor}" />
-                                </StackPanel>
-                            </Border>
-
-                            <!--  等级  -->
-                            <Border Classes="score-card" Grid.Column="2">
-                                <StackPanel>
-                                    <TextBlock Classes="score-title" Text="等级" HorizontalAlignment="Center" />
-                                    <TextBlock Classes="score-value" Text="{Binding GradeText}" Foreground="{Binding GradeColor}" />
-                                </StackPanel>
-                            </Border>
-
-                            <!--  通过状态  -->
-                            <Border Classes="score-card" Grid.Column="3">
-                                <StackPanel>
-                                    <TextBlock Classes="score-title" Text="状态" HorizontalAlignment="Center" />
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Classes="score-value" Text="{Binding PassStatusIcon}" Foreground="{Binding PassStatusColor}" Margin="0,0,8,0" />
-                                        <TextBlock Classes="score-value" Text="{Binding PassStatusText}" Foreground="{Binding PassStatusColor}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                    </StackPanel>
-
-
+                <!--  成绩信息（简化版本）  -->
+                <StackPanel IsVisible="{Binding ShowScoreInfo}" Spacing="12">
+                    <TextBlock Classes="info-text" FontWeight="SemiBold" Text="考试成绩" HorizontalAlignment="Center" />
+                    <TextBlock Classes="score-display"
+                               FontSize="48"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource AccentFillColorDefault}"
+                               Text="{Binding ScoreText}" />
                 </StackPanel>
 
                 <!--  用时信息  -->
