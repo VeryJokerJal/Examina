@@ -1131,7 +1131,7 @@ public class UnifiedExamViewModel : ViewModelBase
                     // 使用EnhancedExamToolbarService进行正式考试提交
                     if (_enhancedExamToolbarService != null)
                     {
-                        var scoringResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
+                        var scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
                         submitResult = scoringResult != null;
                         if (scoringResult != null)
                         {
