@@ -29,6 +29,7 @@
             <converters:ModuleTotalScoreConverter x:Key="ModuleTotalScoreConverter" />
             <converters:ModuleOperationPointCountConverter x:Key="ModuleOperationPointCountConverter" />
             <converters:ModuleQuestionCountConverter x:Key="ModuleQuestionCountConverter" />
+            <converters:FilePathDisplayConverter x:Key="FilePathDisplayConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
