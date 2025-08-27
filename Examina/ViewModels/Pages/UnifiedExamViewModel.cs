@@ -964,6 +964,8 @@ public class UnifiedExamViewModel : ViewModelBase
         bool submitResult = false;
         string errorMessage = "";
         int? actualDurationSeconds = null;
+        decimal? score = null;
+        decimal? maxScore = null;
 
         try
         {
@@ -977,6 +979,9 @@ public class UnifiedExamViewModel : ViewModelBase
                         if (scoringResult != null)
                         {
                             actualDurationSeconds = (int)(scoringResult.ElapsedMilliseconds / 1000);
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
+                            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 正式考试BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
                         }
                     }
                     break;
@@ -986,6 +991,12 @@ public class UnifiedExamViewModel : ViewModelBase
                     {
                         BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
                         submitResult = scoringResult != null;
+                        if (scoringResult != null)
+                        {
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
+                            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 模拟考试BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
+                        }
                     }
                     break;
 
@@ -1038,13 +1049,13 @@ public class UnifiedExamViewModel : ViewModelBase
             submitResult = false;
         }
 
-        await ShowExamResultAsync(examId, examType, submitResult, actualDurationSeconds, errorMessage);
+        await ShowExamResultAsync(examId, examType, submitResult, actualDurationSeconds, score, maxScore, errorMessage);
     }
 
     /// <summary>
     /// 显示考试结果窗口
     /// </summary>
-    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, string errorMessage = "")
+    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, decimal? score, decimal? maxScore, string errorMessage = "")
     {
         try
         {
@@ -1063,6 +1074,8 @@ public class UnifiedExamViewModel : ViewModelBase
 
             int? durationMinutes = actualDurationSeconds.HasValue ? (actualDurationSeconds.Value / 60) : null;
 
+            System.Diagnostics.Debug.WriteLine($"UnifiedExamViewModel: 显示考试结果 - Score: {score}, MaxScore: {maxScore}, ExamType: {examType}");
+
             _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
                 examName,
                 examType,
@@ -1070,8 +1083,8 @@ public class UnifiedExamViewModel : ViewModelBase
                 null,
                 null,
                 durationMinutes,
-                null,
-                null,
+                score,
+                maxScore,
                 isSuccessful ? "" : errorMessage,
                 isSuccessful ? "考试提交成功" : "考试提交失败",
                 true,
