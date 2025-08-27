@@ -3,6 +3,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Examina.Models;
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.Views;
@@ -983,7 +984,8 @@ public class UnifiedExamViewModel : ViewModelBase
                 case ExamType.MockExam:
                     if (_enhancedExamToolbarService != null)
                     {
-                        submitResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
+                        BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
+                        submitResult = scoringResult != null;
                     }
                     break;
 
