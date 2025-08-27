@@ -243,12 +243,17 @@ public class UnifiedExamViewModel : ViewModelBase
                 int.TryParse(_authenticationService.CurrentUser.Id, out int studentId))
             {
                 // 获取考试权限信息
+                System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] 开始检查考试权限，考试ID: {exam.Id}, 学生ID: {studentId}");
+                System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] 考试配置 - AllowRetake: {exam.AllowRetake}, AllowPractice: {exam.AllowPractice}, MaxRetakeCount: {exam.MaxRetakeCount}");
+
                 examWithPermissions.AttemptLimit = await _examAttemptService.CheckExamAttemptLimitAsync(exam.Id, studentId);
 
-                System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] {exam.Name}: " +
+                System.Diagnostics.Debug.WriteLine($"[CreateExamWithPermissionsAsync] 权限检查完成 - {exam.Name}: " +
                     $"CanStartExam={examWithPermissions.AttemptLimit.CanStartExam}, " +
                     $"CanRetake={examWithPermissions.AttemptLimit.CanRetake}, " +
-                    $"CanPractice={examWithPermissions.AttemptLimit.CanPractice}");
+                    $"CanPractice={examWithPermissions.AttemptLimit.CanPractice}, " +
+                    $"AllowRetake={examWithPermissions.AttemptLimit.AllowRetake}, " +
+                    $"AllowPractice={examWithPermissions.AttemptLimit.AllowPractice}");
             }
             else
             {

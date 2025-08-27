@@ -79,6 +79,8 @@ public class ExamAttemptLimitDto : INotifyPropertyChanged
         {
             if (_canRetake != value)
             {
+                System.Diagnostics.Debug.WriteLine($"[ExamAttemptLimitDto] CanRetake 值变更: {_canRetake} -> {value}");
+                System.Diagnostics.Debug.WriteLine($"[ExamAttemptLimitDto] 调用堆栈: {Environment.StackTrace}");
                 _canRetake = value;
                 OnPropertyChanged();
             }
@@ -95,6 +97,8 @@ public class ExamAttemptLimitDto : INotifyPropertyChanged
         {
             if (_canPractice != value)
             {
+                System.Diagnostics.Debug.WriteLine($"[ExamAttemptLimitDto] CanPractice 值变更: {_canPractice} -> {value}");
+                System.Diagnostics.Debug.WriteLine($"[ExamAttemptLimitDto] 调用堆栈: {Environment.StackTrace}");
                 _canPractice = value;
                 OnPropertyChanged();
             }
