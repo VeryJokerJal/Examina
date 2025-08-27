@@ -2,7 +2,6 @@ using ExaminaWebApplication.Filters;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Admin;
 using ExaminaWebApplication.Services.Admin;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -14,7 +13,7 @@ namespace ExaminaWebApplication.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/admin/configuration")]
-[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+[Authorize(Policy = "AdminPolicy")]
 [RequireLogin]
 public class AdminConfigurationApiController : ControllerBase
 {

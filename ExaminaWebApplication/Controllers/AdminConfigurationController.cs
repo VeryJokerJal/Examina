@@ -3,7 +3,6 @@ using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Admin;
 using ExaminaWebApplication.Services.Admin;
 using ExaminaWebApplication.ViewModels;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,7 +12,7 @@ namespace ExaminaWebApplication.Controllers;
 /// <summary>
 /// 管理员配置管理控制器
 /// </summary>
-[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+[Authorize]
 [RequireLogin]
 public class AdminConfigurationController : Controller
 {

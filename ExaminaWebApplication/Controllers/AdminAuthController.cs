@@ -151,7 +151,7 @@ public class AdminAuthController : ControllerBase
     /// 验证登录状态
     /// </summary>
     [HttpGet("validate")]
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(Policy = "TeacherOrAdminPolicy")]
     public async Task<ActionResult> ValidateLogin()
     {
         try
@@ -189,7 +189,7 @@ public class AdminAuthController : ControllerBase
     /// 获取当前用户信息
     /// </summary>
     [HttpGet("profile")]
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(Policy = "TeacherOrAdminPolicy")]
     public async Task<ActionResult<UserInfo>> GetProfile()
     {
         try
@@ -231,7 +231,7 @@ public class AdminAuthController : ControllerBase
     /// 登出
     /// </summary>
     [HttpPost("logout")]
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(Policy = "TeacherOrAdminPolicy")]
     public async Task<ActionResult> Logout()
     {
         try
@@ -263,7 +263,7 @@ public class AdminAuthController : ControllerBase
     /// 管理员解绑用户设备
     /// </summary>
     [HttpDelete("devices/{deviceId}")]
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "Administrator")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult> UnbindDevice(int deviceId)
     {
         try
@@ -290,7 +290,7 @@ public class AdminAuthController : ControllerBase
     /// 检查重复用户情况
     /// </summary>
     [HttpGet("check-duplicate-users")]
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<DuplicateUserReport>> CheckDuplicateUsers()
     {
         try
@@ -321,7 +321,7 @@ public class AdminAuthController : ControllerBase
     /// 修复重复用户
     /// </summary>
     [HttpPost("fix-duplicate-users")]
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult> FixDuplicateUsers()
     {
         try
