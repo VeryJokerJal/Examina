@@ -313,30 +313,50 @@ public partial class App : Application
 
             // 测试BenchSuiteDirectoryService是否正确注册
             #if DEBUG
+            // 基础服务可用性测试（不依赖认证）
             Tests.BenchSuiteDirectoryServiceTest.TestServiceAvailability();
             Tests.BenchSuiteDirectoryServiceTest.TestExamToolbarViewModelDependency();
 
-            // 测试LeaderboardViewModel依赖注入
-            Tests.LeaderboardViewModelDependencyTest.TestLeaderboardViewModelDependencies();
-
-            // 测试排行榜类型初始化一致性
-            Tests.LeaderboardViewModelDependencyTest.TestLeaderboardTypeInitializationConsistency();
-
-            // 测试API URL构建
-            Tests.ApiUrlVerificationTest.RunAllTests();
-
-            // 测试ExamAttemptService功能
+            // 将其余测试延后到用户通过认证后再执行，避免未认证噪声干扰
             _ = Task.Run(async () =>
             {
-                await Tests.ExamAttemptServiceTest.RunAllTests();
+                try
+                {
+                    IAuthenticationService? auth = _serviceProvider.GetService<IAuthenticationService>();
+                    int waitedMs = 0;
+                    while (auth != null && !auth.IsAuthenticated && waitedMs < 60000)
+                    {
+                        await Task.Delay(500);
+                        waitedMs += 500;
+                    }
 
-                // 延迟一段时间后运行数据一致性验证（等待用户登录）
-                await Task.Delay(10000); // 等待10秒
-                await Tests.DataConsistencyVerification.RunAllVerifications();
+                    // 测试LeaderboardViewModel依赖注入（不强制依赖认证，但此时通常已登录）
+                    Tests.LeaderboardViewModelDependencyTest.TestLeaderboardViewModelDependencies();
+                    Tests.LeaderboardViewModelDependencyTest.TestLeaderboardTypeInitializationConsistency();
 
-                // 测试开始考试按钮功能
-                await Task.Delay(2000); // 等待2秒
-                await Tests.ExamButtonFunctionalityTest.RunAllTests();
+                    // 测试API URL构建
+                    Tests.ApiUrlVerificationTest.RunAllTests();
+
+                    // 若仍未认证则跳过需要鉴权的测试
+                    if (auth != null && auth.IsAuthenticated)
+                    {
+                        await Tests.ExamAttemptServiceTest.RunAllTests();
+
+                        // 数据一致性验证
+                        await Tests.DataConsistencyVerification.RunAllVerifications();
+
+                        // 测试开始考试按钮功能
+                        await Tests.ExamButtonFunctionalityTest.RunAllTests();
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[DEBUG Tests] 跳过需要认证的测试：用户尚未登录");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[DEBUG Tests] 执行调试测试时发生异常: {ex.Message}");
+                }
             });
             #endif
         }
