@@ -93,19 +93,40 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         get
         {
-            string buttonText = HasFullAccess ? "开始答题" : "解锁";
+            string buttonText = HasFullAccess ? "开始答题" : "试做";
             System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] StartButtonText被访问 - HasFullAccess: {HasFullAccess}, 按钮文本: {buttonText}");
             return buttonText;
         }
     }
 
     /// <summary>
-    /// 检查训练是否可以开始（仅检查试做支持，权限在点击时检查）
+    /// 获取特定训练的按钮文本
+    /// </summary>
+    public string GetButtonText(StudentComprehensiveTrainingDto training)
+    {
+        string buttonText;
+        if (HasFullAccess)
+        {
+            buttonText = "开始答题";
+        }
+        else
+        {
+            buttonText = training.EnableTrial ? "试做" : "解锁";
+        }
+
+        System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] GetButtonText - 训练: {training.Name}, HasFullAccess: {HasFullAccess}, EnableTrial: {training.EnableTrial}, 按钮文本: {buttonText}");
+        return buttonText;
+    }
+
+    /// <summary>
+    /// 检查训练按钮是否可用
     /// </summary>
     public bool CanStartTraining(StudentComprehensiveTrainingDto training)
     {
-        bool canStart = training.EnableTrial;
-        System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] CanStartTraining - 训练: {training.Name}, EnableTrial: {training.EnableTrial}, 结果: {canStart}");
+        // 有权限用户：始终可以开始训练
+        // 无权限用户：只有在EnableTrial=true时可以试做，EnableTrial=false时可以点击解锁
+        bool canStart = HasFullAccess || training.EnableTrial;
+        System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] CanStartTraining - 训练: {training.Name}, HasFullAccess: {HasFullAccess}, EnableTrial: {training.EnableTrial}, 结果: {canStart}");
         return canStart;
     }
 
@@ -267,21 +288,29 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 当前用户权限状态: HasFullAccess={HasFullAccess}");
             System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 训练试做支持状态: EnableTrial={training.EnableTrial}");
 
-            // 检查用户权限
-            if (!HasFullAccess)
+            // 权限检查逻辑：
+            // 1. 有权限用户：始终可以开始训练，不受EnableTrial影响
+            // 2. 无权限用户：需要检查EnableTrial状态
+            if (HasFullAccess)
             {
-                // 用户没有权限，显示解锁推广窗口
-                System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] 权限检查失败：用户没有完整权限，显示解锁推广窗口");
-                await ShowUnlockPromotionWindowAsync();
-                return;
+                // 有权限用户，直接开始训练
+                System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] 用户有完整权限，直接开始训练");
             }
-
-            // 检查试卷是否支持试做功能（这个检查理论上不会失败，因为按钮已经根据EnableTrial禁用了）
-            if (!training.EnableTrial)
+            else
             {
-                ErrorMessage = "此训练暂不支持试做功能，请联系管理员。";
-                System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] 试做支持检查失败：训练 {training.Name} 不支持试做功能");
-                return;
+                // 无权限用户，检查试做设置
+                if (training.EnableTrial)
+                {
+                    // 支持试做，允许开始
+                    System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] 用户无权限但训练支持试做，允许开始");
+                }
+                else
+                {
+                    // 不支持试做，显示解锁推广窗口
+                    System.Diagnostics.Debug.WriteLine("[ComprehensiveTraining] 用户无权限且训练不支持试做，显示解锁推广窗口");
+                    await ShowUnlockPromotionWindowAsync();
+                    return;
+                }
             }
 
             // 用户有完整权限且训练支持试做，开始训练

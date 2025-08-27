@@ -2,6 +2,8 @@
 
     <UserControl.Resources>
         <converters:DebugMultiValueConverter x:Key="DebugConverter" />
+        <converters:TrainingButtonTextConverter x:Key="ButtonTextConverter" />
+        <converters:TrainingButtonEnabledConverter x:Key="ButtonEnabledConverter" />
     </UserControl.Resources>
 
     <Design.DataContext>
@@ -95,12 +97,20 @@
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                                         <Button Command="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartTrainingCommand}"
                                                 CommandParameter="{Binding}"
-                                                Content="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).StartButtonText}"
                                                 Classes="accent"
                                                 Padding="20,10"
                                                 MinWidth="120">
+                                            <Button.Content>
+                                                <MultiBinding Converter="{StaticResource ButtonTextConverter}">
+                                                    <Binding Path="$parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).HasFullAccess" />
+                                                    <Binding Path="EnableTrial" />
+                                                </MultiBinding>
+                                            </Button.Content>
                                             <Button.IsEnabled>
-                                                <Binding Path="EnableTrial" />
+                                                <MultiBinding Converter="{StaticResource ButtonEnabledConverter}">
+                                                    <Binding Path="$parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).HasFullAccess" />
+                                                    <Binding Path="EnableTrial" />
+                                                </MultiBinding>
                                             </Button.IsEnabled>
                                         </Button>
                                     </StackPanel>
