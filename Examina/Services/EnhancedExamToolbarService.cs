@@ -124,7 +124,7 @@ public class EnhancedExamToolbarService : IDisposable
     /// <summary>
     /// 提交模拟考试
     /// </summary>
-    public async Task<bool> SubmitMockExamAsync(int mockExamId, int? actualDurationSeconds = null)
+    public async Task<BenchSuiteScoringResult?> SubmitMockExamAsync(int mockExamId, int? actualDurationSeconds = null)
     {
         try
         {
@@ -135,7 +135,7 @@ public class EnhancedExamToolbarService : IDisposable
             if (currentUser == null)
             {
                 _logger.LogWarning("用户未登录，无法提交模拟考试");
-                return false;
+                return null;
             }
 
             // 1. 先进行BenchSuite评分
@@ -166,7 +166,7 @@ public class EnhancedExamToolbarService : IDisposable
                     {
                         _logger.LogError("模拟考试基本提交也失败，模拟考试ID: {MockExamId}, 错误: {Error}",
                             mockExamId, basicSubmitResult?.Message ?? "未知错误");
-                        return false;
+                        return null;
                     }
 
                     _logger.LogInformation("模拟考试基本提交成功（无成绩数据），模拟考试ID: {MockExamId}, 时间状态: {TimeStatus}",
@@ -190,18 +190,18 @@ public class EnhancedExamToolbarService : IDisposable
                 }
 
                 _logger.LogInformation("模拟考试提交流程完成，模拟考试ID: {MockExamId}", mockExamId);
-                return true;
+                return scoringResult;
             }
             else
             {
                 _logger.LogWarning("无法解析用户ID为整数: {UserId}", currentUser.Id);
-                return false;
+                return null;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "提交模拟考试失败，模拟考试ID: {MockExamId}", mockExamId);
-            return false;
+            return null;
         }
     }
 
@@ -334,7 +334,7 @@ public class EnhancedExamToolbarService : IDisposable
                 bool result = examType switch
                 {
                     ExamType.FormalExam => await SubmitFormalExamAsync(examId),
-                    ExamType.MockExam => await SubmitMockExamAsync(examId),
+                    ExamType.MockExam => (await SubmitMockExamAsync(examId)) != null,
                     ExamType.ComprehensiveTraining => await SubmitComprehensiveTrainingAsync(examId),
                     _ => false
                 };

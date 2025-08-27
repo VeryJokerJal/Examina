@@ -1,10 +1,8 @@
-using System.Reactive;
+﻿using System.Reactive;
+using Examina.Models;
+using Examina.Models.BenchSuite;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Examina.Models;
-using System.Collections.ObjectModel;
-using System.Linq;
-using Examina.Models.BenchSuite;
 
 namespace Examina.ViewModels.Dialogs;
 
@@ -83,16 +81,15 @@ public class ExamResultViewModel : ViewModelBase
         get
         {
             if (!ActualDurationMinutes.HasValue)
+            {
                 return "未知";
+            }
 
             int minutes = ActualDurationMinutes.Value;
             int hours = minutes / 60;
             int remainingMinutes = minutes % 60;
 
-            if (hours > 0)
-                return $"{hours}小时{remainingMinutes}分钟";
-            else
-                return $"{remainingMinutes}分钟";
+            return hours > 0 ? $"{hours}小时{remainingMinutes}分钟" : $"{remainingMinutes}分钟";
         }
     }
 
@@ -119,11 +116,13 @@ public class ExamResultViewModel : ViewModelBase
         get
         {
             if (IsScoring)
+            {
                 return "计算中...";
-            else if (Score.HasValue)
-                return $"{Score:F1}";
+            }
             else
-                return "暂无评分";
+            {
+                return Score.HasValue ? $"{Score:F1}" : "暂无评分";
+            }
         }
     }
 
@@ -170,13 +169,17 @@ public class ExamResultViewModel : ViewModelBase
         get
         {
             if (ScoreDetail != null)
+            {
                 return $"{ScoreDetail.AchievedScore:F1} / {ScoreDetail.TotalScore:F1}";
+            }
             else if (Score.HasValue && TotalScore.HasValue)
+            {
                 return $"{Score:F1} / {TotalScore:F1}";
-            else if (Score.HasValue)
-                return $"{Score:F1}";
+            }
             else
-                return "暂无评分";
+            {
+                return Score.HasValue ? $"{Score:F1}" : "暂无评分";
+            }
         }
     }
 
@@ -188,11 +191,13 @@ public class ExamResultViewModel : ViewModelBase
         get
         {
             if (ScoreDetail != null)
+            {
                 return $"{ScoreDetail.ScorePercentage:F1}%";
-            else if (Score.HasValue && TotalScore.HasValue && TotalScore > 0)
-                return $"{(Score.Value / TotalScore.Value * 100):F1}%";
+            }
             else
-                return "暂无评分";
+            {
+                return Score.HasValue && TotalScore.HasValue && TotalScore > 0 ? $"{Score.Value / TotalScore.Value * 100:F1}%" : "暂无评分";
+            }
         }
     }
 
@@ -209,44 +214,17 @@ public class ExamResultViewModel : ViewModelBase
     /// <summary>
     /// 通过状态文本
     /// </summary>
-    public string PassStatusText
-    {
-        get
-        {
-            if (ScoreDetail != null)
-                return ScoreDetail.IsPassed ? "通过" : "未通过";
-            else
-                return "暂无评分";
-        }
-    }
+    public string PassStatusText => ScoreDetail != null ? ScoreDetail.IsPassed ? "通过" : "未通过" : "暂无评分";
 
     /// <summary>
     /// 通过状态图标
     /// </summary>
-    public string PassStatusIcon
-    {
-        get
-        {
-            if (ScoreDetail != null)
-                return ScoreDetail.IsPassed ? "✓" : "✗";
-            else
-                return "?";
-        }
-    }
+    public string PassStatusIcon => ScoreDetail != null ? ScoreDetail.IsPassed ? "✓" : "✗" : "?";
 
     /// <summary>
     /// 通过状态颜色
     /// </summary>
-    public string PassStatusColor
-    {
-        get
-        {
-            if (ScoreDetail != null)
-                return ScoreDetail.IsPassed ? "#4CAF50" : "#F44336";
-            else
-                return "#666666";
-        }
-    }
+    public string PassStatusColor => ScoreDetail != null ? ScoreDetail.IsPassed ? "#4CAF50" : "#F44336" : "#666666";
 
     public ExamResultViewModel()
     {
@@ -258,16 +236,16 @@ public class ExamResultViewModel : ViewModelBase
         });
 
         // 监听属性变化，更新计算属性
-        this.WhenAnyValue(x => x.Score, x => x.IsScoring)
+        _ = this.WhenAnyValue(x => x.Score, x => x.IsScoring)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(ScoreText));
             });
 
-        this.WhenAnyValue(x => x.ActualDurationMinutes)
+        _ = this.WhenAnyValue(x => x.ActualDurationMinutes)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ActualDurationText)));
 
-        this.WhenAnyValue(x => x.IsSubmissionSuccessful)
+        _ = this.WhenAnyValue(x => x.IsSubmissionSuccessful)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(SubmissionStatusText));
@@ -275,16 +253,16 @@ public class ExamResultViewModel : ViewModelBase
                 this.RaisePropertyChanged(nameof(SubmissionStatusColor));
             });
 
-        this.WhenAnyValue(x => x.ExamType)
+        _ = this.WhenAnyValue(x => x.ExamType)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ExamTypeText)));
 
-        this.WhenAnyValue(x => x.ErrorMessage)
+        _ = this.WhenAnyValue(x => x.ErrorMessage)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(HasError)));
 
-        this.WhenAnyValue(x => x.Notes)
+        _ = this.WhenAnyValue(x => x.Notes)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(HasNotes)));
 
-        this.WhenAnyValue(x => x.ScoreDetail)
+        _ = this.WhenAnyValue(x => x.ScoreDetail)
             .Subscribe(_ =>
             {
                 this.RaisePropertyChanged(nameof(HasScoreDetail));
@@ -382,7 +360,10 @@ public class ExamResultViewModel : ViewModelBase
     /// </summary>
     public void SetScoreDetailFromBenchSuite(BenchSuiteScoringResult benchSuiteResult, decimal passThreshold = 60)
     {
-        if (benchSuiteResult == null) return;
+        if (benchSuiteResult == null)
+        {
+            return;
+        }
 
         ExamScoreDetail scoreDetail = new()
         {
@@ -398,6 +379,4 @@ public class ExamResultViewModel : ViewModelBase
 
         SetScoreDetail(scoreDetail);
     }
-
-
 }

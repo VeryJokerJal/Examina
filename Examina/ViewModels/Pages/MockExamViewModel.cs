@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Models.MockExam;
 using Examina.Services;
@@ -712,6 +713,7 @@ public class MockExamViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 开始提交考试，ID: {examId}, 类型: {examType}, 自动提交: {isAutoSubmit}");
 
+            BenchSuiteScoringResult? scoringResult = null;
             bool submitResult = false;
 
             // 优先使用EnhancedExamToolbarService进行BenchSuite集成提交
@@ -722,7 +724,8 @@ public class MockExamViewModel : ViewModelBase
                 switch (examType)
                 {
                     case ExamType.MockExam:
-                        submitResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
+                        scoringResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
+                        submitResult = scoringResult != null;
                         break;
                     case ExamType.FormalExam:
                         submitResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
@@ -843,14 +846,14 @@ public class MockExamViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交成功，ID: {examId}");
 
                 // 显示考试结果窗口，窗口关闭后会自动显示主窗口
-                await ShowExamResultAsync(examId, examType, true, actualDurationSeconds);
+                await ShowExamResultAsync(examId, examType, true, actualDurationSeconds, scoringResult);
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交失败，ID: {examId}");
 
                 // 显示失败结果窗口，窗口关闭后会自动显示主窗口
-                await ShowExamResultAsync(examId, examType, false, actualDurationSeconds);
+                await ShowExamResultAsync(examId, examType, false, actualDurationSeconds, null);
             }
         }
         catch (Exception ex)
@@ -983,7 +986,7 @@ public class MockExamViewModel : ViewModelBase
     /// <summary>
     /// 显示考试结果窗口
     /// </summary>
-    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds)
+    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, BenchSuiteScoringResult? scoringResult = null)
     {
         try
         {
@@ -995,21 +998,43 @@ public class MockExamViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
 
-            // 使用新的全屏考试结果窗口
-            _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
-                examName,
-                examType,
-                isSuccessful,
-                null, // startTime
-                null, // endTime
-                durationMinutes,
-                null, // score - 模拟考试暂时不显示分数
-                null, // totalScore
-                isSuccessful ? "" : "考试提交失败",
-                isSuccessful ? "模拟考试提交成功" : "请检查网络连接或联系管理员",
-                true, // showContinue
-                false // showClose - 只显示确认按钮
-            );
+            // 如果有BenchSuite评分结果，使用带详细分数的窗口
+            if (scoringResult != null && isSuccessful)
+            {
+                System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 使用BenchSuite评分结果显示详细分数 - 总分: {scoringResult.TotalScore}, 得分: {scoringResult.AchievedScore}");
+
+                _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultFromBenchSuiteAsync(
+                    examName,
+                    examType,
+                    isSuccessful,
+                    scoringResult,
+                    null, // startTime
+                    null, // endTime
+                    durationMinutes,
+                    isSuccessful ? "" : "考试提交失败",
+                    isSuccessful ? "模拟考试提交成功，BenchSuite自动评分完成" : "请检查网络连接或联系管理员",
+                    true, // showContinue
+                    false // showClose - 只显示确认按钮
+                );
+            }
+            else
+            {
+                // 使用普通的全屏考试结果窗口
+                _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+                    examName,
+                    examType,
+                    isSuccessful,
+                    null, // startTime
+                    null, // endTime
+                    durationMinutes,
+                    scoringResult?.AchievedScore, // 如果有评分结果，显示得分
+                    scoringResult?.TotalScore, // 如果有评分结果，显示总分
+                    isSuccessful ? "" : "考试提交失败",
+                    isSuccessful ? "模拟考试提交成功" : "请检查网络连接或联系管理员",
+                    true, // showContinue
+                    false // showClose - 只显示确认按钮
+                );
+            }
 
             System.Diagnostics.Debug.WriteLine("MockExamViewModel: 全屏考试结果窗口已显示并关闭");
 
