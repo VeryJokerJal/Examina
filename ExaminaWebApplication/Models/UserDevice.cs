@@ -161,3 +161,24 @@ public class DeviceUserInfo
     public UserRole Role { get; set; }
     public bool IsActive { get; set; }
 }
+
+/// <summary>
+/// 设备绑定结果模型
+/// </summary>
+public class DeviceBindResult
+{
+    /// <summary>
+    /// 是否可以绑定
+    /// </summary>
+    public bool CanBind { get; set; }
+
+    /// <summary>
+    /// 是否需要踢出现有设备
+    /// </summary>
+    public bool RequiresKickout { get; set; }
+
+    /// <summary>
+    /// 结果消息
+    /// </summary>
+    public string? Message { get; set; }
+}

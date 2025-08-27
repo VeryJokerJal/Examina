@@ -150,6 +150,7 @@ builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentMockEx
 
 // 注册管理员端服务
 builder.Services.AddScoped<ExaminaWebApplication.Services.Admin.IAdminExamManagementService, ExaminaWebApplication.Services.Admin.AdminExamManagementService>();
+builder.Services.AddScoped<ExaminaWebApplication.Services.Admin.ISystemConfigurationService, ExaminaWebApplication.Services.Admin.SystemConfigurationService>();
 
 // 注册排行榜服务
 builder.Services.AddScoped<RankingService>();
@@ -424,6 +425,11 @@ using (IServiceScope scope = app.Services.CreateScope())
 
             // 创建测试考试数据
             await SeedTestExamData.SeedAsync(db);
+
+            // 初始化系统配置
+            ExaminaWebApplication.Services.Admin.ISystemConfigurationService configService =
+                scope.ServiceProvider.GetRequiredService<ExaminaWebApplication.Services.Admin.ISystemConfigurationService>();
+            await configService.InitializeDefaultConfigurationsAsync();
         }
     }
     catch (Exception seedingEx)

@@ -1,0 +1,361 @@
+@model ExaminaWebApplication.ViewModels.AdminConfigurationViewModel
+@{
+    ViewData["Title"] = "系统配置管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-cogs me-2"></i>系统配置管理
+                </h1>
+                <div class="page-subtitle">管理系统全局配置参数</div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- 配置统计卡片 -->
+        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-primary">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stats-content">
+                            <h3 class="stats-number">@Model.Statistics.TotalConfigurations</h3>
+                            <p class="stats-label">总配置项</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-success">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="stats-content">
+                            <h3 class="stats-number">@Model.Statistics.EnabledConfigurations</h3>
+                            <p class="stats-label">启用配置</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-warning">
+                            <i class="fas fa-times"></i>
+                        </div>
+                        <div class="stats-content">
+                            <h3 class="stats-number">@Model.Statistics.DisabledConfigurations</h3>
+                            <p class="stats-label">禁用配置</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-info">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="stats-content">
+                            <h3 class="stats-number">@Model.Statistics.CategoriesCount</h3>
+                            <p class="stats-label">配置分类</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 快速配置面板 -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-mobile-alt me-2"></i>设备限制配置
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">最大设备数量</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-hashtag"></i>
+                                    </span>
+                                    <input type="text" class="form-control" value="@Model.DeviceLimitConfiguration.MaxDeviceCount" readonly>
+                                    <span class="input-group-text">台</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">限制状态</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-toggle-@(Model.DeviceLimitConfiguration.EnableDeviceLimit ? "on" : "off")"></i>
+                                    </span>
+                                    <input type="text" class="form-control" value="@(Model.DeviceLimitConfiguration.EnableDeviceLimit ? "已启用" : "已禁用")" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">踢出策略</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </span>
+                                    <input type="text" class="form-control" value="@(Model.DeviceLimitConfiguration.KickoutPolicy == ExaminaWebApplication.Models.Admin.DeviceKickoutPolicy.KickoutOldest ? "踢出最早设备" : "拒绝新登录")" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">会话过期</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                    <input type="text" class="form-control" value="@Model.DeviceLimitConfiguration.SessionExpirationDays" readonly>
+                                    <span class="input-group-text">天</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <a href="@Url.Action("DeviceLimit")" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>编辑配置
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 配置分类概览 -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-layer-group me-2"></i>配置分类概览
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.AvailableCategories.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (string category in Model.AvailableCategories)
+                            {
+                                List<ExaminaWebApplication.Models.Admin.SystemConfigurationDto> categoryConfigs = Model.GetConfigurationsByCategory(category);
+                                <a href="@Url.Action("SystemConfigurations", new { category = category })" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-folder me-2"></i>
+                                        <strong>@category</strong>
+                                        <small class="text-muted d-block">@GetCategoryDisplayName(category)</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">@categoryConfigs.Count</span>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>暂无配置分类</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>所有配置项
+                    </h5>
+                    <a href="@Url.Action("SystemConfigurations")" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>查看全部
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (Model.AllConfigurations.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>配置键</th>
+                                        <th>配置值</th>
+                                        <th>分类</th>
+                                        <th>状态</th>
+                                        <th>更新时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var config in Model.AllConfigurations.Take(10))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@config.ConfigKey</strong>
+                                                @if (!string.IsNullOrEmpty(config.Description))
+                                                {
+                                                    <br><small class="text-muted">@config.Description</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <code>@config.ConfigValue</code>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@config.Category</span>
+                                            </td>
+                                            <td>
+                                                @if (config.IsEnabled)
+                                                {
+                                                    <span class="badge bg-success">启用</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">禁用</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (config.UpdatedAt.HasValue)
+                                                {
+                                                    @config.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm")
+                                                }
+                                                else
+                                                {
+                                                    @config.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("EditConfiguration", new { configKey = config.ConfigKey })" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-cogs fa-3x mb-3"></i>
+                            <p>暂无配置项</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetCategoryDisplayName(string category)
+    {
+        return category switch
+        {
+            "DeviceManagement" => "设备管理相关配置",
+            "Security" => "安全相关配置",
+            "Performance" => "性能相关配置",
+            "General" => "通用配置",
+            _ => "其他配置"
+        };
+    }
+}
+
+<style>
+.stats-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    margin-right: 15px;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.stats-label {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.page-subtitle {
+    color: #666;
+    margin-top: 0.5rem;
+}
+</style>

@@ -69,8 +69,15 @@ public interface IDeviceService
     /// 检查用户是否可以绑定新设备
     /// </summary>
     /// <param name="userId">用户ID</param>
-    /// <returns>是否可以绑定新设备</returns>
-    Task<bool> CanBindNewDeviceAsync(int userId);
+    /// <returns>设备绑定结果</returns>
+    Task<DeviceBindResult> CanBindNewDeviceAsync(int userId);
+
+    /// <summary>
+    /// 踢出用户最早登录的设备
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>是否成功踢出</returns>
+    Task<bool> KickoutOldestDeviceAsync(int userId);
     
     /// <summary>
     /// 生成设备指纹

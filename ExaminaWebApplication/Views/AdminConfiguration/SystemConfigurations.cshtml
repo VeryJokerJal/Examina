@@ -1,0 +1,477 @@
+@model List<ExaminaWebApplication.Models.Admin.SystemConfigurationDto>
+@{
+    ViewData["Title"] = "系统配置列表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string currentCategory = ViewBag.CurrentCategory as string ?? "";
+    List<string> categories = ViewBag.Categories as List<string> ?? new List<string>();
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Index")">
+                                <i class="fas fa-cogs me-1"></i>系统配置
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">配置列表</li>
+                    </ol>
+                </nav>
+                <h1 class="page-title">
+                    <i class="fas fa-list me-2"></i>系统配置列表
+                </h1>
+                <div class="page-subtitle">
+                    @if (!string.IsNullOrEmpty(currentCategory))
+                    {
+                        <span>分类：@currentCategory</span>
+                    }
+                    else
+                    {
+                        <span>查看和管理所有系统配置项</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-cog me-2"></i>配置项列表
+                                <span class="badge bg-primary ms-2">@Model.Count</span>
+                            </h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-end gap-2">
+                                <!-- 分类筛选 -->
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-filter me-2"></i>
+                                        @if (!string.IsNullOrEmpty(currentCategory))
+                                        {
+                                            <span>@currentCategory</span>
+                                        }
+                                        else
+                                        {
+                                            <span>所有分类</span>
+                                        }
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item @(string.IsNullOrEmpty(currentCategory) ? "active" : "")" 
+                                               href="@Url.Action("SystemConfigurations")">
+                                                <i class="fas fa-list me-2"></i>所有分类
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        @foreach (string category in categories)
+                                        {
+                                            <li>
+                                                <a class="dropdown-item @(currentCategory == category ? "active" : "")" 
+                                                   href="@Url.Action("SystemConfigurations", new { category = category })">
+                                                    <i class="fas fa-folder me-2"></i>@category
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+
+                                <!-- 搜索框 -->
+                                <div class="input-group" style="width: 300px;">
+                                    <input type="text" class="form-control" placeholder="搜索配置项..." id="searchInput">
+                                    <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="configurationsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 25%;">配置键</th>
+                                        <th style="width: 25%;">配置值</th>
+                                        <th style="width: 15%;">分类</th>
+                                        <th style="width: 10%;">状态</th>
+                                        <th style="width: 15%;">更新时间</th>
+                                        <th style="width: 10%;">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var config in Model)
+                                    {
+                                        <tr data-config-key="@config.ConfigKey" data-category="@config.Category" data-description="@config.Description">
+                                            <td>
+                                                <div>
+                                                    <strong>@config.ConfigKey</strong>
+                                                    @if (!string.IsNullOrEmpty(config.Description))
+                                                    {
+                                                        <br>
+                                                        <small class="text-muted">@config.Description</small>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="config-value-container">
+                                                    @if (config.ConfigValue.Length > 50)
+                                                    {
+                                                        <code class="config-value-short">@config.ConfigValue.Substring(0, 50)...</code>
+                                                        <code class="config-value-full d-none">@config.ConfigValue</code>
+                                                        <button class="btn btn-sm btn-link p-0 ms-1 toggle-value" type="button">
+                                                            <i class="fas fa-expand-alt"></i>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <code>@config.ConfigValue</code>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@config.Category</span>
+                                            </td>
+                                            <td>
+                                                @if (config.IsEnabled)
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>启用
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-times me-1"></i>禁用
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (config.UpdatedAt.HasValue)
+                                                {
+                                                    <div>
+                                                        <small class="text-muted">更新于</small><br>
+                                                        @config.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm")
+                                                        @if (!string.IsNullOrEmpty(config.UpdaterName))
+                                                        {
+                                                            <br><small class="text-muted">by @config.UpdaterName</small>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div>
+                                                        <small class="text-muted">创建于</small><br>
+                                                        @config.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                                        @if (!string.IsNullOrEmpty(config.CreatorName))
+                                                        {
+                                                            <br><small class="text-muted">by @config.CreatorName</small>
+                                                        }
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("EditConfiguration", new { configKey = config.ConfigKey })" 
+                                                       class="btn btn-sm btn-outline-primary" 
+                                                       title="编辑配置">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-info view-details" 
+                                                            data-config-id="@config.Id"
+                                                            data-config-key="@config.ConfigKey"
+                                                            data-config-value="@config.ConfigValue"
+                                                            data-config-description="@config.Description"
+                                                            data-config-category="@config.Category"
+                                                            data-config-enabled="@config.IsEnabled"
+                                                            data-config-created="@config.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")"
+                                                            data-config-updated="@(config.UpdatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "")"
+                                                            data-config-creator="@config.CreatorName"
+                                                            data-config-updater="@config.UpdaterName"
+                                                            title="查看详情">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h5>暂无配置项</h5>
+                            @if (!string.IsNullOrEmpty(currentCategory))
+                            {
+                                <p>当前分类"@currentCategory"下没有配置项</p>
+                                <a href="@Url.Action("SystemConfigurations")" class="btn btn-outline-primary">
+                                    <i class="fas fa-list me-2"></i>查看所有配置
+                                </a>
+                            }
+                            else
+                            {
+                                <p>系统中还没有任何配置项</p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 配置详情模态框 -->
+<div class="modal fade" id="configDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-cog me-2"></i>配置详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="detail-label">配置键：</label>
+                            <div class="detail-value" id="detailConfigKey"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="detail-label">分类：</label>
+                            <div class="detail-value" id="detailCategory"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">配置值：</label>
+                    <div class="detail-value">
+                        <code id="detailConfigValue"></code>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">描述：</label>
+                    <div class="detail-value" id="detailDescription"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="detail-label">状态：</label>
+                            <div class="detail-value" id="detailEnabled"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="detail-label">创建时间：</label>
+                            <div class="detail-value" id="detailCreated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="detail-label">创建者：</label>
+                            <div class="detail-value" id="detailCreator"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="detail-label">最后更新：</label>
+                            <div class="detail-value" id="detailUpdated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">更新者：</label>
+                    <div class="detail-value" id="detailUpdater"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <a href="#" class="btn btn-primary" id="editConfigLink">
+                    <i class="fas fa-edit me-2"></i>编辑配置
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.page-subtitle {
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.config-value-container {
+    position: relative;
+}
+
+.toggle-value {
+    font-size: 0.8rem;
+}
+
+.detail-item {
+    margin-bottom: 1rem;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.detail-value {
+    color: #212529;
+}
+
+.detail-value code {
+    background-color: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    word-break: break-all;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 搜索功能
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const table = document.getElementById('configurationsTable');
+    const tbody = table ? table.querySelector('tbody') : null;
+
+    function performSearch() {
+        if (!tbody) return;
+        
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const rows = tbody.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const configKey = row.dataset.configKey?.toLowerCase() || '';
+            const category = row.dataset.category?.toLowerCase() || '';
+            const description = row.dataset.description?.toLowerCase() || '';
+            
+            const matches = configKey.includes(searchTerm) || 
+                          category.includes(searchTerm) || 
+                          description.includes(searchTerm);
+            
+            row.style.display = matches ? '' : 'none';
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', performSearch);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
+
+    if (searchButton) {
+        searchButton.addEventListener('click', performSearch);
+    }
+
+    // 配置值展开/收起功能
+    document.querySelectorAll('.toggle-value').forEach(button => {
+        button.addEventListener('click', function() {
+            const container = this.closest('.config-value-container');
+            const shortValue = container.querySelector('.config-value-short');
+            const fullValue = container.querySelector('.config-value-full');
+            const icon = this.querySelector('i');
+
+            if (shortValue.classList.contains('d-none')) {
+                // 当前显示完整值，切换到简短值
+                shortValue.classList.remove('d-none');
+                fullValue.classList.add('d-none');
+                icon.className = 'fas fa-expand-alt';
+            } else {
+                // 当前显示简短值，切换到完整值
+                shortValue.classList.add('d-none');
+                fullValue.classList.remove('d-none');
+                icon.className = 'fas fa-compress-alt';
+            }
+        });
+    });
+
+    // 查看详情功能
+    document.querySelectorAll('.view-details').forEach(button => {
+        button.addEventListener('click', function() {
+            const configKey = this.dataset.configKey;
+            const configValue = this.dataset.configValue;
+            const description = this.dataset.configDescription || '无描述';
+            const category = this.dataset.configCategory;
+            const enabled = this.dataset.configEnabled === 'True';
+            const created = this.dataset.configCreated;
+            const updated = this.dataset.configUpdated || '从未更新';
+            const creator = this.dataset.configCreator || '未知';
+            const updater = this.dataset.configUpdater || '无';
+
+            // 填充模态框内容
+            document.getElementById('detailConfigKey').textContent = configKey;
+            document.getElementById('detailConfigValue').textContent = configValue;
+            document.getElementById('detailDescription').textContent = description;
+            document.getElementById('detailCategory').innerHTML = `<span class="badge bg-secondary">${category}</span>`;
+            document.getElementById('detailEnabled').innerHTML = enabled 
+                ? '<span class="badge bg-success"><i class="fas fa-check me-1"></i>启用</span>'
+                : '<span class="badge bg-warning"><i class="fas fa-times me-1"></i>禁用</span>';
+            document.getElementById('detailCreated').textContent = created;
+            document.getElementById('detailUpdated').textContent = updated;
+            document.getElementById('detailCreator').textContent = creator;
+            document.getElementById('detailUpdater').textContent = updater;
+
+            // 设置编辑链接
+            const editLink = document.getElementById('editConfigLink');
+            editLink.href = '@Url.Action("EditConfiguration")?configKey=' + encodeURIComponent(configKey);
+
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('configDetailsModal'));
+            modal.show();
+        });
+    });
+});
+</script>

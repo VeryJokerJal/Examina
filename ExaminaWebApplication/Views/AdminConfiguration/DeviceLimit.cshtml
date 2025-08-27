@@ -1,0 +1,350 @@
+@model ExaminaWebApplication.Models.Admin.DeviceLimitConfigurationModel
+@{
+    ViewData["Title"] = "设备限制配置";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Index")">
+                                <i class="fas fa-cogs me-1"></i>系统配置
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">设备限制配置</li>
+                    </ol>
+                </nav>
+                <h1 class="page-title">
+                    <i class="fas fa-mobile-alt me-2"></i>设备限制配置
+                </h1>
+                <div class="page-subtitle">配置用户登录设备数量限制和相关策略</div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sliders-h me-2"></i>设备限制参数配置
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateDeviceLimit" method="post" id="deviceLimitForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="MaxDeviceCount" class="form-label">
+                                        <i class="fas fa-hashtag me-2"></i>最大设备数量
+                                    </label>
+                                    <div class="input-group">
+                                        <input asp-for="MaxDeviceCount" class="form-control" type="number" min="1" max="50" required>
+                                        <span class="input-group-text">台</span>
+                                    </div>
+                                    <span asp-validation-for="MaxDeviceCount" class="text-danger"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        用户可以同时登录的最大设备数量（1-50台）
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="SessionExpirationDays" class="form-label">
+                                        <i class="fas fa-clock me-2"></i>会话过期天数
+                                    </label>
+                                    <div class="input-group">
+                                        <input asp-for="SessionExpirationDays" class="form-control" type="number" min="1" max="365" required>
+                                        <span class="input-group-text">天</span>
+                                    </div>
+                                    <span asp-validation-for="SessionExpirationDays" class="text-danger"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        设备会话的有效期（1-365天）
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label class="form-label">
+                                        <i class="fas fa-toggle-on me-2"></i>启用设备限制
+                                    </label>
+                                    <div class="form-check form-switch">
+                                        <input asp-for="EnableDeviceLimit" class="form-check-input" type="checkbox" id="enableDeviceLimit">
+                                        <label class="form-check-label" for="enableDeviceLimit">
+                                            启用用户设备数量限制
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        关闭此选项将允许用户在无限数量的设备上登录
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="KickoutPolicy" class="form-label">
+                                        <i class="fas fa-shield-alt me-2"></i>设备踢出策略
+                                    </label>
+                                    <select asp-for="KickoutPolicy" class="form-select" required>
+                                        <option value="1" selected="@(Model.KickoutPolicy == ExaminaWebApplication.Models.Admin.DeviceKickoutPolicy.KickoutOldest)">
+                                            踢出最早登录的设备
+                                        </option>
+                                        <option value="2" selected="@(Model.KickoutPolicy == ExaminaWebApplication.Models.Admin.DeviceKickoutPolicy.RejectNew)">
+                                            拒绝新设备登录
+                                        </option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        当设备数量达到上限时的处理策略
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>保存配置
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- 配置说明 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-question-circle me-2"></i>配置说明
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="help-section">
+                        <h6><i class="fas fa-hashtag me-2"></i>最大设备数量</h6>
+                        <p class="text-muted">
+                            设置每个用户可以同时登录的设备数量上限。建议设置为3-5台，以平衡用户便利性和安全性。
+                        </p>
+                    </div>
+
+                    <div class="help-section">
+                        <h6><i class="fas fa-shield-alt me-2"></i>踢出策略</h6>
+                        <ul class="text-muted">
+                            <li><strong>踢出最早设备：</strong>当达到设备上限时，自动踢出最早登录的设备，允许新设备登录</li>
+                            <li><strong>拒绝新登录：</strong>当达到设备上限时，拒绝新设备登录请求</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h6><i class="fas fa-clock me-2"></i>会话过期</h6>
+                        <p class="text-muted">
+                            设备会话的有效期。过期后用户需要重新登录。建议设置为30天。
+                        </p>
+                    </div>
+
+                    <div class="help-section">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>注意事项</h6>
+                        <ul class="text-muted">
+                            <li>配置更改将立即生效</li>
+                            <li>现有会话不会立即受到影响</li>
+                            <li>管理员账户不受设备数量限制</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 当前配置预览 -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-eye me-2"></i>当前配置
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="config-preview">
+                        <div class="config-item">
+                            <span class="config-label">最大设备数量：</span>
+                            <span class="config-value" id="previewMaxDevices">@Model.MaxDeviceCount 台</span>
+                        </div>
+                        <div class="config-item">
+                            <span class="config-label">限制状态：</span>
+                            <span class="config-value" id="previewEnableLimit">
+                                @if (Model.EnableDeviceLimit)
+                                {
+                                    <span class="badge bg-success">已启用</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">已禁用</span>
+                                }
+                            </span>
+                        </div>
+                        <div class="config-item">
+                            <span class="config-label">踢出策略：</span>
+                            <span class="config-value" id="previewKickoutPolicy">
+                                @(Model.KickoutPolicy == ExaminaWebApplication.Models.Admin.DeviceKickoutPolicy.KickoutOldest ? "踢出最早设备" : "拒绝新登录")
+                            </span>
+                        </div>
+                        <div class="config-item">
+                            <span class="config-label">会话过期：</span>
+                            <span class="config-value" id="previewSessionExpiration">@Model.SessionExpirationDays 天</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.page-subtitle {
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.form-actions {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+}
+
+.help-section {
+    margin-bottom: 1.5rem;
+}
+
+.help-section h6 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.config-preview .config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.config-preview .config-item:last-child {
+    border-bottom: none;
+}
+
+.config-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.config-value {
+    font-weight: 600;
+    color: #212529;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 实时预览配置更改
+    const maxDevicesInput = document.getElementById('MaxDeviceCount');
+    const enableLimitInput = document.getElementById('enableDeviceLimit');
+    const kickoutPolicySelect = document.getElementById('KickoutPolicy');
+    const sessionExpirationInput = document.getElementById('SessionExpirationDays');
+
+    const previewMaxDevices = document.getElementById('previewMaxDevices');
+    const previewEnableLimit = document.getElementById('previewEnableLimit');
+    const previewKickoutPolicy = document.getElementById('previewKickoutPolicy');
+    const previewSessionExpiration = document.getElementById('previewSessionExpiration');
+
+    function updatePreview() {
+        if (maxDevicesInput && previewMaxDevices) {
+            previewMaxDevices.textContent = maxDevicesInput.value + ' 台';
+        }
+
+        if (enableLimitInput && previewEnableLimit) {
+            previewEnableLimit.innerHTML = enableLimitInput.checked 
+                ? '<span class="badge bg-success">已启用</span>'
+                : '<span class="badge bg-warning">已禁用</span>';
+        }
+
+        if (kickoutPolicySelect && previewKickoutPolicy) {
+            previewKickoutPolicy.textContent = kickoutPolicySelect.value === '1' 
+                ? '踢出最早设备' 
+                : '拒绝新登录';
+        }
+
+        if (sessionExpirationInput && previewSessionExpiration) {
+            previewSessionExpiration.textContent = sessionExpirationInput.value + ' 天';
+        }
+    }
+
+    // 绑定事件监听器
+    if (maxDevicesInput) maxDevicesInput.addEventListener('input', updatePreview);
+    if (enableLimitInput) enableLimitInput.addEventListener('change', updatePreview);
+    if (kickoutPolicySelect) kickoutPolicySelect.addEventListener('change', updatePreview);
+    if (sessionExpirationInput) sessionExpirationInput.addEventListener('input', updatePreview);
+
+    // 表单验证
+    const form = document.getElementById('deviceLimitForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const maxDevices = parseInt(maxDevicesInput.value);
+            const sessionExpiration = parseInt(sessionExpirationInput.value);
+
+            if (maxDevices < 1 || maxDevices > 50) {
+                e.preventDefault();
+                alert('设备数量必须在1到50之间');
+                maxDevicesInput.focus();
+                return;
+            }
+
+            if (sessionExpiration < 1 || sessionExpiration > 365) {
+                e.preventDefault();
+                alert('会话过期天数必须在1到365之间');
+                sessionExpirationInput.focus();
+                return;
+            }
+        });
+    }
+});
+</script>

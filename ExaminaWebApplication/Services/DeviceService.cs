@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Models.Admin;
+using ExaminaWebApplication.Services.Admin;
 
 namespace ExaminaWebApplication.Services;
 
@@ -14,12 +16,18 @@ public class DeviceService : IDeviceService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<DeviceService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly ISystemConfigurationService _systemConfigurationService;
 
-    public DeviceService(ApplicationDbContext context, ILogger<DeviceService> logger, IConfiguration configuration)
+    public DeviceService(
+        ApplicationDbContext context,
+        ILogger<DeviceService> logger,
+        IConfiguration configuration,
+        ISystemConfigurationService systemConfigurationService)
     {
         _context = context;
         _logger = logger;
         _configuration = configuration;
+        _systemConfigurationService = systemConfigurationService;
     }
 
     public async Task<UserDevice> BindDeviceAsync(int userId, DeviceBindRequest deviceRequest, string? ipAddress = null, string? location = null)
@@ -34,9 +42,23 @@ public class DeviceService : IDeviceService
             }
 
             // 检查是否可以绑定新设备
-            if (!await CanBindNewDeviceAsync(userId))
+            DeviceBindResult bindResult = await CanBindNewDeviceAsync(userId);
+            if (!bindResult.CanBind)
             {
-                throw new InvalidOperationException("已达到最大设备绑定数量");
+                if (bindResult.RequiresKickout)
+                {
+                    // 需要踢出最早的设备
+                    bool kickoutSuccess = await KickoutOldestDeviceAsync(userId);
+                    if (!kickoutSuccess)
+                    {
+                        throw new InvalidOperationException("无法踢出最早的设备，设备绑定失败");
+                    }
+                    _logger.LogInformation("为用户 {UserId} 踢出最早设备以绑定新设备", userId);
+                }
+                else
+                {
+                    throw new InvalidOperationException(bindResult.Message ?? "已达到最大设备绑定数量");
+                }
             }
 
             // 检查当前用户是否已经绑定了这个设备
@@ -314,40 +336,115 @@ public class DeviceService : IDeviceService
         }
     }
 
-    public async Task<bool> CanBindNewDeviceAsync(int userId)
+    public async Task<DeviceBindResult> CanBindNewDeviceAsync(int userId)
     {
         try
         {
-            var user = await _context.Users.FindAsync(userId);
+            User? user = await _context.Users.FindAsync(userId);
             if (user == null)
             {
-                return false;
+                return new DeviceBindResult { CanBind = false, Message = "用户不存在" };
             }
 
-            // 管理员和教师通常允许多设备
-            if (user.Role == UserRole.Administrator || user.Role == UserRole.Teacher)
+            // 获取系统配置
+            DeviceLimitConfigurationModel deviceConfig = await _systemConfigurationService.GetDeviceLimitConfigurationAsync();
+
+            // 如果未启用设备限制，则允许绑定
+            if (!deviceConfig.EnableDeviceLimit)
             {
-                var currentDeviceCount = await _context.UserDevices
-                    .CountAsync(d => d.UserId == userId && d.IsActive);
-                return currentDeviceCount < user.MaxDeviceCount;
+                return new DeviceBindResult { CanBind = true };
             }
 
-            // 学生根据配置决定
-            if (user.AllowMultipleDevices)
+            // 管理员不受设备数量限制
+            if (user.Role == UserRole.Administrator)
             {
-                var currentDeviceCount = await _context.UserDevices
-                    .CountAsync(d => d.UserId == userId && d.IsActive);
-                return currentDeviceCount < user.MaxDeviceCount;
+                return new DeviceBindResult { CanBind = true };
             }
 
-            // 学生默认只允许一个设备
-            var hasActiveDevice = await _context.UserDevices
-                .AnyAsync(d => d.UserId == userId && d.IsActive);
-            return !hasActiveDevice;
+            // 获取当前活跃设备数量
+            int currentDeviceCount = await _context.UserDevices
+                .CountAsync(d => d.UserId == userId && d.IsActive);
+
+            // 确定最大设备数量限制
+            int maxDeviceCount = deviceConfig.MaxDeviceCount;
+
+            // 如果当前设备数量小于限制，可以绑定
+            if (currentDeviceCount < maxDeviceCount)
+            {
+                return new DeviceBindResult { CanBind = true };
+            }
+
+            // 达到设备数量限制，根据踢出策略决定
+            if (deviceConfig.KickoutPolicy == DeviceKickoutPolicy.KickoutOldest)
+            {
+                return new DeviceBindResult
+                {
+                    CanBind = true,
+                    RequiresKickout = true,
+                    Message = "将踢出最早登录的设备"
+                };
+            }
+            else
+            {
+                return new DeviceBindResult
+                {
+                    CanBind = false,
+                    Message = $"已达到最大设备数量限制（{maxDeviceCount}台），无法绑定新设备"
+                };
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "检查设备绑定权限失败，用户ID: {UserId}", userId);
+            return new DeviceBindResult { CanBind = false, Message = "检查设备绑定权限时发生错误" };
+        }
+    }
+
+    /// <summary>
+    /// 踢出用户最早登录的设备
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>是否成功踢出</returns>
+    public async Task<bool> KickoutOldestDeviceAsync(int userId)
+    {
+        try
+        {
+            UserDevice? oldestDevice = await _context.UserDevices
+                .Where(d => d.UserId == userId && d.IsActive)
+                .OrderBy(d => d.LastUsedAt ?? d.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (oldestDevice == null)
+            {
+                _logger.LogWarning("用户 {UserId} 没有可踢出的设备", userId);
+                return false;
+            }
+
+            // 标记设备为非活跃状态
+            oldestDevice.IsActive = false;
+            oldestDevice.LastUsedAt = DateTime.UtcNow;
+
+            // 删除该设备的所有活跃会话
+            List<UserSession> deviceSessions = await _context.UserSessions
+                .Where(s => s.DeviceId == oldestDevice.Id && s.IsActive)
+                .ToListAsync();
+
+            foreach (UserSession session in deviceSessions)
+            {
+                session.IsActive = false;
+                session.LastActivityAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("成功踢出用户 {UserId} 的最早设备 {DeviceId}，同时注销了 {SessionCount} 个会话",
+                userId, oldestDevice.Id, deviceSessions.Count);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "踢出最早设备失败，用户ID: {UserId}", userId);
             return false;
         }
     }

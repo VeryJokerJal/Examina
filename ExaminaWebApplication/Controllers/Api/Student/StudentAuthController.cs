@@ -96,9 +96,10 @@ public class StudentAuthController : ControllerBase
                 if (device == null)
                 {
                     // 检查是否可以绑定新设备
-                    if (!await _deviceService.CanBindNewDeviceAsync(user.Id))
+                    DeviceBindResult bindResult = await _deviceService.CanBindNewDeviceAsync(user.Id);
+                    if (!bindResult.CanBind)
                     {
-                        return BadRequest(new { message = "已达到最大设备绑定数量，请联系管理员" });
+                        return BadRequest(new { message = bindResult.Message ?? "已达到最大设备绑定数量，请联系管理员" });
                     }
 
                     // 绑定新设备
@@ -230,9 +231,10 @@ public class StudentAuthController : ControllerBase
                 if (device == null)
                 {
                     // 检查是否可以绑定新设备
-                    if (!await _deviceService.CanBindNewDeviceAsync(user.Id))
+                    DeviceBindResult bindResult = await _deviceService.CanBindNewDeviceAsync(user.Id);
+                    if (!bindResult.CanBind)
                     {
-                        return BadRequest(new { message = "已达到最大设备绑定数量，请联系管理员" });
+                        return BadRequest(new { message = bindResult.Message ?? "已达到最大设备绑定数量，请联系管理员" });
                     }
 
                     // 绑定新设备

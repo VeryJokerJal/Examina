@@ -1,0 +1,419 @@
+@model ExaminaWebApplication.Models.Admin.UpdateSystemConfigurationRequest
+@{
+    ViewData["Title"] = "编辑配置";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Index")">
+                                <i class="fas fa-cogs me-1"></i>系统配置
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("SystemConfigurations")">配置列表</a>
+                        </li>
+                        <li class="breadcrumb-item active">编辑配置</li>
+                    </ol>
+                </nav>
+                <h1 class="page-title">
+                    <i class="fas fa-edit me-2"></i>编辑配置
+                </h1>
+                <div class="page-subtitle">修改系统配置项的值和描述</div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>配置信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateConfiguration" method="post" id="editConfigForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="form-group mb-4">
+                            <label asp-for="ConfigKey" class="form-label">
+                                <i class="fas fa-key me-2"></i>配置键名
+                            </label>
+                            <input asp-for="ConfigKey" class="form-control" readonly>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                配置键名不可修改，用于唯一标识此配置项
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="ConfigValue" class="form-label">
+                                <i class="fas fa-edit me-2"></i>配置值 <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <textarea asp-for="ConfigValue" class="form-control" rows="3" required id="configValueInput"></textarea>
+                                <button class="btn btn-outline-secondary" type="button" id="formatJsonButton" title="格式化JSON">
+                                    <i class="fas fa-code"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfigValue" class="text-danger"></span>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                配置的具体值，支持文本、数字、JSON等格式
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Description" class="form-label">
+                                <i class="fas fa-comment me-2"></i>配置描述
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="2" placeholder="请输入配置的详细描述..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                配置项的详细说明，帮助其他管理员理解此配置的用途
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>保存更改
+                            </button>
+                            <a href="@Url.Action("SystemConfigurations")" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>取消
+                            </a>
+                            <button type="button" class="btn btn-info btn-lg" id="previewButton">
+                                <i class="fas fa-eye me-2"></i>预览
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- 配置预览 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-eye me-2"></i>配置预览
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="preview-section">
+                        <h6>配置键名</h6>
+                        <code id="previewConfigKey">@Model.ConfigKey</code>
+                    </div>
+
+                    <div class="preview-section">
+                        <h6>配置值</h6>
+                        <div class="preview-value-container">
+                            <pre id="previewConfigValue">@Model.ConfigValue</pre>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <h6>描述</h6>
+                        <p id="previewDescription" class="text-muted">
+                            @if (string.IsNullOrEmpty(Model.Description))
+                            {
+                                <em>无描述</em>
+                            }
+                            else
+                            {
+                                @Model.Description
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 编辑提示 -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>编辑提示
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="tip-section">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>注意事项</h6>
+                        <ul class="text-muted">
+                            <li>配置更改将立即生效</li>
+                            <li>请确保配置值的格式正确</li>
+                            <li>重要配置建议先备份</li>
+                            <li>修改后请测试相关功能</li>
+                        </ul>
+                    </div>
+
+                    <div class="tip-section">
+                        <h6><i class="fas fa-code me-2"></i>值格式说明</h6>
+                        <ul class="text-muted">
+                            <li><strong>数字：</strong>直接输入数字</li>
+                            <li><strong>布尔值：</strong>true 或 false</li>
+                            <li><strong>JSON：</strong>使用格式化按钮美化</li>
+                            <li><strong>文本：</strong>普通字符串</li>
+                        </ul>
+                    </div>
+
+                    <div class="tip-section">
+                        <h6><i class="fas fa-keyboard me-2"></i>快捷键</h6>
+                        <ul class="text-muted">
+                            <li><kbd>Ctrl</kbd> + <kbd>S</kbd>：保存</li>
+                            <li><kbd>Ctrl</kbd> + <kbd>Enter</kbd>：预览</li>
+                            <li><kbd>Esc</kbd>：取消</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预览模态框 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>配置预览
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="preview-item">
+                            <label class="preview-label">配置键名：</label>
+                            <div class="preview-value">
+                                <code id="modalPreviewKey"></code>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="preview-item">
+                            <label class="preview-label">字符长度：</label>
+                            <div class="preview-value" id="modalValueLength"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="preview-item">
+                    <label class="preview-label">配置值：</label>
+                    <div class="preview-value">
+                        <pre id="modalPreviewValue" class="bg-light p-3 rounded"></pre>
+                    </div>
+                </div>
+                <div class="preview-item">
+                    <label class="preview-label">描述：</label>
+                    <div class="preview-value" id="modalPreviewDescription"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('editConfigForm').submit();">
+                    <i class="fas fa-save me-2"></i>保存配置
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.page-subtitle {
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.form-actions {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+}
+
+.preview-section {
+    margin-bottom: 1.5rem;
+}
+
+.preview-section h6 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.preview-value-container {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.preview-value-container pre {
+    margin: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.tip-section {
+    margin-bottom: 1.5rem;
+}
+
+.tip-section h6 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.preview-item {
+    margin-bottom: 1rem;
+}
+
+.preview-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.preview-value {
+    color: #212529;
+}
+
+.preview-value pre {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin: 0;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 300px;
+    overflow-y: auto;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const configValueInput = document.getElementById('configValueInput');
+    const descriptionInput = document.querySelector('textarea[name="Description"]');
+    const formatJsonButton = document.getElementById('formatJsonButton');
+    const previewButton = document.getElementById('previewButton');
+    const form = document.getElementById('editConfigForm');
+
+    // 实时预览更新
+    function updatePreview() {
+        const configValue = configValueInput.value;
+        const description = descriptionInput.value;
+
+        document.getElementById('previewConfigValue').textContent = configValue;
+        document.getElementById('previewDescription').innerHTML = description || '<em>无描述</em>';
+    }
+
+    // 绑定输入事件
+    configValueInput.addEventListener('input', updatePreview);
+    descriptionInput.addEventListener('input', updatePreview);
+
+    // JSON格式化功能
+    formatJsonButton.addEventListener('click', function() {
+        try {
+            const value = configValueInput.value.trim();
+            if (value) {
+                const parsed = JSON.parse(value);
+                const formatted = JSON.stringify(parsed, null, 2);
+                configValueInput.value = formatted;
+                updatePreview();
+            }
+        } catch (e) {
+            alert('无法格式化JSON：格式不正确');
+        }
+    });
+
+    // 预览功能
+    previewButton.addEventListener('click', function() {
+        const configKey = document.querySelector('input[name="ConfigKey"]').value;
+        const configValue = configValueInput.value;
+        const description = descriptionInput.value;
+
+        document.getElementById('modalPreviewKey').textContent = configKey;
+        document.getElementById('modalPreviewValue').textContent = configValue;
+        document.getElementById('modalValueLength').textContent = configValue.length + ' 个字符';
+        document.getElementById('modalPreviewDescription').innerHTML = description || '<em class="text-muted">无描述</em>';
+
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        modal.show();
+    });
+
+    // 快捷键支持
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            form.submit();
+        } else if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            previewButton.click();
+        } else if (e.key === 'Escape') {
+            window.location.href = '@Url.Action("SystemConfigurations")';
+        }
+    });
+
+    // 表单验证
+    form.addEventListener('submit', function(e) {
+        const configValue = configValueInput.value.trim();
+        
+        if (!configValue) {
+            e.preventDefault();
+            alert('配置值不能为空');
+            configValueInput.focus();
+            return;
+        }
+
+        if (configValue.length > 500) {
+            e.preventDefault();
+            alert('配置值长度不能超过500个字符');
+            configValueInput.focus();
+            return;
+        }
+    });
+
+    // 初始化预览
+    updatePreview();
+});
+</script>

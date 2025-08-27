@@ -1,4 +1,5 @@
 ﻿using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Models.Admin;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using ExaminaWebApplication.Models.ImportedExam;
 using ExaminaWebApplication.Models.ImportedSpecializedTraining;
@@ -18,6 +19,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<UserDevice> UserDevices { get; set; }
     public DbSet<UserSession> UserSessions { get; set; }
+
+    // 系统配置相关实体
+    public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
 
     // 导入考试相关实体
     public DbSet<ImportedExam> ImportedExams { get; set; }
@@ -1206,6 +1210,38 @@ public class ApplicationDbContext : DbContext
             _ = entity.HasOne(e => e.Creator)
                   .WithMany()
                   .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 配置SystemConfiguration实体
+        _ = modelBuilder.Entity<SystemConfiguration>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+
+            // 配置索引
+            _ = entity.HasIndex(e => e.ConfigKey).IsUnique();
+            _ = entity.HasIndex(e => e.Category);
+            _ = entity.HasIndex(e => e.IsEnabled);
+            _ = entity.HasIndex(e => e.CreatedAt);
+
+            // 配置属性
+            _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            _ = entity.Property(e => e.ConfigKey).IsRequired().HasMaxLength(100);
+            _ = entity.Property(e => e.ConfigValue).IsRequired().HasMaxLength(500);
+            _ = entity.Property(e => e.Description).HasMaxLength(200);
+            _ = entity.Property(e => e.Category).HasMaxLength(50).HasDefaultValue("General");
+            _ = entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+
+            // 配置外键关系
+            _ = entity.HasOne(e => e.Creator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            _ = entity.HasOne(e => e.Updater)
+                  .WithMany()
+                  .HasForeignKey(e => e.UpdatedBy)
                   .OnDelete(DeleteBehavior.Restrict);
         });
     }

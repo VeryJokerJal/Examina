@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
+using ExaminaWebApplication.Models.Admin;
+using ExaminaWebApplication.Services.Admin;
 
 namespace ExaminaWebApplication.Services;
 
@@ -12,12 +14,18 @@ public class SessionService : ISessionService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<SessionService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly ISystemConfigurationService _systemConfigurationService;
 
-    public SessionService(ApplicationDbContext context, ILogger<SessionService> logger, IConfiguration configuration)
+    public SessionService(
+        ApplicationDbContext context,
+        ILogger<SessionService> logger,
+        IConfiguration configuration,
+        ISystemConfigurationService systemConfigurationService)
     {
         _context = context;
         _logger = logger;
         _configuration = configuration;
+        _systemConfigurationService = systemConfigurationService;
     }
 
     public async Task<UserSession> CreateSessionAsync(int userId, string sessionToken, SessionType sessionType,
@@ -29,7 +37,9 @@ public class SessionService : ISessionService
             // 设置默认过期时间
             if (expiresAt == null)
             {
-                int expirationDays = sessionType == SessionType.JwtToken ? 7 : 7; // 默认7天
+                // 从系统配置获取会话过期时间
+                int expirationDays = await _systemConfigurationService.GetIntConfigurationValueAsync(
+                    SystemConfigurationKeys.DeviceSessionExpirationDays, 30);
                 expiresAt = DateTime.UtcNow.AddDays(expirationDays);
             }
 
