@@ -100,10 +100,7 @@
                                                 Padding="20,10"
                                                 MinWidth="120">
                                             <Button.IsEnabled>
-                                                <MultiBinding Converter="{StaticResource DebugConverter}">
-                                                    <Binding Path="$parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).HasFullAccess" />
-                                                    <Binding Path="EnableTrial" />
-                                                </MultiBinding>
+                                                <Binding Path="EnableTrial" />
                                             </Button.IsEnabled>
                                         </Button>
                                     </StackPanel>

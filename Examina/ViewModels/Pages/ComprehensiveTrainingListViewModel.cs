@@ -98,12 +98,12 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 检查训练是否可以开始（权限和试做支持）
+    /// 检查训练是否可以开始（仅检查试做支持，权限在点击时检查）
     /// </summary>
     public bool CanStartTraining(StudentComprehensiveTrainingDto training)
     {
-        bool canStart = HasFullAccess && training.EnableTrial;
-        System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] CanStartTraining - 训练: {training.Name}, HasFullAccess: {HasFullAccess}, EnableTrial: {training.EnableTrial}, 结果: {canStart}");
+        bool canStart = training.EnableTrial;
+        System.Diagnostics.Debug.WriteLine($"[ComprehensiveTraining] CanStartTraining - 训练: {training.Name}, EnableTrial: {training.EnableTrial}, 结果: {canStart}");
         return canStart;
     }
 
@@ -273,7 +273,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 return;
             }
 
-            // 检查试卷是否支持试做功能
+            // 检查试卷是否支持试做功能（这个检查理论上不会失败，因为按钮已经根据EnableTrial禁用了）
             if (!training.EnableTrial)
             {
                 ErrorMessage = "此训练暂不支持试做功能，请联系管理员。";

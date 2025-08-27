@@ -17,12 +17,18 @@ public class DebugMultiValueConverter : IMultiValueConverter
             bool hasFullAccess = values[0] is bool access && access;
             bool enableTrial = values[1] is bool trial && trial;
             bool result = hasFullAccess && enableTrial;
-            
+
             System.Diagnostics.Debug.WriteLine($"[DebugConverter] HasFullAccess: {hasFullAccess}, EnableTrial: {enableTrial}, Result: {result}");
-            
+
             return result;
         }
-        
+        else if (values.Count == 1)
+        {
+            bool enableTrial = values[0] is bool trial && trial;
+            System.Diagnostics.Debug.WriteLine($"[DebugConverter] 仅EnableTrial检查: {enableTrial}");
+            return enableTrial;
+        }
+
         System.Diagnostics.Debug.WriteLine($"[DebugConverter] 值不足，values.Count: {values.Count}");
         return false;
     }

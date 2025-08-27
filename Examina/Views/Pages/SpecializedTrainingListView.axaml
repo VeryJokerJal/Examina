@@ -124,10 +124,7 @@
                                                 CommandParameter="{Binding}"
                                                 Content="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartButtonText}">
                                             <Button.IsEnabled>
-                                                <MultiBinding Converter="{StaticResource DebugConverter}">
-                                                    <Binding Path="$parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).HasFullAccess" />
-                                                    <Binding Path="EnableTrial" />
-                                                </MultiBinding>
+                                                <Binding Path="EnableTrial" />
                                             </Button.IsEnabled>
                                         </Button>
                                     </StackPanel>
