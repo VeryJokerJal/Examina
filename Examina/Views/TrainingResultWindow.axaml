@@ -153,121 +153,114 @@
                     </StackPanel>
                 </Border>
 
-                <!--  模块得分详情和题目详情（使用Expander）  -->
-                <Border Classes="section">
-                    <Expander IsExpanded="True">
-                        <Expander.Header>
-                            <StackPanel>
-                                <TextBlock Classes="header" Text="模块得分详情" />
-                                <ItemsControl ItemsSource="{Binding ModuleResults}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Classes="module-item">
-                                                <StackPanel>
-                                                    <!--  基本信息行  -->
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                        </Grid.ColumnDefinitions>
+                <!--  模块详情（每个模块一个Expander）  -->
+                <ItemsControl ItemsSource="{Binding ModuleResults}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="section">
+                                <Expander IsExpanded="False">
+                                    <Expander.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
 
-                                                        <StackPanel Grid.Column="0">
-                                                            <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
-                                                            <TextBlock Classes="content" Text="{Binding Details}" TextWrapping="Wrap" />
-                                                        </StackPanel>
+                                            <!--  模块基本信息  -->
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
+                                                <TextBlock Classes="content" Text="{Binding Details}" TextWrapping="Wrap" />
 
-                                                        <TextBlock Grid.Column="1" Margin="8,0" Classes="content" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+                                                <!--  AI分析结果（仅C#模块显示）  -->
+                                                <Border Margin="0,8,0,0" Padding="12" Background="{DynamicResource SystemFillColorAttentionBackground}" CornerRadius="6" IsVisible="{Binding HasAIAnalysis}">
+                                                    <StackPanel>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
 
-                                                        <TextBlock Grid.Column="2" Margin="8,0" Classes="content" Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
+                                                            <TextBlock Grid.Column="0" Classes="subheader" Foreground="{DynamicResource SystemFillColorAttention}" Text="🤖 AI逻辑性分析" />
 
-                                                        <TextBlock Grid.Column="3" Margin="8,0" Classes="content" Text="{Binding ScoreRate, StringFormat={}({0:F1}%)}" />
-                                                    </Grid>
+                                                            <TextBlock Grid.Column="1" Margin="8,0" Classes="content" FontWeight="SemiBold" Text="{Binding AILogicalScore, StringFormat={}评分: {0}/100}" />
 
-                                                    <!--  AI分析结果（仅C#模块显示）  -->
-                                                    <Border Margin="0,8,0,0" Padding="12" Background="{DynamicResource SystemFillColorAttentionBackground}" CornerRadius="6" IsVisible="{Binding HasAIAnalysis}">
-                                                        <StackPanel>
+                                                            <TextBlock Grid.Column="2" Margin="8,0" Classes="content" FontWeight="SemiBold" Text="{Binding AIScoreGrade, StringFormat={}({0})}" />
+                                                        </Grid>
+
+                                                        <!--  AI最终答案  -->
+                                                        <TextBlock Margin="0,4,0,0" Classes="content" IsVisible="{Binding AIFinalAnswer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding AIFinalAnswer, StringFormat={}评估结论: {0}}" TextWrapping="Wrap" />
+
+                                                        <!--  AI推理步骤  -->
+                                                        <ItemsControl Margin="0,8,0,0" IsVisible="{Binding AIReasoningSteps.Count, Converter={x:Static conv:IntToBoolConverter.Instance}}" ItemsSource="{Binding AIReasoningSteps}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Margin="0,2" Classes="content" Text="{Binding FormattedDescription, StringFormat={}• {0}}" TextWrapping="Wrap" />
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!--  处理时间  -->
+                                                        <TextBlock Margin="0,4,0,0" Classes="content" FontSize="11" Foreground="{DynamicResource TextFillColorSecondary}" Text="{Binding AIProcessingTime, StringFormat={}处理耗时: {0}ms}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <!--  得分信息  -->
+                                            <TextBlock Grid.Column="1" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+
+                                            <TextBlock Grid.Column="2" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
+
+                                            <TextBlock Grid.Column="3" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding ScoreRate, StringFormat={}({0:F1}%)}" />
+                                        </Grid>
+                                    </Expander.Header>
+
+                                    <Expander.Content>
+                                        <StackPanel Margin="0,16,0,0">
+                                            <TextBlock Classes="subheader" Text="题目详情" />
+                                            <ItemsControl ItemsSource="{Binding ModuleQuestions}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="question-item">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto" />
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
 
-                                                                <TextBlock Grid.Column="0" Classes="subheader" Foreground="{DynamicResource SystemFillColorAttention}" Text="🤖 AI逻辑性分析" />
+                                                                <!--  状态图标  -->
+                                                                <TextBlock Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Foreground="{Binding StatusColor}" Text="{Binding StatusIcon}" />
 
-                                                                <TextBlock Grid.Column="1" Margin="8,0" Classes="content" FontWeight="SemiBold" Text="{Binding AILogicalScore, StringFormat={}评分: {0}/100}" />
+                                                                <!--  题目信息  -->
+                                                                <StackPanel Grid.Column="1">
+                                                                    <TextBlock Classes="subheader" Text="{Binding QuestionTitle}" />
+                                                                    <TextBlock Classes="content" Text="{Binding Details}" TextWrapping="Wrap" />
+                                                                </StackPanel>
 
-                                                                <TextBlock Grid.Column="2" Margin="8,0" Classes="content" FontWeight="SemiBold" Text="{Binding AIScoreGrade, StringFormat={}({0})}" />
+                                                                <!--  得分  -->
+                                                                <StackPanel Grid.Column="2" Margin="8,0">
+                                                                    <TextBlock HorizontalAlignment="Right" Classes="content" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+                                                                    <TextBlock HorizontalAlignment="Right" Classes="content" Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
+                                                                </StackPanel>
+
+                                                                <!--  得分率  -->
+                                                                <TextBlock Grid.Column="3" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
                                                             </Grid>
-
-                                                            <!--  AI最终答案  -->
-                                                            <TextBlock Margin="0,4,0,0" Classes="content" IsVisible="{Binding AIFinalAnswer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding AIFinalAnswer, StringFormat={}评估结论: {0}}" TextWrapping="Wrap" />
-
-                                                            <!--  AI推理步骤  -->
-                                                            <ItemsControl Margin="0,8,0,0" IsVisible="{Binding AIReasoningSteps.Count, Converter={x:Static conv:IntToBoolConverter.Instance}}" ItemsSource="{Binding AIReasoningSteps}">
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <TextBlock Margin="0,2" Classes="content" Text="{Binding FormattedDescription, StringFormat={}• {0}}" TextWrapping="Wrap" />
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-
-                                                            <!--  处理时间  -->
-                                                            <TextBlock Margin="0,4,0,0" Classes="content" FontSize="11" Foreground="{DynamicResource TextFillColorSecondary}" Text="{Binding AIProcessingTime, StringFormat={}处理耗时: {0}ms}" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Expander.Header>
-
-                        <Expander.Content>
-                            <StackPanel Margin="0,16,0,0">
-                                <TextBlock Classes="header" Text="题目详情" />
-                                <ItemsControl ItemsSource="{Binding QuestionResults}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Classes="question-item">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <!--  状态图标  -->
-                                                    <TextBlock Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Foreground="{Binding StatusColor}" Text="{Binding StatusIcon}" />
-
-                                                    <!--  题目信息  -->
-                                                    <StackPanel Grid.Column="1">
-                                                        <TextBlock Classes="subheader" Text="{Binding QuestionTitle}" />
-                                                        <TextBlock Classes="content" Foreground="{DynamicResource TextFillColorSecondary}" Text="{Binding ModuleName}" />
-                                                        <TextBlock Classes="content" Text="{Binding Details}" TextWrapping="Wrap" />
-                                                    </StackPanel>
-
-                                                    <!--  得分  -->
-                                                    <StackPanel Grid.Column="2" Margin="8,0">
-                                                        <TextBlock HorizontalAlignment="Right" Classes="content" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
-                                                        <TextBlock HorizontalAlignment="Right" Classes="content" Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
-                                                    </StackPanel>
-
-                                                    <!--  得分率  -->
-                                                    <TextBlock Grid.Column="3" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Expander.Content>
-                    </Expander>
-                </Border>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Expander.Content>
+                                </Expander>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </ScrollViewer>
 

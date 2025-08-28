@@ -304,6 +304,12 @@ public class TrainingResultViewModel : ViewModelBase
                 ModuleType = kvp.Key
             };
 
+            // 处理C# AI分析结果
+            if (kvp.Key == ModuleType.CSharp && scoringResult is CSharpScoringResult csharpResult)
+            {
+                ProcessCSharpAIAnalysis(moduleItem, csharpResult);
+            }
+
             ModuleResults.Add(moduleItem);
         }
     }
@@ -320,6 +326,10 @@ public class TrainingResultViewModel : ViewModelBase
         {
             ScoringResult scoringResult = kvp.Value;
             string moduleName = GetModuleTypeDisplayName(kvp.Key);
+
+            // 找到对应的模块结果项
+            ModuleResultItem? moduleItem = ModuleResults.FirstOrDefault(m => m.ModuleType == kvp.Key);
+            if (moduleItem == null) continue;
 
             // 从知识点结果中提取题目信息
             foreach (KnowledgePointResult kpResult in scoringResult.KnowledgePointResults)
@@ -340,6 +350,7 @@ public class TrainingResultViewModel : ViewModelBase
                 };
 
                 QuestionResults.Add(questionItem);
+                moduleItem.ModuleQuestions.Add(questionItem);
             }
 
             // 如果没有知识点结果，创建基于模块的虚拟题目（向后兼容）
@@ -359,6 +370,7 @@ public class TrainingResultViewModel : ViewModelBase
                 };
 
                 QuestionResults.Add(questionItem);
+                moduleItem.ModuleQuestions.Add(questionItem);
             }
         }
     }
@@ -547,6 +559,11 @@ public class ModuleResultItem
                     >= 60 => "及格",
                     _ => "不及格"
                 };
+
+    /// <summary>
+    /// 该模块的题目列表
+    /// </summary>
+    public ObservableCollection<QuestionResultItem> ModuleQuestions { get; } = [];
 }
 
 /// <summary>
