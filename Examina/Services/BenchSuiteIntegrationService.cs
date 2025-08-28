@@ -642,13 +642,16 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.OriginalQuestionId}" : questionDto.Title,
                     Content = questionDto.Content ?? string.Empty,
 #pragma warning disable CS0618 // 类型或成员已过时
-                    Score = questionDto.Score,
+                    Score = (double)CalculateCSharpQuestionScore(questionDto, targetModuleType),
 #pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
                     OperationPoints = [],
                     // 添加C#特有字段
                     ProgramInput = questionDto.ProgramInput,
-                    ExpectedOutput = questionDto.ExpectedOutput
+                    ExpectedOutput = questionDto.ExpectedOutput,
+                    CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
+                    CSharpDirectScore = GetCSharpDirectScore(questionDto),
+                    CodeBlanks = GetCodeBlanks(questionDto)
                 };
 
                 // 只添加匹配目标模块类型的操作点
@@ -781,8 +784,31 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             foreach (StudentComprehensiveTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.SortOrder))
             {
                 QuestionModel question = MapComprehensiveTrainingQuestionToQuestionModel(questionDto, targetModuleType);
-                if (question.OperationPoints.Count > 0)
+
+                // 对于C#题目，即使没有操作点也要添加
+                bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
+                                       (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto));
+
+                if (shouldAddQuestion)
                 {
+                    // 如果是C#题目但没有操作点，创建一个默认操作点
+                    if (targetModuleType == ModuleType.CSharp && question.OperationPoints.Count == 0)
+                    {
+                        OperationPointModel defaultOperationPoint = new()
+                        {
+                            Id = $"default_op_{questionDto.Id}",
+                            Name = "C#编程操作",
+                            Description = "C#编程题目操作点",
+                            ModuleType = ModuleType.CSharp,
+                            Score = questionDto.Score,
+                            Order = 1,
+                            IsEnabled = true,
+                            Parameters = []
+                        };
+
+                        question.OperationPoints.Add(defaultOperationPoint);
+                    }
+
                     module.Questions.Add(question);
                 }
             }
@@ -958,10 +984,16 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.Id}" : questionDto.Title,
             Content = questionDto.Content ?? string.Empty,
 #pragma warning disable CS0618 // 类型或成员已过时
-            Score = questionDto.Score,
+            Score = (double)CalculateCSharpQuestionScore(questionDto, targetModuleType),
 #pragma warning restore CS0618 // 类型或成员已过时
             Order = questionDto.SortOrder,
-            OperationPoints = []
+            OperationPoints = [],
+            // 添加C#特有字段
+            ProgramInput = questionDto.ProgramInput,
+            ExpectedOutput = questionDto.ExpectedOutput,
+            CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
+            CSharpDirectScore = GetCSharpDirectScore(questionDto),
+            CodeBlanks = GetCodeBlanks(questionDto)
         };
 
         // 只添加匹配目标模块类型的操作点
@@ -1106,6 +1138,166 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         }
 
         return configParams;
+    }
+
+    /// <summary>
+    /// 计算C#题目的分数（遵循ExamLab的评分逻辑）
+    /// </summary>
+    private static decimal CalculateCSharpQuestionScore(StudentMockExamQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        // 如果不是C#模块，使用原始分数
+        if (targetModuleType != ModuleType.CSharp)
+        {
+            return (decimal)questionDto.Score;
+        }
+
+        // 对于C#模块，尝试按照ExamLab的逻辑计算分数
+        // 1. 首先检查是否有操作点
+        if (questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp)))
+        {
+            return (decimal)questionDto.OperationPoints
+                .Where(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
+                .Sum(op => op.Score);
+        }
+
+        // 2. 如果没有C#操作点，检查C#特有字段
+        // 注意：StudentMockExamQuestionDto 可能没有 CSharpQuestionType 和 CSharpDirectScore 字段
+        // 在这种情况下，我们使用原始分数作为降级
+        return (decimal)questionDto.Score;
+    }
+
+    /// <summary>
+    /// 获取C#题目类型字符串
+    /// </summary>
+    private static string? GetCSharpQuestionTypeString(StudentMockExamQuestionDto questionDto)
+    {
+        // 检查题目内容，尝试推断C#题目类型
+        string titleLower = questionDto.Title?.ToLowerInvariant() ?? "";
+        string contentLower = questionDto.Content?.ToLowerInvariant() ?? "";
+
+        if (titleLower.Contains("代码补全") || contentLower.Contains("填空") || contentLower.Contains("补全"))
+        {
+            return "CodeCompletion";
+        }
+        else if (titleLower.Contains("调试") || titleLower.Contains("纠错") || contentLower.Contains("错误"))
+        {
+            return "Debugging";
+        }
+        else if (titleLower.Contains("编写") || titleLower.Contains("实现") || contentLower.Contains("实现"))
+        {
+            return "Implementation";
+        }
+
+        // 默认为代码补全
+        return "CodeCompletion";
+    }
+
+    /// <summary>
+    /// 获取C#题目直接分数
+    /// </summary>
+    private static double? GetCSharpDirectScore(StudentMockExamQuestionDto questionDto)
+    {
+        // StudentMockExamQuestionDto 可能没有 CSharpDirectScore 字段
+        // 使用题目的总分作为直接分数
+        return questionDto.Score;
+    }
+
+    /// <summary>
+    /// 获取代码填空处集合
+    /// </summary>
+    private static List<CodeBlankModel>? GetCodeBlanks(StudentMockExamQuestionDto questionDto)
+    {
+        // StudentMockExamQuestionDto 可能没有 CodeBlanks 字段
+        // 返回 null，表示没有填空处
+        return null;
+    }
+
+    // 为综合实训题目提供重载方法
+    /// <summary>
+    /// 计算C#题目的分数（综合实训版本）
+    /// </summary>
+    private static decimal CalculateCSharpQuestionScore(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        // 如果不是C#模块，使用原始分数
+        if (targetModuleType != ModuleType.CSharp)
+        {
+            return (decimal)questionDto.Score;
+        }
+
+        // 对于C#模块，尝试按照ExamLab的逻辑计算分数
+        if (questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp)))
+        {
+            return (decimal)questionDto.OperationPoints
+                .Where(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
+                .Sum(op => op.Score);
+        }
+
+        return (decimal)questionDto.Score;
+    }
+
+    /// <summary>
+    /// 获取C#题目类型字符串（综合实训版本）
+    /// </summary>
+    private static string? GetCSharpQuestionTypeString(StudentComprehensiveTrainingQuestionDto questionDto)
+    {
+        string titleLower = questionDto.Title?.ToLowerInvariant() ?? "";
+        string contentLower = questionDto.Content?.ToLowerInvariant() ?? "";
+
+        if (titleLower.Contains("代码补全") || contentLower.Contains("填空") || contentLower.Contains("补全"))
+        {
+            return "CodeCompletion";
+        }
+        else if (titleLower.Contains("调试") || titleLower.Contains("纠错") || contentLower.Contains("错误"))
+        {
+            return "Debugging";
+        }
+        else if (titleLower.Contains("编写") || titleLower.Contains("实现") || contentLower.Contains("实现"))
+        {
+            return "Implementation";
+        }
+
+        return "CodeCompletion";
+    }
+
+    /// <summary>
+    /// 获取C#题目直接分数（综合实训版本）
+    /// </summary>
+    private static double? GetCSharpDirectScore(StudentComprehensiveTrainingQuestionDto questionDto)
+    {
+        return questionDto.Score;
+    }
+
+    /// <summary>
+    /// 获取代码填空处集合（综合实训版本）
+    /// </summary>
+    private static List<CodeBlankModel>? GetCodeBlanks(StudentComprehensiveTrainingQuestionDto questionDto)
+    {
+        return null;
+    }
+
+    /// <summary>
+    /// 检查题目是否为C#编程题目（综合实训版本）
+    /// </summary>
+    private static bool IsCSharpQuestion(StudentComprehensiveTrainingQuestionDto question)
+    {
+        // 检查题目标题和内容中的C#关键词
+        string titleLower = question.Title?.ToLowerInvariant() ?? "";
+        string contentLower = question.Content?.ToLowerInvariant() ?? "";
+
+        string[] csharpKeywords = {
+            "c#", "csharp", "编程", "程序设计", "代码", "class", "namespace",
+            "using", "public", "private", "static", "void", "int", "string",
+            "console", "writeline", "main", "method", "变量", "函数", "方法"
+        };
+
+        bool hasKeywords = csharpKeywords.Any(keyword =>
+            titleLower.Contains(keyword) || contentLower.Contains(keyword));
+
+        // 检查是否有C#特有的字段
+        bool hasCSharpFields = !string.IsNullOrEmpty(question.ProgramInput) ||
+                              !string.IsNullOrEmpty(question.ExpectedOutput);
+
+        return hasKeywords || hasCSharpFields;
     }
 
     /// <summary>
