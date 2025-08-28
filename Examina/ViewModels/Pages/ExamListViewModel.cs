@@ -840,7 +840,7 @@ public class ExamListViewModel : ViewModelBase
             // 延迟一下，让用户看到"计算中..."状态
             await Task.Delay(1000);
 
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
 
             // 使用EnhancedExamToolbarService进行BenchSuite评分
             if (_enhancedExamToolbarService != null)
@@ -903,7 +903,7 @@ public class ExamListViewModel : ViewModelBase
             // 延迟一下，让用户看到"计算中..."状态
             await Task.Delay(1000);
 
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
 
             // 使用EnhancedExamToolbarService进行BenchSuite评分
             if (_enhancedExamToolbarService != null)
@@ -961,7 +961,7 @@ public class ExamListViewModel : ViewModelBase
     /// <summary>
     /// 自动提交成绩到服务器
     /// </summary>
-    private async Task AutoSubmitScoreAsync(int examId, BenchSuiteScoringResult scoringResult)
+    private async Task AutoSubmitScoreAsync(int examId, Dictionary<ModuleType, ScoringResult> scoringResults)
     {
         try
         {

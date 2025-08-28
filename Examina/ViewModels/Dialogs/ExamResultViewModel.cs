@@ -414,24 +414,29 @@ public class ExamResultViewModel : ViewModelBase
     /// <summary>
     /// 从BenchSuite评分结果创建详细分数信息
     /// </summary>
-    public void SetScoreDetailFromBenchSuite(BenchSuiteScoringResult benchSuiteResult, decimal passThreshold = 60)
+    public void SetScoreDetailFromBenchSuite(Dictionary<ModuleType, ScoringResult> benchSuiteResults, decimal passThreshold = 60)
     {
-        if (benchSuiteResult == null)
+        if (benchSuiteResults == null || benchSuiteResults.Count == 0)
         {
             return;
         }
 
+        // 计算总分和得分
+        decimal totalScore = benchSuiteResults.Values.Sum(r => r.TotalScore);
+        decimal achievedScore = benchSuiteResults.Values.Sum(r => r.AchievedScore);
+        decimal scoreRate = totalScore > 0 ? achievedScore / totalScore : 0;
+
         ExamScoreDetail scoreDetail = new()
         {
-            TotalScore = benchSuiteResult.TotalScore,
-            AchievedScore = benchSuiteResult.AchievedScore,
-            IsPassed = benchSuiteResult.ScoreRate * 100 >= passThreshold,
+            TotalScore = totalScore,
+            AchievedScore = achievedScore,
+            IsPassed = scoreRate * 100 >= passThreshold,
             PassThreshold = passThreshold
         };
 
         // 更新统计信息
-        scoreDetail.Statistics.TotalQuestions = benchSuiteResult.FileTypeResults.Count;
-        scoreDetail.Statistics.CorrectQuestions = benchSuiteResult.FileTypeResults.Count(kvp => kvp.Value.IsSuccess);
+        scoreDetail.Statistics.TotalQuestions = benchSuiteResults.Count;
+        scoreDetail.Statistics.CorrectQuestions = benchSuiteResults.Values.Count(r => r.IsSuccess);
 
         SetScoreDetail(scoreDetail);
     }

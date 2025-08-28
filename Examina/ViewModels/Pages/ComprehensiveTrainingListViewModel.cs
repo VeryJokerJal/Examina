@@ -4,7 +4,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -490,7 +490,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
+            BenchSuiteScoringResult? scoringResult = null;
             bool submitResult = false;
 
             // 仅支持综合实训类型
@@ -498,8 +498,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 if (_enhancedExamToolbarService != null)
                 {
-                    scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
-                    submitResult = scoringResult != null;
+                    scoringResults = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
+                    submitResult = scoringResults != null && scoringResults.Count > 0;
                 }
                 else
                 {
@@ -512,7 +512,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             if (submitResult)
             {
-                await ShowTrainingResultAsync(trainingId, examType, scoringResult);
+                await ShowTrainingResultAsync(trainingId, examType, scoringResults);
             }
             else
             {
@@ -552,7 +552,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 尝试进行BenchSuite评分
-            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
+            BenchSuiteScoringResult? scoringResult = null;
             decimal? score = null;
             decimal? maxScore = null;
             string? benchSuiteScoringResultJson = null;
