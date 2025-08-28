@@ -21,16 +21,29 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Margin" Value="0,0,0,8" />
         </Style>
+        <Style Selector="TextBlock.subheader">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
         <Style Selector="TextBlock.content">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="LineHeight" Value="20" />
         </Style>
-        <Style Selector="Border.question-item">
+        <Style Selector="Border.section">
             <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefault}" />
             <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefault}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+        <Style Selector="Border.question-item">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefault}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefault}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Padding" Value="16" />
             <Setter Property="Margin" Value="0,0,0,12" />
         </Style>
@@ -55,40 +68,77 @@
                 Text="{Binding ExamName}" />
         </StackPanel>
 
-        <!-- 题目列表区域 -->
+        <!-- 模块答案解析区域（每个模块一个Expander） -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Questions}">
+            <ItemsControl ItemsSource="{Binding Modules}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Classes="question-item">
-                            <StackPanel>
-                                <!-- 题目标题 -->
-                                <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
-                                    <TextBlock
-                                        Classes="header"
-                                        Margin="0,0,8,0"
-                                        Text="{Binding Title}" />
-                                    <Border
-                                        Padding="6,2"
-                                        Background="{DynamicResource AccentFillColorDefault}"
-                                        CornerRadius="4">
-                                        <TextBlock
-                                            FontSize="12"
-                                            Foreground="White"
-                                            Text="{Binding QuestionType}" />
-                                    </Border>
-                                    <TextBlock
-                                        Margin="8,0,0,0"
-                                        FontSize="12"
-                                        Foreground="{DynamicResource TextFillColorSecondary}"
-                                        Text="{Binding Score, StringFormat='分值: {0}'}" />
-                                </StackPanel>
+                        <Border Classes="section">
+                            <Expander IsExpanded="False">
+                                <Expander.Header>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
 
-                                <!-- 答案解析内容 -->
-                                <TextBlock
-                                    Classes="content"
-                                    Text="{Binding Content}" />
-                            </StackPanel>
+                                        <!-- 模块基本信息 -->
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
+                                            <TextBlock Classes="content" Text="{Binding ModuleDescription}" />
+                                        </StackPanel>
+
+                                        <!-- 题目数量 -->
+                                        <TextBlock Grid.Column="1" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding QuestionCount, StringFormat='{}{0}道题目'}" />
+
+                                        <!-- 总分值 -->
+                                        <TextBlock Grid.Column="2" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding TotalScore, StringFormat='总分{0}分'}" />
+                                    </Grid>
+                                </Expander.Header>
+
+                                <Expander.Content>
+                                    <StackPanel Margin="0,16,0,0">
+                                        <TextBlock Classes="subheader" Text="题目答案解析" />
+                                        <ItemsControl ItemsSource="{Binding ModuleQuestions}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="question-item">
+                                                        <StackPanel>
+                                                            <!-- 题目标题 -->
+                                                            <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
+                                                                <TextBlock
+                                                                    Classes="header"
+                                                                    Margin="0,0,8,0"
+                                                                    Text="{Binding Title}" />
+                                                                <Border
+                                                                    Padding="6,2"
+                                                                    Background="{DynamicResource AccentFillColorDefault}"
+                                                                    CornerRadius="4">
+                                                                    <TextBlock
+                                                                        FontSize="12"
+                                                                        Foreground="White"
+                                                                        Text="{Binding QuestionType}" />
+                                                                </Border>
+                                                                <TextBlock
+                                                                    Margin="8,0,0,0"
+                                                                    FontSize="12"
+                                                                    Foreground="{DynamicResource TextFillColorSecondary}"
+                                                                    Text="{Binding Score, StringFormat='分值: {0}'}" />
+                                                            </StackPanel>
+
+                                                            <!-- 答案解析内容 -->
+                                                            <TextBlock
+                                                                Classes="content"
+                                                                Text="{Binding Content}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Expander.Content>
+                            </Expander>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

@@ -955,47 +955,66 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             // 创建答案解析窗口
             AnswerAnalysisViewModel analysisViewModel = new();
 
-            // 收集所有题目的答案解析内容
-            List<QuestionItem> questionItems = [];
+            // 按模块分组收集题目
+            Dictionary<string, List<QuestionItem>> moduleQuestions = [];
 
             // 从模块中收集题目
             foreach (StudentComprehensiveTrainingModuleDto module in training.Modules)
             {
+                string moduleName = module.Name;
+                List<QuestionItem> questions = [];
+
                 foreach (StudentComprehensiveTrainingQuestionDto question in module.Questions)
                 {
-                    questionItems.Add(new QuestionItem
+                    questions.Add(new QuestionItem
                     {
                         Id = question.Id,
                         Title = question.Title,
                         Content = question.Content,
                         QuestionType = question.QuestionType,
                         Score = question.Score,
-                        SortOrder = question.SortOrder
+                        SortOrder = question.SortOrder,
+                        ModuleName = moduleName
                     });
+                }
+
+                if (questions.Count > 0)
+                {
+                    // 按排序顺序排列题目
+                    questions = [.. questions.OrderBy(q => q.SortOrder)];
+                    moduleQuestions[moduleName] = questions;
                 }
             }
 
             // 从科目中收集题目
             foreach (StudentComprehensiveTrainingSubjectDto subject in training.Subjects)
             {
+                string subjectName = subject.SubjectName;
+                List<QuestionItem> questions = [];
+
                 foreach (StudentComprehensiveTrainingQuestionDto question in subject.Questions)
                 {
-                    questionItems.Add(new QuestionItem
+                    questions.Add(new QuestionItem
                     {
                         Id = question.Id,
                         Title = question.Title,
                         Content = question.Content,
                         QuestionType = question.QuestionType,
                         Score = question.Score,
-                        SortOrder = question.SortOrder
+                        SortOrder = question.SortOrder,
+                        ModuleName = subjectName
                     });
+                }
+
+                if (questions.Count > 0)
+                {
+                    // 按排序顺序排列题目
+                    questions = [.. questions.OrderBy(q => q.SortOrder)];
+                    moduleQuestions[subjectName] = questions;
                 }
             }
 
-            // 按排序顺序排列题目
-            questionItems = [.. questionItems.OrderBy(q => q.SortOrder)];
-
-            analysisViewModel.SetAnswerAnalysisData(training.Name, questionItems);
+            analysisViewModel.SetAnswerAnalysisData(training.Name, moduleQuestions);
 
             AnswerAnalysisWindow analysisWindow = new()
             {

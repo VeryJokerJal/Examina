@@ -45,16 +45,6 @@
             <Setter Property="Padding" Value="12" />
             <Setter Property="Margin" Value="0,0,0,8" />
         </Style>
-        <Style Selector="Expander">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-        <Style Selector="Expander /template/ ToggleButton#PART_toggle">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
     </Window.Styles>
 
     <Grid Margin="20">
@@ -157,7 +147,7 @@
                 <ItemsControl ItemsSource="{Binding ModuleResults}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Classes="section">
+                            <Border>
                                 <Expander IsExpanded="False">
                                     <Expander.Header>
                                         <Grid>
@@ -170,8 +160,7 @@
 
                                             <!--  模块基本信息  -->
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
-                                                <TextBlock Classes="content" Text="{Binding Details}" TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding ModuleName}" />
 
                                                 <!--  AI分析结果（仅C#模块显示）  -->
                                                 <Border Margin="0,8,0,0" Padding="12" Background="{DynamicResource SystemFillColorAttentionBackground}" CornerRadius="6" IsVisible="{Binding HasAIAnalysis}">

@@ -55,6 +55,11 @@ public class AnswerAnalysisViewModel : ViewModelBase
     public ObservableCollection<QuestionItem> Questions { get; } = [];
 
     /// <summary>
+    /// 模块列表
+    /// </summary>
+    public ObservableCollection<ModuleAnalysisItem> Modules { get; } = [];
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public AnswerAnalysisViewModel()
@@ -76,6 +81,74 @@ public class AnswerAnalysisViewModel : ViewModelBase
         foreach (QuestionItem question in questions)
         {
             Questions.Add(question);
+        }
+
+        // 按模块分组题目
+        GroupQuestionsByModule();
+    }
+
+    /// <summary>
+    /// 设置答案解析数据（带模块信息）
+    /// </summary>
+    /// <param name="examName">考试名称</param>
+    /// <param name="moduleQuestions">按模块分组的题目字典</param>
+    public void SetAnswerAnalysisData(string examName, Dictionary<string, List<QuestionItem>> moduleQuestions)
+    {
+        ExamName = examName;
+        Title = $"答案解析 - {examName}";
+
+        Questions.Clear();
+        Modules.Clear();
+
+        foreach (KeyValuePair<string, List<QuestionItem>> kvp in moduleQuestions)
+        {
+            string moduleName = kvp.Key;
+            List<QuestionItem> questions = kvp.Value;
+
+            // 添加到全局题目列表
+            foreach (QuestionItem question in questions)
+            {
+                question.ModuleName = moduleName;
+                Questions.Add(question);
+            }
+
+            // 创建模块分析项
+            ModuleAnalysisItem moduleItem = new()
+            {
+                ModuleName = moduleName,
+                QuestionCount = questions.Count,
+                TotalScore = questions.Sum(q => q.Score),
+                ModuleQuestions = new ObservableCollection<QuestionItem>(questions)
+            };
+
+            Modules.Add(moduleItem);
+        }
+    }
+
+    /// <summary>
+    /// 按模块分组题目
+    /// </summary>
+    private void GroupQuestionsByModule()
+    {
+        Modules.Clear();
+
+        // 按模块名称分组
+        var groupedQuestions = Questions.GroupBy(q => q.ModuleName ?? "其他模块").ToList();
+
+        foreach (var group in groupedQuestions)
+        {
+            string moduleName = group.Key;
+            List<QuestionItem> questions = group.ToList();
+
+            ModuleAnalysisItem moduleItem = new()
+            {
+                ModuleName = moduleName,
+                QuestionCount = questions.Count,
+                TotalScore = questions.Sum(q => q.Score),
+                ModuleQuestions = new ObservableCollection<QuestionItem>(questions)
+            };
+
+            Modules.Add(moduleItem);
         }
     }
 }
@@ -114,4 +187,40 @@ public class QuestionItem
     /// 排序
     /// </summary>
     public int SortOrder { get; set; }
+
+    /// <summary>
+    /// 所属模块名称
+    /// </summary>
+    public string? ModuleName { get; set; }
+}
+
+/// <summary>
+/// 模块分析项
+/// </summary>
+public class ModuleAnalysisItem
+{
+    /// <summary>
+    /// 模块名称
+    /// </summary>
+    public string ModuleName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 题目数量
+    /// </summary>
+    public int QuestionCount { get; set; }
+
+    /// <summary>
+    /// 总分值
+    /// </summary>
+    public double TotalScore { get; set; }
+
+    /// <summary>
+    /// 该模块的题目列表
+    /// </summary>
+    public ObservableCollection<QuestionItem> ModuleQuestions { get; set; } = [];
+
+    /// <summary>
+    /// 模块描述
+    /// </summary>
+    public string ModuleDescription => $"{QuestionCount}道题目，总分{TotalScore}分";
 }
