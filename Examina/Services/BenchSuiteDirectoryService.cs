@@ -1,7 +1,5 @@
-﻿using System.ComponentModel;
-using System.Reflection;
+﻿using BenchSuite.Models;
 using Examina.Models;
-using BenchSuite.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
@@ -161,7 +159,6 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             _logger.LogError(ex, "确保考试目录结构时发生异常");
             return false;
         }
-    }
     }
 
     /// <summary>

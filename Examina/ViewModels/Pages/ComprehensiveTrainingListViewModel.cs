@@ -4,7 +4,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
-using BenchSuite.Models;
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -490,7 +490,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
             bool submitResult = false;
 
             // 仅支持综合实训类型
@@ -552,7 +552,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 尝试进行BenchSuite评分
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
             decimal? score = null;
             decimal? maxScore = null;
             string? benchSuiteScoringResultJson = null;

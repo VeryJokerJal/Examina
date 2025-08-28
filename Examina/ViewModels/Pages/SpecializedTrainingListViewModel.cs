@@ -612,13 +612,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         try
         {
-            // 根据训练的模块类型确定文件类型
-            BenchSuiteFileType fileType = GetFileTypeFromModuleType(training.ModuleType);
+            // 根据训练的模块类型确定模块类型
+            ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
 
-            // 简化的文件扫描逻辑
-            request.FilePaths[fileType] = [];
-
-            System.Diagnostics.Debug.WriteLine($"已配置文件类型: {fileType} 用于模块类型: {training.ModuleType}");
+            // 简化的文件扫描逻辑（这个方法已经不再使用，因为接口已更改）
+            System.Diagnostics.Debug.WriteLine($"已配置模块类型: {moduleType} 用于模块类型: {training.ModuleType}");
         }
         catch (Exception ex)
         {

@@ -244,16 +244,21 @@ public class EnhancedExamToolbarService : IDisposable
             // 1. 先进行BenchSuite评分
             if (int.TryParse(currentUser.Id, out int studentId))
             {
-                BenchSuiteScoringResult? scoringResult = await PerformBenchSuiteScoringAsync(ExamType.ComprehensiveTraining, trainingId, studentId);
+                Dictionary<ModuleType, ScoringResult>? scoringResults = await PerformBenchSuiteScoringAsync(ExamType.ComprehensiveTraining, trainingId, studentId);
+
+                // 计算总分和得分
+                decimal totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
+                decimal achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
+                bool isSuccess = scoringResults?.Values.All(r => r.IsSuccess) ?? false;
 
                 // 2. 准备训练提交数据
                 CompleteTrainingRequest trainingRequest = new()
                 {
-                    Score = scoringResult?.AchievedScore,
-                    MaxScore = scoringResult?.TotalScore,
+                    Score = achievedScore,
+                    MaxScore = totalScore,
                     DurationSeconds = null, // 可以从工具栏获取实际用时
-                    Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
-                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null,
+                    Notes = isSuccess ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
+                    BenchSuiteScoringResult = scoringResults != null ? JsonSerializer.Serialize(scoringResults) : null,
                     CompletedAt = DateTime.Now // 记录精确的提交时间
                 };
 
@@ -276,14 +281,14 @@ public class EnhancedExamToolbarService : IDisposable
                 }
 
                 // 4. 如果评分成功，记录评分结果
-                if (scoringResult?.IsSuccess == true)
+                if (isSuccess)
                 {
                     _logger.LogInformation("综合实训BenchSuite评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
-                        scoringResult.TotalScore, scoringResult.AchievedScore);
+                        totalScore, achievedScore);
                 }
 
                 _logger.LogInformation("综合实训提交成功，实训ID: {TrainingId}", trainingId);
-                return scoringResult;
+                return scoringResults;
             }
             else
             {
@@ -376,7 +381,7 @@ public class EnhancedExamToolbarService : IDisposable
     /// <summary>
     /// 执行本地BenchSuite评分（仅评分，不提交到服务器）
     /// </summary>
-    public async Task<BenchSuiteScoringResult?> PerformLocalScoringAsync(ExamType examType, int examId, int studentId)
+    public async Task<Dictionary<ModuleType, ScoringResult>?> PerformLocalScoringAsync(ExamType examType, int examId, int studentId)
     {
         try
         {
@@ -392,32 +397,39 @@ public class EnhancedExamToolbarService : IDisposable
             }
 
             // 确保考试目录结构存在
-            BenchSuiteDirectoryValidationResult directoryResult = await _benchSuiteDirectoryService.EnsureExamDirectoryStructureAsync(examType, examId);
-            if (!directoryResult.IsValid)
+            bool directoryResult = await _benchSuiteDirectoryService.EnsureExamDirectoryStructureAsync(examType, examId);
+            if (!directoryResult)
             {
-                _logger.LogWarning("BenchSuite考试目录结构验证失败: {ErrorMessage}", directoryResult.ErrorMessage);
+                _logger.LogWarning("BenchSuite考试目录结构验证失败");
                 return null;
             }
 
-            // 构建评分请求
-            BenchSuiteScoringRequest request = new()
-            {
-                ExamId = examId,
-                ExamType = examType,
-                StudentUserId = studentId,
-                BasePath = _benchSuiteDirectoryService.GetBasePath()
-            };
+            // 构建文件路径字典
+            Dictionary<ModuleType, List<string>> filePaths = new();
 
-            // 扫描考试文件
-            await ScanExamFilesAsync(request);
+            // 扫描各种类型的考试文件
+            foreach (ModuleType moduleType in _benchSuiteIntegrationService.GetSupportedModuleTypes())
+            {
+                string directoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(examType, examId, moduleType);
+                string examDirectory = System.IO.Path.Combine(directoryPath, $"Student_{studentId}");
+
+                if (System.IO.Directory.Exists(examDirectory))
+                {
+                    string[] files = System.IO.Directory.GetFiles(examDirectory, "*", System.IO.SearchOption.AllDirectories);
+                    filePaths[moduleType] = files.ToList();
+                }
+                else
+                {
+                    filePaths[moduleType] = new List<string>();
+                }
+            }
 
             // 执行评分（仅本地评分，不提交）
-            BenchSuiteScoringResult result = await _benchSuiteIntegrationService.ScoreExamAsync(request);
+            Dictionary<ModuleType, ScoringResult> results = await _benchSuiteIntegrationService.ScoreExamAsync(examType, examId, studentId, filePaths);
 
-            _logger.LogInformation("本地BenchSuite评分完成，成功: {IsSuccess}, 总分: {TotalScore}, 得分: {AchievedScore}",
-                result.IsSuccess, result.TotalScore, result.AchievedScore);
+            _logger.LogInformation("本地BenchSuite评分完成，模块数量: {ModuleCount}", results.Count);
 
-            return result;
+            return results;
         }
         catch (Exception ex)
         {
@@ -431,7 +443,7 @@ public class EnhancedExamToolbarService : IDisposable
     /// <summary>
     /// 执行BenchSuite评分
     /// </summary>
-    private async Task<BenchSuiteScoringResult?> PerformBenchSuiteScoringAsync(ExamType examType, int examId, int studentId)
+    private async Task<Dictionary<ModuleType, ScoringResult>?> PerformBenchSuiteScoringAsync(ExamType examType, int examId, int studentId)
     {
         try
         {
@@ -447,32 +459,39 @@ public class EnhancedExamToolbarService : IDisposable
             }
 
             // 确保考试目录结构存在
-            BenchSuiteDirectoryValidationResult directoryResult = await _benchSuiteDirectoryService.EnsureExamDirectoryStructureAsync(examType, examId);
-            if (!directoryResult.IsValid)
+            bool directoryResult = await _benchSuiteDirectoryService.EnsureExamDirectoryStructureAsync(examType, examId);
+            if (!directoryResult)
             {
-                _logger.LogWarning("BenchSuite考试目录结构验证失败: {ErrorMessage}", directoryResult.ErrorMessage);
+                _logger.LogWarning("BenchSuite考试目录结构验证失败");
                 return null;
             }
 
-            // 构建评分请求
-            BenchSuiteScoringRequest request = new()
-            {
-                ExamId = examId,
-                ExamType = examType,
-                StudentUserId = studentId,
-                BasePath = _benchSuiteDirectoryService.GetBasePath()
-            };
+            // 构建文件路径字典
+            Dictionary<ModuleType, List<string>> filePaths = new();
 
-            // 扫描考试文件
-            await ScanExamFilesAsync(request);
+            // 扫描各种类型的考试文件
+            foreach (ModuleType moduleType in _benchSuiteIntegrationService.GetSupportedModuleTypes())
+            {
+                string directoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(examType, examId, moduleType);
+                string examDirectory = System.IO.Path.Combine(directoryPath, $"Student_{studentId}");
+
+                if (System.IO.Directory.Exists(examDirectory))
+                {
+                    string[] files = System.IO.Directory.GetFiles(examDirectory, "*", System.IO.SearchOption.AllDirectories);
+                    filePaths[moduleType] = files.ToList();
+                }
+                else
+                {
+                    filePaths[moduleType] = new List<string>();
+                }
+            }
 
             // 执行评分
-            BenchSuiteScoringResult result = await _benchSuiteIntegrationService.ScoreExamAsync(request);
+            Dictionary<ModuleType, ScoringResult> results = await _benchSuiteIntegrationService.ScoreExamAsync(examType, examId, studentId, filePaths);
 
-            _logger.LogInformation("BenchSuite评分完成，成功: {IsSuccess}, 总分: {TotalScore}, 得分: {AchievedScore}",
-                result.IsSuccess, result.TotalScore, result.AchievedScore);
+            _logger.LogInformation("BenchSuite评分完成，模块数量: {ModuleCount}", results.Count);
 
-            return result;
+            return results;
         }
         catch (Exception ex)
         {
@@ -481,29 +500,7 @@ public class EnhancedExamToolbarService : IDisposable
         }
     }
 
-    /// <summary>
-    /// 扫描考试文件
-    /// </summary>
-    private Task ScanExamFilesAsync(BenchSuiteScoringRequest request)
-    {
-        // 扫描各种类型的考试文件
-        foreach (BenchSuiteFileType fileType in _benchSuiteIntegrationService.GetSupportedFileTypes())
-        {
-            string directoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(request.ExamType, request.ExamId, fileType);
-            string examDirectory = System.IO.Path.Combine(directoryPath, $"Student_{request.StudentUserId}");
 
-            if (System.IO.Directory.Exists(examDirectory))
-            {
-                string[] files = System.IO.Directory.GetFiles(examDirectory, "*", System.IO.SearchOption.AllDirectories);
-                if (files.Length > 0)
-                {
-                    request.FilePaths[fileType] = [.. files];
-                    _logger.LogDebug("发现 {FileType} 文件 {FileCount} 个", fileType, files.Length);
-                }
-            }
-        }
-        return Task.CompletedTask;
-    }
 
     #endregion
 

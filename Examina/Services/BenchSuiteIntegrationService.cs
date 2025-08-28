@@ -404,29 +404,34 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
-    /// 根据文件类型获取模块类型
+    /// 获取支持的模块类型列表
     /// </summary>
-    private ModuleType GetModuleTypeFromFileType(BenchSuiteFileType fileType)
+    public List<ModuleType> GetSupportedModuleTypes()
     {
-        return fileType switch
+        return new List<ModuleType>
         {
-            BenchSuiteFileType.Word => ModuleType.Word,
-            BenchSuiteFileType.Excel => ModuleType.Excel,
-            BenchSuiteFileType.PowerPoint => ModuleType.PowerPoint,
-            BenchSuiteFileType.Windows => ModuleType.Windows,
-            BenchSuiteFileType.CSharp => ModuleType.CSharp,
-            _ => ModuleType.Word // 默认值
+            ModuleType.Word,
+            ModuleType.Excel,
+            ModuleType.PowerPoint,
+            ModuleType.Windows,
+            ModuleType.CSharp
         };
     }
 
     /// <summary>
-    /// 获取文件类型描述
+    /// 获取模块类型描述
     /// </summary>
-    private static string GetFileTypeDescription(BenchSuiteFileType fileType)
+    private static string GetModuleTypeDescription(ModuleType moduleType)
     {
-        FieldInfo? field = fileType.GetType().GetField(fileType.ToString());
-        DescriptionAttribute? attribute = field?.GetCustomAttribute<DescriptionAttribute>();
-        return attribute?.Description ?? fileType.ToString();
+        return moduleType switch
+        {
+            ModuleType.Word => "Word文档",
+            ModuleType.Excel => "Excel表格",
+            ModuleType.PowerPoint => "PowerPoint演示文稿",
+            ModuleType.Windows => "Windows操作",
+            ModuleType.CSharp => "C#编程",
+            _ => moduleType.ToString()
+        };
     }
 
     /// <summary>
