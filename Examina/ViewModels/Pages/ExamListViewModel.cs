@@ -265,11 +265,6 @@ public class ExamListViewModel : ViewModelBase
             // 直接启动正式考试，无需确认对话框
             System.Diagnostics.Debug.WriteLine("ExamListViewModel: 直接开始上机统考");
             await StartFormalExamAsync(exam);
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口");
-                ErrorMessage = "无法显示规则对话框，请重试";
-            }
         }
         catch (UnauthorizedAccessException)
         {

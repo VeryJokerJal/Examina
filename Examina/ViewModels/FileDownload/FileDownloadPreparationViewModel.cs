@@ -336,7 +336,6 @@ public class FileDownloadPreparationViewModel : ViewModelBase
     /// 自动关闭事件
     /// </summary>
     public event EventHandler? AutoCloseRequested;
-    }
 
     /// <summary>
     /// 下载进度回调
