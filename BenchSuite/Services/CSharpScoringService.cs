@@ -907,6 +907,91 @@ public class CSharpScoringService : ICSharpScoringService
     }
 
     #endregion
+
+    #region 调试辅助方法
+
+    /// <summary>
+    /// 调试辅助方法：输出QuestionModel的详细信息
+    /// </summary>
+    /// <param name="question">题目模型</param>
+    /// <returns>调试信息字符串</returns>
+    public static string DebugQuestionModel(QuestionModel question)
+    {
+        System.Text.StringBuilder sb = new();
+
+        sb.AppendLine("=== QuestionModel 调试信息 ===");
+        sb.AppendLine($"题目ID: {question.Id}");
+        sb.AppendLine($"题目标题: {question.Title}");
+        sb.AppendLine($"题目类型: {question.QuestionType}");
+        sb.AppendLine($"C#题目类型: {question.CSharpQuestionType}");
+        sb.AppendLine($"题目内容长度: {question.Content?.Length ?? 0}");
+
+        // 操作点信息
+        sb.AppendLine($"操作点数量: {question.OperationPoints?.Count ?? 0}");
+        if (question.OperationPoints != null)
+        {
+            foreach (OperationPointModel op in question.OperationPoints)
+            {
+                sb.AppendLine($"  - 操作点: {op.Name}, 模块类型: {op.ModuleType}, 参数数量: {op.Parameters?.Count ?? 0}");
+                if (op.Parameters != null)
+                {
+                    foreach (ConfigurationParameterModel param in op.Parameters)
+                    {
+                        string valuePreview = param.Value?.Length > 50 ? param.Value[..50] + "..." : param.Value ?? "";
+                        sb.AppendLine($"    * 参数: {param.Name} = {valuePreview}");
+                    }
+                }
+            }
+        }
+
+        // CodeBlanks信息
+        sb.AppendLine($"CodeBlanks数量: {question.CodeBlanks?.Count ?? 0}");
+        if (question.CodeBlanks != null)
+        {
+            foreach (CodeBlankModel cb in question.CodeBlanks)
+            {
+                sb.AppendLine($"  - CodeBlank: {cb.Name}, 顺序: {cb.Order}, 启用: {cb.IsEnabled}");
+                sb.AppendLine($"    描述长度: {cb.Description?.Length ?? 0}");
+                sb.AppendLine($"    标准答案长度: {cb.StandardAnswer?.Length ?? 0}");
+                if (!string.IsNullOrWhiteSpace(cb.StandardAnswer))
+                {
+                    string answerPreview = cb.StandardAnswer.Length > 50 ? cb.StandardAnswer[..50] + "..." : cb.StandardAnswer;
+                    sb.AppendLine($"    标准答案预览: {answerPreview}");
+                }
+            }
+        }
+
+        // 测试提取结果
+        sb.AppendLine("\n=== 提取测试结果 ===");
+        CSharpQuestionInfo? info = ExtractCSharpQuestionInfo(question);
+        if (info != null)
+        {
+            sb.AppendLine($"评分模式: {info.ScoringMode}");
+            sb.AppendLine($"模板代码长度: {info.TemplateCode.Length}");
+            sb.AppendLine($"期望实现数量: {info.ExpectedImplementations.Count}");
+
+            if (!string.IsNullOrEmpty(info.TemplateCode))
+            {
+                string templatePreview = info.TemplateCode.Length > 100 ? info.TemplateCode[..100] + "..." : info.TemplateCode;
+                sb.AppendLine($"模板代码预览: {templatePreview}");
+            }
+
+            for (int i = 0; i < info.ExpectedImplementations.Count; i++)
+            {
+                string implPreview = info.ExpectedImplementations[i].Length > 50 ?
+                    info.ExpectedImplementations[i][..50] + "..." : info.ExpectedImplementations[i];
+                sb.AppendLine($"期望实现[{i}]: {implPreview}");
+            }
+        }
+        else
+        {
+            sb.AppendLine("提取失败：ExtractCSharpQuestionInfo返回null");
+        }
+
+        return sb.ToString();
+    }
+
+    #endregion
 }
 
 /// <summary>
