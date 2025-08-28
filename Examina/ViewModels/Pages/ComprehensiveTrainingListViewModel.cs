@@ -4,7 +4,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
-using BenchSuite.Models;
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -490,7 +490,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
+            BenchSuiteScoringResult? scoringResult = null;
             bool submitResult = false;
 
             // 仅支持综合实训类型
@@ -498,8 +498,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 if (_enhancedExamToolbarService != null)
                 {
-                    scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
-                    submitResult = scoringResult != null;
+                    scoringResults = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
+                    submitResult = scoringResults != null && scoringResults.Count > 0;
                 }
                 else
                 {
@@ -512,7 +512,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             if (submitResult)
             {
-                await ShowTrainingResultAsync(trainingId, examType, scoringResult);
+                await ShowTrainingResultAsync(trainingId, examType, scoringResults);
             }
             else
             {
@@ -551,57 +551,11 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 }
             }
 
-            // 尝试进行BenchSuite评分
-            BenchSuiteScoringResult? scoringResult = null;
+            // 注意：此方法是回退方法，不包含BenchSuite评分
+            // 主要的BenchSuite评分逻辑在EnhancedExamToolbarService中实现
             decimal? score = null;
             decimal? maxScore = null;
             string? benchSuiteScoringResultJson = null;
-
-            if (currentTrainingId.HasValue)
-            {
-                try
-                {
-                    IBenchSuiteIntegrationService? benchSuiteService = AppServiceManager.GetService<IBenchSuiteIntegrationService>();
-                    IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
-
-                    if (benchSuiteService != null && directoryService != null)
-                    {
-                        // 创建BenchSuite评分请求
-                        BenchSuiteScoringRequest benchSuiteRequest = new()
-                        {
-                            ExamId = currentTrainingId.Value,
-                            ExamType = ExamType.ComprehensiveTraining,
-                            StudentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0,
-                            BasePath = directoryService.GetBasePath(),
-                            FilePaths = new Dictionary<BenchSuiteFileType, List<string>>()
-                        };
-
-                        // 扫描并添加文件路径
-                        await ScanAndAddFilePathsAsync(benchSuiteRequest, currentTrainingId.Value);
-
-                        // 执行BenchSuite评分
-                        scoringResult = await benchSuiteService.ScoreExamAsync(benchSuiteRequest);
-
-                        if (scoringResult.IsSuccess)
-                        {
-                            score = scoringResult.AchievedScore;
-                            maxScore = scoringResult.TotalScore;
-
-                            // 序列化评分结果
-                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResult, new System.Text.Json.JsonSerializerOptions
-                            {
-                                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
-                                WriteIndented = true
-                            });
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // BenchSuite评分失败不影响提交，只记录错误
-                    System.Diagnostics.Debug.WriteLine($"BenchSuite评分失败: {ex.Message}");
-                }
-            }
 
             CompleteTrainingRequest request = new()
             {
@@ -629,64 +583,12 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 扫描并添加文件路径到BenchSuite评分请求
     /// </summary>
-    private async Task ScanAndAddFilePathsAsync(BenchSuiteScoringRequest request, int trainingId)
+    [Obsolete("此方法已过时，请使用EnhancedExamToolbarService进行BenchSuite评分")]
+    private async Task ScanAndAddFilePathsAsync(object request, int trainingId)
     {
-        try
-        {
-            IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
-            if (directoryService == null) return;
-
-            // 获取支持的文件类型
-            BenchSuiteFileType[] supportedFileTypes =
-            {
-                BenchSuiteFileType.Word,
-                BenchSuiteFileType.Excel,
-                BenchSuiteFileType.CSharp,
-                BenchSuiteFileType.Windows
-            };
-
-            foreach (BenchSuiteFileType fileType in supportedFileTypes)
-            {
-                try
-                {
-                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
-
-                    if (Directory.Exists(directoryPath))
-                    {
-                        List<string> filePaths = new();
-
-                        // 根据文件类型扫描相应的文件
-                        string[] extensions = fileType switch
-                        {
-                            BenchSuiteFileType.Word => new[] { "*.docx", "*.doc" },
-                            BenchSuiteFileType.Excel => new[] { "*.xlsx", "*.xls" },
-                            BenchSuiteFileType.CSharp => new[] { "*.cs" },
-                            BenchSuiteFileType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
-                            _ => new[] { "*.*" }
-                        };
-
-                        foreach (string extension in extensions)
-                        {
-                            string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
-                            filePaths.AddRange(files);
-                        }
-
-                        if (filePaths.Count > 0)
-                        {
-                            request.FilePaths[fileType] = filePaths;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"扫描{fileType}文件时发生错误: {ex.Message}");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"扫描文件路径时发生错误: {ex.Message}");
-        }
+        // 此方法已过时，不再实现具体逻辑
+        // 请使用EnhancedExamToolbarService进行BenchSuite评分
+        await Task.CompletedTask;
     }
 
     /// <summary>

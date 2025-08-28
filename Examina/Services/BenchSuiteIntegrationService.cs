@@ -610,7 +610,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Id = paramDto.Id.ToString(),
                     Name = paramDto.Name,
                     Value = paramDto.DefaultValue ?? string.Empty,
-                    Type = Enum.TryParse<ParameterType>(paramDto.ParameterType, true, out ParameterType paramType) ? paramType : ParameterType.String,
+                    Type = Enum.TryParse<ParameterType>(paramDto.ParameterType, true, out ParameterType paramType) ? paramType : ParameterType.Text,
                     IsRequired = false, // 默认非必填
                     Description = paramDto.Description
                 };
