@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace Examina.Views;
 
 /// <summary>
-/// 考试专用工具栏窗口组件
+/// 考试专用工具栏窗口组件（已移除自动收起/展开功能）
 /// </summary>
 public partial class ExamToolbarWindow : Window, IDisposable
 {
@@ -17,16 +17,6 @@ public partial class ExamToolbarWindow : Window, IDisposable
     private readonly ILogger<ExamToolbarWindow> _logger;
     private ExamToolbarViewModel? _viewModel;
     private bool _disposed;
-
-    // 自动收起/展开相关字段
-    private bool _isCollapsed = false;
-    private double _originalHeight = 60;
-    private double _collapsedHeight = 8;
-    private System.Timers.Timer? _collapseTimer;
-    private System.Timers.Timer? _expandTimer;
-    private const double MouseSensorRange = 50; // 鼠标感应范围（像素）
-    private const int CollapseDelay = 3000; // 收起延迟（毫秒）
-    private const int ExpandDelay = 200; // 展开延迟（毫秒）
 
     /// <summary>
     /// 考试自动提交事件
@@ -60,10 +50,10 @@ public partial class ExamToolbarWindow : Window, IDisposable
     /// </summary>
     public ExamToolbarWindow(ScreenReservationService screenReservationService, ILogger<ExamToolbarWindow>? logger)
     {
+        InitializeComponent();
         _screenReservationService = screenReservationService ?? throw new ArgumentNullException(nameof(screenReservationService));
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<ExamToolbarWindow>.Instance;
 
-        InitializeComponent();
         InitializeWindow();
         SetupEventHandlers();
     }
@@ -107,11 +97,10 @@ public partial class ExamToolbarWindow : Window, IDisposable
     }
 
     /// <summary>
-    /// 初始化窗口属性
+    /// 初始化窗口属性（固定高度，不再收起/展开）
     /// </summary>
     private void InitializeWindow()
     {
-        // 设置窗口基本属性
         SystemDecorations = SystemDecorations.None;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Topmost = true;
@@ -132,18 +121,9 @@ public partial class ExamToolbarWindow : Window, IDisposable
         // 防止窗口最小化
         PropertyChanged += ExamToolbarWindow_PropertyChanged;
 
-        // 窗口打开时的处理
+        // 窗口打开/关闭
         Opened += ExamToolbarWindow_Opened;
-
-        // 窗口关闭时的处理
         Closing += ExamToolbarWindow_Closing;
-
-        // 鼠标事件处理
-        PointerEntered += ExamToolbarWindow_PointerEntered;
-        PointerExited += ExamToolbarWindow_PointerExited;
-
-        // 初始化定时器
-        InitializeTimers();
 
         _logger.LogInformation("ExamToolbarWindow事件处理程序设置完成");
     }
@@ -153,7 +133,6 @@ public partial class ExamToolbarWindow : Window, IDisposable
     /// </summary>
     private void ExamToolbarWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        // 防止窗口最小化
         if (e.Property.Name == nameof(WindowState) && WindowState == WindowState.Minimized)
         {
             WindowState = WindowState.Normal;
@@ -166,10 +145,10 @@ public partial class ExamToolbarWindow : Window, IDisposable
     /// </summary>
     private void ExamToolbarWindow_Opened(object? sender, EventArgs e)
     {
-        // 设置窗口位置到屏幕顶部
+        // 置顶靠屏幕顶部
         Position = new PixelPoint(0, 0);
 
-        // 设置窗口区域和屏幕预留
+        // 设置窗口区域与屏幕预留
         SetupWindowArea();
 
         _logger.LogInformation("ExamToolbarWindow已打开并设置到屏幕顶部");
@@ -180,22 +159,18 @@ public partial class ExamToolbarWindow : Window, IDisposable
     /// </summary>
     private void ExamToolbarWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
-        // 如果考试正在进行中，阻止关闭并触发提交
         if (_viewModel?.CurrentExamStatus is ExamStatus.InProgress or ExamStatus.AboutToEnd)
         {
             e.Cancel = true;
             _logger.LogWarning("检测到考试进行中的窗口关闭尝试，触发自动提交");
-
-            // 触发自动提交
             OnExamAutoSubmitted(this, EventArgs.Empty);
         }
 
-        // 释放资源
         Dispose();
     }
 
     /// <summary>
-    /// 设置窗口区域和屏幕预留
+    /// 设置窗口区域和屏幕预留（固定高度 60）
     /// </summary>
     private void SetupWindowArea()
     {
@@ -204,7 +179,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
         if (screenSize.HasValue)
         {
             double screenWidth = screenSize.Value.Width;
-            double toolbarHeight = 60; // 考试工具栏高度
+            double toolbarHeight = 60; // 固定高度
 
             Width = screenWidth;
             Height = toolbarHeight;
@@ -223,16 +198,11 @@ public partial class ExamToolbarWindow : Window, IDisposable
         }
     }
 
-    /// <summary>
-    /// 考试自动提交事件处理
-    /// </summary>
     private void OnExamAutoSubmitted(object? sender, EventArgs e)
     {
         _logger.LogWarning("考试时间到，执行自动提交");
-
         try
         {
-            // 触发外部事件（自动提交逻辑已在ViewModel中处理）
             ExamAutoSubmitted?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
@@ -241,16 +211,11 @@ public partial class ExamToolbarWindow : Window, IDisposable
         }
     }
 
-    /// <summary>
-    /// 考试手动提交事件处理
-    /// </summary>
     private void OnExamManualSubmitted(object? sender, EventArgs e)
     {
         _logger.LogInformation("用户手动提交考试");
-
         try
         {
-            // 触发外部事件（提交逻辑已在ViewModel中处理）
             ExamManualSubmitted?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
@@ -259,34 +224,23 @@ public partial class ExamToolbarWindow : Window, IDisposable
         }
     }
 
-    /// <summary>
-    /// 查看题目请求事件处理
-    /// </summary>
     private void OnViewQuestionsRequested(object? sender, EventArgs e)
     {
         _logger.LogInformation("用户请求查看题目");
         ViewQuestionsRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>
-    /// 查看答案解析请求事件处理
-    /// </summary>
     private void OnViewAnswerAnalysisRequested(object? sender, EventArgs e)
     {
         _logger.LogInformation("用户请求查看答案解析");
         ViewAnswerAnalysisRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>
-    /// 窗口关闭请求事件处理
-    /// </summary>
     private void OnWindowCloseRequested(object? sender, EventArgs e)
     {
         _logger.LogInformation("收到窗口关闭请求");
-
         try
         {
-            // 关闭窗口
             Close();
         }
         catch (Exception ex)
@@ -294,8 +248,6 @@ public partial class ExamToolbarWindow : Window, IDisposable
             _logger.LogError(ex, "关闭窗口时发生错误");
         }
     }
-
-
 
     /// <summary>
     /// 开始考试
@@ -315,86 +267,6 @@ public partial class ExamToolbarWindow : Window, IDisposable
     }
 
     /// <summary>
-    /// 初始化定时器
-    /// </summary>
-    private void InitializeTimers()
-    {
-        // 收起定时器
-        _collapseTimer = new System.Timers.Timer(CollapseDelay);
-        _collapseTimer.Elapsed += (sender, e) =>
-        {
-            _collapseTimer?.Stop();
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => CollapseToolbar());
-        };
-        _collapseTimer.AutoReset = false;
-
-        // 展开定时器
-        _expandTimer = new System.Timers.Timer(ExpandDelay);
-        _expandTimer.Elapsed += (sender, e) =>
-        {
-            _expandTimer?.Stop();
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ExpandToolbar());
-        };
-        _expandTimer.AutoReset = false;
-
-        _logger.LogInformation("ExamToolbarWindow定时器初始化完成");
-    }
-
-    /// <summary>
-    /// 鼠标进入事件处理
-    /// </summary>
-    private void ExamToolbarWindow_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        _collapseTimer?.Stop();
-
-        if (_isCollapsed)
-        {
-            _expandTimer?.Start();
-        }
-
-        _logger.LogDebug("鼠标进入工具栏区域");
-    }
-
-    /// <summary>
-    /// 鼠标离开事件处理
-    /// </summary>
-    private void ExamToolbarWindow_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        _expandTimer?.Stop();
-
-        if (!_isCollapsed)
-        {
-            _collapseTimer?.Start();
-        }
-
-        _logger.LogDebug("鼠标离开工具栏区域");
-    }
-
-    /// <summary>
-    /// 收起工具栏
-    /// </summary>
-    private void CollapseToolbar()
-    {
-        if (_isCollapsed) return;
-
-        _isCollapsed = true;
-        Height = _collapsedHeight;
-        _logger.LogDebug("工具栏已收起");
-    }
-
-    /// <summary>
-    /// 展开工具栏
-    /// </summary>
-    private void ExpandToolbar()
-    {
-        if (!_isCollapsed) return;
-
-        _isCollapsed = false;
-        Height = _originalHeight;
-        _logger.LogDebug("工具栏已展开");
-    }
-
-    /// <summary>
     /// 停止考试
     /// </summary>
     public void StopExam()
@@ -410,12 +282,6 @@ public partial class ExamToolbarWindow : Window, IDisposable
     {
         if (!_disposed)
         {
-            // 释放定时器
-            _collapseTimer?.Stop();
-            _collapseTimer?.Dispose();
-            _expandTimer?.Stop();
-            _expandTimer?.Dispose();
-
             // 停止倒计时
             _viewModel?.StopCountdown();
 
@@ -428,6 +294,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
                 _viewModel.ExamAutoSubmitted -= OnExamAutoSubmitted;
                 _viewModel.ExamManualSubmitted -= OnExamManualSubmitted;
                 _viewModel.ViewQuestionsRequested -= OnViewQuestionsRequested;
+                _viewModel.ViewAnswerAnalysisRequested -= OnViewAnswerAnalysisRequested;
                 _viewModel.WindowCloseRequested -= OnWindowCloseRequested;
                 _viewModel.Dispose();
             }

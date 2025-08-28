@@ -270,6 +270,7 @@ public partial class ToolbarWindow : Window
     public void ShowToolbar()
     {
         IsToolbarVisible = true;
+        Position = new PixelPoint(0, 0);
         Show();
     }
 
@@ -279,6 +280,7 @@ public partial class ToolbarWindow : Window
     public void HideToolbar()
     {
         IsToolbarVisible = false;
+        Position = new PixelPoint(0, 0);
         Hide();
     }
 
@@ -295,16 +297,6 @@ public partial class ToolbarWindow : Window
         {
             ShowToolbar();
         }
-    }
-
-    /// <summary>
-    /// 更新工具栏位置
-    /// </summary>
-    /// <param name="x">X坐标</param>
-    /// <param name="y">Y坐标</param>
-    public void UpdatePosition(int x, int y)
-    {
-        Position = new PixelPoint(x, y);
     }
 
     /// <summary>

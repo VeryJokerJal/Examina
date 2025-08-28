@@ -20,11 +20,16 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     private readonly Dictionary<ModuleType, string> _directoryMapping;
     private readonly Dictionary<ModuleType, IScoringService> _scoringServices;
     private readonly IAILogicalScoringService? _aiScoringService;
+    private readonly IStudentExamService? _studentExamService;
 
-    public BenchSuiteIntegrationService(ILogger<BenchSuiteIntegrationService> logger, IAILogicalScoringService? aiScoringService = null)
+    public BenchSuiteIntegrationService(
+        ILogger<BenchSuiteIntegrationService> logger,
+        IAILogicalScoringService? aiScoringService = null,
+        IStudentExamService? studentExamService = null)
     {
         _logger = logger;
         _aiScoringService = aiScoringService;
+        _studentExamService = studentExamService;
 
         _directoryMapping = new Dictionary<ModuleType, string>
         {
@@ -275,7 +280,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 string examTypeFolder = GetExamTypeFolder(examType);
                 string examRootPath = System.IO.Path.Combine(basePath, examTypeFolder, examId.ToString());
 
-                ExamModel examModelToUse = CreateSimplifiedExamModel(moduleType, examType, examId);
+                ExamModel examModelToUse = await CreateSimplifiedExamModel(moduleType, examType, examId, studentUserId);
 
                 // 为Windows评分服务设置基础路径
                 if (scoringService is WindowsScoringService windowsService)
@@ -298,7 +303,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 }
 
                 // 创建简化的考试模型用于评分
-                ExamModel examModel = CreateSimplifiedExamModel(moduleType, examType, examId);
+                ExamModel examModel = await CreateSimplifiedExamModel(moduleType, examType, examId, studentUserId);
 
                 // 如果只有一个文件，直接评分
                 if (filePaths.Count == 1)
@@ -377,9 +382,169 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 创建简化的考试模型用于评分
     /// </summary>
-    private ExamModel CreateSimplifiedExamModel(ModuleType moduleType, ExamType examType, int examId)
+    private async Task<ExamModel> CreateSimplifiedExamModel(ModuleType moduleType, ExamType examType, int examId, int studentUserId)
     {
-        // 创建简化的考试模型
+        try
+        {
+            // 尝试从API获取真实考试数据
+            if (_studentExamService != null)
+            {
+                _logger.LogInformation("尝试从API获取考试数据，考试ID: {ExamId}, 学生ID: {StudentUserId}", examId, studentUserId);
+
+                StudentExamDto? examDto = await _studentExamService.GetExamDetailsAsync(examId, studentUserId);
+                if (examDto != null)
+                {
+                    _logger.LogInformation("成功从API获取考试数据: {ExamName}", examDto.Name);
+
+                    try
+                    {
+                        return MapStudentExamDtoToExamModel(examDto, moduleType);
+                    }
+                    catch (Exception mappingEx)
+                    {
+                        _logger.LogError(mappingEx, "数据映射失败，考试ID: {ExamId}，使用降级数据", examId);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("API返回空数据，考试ID: {ExamId}, 学生ID: {StudentUserId}，可能是权限问题或考试不存在", examId, studentUserId);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("StudentExamService未注入，使用降级数据");
+            }
+        }
+        catch (HttpRequestException httpEx)
+        {
+            _logger.LogError(httpEx, "网络请求失败，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+        }
+        catch (TaskCanceledException timeoutEx)
+        {
+            _logger.LogError(timeoutEx, "API请求超时，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+        }
+        catch (UnauthorizedAccessException authEx)
+        {
+            _logger.LogError(authEx, "API访问权限不足，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "从API获取考试数据时发生未知错误，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+        }
+
+        // 降级机制：使用原有的模拟数据逻辑
+        return CreateFallbackExamModel(moduleType, examType, examId);
+    }
+
+    /// <summary>
+    /// 将StudentExamDto映射为ExamModel
+    /// </summary>
+    private ExamModel MapStudentExamDtoToExamModel(StudentExamDto examDto, ModuleType targetModuleType)
+    {
+        if (examDto == null)
+        {
+            throw new ArgumentNullException(nameof(examDto), "考试数据不能为空");
+        }
+
+        ExamModel examModel = new()
+        {
+            Id = examDto.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(examDto.Name) ? $"考试_{examDto.Id}" : examDto.Name,
+            Description = examDto.Description ?? string.Empty,
+            TotalScore = examDto.TotalScore > 0 ? (decimal)examDto.TotalScore : 100m,
+            DurationMinutes = examDto.DurationMinutes > 0 ? examDto.DurationMinutes : 120,
+            Modules = new List<ExamModuleModel>()
+        };
+
+        // 根据目标模块类型过滤相关模块
+        IEnumerable<StudentModuleDto> relevantModules = examDto.Modules
+            .Where(m => string.Equals(m.Type, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase));
+
+        foreach (StudentModuleDto moduleDto in relevantModules)
+        {
+            ExamModuleModel module = new()
+            {
+                Id = moduleDto.Id.ToString(),
+                Name = moduleDto.Name,
+                Type = ParseModuleType(moduleDto.Type),
+                Description = moduleDto.Description,
+                Score = (decimal)moduleDto.Score,
+                Order = moduleDto.Order,
+                Questions = new List<QuestionModel>()
+            };
+
+            foreach (StudentQuestionDto questionDto in moduleDto.Questions)
+            {
+                QuestionModel question = new()
+                {
+                    Id = questionDto.Id.ToString(),
+                    Title = questionDto.Title,
+                    Content = questionDto.Content,
+                    Score = (decimal)questionDto.Score,
+                    Order = questionDto.SortOrder,
+                    OperationPoints = new List<OperationPointModel>()
+                };
+
+                foreach (StudentOperationPointDto opDto in questionDto.OperationPoints)
+                {
+                    OperationPointModel operationPoint = new()
+                    {
+                        Id = opDto.Id.ToString(),
+                        Name = opDto.Name,
+                        Description = opDto.Description,
+                        ModuleType = ParseModuleType(opDto.ModuleType),
+                        Score = (decimal)opDto.Score,
+                        Order = opDto.Order,
+                        IsEnabled = true,
+                        Parameters = new List<ConfigurationParameterModel>()
+                    };
+
+                    question.OperationPoints.Add(operationPoint);
+                }
+
+                module.Questions.Add(question);
+            }
+
+            examModel.Modules.Add(module);
+        }
+
+        // 如果没有找到相关模块，创建一个基本模块
+        if (examModel.Modules.Count == 0)
+        {
+            _logger.LogWarning("未找到模块类型 {ModuleType} 的数据，创建基本模块", targetModuleType);
+            examModel.Modules.Add(CreateBasicModule(targetModuleType));
+        }
+
+        return examModel;
+    }
+
+    /// <summary>
+    /// 解析模块类型字符串为枚举
+    /// </summary>
+    private static ModuleType ParseModuleType(string moduleTypeString)
+    {
+        if (Enum.TryParse<ModuleType>(moduleTypeString, true, out ModuleType result))
+        {
+            return result;
+        }
+
+        // 处理一些常见的别名
+        return moduleTypeString.ToLowerInvariant() switch
+        {
+            "ppt" or "powerpoint" => ModuleType.PowerPoint,
+            "word" => ModuleType.Word,
+            "excel" => ModuleType.Excel,
+            "windows" => ModuleType.Windows,
+            "csharp" or "c#" => ModuleType.CSharp,
+            _ => ModuleType.Windows // 默认值
+        };
+    }
+
+    /// <summary>
+    /// 创建降级考试模型（原有的模拟数据逻辑）
+    /// </summary>
+    private ExamModel CreateFallbackExamModel(ModuleType moduleType, ExamType examType, int examId)
+    {
         ExamModel examModel = new()
         {
             Id = examId.ToString(),
@@ -388,7 +553,15 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Modules = new List<ExamModuleModel>()
         };
 
-        // 创建对应的模块
+        examModel.Modules.Add(CreateBasicModule(moduleType));
+        return examModel;
+    }
+
+    /// <summary>
+    /// 创建基本模块
+    /// </summary>
+    private static ExamModuleModel CreateBasicModule(ModuleType moduleType)
+    {
         ExamModuleModel module = new()
         {
             Id = $"Module_{moduleType}",
@@ -397,17 +570,15 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Questions = new List<QuestionModel>()
         };
 
-        // 创建一个简化的题目
         QuestionModel question = new()
         {
             Id = $"Question_{moduleType}_1",
             Title = $"{moduleType}操作题",
             Content = $"完成{moduleType}相关操作",
-            Score = 100, // 默认总分100
+            Score = 100,
             OperationPoints = new List<OperationPointModel>()
         };
 
-        // 添加一个基本的操作点
         OperationPointModel operationPoint = new()
         {
             Id = $"OP_{moduleType}_1",
@@ -420,11 +591,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
         question.OperationPoints.Add(operationPoint);
         module.Questions.Add(question);
-        examModel.Modules.Add(module);
 
-        return examModel;
+        return module;
     }
-
 
     /// <summary>
     /// 获取模块类型描述

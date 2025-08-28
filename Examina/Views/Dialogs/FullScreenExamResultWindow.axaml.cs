@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -20,16 +20,6 @@ public partial class FullScreenExamResultWindow : Window
     private readonly FullScreenExamResultViewModel? _viewModel;
     private bool _canClose = false;
     private TaskCompletionSource<bool>? _closeTaskSource;
-
-    // 自动收起/展开相关字段
-    private bool _isCollapsed = false;
-    private double _originalHeight = 800;
-    private double _collapsedHeight = 50;
-    private System.Timers.Timer? _collapseTimer;
-    private System.Timers.Timer? _expandTimer;
-    private const double MouseSensorRange = 50; // 鼠标感应范围（像素）
-    private const int CollapseDelay = 3000; // 收起延迟（毫秒）
-    private const int ExpandDelay = 200; // 展开延迟（毫秒）
 
     /// <summary>
     /// 默认构造函数
@@ -76,14 +66,6 @@ public partial class FullScreenExamResultWindow : Window
         Topmost = true;
         ShowInTaskbar = false;
 
-        // 获取屏幕尺寸并设置原始高度
-        PixelSize? screenSize = Screens.Primary?.Bounds.Size;
-        if (screenSize.HasValue)
-        {
-            _originalHeight = screenSize.Value.Height;
-            Height = _originalHeight;
-        }
-
         // 设置亚克力效果
         TransparencyLevelHint = new[]
         {
@@ -113,13 +95,6 @@ public partial class FullScreenExamResultWindow : Window
         // 处理键盘事件
         KeyDown += OnKeyDown;
 
-        // 鼠标事件处理
-        PointerEntered += FullScreenExamResultWindow_PointerEntered;
-        PointerExited += FullScreenExamResultWindow_PointerExited;
-
-        // 初始化定时器
-        InitializeTimers();
-
         // 设置命令订阅
         if (_viewModel != null)
         {
@@ -139,16 +114,6 @@ public partial class FullScreenExamResultWindow : Window
         {
             e.Cancel = true;
             System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 阻止窗口关闭");
-        }
-        else
-        {
-            // 清理定时器资源
-            _collapseTimer?.Stop();
-            _collapseTimer?.Dispose();
-            _expandTimer?.Stop();
-            _expandTimer?.Dispose();
-
-            System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 定时器资源已清理");
         }
     }
 
@@ -178,95 +143,8 @@ public partial class FullScreenExamResultWindow : Window
     {
         _canClose = true;
         _closeTaskSource?.SetResult(true);
-
-        // 清理定时器
-        _collapseTimer?.Stop();
-        _collapseTimer?.Dispose();
-        _expandTimer?.Stop();
-        _expandTimer?.Dispose();
-
         Close();
         System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 窗口已关闭");
-    }
-
-    /// <summary>
-    /// 初始化定时器
-    /// </summary>
-    private void InitializeTimers()
-    {
-        // 收起定时器
-        _collapseTimer = new System.Timers.Timer(CollapseDelay);
-        _collapseTimer.Elapsed += (sender, e) =>
-        {
-            _collapseTimer?.Stop();
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => CollapseWindow());
-        };
-        _collapseTimer.AutoReset = false;
-
-        // 展开定时器
-        _expandTimer = new System.Timers.Timer(ExpandDelay);
-        _expandTimer.Elapsed += (sender, e) =>
-        {
-            _expandTimer?.Stop();
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ExpandWindow());
-        };
-        _expandTimer.AutoReset = false;
-
-        System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 定时器初始化完成");
-    }
-
-    /// <summary>
-    /// 鼠标进入事件处理
-    /// </summary>
-    private void FullScreenExamResultWindow_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        _collapseTimer?.Stop();
-
-        if (_isCollapsed)
-        {
-            _expandTimer?.Start();
-        }
-
-        System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 鼠标进入窗口区域");
-    }
-
-    /// <summary>
-    /// 鼠标离开事件处理
-    /// </summary>
-    private void FullScreenExamResultWindow_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        _expandTimer?.Stop();
-
-        if (!_isCollapsed)
-        {
-            _collapseTimer?.Start();
-        }
-
-        System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 鼠标离开窗口区域");
-    }
-
-    /// <summary>
-    /// 收起窗口
-    /// </summary>
-    private void CollapseWindow()
-    {
-        if (_isCollapsed) return;
-
-        _isCollapsed = true;
-        Height = _collapsedHeight;
-        System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 窗口已收起");
-    }
-
-    /// <summary>
-    /// 展开窗口
-    /// </summary>
-    private void ExpandWindow()
-    {
-        if (!_isCollapsed) return;
-
-        _isCollapsed = false;
-        Height = _originalHeight;
-        System.Diagnostics.Debug.WriteLine("FullScreenExamResultWindow: 窗口已展开");
     }
 
     /// <summary>
