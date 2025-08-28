@@ -509,6 +509,9 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
+        // 处理路径格式兼容性
+        filePath = NormalizePath(filePath);
+
         result.IsCorrect = FileExists(filePath);
         result.Details = result.IsCorrect ? $"文件 {filePath} 已创建" : $"文件 {filePath} 不存在";
 
@@ -522,11 +525,24 @@ public class WindowsScoringService : IWindowsScoringService
     {
         KnowledgePointResult result = new() { IsCorrect = false };
 
-        if (!parameters.TryGetValue("FilePath", out string? filePath) || string.IsNullOrEmpty(filePath))
+        // 支持多种参数名称：FilePath（BS标准）和TargetPath（EL导出）
+        string? filePath = null;
+        if (parameters.TryGetValue("FilePath", out filePath) && !string.IsNullOrEmpty(filePath))
         {
-            result.ErrorMessage = "缺少文件路径参数";
+            // 使用BS标准参数名
+        }
+        else if (parameters.TryGetValue("TargetPath", out filePath) && !string.IsNullOrEmpty(filePath))
+        {
+            // 使用EL导出参数名
+        }
+        else
+        {
+            result.ErrorMessage = "缺少文件路径参数（FilePath或TargetPath）";
             return result;
         }
+
+        // 处理路径格式兼容性：将EL导出的路径格式转换为标准格式
+        filePath = NormalizePath(filePath);
 
         result.IsCorrect = !FileExists(filePath);
         result.Details = result.IsCorrect ? $"文件 {filePath} 已删除" : $"文件 {filePath} 仍然存在";
@@ -546,6 +562,9 @@ public class WindowsScoringService : IWindowsScoringService
             result.ErrorMessage = "缺少目标文件路径参数";
             return result;
         }
+
+        // 处理路径格式兼容性
+        destinationPath = NormalizePath(destinationPath);
 
         result.IsCorrect = FileExists(destinationPath);
         result.Details = result.IsCorrect ? $"文件已复制到 {destinationPath}" : $"目标文件 {destinationPath} 不存在";
@@ -638,6 +657,10 @@ public class WindowsScoringService : IWindowsScoringService
             result.ErrorMessage = "缺少新名称参数";
             return result;
         }
+
+        // 处理路径格式兼容性：将EL导出的路径格式转换为标准格式
+        sourcePath = NormalizePath(sourcePath);
+        destinationPath = NormalizePath(destinationPath);
 
         // 构建最终的目标文件路径（目标路径 + 新名称）
         string finalDestinationPath = Path.Combine(destinationPath, newName);
@@ -1315,5 +1338,37 @@ public class WindowsScoringService : IWindowsScoringService
     {
         // Windows打分服务不依赖特定文件扩展名，返回空列表
         return [];
+    }
+
+    /// <summary>
+    /// 标准化路径格式，处理EL导出的路径格式兼容性
+    /// </summary>
+    /// <param name="path">原始路径</param>
+    /// <returns>标准化后的路径</returns>
+    private static string NormalizePath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return path;
+        }
+
+        // 处理EL导出的路径格式：\WINDOWS\calc.exe -> C:\WINDOWS\calc.exe
+        if (path.StartsWith("\\") && !path.StartsWith("\\\\"))
+        {
+            // 如果路径以单个反斜杠开头，添加C:前缀
+            path = "C:" + path;
+        }
+
+        // 标准化路径分隔符
+        path = path.Replace('/', '\\');
+
+        // 处理相对路径
+        if (!Path.IsPathRooted(path))
+        {
+            // 如果是相对路径，转换为绝对路径
+            path = Path.GetFullPath(path);
+        }
+
+        return path;
     }
 }

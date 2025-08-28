@@ -2,9 +2,11 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
 using Examina.Services;
 using Examina.ViewModels.Pages;
+using Examina.Views.Windows;
 using FluentAvalonia.UI.Controls;
 using Prism.Commands;
 using ReactiveUI;
@@ -122,7 +124,19 @@ public class MainViewModel : ViewModelBase, IDisposable
 
     private void UnlockAds()
     {
-
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            Avalonia.Controls.Window? mainWindow = desktop.MainWindow;
+            if (mainWindow != null)
+            {
+                UnlockPromotionWindow unlockWindow = new();
+                _ = unlockWindow.ShowDialog(mainWindow);
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 无法获取桌面应用程序生命周期");
+        }
     }
 
     #endregion
@@ -464,13 +478,11 @@ public class MainViewModel : ViewModelBase, IDisposable
             {
                 return new OverviewViewModel(comprehensiveTrainingService, studentExamService, studentMockExamService);
             }
-            else if (comprehensiveTrainingService != null && studentExamService != null)
-            {
-                return new OverviewViewModel(comprehensiveTrainingService, studentExamService);
-            }
             else
             {
-                return comprehensiveTrainingService != null ? new OverviewViewModel(comprehensiveTrainingService) : new OverviewViewModel();
+                return comprehensiveTrainingService != null && studentExamService != null
+                    ? new OverviewViewModel(comprehensiveTrainingService, studentExamService)
+                    : comprehensiveTrainingService != null ? new OverviewViewModel(comprehensiveTrainingService) : new OverviewViewModel();
             }
         }
         catch (Exception)
