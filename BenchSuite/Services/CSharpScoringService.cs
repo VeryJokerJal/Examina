@@ -553,26 +553,42 @@ public class CSharpScoringService : ICSharpScoringService
     {
         try
         {
-            // 从题目的操作点中提取C#相关信息
-            List<OperationPointModel> csharpOperationPoints = question.OperationPoints
-                .Where(op => op.ModuleType == ModuleType.CSharp)
-                .ToList();
+            // 调试信息：记录题目基本信息
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 提取C#题目信息 - 题目ID: {question.Id}, 标题: {question.Title}");
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 题目类型: {question.QuestionType}, C#题目类型: {question.CSharpQuestionType}");
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 操作点数量: {question.OperationPoints?.Count ?? 0}");
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] CodeBlanks数量: {question.CodeBlanks?.Count ?? 0}");
 
-            if (csharpOperationPoints.Count == 0)
+            // 从题目的操作点中提取C#相关信息
+            List<OperationPointModel> csharpOperationPoints = [.. (question.OperationPoints ?? [])
+                .Where(op => op.ModuleType == ModuleType.CSharp)];
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] C#操作点数量: {csharpOperationPoints.Count}");
+
+            // 修改逻辑：即使没有C#操作点，也尝试从其他字段提取信息
+            // 这适用于EL和EW项目中直接在题目级别存储C#信息的情况
+            bool hasDirectCSharpInfo = !string.IsNullOrWhiteSpace(question.CSharpQuestionType) ||
+                                      (question.CodeBlanks != null && question.CodeBlanks.Count > 0);
+
+            if (csharpOperationPoints.Count == 0 && !hasDirectCSharpInfo)
             {
+                System.Diagnostics.Debug.WriteLine("[DEBUG] 没有找到C#操作点且没有直接的C#信息，返回null");
                 return null;
             }
 
             // 确定评分模式
             CSharpScoringMode scoringMode = DetermineScoringMode(question);
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 确定的评分模式: {scoringMode}");
 
             // 提取模板代码
             string templateCode = ExtractTemplateCode(question, csharpOperationPoints);
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 提取的模板代码长度: {templateCode.Length}");
 
             // 提取期望实现
             List<string> expectedImplementations = ExtractExpectedImplementations(question, csharpOperationPoints, scoringMode);
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 提取的期望实现数量: {expectedImplementations.Count}");
 
-            return new CSharpQuestionInfo
+            CSharpQuestionInfo result = new()
             {
                 ScoringMode = scoringMode,
                 TemplateCode = templateCode,
@@ -580,9 +596,14 @@ public class CSharpScoringService : ICSharpScoringService
                 QuestionId = question.Id,
                 QuestionTitle = question.Title
             };
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 最终结果 - 模板代码为空: {string.IsNullOrEmpty(result.TemplateCode)}, 期望实现为空: {result.ExpectedImplementations.Count == 0}");
+
+            return result;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[ERROR] 提取C#题目信息时发生异常: {ex.Message}");
             return null;
         }
     }
@@ -594,16 +615,38 @@ public class CSharpScoringService : ICSharpScoringService
     /// <returns>评分模式</returns>
     private static CSharpScoringMode DetermineScoringMode(QuestionModel question)
     {
-        // 从题目类型或操作点中确定模式
-        string questionType = question.QuestionType?.ToLowerInvariant() ?? "";
+        // 优先从C#专用字段中确定模式（适用于EL和EW项目）
+        if (!string.IsNullOrWhiteSpace(question.CSharpQuestionType))
+        {
+            string csharpType = question.CSharpQuestionType.ToLowerInvariant();
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 从CSharpQuestionType确定模式: {csharpType}");
 
-        return questionType switch
+            CSharpScoringMode mode = csharpType switch
+            {
+                "codecompletion" => CSharpScoringMode.CodeCompletion,
+                "debugging" => CSharpScoringMode.Debugging,
+                "implementation" => CSharpScoringMode.Implementation,
+                _ => CSharpScoringMode.CodeCompletion
+            };
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 映射结果: {mode}");
+            return mode;
+        }
+
+        // 从通用题目类型中确定模式
+        string questionType = question.QuestionType?.ToLowerInvariant() ?? "";
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] 从QuestionType确定模式: {questionType}");
+
+        CSharpScoringMode fallbackMode = questionType switch
         {
             "codecompletion" => CSharpScoringMode.CodeCompletion,
             "debugging" => CSharpScoringMode.Debugging,
             "implementation" => CSharpScoringMode.Implementation,
             _ => CSharpScoringMode.CodeCompletion // 默认为代码补全模式
         };
+
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] 最终确定的模式: {fallbackMode}");
+        return fallbackMode;
     }
 
     /// <summary>
@@ -614,22 +657,31 @@ public class CSharpScoringService : ICSharpScoringService
     /// <returns>模板代码</returns>
     private static string ExtractTemplateCode(QuestionModel question, List<OperationPointModel> operationPoints)
     {
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] 开始提取模板代码，操作点数量: {operationPoints.Count}");
+
         // 优先从操作点参数中查找模板代码
         foreach (OperationPointModel op in operationPoints)
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 检查操作点: {op.Name}, 参数数量: {op.Parameters?.Count ?? 0}");
+
             ConfigurationParameterModel? templateParam = op.Parameters?.FirstOrDefault(p =>
                 p.Name.Equals("TemplateCode", StringComparison.OrdinalIgnoreCase) ||
                 p.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
 
             if (templateParam != null && !string.IsNullOrWhiteSpace(templateParam.Value))
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 从操作点参数中找到模板代码，长度: {templateParam.Value.Length}");
                 return templateParam.Value;
             }
         }
 
+        System.Diagnostics.Debug.WriteLine("[DEBUG] 操作点中未找到模板代码，尝试从题目内容中提取");
+
         // 如果没有找到，尝试从题目内容中提取
         if (!string.IsNullOrWhiteSpace(question.Content))
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 题目内容长度: {question.Content.Length}");
+
             // 查找代码块标记
             System.Text.RegularExpressions.Match codeBlockMatch = System.Text.RegularExpressions.Regex.Match(
                 question.Content,
@@ -638,14 +690,20 @@ public class CSharpScoringService : ICSharpScoringService
 
             if (codeBlockMatch.Success)
             {
-                return codeBlockMatch.Groups[1].Value.Trim();
+                string extractedCode = codeBlockMatch.Groups[1].Value.Trim();
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 从题目内容中提取到模板代码，长度: {extractedCode.Length}");
+                return extractedCode;
             }
         }
+
+        System.Diagnostics.Debug.WriteLine("[DEBUG] 题目内容中未找到代码块，尝试从CodeBlanks中提取");
 
         // 如果仍然没有找到，尝试从CodeBlanks中构建模板代码
         // 这适用于EL和EW项目中使用CodeBlanks字段的情况
         if (question.CodeBlanks != null && question.CodeBlanks.Count > 0)
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] CodeBlanks数量: {question.CodeBlanks.Count}");
+
             // 从CodeBlanks的描述中提取模板代码
             // 通常第一个CodeBlank的Description包含完整的模板代码
             CodeBlankModel? firstBlank = question.CodeBlanks
@@ -653,24 +711,38 @@ public class CSharpScoringService : ICSharpScoringService
                 .OrderBy(cb => cb.Order)
                 .FirstOrDefault();
 
-            if (firstBlank != null && firstBlank.Description.Contains("throw new NotImplementedException"))
+            if (firstBlank != null)
             {
-                return firstBlank.Description;
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 找到第一个有效CodeBlank，描述长度: {firstBlank.Description.Length}");
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 是否包含NotImplementedException: {firstBlank.Description.Contains("throw new NotImplementedException")}");
+
+                if (firstBlank.Description.Contains("throw new NotImplementedException"))
+                {
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] 从第一个CodeBlank的描述中提取模板代码");
+                    return firstBlank.Description;
+                }
             }
 
             // 如果没有找到包含NotImplementedException的描述，
             // 尝试从所有CodeBlanks的描述中组合模板代码
-            string combinedTemplate = string.Join("\n", question.CodeBlanks
+            List<string> descriptions = [.. question.CodeBlanks
                 .Where(cb => cb.IsEnabled && !string.IsNullOrWhiteSpace(cb.Description))
                 .OrderBy(cb => cb.Order)
-                .Select(cb => cb.Description));
+                .Select(cb => cb.Description)];
 
-            if (!string.IsNullOrWhiteSpace(combinedTemplate))
+            if (descriptions.Count > 0)
             {
-                return combinedTemplate;
+                string combinedTemplate = string.Join("\n", descriptions);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 组合所有CodeBlank描述，总长度: {combinedTemplate.Length}");
+
+                if (!string.IsNullOrWhiteSpace(combinedTemplate))
+                {
+                    return combinedTemplate;
+                }
             }
         }
 
+        System.Diagnostics.Debug.WriteLine("[DEBUG] 所有方法都未能提取到模板代码，返回空字符串");
         return string.Empty;
     }
 
@@ -684,10 +756,13 @@ public class CSharpScoringService : ICSharpScoringService
     private static List<string> ExtractExpectedImplementations(QuestionModel question, List<OperationPointModel> operationPoints, CSharpScoringMode scoringMode)
     {
         List<string> implementations = [];
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] 开始提取期望实现，评分模式: {scoringMode}, 操作点数量: {operationPoints.Count}");
 
         // 首先从操作点参数中查找
         foreach (OperationPointModel op in operationPoints)
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 检查操作点: {op.Name}, 参数数量: {op.Parameters?.Count ?? 0}");
+
             // 根据评分模式查找不同的参数
             string[] paramNames = scoringMode switch
             {
@@ -697,6 +772,8 @@ public class CSharpScoringService : ICSharpScoringService
                 _ => ["ExpectedImplementation", "Expected"]
             };
 
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 查找参数名: [{string.Join(", ", paramNames)}]");
+
             foreach (string paramName in paramNames)
             {
                 ConfigurationParameterModel? param = op.Parameters?.FirstOrDefault(p =>
@@ -704,28 +781,44 @@ public class CSharpScoringService : ICSharpScoringService
 
                 if (param != null && !string.IsNullOrWhiteSpace(param.Value))
                 {
+                    System.Diagnostics.Debug.WriteLine($"[DEBUG] 从操作点参数中找到期望实现: {paramName}, 长度: {param.Value.Length}");
                     implementations.Add(param.Value);
                     break; // 找到一个就跳出内层循环
                 }
             }
         }
 
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] 从操作点中找到的期望实现数量: {implementations.Count}");
+
         // 如果从操作点中没有找到期望实现，且是代码补全模式，则从CodeBlanks中提取
         if (implementations.Count == 0 && scoringMode == CSharpScoringMode.CodeCompletion &&
             question.CodeBlanks != null && question.CodeBlanks.Count > 0)
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 尝试从CodeBlanks中提取期望实现，CodeBlanks数量: {question.CodeBlanks.Count}");
+
             // 从CodeBlanks的StandardAnswer中提取期望实现
             List<string> standardAnswers = [.. question.CodeBlanks
                 .Where(cb => cb.IsEnabled && !string.IsNullOrWhiteSpace(cb.StandardAnswer))
                 .OrderBy(cb => cb.Order)
                 .Select(cb => cb.StandardAnswer!)];
 
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 找到有效StandardAnswer的数量: {standardAnswers.Count}");
+
             if (standardAnswers.Count > 0)
             {
                 implementations.AddRange(standardAnswers);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 从CodeBlanks中添加了 {standardAnswers.Count} 个期望实现");
+
+                // 输出每个StandardAnswer的详细信息
+                for (int i = 0; i < standardAnswers.Count; i++)
+                {
+                    string preview = standardAnswers[i].Length > 50 ? standardAnswers[i][..50] + "..." : standardAnswers[i];
+                    System.Diagnostics.Debug.WriteLine($"[DEBUG] StandardAnswer[{i}]: {preview}");
+                }
             }
         }
 
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] 最终提取到的期望实现数量: {implementations.Count}");
         return implementations;
     }
 
