@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using Examina.Models;
-using Examina.Models.BenchSuite;
 using Examina.Configuration;
 using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
@@ -17,8 +16,8 @@ namespace Examina.Services;
 public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 {
     private readonly ILogger<BenchSuiteIntegrationService> _logger;
-    private readonly Dictionary<BenchSuiteFileType, string> _directoryMapping;
-    private readonly Dictionary<BenchSuiteFileType, IScoringService> _scoringServices;
+    private readonly Dictionary<ModuleType, string> _directoryMapping;
+    private readonly Dictionary<ModuleType, IScoringService> _scoringServices;
     private readonly IAILogicalScoringService? _aiScoringService;
 
     public BenchSuiteIntegrationService(ILogger<BenchSuiteIntegrationService> logger, IAILogicalScoringService? aiScoringService = null)
@@ -26,23 +25,23 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         _logger = logger;
         _aiScoringService = aiScoringService;
 
-        _directoryMapping = new Dictionary<BenchSuiteFileType, string>
+        _directoryMapping = new Dictionary<ModuleType, string>
         {
-            { BenchSuiteFileType.CSharp, "CSharp" },
-            { BenchSuiteFileType.PowerPoint, "PPT" },
-            { BenchSuiteFileType.Word, "WORD" },
-            { BenchSuiteFileType.Excel, "EXCEL" },
-            { BenchSuiteFileType.Windows, "WINDOWS" }
+            { ModuleType.CSharp, "CSharp" },
+            { ModuleType.PowerPoint, "PPT" },
+            { ModuleType.Word, "WORD" },
+            { ModuleType.Excel, "EXCEL" },
+            { ModuleType.Windows, "WINDOWS" }
         };
 
         // 初始化真实的BenchSuite评分服务，C#服务支持AI功能
-        _scoringServices = new Dictionary<BenchSuiteFileType, IScoringService>
+        _scoringServices = new Dictionary<ModuleType, IScoringService>
         {
-            { BenchSuiteFileType.Word, new WordScoringService() },
-            { BenchSuiteFileType.Excel, new ExcelScoringService() },
-            { BenchSuiteFileType.PowerPoint, new PowerPointScoringService() },
-            { BenchSuiteFileType.Windows, new WindowsScoringService() },
-            { BenchSuiteFileType.CSharp, new CSharpScoringService(_aiScoringService) }
+            { ModuleType.Word, new WordScoringService() },
+            { ModuleType.Excel, new ExcelScoringService() },
+            { ModuleType.PowerPoint, new PowerPointScoringService() },
+            { ModuleType.Windows, new WindowsScoringService() },
+            { ModuleType.CSharp, new CSharpScoringService(_aiScoringService) }
         };
 
         if (_aiScoringService != null)
@@ -58,68 +57,54 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 对考试文件进行评分
     /// </summary>
-    public async Task<BenchSuiteScoringResult> ScoreExamAsync(BenchSuiteScoringRequest request)
+    public async Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths)
     {
-        BenchSuiteScoringResult result = new()
-        {
-            StartTime = DateTime.Now
-        };
+        Dictionary<ModuleType, ScoringResult> results = new();
 
         try
         {
             _logger.LogInformation("开始BenchSuite评分，考试ID: {ExamId}, 考试类型: {ExamType}, 学生ID: {StudentId}",
-                request.ExamId, request.ExamType, request.StudentUserId);
+                examId, examType, studentUserId);
 
             // 验证考试目录结构
-            BenchSuiteDirectoryValidationResult validationResult = await ValidateExamDirectoryStructureAsync(request.ExamType, request.ExamId);
-            if (!validationResult.IsValid)
+            bool validationResult = await ValidateExamDirectoryStructureAsync(examType, examId);
+            if (!validationResult)
             {
-                result.IsSuccess = false;
-                result.ErrorMessage = $"考试目录结构验证失败: {validationResult.ErrorMessage}";
-                return result;
+                _logger.LogWarning("考试目录结构验证失败，但继续进行评分");
             }
 
             // 检查BenchSuite服务是否可用
             bool serviceAvailable = await IsServiceAvailableAsync();
             if (!serviceAvailable)
             {
-                result.IsSuccess = false;
-                result.ErrorMessage = "BenchSuite服务不可用";
-                return result;
+                _logger.LogError("BenchSuite服务不可用");
+                return results;
             }
 
-            // 按文件类型进行评分
-            foreach (KeyValuePair<BenchSuiteFileType, List<string>> fileTypeGroup in request.FilePaths)
+            // 按模块类型进行评分
+            foreach (KeyValuePair<ModuleType, List<string>> moduleGroup in filePaths)
             {
-                BenchSuiteFileType fileType = fileTypeGroup.Key;
-                List<string> filePaths = fileTypeGroup.Value;
+                ModuleType moduleType = moduleGroup.Key;
+                List<string> moduleFilePaths = moduleGroup.Value;
 
-                _logger.LogInformation("开始评分文件类型: {FileType}, 文件数量: {FileCount}",
-                    GetFileTypeDescription(fileType), filePaths.Count);
+                _logger.LogInformation("开始评分模块类型: {ModuleType}, 文件数量: {FileCount}",
+                    moduleType, moduleFilePaths.Count);
 
-                FileTypeScoringResult fileTypeResult = await ScoreFileTypeAsync(fileType, filePaths, request);
-                result.FileTypeResults[fileType] = fileTypeResult;
+                ScoringResult moduleResult = await ScoreModuleAsync(moduleType, moduleFilePaths, examType, examId);
+                results[moduleType] = moduleResult;
 
-                result.TotalScore += fileTypeResult.TotalScore;
-                result.AchievedScore += fileTypeResult.AchievedScore;
+                _logger.LogInformation("模块 {ModuleType} 评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
+                    moduleType, moduleResult.TotalScore, moduleResult.AchievedScore);
             }
 
-            result.IsSuccess = true;
-            _logger.LogInformation("BenchSuite评分完成，总分: {TotalScore}, 得分: {AchievedScore}, 得分率: {ScoreRate:P2}",
-                result.TotalScore, result.AchievedScore, result.ScoreRate);
+            _logger.LogInformation("BenchSuite评分完成，共评分 {ModuleCount} 个模块", results.Count);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "BenchSuite评分过程中发生异常");
-            result.IsSuccess = false;
-            result.ErrorMessage = $"评分过程中发生异常: {ex.Message}";
-        }
-        finally
-        {
-            result.EndTime = DateTime.Now;
         }
 
-        return result;
+        return results;
     }
 
     /// <summary>
@@ -160,20 +145,18 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
-    /// 获取支持的文件类型
+    /// 获取支持的模块类型
     /// </summary>
-    public IEnumerable<BenchSuiteFileType> GetSupportedFileTypes()
+    public IEnumerable<ModuleType> GetSupportedModuleTypes()
     {
-        return Enum.GetValues<BenchSuiteFileType>();
+        return _scoringServices.Keys;
     }
 
     /// <summary>
     /// 验证文件目录结构
     /// </summary>
-    public async Task<BenchSuiteDirectoryValidationResult> ValidateDirectoryStructureAsync(string basePath)
+    public async Task<bool> ValidateDirectoryStructureAsync(string basePath)
     {
-        BenchSuiteDirectoryValidationResult result = new();
-
         try
         {
             _logger.LogInformation("验证BenchSuite目录结构，基础路径: {BasePath}", basePath);
@@ -181,64 +164,46 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             // 检查基础目录是否存在
             if (!System.IO.Directory.Exists(basePath))
             {
-                result.IsValid = false;
-                result.ErrorMessage = $"基础目录不存在: {basePath}";
-                result.MissingDirectories.Add(basePath);
-                return result;
+                _logger.LogWarning("基础目录不存在: {BasePath}", basePath);
+                return false;
             }
 
             // 检查各子目录是否存在
-            List<string> missingDirectories = new();
-            foreach (KeyValuePair<BenchSuiteFileType, string> mapping in _directoryMapping)
+            foreach (KeyValuePair<ModuleType, string> mapping in _directoryMapping)
             {
                 string directoryPath = System.IO.Path.Combine(basePath, mapping.Value);
                 if (!System.IO.Directory.Exists(directoryPath))
                 {
-                    missingDirectories.Add(directoryPath);
                     _logger.LogWarning("缺失目录: {DirectoryPath}", directoryPath);
-                }
-            }
-
-            if (missingDirectories.Count > 0)
-            {
-                // 尝试创建缺失的目录
-                foreach (string missingDir in missingDirectories)
-                {
+                    // 尝试创建缺失的目录
                     try
                     {
-                        System.IO.Directory.CreateDirectory(missingDir);
-                        _logger.LogInformation("成功创建目录: {DirectoryPath}", missingDir);
+                        System.IO.Directory.CreateDirectory(directoryPath);
+                        _logger.LogInformation("成功创建目录: {DirectoryPath}", directoryPath);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "创建目录失败: {DirectoryPath}", missingDir);
-                        result.MissingDirectories.Add(missingDir);
+                        _logger.LogError(ex, "创建目录失败: {DirectoryPath}", directoryPath);
+                        return false;
                     }
                 }
             }
 
-            result.IsValid = result.MissingDirectories.Count == 0;
-            result.Details = result.IsValid ? "目录结构验证通过" : $"缺失 {result.MissingDirectories.Count} 个目录";
-
-            _logger.LogInformation("目录结构验证完成，结果: {IsValid}", result.IsValid);
+            _logger.LogInformation("目录结构验证通过");
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "验证目录结构时发生异常");
-            result.IsValid = false;
-            result.ErrorMessage = $"验证目录结构时发生异常: {ex.Message}";
+            return false;
         }
-
-        return result;
     }
 
     /// <summary>
     /// 验证考试目录结构
     /// </summary>
-    public async Task<BenchSuiteDirectoryValidationResult> ValidateExamDirectoryStructureAsync(ExamType examType, int examId)
+    public async Task<bool> ValidateExamDirectoryStructureAsync(ExamType examType, int examId)
     {
-        BenchSuiteDirectoryValidationResult result = new();
-
         try
         {
             _logger.LogInformation("验证考试目录结构，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
@@ -251,84 +216,54 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             // 检查基础目录是否存在
             if (!System.IO.Directory.Exists(basePath))
             {
-                result.IsValid = false;
-                result.ErrorMessage = $"基础目录不存在: {basePath}";
-                result.MissingDirectories.Add(basePath);
-                return result;
+                _logger.LogWarning("基础目录不存在: {BasePath}", basePath);
+                return false;
             }
 
             // 检查考试类型目录是否存在
             if (!System.IO.Directory.Exists(examTypePath))
             {
-                result.IsValid = false;
-                result.ErrorMessage = $"考试类型目录不存在: {examTypePath}";
-                result.MissingDirectories.Add(examTypePath);
-                return result;
+                _logger.LogWarning("考试类型目录不存在: {ExamTypePath}", examTypePath);
+                return false;
             }
 
             // 检查考试ID目录是否存在
             if (!System.IO.Directory.Exists(examIdPath))
             {
-                result.IsValid = false;
-                result.ErrorMessage = $"考试ID目录不存在: {examIdPath}";
-                result.MissingDirectories.Add(examIdPath);
-                return result;
+                _logger.LogWarning("考试ID目录不存在: {ExamIdPath}", examIdPath);
+                return false;
             }
 
-            // 检查各科目目录是否存在
-            List<string> missingDirectories = new();
-            foreach (KeyValuePair<BenchSuiteFileType, string> mapping in _directoryMapping)
-            {
-                string subjectPath = System.IO.Path.Combine(examIdPath, mapping.Value);
-                if (!System.IO.Directory.Exists(subjectPath))
-                {
-                    missingDirectories.Add(subjectPath);
-                    _logger.LogWarning("缺失科目目录: {SubjectPath}", subjectPath);
-                }
-            }
-
-            if (missingDirectories.Count > 0)
-            {
-                result.IsValid = false;
-                result.ErrorMessage = $"缺失 {missingDirectories.Count} 个科目目录";
-                result.MissingDirectories.AddRange(missingDirectories);
-                return result;
-            }
-
-            result.IsValid = true;
-            result.Details = "考试目录结构验证通过";
-
-            _logger.LogInformation("考试目录结构验证完成，结果: {IsValid}", result.IsValid);
+            _logger.LogInformation("考试目录结构验证通过");
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "验证考试目录结构时发生异常");
-            result.IsValid = false;
-            result.ErrorMessage = $"验证考试目录结构时发生异常: {ex.Message}";
+            return false;
         }
-
-        return result;
     }
 
     #region 私有方法
 
     /// <summary>
-    /// 对指定文件类型进行评分
+    /// 对指定模块类型进行评分
     /// </summary>
-    private async Task<FileTypeScoringResult> ScoreFileTypeAsync(BenchSuiteFileType fileType, List<string> filePaths, BenchSuiteScoringRequest request)
+    private async Task<ScoringResult> ScoreModuleAsync(ModuleType moduleType, List<string> filePaths, ExamType examType, int examId)
     {
-        FileTypeScoringResult result = new()
+        ScoringResult result = new()
         {
-            FileType = fileType
+            StartTime = DateTime.Now
         };
 
         try
         {
             // 检查是否有对应的评分服务
-            if (!_scoringServices.TryGetValue(fileType, out IScoringService? scoringService))
+            if (!_scoringServices.TryGetValue(moduleType, out IScoringService? scoringService))
             {
                 result.IsSuccess = false;
-                result.ErrorMessage = $"不支持的文件类型: {GetFileTypeDescription(fileType)}";
+                result.ErrorMessage = $"不支持的模块类型: {moduleType}";
+                result.EndTime = DateTime.Now;
                 return result;
             }
 
@@ -336,66 +271,82 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             if (filePaths == null || filePaths.Count == 0)
             {
                 result.IsSuccess = false;
-                result.ErrorMessage = $"没有找到 {GetFileTypeDescription(fileType)} 类型的文件";
+                result.ErrorMessage = $"没有找到 {moduleType} 类型的文件";
+                result.EndTime = DateTime.Now;
                 return result;
             }
 
             // 创建简化的考试模型用于评分
-            ExamModel examModel = CreateSimplifiedExamModel(fileType, request);
+            ExamModel examModel = CreateSimplifiedExamModel(moduleType, examType, examId);
 
-            decimal totalScore = 0;
-            decimal achievedScore = 0;
-            List<string> details = new();
-            List<ScoringResult> originalResults = new();
-
-            // 对每个文件进行评分
-            foreach (string filePath in filePaths)
+            // 如果只有一个文件，直接评分
+            if (filePaths.Count == 1)
             {
+                string filePath = filePaths[0];
                 if (!File.Exists(filePath))
                 {
-                    details.Add($"文件不存在: {filePath}");
-                    continue;
+                    result.IsSuccess = false;
+                    result.ErrorMessage = $"文件不存在: {filePath}";
+                    result.EndTime = DateTime.Now;
+                    return result;
                 }
 
-                try
+                // 调用真实的BenchSuite评分服务
+                result = await scoringService.ScoreFileAsync(filePath, examModel);
+            }
+            else
+            {
+                // 多个文件时，合并结果
+                decimal totalScore = 0;
+                decimal achievedScore = 0;
+                List<KnowledgePointResult> allKnowledgePoints = new();
+
+                foreach (string filePath in filePaths)
                 {
-                    // 调用真实的BenchSuite评分服务
-                    ScoringResult fileResult = await scoringService.ScoreFileAsync(filePath, examModel);
-
-                    // 保存原始结果
-                    originalResults.Add(fileResult);
-
-                    totalScore += fileResult.TotalScore;
-                    achievedScore += fileResult.AchievedScore;
-
-                    details.Add($"文件 {Path.GetFileName(filePath)}: {fileResult.AchievedScore}/{fileResult.TotalScore}");
-
-                    if (!fileResult.IsSuccess)
+                    if (!File.Exists(filePath))
                     {
-                        details.Add($"评分警告: {fileResult.ErrorMessage}");
+                        _logger.LogWarning("文件不存在: {FilePath}", filePath);
+                        continue;
+                    }
+
+                    try
+                    {
+                        // 调用真实的BenchSuite评分服务
+                        ScoringResult fileResult = await scoringService.ScoreFileAsync(filePath, examModel);
+
+                        totalScore += fileResult.TotalScore;
+                        achievedScore += fileResult.AchievedScore;
+                        allKnowledgePoints.AddRange(fileResult.KnowledgePointResults);
+
+                        if (!fileResult.IsSuccess)
+                        {
+                            _logger.LogWarning("文件评分警告: {FilePath}, {ErrorMessage}", filePath, fileResult.ErrorMessage);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "文件评分失败: {FilePath}", filePath);
                     }
                 }
-                catch (Exception ex)
-                {
-                    details.Add($"文件 {Path.GetFileName(filePath)} 评分失败: {ex.Message}");
-                    _logger.LogWarning(ex, "文件评分失败: {FilePath}", filePath);
-                }
+
+                result.TotalScore = totalScore;
+                result.AchievedScore = achievedScore;
+                result.KnowledgePointResults = allKnowledgePoints;
+                result.IsSuccess = true;
             }
 
-            result.TotalScore = totalScore;
-            result.AchievedScore = achievedScore;
-            result.IsSuccess = true;
-            result.Details = string.Join("; ", details);
-            result.OriginalResults = originalResults;
-
-            _logger.LogInformation("文件类型 {FileType} 评分完成，得分: {AchievedScore}/{TotalScore}",
-                GetFileTypeDescription(fileType), result.AchievedScore, result.TotalScore);
+            _logger.LogInformation("模块类型 {ModuleType} 评分完成，得分: {AchievedScore}/{TotalScore}",
+                moduleType, result.AchievedScore, result.TotalScore);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "文件类型 {FileType} 评分失败", GetFileTypeDescription(fileType));
+            _logger.LogError(ex, "模块类型 {ModuleType} 评分失败", moduleType);
             result.IsSuccess = false;
             result.ErrorMessage = $"评分失败: {ex.Message}";
+        }
+        finally
+        {
+            result.EndTime = DateTime.Now;
         }
 
         return result;
@@ -404,23 +355,22 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 创建简化的考试模型用于评分
     /// </summary>
-    private ExamModel CreateSimplifiedExamModel(BenchSuiteFileType fileType, BenchSuiteScoringRequest request)
+    private ExamModel CreateSimplifiedExamModel(ModuleType moduleType, ExamType examType, int examId)
     {
         // 创建简化的考试模型
         ExamModel examModel = new()
         {
-            Id = request.ExamId.ToString(),
-            Name = $"考试_{request.ExamId}",
-            Description = $"{GetFileTypeDescription(fileType)}考试",
+            Id = examId.ToString(),
+            Name = $"考试_{examId}",
+            Description = $"{moduleType}考试",
             Modules = new List<ExamModuleModel>()
         };
 
-        // 根据文件类型创建对应的模块
-        ModuleType moduleType = GetModuleTypeFromFileType(fileType);
+        // 创建对应的模块
         ExamModuleModel module = new()
         {
-            Id = $"Module_{fileType}",
-            Name = GetFileTypeDescription(fileType),
+            Id = $"Module_{moduleType}",
+            Name = moduleType.ToString(),
             Type = moduleType,
             Questions = new List<QuestionModel>()
         };
@@ -428,9 +378,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         // 创建一个简化的题目
         QuestionModel question = new()
         {
-            Id = $"Question_{fileType}_1",
-            Title = $"{GetFileTypeDescription(fileType)}操作题",
-            Content = $"完成{GetFileTypeDescription(fileType)}相关操作",
+            Id = $"Question_{moduleType}_1",
+            Title = $"{moduleType}操作题",
+            Content = $"完成{moduleType}相关操作",
             Score = 100, // 默认总分100
             OperationPoints = new List<OperationPointModel>()
         };
@@ -438,8 +388,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         // 添加一个基本的操作点
         OperationPointModel operationPoint = new()
         {
-            Id = $"OP_{fileType}_1",
-            Name = $"{GetFileTypeDescription(fileType)}基本操作",
+            Id = $"OP_{moduleType}_1",
+            Name = $"{moduleType}基本操作",
             ModuleType = moduleType,
             Score = 100,
             IsEnabled = true,

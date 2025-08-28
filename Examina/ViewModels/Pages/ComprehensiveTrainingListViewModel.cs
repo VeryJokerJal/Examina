@@ -893,7 +893,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示训练结果
     /// </summary>
-    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, BenchSuiteScoringResult? scoringResult = null)
+    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, Dictionary<ModuleType, ScoringResult>? scoringResults = null)
     {
         try
         {
@@ -906,18 +906,21 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 如果没有传入评分结果，创建一个基本的失败结果
-            scoringResult ??= new BenchSuiteScoringResult
+            scoringResults ??= new Dictionary<ModuleType, ScoringResult>
             {
-                IsSuccess = false,
-                ErrorMessage = "未能获取评分结果",
-                TotalScore = 100,
-                AchievedScore = 0,
-                StartTime = _trainingStartTime,
-                EndTime = DateTime.Now
+                [ModuleType.CSharp] = new ScoringResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "未能获取评分结果",
+                    TotalScore = 100,
+                    AchievedScore = 0,
+                    StartTime = _trainingStartTime,
+                    EndTime = DateTime.Now
+                }
             };
 
             // 显示详细的训练结果（使用真实或基本的评分结果）
-            await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
+            await ShowDetailedTrainingResultAsync(training.Name, scoringResults);
         }
         catch
         {
@@ -944,13 +947,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示详细的训练结果
     /// </summary>
-    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult> scoringResults)
     {
         try
         {
             // 创建训练结果ViewModel
             TrainingResultViewModel resultViewModel = new();
-            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
+            resultViewModel.SetTrainingResult(trainingName, scoringResults, _trainingStartTime);
 
             // 创建训练结果窗口
             TrainingResultWindow resultWindow = new()

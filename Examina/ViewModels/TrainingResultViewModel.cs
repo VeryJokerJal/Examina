@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using ReactiveUI;
 using BenchSuite.Models;
 using BenchSuite.Interfaces;
-using Examina.Models.BenchSuite;
+using Examina.Models;
 
 namespace Examina.ViewModels;
 
@@ -149,29 +149,35 @@ public class TrainingResultViewModel : ViewModelBase
     /// 设置训练结果数据
     /// </summary>
     /// <param name="trainingName">训练名称</param>
-    /// <param name="scoringResult">BenchSuite评分结果</param>
+    /// <param name="scoringResults">BenchSuite评分结果字典（按模块类型分组）</param>
     /// <param name="startTime">训练开始时间</param>
-    public void SetTrainingResult(string trainingName, BenchSuiteScoringResult scoringResult, DateTime startTime)
+    public void SetTrainingResult(string trainingName, Dictionary<ModuleType, ScoringResult> scoringResults, DateTime startTime)
     {
         TrainingName = trainingName;
         Title = $"训练结果 - {trainingName}";
-        
-        TotalScore = scoringResult.TotalScore;
-        AchievedScore = scoringResult.AchievedScore;
-        ScoreRate = scoringResult.ScoreRate * 100; // 转换为百分比
-        
-        CompletionTime = scoringResult.EndTime;
-        Duration = scoringResult.EndTime - startTime;
-        
+
+        // 计算总分和得分
+        decimal totalScore = scoringResults.Values.Sum(r => r.TotalScore);
+        decimal achievedScore = scoringResults.Values.Sum(r => r.AchievedScore);
+
+        TotalScore = totalScore;
+        AchievedScore = achievedScore;
+        ScoreRate = totalScore > 0 ? (achievedScore / totalScore) * 100 : 0; // 转换为百分比
+
+        // 获取最晚的结束时间
+        DateTime endTime = scoringResults.Values.Max(r => r.EndTime);
+        CompletionTime = endTime;
+        Duration = endTime - startTime;
+
         // 计算成绩等级
         Grade = CalculateGrade(ScoreRate);
-        
+
         // 处理模块结果
-        ProcessModuleResults(scoringResult);
-        
+        ProcessModuleResults(scoringResults);
+
         // 处理题目结果
-        ProcessQuestionResults(scoringResult);
-        
+        ProcessQuestionResults(scoringResults);
+
         // 更新统计信息
         UpdateStatistics();
     }
@@ -194,34 +200,26 @@ public class TrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 处理模块结果
     /// </summary>
-    private void ProcessModuleResults(BenchSuiteScoringResult scoringResult)
+    private void ProcessModuleResults(Dictionary<ModuleType, ScoringResult> scoringResults)
     {
         ModuleResults.Clear();
-        
-        foreach (KeyValuePair<BenchSuiteFileType, FileTypeScoringResult> kvp in scoringResult.FileTypeResults)
+
+        foreach (KeyValuePair<ModuleType, ScoringResult> kvp in scoringResults)
         {
-            FileTypeScoringResult fileResult = kvp.Value;
-            
+            ScoringResult scoringResult = kvp.Value;
+
             ModuleResultItem moduleItem = new()
             {
-                ModuleName = GetFileTypeDisplayName(kvp.Key),
-                TotalScore = fileResult.TotalScore,
-                AchievedScore = fileResult.AchievedScore,
-                ScoreRate = fileResult.TotalScore > 0 ? fileResult.AchievedScore / fileResult.TotalScore * 100 : 0,
-                IsSuccess = fileResult.IsSuccess,
-                Details = fileResult.Details,
-                ErrorMessage = fileResult.ErrorMessage,
-                FileType = kvp.Key
+                ModuleName = GetModuleTypeDisplayName(kvp.Key),
+                TotalScore = scoringResult.TotalScore,
+                AchievedScore = scoringResult.AchievedScore,
+                ScoreRate = scoringResult.TotalScore > 0 ? scoringResult.AchievedScore / scoringResult.TotalScore * 100 : 0,
+                IsSuccess = scoringResult.IsSuccess,
+                Details = scoringResult.Details ?? string.Empty,
+                ErrorMessage = scoringResult.ErrorMessage,
+                ModuleType = kvp.Key
             };
 
-            // 如果是C#模块，尝试从详细信息中解析AI分析结果
-            if (kvp.Key == BenchSuiteFileType.CSharp)
-            {
-                // 注意：当前FileTypeScoringResult不包含原始CSharpScoringResult
-                // 这里可以在未来版本中添加对AI分析结果的支持
-                // ProcessCSharpAIAnalysis(moduleItem, csharpResult);
-            }
-            
             ModuleResults.Add(moduleItem);
         }
     }
@@ -229,57 +227,51 @@ public class TrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 处理题目结果
     /// </summary>
-    private void ProcessQuestionResults(BenchSuiteScoringResult scoringResult)
+    private void ProcessQuestionResults(Dictionary<ModuleType, ScoringResult> scoringResults)
     {
         QuestionResults.Clear();
 
-        // 从各个文件类型结果中提取真实的题目信息
-        foreach (KeyValuePair<BenchSuiteFileType, FileTypeScoringResult> kvp in scoringResult.FileTypeResults)
+        // 从各个模块结果中提取真实的题目信息
+        foreach (KeyValuePair<ModuleType, ScoringResult> kvp in scoringResults)
         {
-            FileTypeScoringResult fileResult = kvp.Value;
-            string moduleName = GetFileTypeDisplayName(kvp.Key);
+            ScoringResult scoringResult = kvp.Value;
+            string moduleName = GetModuleTypeDisplayName(kvp.Key);
 
-            // 如果有原始结果，从中提取详细的题目信息
-            if (fileResult.OriginalResults != null && fileResult.OriginalResults.Count > 0)
+            // 从知识点结果中提取题目信息
+            foreach (KnowledgePointResult kpResult in scoringResult.KnowledgePointResults)
             {
-                // 从原始结果中提取知识点作为题目
-                foreach (ScoringResult originalResult in fileResult.OriginalResults)
+                QuestionResultItem questionItem = new()
                 {
-                    foreach (KnowledgePointResult kpResult in originalResult.KnowledgePointResults)
-                    {
-                        QuestionResultItem questionItem = new()
-                        {
-                            QuestionId = kpResult.KnowledgePointId,
-                            QuestionTitle = !string.IsNullOrEmpty(kpResult.KnowledgePointName)
-                                ? kpResult.KnowledgePointName
-                                : $"{moduleName} - {kpResult.KnowledgePointType}",
-                            ModuleName = moduleName,
-                            TotalScore = kpResult.TotalScore,
-                            AchievedScore = kpResult.AchievedScore,
-                            IsCorrect = kpResult.IsCorrect,
-                            Details = kpResult.Details,
-                            ErrorMessage = kpResult.ErrorMessage,
-                            ScoreRate = kpResult.TotalScore > 0 ? kpResult.AchievedScore / kpResult.TotalScore * 100 : 0
-                        };
+                    QuestionId = kpResult.KnowledgePointId,
+                    QuestionTitle = !string.IsNullOrEmpty(kpResult.KnowledgePointName)
+                        ? kpResult.KnowledgePointName
+                        : $"{moduleName} - {kpResult.KnowledgePointType}",
+                    ModuleName = moduleName,
+                    TotalScore = kpResult.TotalScore,
+                    AchievedScore = kpResult.AchievedScore,
+                    IsCorrect = kpResult.IsCorrect,
+                    Details = kpResult.Details,
+                    ErrorMessage = kpResult.ErrorMessage,
+                    ScoreRate = kpResult.TotalScore > 0 ? kpResult.AchievedScore / kpResult.TotalScore * 100 : 0
+                };
 
-                        QuestionResults.Add(questionItem);
-                    }
-                }
+                QuestionResults.Add(questionItem);
             }
-            else
+
+            // 如果没有知识点结果，创建基于模块的虚拟题目（向后兼容）
+            if (scoringResult.KnowledgePointResults.Count == 0)
             {
-                // 如果没有原始结果，创建基于文件类型的虚拟题目（向后兼容）
                 QuestionResultItem questionItem = new()
                 {
                     QuestionId = $"{kvp.Key}",
                     QuestionTitle = $"{moduleName}操作题",
                     ModuleName = moduleName,
-                    TotalScore = fileResult.TotalScore,
-                    AchievedScore = fileResult.AchievedScore,
-                    IsCorrect = fileResult.IsSuccess && fileResult.AchievedScore >= fileResult.TotalScore * 0.6m, // 60%及格
-                    Details = fileResult.Details,
-                    ErrorMessage = fileResult.ErrorMessage,
-                    ScoreRate = fileResult.TotalScore > 0 ? fileResult.AchievedScore / fileResult.TotalScore * 100 : 0
+                    TotalScore = scoringResult.TotalScore,
+                    AchievedScore = scoringResult.AchievedScore,
+                    IsCorrect = scoringResult.IsSuccess && scoringResult.AchievedScore >= scoringResult.TotalScore * 0.6m, // 60%及格
+                    Details = scoringResult.Details ?? string.Empty,
+                    ErrorMessage = scoringResult.ErrorMessage,
+                    ScoreRate = scoringResult.TotalScore > 0 ? scoringResult.AchievedScore / scoringResult.TotalScore * 100 : 0
                 };
 
                 QuestionResults.Add(questionItem);
@@ -367,18 +359,18 @@ public class TrainingResultViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 获取文件类型显示名称
+    /// 获取模块类型显示名称
     /// </summary>
-    private static string GetFileTypeDisplayName(BenchSuiteFileType fileType)
+    private static string GetModuleTypeDisplayName(ModuleType moduleType)
     {
-        return fileType switch
+        return moduleType switch
         {
-            BenchSuiteFileType.Word => "Word文档",
-            BenchSuiteFileType.Excel => "Excel表格",
-            BenchSuiteFileType.PowerPoint => "PowerPoint演示文稿",
-            BenchSuiteFileType.CSharp => "C#编程",
-            BenchSuiteFileType.Windows => "Windows操作",
-            _ => fileType.ToString()
+            ModuleType.Word => "Word文档",
+            ModuleType.Excel => "Excel表格",
+            ModuleType.PowerPoint => "PowerPoint演示文稿",
+            ModuleType.CSharp => "C#编程",
+            ModuleType.Windows => "Windows操作",
+            _ => moduleType.ToString()
         };
     }
 }
@@ -424,9 +416,9 @@ public class ModuleResultItem
     public string? ErrorMessage { get; set; }
 
     /// <summary>
-    /// 文件类型
+    /// 模块类型
     /// </summary>
-    public BenchSuiteFileType FileType { get; set; }
+    public ModuleType ModuleType { get; set; }
 
     /// <summary>
     /// 是否有AI分析结果

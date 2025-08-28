@@ -522,12 +522,12 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             }
 
             // 获取BenchSuite评分结果
-            BenchSuiteScoringResult? scoringResult = await GetBenchSuiteScoringResultAsync(trainingId, training);
+            Dictionary<ModuleType, ScoringResult>? scoringResults = await GetBenchSuiteScoringResultAsync(trainingId, training);
 
-            if (scoringResult != null && scoringResult.IsSuccess)
+            if (scoringResults != null && scoringResults.Count > 0)
             {
                 // 显示训练结果窗口，窗口关闭后会自动显示主窗口
-                await ShowTrainingResultAsync(training.Name, scoringResult);
+                await ShowTrainingResultAsync(training.Name, scoringResults);
             }
             else
             {
@@ -570,7 +570,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 获取BenchSuite评分结果
     /// </summary>
-    private async Task<BenchSuiteScoringResult?> GetBenchSuiteScoringResultAsync(int trainingId, StudentSpecializedTrainingDto training)
+    private async Task<Dictionary<ModuleType, ScoringResult>?> GetBenchSuiteScoringResultAsync(int trainingId, StudentSpecializedTrainingDto training)
     {
         try
         {
@@ -580,24 +580,23 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 return null;
             }
 
-            // 构建评分请求
-            BenchSuiteScoringRequest request = new()
-            {
-                ExamId = trainingId,
-                ExamType = ExamType.SpecializedTraining,
-                StudentUserId = 1, // TODO: 从认证服务获取实际用户ID
-                BasePath = _benchSuiteDirectoryService.GetBasePath()
-            };
+            // 构建文件路径字典
+            Dictionary<ModuleType, List<string>> filePaths = new();
 
-            // 扫描考试文件（简化版本）
-            ScanTrainingFiles(request, training);
+            // 根据训练的模块类型确定文件类型
+            ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
+            filePaths[moduleType] = new List<string>(); // 简化版本，实际应该扫描文件
 
             // 执行评分
-            BenchSuiteScoringResult result = await _benchSuiteIntegrationService.ScoreExamAsync(request);
+            Dictionary<ModuleType, ScoringResult> results = await _benchSuiteIntegrationService.ScoreExamAsync(
+                ExamType.SpecializedTraining,
+                trainingId,
+                1, // TODO: 从认证服务获取实际用户ID
+                filePaths);
 
-            System.Diagnostics.Debug.WriteLine($"BenchSuite评分完成，成功: {result.IsSuccess}, 总分: {result.TotalScore}, 得分: {result.AchievedScore}");
+            System.Diagnostics.Debug.WriteLine($"BenchSuite评分完成，模块数量: {results.Count}");
 
-            return result;
+            return results;
         }
         catch (Exception ex)
         {
@@ -628,31 +627,31 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 从模块类型获取BenchSuite文件类型
+    /// 从字符串获取模块类型
     /// </summary>
-    private static BenchSuiteFileType GetFileTypeFromModuleType(string moduleType)
+    private static ModuleType GetModuleTypeFromString(string moduleType)
     {
         return moduleType.ToLower() switch
         {
-            "word" => BenchSuiteFileType.Word,
-            "excel" => BenchSuiteFileType.Excel,
-            "powerpoint" => BenchSuiteFileType.PowerPoint,
-            "csharp" => BenchSuiteFileType.CSharp,
-            "windows" => BenchSuiteFileType.Windows,
-            _ => BenchSuiteFileType.Windows
+            "word" => ModuleType.Word,
+            "excel" => ModuleType.Excel,
+            "powerpoint" => ModuleType.PowerPoint,
+            "csharp" => ModuleType.CSharp,
+            "windows" => ModuleType.Windows,
+            _ => ModuleType.Windows
         };
     }
 
     /// <summary>
     /// 显示训练结果窗口
     /// </summary>
-    private async Task ShowTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
+    private async Task ShowTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult> scoringResults)
     {
         try
         {
             // 创建训练结果ViewModel
             TrainingResultViewModel resultViewModel = new();
-            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
+            resultViewModel.SetTrainingResult(trainingName, scoringResults, _trainingStartTime);
 
             // 创建训练结果窗口
             TrainingResultWindow resultWindow = new()

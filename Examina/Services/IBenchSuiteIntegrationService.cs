@@ -1,5 +1,5 @@
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 
 namespace Examina.Services;
 
@@ -11,9 +11,12 @@ public interface IBenchSuiteIntegrationService
     /// <summary>
     /// 对考试文件进行评分
     /// </summary>
-    /// <param name="request">评分请求</param>
-    /// <returns>评分结果</returns>
-    Task<BenchSuiteScoringResult> ScoreExamAsync(BenchSuiteScoringRequest request);
+    /// <param name="examType">考试类型</param>
+    /// <param name="examId">考试ID</param>
+    /// <param name="studentUserId">学生用户ID</param>
+    /// <param name="filePaths">文件路径字典（按模块类型分组）</param>
+    /// <returns>评分结果字典（按模块类型分组）</returns>
+    Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths);
 
     /// <summary>
     /// 检查BenchSuite服务是否可用
@@ -22,23 +25,23 @@ public interface IBenchSuiteIntegrationService
     Task<bool> IsServiceAvailableAsync();
 
     /// <summary>
-    /// 获取支持的文件类型
+    /// 获取支持的模块类型
     /// </summary>
-    /// <returns>支持的文件类型列表</returns>
-    IEnumerable<BenchSuiteFileType> GetSupportedFileTypes();
+    /// <returns>支持的模块类型列表</returns>
+    IEnumerable<ModuleType> GetSupportedModuleTypes();
 
     /// <summary>
-    /// 验证文件目录结构（旧版本，保持兼容性）
+    /// 验证文件目录结构
     /// </summary>
     /// <param name="basePath">基础路径</param>
-    /// <returns>验证结果</returns>
-    Task<BenchSuiteDirectoryValidationResult> ValidateDirectoryStructureAsync(string basePath);
+    /// <returns>验证是否成功</returns>
+    Task<bool> ValidateDirectoryStructureAsync(string basePath);
 
     /// <summary>
     /// 验证考试目录结构
     /// </summary>
     /// <param name="examType">考试类型</param>
     /// <param name="examId">考试ID</param>
-    /// <returns>验证结果</returns>
-    Task<BenchSuiteDirectoryValidationResult> ValidateExamDirectoryStructureAsync(ExamType examType, int examId);
+    /// <returns>验证是否成功</returns>
+    Task<bool> ValidateExamDirectoryStructureAsync(ExamType examType, int examId);
 }
