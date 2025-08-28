@@ -428,7 +428,10 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             Remarks = null, // 专项训练题目没有Remarks属性
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
+            CSharpQuestionType = question.CSharpQuestionType,
             CodeFilePath = question.CodeFilePath,
+            CSharpDirectScore = question.CSharpDirectScore,
+            CodeBlanks = question.CodeBlanks,
             DocumentFilePath = question.DocumentFilePath,
             OperationPoints = question.OperationPoints?.Select(MapToStudentSpecializedTrainingOperationPointDto).ToList() ?? []
         };

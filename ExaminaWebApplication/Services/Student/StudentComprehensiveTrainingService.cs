@@ -370,7 +370,10 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Remarks = question.Remarks,
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
+            CSharpQuestionType = question.CSharpQuestionType,
             CodeFilePath = question.CodeFilePath,
+            CSharpDirectScore = question.CSharpDirectScore,
+            CodeBlanks = question.CodeBlanks,
             DocumentFilePath = question.DocumentFilePath,
             OperationPoints = [.. question.OperationPoints.Select(op => new StudentComprehensiveTrainingOperationPointDto
             {

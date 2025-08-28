@@ -1149,7 +1149,10 @@ public class StudentMockExamService : IStudentMockExamService
                     Remarks = question.Remarks,
                     ProgramInput = question.ProgramInput,
                     ExpectedOutput = question.ExpectedOutput,
+                    CSharpQuestionType = question.CSharpQuestionType,
                     CodeFilePath = question.CodeFilePath,
+                    CSharpDirectScore = question.CSharpDirectScore,
+                    CodeBlanks = question.CodeBlanks,
                     DocumentFilePath = question.DocumentFilePath,
                     OperationPoints = [.. question.OperationPoints.Select(op => new ExtractedOperationPointInfo
                     {
@@ -1287,7 +1290,10 @@ public class StudentMockExamService : IStudentMockExamService
                 Remarks = q.Remarks,
                 ProgramInput = q.ProgramInput,
                 ExpectedOutput = q.ExpectedOutput,
+                CSharpQuestionType = q.CSharpQuestionType,
                 CodeFilePath = q.CodeFilePath,
+                CSharpDirectScore = q.CSharpDirectScore,
+                CodeBlanks = q.CodeBlanks,
                 DocumentFilePath = q.DocumentFilePath,
                 OperationPoints = [.. q.OperationPoints.Select(op => new StudentMockExamOperationPointDto
                 {

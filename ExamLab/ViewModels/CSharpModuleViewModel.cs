@@ -113,12 +113,94 @@ public class CSharpModuleViewModel : ModuleViewModelBase
 
         CodeBlank newCodeBlank = new()
         {
-            Description = "// 请输入需要学生填写的代码",
-            DetailedDescription = string.Empty,
-            Order = SelectedQuestion.CodeBlanks.Count + 1
+            Description = GenerateTemplateCodeWithBlank(SelectedQuestion.CodeBlanks.Count + 1),
+            DetailedDescription = "请在此处填写代码实现",
+            Order = SelectedQuestion.CodeBlanks.Count + 1,
+            StandardAnswer = "// 请填写标准答案"
         };
 
         SelectedQuestion.CodeBlanks.Add(newCodeBlank);
+    }
+
+    /// <summary>
+    /// 生成包含NotImplementedException的模板代码
+    /// </summary>
+    /// <param name="blankNumber">填空序号</param>
+    /// <returns>模板代码</returns>
+    private static string GenerateTemplateCodeWithBlank(int blankNumber)
+    {
+        return $@"// 代码填空 {blankNumber}
+public class CodeBlank{blankNumber}
+{{
+    public void Method{blankNumber}()
+    {{
+        throw new NotImplementedException();
+    }}
+}}";
+    }
+
+    /// <summary>
+    /// 为选中的CodeBlank生成完整的模板代码
+    /// </summary>
+    /// <param name="codeBlank">代码填空对象</param>
+    /// <param name="className">类名</param>
+    /// <param name="methodName">方法名</param>
+    /// <param name="returnType">返回类型</param>
+    /// <param name="parameters">参数列表</param>
+    public static void GenerateCompleteTemplateCode(CodeBlank codeBlank, string className = "Solution",
+        string methodName = "Solve", string returnType = "void", string parameters = "")
+    {
+        string templateCode = $@"using System;
+
+public class {className}
+{{
+    /// <summary>
+    /// {codeBlank.DetailedDescription}
+    /// </summary>
+    public {returnType} {methodName}({parameters})
+    {{
+        throw new NotImplementedException();
+    }}
+}}";
+
+        codeBlank.Description = templateCode;
+    }
+
+    /// <summary>
+    /// 为所有CodeBlanks生成统一的模板代码结构
+    /// </summary>
+    public void GenerateUnifiedTemplateCode()
+    {
+        if (SelectedQuestion?.CodeBlanks == null || SelectedQuestion.CodeBlanks.Count == 0)
+            return;
+
+        string unifiedTemplate = @"using System;
+
+public class Solution
+{";
+
+        for (int i = 0; i < SelectedQuestion.CodeBlanks.Count; i++)
+        {
+            CodeBlank blank = SelectedQuestion.CodeBlanks[i];
+            unifiedTemplate += $@"
+
+    /// <summary>
+    /// 填空 {i + 1}: {blank.DetailedDescription}
+    /// </summary>
+    public void Method{i + 1}()
+    {{
+        throw new NotImplementedException();
+    }}";
+        }
+
+        unifiedTemplate += @"
+}";
+
+        // 将统一的模板代码设置给第一个CodeBlank
+        if (SelectedQuestion.CodeBlanks.Count > 0)
+        {
+            SelectedQuestion.CodeBlanks[0].Description = unifiedTemplate;
+        }
     }
 
     /// <summary>

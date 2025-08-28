@@ -1277,8 +1277,41 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static List<CodeBlankModel>? GetCodeBlanks(StudentMockExamQuestionDto questionDto)
     {
-        // StudentMockExamQuestionDto 可能没有 CodeBlanks 字段
-        // 返回 null，表示没有填空处
+        // 优先从CodeBlanks字段直接读取
+        if (!string.IsNullOrWhiteSpace(questionDto.CodeBlanks))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(questionDto.CodeBlanks);
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    return ParseCodeBlanksFromJson(doc.RootElement);
+                }
+            }
+            catch (JsonException)
+            {
+                // JSON解析失败，继续尝试其他方法
+            }
+        }
+
+        // 备用方案：从QuestionConfig中解析CodeBlanks信息
+        if (!string.IsNullOrWhiteSpace(questionDto.QuestionConfig))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(questionDto.QuestionConfig);
+                if (doc.RootElement.TryGetProperty("codeBlanks", out JsonElement codeBlanksElement))
+                {
+                    return ParseCodeBlanksFromJson(codeBlanksElement);
+                }
+            }
+            catch (JsonException)
+            {
+                // JSON解析失败
+            }
+        }
+
+        // 如果没有找到CodeBlanks，返回null
         return null;
     }
 
@@ -1339,6 +1372,40 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static List<CodeBlankModel>? GetCodeBlanks(StudentComprehensiveTrainingQuestionDto questionDto)
     {
+        // 优先从CodeBlanks字段直接读取
+        if (!string.IsNullOrWhiteSpace(questionDto.CodeBlanks))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(questionDto.CodeBlanks);
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    return ParseCodeBlanksFromJson(doc.RootElement);
+                }
+            }
+            catch (JsonException)
+            {
+                // JSON解析失败，继续尝试其他方法
+            }
+        }
+
+        // 备用方案：从QuestionConfig中解析CodeBlanks信息
+        if (!string.IsNullOrWhiteSpace(questionDto.QuestionConfig))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(questionDto.QuestionConfig);
+                if (doc.RootElement.TryGetProperty("codeBlanks", out JsonElement codeBlanksElement))
+                {
+                    return ParseCodeBlanksFromJson(codeBlanksElement);
+                }
+            }
+            catch (JsonException)
+            {
+                // JSON解析失败
+            }
+        }
+
         return null;
     }
 
@@ -1427,6 +1494,40 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static List<CodeBlankModel>? GetCodeBlanks(StudentSpecializedTrainingQuestionDto questionDto)
     {
+        // 优先从CodeBlanks字段直接读取
+        if (!string.IsNullOrWhiteSpace(questionDto.CodeBlanks))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(questionDto.CodeBlanks);
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    return ParseCodeBlanksFromJson(doc.RootElement);
+                }
+            }
+            catch (JsonException)
+            {
+                // JSON解析失败，继续尝试其他方法
+            }
+        }
+
+        // 备用方案：从QuestionConfig中解析CodeBlanks信息
+        if (!string.IsNullOrWhiteSpace(questionDto.QuestionConfig))
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(questionDto.QuestionConfig);
+                if (doc.RootElement.TryGetProperty("codeBlanks", out JsonElement codeBlanksElement))
+                {
+                    return ParseCodeBlanksFromJson(codeBlanksElement);
+                }
+            }
+            catch (JsonException)
+            {
+                // JSON解析失败
+            }
+        }
+
         return null;
     }
 
@@ -1779,6 +1880,104 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ExamType.SpecialPractice => "SpecialPractice",
             _ => "Unknown"
         };
+    }
+
+    #endregion
+
+    #region JSON解析辅助方法
+
+    /// <summary>
+    /// 从JsonElement中获取字符串属性
+    /// </summary>
+    private static string? GetJsonStringProperty(JsonElement element, string propertyName)
+    {
+        return element.TryGetProperty(propertyName, out JsonElement property) && property.ValueKind == JsonValueKind.String
+            ? property.GetString()
+            : null;
+    }
+
+    /// <summary>
+    /// 从JsonElement中获取双精度浮点数属性
+    /// </summary>
+    private static double? GetJsonDoubleProperty(JsonElement element, string propertyName)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property))
+        {
+            return property.ValueKind switch
+            {
+                JsonValueKind.Number => property.GetDouble(),
+                JsonValueKind.String when double.TryParse(property.GetString(), out double value) => value,
+                _ => null
+            };
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 从JsonElement中获取整数属性
+    /// </summary>
+    private static int? GetJsonIntProperty(JsonElement element, string propertyName)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property))
+        {
+            return property.ValueKind switch
+            {
+                JsonValueKind.Number => property.GetInt32(),
+                JsonValueKind.String when int.TryParse(property.GetString(), out int value) => value,
+                _ => null
+            };
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 从JsonElement中获取布尔属性
+    /// </summary>
+    private static bool? GetJsonBoolProperty(JsonElement element, string propertyName)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property))
+        {
+            return property.ValueKind switch
+            {
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.String when bool.TryParse(property.GetString(), out bool value) => value,
+                _ => null
+            };
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 从JsonElement中解析CodeBlanks数组
+    /// </summary>
+    private static List<CodeBlankModel>? ParseCodeBlanksFromJson(JsonElement codeBlanksElement)
+    {
+        if (codeBlanksElement.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        List<CodeBlankModel> codeBlanks = [];
+
+        foreach (JsonElement blankElement in codeBlanksElement.EnumerateArray())
+        {
+            CodeBlankModel codeBlank = new()
+            {
+                Id = GetJsonStringProperty(blankElement, "id") ?? Guid.NewGuid().ToString(),
+                Name = GetJsonStringProperty(blankElement, "name") ?? "填空",
+                Description = GetJsonStringProperty(blankElement, "description") ?? "",
+                Score = GetJsonDoubleProperty(blankElement, "score") ?? 1.0,
+                Order = GetJsonIntProperty(blankElement, "order") ?? 1,
+                IsEnabled = GetJsonBoolProperty(blankElement, "isEnabled") ?? true,
+                StandardAnswer = GetJsonStringProperty(blankElement, "standardAnswer"),
+                CreatedTime = GetJsonStringProperty(blankElement, "createdTime") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
+            codeBlanks.Add(codeBlank);
+        }
+
+        return codeBlanks.Count > 0 ? codeBlanks : null;
     }
 
     #endregion

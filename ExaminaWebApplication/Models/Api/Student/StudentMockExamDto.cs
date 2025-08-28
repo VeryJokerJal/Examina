@@ -144,6 +144,21 @@ public class StudentMockExamQuestionDto
     public string? DocumentFilePath { get; set; }
 
     /// <summary>
+    /// C#题目类型（仅C#模块使用）
+    /// </summary>
+    public string? CSharpQuestionType { get; set; }
+
+    /// <summary>
+    /// C#题目直接分数（仅调试纠错和编写实现类型使用）
+    /// </summary>
+    public double? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// 代码补全填空处集合（JSON格式，仅C#模块代码补全类型使用）
+    /// </summary>
+    public string? CodeBlanks { get; set; }
+
+    /// <summary>
     /// 操作点列表
     /// </summary>
     public List<StudentMockExamOperationPointDto> OperationPoints { get; set; } = [];

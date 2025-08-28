@@ -215,9 +215,24 @@ public class StudentSpecializedTrainingQuestionDto
     public string? ExpectedOutput { get; set; }
 
     /// <summary>
+    /// C#题目类型（仅C#模块使用）
+    /// </summary>
+    public string? CSharpQuestionType { get; set; }
+
+    /// <summary>
     /// C#代码文件路径（仅C#模块使用）
     /// </summary>
     public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// C#题目直接分数（仅调试纠错和编写实现类型使用）
+    /// </summary>
+    public double? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// 代码补全填空处集合（JSON格式，仅C#模块代码补全类型使用）
+    /// </summary>
+    public string? CodeBlanks { get; set; }
 
     /// <summary>
     /// Office文档文件路径（仅Office模块使用）
