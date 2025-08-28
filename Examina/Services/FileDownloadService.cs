@@ -139,7 +139,8 @@ public class FileDownloadService : IFileDownloadService
             file.LocalFilePath = Path.Combine(downloadDir, file.FileName);
             if (file.IsCompressed)
             {
-                file.ExtractPath = Path.Combine(downloadDir, Path.GetFileNameWithoutExtension(file.FileName));
+                // 修改为当前目录模式：直接解压到下载目录，不创建子文件夹
+                file.ExtractPath = downloadDir;
             }
             task.AddFile(file);
         }
@@ -214,7 +215,7 @@ public class FileDownloadService : IFileDownloadService
             }
 
             task.Status = FileDownloadTaskStatus.Completed;
-            task.StatusMessage = "下载完成";
+            task.StatusMessage = "文件下载和解压完成";
             task.EndTime = DateTime.Now;
             progress?.Report(task);
 

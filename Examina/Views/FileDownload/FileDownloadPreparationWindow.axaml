@@ -141,7 +141,7 @@
 
                         <!--  成功消息  -->
                         <Border Padding="16,12" Background="#D4EDDA" BorderBrush="#28A745" BorderThickness="1" CornerRadius="8" IsVisible="{Binding IsCompleted}">
-                            <TextBlock FontWeight="Medium" Foreground="#28A745" Text="✅ 所有文件下载完成，可以开始考试/训练" />
+                            <TextBlock FontWeight="Medium" Foreground="#28A745" Text="✅ 所有文件下载和解压完成，可以开始考试/训练" />
                         </Border>
                     </StackPanel>
                 </Border>

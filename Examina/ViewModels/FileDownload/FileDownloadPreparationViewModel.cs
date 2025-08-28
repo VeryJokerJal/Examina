@@ -254,7 +254,7 @@ public class FileDownloadPreparationViewModel : ViewModelBase
             if (result)
             {
                 IsCompleted = true;
-                StatusMessage = "下载完成";
+                StatusMessage = "文件下载和解压完成";
 
                 // 清理临时文件
                 await _fileDownloadService.CleanupTempFilesAsync(CurrentTask);
