@@ -141,8 +141,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <!-- For dynamic compilation and execution -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.8.0" />
-    <!-- For unit testing support -->
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <!-- OpenAI SDK for AI-powered logical scoring -->
     <PackageReference Include="OpenAI" Version="2.1.0" />
   </ItemGroup>

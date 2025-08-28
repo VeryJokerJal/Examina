@@ -410,32 +410,53 @@ public static class ExamModelLoader
             return (false, "试卷模型没有包含任何模块");
         }
 
-        // 查找PowerPoint模块
+        // 查找PowerPoint模块（可选验证）
         ExamModuleModel? pptModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
-        if (pptModule == null)
+        if (pptModule != null)
         {
-            return (false, "试卷模型中未找到PowerPoint模块");
+            // 如果PowerPoint模块存在，验证其内容
+            if (pptModule.Questions == null || pptModule.Questions.Count == 0)
+            {
+                if (verbose)
+                {
+                    System.Console.WriteLine("⚠️ 警告: PowerPoint模块没有包含任何题目");
+                }
+            }
+            else
+            {
+                // 验证是否有操作点
+                int totalOperationPoints = pptModule.Questions.Sum(q => q.OperationPoints?.Count ?? 0);
+                if (totalOperationPoints == 0)
+                {
+                    if (verbose)
+                    {
+                        System.Console.WriteLine("⚠️ 警告: PowerPoint模块没有包含任何操作点");
+                    }
+                }
+            }
         }
-
-        if (pptModule.Questions == null || pptModule.Questions.Count == 0)
+        else if (verbose)
         {
-            return (false, "PowerPoint模块没有包含任何题目");
-        }
-
-        // 验证是否有操作点
-        int totalOperationPoints = pptModule.Questions.Sum(q => q.OperationPoints?.Count ?? 0);
-        if (totalOperationPoints == 0)
-        {
-            return (false, "PowerPoint模块没有包含任何操作点");
+            System.Console.WriteLine("⚠️ 警告: 试卷模型中未找到PowerPoint模块");
         }
 
         if (verbose)
         {
             System.Console.WriteLine($"✅ 试卷模型验证通过:");
             System.Console.WriteLine($"   试卷: {examModel.Name}");
-            System.Console.WriteLine($"   PowerPoint模块: {pptModule.Name}");
-            System.Console.WriteLine($"   题目数量: {pptModule.Questions.Count}");
-            System.Console.WriteLine($"   操作点数量: {totalOperationPoints}");
+            System.Console.WriteLine($"   模块总数: {examModel.Modules.Count}");
+
+            if (pptModule != null)
+            {
+                int totalOperationPoints = pptModule.Questions?.Sum(q => q.OperationPoints?.Count ?? 0) ?? 0;
+                System.Console.WriteLine($"   PowerPoint模块: {pptModule.Name}");
+                System.Console.WriteLine($"   题目数量: {pptModule.Questions?.Count ?? 0}");
+                System.Console.WriteLine($"   操作点数量: {totalOperationPoints}");
+            }
+            else
+            {
+                System.Console.WriteLine($"   PowerPoint模块: 未找到");
+            }
         }
 
         return (true, string.Empty);

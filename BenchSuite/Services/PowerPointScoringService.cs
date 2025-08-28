@@ -66,7 +66,11 @@ public class PowerPointScoringService : IPowerPointScoringService
             ExamModuleModel? pptModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
             if (pptModule == null)
             {
-                result.ErrorMessage = "试卷中未找到PowerPoint模块";
+                result.ErrorMessage = "试卷中未找到PowerPoint模块，跳过PowerPoint评分";
+                result.IsSuccess = true; // 设置为成功，但没有评分结果
+                result.TotalScore = 0;
+                result.AchievedScore = 0;
+                result.KnowledgePointResults = [];
                 return result;
             }
 
