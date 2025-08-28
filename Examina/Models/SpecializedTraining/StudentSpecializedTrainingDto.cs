@@ -209,6 +209,26 @@ public class StudentSpecializedTrainingQuestionDto
     public string? Remarks { get; set; }
 
     /// <summary>
+    /// C#程序参数输入（仅C#模块使用）
+    /// </summary>
+    public string? ProgramInput { get; set; }
+
+    /// <summary>
+    /// C#程序预期控制台输出（仅C#模块使用）
+    /// </summary>
+    public string? ExpectedOutput { get; set; }
+
+    /// <summary>
+    /// C#代码文件路径（仅C#模块使用）
+    /// </summary>
+    public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// Office文档文件路径（仅Office模块使用）
+    /// </summary>
+    public string? DocumentFilePath { get; set; }
+
+    /// <summary>
     /// 操作点列表
     /// </summary>
     public ObservableCollection<StudentSpecializedTrainingOperationPointDto> OperationPoints { get; set; } = [];

@@ -370,6 +370,8 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Remarks = question.Remarks,
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
+            CodeFilePath = question.CodeFilePath,
+            DocumentFilePath = question.DocumentFilePath,
             OperationPoints = [.. question.OperationPoints.Select(op => new StudentComprehensiveTrainingOperationPointDto
             {
                 Id = op.Id,

@@ -426,8 +426,10 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             AnswerValidationRules = null, // 专项训练题目没有AnswerValidationRules属性
             Tags = question.Tags,
             Remarks = null, // 专项训练题目没有Remarks属性
-            ProgramInput = null, // 专项训练题目没有ProgramInput属性
-            ExpectedOutput = null, // 专项训练题目没有ExpectedOutput属性
+            ProgramInput = question.ProgramInput,
+            ExpectedOutput = question.ExpectedOutput,
+            CodeFilePath = question.CodeFilePath,
+            DocumentFilePath = question.DocumentFilePath,
             OperationPoints = question.OperationPoints?.Select(MapToStudentSpecializedTrainingOperationPointDto).ToList() ?? []
         };
     }

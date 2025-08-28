@@ -652,6 +652,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
                     CSharpDirectScore = GetCSharpDirectScore(questionDto),
                     CodeBlanks = GetCodeBlanks(questionDto),
+                    CodeFilePath = questionDto.CodeFilePath,
+                    DocumentFilePath = questionDto.DocumentFilePath,
                     // 添加其他重要字段
                     QuestionConfig = questionDto.QuestionConfig,
                     AnswerValidationRules = questionDto.AnswerValidationRules,
@@ -1044,6 +1046,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
             CSharpDirectScore = GetCSharpDirectScore(questionDto),
             CodeBlanks = GetCodeBlanks(questionDto),
+            CodeFilePath = questionDto.CodeFilePath,
+            DocumentFilePath = questionDto.DocumentFilePath,
             // 添加其他重要字段
             QuestionConfig = questionDto.QuestionConfig,
             AnswerValidationRules = questionDto.AnswerValidationRules,
@@ -1094,6 +1098,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
             CSharpDirectScore = GetCSharpDirectScore(questionDto),
             CodeBlanks = GetCodeBlanks(questionDto),
+            CodeFilePath = questionDto.CodeFilePath,
+            DocumentFilePath = questionDto.DocumentFilePath,
             // 添加其他重要字段
             QuestionConfig = questionDto.QuestionConfig,
             AnswerValidationRules = questionDto.AnswerValidationRules,
@@ -1429,8 +1435,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static string? GetProgramInput(StudentSpecializedTrainingQuestionDto questionDto)
     {
-        // 专项训练DTO中没有ProgramInput字段，返回null
-        return null;
+        return questionDto.ProgramInput;
     }
 
     /// <summary>
@@ -1438,8 +1443,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static string? GetExpectedOutput(StudentSpecializedTrainingQuestionDto questionDto)
     {
-        // 专项训练DTO中没有ExpectedOutput字段，返回null
-        return null;
+        return questionDto.ExpectedOutput;
     }
 
     /// <summary>

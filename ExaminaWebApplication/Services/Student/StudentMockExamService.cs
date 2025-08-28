@@ -1149,6 +1149,8 @@ public class StudentMockExamService : IStudentMockExamService
                     Remarks = question.Remarks,
                     ProgramInput = question.ProgramInput,
                     ExpectedOutput = question.ExpectedOutput,
+                    CodeFilePath = question.CodeFilePath,
+                    DocumentFilePath = question.DocumentFilePath,
                     OperationPoints = [.. question.OperationPoints.Select(op => new ExtractedOperationPointInfo
                     {
                         Id = op.Id,
@@ -1233,6 +1235,10 @@ public class StudentMockExamService : IStudentMockExamService
                     AnswerValidationRules = question.AnswerValidationRules,
                     Tags = question.Tags,
                     Remarks = question.Remarks,
+                    ProgramInput = question.ProgramInput,
+                    ExpectedOutput = question.ExpectedOutput,
+                    CodeFilePath = question.CodeFilePath,
+                    DocumentFilePath = question.DocumentFilePath,
                     OperationPoints = [] // 简化：不包含操作点
                 };
 
@@ -1281,6 +1287,8 @@ public class StudentMockExamService : IStudentMockExamService
                 Remarks = q.Remarks,
                 ProgramInput = q.ProgramInput,
                 ExpectedOutput = q.ExpectedOutput,
+                CodeFilePath = q.CodeFilePath,
+                DocumentFilePath = q.DocumentFilePath,
                 OperationPoints = [.. q.OperationPoints.Select(op => new StudentMockExamOperationPointDto
                 {
                     Id = op.Id,
