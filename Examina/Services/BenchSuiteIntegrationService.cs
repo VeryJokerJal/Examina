@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using Examina.Models;
 using Examina.Models.Exam;
+using Examina.Models.MockExam;
 using Examina.Configuration;
 using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
@@ -547,13 +548,97 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private ExamModel MapMockExamToExamModel(object mockExamData, ModuleType targetModuleType)
     {
-        // 这里需要根据实际的模拟考试DTO结构进行映射
-        // 暂时使用基础映射，后续可以根据具体需求完善
-        _logger.LogInformation("映射模拟考试数据到ExamModel，目标模块类型: {ModuleType}", targetModuleType);
+        if (mockExamData is not StudentMockExamDto mockExamDto)
+        {
+            throw new ArgumentException("模拟考试数据类型不匹配", nameof(mockExamData));
+        }
 
-        // TODO: 实现具体的模拟考试数据映射逻辑
-        // 目前返回基础模型，避免编译错误
-        return CreateBasicExamModel("模拟考试", targetModuleType);
+        _logger.LogInformation("映射模拟考试数据到ExamModel，考试名称: {ExamName}, 目标模块类型: {ModuleType}",
+            mockExamDto.Name, targetModuleType);
+
+        ExamModel examModel = new()
+        {
+            Id = mockExamDto.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(mockExamDto.Name) ? $"模拟考试_{mockExamDto.Id}" : mockExamDto.Name,
+            Description = mockExamDto.Description ?? string.Empty,
+            TotalScore = mockExamDto.TotalScore > 0 ? (decimal)mockExamDto.TotalScore : 100m,
+            DurationMinutes = mockExamDto.DurationMinutes > 0 ? mockExamDto.DurationMinutes : 120,
+            Modules = new List<ExamModuleModel>()
+        };
+
+        // 模拟考试没有模块概念，需要根据题目的操作点创建虚拟模块
+        // 按目标模块类型过滤相关题目
+        IEnumerable<StudentMockExamQuestionDto> relevantQuestions = mockExamDto.Questions
+            .Where(q => q.OperationPoints.Any(op =>
+                string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase)));
+
+        if (relevantQuestions.Any())
+        {
+            ExamModuleModel module = new()
+            {
+                Id = $"MockExam_Module_{targetModuleType}",
+                Name = $"{targetModuleType}模块",
+                Type = targetModuleType,
+                Description = $"模拟考试 - {targetModuleType}模块",
+                Score = (decimal)relevantQuestions.Sum(q => q.Score),
+                Order = 1,
+                Questions = new List<QuestionModel>()
+            };
+
+            foreach (StudentMockExamQuestionDto questionDto in relevantQuestions.OrderBy(q => q.SortOrder))
+            {
+                QuestionModel question = new()
+                {
+                    Id = questionDto.OriginalQuestionId.ToString(),
+                    Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.OriginalQuestionId}" : questionDto.Title,
+                    Content = questionDto.Content ?? string.Empty,
+#pragma warning disable CS0618 // 类型或成员已过时
+                    Score = (decimal)questionDto.Score,
+#pragma warning restore CS0618 // 类型或成员已过时
+                    Order = questionDto.SortOrder,
+                    OperationPoints = new List<OperationPointModel>()
+                };
+
+                // 只添加匹配目标模块类型的操作点
+                foreach (StudentMockExamOperationPointDto opDto in questionDto.OperationPoints
+                    .Where(op => string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(op => op.Order))
+                {
+                    OperationPointModel operationPoint = new()
+                    {
+                        Id = opDto.Id.ToString(),
+                        Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
+                        Description = opDto.Description ?? string.Empty,
+                        ModuleType = ParseModuleType(opDto.ModuleType),
+                        Score = (decimal)opDto.Score,
+                        Order = opDto.Order,
+                        IsEnabled = true,
+                        Parameters = MapMockExamParametersToConfigurationParameters(opDto.Parameters)
+                    };
+
+                    question.OperationPoints.Add(operationPoint);
+                }
+
+                if (question.OperationPoints.Count > 0)
+                {
+                    module.Questions.Add(question);
+                }
+            }
+
+            if (module.Questions.Count > 0)
+            {
+                examModel.Modules.Add(module);
+            }
+        }
+
+        // 如果没有找到相关模块，创建一个基本模块
+        if (examModel.Modules.Count == 0)
+        {
+            _logger.LogWarning("模拟考试中未找到模块类型 {ModuleType} 的数据，创建基本模块", targetModuleType);
+            examModel.Modules.Add(CreateBasicModule(targetModuleType));
+        }
+
+        return examModel;
     }
 
     /// <summary>
@@ -561,13 +646,222 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private ExamModel MapComprehensiveTrainingToExamModel(object trainingData, ModuleType targetModuleType)
     {
-        // 这里需要根据实际的综合实训DTO结构进行映射
-        // 暂时使用基础映射，后续可以根据具体需求完善
-        _logger.LogInformation("映射综合实训数据到ExamModel，目标模块类型: {ModuleType}", targetModuleType);
+        if (trainingData is not StudentComprehensiveTrainingDto trainingDto)
+        {
+            throw new ArgumentException("综合实训数据类型不匹配", nameof(trainingData));
+        }
 
-        // TODO: 实现具体的综合实训数据映射逻辑
-        // 目前返回基础模型，避免编译错误
-        return CreateBasicExamModel("综合实训", targetModuleType);
+        _logger.LogInformation("映射综合实训数据到ExamModel，训练名称: {TrainingName}, 目标模块类型: {ModuleType}",
+            trainingDto.Name, targetModuleType);
+
+        ExamModel examModel = new()
+        {
+            Id = trainingDto.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(trainingDto.Name) ? $"综合实训_{trainingDto.Id}" : trainingDto.Name,
+            Description = trainingDto.Description ?? string.Empty,
+            TotalScore = trainingDto.CalculatedTotalScore > 0 ? (decimal)trainingDto.CalculatedTotalScore : (decimal)trainingDto.TotalScore,
+            DurationMinutes = trainingDto.DurationMinutes > 0 ? trainingDto.DurationMinutes : 120,
+            Modules = new List<ExamModuleModel>()
+        };
+
+        // 首先从模块列表中查找匹配的模块
+        IEnumerable<StudentComprehensiveTrainingModuleDto> relevantModules = trainingDto.Modules
+            .Where(m => string.Equals(m.Type, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase));
+
+        foreach (StudentComprehensiveTrainingModuleDto moduleDto in relevantModules.OrderBy(m => m.Order))
+        {
+            ExamModuleModel module = new()
+            {
+                Id = moduleDto.Id.ToString(),
+                Name = string.IsNullOrWhiteSpace(moduleDto.Name) ? $"{targetModuleType}模块" : moduleDto.Name,
+                Type = ParseModuleType(moduleDto.Type),
+                Description = moduleDto.Description ?? string.Empty,
+                Score = (decimal)moduleDto.Score,
+                Order = moduleDto.Order,
+                Questions = new List<QuestionModel>()
+            };
+
+            foreach (StudentComprehensiveTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.SortOrder))
+            {
+                QuestionModel question = MapComprehensiveTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                if (question.OperationPoints.Count > 0)
+                {
+                    module.Questions.Add(question);
+                }
+            }
+
+            if (module.Questions.Count > 0)
+            {
+                examModel.Modules.Add(module);
+            }
+        }
+
+        // 如果模块列表中没有找到，再从科目列表中查找
+        if (examModel.Modules.Count == 0)
+        {
+            foreach (StudentComprehensiveTrainingSubjectDto subjectDto in trainingDto.Subjects.OrderBy(s => s.SortOrder))
+            {
+                // 检查科目中是否有匹配目标模块类型的题目
+                IEnumerable<StudentComprehensiveTrainingQuestionDto> relevantQuestions = subjectDto.Questions
+                    .Where(q => q.OperationPoints.Any(op =>
+                        string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase)));
+
+                if (relevantQuestions.Any())
+                {
+                    ExamModuleModel module = new()
+                    {
+                        Id = $"Subject_{subjectDto.Id}_{targetModuleType}",
+                        Name = $"{subjectDto.SubjectName} - {targetModuleType}",
+                        Type = targetModuleType,
+                        Description = subjectDto.Description ?? $"{subjectDto.SubjectName}科目 - {targetModuleType}模块",
+                        Score = (decimal)relevantQuestions.Sum(q => q.Score),
+                        Order = subjectDto.SortOrder,
+                        Questions = new List<QuestionModel>()
+                    };
+
+                    foreach (StudentComprehensiveTrainingQuestionDto questionDto in relevantQuestions.OrderBy(q => q.SortOrder))
+                    {
+                        QuestionModel question = MapComprehensiveTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                        if (question.OperationPoints.Count > 0)
+                        {
+                            module.Questions.Add(question);
+                        }
+                    }
+
+                    if (module.Questions.Count > 0)
+                    {
+                        examModel.Modules.Add(module);
+                    }
+                }
+            }
+        }
+
+        // 如果仍然没有找到相关模块，创建一个基本模块
+        if (examModel.Modules.Count == 0)
+        {
+            _logger.LogWarning("综合实训中未找到模块类型 {ModuleType} 的数据，创建基本模块", targetModuleType);
+            examModel.Modules.Add(CreateBasicModule(targetModuleType));
+        }
+
+        return examModel;
+    }
+
+    /// <summary>
+    /// 映射综合实训题目到QuestionModel
+    /// </summary>
+    private static QuestionModel MapComprehensiveTrainingQuestionToQuestionModel(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        QuestionModel question = new()
+        {
+            Id = questionDto.Id.ToString(),
+            Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.Id}" : questionDto.Title,
+            Content = questionDto.Content ?? string.Empty,
+#pragma warning disable CS0618 // 类型或成员已过时
+            Score = (decimal)questionDto.Score,
+#pragma warning restore CS0618 // 类型或成员已过时
+            Order = questionDto.SortOrder,
+            OperationPoints = new List<OperationPointModel>()
+        };
+
+        // 只添加匹配目标模块类型的操作点
+        foreach (StudentComprehensiveTrainingOperationPointDto opDto in questionDto.OperationPoints
+            .Where(op => string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
+            .OrderBy(op => op.Order))
+        {
+            OperationPointModel operationPoint = new()
+            {
+                Id = opDto.Id.ToString(),
+                Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
+                Description = opDto.Description ?? string.Empty,
+                ModuleType = ParseModuleType(opDto.ModuleType),
+                Score = (decimal)opDto.Score,
+                Order = opDto.Order,
+                IsEnabled = true,
+                Parameters = MapComprehensiveTrainingParametersToConfigurationParameters(opDto.Parameters)
+            };
+
+            question.OperationPoints.Add(operationPoint);
+        }
+
+        return question;
+    }
+
+    /// <summary>
+    /// 映射模拟考试参数到配置参数
+    /// </summary>
+    private static List<ConfigurationParameterModel> MapMockExamParametersToConfigurationParameters(IEnumerable<StudentMockExamParameterDto> parameters)
+    {
+        List<ConfigurationParameterModel> configParams = new();
+
+        int order = 1;
+        foreach (StudentMockExamParameterDto paramDto in parameters)
+        {
+            ConfigurationParameterModel configParam = new()
+            {
+                Id = paramDto.Id.ToString(),
+                Name = paramDto.Name ?? string.Empty,
+                Value = paramDto.DefaultValue ?? string.Empty,
+                Type = ParseParameterType(paramDto.ParameterType),
+                Description = paramDto.Description ?? string.Empty,
+                IsRequired = true,
+                Order = order++
+            };
+
+            configParams.Add(configParam);
+        }
+
+        return configParams;
+    }
+
+    /// <summary>
+    /// 映射综合实训参数到配置参数
+    /// </summary>
+    private static List<ConfigurationParameterModel> MapComprehensiveTrainingParametersToConfigurationParameters(IEnumerable<StudentComprehensiveTrainingParameterDto> parameters)
+    {
+        List<ConfigurationParameterModel> configParams = new();
+
+        int order = 1;
+        foreach (StudentComprehensiveTrainingParameterDto paramDto in parameters)
+        {
+            ConfigurationParameterModel configParam = new()
+            {
+                Id = paramDto.Id.ToString(),
+                Name = paramDto.Name ?? string.Empty,
+                Value = paramDto.DefaultValue ?? string.Empty,
+                Type = ParseParameterType(paramDto.ParameterType),
+                Description = paramDto.Description ?? string.Empty,
+                IsRequired = true,
+                Order = order++
+            };
+
+            configParams.Add(configParam);
+        }
+
+        return configParams;
+    }
+
+    /// <summary>
+    /// 解析参数类型字符串为ParameterType枚举
+    /// </summary>
+    private static BenchSuite.Models.ParameterType ParseParameterType(string? parameterTypeString)
+    {
+        if (string.IsNullOrWhiteSpace(parameterTypeString))
+        {
+            return BenchSuite.Models.ParameterType.Text;
+        }
+
+        return parameterTypeString.ToLowerInvariant() switch
+        {
+            "string" or "text" => BenchSuite.Models.ParameterType.Text,
+            "int" or "integer" or "number" => BenchSuite.Models.ParameterType.Number,
+            "bool" or "boolean" => BenchSuite.Models.ParameterType.Boolean,
+            "enum" or "enumeration" => BenchSuite.Models.ParameterType.Enum,
+            "color" => BenchSuite.Models.ParameterType.Color,
+            "file" or "filepath" => BenchSuite.Models.ParameterType.File,
+            "multiplechoice" or "multiple_choice" => BenchSuite.Models.ParameterType.MultipleChoice,
+            "date" or "datetime" => BenchSuite.Models.ParameterType.Date,
+            _ => BenchSuite.Models.ParameterType.Text // 默认值
+        };
     }
 
     /// <summary>
@@ -633,7 +927,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Id = questionDto.Id.ToString(),
                     Title = questionDto.Title,
                     Content = questionDto.Content,
+#pragma warning disable CS0618 // 类型或成员已过时
                     Score = (decimal)questionDto.Score,
+#pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
                     OperationPoints = new List<OperationPointModel>()
                 };
@@ -728,7 +1024,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = $"Question_{moduleType}_1",
             Title = $"{moduleType}操作题",
             Content = $"完成{moduleType}相关操作",
+#pragma warning disable CS0618 // 类型或成员已过时
             Score = 100,
+#pragma warning restore CS0618 // 类型或成员已过时
             OperationPoints = new List<OperationPointModel>()
         };
 
