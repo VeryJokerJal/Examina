@@ -510,8 +510,16 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                     if (moduleResults != null)
                     {
                         scoringResult = ConvertModuleResultsToBenchSuiteResult(moduleResults);
-                        submitResult = true;
-                        System.Diagnostics.Debug.WriteLine($"[调试] 转换后的评分结果: 成功={scoringResult.IsSuccess}, 总分={scoringResult.TotalScore}, 得分={scoringResult.AchievedScore}");
+                        if (scoringResult != null)
+                        {
+                            submitResult = true;
+                            System.Diagnostics.Debug.WriteLine($"[调试] 转换后的评分结果: 成功={scoringResult.IsSuccess}, 总分={scoringResult.TotalScore}, 得分={scoringResult.AchievedScore}");
+                        }
+                        else
+                        {
+                            submitResult = false;
+                            System.Diagnostics.Debug.WriteLine("[警告] 模块结果转换失败，无法生成评分结果");
+                        }
                     }
                     else
                     {
@@ -639,7 +647,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                         // 将模块结果转换为BenchSuiteScoringResult
                         scoringResult = ConvertModuleResultsToBenchSuiteResult(moduleResults);
 
-                        if (scoringResult.IsSuccess)
+                        if (scoringResult != null && scoringResult.IsSuccess)
                         {
                             score = scoringResult.AchievedScore;
                             maxScore = scoringResult.TotalScore;
@@ -1016,23 +1024,27 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 return;
             }
 
-            // 如果没有传入评分结果，创建一个基本的失败结果
-            scoringResult ??= new BenchSuiteScoringResult
+            // 如果没有传入评分结果，尝试从服务端获取真实的训练完成记录
+            if (scoringResult == null)
             {
-                IsSuccess = false,
-                ErrorMessage = "未能获取评分结果",
-                TotalScore = 100,
-                AchievedScore = 0,
-                StartTime = _trainingStartTime,
-                EndTime = DateTime.Now
-            };
+                scoringResult = await GetTrainingCompletionResultAsync(trainingId);
+            }
 
-            // 显示详细的训练结果（使用真实或基本的评分结果）
+            // 如果仍然没有评分结果，显示错误信息并返回
+            if (scoringResult == null)
+            {
+                ErrorMessage = "无法获取训练结果数据，请稍后重试";
+                CloseTrainingAndShowMainWindow();
+                return;
+            }
+
+            // 显示详细的训练结果（使用真实的评分结果）
             await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
         }
         catch
         {
             // 如果显示训练结果失败，也要显示主窗口
+            ErrorMessage = "显示训练结果失败，请稍后重试";
             CloseTrainingAndShowMainWindow();
         }
     }
@@ -1048,6 +1060,30 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         }
         catch
         {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 获取训练完成记录的评分结果
+    /// </summary>
+    private async Task<BenchSuiteScoringResult?> GetTrainingCompletionResultAsync(int trainingId)
+    {
+        try
+        {
+            // 尝试从服务端获取训练完成记录
+            // 这里需要调用相应的API来获取已完成的训练记录和评分结果
+            // 目前先返回null，表示无法获取到真实数据
+            System.Diagnostics.Debug.WriteLine($"尝试获取训练完成记录，训练ID: {trainingId}");
+
+            // TODO: 实现从服务端获取训练完成记录的逻辑
+            // 可能需要添加新的API接口来获取已完成训练的详细评分结果
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"获取训练完成记录失败: {ex.Message}");
             return null;
         }
     }
@@ -1128,7 +1164,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 将模块评分结果转换为BenchSuiteScoringResult
     /// </summary>
-    private static BenchSuiteScoringResult ConvertModuleResultsToBenchSuiteResult(Dictionary<ModuleType, ScoringResult> moduleResults)
+    private static BenchSuiteScoringResult? ConvertModuleResultsToBenchSuiteResult(Dictionary<ModuleType, ScoringResult> moduleResults)
     {
         // 调试日志：输出moduleResults的内容
         System.Diagnostics.Debug.WriteLine($"[调试] ConvertModuleResultsToBenchSuiteResult: moduleResults.Count = {moduleResults.Count}");
@@ -1140,9 +1176,9 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         // 处理空集合的情况
         if (moduleResults.Count == 0)
         {
-            System.Diagnostics.Debug.WriteLine("[警告] moduleResults为空，使用模拟数据进行测试");
-            // 为了测试详细评分信息显示，使用模拟数据
-            return CreateMockScoringResult();
+            System.Diagnostics.Debug.WriteLine("[警告] moduleResults为空，无法生成评分结果");
+            // 返回null，让调用方处理无数据的情况
+            return null;
         }
 
         BenchSuiteScoringResult result = new()
@@ -1178,91 +1214,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         return result;
     }
 
-    /// <summary>
-    /// 创建默认的失败结果（用于调试和错误处理）
-    /// </summary>
-    private static BenchSuiteScoringResult CreateDefaultFailureResult(string errorMessage)
-    {
-        return new BenchSuiteScoringResult
-        {
-            IsSuccess = false,
-            ErrorMessage = errorMessage,
-            TotalScore = 100, // 默认总分
-            AchievedScore = 0,
-            StartTime = DateTime.Now.AddMinutes(-30), // 假设30分钟前开始
-            EndTime = DateTime.Now,
-            KnowledgePointResults = [],
-            ModuleResults = new Dictionary<ModuleType, ScoringResult>()
-        };
-    }
 
-    /// <summary>
-    /// 创建模拟的评分结果（用于测试详细评分信息显示）
-    /// </summary>
-    private static BenchSuiteScoringResult CreateMockScoringResult()
-    {
-        // 创建模拟的知识点结果
-        List<KnowledgePointResult> knowledgePointResults =
-        [
-            new KnowledgePointResult
-            {
-                KnowledgePointType = "DeleteFile",
-                KnowledgePointName = "文件删除操作",
-                TotalScore = 10,
-                AchievedScore = 8,
-                IsCorrect = true,
-                Details = "文件 C:\\WINDOWS\\calc.exe 已删除",
-                ErrorMessage = null
-            },
-            new KnowledgePointResult
-            {
-                KnowledgePointType = "CopyAndRename",
-                KnowledgePointName = "复制重命名操作",
-                TotalScore = 15,
-                AchievedScore = 0,
-                IsCorrect = false,
-                Details = "复制重命名操作未完成 - 源存在: False, 目标存在: False",
-                ErrorMessage = "未找到源文件"
-            },
-            new KnowledgePointResult
-            {
-                KnowledgePointType = "CreateFolder",
-                KnowledgePointName = "文件夹创建",
-                TotalScore = 5,
-                AchievedScore = 5,
-                IsCorrect = true,
-                Details = "文件夹 C:\\TestFolder 创建成功",
-                ErrorMessage = null
-            }
-        ];
-
-        // 创建模拟的模块结果
-        Dictionary<ModuleType, ScoringResult> moduleResults = new()
-        {
-            [ModuleType.Windows] = new ScoringResult
-            {
-                IsSuccess = true,
-                TotalScore = 30,
-                AchievedScore = 13,
-                StartTime = DateTime.Now.AddMinutes(-25),
-                EndTime = DateTime.Now,
-                KnowledgePointResults = knowledgePointResults,
-                ErrorMessage = null
-            }
-        };
-
-        return new BenchSuiteScoringResult
-        {
-            IsSuccess = true,
-            TotalScore = 30,
-            AchievedScore = 13,
-            StartTime = DateTime.Now.AddMinutes(-25),
-            EndTime = DateTime.Now,
-            KnowledgePointResults = knowledgePointResults,
-            ModuleResults = moduleResults,
-            ErrorMessage = null
-        };
-    }
 
     /// <summary>
     /// 将BenchSuiteFileType文件路径字典转换为ModuleType文件路径字典

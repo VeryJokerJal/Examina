@@ -699,23 +699,16 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         try
         {
-            // 创建基本的评分结果
-            Dictionary<ModuleType, ScoringResult> basicResults = new()
-            {
-                [ModuleType.Windows] = new ScoringResult
-                {
-                    IsSuccess = false,
-                    ErrorMessage = "评分服务不可用",
-                    TotalScore = 100,
-                    AchievedScore = 0
-                }
-            };
+            System.Diagnostics.Debug.WriteLine($"BenchSuite评分失败，无法显示详细训练结果: {trainingName}");
 
-            await ShowTrainingResultAsync(trainingName, basicResults);
+            // 不显示硬编码的模拟结果，而是显示错误信息并返回主窗口
+            ErrorMessage = "训练评分失败，无法获取详细结果";
+            CloseTrainingAndShowMainWindow();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"显示基本训练结果失败: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"处理训练结果失败: {ex.Message}");
+            CloseTrainingAndShowMainWindow();
         }
     }
 
