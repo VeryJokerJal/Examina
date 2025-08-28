@@ -490,7 +490,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
             bool submitResult = false;
 
             // 仅支持综合实训类型
@@ -498,8 +498,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 if (_enhancedExamToolbarService != null)
                 {
-                    scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
-                    submitResult = scoringResult != null;
+                    scoringResults = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
+                    submitResult = scoringResults != null && scoringResults.Count > 0;
                 }
                 else
                 {
@@ -512,7 +512,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             if (submitResult)
             {
-                await ShowTrainingResultAsync(trainingId, examType, scoringResult);
+                await ShowTrainingResultAsync(trainingId, examType, scoringResults);
             }
             else
             {
@@ -552,7 +552,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 尝试进行BenchSuite评分
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
             decimal? score = null;
             decimal? maxScore = null;
             string? benchSuiteScoringResultJson = null;
@@ -566,29 +566,23 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
                     if (benchSuiteService != null && directoryService != null)
                     {
-                        // 创建BenchSuite评分请求
-                        BenchSuiteScoringRequest benchSuiteRequest = new()
-                        {
-                            ExamId = currentTrainingId.Value,
-                            ExamType = ExamType.ComprehensiveTraining,
-                            StudentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0,
-                            BasePath = directoryService.GetBasePath(),
-                            FilePaths = new Dictionary<BenchSuiteFileType, List<string>>()
-                        };
+                        // 构建文件路径字典
+                        Dictionary<ModuleType, List<string>> filePaths = new();
 
                         // 扫描并添加文件路径
-                        await ScanAndAddFilePathsAsync(benchSuiteRequest, currentTrainingId.Value);
+                        await ScanAndAddFilePathsAsync(filePaths, currentTrainingId.Value, directoryService);
 
                         // 执行BenchSuite评分
-                        scoringResult = await benchSuiteService.ScoreExamAsync(benchSuiteRequest);
+                        int studentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0;
+                        scoringResults = await benchSuiteService.ScoreExamAsync(ExamType.ComprehensiveTraining, currentTrainingId.Value, studentUserId, filePaths);
 
-                        if (scoringResult.IsSuccess)
+                        if (scoringResults != null && scoringResults.Count > 0)
                         {
-                            score = scoringResult.AchievedScore;
-                            maxScore = scoringResult.TotalScore;
+                            score = scoringResults.Values.Sum(r => r.AchievedScore);
+                            maxScore = scoringResults.Values.Sum(r => r.TotalScore);
 
                             // 序列化评分结果
-                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResult, new System.Text.Json.JsonSerializerOptions
+                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResults, new System.Text.Json.JsonSerializerOptions
                             {
                                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
                                 WriteIndented = true
@@ -627,15 +621,12 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 扫描并添加文件路径到BenchSuite评分请求
+    /// 扫描并添加文件路径到字典
     /// </summary>
-    private async Task ScanAndAddFilePathsAsync(BenchSuiteScoringRequest request, int trainingId)
+    private async Task ScanAndAddFilePathsAsync(Dictionary<ModuleType, List<string>> filePaths, int trainingId, IBenchSuiteDirectoryService directoryService)
     {
         try
         {
-            IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
-            if (directoryService == null) return;
-
             // 获取支持的模块类型
             ModuleType[] supportedModuleTypes =
             {
@@ -945,7 +936,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示详细的训练结果
     /// </summary>
-    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult>? scoringResults)
     {
         try
         {
