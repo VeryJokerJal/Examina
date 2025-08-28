@@ -212,6 +212,42 @@ public class ComprehensiveTrainingQuestionDto
     public DateTime? UpdatedAt { get; set; }
 
     /// <summary>
+    /// C#题目类型（兼容ExamLab导出格式）
+    /// </summary>
+    [JsonPropertyName("csharpQuestionType")]
+    [XmlElement("CsharpQuestionType")]
+    public string? CsharpQuestionType { get; set; }
+
+    /// <summary>
+    /// 代码文件路径（兼容ExamLab导出格式）
+    /// </summary>
+    [JsonPropertyName("codeFilePath")]
+    [XmlElement("CodeFilePath")]
+    public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// C#直接分数（兼容ExamLab导出格式）
+    /// </summary>
+    [JsonPropertyName("csharpDirectScore")]
+    [XmlElement("CsharpDirectScore")]
+    public decimal? CsharpDirectScore { get; set; }
+
+    /// <summary>
+    /// 代码空白填充项（兼容ExamLab导出格式）
+    /// </summary>
+    [JsonPropertyName("codeBlanks")]
+    [XmlArray("CodeBlanks")]
+    [XmlArrayItem("CodeBlank")]
+    public List<object>? CodeBlanks { get; set; }
+
+    /// <summary>
+    /// 文档文件路径（兼容ExamLab导出格式）
+    /// </summary>
+    [JsonPropertyName("documentFilePath")]
+    [XmlElement("DocumentFilePath")]
+    public string? DocumentFilePath { get; set; }
+
+    /// <summary>
     /// 操作点列表
     /// </summary>
     [JsonPropertyName("operationPoints")]

@@ -58,6 +58,30 @@ public class ComprehensiveTrainingDto
     public string ComprehensiveTrainingType { get; set; } = "UnifiedTraining";
 
     /// <summary>
+    /// 考试类型（兼容ExamLab导出格式）
+    /// </summary>
+    [JsonPropertyName("examType")]
+    [XmlElement("ExamType")]
+    public string? ExamType
+    {
+        get => ComprehensiveTrainingType;
+        set
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                // 将ExamLab的考试类型映射到综合训练类型
+                ComprehensiveTrainingType = value switch
+                {
+                    "UnifiedExam" => "UnifiedTraining",
+                    "ModularExam" => "ModularTraining",
+                    "SpecializedExam" => "SpecializedTraining",
+                    _ => value
+                };
+            }
+        }
+    }
+
+    /// <summary>
     /// 综合训练状态
     /// </summary>
     [JsonPropertyName("status")]
