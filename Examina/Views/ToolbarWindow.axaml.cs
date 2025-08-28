@@ -144,6 +144,7 @@ public partial class ToolbarWindow : Window
         ExtendClientAreaTitleBarHeightHint = -1;
         TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
         CanResize = false;
+        ShowInTaskbar = false;
     }
 
     /// <summary>

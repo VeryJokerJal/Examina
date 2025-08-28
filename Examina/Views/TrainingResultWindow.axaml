@@ -80,33 +80,33 @@
                             <!--  总分  -->
                             <Border Grid.Column="0" Classes="score-card">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="White" Text="{Binding TotalScore, StringFormat={}总分: {0:F1}}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="White" Text="得分" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="12" Text="{Binding TotalScore, StringFormat={}总分: {0:F1}}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="得分" />
                                 </StackPanel>
                             </Border>
 
                             <!--  得分率  -->
                             <Border Grid.Column="1" Classes="score-card">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White" Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="White" Text="得分率" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="得分率" />
                                 </StackPanel>
                             </Border>
 
                             <!--  正确率  -->
                             <Border Grid.Column="2" Classes="score-card">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White" Text="{Binding CorrectRate, StringFormat={}{0:F1}%}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="White" Text="正确率" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding CorrectRate, StringFormat={}{0:F1}%}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="正确率" />
                                 </StackPanel>
                             </Border>
 
                             <!--  成绩等级  -->
                             <Border Grid.Column="3" Classes="score-card">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White" Text="{Binding Grade}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="White" Text="等级" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding Grade}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="等级" />
                                 </StackPanel>
                             </Border>
                         </Grid>

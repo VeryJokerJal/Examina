@@ -601,12 +601,27 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
         // 模拟考试没有模块概念，需要根据题目的操作点创建虚拟模块
         // 按目标模块类型过滤相关题目
+        _logger.LogDebug("开始过滤模拟考试题目，目标模块类型: {TargetModuleType}, 总题目数: {TotalQuestions}",
+            targetModuleType, mockExamDto.Questions.Count);
+
         IEnumerable<StudentMockExamQuestionDto> relevantQuestions = mockExamDto.Questions
-            .Where(q => q.OperationPoints.Any(op =>
-                string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase)));
+            .Where(q => q.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, targetModuleType)));
+
+        _logger.LogDebug("过滤后的相关题目数量: {RelevantQuestionsCount}", relevantQuestions.Count());
+
+        // 记录每个题目的操作点模块类型，用于调试
+        foreach (StudentMockExamQuestionDto question in mockExamDto.Questions)
+        {
+            string operationPointTypes = string.Join(", ", question.OperationPoints.Select(op => $"'{op.ModuleType}'"));
+            _logger.LogDebug("题目 {QuestionId} 的操作点模块类型: [{OperationPointTypes}]",
+                question.OriginalQuestionId, operationPointTypes);
+        }
 
         if (relevantQuestions.Any())
         {
+            _logger.LogInformation("找到 {Count} 个匹配 {ModuleType} 模块类型的题目，开始创建模块",
+                relevantQuestions.Count(), targetModuleType);
+
             ExamModuleModel module = new()
             {
                 Id = $"MockExam_Module_{targetModuleType}",
@@ -633,16 +648,25 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 };
 
                 // 只添加匹配目标模块类型的操作点
-                foreach (StudentMockExamOperationPointDto opDto in questionDto.OperationPoints
-                    .Where(op => string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
-                    .OrderBy(op => op.Order))
+                IEnumerable<StudentMockExamOperationPointDto> matchingOperationPoints = questionDto.OperationPoints
+                    .Where(op => IsModuleTypeMatch(op.ModuleType, targetModuleType))
+                    .OrderBy(op => op.Order);
+
+                _logger.LogDebug("题目 {QuestionId} 中匹配的操作点数量: {MatchingCount}/{TotalCount}",
+                    questionDto.OriginalQuestionId, matchingOperationPoints.Count(), questionDto.OperationPoints.Count);
+
+                foreach (StudentMockExamOperationPointDto opDto in matchingOperationPoints)
                 {
+                    ModuleType parsedModuleType = ParseModuleType(opDto.ModuleType);
+                    _logger.LogDebug("映射操作点 {OperationPointId}: '{OriginalType}' → {ParsedType}",
+                        opDto.Id, opDto.ModuleType, parsedModuleType);
+
                     OperationPointModel operationPoint = new()
                     {
                         Id = opDto.Id.ToString(),
                         Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
                         Description = opDto.Description ?? string.Empty,
-                        ModuleType = ParseModuleType(opDto.ModuleType),
+                        ModuleType = parsedModuleType,
                         Score = opDto.Score,
                         Order = opDto.Order,
                         IsEnabled = true,
@@ -661,13 +685,20 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             if (module.Questions.Count > 0)
             {
                 examModel.Modules.Add(module);
+                _logger.LogInformation("成功创建 {ModuleType} 模块，包含 {QuestionCount} 个题目，总分 {TotalScore}",
+                    targetModuleType, module.Questions.Count, module.Score);
+            }
+            else
+            {
+                _logger.LogWarning("模块 {ModuleType} 中没有有效题目（所有题目的操作点都被过滤掉了）", targetModuleType);
             }
         }
 
         // 如果没有找到相关模块，创建一个基本模块
         if (examModel.Modules.Count == 0)
         {
-            _logger.LogWarning("模拟考试中未找到模块类型 {ModuleType} 的数据，创建基本模块", targetModuleType);
+            _logger.LogWarning("模拟考试中未找到模块类型 {ModuleType} 的数据，创建基本模块。可能的原因：1) 数据中没有该模块类型的题目 2) 模块类型字符串不匹配",
+                targetModuleType);
             examModel.Modules.Add(CreateBasicModule(targetModuleType));
         }
 
@@ -698,8 +729,13 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         };
 
         // 首先从模块列表中查找匹配的模块
+        _logger.LogDebug("开始过滤综合实训模块，目标模块类型: {TargetModuleType}, 总模块数: {TotalModules}",
+            targetModuleType, trainingDto.Modules.Count);
+
         IEnumerable<StudentComprehensiveTrainingModuleDto> relevantModules = trainingDto.Modules
-            .Where(m => string.Equals(m.Type, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase));
+            .Where(m => IsModuleTypeMatch(m.Type, targetModuleType));
+
+        _logger.LogDebug("过滤后的相关模块数量: {RelevantModulesCount}", relevantModules.Count());
 
         foreach (StudentComprehensiveTrainingModuleDto moduleDto in relevantModules.OrderBy(m => m.Order))
         {
@@ -736,8 +772,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             {
                 // 检查科目中是否有匹配目标模块类型的题目
                 IEnumerable<StudentComprehensiveTrainingQuestionDto> relevantQuestions = subjectDto.Questions
-                    .Where(q => q.OperationPoints.Any(op =>
-                        string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase)));
+                    .Where(q => q.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, targetModuleType)));
 
                 if (relevantQuestions.Any())
                 {
@@ -903,7 +938,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
         // 只添加匹配目标模块类型的操作点
         foreach (StudentComprehensiveTrainingOperationPointDto opDto in questionDto.OperationPoints
-            .Where(op => string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
+            .Where(op => IsModuleTypeMatch(op.ModuleType, targetModuleType))
             .OrderBy(op => op.Order))
         {
             OperationPointModel operationPoint = new()
@@ -943,7 +978,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
         // 只添加匹配目标模块类型的操作点
         foreach (StudentSpecializedTrainingOperationPointDto opDto in questionDto.OperationPoints
-            .Where(op => string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
+            .Where(op => IsModuleTypeMatch(op.ModuleType, targetModuleType))
             .OrderBy(op => op.Order))
         {
             OperationPointModel operationPoint = new()
@@ -1170,23 +1205,55 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
-    /// 解析模块类型字符串为枚举
+    /// 检查模块类型字符串是否与目标模块类型匹配
+    /// </summary>
+    private static bool IsModuleTypeMatch(string moduleTypeString, ModuleType targetModuleType)
+    {
+        if (string.IsNullOrWhiteSpace(moduleTypeString))
+        {
+            return false;
+        }
+
+        // 首先尝试解析为ModuleType，然后比较
+        ModuleType parsedType = ParseModuleType(moduleTypeString);
+        return parsedType == targetModuleType;
+    }
+
+    /// <summary>
+    /// 解析模块类型字符串为枚举（增强版，支持更多C#变体）
     /// </summary>
     private static ModuleType ParseModuleType(string moduleTypeString)
     {
+        if (string.IsNullOrWhiteSpace(moduleTypeString))
+        {
+            return ModuleType.Windows; // 默认值
+        }
+
+        // 首先尝试直接解析
         if (Enum.TryParse<ModuleType>(moduleTypeString, true, out ModuleType result))
         {
             return result;
         }
 
-        // 处理一些常见的别名
-        return moduleTypeString.ToLowerInvariant() switch
+        // 处理各种别名和变体
+        string normalized = moduleTypeString.Trim().ToLowerInvariant();
+        return normalized switch
         {
-            "ppt" or "powerpoint" => ModuleType.PowerPoint,
-            "word" => ModuleType.Word,
-            "excel" => ModuleType.Excel,
-            "windows" => ModuleType.Windows,
-            "csharp" or "c#" => ModuleType.CSharp,
+            // PowerPoint 变体
+            "ppt" or "powerpoint" or "power-point" or "power_point" => ModuleType.PowerPoint,
+
+            // Word 变体
+            "word" or "msword" or "ms-word" or "microsoft-word" => ModuleType.Word,
+
+            // Excel 变体
+            "excel" or "msexcel" or "ms-excel" or "microsoft-excel" => ModuleType.Excel,
+
+            // Windows 变体
+            "windows" or "win" or "os" or "操作系统" => ModuleType.Windows,
+
+            // C# 变体（重点增强）
+            "csharp" or "c#" or "c-sharp" or "c_sharp" or "cs" or "dotnet" or ".net" or "编程" or "程序设计" => ModuleType.CSharp,
+
             _ => ModuleType.Windows // 默认值
         };
     }

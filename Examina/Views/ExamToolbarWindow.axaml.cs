@@ -109,8 +109,7 @@ public partial class ExamToolbarWindow : Window, IDisposable
         ExtendClientAreaTitleBarHeightHint = -1;
         TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
         CanResize = false;
-
-        _logger.LogInformation("ExamToolbarWindow窗口属性初始化完成");
+        ShowInTaskbar = false;
     }
 
     /// <summary>

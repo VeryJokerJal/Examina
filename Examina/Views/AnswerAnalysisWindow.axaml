@@ -1,19 +1,4 @@
-<Window
-    x:Class="Examina.Views.AnswerAnalysisWindow"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="using:Examina.ViewModels"
-    Title="{Binding Title}"
-    Width="900"
-    Height="700"
-    d:DesignHeight="700"
-    d:DesignWidth="900"
-    x:DataType="vm:AnswerAnalysisViewModel"
-    Icon="/Assets/icon.ico"
-    WindowStartupLocation="CenterScreen"
-    mc:Ignorable="d">
+﻿<Window x:Class="Examina.Views.AnswerAnalysisWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="using:Examina.ViewModels" Title="{Binding Title}" Width="900" Height="700" d:DesignHeight="700" d:DesignWidth="900" x:DataType="vm:AnswerAnalysisViewModel" Icon="/Assets/icon.ico" WindowStartupLocation="CenterScreen" mc:Ignorable="d">
 
     <Window.Styles>
         <Style Selector="TextBlock.header">
@@ -56,24 +41,18 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 标题区域 -->
+        <!--  标题区域  -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock
-                Classes="header"
-                FontSize="20"
-                Text="{Binding Title}" />
-            <TextBlock
-                FontSize="14"
-                Foreground="{DynamicResource TextFillColorSecondary}"
-                Text="{Binding ExamName}" />
+            <TextBlock Classes="header" FontSize="20" Text="{Binding Title}" />
+            <TextBlock FontSize="14" Foreground="{DynamicResource TextFillColorSecondary}" Text="{Binding ExamName}" />
         </StackPanel>
 
-        <!-- 模块答案解析区域（每个模块一个Expander） -->
+        <!--  模块答案解析区域（每个模块一个Expander）  -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Modules}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Classes="section">
+                        <Border>
                             <Expander IsExpanded="False">
                                 <Expander.Header>
                                     <Grid>
@@ -83,16 +62,15 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- 模块基本信息 -->
+                                        <!--  模块基本信息  -->
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
-                                            <TextBlock Classes="content" Text="{Binding ModuleDescription}" />
+                                            <TextBlock Text="{Binding ModuleName}" />
                                         </StackPanel>
 
-                                        <!-- 题目数量 -->
+                                        <!--  题目数量  -->
                                         <TextBlock Grid.Column="1" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding QuestionCount, StringFormat='{}{0}道题目'}" />
 
-                                        <!-- 总分值 -->
+                                        <!--  总分值  -->
                                         <TextBlock Grid.Column="2" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding TotalScore, StringFormat='总分{0}分'}" />
                                     </Grid>
                                 </Expander.Header>
@@ -105,32 +83,14 @@
                                                 <DataTemplate>
                                                     <Border Classes="question-item">
                                                         <StackPanel>
-                                                            <!-- 题目标题 -->
+                                                            <!--  题目标题  -->
                                                             <StackPanel Margin="0,0,0,12" Orientation="Horizontal">
-                                                                <TextBlock
-                                                                    Classes="header"
-                                                                    Margin="0,0,8,0"
-                                                                    Text="{Binding Title}" />
-                                                                <Border
-                                                                    Padding="6,2"
-                                                                    Background="{DynamicResource AccentFillColorDefault}"
-                                                                    CornerRadius="4">
-                                                                    <TextBlock
-                                                                        FontSize="12"
-                                                                        Foreground="White"
-                                                                        Text="{Binding QuestionType}" />
-                                                                </Border>
-                                                                <TextBlock
-                                                                    Margin="8,0,0,0"
-                                                                    FontSize="12"
-                                                                    Foreground="{DynamicResource TextFillColorSecondary}"
-                                                                    Text="{Binding Score, StringFormat='分值: {0}'}" />
+                                                                <TextBlock Classes="header" Text="{Binding Title}" />
+                                                                <TextBlock Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource TextFillColorSecondary}" Text="{Binding Score, StringFormat='分值: {0}'}" />
                                                             </StackPanel>
 
-                                                            <!-- 答案解析内容 -->
-                                                            <TextBlock
-                                                                Classes="content"
-                                                                Text="{Binding Content}" />
+                                                            <!--  答案解析内容  -->
+                                                            <TextBlock Classes="content" Text="{Binding Content}" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
@@ -145,17 +105,9 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- 底部按钮区域 -->
-        <StackPanel
-            Grid.Row="2"
-            Margin="0,20,0,0"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal"
-            Spacing="12">
-            <Button
-                Padding="20,8"
-                Click="CloseButton_Click"
-                Content="关闭" />
+        <!--  底部按钮区域  -->
+        <StackPanel Grid.Row="2" Margin="0,20,0,0" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="12">
+            <Button Padding="20,8" Click="CloseButton_Click" Content="关闭" />
         </StackPanel>
     </Grid>
 </Window>

@@ -124,17 +124,17 @@ public class CSharpScoringService : ICSharpScoringService
     private async Task ScoreCodeCompletionAsync(CSharpScoringResult result, string templateCode, string studentCode, List<string> expectedImplementations)
     {
         List<FillBlankResult> fillResults = await DetectFillBlanksAsync(templateCode, studentCode, expectedImplementations);
-        
+
         result.FillBlankResults = fillResults;
         result.TotalScore = fillResults.Count;
         result.AchievedScore = fillResults.Count(f => f.Matched);
         result.IsSuccess = true;
-        
+
         int totalBlanks = fillResults.Count;
         int correctBlanks = fillResults.Count(f => f.Matched);
-        
+
         result.Details = $"代码补全评分完成。总填空数: {totalBlanks}, 正确填空数: {correctBlanks}";
-        
+
         if (correctBlanks == 0 && totalBlanks > 0)
         {
             result.Details += "\n所有填空都不正确，请检查代码实现。";
@@ -253,7 +253,7 @@ public class CSharpScoringService : ICSharpScoringService
     private static string ExtractProblemDescriptionFromTest(string testCode)
     {
         // 简化实现：从测试代码的注释中提取描述，或使用默认描述
-        if (testCode.Contains("//") && testCode.Contains("题目") || testCode.Contains("问题"))
+        if ((testCode.Contains("//") && testCode.Contains("题目")) || testCode.Contains("问题"))
         {
             string[] lines = testCode.Split('\n');
             foreach (string line in lines)
@@ -396,7 +396,7 @@ public class CSharpScoringService : ICSharpScoringService
             double achievedScore = 0;
 
             // 从所有模块中获取C#题目
-            var csharpQuestions = examModel.Modules
+            IEnumerable<QuestionModel> csharpQuestions = examModel.Modules
                 .Where(m => m.Type == ModuleType.CSharp)
                 .SelectMany(m => m.Questions);
 
@@ -521,11 +521,15 @@ public class CSharpScoringService : ICSharpScoringService
     public bool CanProcessFile(string filePath)
     {
         if (string.IsNullOrEmpty(filePath))
+        {
             return false;
+        }
 
         // 检查文件是否存在
         if (!File.Exists(filePath))
+        {
             return false;
+        }
 
         string extension = Path.GetExtension(filePath).ToLowerInvariant();
         return GetSupportedExtensions().Contains(extension);
@@ -550,7 +554,7 @@ public class CSharpScoringService : ICSharpScoringService
         try
         {
             // 从题目的操作点中提取C#相关信息
-            var csharpOperationPoints = question.OperationPoints
+            List<OperationPointModel> csharpOperationPoints = question.OperationPoints
                 .Where(op => op.ModuleType == ModuleType.CSharp)
                 .ToList();
 
@@ -611,9 +615,9 @@ public class CSharpScoringService : ICSharpScoringService
     private static string ExtractTemplateCode(QuestionModel question, List<OperationPointModel> operationPoints)
     {
         // 优先从操作点参数中查找模板代码
-        foreach (var op in operationPoints)
+        foreach (OperationPointModel op in operationPoints)
         {
-            var templateParam = op.Parameters?.FirstOrDefault(p =>
+            ConfigurationParameterModel? templateParam = op.Parameters?.FirstOrDefault(p =>
                 p.Name.Equals("TemplateCode", StringComparison.OrdinalIgnoreCase) ||
                 p.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
 
@@ -627,7 +631,7 @@ public class CSharpScoringService : ICSharpScoringService
         if (!string.IsNullOrWhiteSpace(question.Content))
         {
             // 查找代码块标记
-            var codeBlockMatch = System.Text.RegularExpressions.Regex.Match(
+            System.Text.RegularExpressions.Match codeBlockMatch = System.Text.RegularExpressions.Regex.Match(
                 question.Content,
                 @"```(?:csharp|cs|c#)?\s*\n(.*?)\n```",
                 System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
@@ -652,7 +656,7 @@ public class CSharpScoringService : ICSharpScoringService
     {
         List<string> implementations = [];
 
-        foreach (var op in operationPoints)
+        foreach (OperationPointModel op in operationPoints)
         {
             // 根据评分模式查找不同的参数
             string[] paramNames = scoringMode switch
@@ -665,7 +669,7 @@ public class CSharpScoringService : ICSharpScoringService
 
             foreach (string paramName in paramNames)
             {
-                var param = op.Parameters?.FirstOrDefault(p =>
+                ConfigurationParameterModel? param = op.Parameters?.FirstOrDefault(p =>
                     p.Name.Equals(paramName, StringComparison.OrdinalIgnoreCase));
 
                 if (param != null && !string.IsNullOrWhiteSpace(param.Value))
@@ -687,7 +691,7 @@ public class CSharpScoringService : ICSharpScoringService
     /// <returns>通用评分结果</returns>
     private static ScoringResult ConvertToScoringResult(CSharpScoringResult csharpResult, QuestionModel question)
     {
-        var result = new ScoringResult
+        ScoringResult result = new()
         {
             StartTime = csharpResult.StartTime,
             EndTime = csharpResult.EndTime,
@@ -702,7 +706,7 @@ public class CSharpScoringService : ICSharpScoringService
         switch (csharpResult.Mode)
         {
             case CSharpScoringMode.CodeCompletion:
-                foreach (var fillResult in csharpResult.FillBlankResults)
+                foreach (FillBlankResult fillResult in csharpResult.FillBlankResults)
                 {
                     result.KnowledgePointResults.Add(new KnowledgePointResult
                     {
