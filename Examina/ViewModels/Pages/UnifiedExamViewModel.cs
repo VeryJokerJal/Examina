@@ -3,7 +3,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.Views;

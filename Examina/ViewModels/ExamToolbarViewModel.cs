@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using Examina.Services;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;

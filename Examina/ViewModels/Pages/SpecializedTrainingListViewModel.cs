@@ -3,9 +3,9 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using BenchSuite.Models;
 using Examina.Extensions;
 using Examina.Models;
-using Examina.Models.BenchSuite;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
 using Examina.Views;
@@ -581,11 +581,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             }
 
             // 构建文件路径字典
-            Dictionary<ModuleType, List<string>> filePaths = new();
+            Dictionary<ModuleType, List<string>> filePaths = [];
 
             // 根据训练的模块类型确定文件类型
             ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
-            filePaths[moduleType] = new List<string>(); // 简化版本，实际应该扫描文件
+            filePaths[moduleType] = []; // 简化版本，实际应该扫描文件
 
             // 执行评分
             Dictionary<ModuleType, ScoringResult> results = await _benchSuiteIntegrationService.ScoreExamAsync(

@@ -6,7 +6,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Examina.ViewModels.Dialogs;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using System;
 using System.Threading.Tasks;
 

@@ -4,7 +4,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -893,7 +893,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示训练结果
     /// </summary>
-    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, Dictionary<ModuleType, ScoringResult>? scoringResults = null)
+    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, BenchSuiteScoringResult? scoringResult = null)
     {
         try
         {
@@ -906,21 +906,18 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 如果没有传入评分结果，创建一个基本的失败结果
-            scoringResults ??= new Dictionary<ModuleType, ScoringResult>
+            scoringResult ??= new BenchSuiteScoringResult
             {
-                [ModuleType.CSharp] = new ScoringResult
-                {
-                    IsSuccess = false,
-                    ErrorMessage = "未能获取评分结果",
-                    TotalScore = 100,
-                    AchievedScore = 0,
-                    StartTime = _trainingStartTime,
-                    EndTime = DateTime.Now
-                }
+                IsSuccess = false,
+                ErrorMessage = "未能获取评分结果",
+                TotalScore = 100,
+                AchievedScore = 0,
+                StartTime = _trainingStartTime,
+                EndTime = DateTime.Now
             };
 
             // 显示详细的训练结果（使用真实或基本的评分结果）
-            await ShowDetailedTrainingResultAsync(training.Name, scoringResults);
+            await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
         }
         catch
         {
@@ -947,13 +944,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示详细的训练结果
     /// </summary>
-    private async Task ShowDetailedTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult> scoringResults)
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
     {
         try
         {
             // 创建训练结果ViewModel
             TrainingResultViewModel resultViewModel = new();
-            resultViewModel.SetTrainingResult(trainingName, scoringResults, _trainingStartTime);
+            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
 
             // 创建训练结果窗口
             TrainingResultWindow resultWindow = new()

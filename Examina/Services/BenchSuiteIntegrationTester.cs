@@ -1,5 +1,5 @@
 ﻿using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;

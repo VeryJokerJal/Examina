@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using Examina.ViewModels.Dialogs;
 
 namespace Examina.Tests;

@@ -1,6 +1,6 @@
 ﻿using Examina.Models;
 using Examina.Models.Api;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using Examina.Models.MockExam;
 using Microsoft.Extensions.Logging;
 
@@ -46,14 +46,14 @@ public class EnhancedExamToolbarService : IDisposable
     /// </summary>
     public async Task<bool> SubmitFormalExamAsync(int examId)
     {
-        BenchSuiteScoringResult? result = await SubmitFormalExamWithResultAsync(examId);
-        return result != null;
+        Dictionary<ModuleType, ScoringResult>? result = await SubmitFormalExamWithResultAsync(examId);
+        return result != null && result.Count > 0;
     }
 
     /// <summary>
     /// 提交正式考试并返回评分结果
     /// </summary>
-    public async Task<BenchSuiteScoringResult?> SubmitFormalExamWithResultAsync(int examId)
+    public async Task<Dictionary<ModuleType, ScoringResult>?> SubmitFormalExamWithResultAsync(int examId)
     {
         try
         {
@@ -70,16 +70,21 @@ public class EnhancedExamToolbarService : IDisposable
             // 1. 先进行BenchSuite评分
             if (int.TryParse(currentUser.Id, out int studentId))
             {
-                BenchSuiteScoringResult? scoringResult = await PerformBenchSuiteScoringAsync(ExamType.FormalExam, examId, studentId);
+                Dictionary<ModuleType, ScoringResult>? scoringResults = await PerformBenchSuiteScoringAsync(ExamType.FormalExam, examId, studentId);
+
+                // 计算总分和得分
+                decimal totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
+                decimal achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
+                bool isSuccess = scoringResults?.Values.All(r => r.IsSuccess) ?? false;
 
                 // 2. 准备成绩提交数据
                 SubmitExamScoreRequestDto scoreRequest = new()
                 {
-                    Score = scoringResult?.AchievedScore,
-                    MaxScore = scoringResult?.TotalScore,
+                    Score = achievedScore,
+                    MaxScore = totalScore,
                     DurationSeconds = null, // 可以从考试开始时间计算
-                    Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
-                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null,
+                    Notes = isSuccess ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
+                    BenchSuiteScoringResult = scoringResults != null ? JsonSerializer.Serialize(scoringResults) : null,
                     CompletedAt = DateTime.Now
                 };
 
@@ -103,10 +108,10 @@ public class EnhancedExamToolbarService : IDisposable
                 else
                 {
                     _logger.LogInformation("正式考试成绩提交成功，考试ID: {ExamId}, 得分: {Score}/{MaxScore}",
-                        examId, scoringResult?.AchievedScore, scoringResult?.TotalScore);
+                        examId, achievedScore, totalScore);
                 }
 
-                return scoringResult;
+                return scoringResults;
             }
             else
             {
@@ -124,7 +129,7 @@ public class EnhancedExamToolbarService : IDisposable
     /// <summary>
     /// 提交模拟考试
     /// </summary>
-    public async Task<BenchSuiteScoringResult?> SubmitMockExamAsync(int mockExamId, int? actualDurationSeconds = null)
+    public async Task<Dictionary<ModuleType, ScoringResult>?> SubmitMockExamAsync(int mockExamId, int? actualDurationSeconds = null)
     {
         try
         {
@@ -141,16 +146,21 @@ public class EnhancedExamToolbarService : IDisposable
             // 1. 先进行BenchSuite评分
             if (int.TryParse(currentUser.Id, out int studentId))
             {
-                BenchSuiteScoringResult? scoringResult = await PerformBenchSuiteScoringAsync(ExamType.MockExam, mockExamId, studentId);
+                Dictionary<ModuleType, ScoringResult>? scoringResults = await PerformBenchSuiteScoringAsync(ExamType.MockExam, mockExamId, studentId);
+
+                // 计算总分和得分
+                decimal totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
+                decimal achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
+                bool isSuccess = scoringResults?.Values.All(r => r.IsSuccess) ?? false;
 
                 // 2. 准备成绩提交数据
                 SubmitMockExamScoreRequestDto scoreRequest = new()
                 {
-                    Score = scoringResult?.AchievedScore,
-                    MaxScore = scoringResult?.TotalScore,
+                    Score = achievedScore,
+                    MaxScore = totalScore,
                     DurationSeconds = actualDurationSeconds, // 使用传递的实际用时
-                    Notes = scoringResult?.IsSuccess == true ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
-                    BenchSuiteScoringResult = scoringResult != null ? JsonSerializer.Serialize(scoringResult) : null
+                    Notes = isSuccess ? "BenchSuite自动评分完成" : "BenchSuite评分失败",
+                    BenchSuiteScoringResult = scoringResults != null ? JsonSerializer.Serialize(scoringResults) : null
                 };
 
                 // 3. 提交模拟考试成绩到服务器
@@ -179,10 +189,10 @@ public class EnhancedExamToolbarService : IDisposable
                 }
 
                 // 4. 记录评分结果
-                if (scoringResult?.IsSuccess == true)
+                if (isSuccess)
                 {
                     _logger.LogInformation("模拟考试BenchSuite评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
-                        scoringResult.TotalScore, scoringResult.AchievedScore);
+                        totalScore, achievedScore);
                 }
                 else
                 {
@@ -190,7 +200,7 @@ public class EnhancedExamToolbarService : IDisposable
                 }
 
                 _logger.LogInformation("模拟考试提交流程完成，模拟考试ID: {MockExamId}", mockExamId);
-                return scoringResult;
+                return scoringResults;
             }
             else
             {
@@ -210,14 +220,14 @@ public class EnhancedExamToolbarService : IDisposable
     /// </summary>
     public async Task<bool> SubmitComprehensiveTrainingAsync(int trainingId)
     {
-        BenchSuiteScoringResult? result = await SubmitComprehensiveTrainingWithResultAsync(trainingId);
-        return result != null;
+        Dictionary<ModuleType, ScoringResult>? result = await SubmitComprehensiveTrainingWithResultAsync(trainingId);
+        return result != null && result.Count > 0;
     }
 
     /// <summary>
     /// 提交综合实训并返回评分结果
     /// </summary>
-    public async Task<BenchSuiteScoringResult?> SubmitComprehensiveTrainingWithResultAsync(int trainingId)
+    public async Task<Dictionary<ModuleType, ScoringResult>?> SubmitComprehensiveTrainingWithResultAsync(int trainingId)
     {
         try
         {

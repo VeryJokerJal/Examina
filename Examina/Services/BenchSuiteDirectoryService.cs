@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
@@ -13,19 +13,19 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
 {
     private readonly ILogger<BenchSuiteDirectoryService> _logger;
     private readonly string _basePath;
-    private readonly Dictionary<BenchSuiteFileType, string> _directoryMapping;
+    private readonly Dictionary<ModuleType, string> _directoryMapping;
 
     public BenchSuiteDirectoryService(ILogger<BenchSuiteDirectoryService> logger)
     {
         _logger = logger;
         _basePath = @"C:\河北对口计算机\";
-        _directoryMapping = new Dictionary<BenchSuiteFileType, string>
+        _directoryMapping = new Dictionary<ModuleType, string>
         {
-            { BenchSuiteFileType.CSharp, "CSharp" },
-            { BenchSuiteFileType.PowerPoint, "PPT" },
-            { BenchSuiteFileType.Word, "WORD" },
-            { BenchSuiteFileType.Excel, "EXCEL" },
-            { BenchSuiteFileType.Windows, "WINDOWS" }
+            { ModuleType.CSharp, "CSharp" },
+            { ModuleType.PowerPoint, "PPT" },
+            { ModuleType.Word, "WORD" },
+            { ModuleType.Excel, "EXCEL" },
+            { ModuleType.Windows, "WINDOWS" }
         };
     }
 
@@ -38,23 +38,23 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 获取指定文件类型的目录路径（旧版本，保持兼容性）
+    /// 获取指定模块类型的目录路径（旧版本，保持兼容性）
     /// </summary>
-    public string GetDirectoryPath(BenchSuiteFileType fileType)
+    public string GetDirectoryPath(ModuleType moduleType)
     {
-        return _directoryMapping.TryGetValue(fileType, out string? subdirectory)
+        return _directoryMapping.TryGetValue(moduleType, out string? subdirectory)
             ? System.IO.Path.Combine(_basePath, subdirectory)
-            : throw new ArgumentException($"不支持的文件类型: {fileType}", nameof(fileType));
+            : throw new ArgumentException($"不支持的模块类型: {moduleType}", nameof(moduleType));
     }
 
     /// <summary>
-    /// 获取指定考试类型和ID的文件类型目录路径
+    /// 获取指定考试类型和ID的模块类型目录路径
     /// </summary>
-    public string GetExamDirectoryPath(ExamType examType, int examId, BenchSuiteFileType fileType)
+    public string GetExamDirectoryPath(ExamType examType, int examId, ModuleType moduleType)
     {
-        if (!_directoryMapping.TryGetValue(fileType, out string? subdirectory))
+        if (!_directoryMapping.TryGetValue(moduleType, out string? subdirectory))
         {
-            throw new ArgumentException($"不支持的文件类型: {fileType}", nameof(fileType));
+            throw new ArgumentException($"不支持的模块类型: {moduleType}", nameof(moduleType));
         }
 
         string examTypeFolder = GetExamTypeFolder(examType);
@@ -64,9 +64,9 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     /// <summary>
     /// 获取考试文件的完整路径（旧版本，保持兼容性）
     /// </summary>
-    public string GetExamFilePath(BenchSuiteFileType fileType, int examId, int studentId, string fileName)
+    public string GetExamFilePath(ModuleType moduleType, int examId, int studentId, string fileName)
     {
-        string directoryPath = GetDirectoryPath(fileType);
+        string directoryPath = GetDirectoryPath(moduleType);
         string examDirectory = System.IO.Path.Combine(directoryPath, $"Exam_{examId}", $"Student_{studentId}");
         return System.IO.Path.Combine(examDirectory, fileName);
     }
@@ -74,9 +74,9 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     /// <summary>
     /// 获取考试文件的完整路径（新版本）
     /// </summary>
-    public string GetExamFilePath(ExamType examType, int examId, BenchSuiteFileType fileType, int studentId, string fileName)
+    public string GetExamFilePath(ExamType examType, int examId, ModuleType moduleType, int studentId, string fileName)
     {
-        string directoryPath = GetExamDirectoryPath(examType, examId, fileType);
+        string directoryPath = GetExamDirectoryPath(examType, examId, moduleType);
         string studentDirectory = System.IO.Path.Combine(directoryPath, $"Student_{studentId}");
         return System.IO.Path.Combine(studentDirectory, fileName);
     }
@@ -84,10 +84,8 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     /// <summary>
     /// 确保基础目录结构存在（仅创建基础目录，不创建科目文件夹）
     /// </summary>
-    public async Task<BenchSuiteDirectoryValidationResult> EnsureDirectoryStructureAsync()
+    public async Task<bool> EnsureDirectoryStructureAsync()
     {
-        BenchSuiteDirectoryValidationResult result = new();
-
         try
         {
             _logger.LogInformation("确保BenchSuite基础目录结构存在，基础路径: {BasePath}", _basePath);
@@ -97,43 +95,32 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             {
                 _ = System.IO.Directory.CreateDirectory(_basePath);
                 _logger.LogInformation("创建基础目录: {BasePath}", _basePath);
-                result.IsValid = true;
-                result.Details = "成功创建基础目录";
-            }
-            else
-            {
-                result.IsValid = true;
-                result.Details = "基础目录已存在";
             }
 
-            _logger.LogInformation("基础目录结构确保完成: {Details}", result.Details);
+            _logger.LogInformation("基础目录结构确保完成");
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "确保基础目录结构时发生异常");
-            result.IsValid = false;
-            result.ErrorMessage = $"确保基础目录结构时发生异常: {ex.Message}";
+            return false;
         }
-
-        return result;
     }
 
     /// <summary>
     /// 确保指定考试的目录结构存在
     /// </summary>
-    public async Task<BenchSuiteDirectoryValidationResult> EnsureExamDirectoryStructureAsync(ExamType examType, int examId)
+    public async Task<bool> EnsureExamDirectoryStructureAsync(ExamType examType, int examId)
     {
-        BenchSuiteDirectoryValidationResult result = new();
-
         try
         {
             _logger.LogInformation("确保考试目录结构存在，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
 
             // 首先确保基础目录存在
-            BenchSuiteDirectoryValidationResult baseResult = await EnsureDirectoryStructureAsync();
-            if (!baseResult.IsValid)
+            bool baseResult = await EnsureDirectoryStructureAsync();
+            if (!baseResult)
             {
-                return baseResult;
+                return false;
             }
 
             // 创建考试类型目录
@@ -154,33 +141,27 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             }
 
             // 创建各科目目录
-            List<string> createdDirectories = [];
-            foreach (KeyValuePair<BenchSuiteFileType, string> mapping in _directoryMapping)
+            int createdCount = 0;
+            foreach (KeyValuePair<ModuleType, string> mapping in _directoryMapping)
             {
                 string subjectPath = System.IO.Path.Combine(examIdPath, mapping.Value);
                 if (!System.IO.Directory.Exists(subjectPath))
                 {
                     _ = System.IO.Directory.CreateDirectory(subjectPath);
-                    createdDirectories.Add(subjectPath);
+                    createdCount++;
                     _logger.LogInformation("创建科目目录: {SubjectPath}", subjectPath);
                 }
             }
 
-            result.IsValid = true;
-            result.Details = createdDirectories.Count > 0
-                ? $"成功创建 {createdDirectories.Count} 个科目目录"
-                : "考试目录结构已存在";
-
-            _logger.LogInformation("考试目录结构确保完成: {Details}", result.Details);
+            _logger.LogInformation("考试目录结构确保完成，创建了 {CreatedCount} 个新目录", createdCount);
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "确保考试目录结构时发生异常");
-            result.IsValid = false;
-            result.ErrorMessage = $"确保考试目录结构时发生异常: {ex.Message}";
+            return false;
         }
-
-        return result;
+    }
     }
 
     /// <summary>
@@ -196,9 +177,9 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
 
             DateTime cutoffDate = DateTime.Now.AddDays(-retentionDays);
 
-            foreach (BenchSuiteFileType fileType in Enum.GetValues<BenchSuiteFileType>())
+            foreach (ModuleType moduleType in Enum.GetValues<ModuleType>())
             {
-                string directoryPath = GetDirectoryPath(fileType);
+                string directoryPath = GetDirectoryPath(moduleType);
                 if (!System.IO.Directory.Exists(directoryPath))
                 {
                     continue;
@@ -236,54 +217,40 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 获取目录使用情况统计
+    /// 获取目录使用情况统计（简化版本）
     /// </summary>
-    public async Task<BenchSuiteDirectoryUsageInfo> GetDirectoryUsageAsync()
+    public async Task<(int TotalFileCount, long TotalSizeBytes)> GetDirectoryUsageAsync()
     {
-        BenchSuiteDirectoryUsageInfo usageInfo = new()
-        {
-            BasePath = _basePath,
-            LastUpdated = DateTime.Now
-        };
-
         try
         {
             _logger.LogInformation("获取目录使用情况统计");
 
-            foreach (BenchSuiteFileType fileType in Enum.GetValues<BenchSuiteFileType>())
-            {
-                string directoryPath = GetDirectoryPath(fileType);
-                DirectoryTypeUsage typeUsage = new()
-                {
-                    FileType = fileType,
-                    DirectoryPath = directoryPath
-                };
+            int totalFileCount = 0;
+            long totalSizeBytes = 0;
 
+            foreach (ModuleType moduleType in Enum.GetValues<ModuleType>())
+            {
+                string directoryPath = GetDirectoryPath(moduleType);
                 if (System.IO.Directory.Exists(directoryPath))
                 {
                     System.IO.DirectoryInfo directoryInfo = new(directoryPath);
                     System.IO.FileInfo[] files = directoryInfo.GetFiles("*", System.IO.SearchOption.AllDirectories);
 
-                    typeUsage.FileCount = files.Length;
-                    typeUsage.SizeBytes = files.Sum(f => f.Length);
-                    typeUsage.LatestFileTime = files.Length > 0 ? files.Max(f => f.LastWriteTime) : null;
-                    typeUsage.OldestFileTime = files.Length > 0 ? files.Min(f => f.LastWriteTime) : null;
+                    totalFileCount += files.Length;
+                    totalSizeBytes += files.Sum(f => f.Length);
                 }
-
-                usageInfo.TypeUsages[fileType] = typeUsage;
-                usageInfo.TotalFileCount += typeUsage.FileCount;
-                usageInfo.TotalSizeBytes += typeUsage.SizeBytes;
             }
 
             _logger.LogInformation("目录使用情况统计完成，总文件数: {TotalFileCount}, 总大小: {TotalSizeBytes} 字节",
-                usageInfo.TotalFileCount, usageInfo.TotalSizeBytes);
+                totalFileCount, totalSizeBytes);
+
+            return (totalFileCount, totalSizeBytes);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取目录使用情况时发生异常");
+            return (0, 0);
         }
-
-        return usageInfo;
     }
 
     /// <summary>
@@ -304,15 +271,15 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
 
             int copiedFileCount = 0;
 
-            foreach (BenchSuiteFileType fileType in Enum.GetValues<BenchSuiteFileType>())
+            foreach (ModuleType moduleType in Enum.GetValues<ModuleType>())
             {
-                string sourceDirectory = System.IO.Path.Combine(GetDirectoryPath(fileType), $"Exam_{examId}", $"Student_{studentId}");
+                string sourceDirectory = System.IO.Path.Combine(GetDirectoryPath(moduleType), $"Exam_{examId}", $"Student_{studentId}");
                 if (!System.IO.Directory.Exists(sourceDirectory))
                 {
                     continue;
                 }
 
-                string targetDirectory = System.IO.Path.Combine(backupPath, GetFileTypeDescription(fileType));
+                string targetDirectory = System.IO.Path.Combine(backupPath, GetModuleTypeDescription(moduleType));
                 if (!System.IO.Directory.Exists(targetDirectory))
                 {
                     _ = System.IO.Directory.CreateDirectory(targetDirectory);
@@ -350,13 +317,19 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     #region 私有方法
 
     /// <summary>
-    /// 获取文件类型描述
+    /// 获取模块类型描述
     /// </summary>
-    private static string GetFileTypeDescription(BenchSuiteFileType fileType)
+    private static string GetModuleTypeDescription(ModuleType moduleType)
     {
-        FieldInfo? field = fileType.GetType().GetField(fileType.ToString());
-        DescriptionAttribute? attribute = field?.GetCustomAttribute<DescriptionAttribute>();
-        return attribute?.Description ?? fileType.ToString();
+        return moduleType switch
+        {
+            ModuleType.Word => "Word文档",
+            ModuleType.Excel => "Excel表格",
+            ModuleType.PowerPoint => "PowerPoint演示文稿",
+            ModuleType.CSharp => "C#编程",
+            ModuleType.Windows => "Windows操作",
+            _ => moduleType.ToString()
+        };
     }
 
     /// <summary>

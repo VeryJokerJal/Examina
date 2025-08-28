@@ -1,6 +1,6 @@
 ﻿using System.Reactive;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
