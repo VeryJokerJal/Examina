@@ -498,8 +498,16 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 if (_enhancedExamToolbarService != null)
                 {
-                    scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
-                    submitResult = scoringResult != null;
+                    Dictionary<ModuleType, ScoringResult>? moduleResults = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
+                    if (moduleResults != null)
+                    {
+                        scoringResult = ConvertModuleResultsToBenchSuiteResult(moduleResults);
+                        submitResult = true;
+                    }
+                    else
+                    {
+                        submitResult = false;
+                    }
                 }
                 else
                 {
@@ -566,19 +574,25 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
                     if (benchSuiteService != null && directoryService != null)
                     {
-                        // 准备文件路径字典（按ModuleType分组）
-                        Dictionary<ModuleType, List<string>> filePaths = new();
+                        // 创建BenchSuite评分请求
+                        BenchSuiteScoringRequest benchSuiteRequest = new()
+                        {
+                            ExamId = currentTrainingId.Value,
+                            ExamType = ExamType.ComprehensiveTraining,
+                            StudentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0,
+                            BasePath = directoryService.GetBasePath(),
+                            FilePaths = new Dictionary<BenchSuiteFileType, List<string>>()
+                        };
 
                         // 扫描并添加文件路径
-                        await ScanAndAddFilePathsToModuleDictionary(filePaths, currentTrainingId.Value, directoryService);
+                        await ScanAndAddFilePathsAsync(benchSuiteRequest, currentTrainingId.Value);
 
-                        // 执行BenchSuite评分
-                        int studentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0;
+                        // 执行BenchSuite评分 - 使用正确的方法签名
                         Dictionary<ModuleType, ScoringResult> moduleResults = await benchSuiteService.ScoreExamAsync(
-                            ExamType.ComprehensiveTraining,
-                            currentTrainingId.Value,
-                            studentUserId,
-                            filePaths);
+                            benchSuiteRequest.ExamType,
+                            benchSuiteRequest.ExamId,
+                            benchSuiteRequest.StudentUserId,
+                            ConvertBenchSuiteFilePathsToModulePaths(benchSuiteRequest.FilePaths));
 
                         // 将模块结果转换为BenchSuiteScoringResult
                         scoringResult = ConvertModuleResultsToBenchSuiteResult(moduleResults);
@@ -628,71 +642,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 扫描并添加文件路径到模块字典
-    /// </summary>
-    private async Task ScanAndAddFilePathsToModuleDictionary(Dictionary<ModuleType, List<string>> filePaths, int trainingId, IBenchSuiteDirectoryService directoryService)
-    {
-        try
-        {
-            // 获取支持的模块类型
-            ModuleType[] supportedModuleTypes =
-            {
-                ModuleType.Word,
-                ModuleType.Excel,
-                ModuleType.PowerPoint,
-                ModuleType.CSharp,
-                ModuleType.Windows
-            };
-
-            foreach (ModuleType moduleType in supportedModuleTypes)
-            {
-                try
-                {
-                    // 将ModuleType转换为BenchSuiteFileType
-                    BenchSuiteFileType fileType = ConvertModuleTypeToBenchSuiteFileType(moduleType);
-                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
-
-                    if (Directory.Exists(directoryPath))
-                    {
-                        List<string> moduleFilePaths = new();
-
-                        // 根据模块类型扫描相应的文件
-                        string[] extensions = moduleType switch
-                        {
-                            ModuleType.Word => new[] { "*.docx", "*.doc" },
-                            ModuleType.Excel => new[] { "*.xlsx", "*.xls" },
-                            ModuleType.PowerPoint => new[] { "*.pptx", "*.ppt" },
-                            ModuleType.CSharp => new[] { "*.cs" },
-                            ModuleType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
-                            _ => new[] { "*.*" }
-                        };
-
-                        foreach (string extension in extensions)
-                        {
-                            string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
-                            moduleFilePaths.AddRange(files);
-                        }
-
-                        if (moduleFilePaths.Count > 0)
-                        {
-                            filePaths[moduleType] = moduleFilePaths;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"扫描{moduleType}文件时发生错误: {ex.Message}");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"扫描文件路径时发生错误: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 扫描并添加文件路径到BenchSuite评分请求（保留原方法以兼容）
+    /// 扫描并添加文件路径到BenchSuite评分请求
     /// </summary>
     private async Task ScanAndAddFilePathsAsync(BenchSuiteScoringRequest request, int trainingId)
     {
@@ -714,7 +664,9 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 try
                 {
-                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
+                    // 将BenchSuiteFileType转换为ModuleType
+                    ModuleType moduleType = ConvertBenchSuiteFileTypeToModuleType(fileType);
+                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, moduleType);
 
                     if (Directory.Exists(directoryPath))
                     {
@@ -1048,6 +1000,22 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 将BenchSuiteFileType转换为ModuleType
+    /// </summary>
+    private static ModuleType ConvertBenchSuiteFileTypeToModuleType(BenchSuiteFileType fileType)
+    {
+        return fileType switch
+        {
+            BenchSuiteFileType.Word => ModuleType.Word,
+            BenchSuiteFileType.Excel => ModuleType.Excel,
+            BenchSuiteFileType.PowerPoint => ModuleType.PowerPoint,
+            BenchSuiteFileType.CSharp => ModuleType.CSharp,
+            BenchSuiteFileType.Windows => ModuleType.Windows,
+            _ => ModuleType.Windows // 默认返回Windows模块
+        };
+    }
+
+    /// <summary>
     /// 将ModuleType转换为BenchSuiteFileType
     /// </summary>
     private static BenchSuiteFileType ConvertModuleTypeToBenchSuiteFileType(ModuleType moduleType)
@@ -1091,5 +1059,21 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 将BenchSuiteFileType文件路径字典转换为ModuleType文件路径字典
+    /// </summary>
+    private static Dictionary<ModuleType, List<string>> ConvertBenchSuiteFilePathsToModulePaths(Dictionary<BenchSuiteFileType, List<string>> benchSuiteFilePaths)
+    {
+        Dictionary<ModuleType, List<string>> moduleFilePaths = new();
+
+        foreach (KeyValuePair<BenchSuiteFileType, List<string>> kvp in benchSuiteFilePaths)
+        {
+            ModuleType moduleType = ConvertBenchSuiteFileTypeToModuleType(kvp.Key);
+            moduleFilePaths[moduleType] = kvp.Value;
+        }
+
+        return moduleFilePaths;
     }
 }
