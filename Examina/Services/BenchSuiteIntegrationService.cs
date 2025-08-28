@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using Examina.Models;
+using Examina.Models.Exam;
 using Examina.Configuration;
 using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
@@ -391,14 +392,14 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             {
                 _logger.LogInformation("尝试从API获取考试数据，考试ID: {ExamId}, 学生ID: {StudentUserId}", examId, studentUserId);
 
-                StudentExamDto? examDto = await _studentExamService.GetExamDetailsAsync(examId, studentUserId);
+                StudentExamDto? examDto = await _studentExamService.GetExamDetailsAsync(examId);
                 if (examDto != null)
                 {
                     _logger.LogInformation("成功从API获取考试数据: {ExamName}", examDto.Name);
 
                     try
                     {
-                        return MapStudentExamDtoToExamModel(examDto, moduleType);
+                        return MapStudentExamDtoToExamModel(examDto!, moduleType);
                     }
                     catch (Exception mappingEx)
                     {
