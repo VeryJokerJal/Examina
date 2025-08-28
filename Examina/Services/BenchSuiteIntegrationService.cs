@@ -97,7 +97,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 _logger.LogInformation("开始评分模块类型: {ModuleType}, 文件数量: {FileCount}",
                     moduleType, moduleFilePaths.Count);
 
-                ScoringResult moduleResult = await ScoreModuleAsync(moduleType, moduleFilePaths, examType, examId);
+                ScoringResult moduleResult = await ScoreModuleAsync(moduleType, moduleFilePaths, examType, examId, studentUserId);
                 results[moduleType] = moduleResult;
 
                 _logger.LogInformation("模块 {ModuleType} 评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
@@ -256,7 +256,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 对指定模块类型进行评分
     /// </summary>
-    private async Task<ScoringResult> ScoreModuleAsync(ModuleType moduleType, List<string> filePaths, ExamType examType, int examId)
+    private async Task<ScoringResult> ScoreModuleAsync(ModuleType moduleType, List<string> filePaths, ExamType examType, int examId, int studentUserId)
     {
         ScoringResult result = new()
         {
