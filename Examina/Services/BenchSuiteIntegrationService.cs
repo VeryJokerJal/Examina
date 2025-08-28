@@ -6,6 +6,7 @@ using BenchSuite.Services;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Models.MockExam;
+using Examina.Models.Api.Student;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
@@ -22,19 +23,22 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     private readonly IStudentExamService? _studentExamService;
     private readonly IStudentMockExamService? _studentMockExamService;
     private readonly IStudentComprehensiveTrainingService? _studentComprehensiveTrainingService;
+    private readonly IStudentSpecializedTrainingService? _studentSpecializedTrainingService;
 
     public BenchSuiteIntegrationService(
         ILogger<BenchSuiteIntegrationService> logger,
         IAILogicalScoringService? aiScoringService = null,
         IStudentExamService? studentExamService = null,
         IStudentMockExamService? studentMockExamService = null,
-        IStudentComprehensiveTrainingService? studentComprehensiveTrainingService = null)
+        IStudentComprehensiveTrainingService? studentComprehensiveTrainingService = null,
+        IStudentSpecializedTrainingService? studentSpecializedTrainingService = null)
     {
         _logger = logger;
         _aiScoringService = aiScoringService;
         _studentExamService = studentExamService;
         _studentMockExamService = studentMockExamService;
         _studentComprehensiveTrainingService = studentComprehensiveTrainingService;
+        _studentSpecializedTrainingService = studentSpecializedTrainingService;
 
         _directoryMapping = new Dictionary<ModuleType, string>
         {
@@ -453,8 +457,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ExamType.ComprehensiveTraining => await GetComprehensiveTrainingDataAsync(examId, studentUserId),
             ExamType.FormalExam => await GetFormalExamDataAsync(examId, studentUserId),
             ExamType.Practice => await GetFormalExamDataAsync(examId, studentUserId), // Practice使用相同的API
-            ExamType.SpecialPractice => await GetFormalExamDataAsync(examId, studentUserId), // 暂时使用相同的API
-            ExamType.SpecializedTraining => await GetFormalExamDataAsync(examId, studentUserId), // 暂时使用相同的API
+            ExamType.SpecialPractice => await GetSpecialPracticeDataAsync(examId, studentUserId),
+            ExamType.SpecializedTraining => await GetSpecializedTrainingDataAsync(examId, studentUserId),
             _ => null
         };
     }
@@ -526,6 +530,38 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
+    /// 获取专项练习数据
+    /// </summary>
+    private async Task<object?> GetSpecialPracticeDataAsync(int practiceId, int studentUserId)
+    {
+        // 专项练习目前使用专项训练的数据结构，因为它们在系统中是统一管理的
+        // 这里直接调用专项训练的获取方法
+        return await GetSpecializedTrainingDataAsync(practiceId, studentUserId);
+    }
+
+    /// <summary>
+    /// 获取专项训练数据
+    /// </summary>
+    private async Task<object?> GetSpecializedTrainingDataAsync(int trainingId, int studentUserId)
+    {
+        if (_studentSpecializedTrainingService == null)
+        {
+            _logger.LogWarning("StudentSpecializedTrainingService未注入，无法获取专项训练数据");
+            return null;
+        }
+
+        try
+        {
+            return await _studentSpecializedTrainingService.GetTrainingDetailsAsync(trainingId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取专项训练数据失败，训练ID: {TrainingId}", trainingId);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// 根据考试类型映射考试数据到ExamModel
     /// </summary>
     private ExamModel MapExamDataToExamModel(object examData, ExamType examType, ModuleType targetModuleType)
@@ -534,8 +570,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         {
             ExamType.MockExam => MapMockExamToExamModel(examData, targetModuleType),
             ExamType.ComprehensiveTraining => MapComprehensiveTrainingToExamModel(examData, targetModuleType),
-            ExamType.FormalExam or ExamType.Practice or ExamType.SpecialPractice or ExamType.SpecializedTraining
-                => MapStudentExamDtoToExamModel((StudentExamDto)examData, targetModuleType),
+            ExamType.FormalExam or ExamType.Practice => MapStudentExamDtoToExamModel((StudentExamDto)examData, targetModuleType),
+            ExamType.SpecialPractice or ExamType.SpecializedTraining => MapSpecializedTrainingToExamModel(examData, targetModuleType),
             _ => throw new NotSupportedException($"不支持的考试类型: {examType}")
         };
     }
@@ -744,6 +780,111 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
+    /// 映射专项训练数据到ExamModel
+    /// </summary>
+    private ExamModel MapSpecializedTrainingToExamModel(object examData, ModuleType targetModuleType)
+    {
+        if (examData is not StudentSpecializedTrainingDto trainingDto)
+        {
+            _logger.LogError("专项训练数据类型不匹配，期望 StudentSpecializedTrainingDto，实际: {ActualType}", examData?.GetType().Name ?? "null");
+            return CreateFallbackExamModel(targetModuleType, ExamType.SpecializedTraining, 0);
+        }
+
+        _logger.LogInformation("映射专项训练数据到ExamModel，训练ID: {TrainingId}, 目标模块类型: {ModuleType}", trainingDto.Id, targetModuleType);
+
+        ExamModel examModel = new()
+        {
+            Id = trainingDto.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(trainingDto.Name) ? $"专项训练_{trainingDto.Id}" : trainingDto.Name,
+            Description = trainingDto.Description ?? string.Empty,
+            TotalScore = trainingDto.TotalScore,
+            DurationMinutes = trainingDto.Duration,
+            Modules = []
+        };
+
+        // 专项训练通常只包含一种模块类型，检查是否匹配目标模块类型
+        ModuleType trainingModuleType = ParseModuleType(trainingDto.ModuleType);
+        if (trainingModuleType != targetModuleType)
+        {
+            _logger.LogWarning("专项训练模块类型 {TrainingModuleType} 与目标模块类型 {TargetModuleType} 不匹配",
+                trainingModuleType, targetModuleType);
+            return CreateFallbackExamModel(targetModuleType, ExamType.SpecializedTraining, trainingDto.Id);
+        }
+
+        // 处理模块数据
+        if (trainingDto.Modules.Count > 0)
+        {
+            foreach (StudentSpecializedTrainingModuleDto moduleDto in trainingDto.Modules
+                .Where(m => string.Equals(m.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
+                .OrderBy(m => m.Order))
+            {
+                ExamModuleModel module = new()
+                {
+                    Id = moduleDto.Id.ToString(),
+                    Name = string.IsNullOrWhiteSpace(moduleDto.Name) ? $"{targetModuleType}模块" : moduleDto.Name,
+                    Type = ParseModuleType(moduleDto.ModuleType),
+                    Description = moduleDto.Description ?? string.Empty,
+                    Score = moduleDto.Score,
+                    Order = moduleDto.Order,
+                    Questions = []
+                };
+
+                foreach (StudentSpecializedTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.SortOrder))
+                {
+                    QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                    if (question.OperationPoints.Count > 0)
+                    {
+                        module.Questions.Add(question);
+                    }
+                }
+
+                if (module.Questions.Count > 0)
+                {
+                    examModel.Modules.Add(module);
+                }
+            }
+        }
+
+        // 处理直接的题目数据（如果没有模块结构）
+        if (examModel.Modules.Count == 0 && trainingDto.Questions.Count > 0)
+        {
+            ExamModuleModel module = new()
+            {
+                Id = $"SpecializedTraining_Module_{targetModuleType}",
+                Name = $"{targetModuleType}模块",
+                Type = targetModuleType,
+                Description = $"专项训练 - {targetModuleType}模块",
+                Score = trainingDto.Questions.Sum(q => q.Score),
+                Order = 1,
+                Questions = []
+            };
+
+            foreach (StudentSpecializedTrainingQuestionDto questionDto in trainingDto.Questions.OrderBy(q => q.SortOrder))
+            {
+                QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                if (question.OperationPoints.Count > 0)
+                {
+                    module.Questions.Add(question);
+                }
+            }
+
+            if (module.Questions.Count > 0)
+            {
+                examModel.Modules.Add(module);
+            }
+        }
+
+        // 如果仍然没有找到相关模块，创建一个基本模块
+        if (examModel.Modules.Count == 0)
+        {
+            _logger.LogWarning("专项训练中未找到模块类型 {ModuleType} 的数据，创建基本模块", targetModuleType);
+            examModel.Modules.Add(CreateBasicModule(targetModuleType));
+        }
+
+        return examModel;
+    }
+
+    /// <summary>
     /// 映射综合实训题目到QuestionModel
     /// </summary>
     private static QuestionModel MapComprehensiveTrainingQuestionToQuestionModel(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType targetModuleType)
@@ -784,6 +925,46 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
+    /// 映射专项训练题目到QuestionModel
+    /// </summary>
+    private static QuestionModel MapSpecializedTrainingQuestionToQuestionModel(StudentSpecializedTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        QuestionModel question = new()
+        {
+            Id = questionDto.Id.ToString(),
+            Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.Id}" : questionDto.Title,
+            Content = questionDto.Content ?? string.Empty,
+#pragma warning disable CS0618 // 类型或成员已过时
+            Score = questionDto.Score,
+#pragma warning restore CS0618 // 类型或成员已过时
+            Order = questionDto.SortOrder,
+            OperationPoints = []
+        };
+
+        // 只添加匹配目标模块类型的操作点
+        foreach (StudentSpecializedTrainingOperationPointDto opDto in questionDto.OperationPoints
+            .Where(op => string.Equals(op.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
+            .OrderBy(op => op.Order))
+        {
+            OperationPointModel operationPoint = new()
+            {
+                Id = opDto.Id.ToString(),
+                Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
+                Description = opDto.Description ?? string.Empty,
+                ModuleType = ParseModuleType(opDto.ModuleType),
+                Score = opDto.Score,
+                Order = opDto.Order,
+                IsEnabled = true,
+                Parameters = MapSpecializedTrainingParametersToConfigurationParameters(opDto.Parameters)
+            };
+
+            question.OperationPoints.Add(operationPoint);
+        }
+
+        return question;
+    }
+
+    /// <summary>
     /// 映射模拟考试参数到配置参数
     /// </summary>
     private static List<ConfigurationParameterModel> MapMockExamParametersToConfigurationParameters(IEnumerable<StudentMockExamParameterDto> parameters)
@@ -792,6 +973,33 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
         int order = 1;
         foreach (StudentMockExamParameterDto paramDto in parameters)
+        {
+            ConfigurationParameterModel configParam = new()
+            {
+                Id = paramDto.Id.ToString(),
+                Name = paramDto.Name ?? string.Empty,
+                Value = paramDto.DefaultValue ?? string.Empty,
+                Type = ParseParameterType(paramDto.ParameterType),
+                Description = paramDto.Description ?? string.Empty,
+                IsRequired = true,
+                Order = order++
+            };
+
+            configParams.Add(configParam);
+        }
+
+        return configParams;
+    }
+
+    /// <summary>
+    /// 映射专项训练参数到配置参数
+    /// </summary>
+    private static List<ConfigurationParameterModel> MapSpecializedTrainingParametersToConfigurationParameters(IEnumerable<StudentSpecializedTrainingParameterDto> parameters)
+    {
+        List<ConfigurationParameterModel> configParams = [];
+
+        int order = 1;
+        foreach (StudentSpecializedTrainingParameterDto paramDto in parameters)
         {
             ConfigurationParameterModel configParam = new()
             {
