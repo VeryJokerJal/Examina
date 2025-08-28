@@ -138,6 +138,12 @@ public class ImportedComprehensiveTrainingQuestion
     public string? ExpectedOutput { get; set; }
 
     /// <summary>
+    /// C#题目类型（仅C#模块使用）
+    /// </summary>
+    [StringLength(50)]
+    public string? CSharpQuestionType { get; set; }
+
+    /// <summary>
     /// C#代码文件路径（仅C#模块使用）
     /// </summary>
     [StringLength(500)]
@@ -148,6 +154,12 @@ public class ImportedComprehensiveTrainingQuestion
     /// </summary>
     [Column(TypeName = "double")]
     public double? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// 代码补全填空处集合（JSON格式，仅C#模块代码补全类型使用）
+    /// </summary>
+    [Column(TypeName = "json")]
+    public string? CodeBlanks { get; set; }
 
     /// <summary>
     /// Office文档文件路径（仅Office模块使用）
