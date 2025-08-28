@@ -594,7 +594,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = mockExamDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(mockExamDto.Name) ? $"模拟考试_{mockExamDto.Id}" : mockExamDto.Name,
             Description = mockExamDto.Description ?? string.Empty,
-            TotalScore = (double)(mockExamDto.TotalScore > 0 ? mockExamDto.TotalScore : 100m),
+            TotalScore = mockExamDto.TotalScore > 0 ? mockExamDto.TotalScore : 100,
             DurationMinutes = mockExamDto.DurationMinutes > 0 ? mockExamDto.DurationMinutes : 120,
             Modules = []
         };
@@ -642,7 +642,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.OriginalQuestionId}" : questionDto.Title,
                     Content = questionDto.Content ?? string.Empty,
 #pragma warning disable CS0618 // 类型或成员已过时
-                    Score = (double)CalculateCSharpQuestionScore(questionDto, targetModuleType),
+                    Score = CalculateCSharpQuestionScore(questionDto, targetModuleType),
 #pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
                     OperationPoints = [],
@@ -651,7 +651,11 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     ExpectedOutput = questionDto.ExpectedOutput,
                     CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
                     CSharpDirectScore = GetCSharpDirectScore(questionDto),
-                    CodeBlanks = GetCodeBlanks(questionDto)
+                    CodeBlanks = GetCodeBlanks(questionDto),
+                    // 添加其他重要字段
+                    QuestionConfig = questionDto.QuestionConfig,
+                    AnswerValidationRules = questionDto.AnswerValidationRules,
+                    Tags = questionDto.Tags
                 };
 
                 // 只添加匹配目标模块类型的操作点
@@ -921,8 +925,31 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 foreach (StudentSpecializedTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.Order))
                 {
                     QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
-                    if (question.OperationPoints.Count > 0)
+
+                    // 对于C#题目，即使没有操作点也要添加
+                    bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
+                                           (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto));
+
+                    if (shouldAddQuestion)
                     {
+                        // 如果是C#题目但没有操作点，创建一个默认操作点
+                        if (targetModuleType == ModuleType.CSharp && question.OperationPoints.Count == 0)
+                        {
+                            OperationPointModel defaultOperationPoint = new()
+                            {
+                                Id = $"default_op_{questionDto.Id}",
+                                Name = "C#编程操作",
+                                Description = "C#编程题目操作点",
+                                ModuleType = ModuleType.CSharp,
+                                Score = questionDto.Score,
+                                Order = 1,
+                                IsEnabled = true,
+                                Parameters = []
+                            };
+
+                            question.OperationPoints.Add(defaultOperationPoint);
+                        }
+
                         module.Questions.Add(question);
                     }
                 }
@@ -951,8 +978,31 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             foreach (StudentSpecializedTrainingQuestionDto questionDto in trainingDto.Questions.OrderBy(q => q.Order))
             {
                 QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
-                if (question.OperationPoints.Count > 0)
+
+                // 对于C#题目，即使没有操作点也要添加
+                bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
+                                       (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto));
+
+                if (shouldAddQuestion)
                 {
+                    // 如果是C#题目但没有操作点，创建一个默认操作点
+                    if (targetModuleType == ModuleType.CSharp && question.OperationPoints.Count == 0)
+                    {
+                        OperationPointModel defaultOperationPoint = new()
+                        {
+                            Id = $"default_op_{questionDto.Id}",
+                            Name = "C#编程操作",
+                            Description = "C#编程题目操作点",
+                            ModuleType = ModuleType.CSharp,
+                            Score = questionDto.Score,
+                            Order = 1,
+                            IsEnabled = true,
+                            Parameters = []
+                        };
+
+                        question.OperationPoints.Add(defaultOperationPoint);
+                    }
+
                     module.Questions.Add(question);
                 }
             }
@@ -984,7 +1034,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.Id}" : questionDto.Title,
             Content = questionDto.Content ?? string.Empty,
 #pragma warning disable CS0618 // 类型或成员已过时
-            Score = (double)CalculateCSharpQuestionScore(questionDto, targetModuleType),
+            Score = CalculateCSharpQuestionScore(questionDto, targetModuleType),
 #pragma warning restore CS0618 // 类型或成员已过时
             Order = questionDto.SortOrder,
             OperationPoints = [],
@@ -993,7 +1043,11 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ExpectedOutput = questionDto.ExpectedOutput,
             CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
             CSharpDirectScore = GetCSharpDirectScore(questionDto),
-            CodeBlanks = GetCodeBlanks(questionDto)
+            CodeBlanks = GetCodeBlanks(questionDto),
+            // 添加其他重要字段
+            QuestionConfig = questionDto.QuestionConfig,
+            AnswerValidationRules = questionDto.AnswerValidationRules,
+            Tags = questionDto.Tags
         };
 
         // 只添加匹配目标模块类型的操作点
@@ -1030,10 +1084,20 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.Id}" : questionDto.Title,
             Content = questionDto.Content ?? string.Empty,
 #pragma warning disable CS0618 // 类型或成员已过时
-            Score = questionDto.Score,
+            Score = (double)CalculateCSharpQuestionScore(questionDto, targetModuleType),
 #pragma warning restore CS0618 // 类型或成员已过时
             Order = questionDto.Order,
-            OperationPoints = []
+            OperationPoints = [],
+            // 添加C#特有字段
+            ProgramInput = GetProgramInput(questionDto),
+            ExpectedOutput = GetExpectedOutput(questionDto),
+            CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
+            CSharpDirectScore = GetCSharpDirectScore(questionDto),
+            CodeBlanks = GetCodeBlanks(questionDto),
+            // 添加其他重要字段
+            QuestionConfig = questionDto.QuestionConfig,
+            AnswerValidationRules = questionDto.AnswerValidationRules,
+            Tags = questionDto.Tags
         };
 
         // 只添加匹配目标模块类型的操作点
@@ -1143,19 +1207,19 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 计算C#题目的分数（遵循ExamLab的评分逻辑）
     /// </summary>
-    private static decimal CalculateCSharpQuestionScore(StudentMockExamQuestionDto questionDto, ModuleType targetModuleType)
+    private static double CalculateCSharpQuestionScore(StudentMockExamQuestionDto questionDto, ModuleType targetModuleType)
     {
         // 如果不是C#模块，使用原始分数
         if (targetModuleType != ModuleType.CSharp)
         {
-            return (decimal)questionDto.Score;
+            return questionDto.Score;
         }
 
         // 对于C#模块，尝试按照ExamLab的逻辑计算分数
         // 1. 首先检查是否有操作点
         if (questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp)))
         {
-            return (decimal)questionDto.OperationPoints
+            return questionDto.OperationPoints
                 .Where(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
                 .Sum(op => op.Score);
         }
@@ -1163,7 +1227,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         // 2. 如果没有C#操作点，检查C#特有字段
         // 注意：StudentMockExamQuestionDto 可能没有 CSharpQuestionType 和 CSharpDirectScore 字段
         // 在这种情况下，我们使用原始分数作为降级
-        return (decimal)questionDto.Score;
+        return questionDto.Score;
     }
 
     /// <summary>
@@ -1216,23 +1280,20 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 计算C#题目的分数（综合实训版本）
     /// </summary>
-    private static decimal CalculateCSharpQuestionScore(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    private static double CalculateCSharpQuestionScore(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType targetModuleType)
     {
         // 如果不是C#模块，使用原始分数
         if (targetModuleType != ModuleType.CSharp)
         {
-            return (decimal)questionDto.Score;
+            return questionDto.Score;
         }
 
         // 对于C#模块，尝试按照ExamLab的逻辑计算分数
-        if (questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp)))
-        {
-            return (decimal)questionDto.OperationPoints
+        return questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
+            ? questionDto.OperationPoints
                 .Where(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
-                .Sum(op => op.Score);
-        }
-
-        return (decimal)questionDto.Score;
+                .Sum(op => op.Score)
+            : questionDto.Score;
     }
 
     /// <summary>
@@ -1300,6 +1361,106 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         return hasKeywords || hasCSharpFields;
     }
 
+    // 为专项训练题目提供重载方法
+    /// <summary>
+    /// 计算C#题目的分数（专项训练版本）
+    /// </summary>
+    private static decimal CalculateCSharpQuestionScore(StudentSpecializedTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        // 如果不是C#模块，使用原始分数
+        if (targetModuleType != ModuleType.CSharp)
+        {
+            return (decimal)questionDto.Score;
+        }
+
+        // 对于C#模块，尝试按照ExamLab的逻辑计算分数
+        if (questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp)))
+        {
+            return (decimal)questionDto.OperationPoints
+                .Where(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
+                .Sum(op => op.Score);
+        }
+
+        return (decimal)questionDto.Score;
+    }
+
+    /// <summary>
+    /// 获取C#题目类型字符串（专项训练版本）
+    /// </summary>
+    private static string? GetCSharpQuestionTypeString(StudentSpecializedTrainingQuestionDto questionDto)
+    {
+        string titleLower = questionDto.Title?.ToLowerInvariant() ?? "";
+        string contentLower = questionDto.Content?.ToLowerInvariant() ?? "";
+
+        if (titleLower.Contains("代码补全") || contentLower.Contains("填空") || contentLower.Contains("补全"))
+        {
+            return "CodeCompletion";
+        }
+        else if (titleLower.Contains("调试") || titleLower.Contains("纠错") || contentLower.Contains("错误"))
+        {
+            return "Debugging";
+        }
+        else if (titleLower.Contains("编写") || titleLower.Contains("实现") || contentLower.Contains("实现"))
+        {
+            return "Implementation";
+        }
+
+        return "CodeCompletion";
+    }
+
+    /// <summary>
+    /// 获取C#题目直接分数（专项训练版本）
+    /// </summary>
+    private static double? GetCSharpDirectScore(StudentSpecializedTrainingQuestionDto questionDto)
+    {
+        return questionDto.Score;
+    }
+
+    /// <summary>
+    /// 获取代码填空处集合（专项训练版本）
+    /// </summary>
+    private static List<CodeBlankModel>? GetCodeBlanks(StudentSpecializedTrainingQuestionDto questionDto)
+    {
+        return null;
+    }
+
+    /// <summary>
+    /// 获取程序输入（专项训练版本）
+    /// </summary>
+    private static string? GetProgramInput(StudentSpecializedTrainingQuestionDto questionDto)
+    {
+        // 专项训练DTO中没有ProgramInput字段，返回null
+        return null;
+    }
+
+    /// <summary>
+    /// 获取预期输出（专项训练版本）
+    /// </summary>
+    private static string? GetExpectedOutput(StudentSpecializedTrainingQuestionDto questionDto)
+    {
+        // 专项训练DTO中没有ExpectedOutput字段，返回null
+        return null;
+    }
+
+    /// <summary>
+    /// 检查题目是否为C#编程题目（专项训练版本）
+    /// </summary>
+    private static bool IsCSharpQuestion(StudentSpecializedTrainingQuestionDto question)
+    {
+        // 检查题目标题和内容中的C#关键词
+        string titleLower = question.Title?.ToLowerInvariant() ?? "";
+        string contentLower = question.Content?.ToLowerInvariant() ?? "";
+
+        string[] csharpKeywords = [
+            "c#", "csharp", "编程", "程序设计", "代码", "class", "namespace",
+            "using", "public", "private", "static", "void", "int", "string",
+            "console", "writeline", "main", "method", "变量", "函数", "方法"
+        ];
+
+        return csharpKeywords.Any(keyword =>
+            titleLower.Contains(keyword) || contentLower.Contains(keyword));
+    }
+
     /// <summary>
     /// 解析参数类型字符串为ParameterType枚举
     /// </summary>
@@ -1331,7 +1492,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = Guid.NewGuid().ToString(),
             Name = examName,
             Description = $"{examName} - {targetModuleType}模块",
-            TotalScore = (double)100m,
+            TotalScore = 100,
             DurationMinutes = 120,
             Modules = []
         };
@@ -1355,7 +1516,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = examDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(examDto.Name) ? $"考试_{examDto.Id}" : examDto.Name,
             Description = examDto.Description ?? string.Empty,
-            TotalScore = (double)(examDto.TotalScore > 0 ? examDto.TotalScore : 100m),
+            TotalScore = examDto.TotalScore > 0 ? examDto.TotalScore : 100,
             DurationMinutes = examDto.DurationMinutes > 0 ? examDto.DurationMinutes : 120,
             Modules = []
         };
