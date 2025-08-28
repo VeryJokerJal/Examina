@@ -604,18 +604,19 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         _logger.LogDebug("开始过滤模拟考试题目，目标模块类型: {TargetModuleType}, 总题目数: {TotalQuestions}",
             targetModuleType, mockExamDto.Questions.Count);
 
-        IEnumerable<StudentMockExamQuestionDto> relevantQuestions = mockExamDto.Questions
-            .Where(q => q.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, targetModuleType)));
-
-        _logger.LogDebug("过滤后的相关题目数量: {RelevantQuestionsCount}", relevantQuestions.Count());
-
-        // 记录每个题目的操作点模块类型，用于调试
+        // 记录每个题目的详细信息，用于调试
         foreach (StudentMockExamQuestionDto question in mockExamDto.Questions)
         {
             string operationPointTypes = string.Join(", ", question.OperationPoints.Select(op => $"'{op.ModuleType}'"));
-            _logger.LogDebug("题目 {QuestionId} 的操作点模块类型: [{OperationPointTypes}]",
-                question.OriginalQuestionId, operationPointTypes);
+            _logger.LogDebug("题目 {QuestionId} '{Title}' 的操作点模块类型: [{OperationPointTypes}], 操作点数量: {Count}",
+                question.OriginalQuestionId, question.Title, operationPointTypes, question.OperationPoints.Count);
         }
+
+        // 使用增强的过滤逻辑，支持 C# 题目的特殊处理
+        IEnumerable<StudentMockExamQuestionDto> relevantQuestions = mockExamDto.Questions
+            .Where(q => IsQuestionRelevantForModule(q, targetModuleType));
+
+        _logger.LogDebug("过滤后的相关题目数量: {RelevantQuestionsCount}", relevantQuestions.Count());
 
         if (relevantQuestions.Any())
         {
@@ -644,7 +645,10 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Score = questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
-                    OperationPoints = []
+                    OperationPoints = [],
+                    // 添加C#特有字段
+                    ProgramInput = questionDto.ProgramInput,
+                    ExpectedOutput = questionDto.ExpectedOutput
                 };
 
                 // 只添加匹配目标模块类型的操作点
@@ -676,8 +680,32 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     question.OperationPoints.Add(operationPoint);
                 }
 
-                if (question.OperationPoints.Count > 0)
+                // 对于C#题目，即使没有操作点也要添加（C#题目可能不依赖操作点）
+                bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
+                                       (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto));
+
+                if (shouldAddQuestion)
                 {
+                    // 如果是C#题目但没有操作点，创建一个默认操作点
+                    if (targetModuleType == ModuleType.CSharp && question.OperationPoints.Count == 0)
+                    {
+                        _logger.LogDebug("为C#题目 {QuestionId} 创建默认操作点", questionDto.OriginalQuestionId);
+
+                        OperationPointModel defaultOperationPoint = new()
+                        {
+                            Id = $"default_op_{questionDto.OriginalQuestionId}",
+                            Name = "C#编程操作",
+                            Description = "C#编程题目操作点",
+                            ModuleType = ModuleType.CSharp,
+                            Score = questionDto.Score,
+                            Order = 1,
+                            IsEnabled = true,
+                            Parameters = []
+                        };
+
+                        question.OperationPoints.Add(defaultOperationPoint);
+                    }
+
                     module.Questions.Add(question);
                 }
             }
@@ -1202,6 +1230,54 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         }
 
         return examModel;
+    }
+
+    /// <summary>
+    /// 检查题目是否与目标模块类型相关（增强版，支持C#题目的特殊处理）
+    /// </summary>
+    private static bool IsQuestionRelevantForModule(StudentMockExamQuestionDto question, ModuleType targetModuleType)
+    {
+        // 1. 检查操作点中是否有匹配的模块类型
+        bool hasMatchingOperationPoint = question.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, targetModuleType));
+
+        if (hasMatchingOperationPoint)
+        {
+            return true;
+        }
+
+        // 2. 对于C#模块，进行特殊检查
+        if (targetModuleType == ModuleType.CSharp)
+        {
+            // 检查题目是否包含C#相关的特征
+            return IsCSharpQuestion(question);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 检查题目是否为C#编程题目（基于题目内容和特征）
+    /// </summary>
+    private static bool IsCSharpQuestion(StudentMockExamQuestionDto question)
+    {
+        // 检查题目标题和内容中的C#关键词
+        string titleLower = question.Title?.ToLowerInvariant() ?? "";
+        string contentLower = question.Content?.ToLowerInvariant() ?? "";
+
+        string[] csharpKeywords = {
+            "c#", "csharp", "编程", "程序设计", "代码", "class", "namespace",
+            "using", "public", "private", "static", "void", "int", "string",
+            "console", "writeline", "main", "method", "变量", "函数", "方法"
+        };
+
+        bool hasKeywords = csharpKeywords.Any(keyword =>
+            titleLower.Contains(keyword) || contentLower.Contains(keyword));
+
+        // 检查是否有C#特有的字段
+        bool hasCSharpFields = !string.IsNullOrEmpty(question.ProgramInput) ||
+                              !string.IsNullOrEmpty(question.ExpectedOutput);
+
+        return hasKeywords || hasCSharpFields;
     }
 
     /// <summary>
