@@ -642,6 +642,35 @@ public class CSharpScoringService : ICSharpScoringService
             }
         }
 
+        // 如果仍然没有找到，尝试从CodeBlanks中构建模板代码
+        // 这适用于EL和EW项目中使用CodeBlanks字段的情况
+        if (question.CodeBlanks != null && question.CodeBlanks.Count > 0)
+        {
+            // 从CodeBlanks的描述中提取模板代码
+            // 通常第一个CodeBlank的Description包含完整的模板代码
+            CodeBlankModel? firstBlank = question.CodeBlanks
+                .Where(cb => cb.IsEnabled && !string.IsNullOrWhiteSpace(cb.Description))
+                .OrderBy(cb => cb.Order)
+                .FirstOrDefault();
+
+            if (firstBlank != null && firstBlank.Description.Contains("throw new NotImplementedException"))
+            {
+                return firstBlank.Description;
+            }
+
+            // 如果没有找到包含NotImplementedException的描述，
+            // 尝试从所有CodeBlanks的描述中组合模板代码
+            string combinedTemplate = string.Join("\n", question.CodeBlanks
+                .Where(cb => cb.IsEnabled && !string.IsNullOrWhiteSpace(cb.Description))
+                .OrderBy(cb => cb.Order)
+                .Select(cb => cb.Description));
+
+            if (!string.IsNullOrWhiteSpace(combinedTemplate))
+            {
+                return combinedTemplate;
+            }
+        }
+
         return string.Empty;
     }
 
@@ -656,6 +685,7 @@ public class CSharpScoringService : ICSharpScoringService
     {
         List<string> implementations = [];
 
+        // 首先从操作点参数中查找
         foreach (OperationPointModel op in operationPoints)
         {
             // 根据评分模式查找不同的参数
@@ -677,6 +707,22 @@ public class CSharpScoringService : ICSharpScoringService
                     implementations.Add(param.Value);
                     break; // 找到一个就跳出内层循环
                 }
+            }
+        }
+
+        // 如果从操作点中没有找到期望实现，且是代码补全模式，则从CodeBlanks中提取
+        if (implementations.Count == 0 && scoringMode == CSharpScoringMode.CodeCompletion &&
+            question.CodeBlanks != null && question.CodeBlanks.Count > 0)
+        {
+            // 从CodeBlanks的StandardAnswer中提取期望实现
+            List<string> standardAnswers = [.. question.CodeBlanks
+                .Where(cb => cb.IsEnabled && !string.IsNullOrWhiteSpace(cb.StandardAnswer))
+                .OrderBy(cb => cb.Order)
+                .Select(cb => cb.StandardAnswer!)];
+
+            if (standardAnswers.Count > 0)
+            {
+                implementations.AddRange(standardAnswers);
             }
         }
 
