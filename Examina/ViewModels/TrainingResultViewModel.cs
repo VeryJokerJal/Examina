@@ -305,10 +305,8 @@ public class TrainingResultViewModel : ViewModelBase
             };
 
             // 处理C# AI分析结果
-            if (kvp.Key == ModuleType.CSharp && scoringResult is CSharpScoringResult csharpResult)
-            {
-                ProcessCSharpAIAnalysis(moduleItem, csharpResult);
-            }
+            // 注意：由于CSharpScoringResult已经转换为ScoringResult，AI分析信息已经包含在Details中
+            // 这里不需要额外处理，AI分析信息已经在ProcessCSharpAIAnalysis中处理过了
 
             ModuleResults.Add(moduleItem);
         }
