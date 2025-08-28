@@ -203,9 +203,9 @@ public partial class FullScreenExamResultWindow : Window
     /// <summary>
     /// 从BenchSuite评分结果设置详细分数信息
     /// </summary>
-    public void SetScoreDetailFromBenchSuite(BenchSuiteScoringResult benchSuiteResult, decimal passThreshold = 60)
+    public void SetScoreDetailFromBenchSuite(Dictionary<ModuleType, ScoringResult> benchSuiteResults, decimal passThreshold = 60)
     {
-        _viewModel?.SetScoreDetailFromBenchSuite(benchSuiteResult, passThreshold);
+        _viewModel?.SetScoreDetailFromBenchSuite(benchSuiteResults, passThreshold);
     }
 
     /// <summary>
@@ -334,7 +334,7 @@ public partial class FullScreenExamResultWindow : Window
     /// 从BenchSuite评分结果显示全屏考试结果窗口（非阻塞）
     /// </summary>
     public static FullScreenExamResultWindow ShowFullScreenExamResultFromBenchSuite(string examName, ExamType examType,
-        bool isSuccessful, BenchSuiteScoringResult? benchSuiteResult = null, DateTime? startTime = null, DateTime? endTime = null,
+        bool isSuccessful, Dictionary<ModuleType, ScoringResult>? benchSuiteResults = null, DateTime? startTime = null, DateTime? endTime = null,
         int? durationMinutes = null, string errorMessage = "", string notes = "",
         bool showContinue = true, bool showClose = true, decimal passThreshold = 60)
     {
@@ -372,7 +372,7 @@ public partial class FullScreenExamResultWindow : Window
     /// 从BenchSuite评分结果显示全屏考试结果窗口并等待关闭（阻塞）
     /// </summary>
     public static async Task<bool> ShowFullScreenExamResultFromBenchSuiteAsync(string examName, ExamType examType,
-        bool isSuccessful, BenchSuiteScoringResult? benchSuiteResult = null, DateTime? startTime = null, DateTime? endTime = null,
+        bool isSuccessful, Dictionary<ModuleType, ScoringResult>? benchSuiteResults = null, DateTime? startTime = null, DateTime? endTime = null,
         int? durationMinutes = null, string errorMessage = "", string notes = "",
         bool showContinue = true, bool showClose = true, decimal passThreshold = 60)
     {

@@ -713,7 +713,7 @@ public class MockExamViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 开始提交考试，ID: {examId}, 类型: {examType}, 自动提交: {isAutoSubmit}");
 
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
             bool submitResult = false;
 
             // 优先使用EnhancedExamToolbarService进行BenchSuite集成提交
@@ -742,7 +742,7 @@ public class MockExamViewModel : ViewModelBase
                                 try
                                 {
                                     // 仅进行本地评分，不提交到服务器
-                                    Models.BenchSuite.BenchSuiteScoringResult? localScoringResult =
+                                    Dictionary<ModuleType, ScoringResult>? localScoringResults =
                                         await _enhancedExamToolbarService.PerformLocalScoringAsync(ExamType.Practice, examId, studentId);
 
                                     if (localScoringResult != null)
@@ -986,7 +986,7 @@ public class MockExamViewModel : ViewModelBase
     /// <summary>
     /// 显示考试结果窗口
     /// </summary>
-    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, BenchSuiteScoringResult? scoringResult = null)
+    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, Dictionary<ModuleType, ScoringResult>? scoringResults = null)
     {
         try
         {

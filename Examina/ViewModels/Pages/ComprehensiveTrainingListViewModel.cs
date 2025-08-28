@@ -4,7 +4,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
-
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -498,8 +498,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 if (_enhancedExamToolbarService != null)
                 {
-                    scoringResults = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
-                    submitResult = scoringResults != null && scoringResults.Count > 0;
+                    scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
+                    submitResult = scoringResult != null;
                 }
                 else
                 {
@@ -512,7 +512,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             if (submitResult)
             {
-                await ShowTrainingResultAsync(trainingId, examType, scoringResults);
+                await ShowTrainingResultAsync(trainingId, examType, scoringResult);
             }
             else
             {
@@ -917,7 +917,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             };
 
             // 显示详细的训练结果（使用真实或基本的评分结果）
-            await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
+            await ShowDetailedTrainingResultAsync(training.Name, scoringResults);
         }
         catch
         {
@@ -944,13 +944,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示详细的训练结果
     /// </summary>
-    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult>? scoringResults)
     {
         try
         {
             // 创建训练结果ViewModel
             TrainingResultViewModel resultViewModel = new();
-            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
+            resultViewModel.SetTrainingResult(trainingName, scoringResults, _trainingStartTime);
 
             // 创建训练结果窗口
             TrainingResultWindow resultWindow = new()

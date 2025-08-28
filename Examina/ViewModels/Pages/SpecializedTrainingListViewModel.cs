@@ -606,9 +606,9 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 扫描训练文件
+    /// 扫描训练文件（已废弃，保留用于兼容性）
     /// </summary>
-    private void ScanTrainingFiles(BenchSuiteScoringRequest request, StudentSpecializedTrainingDto training)
+    private void ScanTrainingFiles(StudentSpecializedTrainingDto training)
     {
         try
         {
@@ -684,12 +684,14 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         try
         {
             // 创建基本的评分结果
-            BenchSuiteScoringResult basicResult = new()
+            Dictionary<ModuleType, ScoringResult> basicResults = new()
             {
-                IsSuccess = false,
-                ErrorMessage = "评分服务不可用",
-                TotalScore = 100,
-                AchievedScore = 0,
+                [ModuleType.Windows] = new ScoringResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "评分服务不可用",
+                    TotalScore = 100,
+                    AchievedScore = 0,
                 StartTime = _trainingStartTime,
                 EndTime = DateTime.Now
             };
