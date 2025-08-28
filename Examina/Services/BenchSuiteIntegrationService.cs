@@ -534,7 +534,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 {
                     if (ShouldIncludeQuestion(questionDto, moduleType))
                     {
-                        QuestionModel question = ConvertToQuestionModel(questionDto, subject.Name);
+                        QuestionModel question = ConvertToQuestionModel(questionDto, subject.SubjectName);
                         module.Questions.Add(question);
                     }
                 }
@@ -570,7 +570,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     {
         // 检查题目的操作点是否包含指定模块类型
         return questionDto.OperationPoints.Any(op =>
-            op.ModuleType.Equals(moduleType.ToString(), StringComparison.OrdinalIgnoreCase) && op.IsEnabled);
+            op.ModuleType.Equals(moduleType.ToString(), StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -582,9 +582,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         {
             Id = questionDto.Id.ToString(),
             Title = questionDto.Title,
-            Description = questionDto.Description ?? string.Empty,
+            Content = questionDto.Content ?? string.Empty,
             QuestionType = questionDto.QuestionType ?? "操作题",
-            DifficultyLevel = questionDto.DifficultyLevel?.ToString() ?? "1",
             Score = (decimal)questionDto.Score,
             OperationPoints = []
         };
@@ -592,30 +591,28 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         // 转换操作点
         foreach (StudentComprehensiveTrainingOperationPointDto opDto in questionDto.OperationPoints)
         {
-            if (!opDto.IsEnabled) continue;
-
             OperationPointModel operationPoint = new()
             {
                 Id = opDto.Id.ToString(),
-                Title = opDto.Title,
+                Name = opDto.Name,
                 Description = opDto.Description ?? string.Empty,
-                KnowledgePointType = opDto.KnowledgePointType ?? "Unknown",
                 ModuleType = Enum.TryParse<ModuleType>(opDto.ModuleType, true, out ModuleType moduleType) ? moduleType : ModuleType.Windows,
                 Score = (decimal)opDto.Score,
-                IsEnabled = opDto.IsEnabled,
+                IsEnabled = true, // 默认启用
                 Parameters = []
             };
 
             // 转换参数
             foreach (StudentComprehensiveTrainingParameterDto paramDto in opDto.Parameters)
             {
-                ParameterModel parameter = new()
+                ConfigurationParameterModel parameter = new()
                 {
                     Id = paramDto.Id.ToString(),
                     Name = paramDto.Name,
-                    Value = paramDto.Value ?? string.Empty,
-                    ParameterType = Enum.TryParse<ParameterType>(paramDto.ParameterType, true, out ParameterType paramType) ? paramType : ParameterType.String,
-                    IsRequired = paramDto.IsRequired
+                    Value = paramDto.DefaultValue ?? string.Empty,
+                    Type = Enum.TryParse<ParameterType>(paramDto.ParameterType, true, out ParameterType paramType) ? paramType : ParameterType.String,
+                    IsRequired = false, // 默认非必填
+                    Description = paramDto.Description
                 };
 
                 operationPoint.Parameters.Add(parameter);
