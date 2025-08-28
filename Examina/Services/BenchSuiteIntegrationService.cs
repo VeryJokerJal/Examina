@@ -6,7 +6,7 @@ using BenchSuite.Services;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Models.MockExam;
-using Examina.Models.Api.Student;
+using Examina.Models.SpecializedTraining;
 using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
@@ -815,21 +815,21 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         if (trainingDto.Modules.Count > 0)
         {
             foreach (StudentSpecializedTrainingModuleDto moduleDto in trainingDto.Modules
-                .Where(m => string.Equals(m.ModuleType, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
+                .Where(m => string.Equals(m.Type, targetModuleType.ToString(), StringComparison.OrdinalIgnoreCase))
                 .OrderBy(m => m.Order))
             {
                 ExamModuleModel module = new()
                 {
                     Id = moduleDto.Id.ToString(),
                     Name = string.IsNullOrWhiteSpace(moduleDto.Name) ? $"{targetModuleType}模块" : moduleDto.Name,
-                    Type = ParseModuleType(moduleDto.ModuleType),
+                    Type = ParseModuleType(moduleDto.Type),
                     Description = moduleDto.Description ?? string.Empty,
                     Score = moduleDto.Score,
                     Order = moduleDto.Order,
                     Questions = []
                 };
 
-                foreach (StudentSpecializedTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.SortOrder))
+                foreach (StudentSpecializedTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.Order))
                 {
                     QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
                     if (question.OperationPoints.Count > 0)
@@ -859,7 +859,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Questions = []
             };
 
-            foreach (StudentSpecializedTrainingQuestionDto questionDto in trainingDto.Questions.OrderBy(q => q.SortOrder))
+            foreach (StudentSpecializedTrainingQuestionDto questionDto in trainingDto.Questions.OrderBy(q => q.Order))
             {
                 QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
                 if (question.OperationPoints.Count > 0)
@@ -937,7 +937,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 #pragma warning disable CS0618 // 类型或成员已过时
             Score = questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
-            Order = questionDto.SortOrder,
+            Order = questionDto.Order,
             OperationPoints = []
         };
 
