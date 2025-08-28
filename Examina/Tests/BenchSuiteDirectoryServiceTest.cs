@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using BenchSuite.Models;
 using Examina.Services;
 
 namespace Examina.Tests;
@@ -33,7 +34,7 @@ public static class BenchSuiteDirectoryServiceTest
                 string examPath = directoryService.GetExamDirectoryPath(
                     Models.ExamType.MockExam, 
                     123, 
-                    Models.BenchSuite.BenchSuiteFileType.CSharp);
+                    BenchSuite.Models.ModuleType.CSharp);
                 Debug.WriteLine($"📂 考试目录路径: {examPath}");
                 
                 Debug.WriteLine("✅ BenchSuiteDirectoryService功能测试通过");

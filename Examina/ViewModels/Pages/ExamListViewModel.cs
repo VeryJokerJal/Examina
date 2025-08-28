@@ -847,7 +847,7 @@ public class ExamListViewModel : ViewModelBase
             {
                 try
                 {
-                    scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
+                    scoringResults = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
                 }
                 catch (Exception ex)
                 {
@@ -858,11 +858,13 @@ public class ExamListViewModel : ViewModelBase
             // 在UI线程上更新结果
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (scoringResult != null && scoringResult.IsSuccess)
+                if (scoringResults != null && scoringResults.Count > 0)
                 {
                     // 评分成功，更新分数
-                    resultViewModel.UpdateScore(scoringResult.AchievedScore, scoringResult.TotalScore, "BenchSuite自动评分完成");
-                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {scoringResult.AchievedScore}");
+                    decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
+                    decimal totalMax = scoringResults.Values.Sum(r => r.TotalScore);
+                    resultViewModel.UpdateScore(totalAchieved, totalMax, "BenchSuite自动评分完成");
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {totalAchieved}");
                 }
                 else
                 {
@@ -874,9 +876,9 @@ public class ExamListViewModel : ViewModelBase
             });
 
             // 如果评分成功，自动提交成绩到服务器
-            if (scoringResult != null && scoringResult.IsSuccess)
+            if (scoringResults != null && scoringResults.Count > 0)
             {
-                await AutoSubmitScoreAsync(examId, scoringResult);
+                await AutoSubmitScoreAsync(examId, scoringResults);
             }
         }
         catch (Exception ex)
@@ -910,7 +912,7 @@ public class ExamListViewModel : ViewModelBase
             {
                 try
                 {
-                    scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
+                    scoringResults = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(examId);
                 }
                 catch (Exception ex)
                 {
@@ -921,15 +923,17 @@ public class ExamListViewModel : ViewModelBase
             // 在UI线程上更新结果
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (scoringResult != null && scoringResult.IsSuccess)
+                if (scoringResults != null && scoringResults.Count > 0)
                 {
                     // 评分成功，更新分数和详细信息
-                    resultWindow.UpdateScore(scoringResult.AchievedScore, scoringResult.TotalScore, "BenchSuite自动评分完成");
+                    decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
+                    decimal totalMax = scoringResults.Values.Sum(r => r.TotalScore);
+                    resultWindow.UpdateScore(totalAchieved, totalMax, "BenchSuite自动评分完成");
 
                     // 设置详细分数信息
-                    resultWindow.SetScoreDetailFromBenchSuite(scoringResult);
+                    resultWindow.SetScoreDetailFromBenchSuite(scoringResults);
 
-                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {scoringResult.AchievedScore}");
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {totalAchieved}");
                 }
                 else
                 {
@@ -941,9 +945,9 @@ public class ExamListViewModel : ViewModelBase
             });
 
             // 如果评分成功，自动提交成绩到服务器
-            if (scoringResult != null && scoringResult.IsSuccess)
+            if (scoringResults != null && scoringResults.Count > 0)
             {
-                await AutoSubmitScoreAsync(examId, scoringResult);
+                await AutoSubmitScoreAsync(examId, scoringResults);
             }
         }
         catch (Exception ex)
@@ -968,13 +972,16 @@ public class ExamListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 开始自动提交成绩到服务器，考试ID: {examId}");
 
             // 准备成绩提交数据
+            decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
+            decimal totalMax = scoringResults.Values.Sum(r => r.TotalScore);
+
             SubmitExamScoreRequestDto scoreRequest = new()
             {
-                Score = scoringResult.AchievedScore,
-                MaxScore = scoringResult.TotalScore,
+                Score = totalAchieved,
+                MaxScore = totalMax,
                 DurationSeconds = null,
                 Notes = "BenchSuite自动评分完成",
-                BenchSuiteScoringResult = System.Text.Json.JsonSerializer.Serialize(scoringResult),
+                BenchSuiteScoringResult = System.Text.Json.JsonSerializer.Serialize(scoringResults),
                 CompletedAt = DateTime.Now
             };
 

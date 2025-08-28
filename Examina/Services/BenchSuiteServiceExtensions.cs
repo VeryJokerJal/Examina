@@ -76,14 +76,14 @@ public static class BenchSuiteServiceExtensions
             IBenchSuiteDirectoryService? directoryService = serviceProvider.GetService<IBenchSuiteDirectoryService>();
             if (directoryService != null)
             {
-                Models.BenchSuite.BenchSuiteDirectoryValidationResult result = await directoryService.EnsureDirectoryStructureAsync();
-                if (result.IsValid)
+                bool result = await directoryService.EnsureDirectoryStructureAsync();
+                if (result)
                 {
                     logger?.LogInformation("BenchSuite目录结构初始化成功");
                 }
                 else
                 {
-                    logger?.LogWarning("BenchSuite目录结构初始化失败: {ErrorMessage}", result.ErrorMessage);
+                    logger?.LogWarning("BenchSuite目录结构初始化失败");
                 }
             }
 

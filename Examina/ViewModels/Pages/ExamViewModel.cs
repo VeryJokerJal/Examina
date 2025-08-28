@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using BenchSuite.Models;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Services;
@@ -652,13 +653,14 @@ public class ExamViewModel : ViewModelBase
                     try
                     {
                         System.Diagnostics.Debug.WriteLine("ExamViewModel: 开始获取BenchSuite评分结果（自动提交）");
-                        Models.BenchSuite.BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(CurrentExamAttempt.ExamId);
+                        Dictionary<ModuleType, ScoringResult>? scoringResults = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(CurrentExamAttempt.ExamId);
 
-                        if (scoringResult != null)
+                        if (scoringResults != null && scoringResults.Count > 0)
                         {
-                            score = scoringResult.AchievedScore;
-                            maxScore = scoringResult.TotalScore;
-                            notes = scoringResult.IsSuccess ? "BenchSuite自动评分完成（自动提交）" : "BenchSuite评分失败（自动提交）";
+                            score = scoringResults.Values.Sum(r => r.AchievedScore);
+                            maxScore = scoringResults.Values.Sum(r => r.TotalScore);
+                            bool isSuccess = scoringResults.Values.Any(r => r.IsSuccess);
+                            notes = isSuccess ? "BenchSuite自动评分完成（自动提交）" : "BenchSuite评分失败（自动提交）";
                             System.Diagnostics.Debug.WriteLine($"ExamViewModel: BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
                         }
                         else
@@ -731,13 +733,14 @@ public class ExamViewModel : ViewModelBase
                     try
                     {
                         System.Diagnostics.Debug.WriteLine("ExamViewModel: 开始获取BenchSuite评分结果（手动提交）");
-                        Models.BenchSuite.BenchSuiteScoringResult? scoringResult = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(CurrentExamAttempt.ExamId);
+                        Dictionary<ModuleType, ScoringResult>? scoringResults = await _enhancedExamToolbarService.SubmitFormalExamWithResultAsync(CurrentExamAttempt.ExamId);
 
-                        if (scoringResult != null)
+                        if (scoringResults != null && scoringResults.Count > 0)
                         {
-                            score = scoringResult.AchievedScore;
-                            maxScore = scoringResult.TotalScore;
-                            notes = scoringResult.IsSuccess ? "BenchSuite自动评分完成（手动提交）" : "BenchSuite评分失败（手动提交）";
+                            score = scoringResults.Values.Sum(r => r.AchievedScore);
+                            maxScore = scoringResults.Values.Sum(r => r.TotalScore);
+                            bool isSuccess = scoringResults.Values.Any(r => r.IsSuccess);
+                            notes = isSuccess ? "BenchSuite自动评分完成（手动提交）" : "BenchSuite评分失败（手动提交）";
                             System.Diagnostics.Debug.WriteLine($"ExamViewModel: BenchSuite评分结果 - Score: {score}, MaxScore: {maxScore}");
                         }
                         else

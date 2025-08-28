@@ -215,7 +215,7 @@ public class TrainingResultViewModel : ViewModelBase
                 AchievedScore = scoringResult.AchievedScore,
                 ScoreRate = scoringResult.TotalScore > 0 ? scoringResult.AchievedScore / scoringResult.TotalScore * 100 : 0,
                 IsSuccess = scoringResult.IsSuccess,
-                Details = scoringResult.Details ?? string.Empty,
+                Details = scoringResult.ErrorMessage ?? string.Empty,
                 ErrorMessage = scoringResult.ErrorMessage,
                 ModuleType = kvp.Key
             };
@@ -269,7 +269,7 @@ public class TrainingResultViewModel : ViewModelBase
                     TotalScore = scoringResult.TotalScore,
                     AchievedScore = scoringResult.AchievedScore,
                     IsCorrect = scoringResult.IsSuccess && scoringResult.AchievedScore >= scoringResult.TotalScore * 0.6m, // 60%及格
-                    Details = scoringResult.Details ?? string.Empty,
+                    Details = scoringResult.ErrorMessage ?? string.Empty,
                     ErrorMessage = scoringResult.ErrorMessage,
                     ScoreRate = scoringResult.TotalScore > 0 ? scoringResult.AchievedScore / scoringResult.TotalScore * 100 : 0
                 };
@@ -448,7 +448,7 @@ public class ModuleResultItem
     /// <summary>
     /// 是否为C#模块
     /// </summary>
-    public bool IsCSharpModule => FileType == BenchSuiteFileType.CSharp;
+    public bool IsCSharpModule => ModuleType == ModuleType.CSharp;
 
     /// <summary>
     /// AI评分等级描述

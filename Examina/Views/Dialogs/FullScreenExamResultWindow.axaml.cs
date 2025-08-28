@@ -343,16 +343,16 @@ public partial class FullScreenExamResultWindow : Window
             FullScreenExamResultViewModel viewModel = new();
 
             // 设置基本考试结果信息
-            decimal? score = benchSuiteResult?.AchievedScore;
-            decimal? totalScore = benchSuiteResult?.TotalScore;
+            decimal? score = benchSuiteResults?.Values.Sum(r => r.AchievedScore);
+            decimal? totalScore = benchSuiteResults?.Values.Sum(r => r.TotalScore);
 
             viewModel.SetFullScreenExamResult(examName, examType, isSuccessful, startTime, endTime,
                 durationMinutes, score, totalScore, errorMessage, notes, showContinue, showClose);
 
             // 从BenchSuite结果设置详细分数信息
-            if (benchSuiteResult != null)
+            if (benchSuiteResults != null)
             {
-                viewModel.SetScoreDetailFromBenchSuite(benchSuiteResult, passThreshold);
+                viewModel.SetScoreDetailFromBenchSuite(benchSuiteResults, passThreshold);
             }
 
             FullScreenExamResultWindow window = new(viewModel);
@@ -379,7 +379,7 @@ public partial class FullScreenExamResultWindow : Window
         try
         {
             FullScreenExamResultWindow window = ShowFullScreenExamResultFromBenchSuite(examName, examType, isSuccessful,
-                benchSuiteResult, startTime, endTime, durationMinutes, errorMessage, notes, showContinue, showClose, passThreshold);
+                benchSuiteResults, startTime, endTime, durationMinutes, errorMessage, notes, showContinue, showClose, passThreshold);
 
             return await window.WaitForCloseAsync();
         }

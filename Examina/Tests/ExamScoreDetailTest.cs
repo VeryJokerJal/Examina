@@ -135,34 +135,25 @@ public static class ExamScoreDetailTest
         try
         {
             // 创建模拟的BenchSuite评分结果
-            BenchSuiteScoringResult benchSuiteResult = new()
+            Dictionary<ModuleType, ScoringResult> benchSuiteResults = new()
             {
-                IsSuccess = true,
-                TotalScore = 100,
-                AchievedScore = 85,
-                StartTime = DateTime.Now.AddHours(-2),
-                EndTime = DateTime.Now,
-                FileTypeResults = new Dictionary<BenchSuiteFileType, FileTypeScoringResult>
                 {
+                    ModuleType.Word,
+                    new ScoringResult
                     {
-                        BenchSuiteFileType.Word,
-                        new FileTypeScoringResult
-                        {
-                            IsSuccess = true,
-                            TotalScore = 40,
-                            AchievedScore = 35,
-                            Details = "Word操作完成",
-                            ErrorMessage = ""
-                        }
-                    },
+                        IsSuccess = true,
+                        TotalScore = 40,
+                        AchievedScore = 35,
+                        ErrorMessage = ""
+                    }
+                },
+                {
+                    ModuleType.Excel,
+                    new ScoringResult
                     {
-                        BenchSuiteFileType.Excel,
-                        new FileTypeScoringResult
-                        {
-                            IsSuccess = true,
-                            TotalScore = 60,
-                            AchievedScore = 50,
-                            Details = "Excel操作完成",
+                        IsSuccess = true,
+                        TotalScore = 60,
+                        AchievedScore = 50,
                             ErrorMessage = ""
                         }
                     }
@@ -172,7 +163,7 @@ public static class ExamScoreDetailTest
             ExamResultViewModel viewModel = new();
             
             // 从BenchSuite结果设置详细分数信息
-            viewModel.SetScoreDetailFromBenchSuite(benchSuiteResult);
+            viewModel.SetScoreDetailFromBenchSuite(benchSuiteResults);
 
             // 验证转换结果
             Console.WriteLine($"是否有详细分数: {viewModel.HasScoreDetail}");

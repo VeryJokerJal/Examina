@@ -724,8 +724,8 @@ public class MockExamViewModel : ViewModelBase
                 switch (examType)
                 {
                     case ExamType.MockExam:
-                        scoringResult = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
-                        submitResult = scoringResult != null;
+                        scoringResults = await _enhancedExamToolbarService.SubmitMockExamAsync(examId, actualDurationSeconds);
+                        submitResult = scoringResults != null && scoringResults.Count > 0;
                         break;
                     case ExamType.FormalExam:
                         submitResult = await _enhancedExamToolbarService.SubmitFormalExamAsync(examId);
@@ -745,10 +745,13 @@ public class MockExamViewModel : ViewModelBase
                                     Dictionary<ModuleType, ScoringResult>? localScoringResults =
                                         await _enhancedExamToolbarService.PerformLocalScoringAsync(ExamType.Practice, examId, studentId);
 
-                                    if (localScoringResult != null)
+                                    if (localScoringResults != null && localScoringResults.Count > 0)
                                     {
-                                        actualDurationSeconds = (int)(localScoringResult.ElapsedMilliseconds / 1000);
-                                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 练习模式本地评分完成，得分: {localScoringResult.AchievedScore}/{localScoringResult.TotalScore}");
+                                        // 练习模式不需要计算时间，使用默认值
+                                        actualDurationSeconds = 0;
+                                        decimal totalAchieved = localScoringResults.Values.Sum(r => r.AchievedScore);
+                                        decimal totalMax = localScoringResults.Values.Sum(r => r.TotalScore);
+                                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 练习模式本地评分完成，得分: {totalAchieved}/{totalMax}");
                                     }
                                 }
                                 catch (Exception ex)
@@ -846,7 +849,7 @@ public class MockExamViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 考试提交成功，ID: {examId}");
 
                 // 显示考试结果窗口，窗口关闭后会自动显示主窗口
-                await ShowExamResultAsync(examId, examType, true, actualDurationSeconds, scoringResult);
+                await ShowExamResultAsync(examId, examType, true, actualDurationSeconds, scoringResults);
             }
             else
             {
@@ -999,7 +1002,8 @@ public class MockExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
 
             // 使用简化的全屏考试结果窗口，只显示最终得分
-            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示简化分数结果 - 得分: {scoringResult?.AchievedScore}");
+            decimal? totalAchieved = scoringResults?.Values.Sum(r => r.AchievedScore);
+            System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示简化分数结果 - 得分: {totalAchieved}");
 
             _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
                 examName,
@@ -1008,7 +1012,7 @@ public class MockExamViewModel : ViewModelBase
                 null, // startTime
                 null, // endTime
                 durationMinutes,
-                scoringResult?.AchievedScore, // 只显示最终得分，不显示总分
+                totalAchieved, // 只显示最终得分，不显示总分
                 null, // 不传递总分，避免显示"得分/总分"格式
                 isSuccessful ? "" : "考试提交失败",
                 isSuccessful ? "模拟考试提交成功" : "请检查网络连接或联系管理员",

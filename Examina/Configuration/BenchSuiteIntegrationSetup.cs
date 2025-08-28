@@ -64,9 +64,9 @@ public static class BenchSuiteIntegrationSetup
 
                 if (directoryService != null)
                 {
-                    Models.BenchSuite.BenchSuiteDirectoryValidationResult directoryValidation = await directoryService.EnsureDirectoryStructureAsync();
-                    result.DirectoryStructureValid = directoryValidation.IsValid;
-                    result.DirectoryValidationDetails = directoryValidation.Details;
+                    bool directoryValidation = await directoryService.EnsureDirectoryStructureAsync();
+                    result.DirectoryStructureValid = directoryValidation;
+                    result.DirectoryValidationDetails = directoryValidation ? "目录结构验证成功" : "目录结构验证失败";
                 }
             }
 

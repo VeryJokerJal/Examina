@@ -2,9 +2,9 @@
 using System.IO;
 using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
+using BenchSuite.Models;
 using Examina.Extensions;
 using Examina.Models;
-using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -567,10 +567,10 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                     if (benchSuiteService != null && directoryService != null)
                     {
                         // 构建文件路径字典
-                        Dictionary<ModuleType, List<string>> filePaths = new();
+                        Dictionary<ModuleType, List<string>> filePaths = [];
 
                         // 扫描并添加文件路径
-                        await ScanAndAddFilePathsAsync(filePaths, currentTrainingId.Value, directoryService);
+                        ScanAndAddFilePaths(filePaths, currentTrainingId.Value, directoryService);
 
                         // 执行BenchSuite评分
                         int studentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0;
@@ -623,7 +623,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 扫描并添加文件路径到字典
     /// </summary>
-    private async Task ScanAndAddFilePathsAsync(Dictionary<ModuleType, List<string>> filePaths, int trainingId, IBenchSuiteDirectoryService directoryService)
+    private void ScanAndAddFilePaths(Dictionary<ModuleType, List<string>> filePaths, int trainingId, IBenchSuiteDirectoryService directoryService)
     {
         try
         {
@@ -644,7 +644,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
                     if (Directory.Exists(directoryPath))
                     {
-                        List<string> moduleFilePaths = new();
+                        List<string> moduleFilePaths = [];
 
                         // 根据模块类型扫描相应的文件
                         string[] extensions = moduleType switch
