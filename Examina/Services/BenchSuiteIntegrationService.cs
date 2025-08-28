@@ -1,11 +1,13 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using Examina.Models;
+using Examina.Configuration;
+using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using BenchSuite.Services;
-using Examina.Models;
-using Examina.Models.Exam;
-using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
 
@@ -18,7 +20,6 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     private readonly Dictionary<ModuleType, string> _directoryMapping;
     private readonly Dictionary<ModuleType, IScoringService> _scoringServices;
     private readonly IAILogicalScoringService? _aiScoringService;
-    private readonly Func<Task<StudentComprehensiveTrainingDto?>>? _getTrainingDataFunc;
 
     public BenchSuiteIntegrationService(ILogger<BenchSuiteIntegrationService> logger, IAILogicalScoringService? aiScoringService = null)
     {
@@ -57,9 +58,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 对考试文件进行评分
     /// </summary>
-    public async Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths, StudentComprehensiveTrainingDto? trainingData = null)
+    public async Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths)
     {
-        Dictionary<ModuleType, ScoringResult> results = [];
+        Dictionary<ModuleType, ScoringResult> results = new();
 
         try
         {
@@ -90,7 +91,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 _logger.LogInformation("开始评分模块类型: {ModuleType}, 文件数量: {FileCount}",
                     moduleType, moduleFilePaths.Count);
 
-                ScoringResult moduleResult = await ScoreModuleAsync(moduleType, moduleFilePaths, examType, examId, trainingData);
+                ScoringResult moduleResult = await ScoreModuleAsync(moduleType, moduleFilePaths, examType, examId);
                 results[moduleType] = moduleResult;
 
                 _logger.LogInformation("模块 {ModuleType} 评分完成，总分: {TotalScore}, 得分: {AchievedScore}",
@@ -124,7 +125,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 string benchSuitePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BenchSuite.dll");
                 if (System.IO.File.Exists(benchSuitePath))
                 {
-                    _ = Assembly.LoadFrom(benchSuitePath);
+                    Assembly.LoadFrom(benchSuitePath);
                     _logger.LogInformation("成功加载BenchSuite程序集");
                     return true;
                 }
@@ -178,7 +179,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     // 尝试创建缺失的目录
                     try
                     {
-                        _ = System.IO.Directory.CreateDirectory(directoryPath);
+                        System.IO.Directory.CreateDirectory(directoryPath);
                         _logger.LogInformation("成功创建目录: {DirectoryPath}", directoryPath);
                     }
                     catch (Exception ex)
@@ -249,7 +250,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 对指定模块类型进行评分
     /// </summary>
-    private async Task<ScoringResult> ScoreModuleAsync(ModuleType moduleType, List<string> filePaths, ExamType examType, int examId, StudentComprehensiveTrainingDto? trainingData = null)
+    private async Task<ScoringResult> ScoreModuleAsync(ModuleType moduleType, List<string> filePaths, ExamType examType, int examId)
     {
         ScoringResult result = new()
         {
@@ -267,72 +268,93 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 return result;
             }
 
-            // 检查是否有文件需要评分
-            if (filePaths == null || filePaths.Count == 0)
+            // Windows 模块允许在无文件的情况下进行评分
+            if (moduleType == ModuleType.Windows)
             {
-                result.IsSuccess = false;
-                result.ErrorMessage = $"没有找到 {moduleType} 类型的文件";
-                result.EndTime = DateTime.Now;
-                return result;
+                string basePath = @"C:\河北对口计算机\";
+                string examTypeFolder = GetExamTypeFolder(examType);
+                string examRootPath = System.IO.Path.Combine(basePath, examTypeFolder, examId.ToString());
+
+                ExamModel examModelToUse = CreateSimplifiedExamModel(moduleType, examType, examId);
+
+                // 为Windows评分服务设置基础路径
+                if (scoringService is WindowsScoringService windowsService)
+                {
+                    windowsService.SetBasePath(examRootPath);
+                }
+
+                // 调用评分（Windows不依赖具体文件路径）
+                result = await scoringService.ScoreFileAsync(string.Empty, examModelToUse);
             }
-
-            // 创建考试模型用于评分（尝试获取真实数据，失败时使用简化模型）
-            ExamModel examModel = await CreateExamModelAsync(moduleType, examType, examId, trainingData);
-
-            // 如果只有一个文件，直接评分
-            if (filePaths.Count == 1)
+            else
             {
-                string filePath = filePaths[0];
-                if (!File.Exists(filePath))
+                // 非Windows模块：需要文件
+                if (filePaths == null || filePaths.Count == 0)
                 {
                     result.IsSuccess = false;
-                    result.ErrorMessage = $"文件不存在: {filePath}";
+                    result.ErrorMessage = $"没有找到 {moduleType} 类型的文件";
                     result.EndTime = DateTime.Now;
                     return result;
                 }
 
-                // 调用真实的BenchSuite评分服务
-                result = await scoringService.ScoreFileAsync(filePath, examModel);
-            }
-            else
-            {
-                // 多个文件时，合并结果
-                decimal totalScore = 0;
-                decimal achievedScore = 0;
-                List<KnowledgePointResult> allKnowledgePoints = [];
+                // 创建简化的考试模型用于评分
+                ExamModel examModel = CreateSimplifiedExamModel(moduleType, examType, examId);
 
-                foreach (string filePath in filePaths)
+                // 如果只有一个文件，直接评分
+                if (filePaths.Count == 1)
                 {
+                    string filePath = filePaths[0];
                     if (!File.Exists(filePath))
                     {
-                        _logger.LogWarning("文件不存在: {FilePath}", filePath);
-                        continue;
+                        result.IsSuccess = false;
+                        result.ErrorMessage = $"文件不存在: {filePath}";
+                        result.EndTime = DateTime.Now;
+                        return result;
                     }
 
-                    try
+                    // 调用真实的BenchSuite评分服务
+                    result = await scoringService.ScoreFileAsync(filePath, examModel);
+                }
+                else
+                {
+                    // 多个文件时，合并结果
+                    decimal totalScore = 0;
+                    decimal achievedScore = 0;
+                    List<KnowledgePointResult> allKnowledgePoints = new();
+
+                    foreach (string filePath in filePaths)
                     {
-                        // 调用真实的BenchSuite评分服务
-                        ScoringResult fileResult = await scoringService.ScoreFileAsync(filePath, examModel);
-
-                        totalScore += fileResult.TotalScore;
-                        achievedScore += fileResult.AchievedScore;
-                        allKnowledgePoints.AddRange(fileResult.KnowledgePointResults);
-
-                        if (!fileResult.IsSuccess)
+                        if (!File.Exists(filePath))
                         {
-                            _logger.LogWarning("文件评分警告: {FilePath}, {ErrorMessage}", filePath, fileResult.ErrorMessage);
+                            _logger.LogWarning("文件不存在: {FilePath}", filePath);
+                            continue;
+                        }
+
+                        try
+                        {
+                            // 调用真实的BenchSuite评分服务
+                            ScoringResult fileResult = await scoringService.ScoreFileAsync(filePath, examModel);
+
+                            totalScore += fileResult.TotalScore;
+                            achievedScore += fileResult.AchievedScore;
+                            allKnowledgePoints.AddRange(fileResult.KnowledgePointResults);
+
+                            if (!fileResult.IsSuccess)
+                            {
+                                _logger.LogWarning("文件评分警告: {FilePath}, {ErrorMessage}", filePath, fileResult.ErrorMessage);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "文件评分失败: {FilePath}", filePath);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "文件评分失败: {FilePath}", filePath);
-                    }
-                }
 
-                result.TotalScore = totalScore;
-                result.AchievedScore = achievedScore;
-                result.KnowledgePointResults = allKnowledgePoints;
-                result.IsSuccess = true;
+                    result.TotalScore = totalScore;
+                    result.AchievedScore = achievedScore;
+                    result.KnowledgePointResults = allKnowledgePoints;
+                    result.IsSuccess = true;
+                }
             }
 
             _logger.LogInformation("模块类型 {ModuleType} 评分完成，得分: {AchievedScore}/{TotalScore}",
@@ -353,89 +375,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
-    /// 创建考试模型用于评分（优先使用真实数据）
-    /// </summary>
-    private async Task<ExamModel> CreateExamModelAsync(ModuleType moduleType, ExamType examType, int examId, StudentComprehensiveTrainingDto? trainingData = null)
-    {
-        try
-        {
-            // 尝试获取真实的综合训练数据
-            if (examType == ExamType.ComprehensiveTraining && trainingData != null)
-            {
-                ExamModel? realExamModel = await TryCreateRealExamModelAsync(moduleType, examId, trainingData);
-                if (realExamModel != null)
-                {
-                    _logger.LogInformation("成功创建真实考试模型，考试ID: {ExamId}, 模块: {ModuleType}, 题目数量: {QuestionCount}",
-                        examId, moduleType, realExamModel.Modules.Sum(m => m.Questions.Count));
-                    return realExamModel;
-                }
-            }
-
-            _logger.LogWarning("无法获取真实考试数据，使用简化模型，考试ID: {ExamId}, 模块: {ModuleType}", examId, moduleType);
-            return CreateSimplifiedExamModel(moduleType, examType, examId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "创建考试模型失败，使用简化模型，考试ID: {ExamId}, 模块: {ModuleType}", examId, moduleType);
-            return CreateSimplifiedExamModel(moduleType, examType, examId);
-        }
-    }
-
-    /// <summary>
-    /// 尝试创建真实的考试模型
-    /// </summary>
-    private async Task<ExamModel?> TryCreateRealExamModelAsync(ModuleType moduleType, int examId, StudentComprehensiveTrainingDto trainingData)
-    {
-        try
-        {
-            _logger.LogInformation("开始创建真实考试模型，考试ID: {ExamId}, 模块: {ModuleType}, 训练名称: {TrainingName}",
-                examId, moduleType, trainingData.Name);
-
-            // 创建考试模型
-            ExamModel examModel = new()
-            {
-                Id = examId.ToString(),
-                Name = trainingData.Name,
-                Description = trainingData.Description ?? $"{moduleType}综合训练",
-                Modules = []
-            };
-
-            // 创建对应的模块
-            ExamModuleModel module = new()
-            {
-                Id = $"Module_{moduleType}_{examId}",
-                Name = $"{moduleType}模块",
-                Type = moduleType,
-                Questions = []
-            };
-
-            // 从训练数据中提取对应模块的题目
-            await ExtractQuestionsFromTrainingDataAsync(module, moduleType, trainingData);
-
-            if (module.Questions.Count > 0)
-            {
-                examModel.Modules.Add(module);
-                _logger.LogInformation("成功创建真实考试模型，模块: {ModuleType}, 题目数量: {QuestionCount}, 总操作点: {OperationPointCount}",
-                    moduleType, module.Questions.Count, module.Questions.Sum(q => q.OperationPoints.Count));
-                return examModel;
-            }
-            else
-            {
-                _logger.LogWarning("训练数据中没有找到 {ModuleType} 模块的题目", moduleType);
-                return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "创建真实考试模型失败，考试ID: {ExamId}, 模块: {ModuleType}", examId, moduleType);
-            return null;
-        }
-    }
-
-    /// <summary>
     /// 创建简化的考试模型用于评分
     /// </summary>
-    [Obsolete("应该使用CreateExamModelAsync方法获取真实数据")]
     private ExamModel CreateSimplifiedExamModel(ModuleType moduleType, ExamType examType, int examId)
     {
         // 创建简化的考试模型
@@ -444,7 +385,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = examId.ToString(),
             Name = $"考试_{examId}",
             Description = $"{moduleType}考试",
-            Modules = []
+            Modules = new List<ExamModuleModel>()
         };
 
         // 创建对应的模块
@@ -453,7 +394,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = $"Module_{moduleType}",
             Name = moduleType.ToString(),
             Type = moduleType,
-            Questions = []
+            Questions = new List<QuestionModel>()
         };
 
         // 创建一个简化的题目
@@ -463,7 +404,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Title = $"{moduleType}操作题",
             Content = $"完成{moduleType}相关操作",
             Score = 100, // 默认总分100
-            OperationPoints = []
+            OperationPoints = new List<OperationPointModel>()
         };
 
         // 添加一个基本的操作点
@@ -474,7 +415,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ModuleType = moduleType,
             Score = 100,
             IsEnabled = true,
-            Parameters = []
+            Parameters = new List<ConfigurationParameterModel>()
         };
 
         question.OperationPoints.Add(operationPoint);
@@ -483,6 +424,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
         return examModel;
     }
+
 
     /// <summary>
     /// 获取模块类型描述
@@ -515,113 +457,6 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ExamType.SpecialPractice => "SpecialPractice",
             _ => "Unknown"
         };
-    }
-
-    /// <summary>
-    /// 从训练数据中提取题目到模块
-    /// </summary>
-    private async Task ExtractQuestionsFromTrainingDataAsync(ExamModuleModel module, ModuleType moduleType, StudentComprehensiveTrainingDto trainingData)
-    {
-        try
-        {
-            _logger.LogInformation("开始提取 {ModuleType} 模块的题目，科目数量: {SubjectCount}, 模块数量: {ModuleCount}",
-                moduleType, trainingData.Subjects.Count, trainingData.Modules.Count);
-
-            // 从科目中提取题目
-            foreach (StudentComprehensiveTrainingSubjectDto subject in trainingData.Subjects)
-            {
-                foreach (StudentComprehensiveTrainingQuestionDto questionDto in subject.Questions)
-                {
-                    if (ShouldIncludeQuestion(questionDto, moduleType))
-                    {
-                        QuestionModel question = ConvertToQuestionModel(questionDto, subject.SubjectName);
-                        module.Questions.Add(question);
-                    }
-                }
-            }
-
-            // 从模块中提取题目
-            foreach (StudentComprehensiveTrainingModuleDto moduleDto in trainingData.Modules)
-            {
-                foreach (StudentComprehensiveTrainingQuestionDto questionDto in moduleDto.Questions)
-                {
-                    if (ShouldIncludeQuestion(questionDto, moduleType))
-                    {
-                        QuestionModel question = ConvertToQuestionModel(questionDto, moduleDto.Name);
-                        module.Questions.Add(question);
-                    }
-                }
-            }
-
-            _logger.LogInformation("提取完成，{ModuleType} 模块共有 {QuestionCount} 道题目", moduleType, module.Questions.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "提取 {ModuleType} 模块题目失败", moduleType);
-        }
-
-        await Task.CompletedTask; // 保持异步签名
-    }
-
-    /// <summary>
-    /// 判断题目是否应该包含在指定模块中
-    /// </summary>
-    private bool ShouldIncludeQuestion(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType moduleType)
-    {
-        // 检查题目的操作点是否包含指定模块类型
-        return questionDto.OperationPoints.Any(op =>
-            op.ModuleType.Equals(moduleType.ToString(), StringComparison.OrdinalIgnoreCase));
-    }
-
-    /// <summary>
-    /// 将DTO转换为BenchSuite的QuestionModel
-    /// </summary>
-    private QuestionModel ConvertToQuestionModel(StudentComprehensiveTrainingQuestionDto questionDto, string parentName)
-    {
-        QuestionModel question = new()
-        {
-            Id = questionDto.Id.ToString(),
-            Title = questionDto.Title,
-            Content = questionDto.Content ?? string.Empty,
-            QuestionType = questionDto.QuestionType ?? "操作题",
-            Score = (decimal)questionDto.Score,
-            OperationPoints = []
-        };
-
-        // 转换操作点
-        foreach (StudentComprehensiveTrainingOperationPointDto opDto in questionDto.OperationPoints)
-        {
-            OperationPointModel operationPoint = new()
-            {
-                Id = opDto.Id.ToString(),
-                Name = opDto.Name,
-                Description = opDto.Description ?? string.Empty,
-                ModuleType = Enum.TryParse<ModuleType>(opDto.ModuleType, true, out ModuleType moduleType) ? moduleType : ModuleType.Windows,
-                Score = (decimal)opDto.Score,
-                IsEnabled = true, // 默认启用
-                Parameters = []
-            };
-
-            // 转换参数
-            foreach (StudentComprehensiveTrainingParameterDto paramDto in opDto.Parameters)
-            {
-                ConfigurationParameterModel parameter = new()
-                {
-                    Id = paramDto.Id.ToString(),
-                    Name = paramDto.Name,
-                    Value = paramDto.DefaultValue ?? string.Empty,
-                    Type = Enum.TryParse<ParameterType>(paramDto.ParameterType, true, out ParameterType paramType) ? paramType : ParameterType.Text,
-                    IsRequired = false, // 默认非必填
-                    Description = paramDto.Description
-                };
-
-                operationPoint.Parameters.Add(parameter);
-            }
-
-            question.OperationPoints.Add(operationPoint);
-        }
-
-        return question;
     }
 
     #endregion

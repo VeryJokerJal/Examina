@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Text;
 using ReactiveUI;
 using BenchSuite.Models;
 using BenchSuite.Interfaces;
 using Examina.Models;
+using Examina.Models.BenchSuite;
 
 namespace Examina.ViewModels;
 
@@ -138,6 +140,11 @@ public class TrainingResultViewModel : ViewModelBase
     public ObservableCollection<QuestionResultItem> QuestionResults { get; } = [];
 
     /// <summary>
+    /// 详细评分信息文本
+    /// </summary>
+    public string DetailedScoringInfo { get; private set; } = string.Empty;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public TrainingResultViewModel()
@@ -180,6 +187,24 @@ public class TrainingResultViewModel : ViewModelBase
 
         // 更新统计信息
         UpdateStatistics();
+
+        // 生成详细评分信息
+        GenerateDetailedScoringInfo(scoringResults);
+    }
+
+    /// <summary>
+    /// 设置训练结果数据（BenchSuiteScoringResult重载）
+    /// </summary>
+    /// <param name="trainingName">训练名称</param>
+    /// <param name="benchSuiteResult">BenchSuite评分结果</param>
+    /// <param name="startTime">训练开始时间</param>
+    public void SetTrainingResult(string trainingName, BenchSuiteScoringResult benchSuiteResult, DateTime startTime)
+    {
+        // 将BenchSuiteScoringResult转换为按模块类型分组的ScoringResult字典
+        Dictionary<ModuleType, ScoringResult> scoringResults = benchSuiteResult.ToModuleResults();
+
+        // 调用原有的SetTrainingResult方法
+        SetTrainingResult(trainingName, scoringResults, startTime);
     }
 
     /// <summary>
@@ -195,6 +220,67 @@ public class TrainingResultViewModel : ViewModelBase
             >= 60 => "及格",
             _ => "不及格"
         };
+    }
+
+    /// <summary>
+    /// 生成详细评分信息（参考WindowsTestProgram.cs格式）
+    /// </summary>
+    private void GenerateDetailedScoringInfo(Dictionary<ModuleType, ScoringResult> scoringResults)
+    {
+        StringBuilder sb = new();
+
+        sb.AppendLine("评分详细信息（用于诊断）:");
+        sb.AppendLine(new string('-', 80));
+
+        foreach (KeyValuePair<ModuleType, ScoringResult> kvp in scoringResults)
+        {
+            ScoringResult scoringResult = kvp.Value;
+            string moduleName = GetModuleTypeDisplayName(kvp.Key);
+
+            sb.AppendLine($"模块: {moduleName}");
+            sb.AppendLine($"  总分: {scoringResult.TotalScore}");
+            sb.AppendLine($"  得分: {scoringResult.AchievedScore}");
+            sb.AppendLine($"  成功: {scoringResult.IsSuccess}");
+
+            if (!string.IsNullOrEmpty(scoringResult.ErrorMessage))
+            {
+                sb.AppendLine($"  错误: {scoringResult.ErrorMessage}");
+            }
+
+            sb.AppendLine();
+
+            // 显示知识点详细信息
+            foreach (KnowledgePointResult kpResult in scoringResult.KnowledgePointResults)
+            {
+                sb.AppendLine($"知识点: {kpResult.KnowledgePointType}");
+                sb.AppendLine($"  得分: {kpResult.AchievedScore}/{kpResult.TotalScore}");
+                sb.AppendLine($"  是否正确: {kpResult.IsCorrect}");
+
+                if (!string.IsNullOrEmpty(kpResult.ErrorMessage))
+                {
+                    sb.AppendLine($"  错误: {kpResult.ErrorMessage}");
+                }
+
+                if (!string.IsNullOrEmpty(kpResult.Details))
+                {
+                    string shortDetails = kpResult.Details.Length > 150 ? kpResult.Details[..150] + "..." : kpResult.Details;
+                    sb.AppendLine($"  详情: {shortDetails}");
+                }
+
+                sb.AppendLine();
+            }
+
+            if (scoringResult.KnowledgePointResults.Count == 0)
+            {
+                sb.AppendLine("  无知识点详细信息");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine(new string('-', 40));
+        }
+
+        DetailedScoringInfo = sb.ToString();
+        this.RaisePropertyChanged(nameof(DetailedScoringInfo));
     }
 
     /// <summary>

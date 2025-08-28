@@ -1,5 +1,4 @@
 using Examina.Models;
-using Examina.Models.Exam;
 using BenchSuite.Models;
 
 namespace Examina.Services;
@@ -16,9 +15,8 @@ public interface IBenchSuiteIntegrationService
     /// <param name="examId">考试ID</param>
     /// <param name="studentUserId">学生用户ID</param>
     /// <param name="filePaths">文件路径字典（按模块类型分组）</param>
-    /// <param name="trainingData">可选的训练数据（用于获取真实的题目和操作点）</param>
     /// <returns>评分结果字典（按模块类型分组）</returns>
-    Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths, StudentComprehensiveTrainingDto? trainingData = null);
+    Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths);
 
     /// <summary>
     /// 检查BenchSuite服务是否可用

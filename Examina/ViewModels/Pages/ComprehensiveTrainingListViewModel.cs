@@ -4,7 +4,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
-
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -490,7 +490,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
+            BenchSuiteScoringResult? scoringResult = null;
             bool submitResult = false;
 
             // 仅支持综合实训类型
@@ -551,11 +551,58 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 }
             }
 
-            // 注意：此方法是回退方法，不包含BenchSuite评分
-            // 主要的BenchSuite评分逻辑在EnhancedExamToolbarService中实现
+            // 尝试进行BenchSuite评分
+            BenchSuiteScoringResult? scoringResult = null;
             decimal? score = null;
             decimal? maxScore = null;
             string? benchSuiteScoringResultJson = null;
+
+            if (currentTrainingId.HasValue)
+            {
+                try
+                {
+                    IBenchSuiteIntegrationService? benchSuiteService = AppServiceManager.GetService<IBenchSuiteIntegrationService>();
+                    IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+
+                    if (benchSuiteService != null && directoryService != null)
+                    {
+                        // 准备文件路径字典（按ModuleType分组）
+                        Dictionary<ModuleType, List<string>> filePaths = new();
+
+                        // 扫描并添加文件路径
+                        await ScanAndAddFilePathsToModuleDictionary(filePaths, currentTrainingId.Value, directoryService);
+
+                        // 执行BenchSuite评分
+                        int studentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0;
+                        Dictionary<ModuleType, ScoringResult> moduleResults = await benchSuiteService.ScoreExamAsync(
+                            ExamType.ComprehensiveTraining,
+                            currentTrainingId.Value,
+                            studentUserId,
+                            filePaths);
+
+                        // 将模块结果转换为BenchSuiteScoringResult
+                        scoringResult = ConvertModuleResultsToBenchSuiteResult(moduleResults);
+
+                        if (scoringResult.IsSuccess)
+                        {
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
+
+                            // 序列化评分结果
+                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResult, new System.Text.Json.JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                                WriteIndented = true
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // BenchSuite评分失败不影响提交，只记录错误
+                    System.Diagnostics.Debug.WriteLine($"BenchSuite评分失败: {ex.Message}");
+                }
+            }
 
             CompleteTrainingRequest request = new()
             {
@@ -581,7 +628,71 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 扫描并添加文件路径到BenchSuite评分请求
+    /// 扫描并添加文件路径到模块字典
+    /// </summary>
+    private async Task ScanAndAddFilePathsToModuleDictionary(Dictionary<ModuleType, List<string>> filePaths, int trainingId, IBenchSuiteDirectoryService directoryService)
+    {
+        try
+        {
+            // 获取支持的模块类型
+            ModuleType[] supportedModuleTypes =
+            {
+                ModuleType.Word,
+                ModuleType.Excel,
+                ModuleType.PowerPoint,
+                ModuleType.CSharp,
+                ModuleType.Windows
+            };
+
+            foreach (ModuleType moduleType in supportedModuleTypes)
+            {
+                try
+                {
+                    // 将ModuleType转换为BenchSuiteFileType
+                    BenchSuiteFileType fileType = ConvertModuleTypeToBenchSuiteFileType(moduleType);
+                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
+
+                    if (Directory.Exists(directoryPath))
+                    {
+                        List<string> moduleFilePaths = new();
+
+                        // 根据模块类型扫描相应的文件
+                        string[] extensions = moduleType switch
+                        {
+                            ModuleType.Word => new[] { "*.docx", "*.doc" },
+                            ModuleType.Excel => new[] { "*.xlsx", "*.xls" },
+                            ModuleType.PowerPoint => new[] { "*.pptx", "*.ppt" },
+                            ModuleType.CSharp => new[] { "*.cs" },
+                            ModuleType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
+                            _ => new[] { "*.*" }
+                        };
+
+                        foreach (string extension in extensions)
+                        {
+                            string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
+                            moduleFilePaths.AddRange(files);
+                        }
+
+                        if (moduleFilePaths.Count > 0)
+                        {
+                            filePaths[moduleType] = moduleFilePaths;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"扫描{moduleType}文件时发生错误: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"扫描文件路径时发生错误: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 扫描并添加文件路径到BenchSuite评分请求（保留原方法以兼容）
     /// </summary>
     private async Task ScanAndAddFilePathsAsync(BenchSuiteScoringRequest request, int trainingId)
     {
@@ -847,7 +958,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示训练结果
     /// </summary>
-    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, Dictionary<ModuleType, ScoringResult>? scoringResults = null)
+    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, BenchSuiteScoringResult? scoringResult = null)
     {
         try
         {
@@ -860,22 +971,18 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 如果没有传入评分结果，创建一个基本的失败结果
-            scoringResults ??= new Dictionary<ModuleType, ScoringResult>
+            scoringResult ??= new BenchSuiteScoringResult
             {
-                [ModuleType.Windows] = new ScoringResult
-                {
-                    IsSuccess = false,
-                    ErrorMessage = "未能获取评分结果",
-                    TotalScore = 100,
-                    AchievedScore = 0,
-                    StartTime = _trainingStartTime,
-                    EndTime = DateTime.Now,
-                    KnowledgePointResults = new List<KnowledgePointResult>()
-                }
+                IsSuccess = false,
+                ErrorMessage = "未能获取评分结果",
+                TotalScore = 100,
+                AchievedScore = 0,
+                StartTime = _trainingStartTime,
+                EndTime = DateTime.Now
             };
 
             // 显示详细的训练结果（使用真实或基本的评分结果）
-            await ShowDetailedTrainingResultAsync(training.Name, scoringResults);
+            await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
         }
         catch
         {
@@ -902,13 +1009,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示详细的训练结果
     /// </summary>
-    private async Task ShowDetailedTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult>? scoringResults)
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
     {
         try
         {
             // 创建训练结果ViewModel
             TrainingResultViewModel resultViewModel = new();
-            resultViewModel.SetTrainingResult(trainingName, scoringResults ?? new Dictionary<ModuleType, ScoringResult>(), _trainingStartTime);
+            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
 
             // 创建训练结果窗口
             TrainingResultWindow resultWindow = new()
@@ -938,5 +1045,51 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
         _ = UpdateUserPermissionsAsync();
+    }
+
+    /// <summary>
+    /// 将ModuleType转换为BenchSuiteFileType
+    /// </summary>
+    private static BenchSuiteFileType ConvertModuleTypeToBenchSuiteFileType(ModuleType moduleType)
+    {
+        return moduleType switch
+        {
+            ModuleType.Word => BenchSuiteFileType.Word,
+            ModuleType.Excel => BenchSuiteFileType.Excel,
+            ModuleType.PowerPoint => BenchSuiteFileType.PowerPoint,
+            ModuleType.CSharp => BenchSuiteFileType.CSharp,
+            ModuleType.Windows => BenchSuiteFileType.Windows,
+            _ => BenchSuiteFileType.Other
+        };
+    }
+
+    /// <summary>
+    /// 将模块评分结果转换为BenchSuiteScoringResult
+    /// </summary>
+    private static BenchSuiteScoringResult ConvertModuleResultsToBenchSuiteResult(Dictionary<ModuleType, ScoringResult> moduleResults)
+    {
+        BenchSuiteScoringResult result = new()
+        {
+            ModuleResults = moduleResults,
+            IsSuccess = moduleResults.Values.Any(r => r.IsSuccess),
+            TotalScore = moduleResults.Values.Sum(r => r.TotalScore),
+            AchievedScore = moduleResults.Values.Sum(r => r.AchievedScore),
+            StartTime = moduleResults.Values.Min(r => r.StartTime),
+            EndTime = moduleResults.Values.Max(r => r.EndTime),
+            KnowledgePointResults = moduleResults.Values.SelectMany(r => r.KnowledgePointResults).ToList()
+        };
+
+        // 设置错误信息（如果有失败的模块）
+        List<string> errorMessages = moduleResults.Values
+            .Where(r => !r.IsSuccess && !string.IsNullOrEmpty(r.ErrorMessage))
+            .Select(r => r.ErrorMessage!)
+            .ToList();
+
+        if (errorMessages.Count > 0)
+        {
+            result.ErrorMessage = string.Join("; ", errorMessages);
+        }
+
+        return result;
     }
 }
