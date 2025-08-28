@@ -148,6 +148,13 @@ builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecia
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentSpecialPracticeService, ExaminaWebApplication.Services.Student.StudentSpecialPracticeService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Student.IStudentMockExamService, ExaminaWebApplication.Services.Student.StudentMockExamService>();
 
+// 注册调试服务（仅在开发环境中）
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<ExaminaWebApplication.Services.Debug.ICodeFilePathTrackingService,
+        ExaminaWebApplication.Services.Debug.CodeFilePathTrackingService>();
+}
+
 // 注册管理员端服务
 builder.Services.AddScoped<ExaminaWebApplication.Services.Admin.IAdminExamManagementService, ExaminaWebApplication.Services.Admin.AdminExamManagementService>();
 builder.Services.AddScoped<ExaminaWebApplication.Services.Admin.ISystemConfigurationService, ExaminaWebApplication.Services.Admin.SystemConfigurationService>();
