@@ -21,13 +21,13 @@ public static class WindowsTestProgram
         try
         {
             // 解析命令行参数
-            string examFilePath = ParseCommandLineArguments(args);
+            (string examFilePath, string? basePath) = ParseCommandLineArguments(args);
 
             // 加载试卷模型
             ExamModel examModel = await LoadExamModelAsync(examFilePath);
 
             // 执行 Windows 稳定性测试（30次评分）
-            await RunWindowsStabilityTestAsync(examModel);
+            await RunWindowsStabilityTestAsync(examModel, basePath);
         }
         catch (FileNotFoundException ex)
         {
@@ -73,14 +73,25 @@ public static class WindowsTestProgram
     /// 解析命令行参数
     /// </summary>
     /// <param name="args">命令行参数</param>
-    /// <returns>试卷文件路径</returns>
-    private static string ParseCommandLineArguments(string[] args)
+    /// <returns>试卷文件路径和基础路径</returns>
+    private static (string examFilePath, string? basePath) ParseCommandLineArguments(string[] args)
     {
         string examFilePath;
+        string? basePath = null;
 
         if (args.Length >= 1)
         {
             examFilePath = args[0];
+
+            // 解析可选的基础路径参数
+            for (int i = 1; i < args.Length; i++)
+            {
+                if ((args[i] == "--base-path" || args[i] == "-bp") && i + 1 < args.Length)
+                {
+                    basePath = args[i + 1];
+                    break;
+                }
+            }
         }
         else
         {
@@ -98,9 +109,13 @@ public static class WindowsTestProgram
         }
 
         System.Console.WriteLine($"试卷文件: {examFilePath}");
+        if (!string.IsNullOrEmpty(basePath))
+        {
+            System.Console.WriteLine($"基础路径: {basePath}");
+        }
         System.Console.WriteLine();
 
-        return examFilePath;
+        return (examFilePath, basePath);
     }
 
     /// <summary>
@@ -141,7 +156,8 @@ public static class WindowsTestProgram
     /// 运行Windows稳定性测试（30次评分）
     /// </summary>
     /// <param name="examModel">试卷模型</param>
-    private static async Task RunWindowsStabilityTestAsync(ExamModel examModel)
+    /// <param name="basePath">基础路径</param>
+    private static async Task RunWindowsStabilityTestAsync(ExamModel examModel, string? basePath)
     {
         const int testRuns = 30;
         System.Console.WriteLine($"正在执行 Windows 稳定性测试（{testRuns}次评分）...");
@@ -152,6 +168,14 @@ public static class WindowsTestProgram
 
         // 使用真实的Windows评分服务
         WindowsScoringService scoringService = new();
+
+        // 设置基础路径（如果提供）
+        if (!string.IsNullOrEmpty(basePath))
+        {
+            scoringService.SetBasePath(basePath);
+            System.Console.WriteLine($"使用基础路径: {basePath}");
+            System.Console.WriteLine();
+        }
 
         // 配置评分选项
         ScoringConfiguration configuration = new()
@@ -292,15 +316,21 @@ public static class WindowsTestProgram
     {
         System.Console.WriteLine();
         System.Console.WriteLine("Windows测试使用说明:");
-        System.Console.WriteLine("BenchSuite.Console.exe windows [试卷文件路径]");
+        System.Console.WriteLine("BenchSuite.Console.exe windows [试卷文件路径] [选项]");
         System.Console.WriteLine();
         System.Console.WriteLine("参数说明:");
         System.Console.WriteLine("  试卷文件路径    - Windows测试试卷模型文件路径 (支持 JSON 格式)");
         System.Console.WriteLine();
+        System.Console.WriteLine("选项:");
+        System.Console.WriteLine("  --base-path, -bp <路径>  - 指定基础路径，用于解析相对路径");
+        System.Console.WriteLine();
         System.Console.WriteLine("示例:");
         System.Console.WriteLine("  BenchSuite.Console.exe windows TestData\\windows-test-exam.json");
+        System.Console.WriteLine("  BenchSuite.Console.exe windows exam.json --base-path \"C:\\TestEnvironment\"");
+        System.Console.WriteLine("  BenchSuite.Console.exe windows exam.json -bp \"D:\\Projects\\Test\"");
         System.Console.WriteLine();
         System.Console.WriteLine("如果不提供参数，程序将使用默认的Windows测试数据。");
+        System.Console.WriteLine("基础路径用于将EL导出的相对路径（如\\WINDOWS\\calc.exe）转换为绝对路径。");
         System.Console.WriteLine();
         System.Console.WriteLine("注意: 程序将自动执行30次评分以测试Windows系统操作检测的稳定性。");
     }

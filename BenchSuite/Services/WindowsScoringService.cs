@@ -19,9 +19,23 @@ public class WindowsScoringService : IWindowsScoringService
 {
     private readonly ScoringConfiguration _defaultConfiguration;
 
+    /// <summary>
+    /// 基础路径，用于解析相对路径
+    /// </summary>
+    private string? _basePath;
+
     public WindowsScoringService()
     {
         _defaultConfiguration = new ScoringConfiguration();
+    }
+
+    /// <summary>
+    /// 设置基础路径，用于解析相对路径
+    /// </summary>
+    /// <param name="basePath">基础路径</param>
+    public void SetBasePath(string? basePath)
+    {
+        _basePath = basePath;
     }
 
     /// <summary>
@@ -1345,28 +1359,46 @@ public class WindowsScoringService : IWindowsScoringService
     /// </summary>
     /// <param name="path">原始路径</param>
     /// <returns>标准化后的路径</returns>
-    private static string NormalizePath(string path)
+    private string NormalizePath(string path)
     {
         if (string.IsNullOrEmpty(path))
         {
             return path;
         }
 
-        // 处理EL导出的路径格式：\WINDOWS\calc.exe -> C:\WINDOWS\calc.exe
-        if (path.StartsWith("\\") && !path.StartsWith("\\\\"))
-        {
-            // 如果路径以单个反斜杠开头，添加C:前缀
-            path = "C:" + path;
-        }
-
         // 标准化路径分隔符
         path = path.Replace('/', '\\');
 
-        // 处理相对路径
+        // 处理EL导出的路径格式：\WINDOWS\calc.exe
+        if (path.StartsWith("\\") && !path.StartsWith("\\\\"))
+        {
+            // 如果设置了基础路径，使用基础路径组合
+            if (!string.IsNullOrEmpty(_basePath))
+            {
+                // 移除开头的反斜杠，然后与基础路径组合
+                string relativePath = path.TrimStart('\\');
+                path = Path.Combine(_basePath, relativePath);
+            }
+            else
+            {
+                // 如果没有设置基础路径，使用默认的C:前缀
+                path = "C:" + path;
+            }
+        }
+
+        // 处理其他相对路径
         if (!Path.IsPathRooted(path))
         {
-            // 如果是相对路径，转换为绝对路径
-            path = Path.GetFullPath(path);
+            if (!string.IsNullOrEmpty(_basePath))
+            {
+                // 使用基础路径组合相对路径
+                path = Path.Combine(_basePath, path);
+            }
+            else
+            {
+                // 如果没有设置基础路径，转换为绝对路径
+                path = Path.GetFullPath(path);
+            }
         }
 
         return path;

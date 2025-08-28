@@ -8,6 +8,12 @@ namespace BenchSuite.Interfaces;
 public interface IWindowsScoringService : IScoringService
 {
     /// <summary>
+    /// 设置基础路径，用于解析相对路径
+    /// </summary>
+    /// <param name="basePath">基础路径</param>
+    void SetBasePath(string? basePath);
+
+    /// <summary>
     /// 检测Windows系统中的特定知识点
     /// </summary>
     /// <param name="knowledgePointType">知识点类型</param>
