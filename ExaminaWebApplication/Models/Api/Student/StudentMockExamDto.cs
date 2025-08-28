@@ -258,7 +258,7 @@ public class CreateMockExamRequestDto
     /// </summary>
     [Required]
     [Range(1, 1000)]
-    public int PassingScore { get; set; } = 60;
+    public double PassingScore { get; set; } = 60;
 
     /// <summary>
     /// 是否随机题目顺序

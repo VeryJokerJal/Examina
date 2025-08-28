@@ -1,15 +1,12 @@
-﻿using System.ComponentModel;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
-using System.Text.Json;
-using Examina.Models;
-using Examina.Models.Exam;
-using Examina.Models.MockExam;
-using Examina.Configuration;
-using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using BenchSuite.Services;
+using Examina.Models;
+using Examina.Models.Exam;
+using Examina.Models.MockExam;
+using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
 
@@ -73,7 +70,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     public async Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths)
     {
-        Dictionary<ModuleType, ScoringResult> results = new();
+        Dictionary<ModuleType, ScoringResult> results = [];
 
         try
         {
@@ -138,7 +135,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 string benchSuitePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BenchSuite.dll");
                 if (System.IO.File.Exists(benchSuitePath))
                 {
-                    Assembly.LoadFrom(benchSuitePath);
+                    _ = Assembly.LoadFrom(benchSuitePath);
                     _logger.LogInformation("成功加载BenchSuite程序集");
                     return true;
                 }
@@ -192,7 +189,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     // 尝试创建缺失的目录
                     try
                     {
-                        System.IO.Directory.CreateDirectory(directoryPath);
+                        _ = System.IO.Directory.CreateDirectory(directoryPath);
                         _logger.LogInformation("成功创建目录: {DirectoryPath}", directoryPath);
                     }
                     catch (Exception ex)
@@ -333,7 +330,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     // 多个文件时，合并结果
                     decimal totalScore = 0;
                     decimal achievedScore = 0;
-                    List<KnowledgePointResult> allKnowledgePoints = new();
+                    List<KnowledgePointResult> allKnowledgePoints = [];
 
                     foreach (string filePath in filePaths)
                     {
@@ -561,9 +558,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = mockExamDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(mockExamDto.Name) ? $"模拟考试_{mockExamDto.Id}" : mockExamDto.Name,
             Description = mockExamDto.Description ?? string.Empty,
-            TotalScore = mockExamDto.TotalScore > 0 ? (decimal)mockExamDto.TotalScore : 100m,
+            TotalScore = mockExamDto.TotalScore > 0 ? mockExamDto.TotalScore : 100m,
             DurationMinutes = mockExamDto.DurationMinutes > 0 ? mockExamDto.DurationMinutes : 120,
-            Modules = new List<ExamModuleModel>()
+            Modules = []
         };
 
         // 模拟考试没有模块概念，需要根据题目的操作点创建虚拟模块
@@ -582,7 +579,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Description = $"模拟考试 - {targetModuleType}模块",
                 Score = (decimal)relevantQuestions.Sum(q => q.Score),
                 Order = 1,
-                Questions = new List<QuestionModel>()
+                Questions = []
             };
 
             foreach (StudentMockExamQuestionDto questionDto in relevantQuestions.OrderBy(q => q.SortOrder))
@@ -596,7 +593,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Score = (decimal)questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
-                    OperationPoints = new List<OperationPointModel>()
+                    OperationPoints = []
                 };
 
                 // 只添加匹配目标模块类型的操作点
@@ -659,9 +656,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = trainingDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(trainingDto.Name) ? $"综合实训_{trainingDto.Id}" : trainingDto.Name,
             Description = trainingDto.Description ?? string.Empty,
-            TotalScore = trainingDto.CalculatedTotalScore > 0 ? (decimal)trainingDto.CalculatedTotalScore : (decimal)trainingDto.TotalScore,
+            TotalScore = trainingDto.CalculatedTotalScore > 0 ? (decimal)trainingDto.CalculatedTotalScore : trainingDto.TotalScore,
             DurationMinutes = trainingDto.DurationMinutes > 0 ? trainingDto.DurationMinutes : 120,
-            Modules = new List<ExamModuleModel>()
+            Modules = []
         };
 
         // 首先从模块列表中查找匹配的模块
@@ -678,7 +675,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Description = moduleDto.Description ?? string.Empty,
                 Score = (decimal)moduleDto.Score,
                 Order = moduleDto.Order,
-                Questions = new List<QuestionModel>()
+                Questions = []
             };
 
             foreach (StudentComprehensiveTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.SortOrder))
@@ -716,7 +713,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                         Description = subjectDto.Description ?? $"{subjectDto.SubjectName}科目 - {targetModuleType}模块",
                         Score = (decimal)relevantQuestions.Sum(q => q.Score),
                         Order = subjectDto.SortOrder,
-                        Questions = new List<QuestionModel>()
+                        Questions = []
                     };
 
                     foreach (StudentComprehensiveTrainingQuestionDto questionDto in relevantQuestions.OrderBy(q => q.SortOrder))
@@ -760,7 +757,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Score = (decimal)questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
             Order = questionDto.SortOrder,
-            OperationPoints = new List<OperationPointModel>()
+            OperationPoints = []
         };
 
         // 只添加匹配目标模块类型的操作点
@@ -791,7 +788,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static List<ConfigurationParameterModel> MapMockExamParametersToConfigurationParameters(IEnumerable<StudentMockExamParameterDto> parameters)
     {
-        List<ConfigurationParameterModel> configParams = new();
+        List<ConfigurationParameterModel> configParams = [];
 
         int order = 1;
         foreach (StudentMockExamParameterDto paramDto in parameters)
@@ -818,7 +815,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static List<ConfigurationParameterModel> MapComprehensiveTrainingParametersToConfigurationParameters(IEnumerable<StudentComprehensiveTrainingParameterDto> parameters)
     {
-        List<ConfigurationParameterModel> configParams = new();
+        List<ConfigurationParameterModel> configParams = [];
 
         int order = 1;
         foreach (StudentComprehensiveTrainingParameterDto paramDto in parameters)
@@ -845,23 +842,20 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static BenchSuite.Models.ParameterType ParseParameterType(string? parameterTypeString)
     {
-        if (string.IsNullOrWhiteSpace(parameterTypeString))
-        {
-            return BenchSuite.Models.ParameterType.Text;
-        }
-
-        return parameterTypeString.ToLowerInvariant() switch
-        {
-            "string" or "text" => BenchSuite.Models.ParameterType.Text,
-            "int" or "integer" or "number" => BenchSuite.Models.ParameterType.Number,
-            "bool" or "boolean" => BenchSuite.Models.ParameterType.Boolean,
-            "enum" or "enumeration" => BenchSuite.Models.ParameterType.Enum,
-            "color" => BenchSuite.Models.ParameterType.Color,
-            "file" or "filepath" => BenchSuite.Models.ParameterType.File,
-            "multiplechoice" or "multiple_choice" => BenchSuite.Models.ParameterType.MultipleChoice,
-            "date" or "datetime" => BenchSuite.Models.ParameterType.Date,
-            _ => BenchSuite.Models.ParameterType.Text // 默认值
-        };
+        return string.IsNullOrWhiteSpace(parameterTypeString)
+            ? ParameterType.Text
+            : parameterTypeString.ToLowerInvariant() switch
+            {
+                "string" or "text" => BenchSuite.Models.ParameterType.Text,
+                "int" or "integer" or "number" => BenchSuite.Models.ParameterType.Number,
+                "bool" or "boolean" => BenchSuite.Models.ParameterType.Boolean,
+                "enum" or "enumeration" => BenchSuite.Models.ParameterType.Enum,
+                "color" => BenchSuite.Models.ParameterType.Color,
+                "file" or "filepath" => BenchSuite.Models.ParameterType.File,
+                "multiplechoice" or "multiple_choice" => BenchSuite.Models.ParameterType.MultipleChoice,
+                "date" or "datetime" => BenchSuite.Models.ParameterType.Date,
+                _ => BenchSuite.Models.ParameterType.Text // 默认值
+            };
     }
 
     /// <summary>
@@ -876,7 +870,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Description = $"{examName} - {targetModuleType}模块",
             TotalScore = 100m,
             DurationMinutes = 120,
-            Modules = new List<ExamModuleModel>()
+            Modules = []
         };
 
         examModel.Modules.Add(CreateBasicModule(targetModuleType));
@@ -898,9 +892,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = examDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(examDto.Name) ? $"考试_{examDto.Id}" : examDto.Name,
             Description = examDto.Description ?? string.Empty,
-            TotalScore = examDto.TotalScore > 0 ? (decimal)examDto.TotalScore : 100m,
+            TotalScore = examDto.TotalScore > 0 ? examDto.TotalScore : 100m,
             DurationMinutes = examDto.DurationMinutes > 0 ? examDto.DurationMinutes : 120,
-            Modules = new List<ExamModuleModel>()
+            Modules = []
         };
 
         // 根据目标模块类型过滤相关模块
@@ -917,7 +911,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Description = moduleDto.Description,
                 Score = (decimal)moduleDto.Score,
                 Order = moduleDto.Order,
-                Questions = new List<QuestionModel>()
+                Questions = []
             };
 
             foreach (StudentQuestionDto questionDto in moduleDto.Questions)
@@ -931,7 +925,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Score = (decimal)questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
-                    OperationPoints = new List<OperationPointModel>()
+                    OperationPoints = []
                 };
 
                 foreach (StudentOperationPointDto opDto in questionDto.OperationPoints)
@@ -945,7 +939,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                         Score = (decimal)opDto.Score,
                         Order = opDto.Order,
                         IsEnabled = true,
-                        Parameters = new List<ConfigurationParameterModel>()
+                        Parameters = []
                     };
 
                     question.OperationPoints.Add(operationPoint);
@@ -999,7 +993,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = examId.ToString(),
             Name = $"考试_{examId}",
             Description = $"{moduleType}考试",
-            Modules = new List<ExamModuleModel>()
+            Modules = []
         };
 
         examModel.Modules.Add(CreateBasicModule(moduleType));
@@ -1016,7 +1010,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = $"Module_{moduleType}",
             Name = moduleType.ToString(),
             Type = moduleType,
-            Questions = new List<QuestionModel>()
+            Questions = []
         };
 
         QuestionModel question = new()
@@ -1027,7 +1021,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 #pragma warning disable CS0618 // 类型或成员已过时
             Score = 100,
 #pragma warning restore CS0618 // 类型或成员已过时
-            OperationPoints = new List<OperationPointModel>()
+            OperationPoints = []
         };
 
         OperationPointModel operationPoint = new()
@@ -1037,7 +1031,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ModuleType = moduleType,
             Score = 100,
             IsEnabled = true,
-            Parameters = new List<ConfigurationParameterModel>()
+            Parameters = []
         };
 
         question.OperationPoints.Add(operationPoint);
