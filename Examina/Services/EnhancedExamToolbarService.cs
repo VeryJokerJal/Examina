@@ -1,5 +1,6 @@
 ﻿using Examina.Models;
 using Examina.Models.Api;
+using Examina.Models.Exam;
 using BenchSuite.Models;
 using Examina.Models.MockExam;
 using Microsoft.Extensions.Logging;
@@ -486,8 +487,31 @@ public class EnhancedExamToolbarService : IDisposable
                 }
             }
 
-            // 执行评分
-            Dictionary<ModuleType, ScoringResult> results = await _benchSuiteIntegrationService.ScoreExamAsync(examType, examId, studentId, filePaths);
+            // 获取训练数据（如果是综合实训）
+            StudentComprehensiveTrainingDto? trainingData = null;
+            if (examType == ExamType.ComprehensiveTraining)
+            {
+                try
+                {
+                    trainingData = await _studentComprehensiveTrainingService.GetTrainingDetailsAsync(examId);
+                    if (trainingData != null)
+                    {
+                        _logger.LogInformation("成功获取综合实训数据，训练名称: {TrainingName}, 科目数量: {SubjectCount}, 模块数量: {ModuleCount}",
+                            trainingData.Name, trainingData.Subjects.Count, trainingData.Modules.Count);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("无法获取综合实训数据，实训ID: {TrainingId}", examId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "获取综合实训数据失败，实训ID: {TrainingId}", examId);
+                }
+            }
+
+            // 执行评分（传递训练数据）
+            Dictionary<ModuleType, ScoringResult> results = await _benchSuiteIntegrationService.ScoreExamAsync(examType, examId, studentId, filePaths, trainingData);
 
             _logger.LogInformation("BenchSuite评分完成，模块数量: {ModuleCount}", results.Count);
 
