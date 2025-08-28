@@ -1,10 +1,8 @@
 ﻿using System.Collections.ObjectModel;
-using System.Text;
-using ReactiveUI;
-using BenchSuite.Models;
 using BenchSuite.Interfaces;
-using Examina.Models;
+using BenchSuite.Models;
 using Examina.Models.BenchSuite;
+using ReactiveUI;
 
 namespace Examina.ViewModels;
 
@@ -169,7 +167,7 @@ public class TrainingResultViewModel : ViewModelBase
 
         TotalScore = totalScore;
         AchievedScore = achievedScore;
-        ScoreRate = totalScore > 0 ? (achievedScore / totalScore) * 100 : 0; // 转换为百分比
+        ScoreRate = totalScore > 0 ? achievedScore / totalScore * 100 : 0; // 转换为百分比
 
         // 获取最晚的结束时间
         DateTime endTime = scoringResults.Values.Max(r => r.EndTime);
@@ -215,7 +213,7 @@ public class TrainingResultViewModel : ViewModelBase
         return scoreRate switch
         {
             >= 90 => "优秀",
-            >= 80 => "良好", 
+            >= 80 => "良好",
             >= 70 => "中等",
             >= 60 => "及格",
             _ => "不及格"
@@ -229,54 +227,54 @@ public class TrainingResultViewModel : ViewModelBase
     {
         StringBuilder sb = new();
 
-        sb.AppendLine("评分详细信息（用于诊断）:");
-        sb.AppendLine(new string('-', 80));
+        _ = sb.AppendLine("评分详细信息（用于诊断）:");
+        _ = sb.AppendLine(new string('-', 80));
 
         foreach (KeyValuePair<ModuleType, ScoringResult> kvp in scoringResults)
         {
             ScoringResult scoringResult = kvp.Value;
             string moduleName = GetModuleTypeDisplayName(kvp.Key);
 
-            sb.AppendLine($"模块: {moduleName}");
-            sb.AppendLine($"  总分: {scoringResult.TotalScore}");
-            sb.AppendLine($"  得分: {scoringResult.AchievedScore}");
-            sb.AppendLine($"  成功: {scoringResult.IsSuccess}");
+            _ = sb.AppendLine($"模块: {moduleName}");
+            _ = sb.AppendLine($"  总分: {scoringResult.TotalScore}");
+            _ = sb.AppendLine($"  得分: {scoringResult.AchievedScore}");
+            _ = sb.AppendLine($"  成功: {scoringResult.IsSuccess}");
 
             if (!string.IsNullOrEmpty(scoringResult.ErrorMessage))
             {
-                sb.AppendLine($"  错误: {scoringResult.ErrorMessage}");
+                _ = sb.AppendLine($"  错误: {scoringResult.ErrorMessage}");
             }
 
-            sb.AppendLine();
+            _ = sb.AppendLine();
 
             // 显示知识点详细信息
             foreach (KnowledgePointResult kpResult in scoringResult.KnowledgePointResults)
             {
-                sb.AppendLine($"知识点: {kpResult.KnowledgePointType}");
-                sb.AppendLine($"  得分: {kpResult.AchievedScore}/{kpResult.TotalScore}");
-                sb.AppendLine($"  是否正确: {kpResult.IsCorrect}");
+                _ = sb.AppendLine($"知识点: {kpResult.KnowledgePointType}");
+                _ = sb.AppendLine($"  得分: {kpResult.AchievedScore}/{kpResult.TotalScore}");
+                _ = sb.AppendLine($"  是否正确: {kpResult.IsCorrect}");
 
                 if (!string.IsNullOrEmpty(kpResult.ErrorMessage))
                 {
-                    sb.AppendLine($"  错误: {kpResult.ErrorMessage}");
+                    _ = sb.AppendLine($"  错误: {kpResult.ErrorMessage}");
                 }
 
                 if (!string.IsNullOrEmpty(kpResult.Details))
                 {
                     string shortDetails = kpResult.Details.Length > 150 ? kpResult.Details[..150] + "..." : kpResult.Details;
-                    sb.AppendLine($"  详情: {shortDetails}");
+                    _ = sb.AppendLine($"  详情: {shortDetails}");
                 }
 
-                sb.AppendLine();
+                _ = sb.AppendLine();
             }
 
             if (scoringResult.KnowledgePointResults.Count == 0)
             {
-                sb.AppendLine("  无知识点详细信息");
-                sb.AppendLine();
+                _ = sb.AppendLine("  无知识点详细信息");
+                _ = sb.AppendLine();
             }
 
-            sb.AppendLine(new string('-', 40));
+            _ = sb.AppendLine(new string('-', 40));
         }
 
         DetailedScoringInfo = sb.ToString();
@@ -354,7 +352,7 @@ public class TrainingResultViewModel : ViewModelBase
                     ModuleName = moduleName,
                     TotalScore = scoringResult.TotalScore,
                     AchievedScore = scoringResult.AchievedScore,
-                    IsCorrect = scoringResult.IsSuccess && scoringResult.AchievedScore >= scoringResult.TotalScore * 0.6m, // 60%及格
+                    IsCorrect = scoringResult.IsSuccess && scoringResult.AchievedScore >= scoringResult.TotalScore * 0.6, // 60%及格
                     Details = scoringResult.ErrorMessage ?? string.Empty,
                     ErrorMessage = scoringResult.ErrorMessage,
                     ScoreRate = scoringResult.TotalScore > 0 ? scoringResult.AchievedScore / scoringResult.TotalScore * 100 : 0
@@ -539,22 +537,16 @@ public class ModuleResultItem
     /// <summary>
     /// AI评分等级描述
     /// </summary>
-    public string AIScoreGrade
-    {
-        get
-        {
-            if (!HasAIAnalysis) return "无AI分析";
-
-            return AILogicalScore switch
-            {
-                >= 90 => "优秀",
-                >= 80 => "良好",
-                >= 70 => "中等",
-                >= 60 => "及格",
-                _ => "不及格"
-            };
-        }
-    }
+    public string AIScoreGrade => !HasAIAnalysis
+                ? "无AI分析"
+                : AILogicalScore switch
+                {
+                    >= 90 => "优秀",
+                    >= 80 => "良好",
+                    >= 70 => "中等",
+                    >= 60 => "及格",
+                    _ => "不及格"
+                };
 }
 
 /// <summary>

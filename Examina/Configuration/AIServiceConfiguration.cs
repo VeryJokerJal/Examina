@@ -1,4 +1,4 @@
-using BenchSuite.Interfaces;
+﻿using BenchSuite.Interfaces;
 
 namespace Examina.Configuration;
 
@@ -21,7 +21,7 @@ public static class ExaminaAIConfiguration
             ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
             ModelName = "gpt-5-2025-08-07",
             MaxTokens = 2000,
-            Temperature = 0.1m,
+            Temperature = 0.1,
             TimeoutSeconds = 30,
             EnableStructuredOutput = true
         };
@@ -41,7 +41,7 @@ public static class ExaminaAIConfiguration
             ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
             ModelName = "gpt-5-2025-08-07",
             MaxTokens = 3000, // 更多令牌用于详细分析
-            Temperature = 0.05m, // 更低温度确保一致性
+            Temperature = 0.05, // 更低温度确保一致性
             TimeoutSeconds = 45,
             EnableStructuredOutput = true
         };
@@ -61,7 +61,7 @@ public static class ExaminaAIConfiguration
             ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
             ModelName = "gpt-5-2025-08-07",
             MaxTokens = 2500,
-            Temperature = 0.08m,
+            Temperature = 0.08,
             TimeoutSeconds = 40,
             EnableStructuredOutput = true
         };
@@ -83,12 +83,7 @@ public static class ExaminaAIConfiguration
 
         // 从配置文件读取API密钥
         apiKey = GetApiKeyFromConfiguration();
-        if (!string.IsNullOrEmpty(apiKey))
-        {
-            return apiKey;
-        }
-
-        return null;
+        return !string.IsNullOrEmpty(apiKey) ? apiKey : null;
     }
 
     /// <summary>
