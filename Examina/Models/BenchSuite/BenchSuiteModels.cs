@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using BenchSuite.Models;
 
 namespace Examina.Models.BenchSuite;
 
@@ -123,6 +124,11 @@ public class FileTypeScoringResult
     /// 错误信息
     /// </summary>
     public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// 原始评分结果列表（包含详细的题目和知识点信息）
+    /// </summary>
+    public List<ScoringResult> OriginalResults { get; set; } = new();
 }
 
 /// <summary>

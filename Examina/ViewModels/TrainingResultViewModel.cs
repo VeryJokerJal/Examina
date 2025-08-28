@@ -1,7 +1,8 @@
 using System.Collections.ObjectModel;
 using ReactiveUI;
-using Examina.Models.BenchSuite;
+using BenchSuite.Models;
 using BenchSuite.Interfaces;
+using Examina.Models.BenchSuite;
 
 namespace Examina.ViewModels;
 
@@ -231,28 +232,58 @@ public class TrainingResultViewModel : ViewModelBase
     private void ProcessQuestionResults(BenchSuiteScoringResult scoringResult)
     {
         QuestionResults.Clear();
-        
-        // 从各个文件类型结果中提取题目信息
+
+        // 从各个文件类型结果中提取真实的题目信息
         foreach (KeyValuePair<BenchSuiteFileType, FileTypeScoringResult> kvp in scoringResult.FileTypeResults)
         {
             FileTypeScoringResult fileResult = kvp.Value;
             string moduleName = GetFileTypeDisplayName(kvp.Key);
-            
-            // 创建题目结果项（基于文件类型）
-            QuestionResultItem questionItem = new()
+
+            // 如果有原始结果，从中提取详细的题目信息
+            if (fileResult.OriginalResults != null && fileResult.OriginalResults.Count > 0)
             {
-                QuestionId = $"{kvp.Key}",
-                QuestionTitle = $"{moduleName}操作题",
-                ModuleName = moduleName,
-                TotalScore = fileResult.TotalScore,
-                AchievedScore = fileResult.AchievedScore,
-                IsCorrect = fileResult.IsSuccess && fileResult.AchievedScore >= fileResult.TotalScore * 0.6m, // 60%及格
-                Details = fileResult.Details,
-                ErrorMessage = fileResult.ErrorMessage,
-                ScoreRate = fileResult.TotalScore > 0 ? fileResult.AchievedScore / fileResult.TotalScore * 100 : 0
-            };
-            
-            QuestionResults.Add(questionItem);
+                // 从原始结果中提取知识点作为题目
+                foreach (ScoringResult originalResult in fileResult.OriginalResults)
+                {
+                    foreach (KnowledgePointResult kpResult in originalResult.KnowledgePointResults)
+                    {
+                        QuestionResultItem questionItem = new()
+                        {
+                            QuestionId = kpResult.KnowledgePointId,
+                            QuestionTitle = !string.IsNullOrEmpty(kpResult.KnowledgePointName)
+                                ? kpResult.KnowledgePointName
+                                : $"{moduleName} - {kpResult.KnowledgePointType}",
+                            ModuleName = moduleName,
+                            TotalScore = kpResult.TotalScore,
+                            AchievedScore = kpResult.AchievedScore,
+                            IsCorrect = kpResult.IsCorrect,
+                            Details = kpResult.Details,
+                            ErrorMessage = kpResult.ErrorMessage,
+                            ScoreRate = kpResult.TotalScore > 0 ? kpResult.AchievedScore / kpResult.TotalScore * 100 : 0
+                        };
+
+                        QuestionResults.Add(questionItem);
+                    }
+                }
+            }
+            else
+            {
+                // 如果没有原始结果，创建基于文件类型的虚拟题目（向后兼容）
+                QuestionResultItem questionItem = new()
+                {
+                    QuestionId = $"{kvp.Key}",
+                    QuestionTitle = $"{moduleName}操作题",
+                    ModuleName = moduleName,
+                    TotalScore = fileResult.TotalScore,
+                    AchievedScore = fileResult.AchievedScore,
+                    IsCorrect = fileResult.IsSuccess && fileResult.AchievedScore >= fileResult.TotalScore * 0.6m, // 60%及格
+                    Details = fileResult.Details,
+                    ErrorMessage = fileResult.ErrorMessage,
+                    ScoreRate = fileResult.TotalScore > 0 ? fileResult.AchievedScore / fileResult.TotalScore * 100 : 0
+                };
+
+                QuestionResults.Add(questionItem);
+            }
         }
     }
 
@@ -261,7 +292,7 @@ public class TrainingResultViewModel : ViewModelBase
     /// </summary>
     /// <param name="moduleItem">模块结果项</param>
     /// <param name="csharpResult">C#评分结果</param>
-    private static void ProcessCSharpAIAnalysis(ModuleResultItem moduleItem, BenchSuite.Models.CSharpScoringResult csharpResult)
+    private static void ProcessCSharpAIAnalysis(ModuleResultItem moduleItem, CSharpScoringResult csharpResult)
     {
         if (csharpResult.AILogicalResult?.IsSuccess == true)
         {

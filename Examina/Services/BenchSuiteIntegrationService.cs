@@ -346,6 +346,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             decimal totalScore = 0;
             decimal achievedScore = 0;
             List<string> details = new();
+            List<ScoringResult> originalResults = new();
 
             // 对每个文件进行评分
             foreach (string filePath in filePaths)
@@ -360,6 +361,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 {
                     // 调用真实的BenchSuite评分服务
                     ScoringResult fileResult = await scoringService.ScoreFileAsync(filePath, examModel);
+
+                    // 保存原始结果
+                    originalResults.Add(fileResult);
 
                     totalScore += fileResult.TotalScore;
                     achievedScore += fileResult.AchievedScore;
@@ -382,6 +386,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             result.AchievedScore = achievedScore;
             result.IsSuccess = true;
             result.Details = string.Join("; ", details);
+            result.OriginalResults = originalResults;
 
             _logger.LogInformation("文件类型 {FileType} 评分完成，得分: {AchievedScore}/{TotalScore}",
                 GetFileTypeDescription(fileType), result.AchievedScore, result.TotalScore);
