@@ -636,50 +636,50 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
             if (directoryService == null) return;
 
-            // 获取支持的文件类型
-            BenchSuiteFileType[] supportedFileTypes =
+            // 获取支持的模块类型
+            ModuleType[] supportedModuleTypes =
             {
-                BenchSuiteFileType.Word,
-                BenchSuiteFileType.Excel,
-                BenchSuiteFileType.CSharp,
-                BenchSuiteFileType.Windows
+                ModuleType.Word,
+                ModuleType.Excel,
+                ModuleType.CSharp,
+                ModuleType.Windows
             };
 
-            foreach (BenchSuiteFileType fileType in supportedFileTypes)
+            foreach (ModuleType moduleType in supportedModuleTypes)
             {
                 try
                 {
-                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
+                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, moduleType);
 
                     if (Directory.Exists(directoryPath))
                     {
-                        List<string> filePaths = new();
+                        List<string> moduleFilePaths = new();
 
-                        // 根据文件类型扫描相应的文件
-                        string[] extensions = fileType switch
+                        // 根据模块类型扫描相应的文件
+                        string[] extensions = moduleType switch
                         {
-                            BenchSuiteFileType.Word => new[] { "*.docx", "*.doc" },
-                            BenchSuiteFileType.Excel => new[] { "*.xlsx", "*.xls" },
-                            BenchSuiteFileType.CSharp => new[] { "*.cs" },
-                            BenchSuiteFileType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
+                            ModuleType.Word => new[] { "*.docx", "*.doc" },
+                            ModuleType.Excel => new[] { "*.xlsx", "*.xls" },
+                            ModuleType.CSharp => new[] { "*.cs" },
+                            ModuleType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
                             _ => new[] { "*.*" }
                         };
 
                         foreach (string extension in extensions)
                         {
                             string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
-                            filePaths.AddRange(files);
+                            moduleFilePaths.AddRange(files);
                         }
 
-                        if (filePaths.Count > 0)
+                        if (moduleFilePaths.Count > 0)
                         {
-                            request.FilePaths[fileType] = filePaths;
+                            filePaths[moduleType] = moduleFilePaths;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"扫描{fileType}文件时发生错误: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"扫描{moduleType}文件时发生错误: {ex.Message}");
                 }
             }
         }
@@ -893,7 +893,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示训练结果
     /// </summary>
-    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, BenchSuiteScoringResult? scoringResult = null)
+    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, Dictionary<ModuleType, ScoringResult>? scoringResults = null)
     {
         try
         {
@@ -906,14 +906,15 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 如果没有传入评分结果，创建一个基本的失败结果
-            scoringResult ??= new BenchSuiteScoringResult
+            scoringResults ??= new Dictionary<ModuleType, ScoringResult>
             {
-                IsSuccess = false,
-                ErrorMessage = "未能获取评分结果",
-                TotalScore = 100,
-                AchievedScore = 0,
-                StartTime = _trainingStartTime,
-                EndTime = DateTime.Now
+                [ModuleType.Windows] = new ScoringResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "未能获取评分结果",
+                    TotalScore = 100,
+                    AchievedScore = 0
+                }
             };
 
             // 显示详细的训练结果（使用真实或基本的评分结果）
@@ -944,7 +945,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示详细的训练结果
     /// </summary>
-    private async Task ShowDetailedTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult>? scoringResults)
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
     {
         try
         {

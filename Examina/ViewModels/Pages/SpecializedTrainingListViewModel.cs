@@ -691,12 +691,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     IsSuccess = false,
                     ErrorMessage = "评分服务不可用",
                     TotalScore = 100,
-                    AchievedScore = 0,
-                StartTime = _trainingStartTime,
-                EndTime = DateTime.Now
+                    AchievedScore = 0
+                }
             };
 
-            await ShowTrainingResultAsync(trainingName, basicResult);
+            await ShowTrainingResultAsync(trainingName, basicResults);
         }
         catch (Exception ex)
         {

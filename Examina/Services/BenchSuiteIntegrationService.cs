@@ -1,12 +1,10 @@
-using System.ComponentModel;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
-using Examina.Models;
-using Examina.Configuration;
-using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using BenchSuite.Services;
+using Examina.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Examina.Services;
 
@@ -59,7 +57,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     public async Task<Dictionary<ModuleType, ScoringResult>> ScoreExamAsync(ExamType examType, int examId, int studentUserId, Dictionary<ModuleType, List<string>> filePaths)
     {
-        Dictionary<ModuleType, ScoringResult> results = new();
+        Dictionary<ModuleType, ScoringResult> results = [];
 
         try
         {
@@ -124,7 +122,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 string benchSuitePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BenchSuite.dll");
                 if (System.IO.File.Exists(benchSuitePath))
                 {
-                    Assembly.LoadFrom(benchSuitePath);
+                    _ = Assembly.LoadFrom(benchSuitePath);
                     _logger.LogInformation("成功加载BenchSuite程序集");
                     return true;
                 }
@@ -178,7 +176,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     // 尝试创建缺失的目录
                     try
                     {
-                        System.IO.Directory.CreateDirectory(directoryPath);
+                        _ = System.IO.Directory.CreateDirectory(directoryPath);
                         _logger.LogInformation("成功创建目录: {DirectoryPath}", directoryPath);
                     }
                     catch (Exception ex)
@@ -299,7 +297,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 // 多个文件时，合并结果
                 decimal totalScore = 0;
                 decimal achievedScore = 0;
-                List<KnowledgePointResult> allKnowledgePoints = new();
+                List<KnowledgePointResult> allKnowledgePoints = [];
 
                 foreach (string filePath in filePaths)
                 {
@@ -355,6 +353,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 创建简化的考试模型用于评分
     /// </summary>
+    [Obsolete]
     private ExamModel CreateSimplifiedExamModel(ModuleType moduleType, ExamType examType, int examId)
     {
         // 创建简化的考试模型
@@ -363,7 +362,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = examId.ToString(),
             Name = $"考试_{examId}",
             Description = $"{moduleType}考试",
-            Modules = new List<ExamModuleModel>()
+            Modules = []
         };
 
         // 创建对应的模块
@@ -372,7 +371,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = $"Module_{moduleType}",
             Name = moduleType.ToString(),
             Type = moduleType,
-            Questions = new List<QuestionModel>()
+            Questions = []
         };
 
         // 创建一个简化的题目
@@ -382,7 +381,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Title = $"{moduleType}操作题",
             Content = $"完成{moduleType}相关操作",
             Score = 100, // 默认总分100
-            OperationPoints = new List<OperationPointModel>()
+            OperationPoints = []
         };
 
         // 添加一个基本的操作点
@@ -393,7 +392,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             ModuleType = moduleType,
             Score = 100,
             IsEnabled = true,
-            Parameters = new List<ConfigurationParameterModel>()
+            Parameters = []
         };
 
         question.OperationPoints.Add(operationPoint);
@@ -401,21 +400,6 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         examModel.Modules.Add(module);
 
         return examModel;
-    }
-
-    /// <summary>
-    /// 获取支持的模块类型列表
-    /// </summary>
-    public List<ModuleType> GetSupportedModuleTypes()
-    {
-        return new List<ModuleType>
-        {
-            ModuleType.Word,
-            ModuleType.Excel,
-            ModuleType.PowerPoint,
-            ModuleType.Windows,
-            ModuleType.CSharp
-        };
     }
 
     /// <summary>
