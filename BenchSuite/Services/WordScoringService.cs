@@ -155,9 +155,7 @@ public class WordScoringService : IWordScoringService
             }
 
             // 获取题目的操作点（只处理Word相关的操作点）
-            List<OperationPointModel> wordOperationPoints = question.OperationPoints
-                .Where(op => op.ModuleType == ModuleType.Word && op.IsEnabled)
-                .ToList();
+            List<OperationPointModel> wordOperationPoints = [.. question.OperationPoints.Where(op => op.ModuleType == ModuleType.Word && op.IsEnabled)];
 
             if (wordOperationPoints.Count == 0)
             {

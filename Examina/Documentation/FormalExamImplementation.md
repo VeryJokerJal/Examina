@@ -1,4 +1,4 @@
-# 上机统考功能实现文档
+﻿# 上机统考功能实现文档
 
 ## 概述
 
@@ -255,8 +255,8 @@ public class ExamResultViewModel : ViewModelBase
     public int? ActualDurationMinutes { get; set; }
 
     // 成绩信息
-    public decimal? Score { get; set; }
-    public decimal? TotalScore { get; set; }
+    public double? Score { get; set; }
+    public double? TotalScore { get; set; }
 
     // 错误和备注
     public string ErrorMessage { get; set; }

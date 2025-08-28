@@ -631,16 +631,15 @@ public class OverviewViewModel : ViewModelBase
     {
         DisplayedRecords.Clear();
 
-        List<TrainingRecord> filteredRecords = _allRecords.Where(r => r.Type == SelectedStatisticType).ToList();
+        List<TrainingRecord> filteredRecords = [.. _allRecords.Where(r => r.Type == SelectedStatisticType)];
 
         TotalRecords = filteredRecords.Count;
 
         UpdatePagination();
 
-        List<TrainingRecord> pagedRecords = filteredRecords
+        List<TrainingRecord> pagedRecords = [.. filteredRecords
             .Skip((CurrentPage - 1) * PageSize)
-            .Take(PageSize)
-            .ToList();
+            .Take(PageSize)];
 
         foreach (TrainingRecord record in pagedRecords)
         {

@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Requests;
 using ExaminaWebApplication.Services.Organization;

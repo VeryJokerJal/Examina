@@ -50,11 +50,10 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
 
                 // 使用随机数生成器进行随机排序
                 Random random = new();
-                trainings = allTrainings
+                trainings = [.. allTrainings
                     .OrderBy(x => random.Next())
                     .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
+                    .Take(pageSize)];
 
                 _logger.LogInformation("使用内存随机排序获取综合训练列表，学生ID: {StudentUserId}, 总数: {TotalCount}, 返回数量: {Count}, 页码: {PageNumber}",
                     studentUserId, totalCount, trainings.Count, pageNumber);
@@ -73,7 +72,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                     studentUserId, totalCount, trainings.Count, pageNumber);
             }
 
-            List<StudentComprehensiveTrainingDto> result = trainings.Select(MapToStudentComprehensiveTrainingDto).ToList();
+            List<StudentComprehensiveTrainingDto> result = [.. trainings.Select(MapToStudentComprehensiveTrainingDto)];
 
             // 调试信息：输出每个训练的EnableTrial状态
             foreach (var training in trainings)
@@ -319,7 +318,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
         StudentComprehensiveTrainingDto dto = MapToStudentComprehensiveTrainingDto(training);
 
         // 映射科目
-        dto.Subjects = training.Subjects.Select(subject => new StudentComprehensiveTrainingSubjectDto
+        dto.Subjects = [.. training.Subjects.Select(subject => new StudentComprehensiveTrainingSubjectDto
         {
             Id = subject.Id,
             SubjectType = subject.SubjectType,
@@ -332,11 +331,11 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             MinScore = subject.MinScore.HasValue ? (int)subject.MinScore.Value : 0,
             Weight = subject.Weight,
             QuestionCount = subject.QuestionCount,
-            Questions = subject.Questions.Select(MapToStudentComprehensiveTrainingQuestionDto).ToList()
-        }).ToList();
+            Questions = [.. subject.Questions.Select(MapToStudentComprehensiveTrainingQuestionDto)]
+        })];
 
         // 映射模块
-        dto.Modules = training.Modules.Select(module => new StudentComprehensiveTrainingModuleDto
+        dto.Modules = [.. training.Modules.Select(module => new StudentComprehensiveTrainingModuleDto
         {
             Id = module.Id,
             Name = module.Name,
@@ -344,8 +343,8 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Description = module.Description,
             Score = module.Score,
             Order = module.Order,
-            Questions = module.Questions.Select(MapToStudentComprehensiveTrainingQuestionDto).ToList()
-        }).ToList();
+            Questions = [.. module.Questions.Select(MapToStudentComprehensiveTrainingQuestionDto)]
+        })];
 
         return dto;
     }
@@ -371,7 +370,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             Remarks = question.Remarks,
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
-            OperationPoints = question.OperationPoints.Select(op => new StudentComprehensiveTrainingOperationPointDto
+            OperationPoints = [.. question.OperationPoints.Select(op => new StudentComprehensiveTrainingOperationPointDto
             {
                 Id = op.Id,
                 Name = op.Name,
@@ -379,7 +378,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                 ModuleType = op.ModuleType,
                 Score = (int)op.Score,
                 Order = op.Order,
-                Parameters = op.Parameters.Select(param => new StudentComprehensiveTrainingParameterDto
+                Parameters = [.. op.Parameters.Select(param => new StudentComprehensiveTrainingParameterDto
                 {
                     Id = param.Id,
                     Name = param.Name,
@@ -388,15 +387,15 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
                     DefaultValue = param.DefaultValue,
                     MinValue = param.MinValue?.ToString(),
                     MaxValue = param.MaxValue?.ToString()
-                }).ToList()
-            }).ToList()
+                })]
+            })]
         };
     }
 
     /// <summary>
     /// 标记综合训练为已完成
     /// </summary>
-    public async Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    public async Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null)
     {
         try
         {

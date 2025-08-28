@@ -567,7 +567,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<decimal?>("MinScore")
+                    b.Property<double?>("MinScore")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("OriginalSubjectId")
@@ -1167,7 +1167,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<decimal?>("MinScore")
+                    b.Property<double?>("MinScore")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("OriginalSubjectId")

@@ -201,7 +201,7 @@ public class SpecializedTrainingQuestionDto
     /// 题目分值
     /// </summary>
     [JsonPropertyName("score")]
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 难度等级
@@ -290,7 +290,7 @@ public class SpecializedTrainingOperationPointDto
     /// 操作点分值
     /// </summary>
     [JsonPropertyName("score")]
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 操作点排序

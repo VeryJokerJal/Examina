@@ -1,4 +1,4 @@
-# 模拟考试完整结构映射修复说明
+﻿# 模拟考试完整结构映射修复说明
 
 ## 问题分析
 
@@ -215,7 +215,7 @@ private List<MockExamSubjectDto> CreateSubjectStructure(
 | `SortOrder` | `SortOrder` | `int` | 直接映射 |
 | `IsRequired` | `IsRequired` | `bool` | 直接映射 |
 | `IsEnabled` | `IsEnabled` | `bool` | 直接映射 |
-| `MinScore` | `MinScore` | `decimal` ← `decimal?` | 空值处理 |
+| `MinScore` | `MinScore` | `decimal` ← `double?` | 空值处理 |
 | `Weight` | `Weight` | `decimal` | 直接映射 |
 | `SubjectConfig` | `SubjectConfig` | `string?` | 直接映射 |
 | `QuestionCount` | `QuestionCount` | `int` | 通过题目分组计算 |

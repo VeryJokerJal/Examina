@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExaminaWebApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250821105536_AddMockExamCompletion")]
-    partial class AddMockExamCompletion
+    [Migration("20250828181732_Migration_20250829_021725")]
+    partial class Migration_20250829_021725
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,70 @@ namespace ExaminaWebApplication.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("ExaminaWebApplication.Models.Admin.SystemConfiguration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("General");
+
+                    b.Property<string>("ConfigKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("ConfigValue")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("ConfigKey")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.ToTable("SystemConfigurations");
+                });
+
             modelBuilder.Entity("ExaminaWebApplication.Models.ComprehensiveTrainingCompletion", b =>
                 {
                     b.Property<int>("Id")
@@ -33,11 +97,14 @@ namespace ExaminaWebApplication.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BenchSuiteScoringResult")
+                        .HasColumnType("json");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<double?>("CompletionPercentage")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -49,14 +116,14 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<double?>("MaxScore")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("double");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
                     b.Property<double?>("Score")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("double");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime(6)");
@@ -82,6 +149,377 @@ namespace ExaminaWebApplication.Migrations
                     b.ToTable("ComprehensiveTrainingCompletions");
                 });
 
+            modelBuilder.Entity("ExaminaWebApplication.Models.ExamCompletion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BenchSuiteScoringResult")
+                        .HasColumnType("json");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal?>("CompletionPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal?>("MaxScore")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<decimal?>("Score")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("StudentUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompletedAt");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("StudentUserId");
+
+                    b.HasIndex("StudentUserId", "ExamId")
+                        .IsUnique();
+
+                    b.ToTable("ExamCompletions");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ExamSchoolAssociation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("ExamId", "SchoolId")
+                        .IsUnique();
+
+                    b.ToTable("ExamSchoolAssociations");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.ComprehensiveTrainingFileAssociation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ComprehensiveTrainingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("FileType");
+
+                    b.HasIndex("ComprehensiveTrainingId", "FileId")
+                        .IsUnique();
+
+                    b.ToTable("ComprehensiveTrainingFileAssociations");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.ExamFileAssociation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("FileType");
+
+                    b.HasIndex("ExamId", "FileId")
+                        .IsUnique();
+
+                    b.ToTable("ExamFileAssociations");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.SpecializedTrainingFileAssociation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpecializedTrainingId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("FileType");
+
+                    b.HasIndex("SpecializedTrainingId", "FileId")
+                        .IsUnique();
+
+                    b.ToTable("SpecializedTrainingFileAssociations");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.UploadedFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("DownloadCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("FileExtension")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("FileHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastAccessedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Tags")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("UploadProgress")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UploadStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UploadedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedBy");
+
+                    b.HasIndex("FileHash");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("StoredFileName")
+                        .IsUnique();
+
+                    b.HasIndex("UploadedAt");
+
+                    b.HasIndex("UploadedBy");
+
+                    b.ToTable("UploadedFiles");
+                });
+
             modelBuilder.Entity("ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining", b =>
                 {
                     b.Property<int>("Id")
@@ -101,8 +539,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasDefaultValue("UnifiedTraining");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("DurationMinutes")
                         .ValueGeneratedOnAdd()
@@ -185,7 +622,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("PassingScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(60.0m);
+                        .HasDefaultValue(60m);
 
                     b.Property<bool>("RandomizeQuestions")
                         .ValueGeneratedOnAdd()
@@ -219,7 +656,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("TotalScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(100.0m);
+                        .HasDefaultValue(100m);
 
                     b.HasKey("Id");
 
@@ -254,8 +691,7 @@ namespace ExaminaWebApplication.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("ImportedAt")
                         .HasColumnType("datetime(6)");
@@ -280,10 +716,10 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("Score")
+                    b.Property<double>("Score")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("double")
+                        .HasDefaultValue(0.0);
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -479,6 +915,13 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<string>("AnswerValidationRules")
                         .HasColumnType("json");
 
+                    b.Property<double?>("CSharpDirectScore")
+                        .HasColumnType("double");
+
+                    b.Property<string>("CodeFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<int>("ComprehensiveTrainingId")
                         .HasColumnType("int");
 
@@ -491,6 +934,10 @@ namespace ExaminaWebApplication.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(1);
+
+                    b.Property<string>("DocumentFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<int>("EstimatedMinutes")
                         .ValueGeneratedOnAdd()
@@ -547,7 +994,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(10.0m);
+                        .HasDefaultValue(10m);
 
                     b.Property<string>("ScoringRules")
                         .HasColumnType("json");
@@ -624,7 +1071,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<double?>("MinScore")
+                    b.Property<decimal?>("MinScore")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("OriginalSubjectId")
@@ -638,7 +1085,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(20.0m);
+                        .HasDefaultValue(20m);
 
                     b.Property<int>("SortOrder")
                         .ValueGeneratedOnAdd()
@@ -661,7 +1108,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Weight")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(1.0m);
+                        .HasDefaultValue(1m);
 
                     b.HasKey("Id");
 
@@ -686,14 +1133,16 @@ namespace ExaminaWebApplication.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AllowPractice")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("AllowRetake")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("DurationMinutes")
                         .ValueGeneratedOnAdd()
@@ -785,7 +1234,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("PassingScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(60.0m);
+                        .HasDefaultValue(60m);
 
                     b.Property<bool>("RandomizeQuestions")
                         .ValueGeneratedOnAdd()
@@ -819,7 +1268,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("TotalScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(100.0m);
+                        .HasDefaultValue(100m);
 
                     b.HasKey("Id");
 
@@ -851,8 +1300,7 @@ namespace ExaminaWebApplication.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("ExamId")
                         .HasColumnType("int");
@@ -880,10 +1328,10 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("Score")
+                    b.Property<double>("Score")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("double")
+                        .HasDefaultValue(0.0);
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -957,7 +1405,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(0.0m);
+                        .HasDefaultValue(0m);
 
                     b.HasKey("Id");
 
@@ -1079,6 +1527,20 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<string>("AnswerValidationRules")
                         .HasColumnType("json");
 
+                    b.Property<decimal?>("CSharpDirectScore")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("CSharpQuestionType")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("CodeBlanks")
+                        .HasColumnType("json");
+
+                    b.Property<string>("CodeFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -1088,6 +1550,10 @@ namespace ExaminaWebApplication.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(1);
+
+                    b.Property<string>("DocumentFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<int>("EstimatedMinutes")
                         .ValueGeneratedOnAdd()
@@ -1147,7 +1613,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(10.0m);
+                        .HasDefaultValue(10m);
 
                     b.Property<string>("ScoringRules")
                         .HasColumnType("json");
@@ -1200,8 +1666,7 @@ namespace ExaminaWebApplication.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("DurationMinutes")
                         .ValueGeneratedOnAdd()
@@ -1224,7 +1689,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<double?>("MinScore")
+                    b.Property<decimal?>("MinScore")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("OriginalSubjectId")
@@ -1238,7 +1703,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(20.0m);
+                        .HasDefaultValue(20m);
 
                     b.Property<int>("SortOrder")
                         .ValueGeneratedOnAdd()
@@ -1261,7 +1726,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Weight")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(1.0m);
+                        .HasDefaultValue(1m);
 
                     b.HasKey("Id");
 
@@ -1287,14 +1752,16 @@ namespace ExaminaWebApplication.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("DifficultyLevel")
                         .HasColumnType("int");
 
                     b.Property<int>("Duration")
                         .HasColumnType("int");
+
+                    b.Property<bool>("EnableTrial")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ImportErrorMessage")
                         .HasMaxLength(2000)
@@ -1354,8 +1821,8 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
-                    b.Property<int>("TotalScore")
-                        .HasColumnType("int");
+                    b.Property<double>("TotalScore")
+                        .HasColumnType("double");
 
                     b.HasKey("Id");
 
@@ -1374,8 +1841,7 @@ namespace ExaminaWebApplication.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("ImportedAt")
                         .HasColumnType("datetime(6)");
@@ -1396,8 +1862,8 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
+                    b.Property<double>("Score")
+                        .HasColumnType("double");
 
                     b.Property<int>("SpecializedTrainingId")
                         .HasColumnType("int");
@@ -1459,8 +1925,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Score")
-                        .HasColumnType("decimal(6,2)");
+                    b.Property<double>("Score")
+                        .HasColumnType("double");
 
                     b.HasKey("Id");
 
@@ -1555,6 +2021,13 @@ namespace ExaminaWebApplication.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double?>("CSharpDirectScore")
+                        .HasColumnType("double");
+
+                    b.Property<string>("CodeFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -1563,8 +2036,16 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<int>("DifficultyLevel")
                         .HasColumnType("int");
 
+                    b.Property<string>("DocumentFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<int>("EstimatedMinutes")
                         .HasColumnType("int");
+
+                    b.Property<string>("ExpectedOutput")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<DateTime>("ImportedAt")
                         .HasColumnType("datetime(6)");
@@ -1585,6 +2066,10 @@ namespace ExaminaWebApplication.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ProgramInput")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("QuestionType")
                         .IsRequired()
@@ -1654,8 +2139,8 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<int>("PassingScore")
-                        .HasColumnType("int");
+                    b.Property<double>("PassingScore")
+                        .HasColumnType("double");
 
                     b.Property<bool>("RandomizeQuestions")
                         .HasColumnType("tinyint(1)");
@@ -1673,8 +2158,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalScore")
-                        .HasColumnType("int");
+                    b.Property<double>("TotalScore")
+                        .HasColumnType("double");
 
                     b.HasKey("Id");
 
@@ -1731,20 +2216,20 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<int>("PassingScore")
+                    b.Property<double>("PassingScore")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(60);
+                        .HasColumnType("double")
+                        .HasDefaultValue(60.0);
 
                     b.Property<bool>("RandomizeQuestions")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<int>("TotalScore")
+                    b.Property<double>("TotalScore")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(100);
+                        .HasColumnType("double")
+                        .HasDefaultValue(100.0);
 
                     b.HasKey("Id");
 
@@ -1771,7 +2256,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<double?>("CompletionPercentage")
+                    b.Property<decimal?>("CompletionPercentage")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1785,7 +2270,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<double?>("MaxScore")
+                    b.Property<decimal?>("MaxScore")
                         .HasColumnType("decimal(6,2)");
 
                     b.Property<int>("MockExamId")
@@ -1795,7 +2280,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<double?>("Score")
+                    b.Property<decimal?>("Score")
                         .HasColumnType("decimal(6,2)");
 
                     b.Property<DateTime?>("StartedAt")
@@ -2263,7 +2748,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<double?>("CompletionPercentage")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -2275,7 +2760,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<double?>("MaxScore")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("double");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -2285,7 +2770,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("int");
 
                     b.Property<double?>("Score")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("double");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime(6)");
@@ -2568,6 +3053,23 @@ namespace ExaminaWebApplication.Migrations
                     b.ToTable("UserSessions");
                 });
 
+            modelBuilder.Entity("ExaminaWebApplication.Models.Admin.SystemConfiguration", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ExaminaWebApplication.Models.User", "Updater")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Updater");
+                });
+
             modelBuilder.Entity("ExaminaWebApplication.Models.ComprehensiveTrainingCompletion", b =>
                 {
                     b.HasOne("ExaminaWebApplication.Models.User", "Student")
@@ -2585,6 +3087,151 @@ namespace ExaminaWebApplication.Migrations
                     b.Navigation("Student");
 
                     b.Navigation("Training");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ExamCompletion", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedExam", "Exam")
+                        .WithMany()
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.ExamSchoolAssociation", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedExam", "Exam")
+                        .WithMany()
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.Organization.Organization", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.ComprehensiveTrainingFileAssociation", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining", "ComprehensiveTraining")
+                        .WithMany("FileAssociations")
+                        .HasForeignKey("ComprehensiveTrainingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.FileUpload.UploadedFile", "File")
+                        .WithMany("ComprehensiveTrainingAssociations")
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComprehensiveTraining");
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("File");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.ExamFileAssociation", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.ImportedExam.ImportedExam", "Exam")
+                        .WithMany("FileAssociations")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.FileUpload.UploadedFile", "File")
+                        .WithMany("ExamAssociations")
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("File");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.SpecializedTrainingFileAssociation", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.FileUpload.UploadedFile", "File")
+                        .WithMany("SpecializedTrainingAssociations")
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining", "SpecializedTraining")
+                        .WithMany("FileAssociations")
+                        .HasForeignKey("SpecializedTrainingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("File");
+
+                    b.Navigation("SpecializedTraining");
+                });
+
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.UploadedFile", b =>
+                {
+                    b.HasOne("ExaminaWebApplication.Models.User", "Deleter")
+                        .WithMany()
+                        .HasForeignKey("DeletedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ExaminaWebApplication.Models.User", "Uploader")
+                        .WithMany()
+                        .HasForeignKey("UploadedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Deleter");
+
+                    b.Navigation("Uploader");
                 });
 
             modelBuilder.Entity("ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining", b =>
@@ -3095,8 +3742,19 @@ namespace ExaminaWebApplication.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ExaminaWebApplication.Models.FileUpload.UploadedFile", b =>
+                {
+                    b.Navigation("ComprehensiveTrainingAssociations");
+
+                    b.Navigation("ExamAssociations");
+
+                    b.Navigation("SpecializedTrainingAssociations");
+                });
+
             modelBuilder.Entity("ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining", b =>
                 {
+                    b.Navigation("FileAssociations");
+
                     b.Navigation("Modules");
 
                     b.Navigation("Questions");
@@ -3126,6 +3784,8 @@ namespace ExaminaWebApplication.Migrations
 
             modelBuilder.Entity("ExaminaWebApplication.Models.ImportedExam.ImportedExam", b =>
                 {
+                    b.Navigation("FileAssociations");
+
                     b.Navigation("Modules");
 
                     b.Navigation("Subjects");
@@ -3153,6 +3813,8 @@ namespace ExaminaWebApplication.Migrations
 
             modelBuilder.Entity("ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining", b =>
                 {
+                    b.Navigation("FileAssociations");
+
                     b.Navigation("Modules");
 
                     b.Navigation("Questions");

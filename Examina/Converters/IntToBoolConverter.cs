@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 
@@ -34,7 +34,7 @@ public class IntToBoolConverter : IValueConverter
             return longValue > 0;
         }
 
-        if (value is decimal decimalValue)
+        if (value is double decimalValue)
         {
             return decimalValue > 0;
         }

@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.ImportedExam;
+﻿using ExaminaWebApplication.Models.ImportedExam;
 
 namespace ExaminaWebApplication.Models.Api.Admin;
 
@@ -35,7 +35,7 @@ public class AdminExamDto
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 考试时长（分钟）
@@ -70,7 +70,7 @@ public class AdminExamDto
     /// <summary>
     /// 及格分数
     /// </summary>
-    public decimal PassingScore { get; set; }
+    public double PassingScore { get; set; }
 
     /// <summary>
     /// 是否随机题目顺序

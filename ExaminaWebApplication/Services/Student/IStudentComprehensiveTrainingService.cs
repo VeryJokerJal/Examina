@@ -57,7 +57,7 @@ public interface IStudentComprehensiveTrainingService
     /// <param name="durationSeconds">用时（秒，可选）</param>
     /// <param name="notes">备注（可选）</param>
     /// <returns>是否标记成功</returns>
-    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
+    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null);
 
     /// <summary>
     /// 标记综合训练为已完成（完整版本）

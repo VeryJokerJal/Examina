@@ -41,7 +41,7 @@ public class MockExamComprehensiveTrainingDto
     /// <summary>
     /// 总分值
     /// </summary>
-    public decimal TotalScore { get; set; } = 100.0m;
+    public double TotalScore { get; set; } = 100.0;
 
     /// <summary>
     /// 考试时长（分钟）
@@ -71,7 +71,7 @@ public class MockExamComprehensiveTrainingDto
     /// <summary>
     /// 及格分数
     /// </summary>
-    public decimal PassingScore { get; set; } = 60.0m;
+    public double PassingScore { get; set; } = 60.0;
 
     /// <summary>
     /// 是否随机题目顺序
@@ -219,7 +219,7 @@ public class MockExamSubjectDto
     /// <summary>
     /// 科目分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 科目时长（分钟）
@@ -244,12 +244,12 @@ public class MockExamSubjectDto
     /// <summary>
     /// 最低分数
     /// </summary>
-    public decimal MinScore { get; set; }
+    public double MinScore { get; set; }
 
     /// <summary>
     /// 权重
     /// </summary>
-    public decimal Weight { get; set; } = 1.0m;
+    public double Weight { get; set; } = 1.0;
 
     /// <summary>
     /// 科目配置（JSON格式）
@@ -305,7 +305,7 @@ public class MockExamModuleDto
     /// <summary>
     /// 模块分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块顺序
@@ -371,7 +371,7 @@ public class MockExamQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public decimal Score { get; set; } = 10.0m;
+    public double Score { get; set; } = 10.0;
 
     /// <summary>
     /// 题目顺序
@@ -477,7 +477,7 @@ public class MockExamOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 操作点顺序

@@ -1,5 +1,4 @@
-using BenchSuite.Interfaces;
-using BenchSuite.Models;
+﻿using BenchSuite.Interfaces;
 using BenchSuite.Services;
 
 namespace BenchSuite.Examples;
@@ -23,7 +22,7 @@ public static class AILogicalScoringConfiguration
             ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
             ModelName = "gpt-5-2025-08-07", // 使用最新模型
             MaxTokens = 2000,
-            Temperature = 0.1m, // 低温度确保一致性
+            Temperature = 0.1, // 低温度确保一致性
             TimeoutSeconds = 30,
             EnableStructuredOutput = true // 启用结构化输出
         };
@@ -43,7 +42,7 @@ public static class AILogicalScoringConfiguration
             ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
             ModelName = "gpt-5-2025-08-07", // 使用最新模型
             MaxTokens = 3000,
-            Temperature = 0.05m, // 更低的温度
+            Temperature = 0.05, // 更低的温度
             TimeoutSeconds = 60, // 更长的超时时间
             EnableStructuredOutput = true
         };
@@ -63,7 +62,7 @@ public static class AILogicalScoringConfiguration
             ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
             ModelName = "gpt-5-2025-08-07", // 使用最新模型
             MaxTokens = 1500,
-            Temperature = 0.2m,
+            Temperature = 0.2,
             TimeoutSeconds = 15,
             EnableStructuredOutput = true
         };
@@ -76,7 +75,7 @@ public static class AILogicalScoringConfiguration
     /// <param name="configurationType">配置类型</param>
     /// <returns>C#评分服务</returns>
     public static CSharpScoringService CreateCSharpScoringServiceWithAI(
-        string apiKey, 
+        string apiKey,
         AIConfigurationType configurationType = AIConfigurationType.Default)
     {
         AIServiceConfiguration config = configurationType switch
@@ -139,12 +138,12 @@ public static class AILogicalScoringConfiguration
             if (!isAvailable)
             {
                 result.IsValid = false;
-                result.ErrorMessage = "无法连接到AI服务，请检查API密钥和网络连接";
+                result.ErrorMessage = "无法连接到AI服务,请检查API密钥和网络连接";
                 return result;
             }
 
             result.IsValid = true;
-            result.Message = "配置验证成功，AI服务可用";
+            result.Message = "配置验证成功,AI服务可用";
         }
         catch (Exception ex)
         {
@@ -169,34 +168,34 @@ public static class AILogicalScoringConfiguration
                 ConfigurationType = AIConfigurationType.Default,
                 ModelName = "gpt-4o-mini",
                 MaxTokens = 2000,
-                Temperature = 0.1m,
+                Temperature = 0.1,
                 TimeoutSeconds = 30,
-                Reason = "生产环境推荐使用稳定可靠的配置，平衡成本和性能"
+                Reason = "生产环境推荐使用稳定可靠的配置,平衡成本和性能"
             },
             UsageScenario.Development => new AIConfigurationRecommendation
             {
                 ConfigurationType = AIConfigurationType.FastResponse,
                 ModelName = "gpt-3.5-turbo",
                 MaxTokens = 1500,
-                Temperature = 0.2m,
+                Temperature = 0.2,
                 TimeoutSeconds = 15,
-                Reason = "开发环境推荐使用快速响应配置，提高开发效率"
+                Reason = "开发环境推荐使用快速响应配置,提高开发效率"
             },
             UsageScenario.HighAccuracy => new AIConfigurationRecommendation
             {
                 ConfigurationType = AIConfigurationType.HighPrecision,
                 ModelName = "gpt-4",
                 MaxTokens = 3000,
-                Temperature = 0.05m,
+                Temperature = 0.05,
                 TimeoutSeconds = 60,
-                Reason = "高精度场景推荐使用最强模型，确保判分准确性"
+                Reason = "高精度场景推荐使用最强模型,确保判分准确性"
             },
             _ => new AIConfigurationRecommendation
             {
                 ConfigurationType = AIConfigurationType.Default,
                 ModelName = "gpt-4o-mini",
                 MaxTokens = 2000,
-                Temperature = 0.1m,
+                Temperature = 0.1,
                 TimeoutSeconds = 30,
                 Reason = "默认推荐配置"
             }
@@ -290,7 +289,7 @@ public class AIConfigurationRecommendation
     /// <summary>
     /// 温度参数
     /// </summary>
-    public decimal Temperature { get; set; }
+    public double Temperature { get; set; }
 
     /// <summary>
     /// 超时时间

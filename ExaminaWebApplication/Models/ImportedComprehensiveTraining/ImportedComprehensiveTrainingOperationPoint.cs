@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.ImportedComprehensiveTraining;
@@ -51,7 +51,7 @@ public class ImportedComprehensiveTrainingOperationPoint
     /// 操作点分值
     /// </summary>
     [Column(TypeName = "decimal(5,2)")]
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 操作点顺序

@@ -1,4 +1,4 @@
-# 专项训练开始功能API文档
+﻿# 专项训练开始功能API文档
 
 ## 概述
 
@@ -67,8 +67,8 @@
 ```
 
 **请求体字段说明：**
-- `score` (decimal?, 可选): 获得的分数
-- `maxScore` (decimal?, 可选): 最大可能分数
+- `score` (double?, 可选): 获得的分数
+- `maxScore` (double?, 可选): 最大可能分数
 - `durationSeconds` (int?, 可选): 训练用时（秒）
 - `notes` (string?, 可选): 备注信息
 - `benchSuiteScoringResult` (string?, 可选): BenchSuite评分结果JSON
@@ -135,9 +135,9 @@ public class SpecialPracticeCompletion
     public SpecialPracticeCompletionStatus Status { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
-    public decimal? Score { get; set; }
-    public decimal? MaxScore { get; set; }
-    public decimal? CompletionPercentage { get; set; }
+    public double? Score { get; set; }
+    public double? MaxScore { get; set; }
+    public double? CompletionPercentage { get; set; }
     public int? DurationSeconds { get; set; }
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -185,7 +185,7 @@ public enum SpecialPracticeCompletionStatus
 这些API端点与Examina.Desktop项目中的以下方法兼容：
 
 - `StudentSpecializedTrainingService.StartSpecializedTrainingAsync(int trainingId)`
-- `StudentSpecializedTrainingService.CompleteSpecializedTrainingAsync(int trainingId, decimal? score, decimal? maxScore, int? durationSeconds, string? notes)`
+- `StudentSpecializedTrainingService.CompleteSpecializedTrainingAsync(int trainingId, double? score, double? maxScore, int? durationSeconds, string? notes)`
 
 ### 调用示例
 

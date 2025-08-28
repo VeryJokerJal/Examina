@@ -94,9 +94,7 @@ public class StudentSpecializedTrainingDto
     /// </summary>
     public List<string> TagList => string.IsNullOrEmpty(Tags)
         ? []
-        : Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
-              .Select(tag => tag.Trim())
-              .ToList();
+        : [.. Tags.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim())];
 }
 
 /// <summary>
@@ -127,7 +125,7 @@ public class StudentSpecializedTrainingModuleDto
     /// <summary>
     /// 模块分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序
@@ -244,7 +242,7 @@ public class StudentSpecializedTrainingOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序

@@ -213,7 +213,7 @@ public class ExamAttemptService : IExamAttemptService
     /// <summary>
     /// 完成考试尝试
     /// </summary>
-    public async Task<bool> CompleteExamAttemptAsync(int attemptId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    public async Task<bool> CompleteExamAttemptAsync(int attemptId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null)
     {
         try
         {
@@ -278,7 +278,7 @@ public class ExamAttemptService : IExamAttemptService
     /// <summary>
     /// 标记考试尝试为超时
     /// </summary>
-    public async Task<bool> TimeoutExamAttemptAsync(int attemptId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null)
+    public async Task<bool> TimeoutExamAttemptAsync(int attemptId, double? score = null, double? maxScore = null, int? durationSeconds = null)
     {
         try
         {
@@ -315,10 +315,9 @@ public class ExamAttemptService : IExamAttemptService
             List<ExamCompletion> completions = await GetExamCompletionsFromApiAsync(examId);
 
             // 将ExamCompletion转换为ExamAttemptDto，并根据完成顺序推断考试类型
-            List<ExamCompletion> sortedCompletions = completions
+            List<ExamCompletion> sortedCompletions = [.. completions
                 .Where(c => c.ExamId == examId && c.StudentUserId == studentId)
-                .OrderBy(c => c.StartedAt ?? c.CreatedAt)
-                .ToList();
+                .OrderBy(c => c.StartedAt ?? c.CreatedAt)];
 
             List<ExamAttemptDto> attempts = new List<ExamAttemptDto>();
             for (int i = 0; i < sortedCompletions.Count; i++)
@@ -349,13 +348,11 @@ public class ExamAttemptService : IExamAttemptService
             }
 
             // 合并本地缓存的数据（用于正在进行的考试）
-            List<ExamAttemptDto> localAttempts = _examAttempts
-                .Where(a => a.ExamId == examId && a.StudentId == studentId)
-                .ToList();
+            List<ExamAttemptDto> localAttempts = [.. _examAttempts.Where(a => a.ExamId == examId && a.StudentId == studentId)];
 
             attempts.AddRange(localAttempts);
 
-            return attempts.OrderBy(a => a.StartedAt).ToList();
+            return [.. attempts.OrderBy(a => a.StartedAt)];
         }
         catch (Exception ex)
         {
@@ -365,10 +362,9 @@ public class ExamAttemptService : IExamAttemptService
             System.Diagnostics.Debug.WriteLine($"回退到本地缓存数据...");
 
             // 如果API调用失败，返回本地缓存的数据
-            List<ExamAttemptDto> fallbackResult = _examAttempts
+            List<ExamAttemptDto> fallbackResult = [.. _examAttempts
                 .Where(a => a.ExamId == examId && a.StudentId == studentId)
-                .OrderBy(a => a.StartedAt)
-                .ToList();
+                .OrderBy(a => a.StartedAt)];
 
             System.Diagnostics.Debug.WriteLine($"本地缓存返回 {fallbackResult.Count} 条记录");
             System.Diagnostics.Debug.WriteLine($"=== GetExamAttemptHistoryAsync 异常结束 ===");
@@ -388,10 +384,9 @@ public class ExamAttemptService : IExamAttemptService
             List<ExamCompletion> completions = await GetExamCompletionsFromApiAsync();
 
             // 将ExamCompletion转换为ExamAttemptDto，并根据完成顺序推断考试类型
-            List<ExamCompletion> sortedCompletions = completions
+            List<ExamCompletion> sortedCompletions = [.. completions
                 .Where(c => c.StudentUserId == studentId)
-                .OrderBy(c => c.StartedAt ?? c.CreatedAt)
-                .ToList();
+                .OrderBy(c => c.StartedAt ?? c.CreatedAt)];
 
             List<ExamAttemptDto> attempts = new List<ExamAttemptDto>();
 
@@ -400,7 +395,7 @@ public class ExamAttemptService : IExamAttemptService
 
             foreach (var examGroup in examGroups)
             {
-                List<ExamCompletion> examCompletions = examGroup.OrderBy(c => c.StartedAt ?? c.CreatedAt).ToList();
+                List<ExamCompletion> examCompletions = [.. examGroup.OrderBy(c => c.StartedAt ?? c.CreatedAt)];
 
                 for (int i = 0; i < examCompletions.Count; i++)
                 {
@@ -431,28 +426,24 @@ public class ExamAttemptService : IExamAttemptService
             }
 
             // 合并本地缓存的数据
-            List<ExamAttemptDto> localAttempts = _examAttempts
-                .Where(a => a.StudentId == studentId)
-                .ToList();
+            List<ExamAttemptDto> localAttempts = [.. _examAttempts.Where(a => a.StudentId == studentId)];
 
             attempts.AddRange(localAttempts);
 
-            return attempts
+            return [.. attempts
                 .OrderByDescending(a => a.StartedAt)
                 .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+                .Take(pageSize)];
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"GetStudentExamAttemptHistoryAsync 异常: {ex.Message}");
             // 如果API调用失败，返回本地缓存的数据
-            return _examAttempts
+            return [.. _examAttempts
                 .Where(a => a.StudentId == studentId)
                 .OrderByDescending(a => a.StartedAt)
                 .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+                .Take(pageSize)];
         }
     }
 
@@ -493,8 +484,8 @@ public class ExamAttemptService : IExamAttemptService
     {
         await Task.CompletedTask;
 
-        List<ExamAttemptDto> examAttempts = _examAttempts.Where(a => a.ExamId == examId).ToList();
-        List<ExamAttemptDto> completedAttempts = examAttempts.Where(a => a.Status == ExamAttemptStatus.Completed && a.Score.HasValue).ToList();
+        List<ExamAttemptDto> examAttempts = [.. _examAttempts.Where(a => a.ExamId == examId)];
+        List<ExamAttemptDto> completedAttempts = [.. examAttempts.Where(a => a.Status == ExamAttemptStatus.Completed && a.Score.HasValue)];
 
         return new ExamAttemptStatisticsDto
         {

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using BenchSuite.Interfaces;
+﻿using BenchSuite.Interfaces;
 
 namespace BenchSuite.Models;
 
@@ -21,17 +20,17 @@ public class ScoringResult
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 获得分数
     /// </summary>
-    public decimal AchievedScore { get; set; }
+    public double AchievedScore { get; set; }
 
     /// <summary>
     /// 得分率
     /// </summary>
-    public decimal ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
+    public double ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
 
     /// <summary>
     /// 知识点检测结果列表（只包含与当前题目相关的知识点）
@@ -102,12 +101,12 @@ public class KnowledgePointResult
     /// <summary>
     /// 该知识点的总分
     /// </summary>
-    public decimal TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 该知识点的获得分数
     /// </summary>
-    public decimal AchievedScore { get; set; }
+    public double AchievedScore { get; set; }
 
     /// <summary>
     /// 是否答案正确
@@ -153,7 +152,7 @@ public class ScoringConfiguration
     /// <summary>
     /// 错误容忍度（0-1之间）
     /// </summary>
-    public decimal ErrorTolerance { get; set; } = 0.1m;
+    public double ErrorTolerance { get; set; } = (double)0.1m;
 
     /// <summary>
     /// 超时时间（秒）
@@ -200,17 +199,17 @@ public class CSharpScoringResult
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 获得分数
     /// </summary>
-    public decimal AchievedScore { get; set; }
+    public double AchievedScore { get; set; }
 
     /// <summary>
     /// 得分率
     /// </summary>
-    public decimal ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
+    public double ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
 
     /// <summary>
     /// 是否成功
@@ -342,7 +341,7 @@ public class FillBlankResult
     /// <summary>
     /// 分数
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 }
 
 /// <summary>
@@ -660,5 +659,5 @@ public class FixVerificationResult
     /// <summary>
     /// 得分
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 }

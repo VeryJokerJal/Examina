@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.Models.Api.Student;
 
@@ -50,17 +50,17 @@ public class MockExamCompletionDto
     /// <summary>
     /// 得分
     /// </summary>
-    public decimal? Score { get; set; }
+    public double? Score { get; set; }
 
     /// <summary>
     /// 最大得分
     /// </summary>
-    public decimal? MaxScore { get; set; }
+    public double? MaxScore { get; set; }
 
     /// <summary>
     /// 完成百分比（0-100）
     /// </summary>
-    public decimal? CompletionPercentage { get; set; }
+    public double? CompletionPercentage { get; set; }
 
     /// <summary>
     /// 用时（秒）

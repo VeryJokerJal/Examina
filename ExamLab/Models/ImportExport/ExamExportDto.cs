@@ -113,7 +113,7 @@ public class ExamDto
     /// </summary>
     [JsonPropertyName("passingScore")]
     [XmlElement("PassingScore")]
-    public decimal PassingScore { get; set; } = 60.0m;
+    public double PassingScore { get; set; } = 60.0m;
 
     /// <summary>
     /// 是否随机题目顺序
@@ -285,7 +285,7 @@ public class SubjectDto
     /// 科目权重
     /// </summary>
     [JsonPropertyName("weight")]
-    public decimal Weight { get; set; } = 1.0m;
+    public double Weight { get; set; } = 1.0m;
 
     /// <summary>
     /// 科目配置

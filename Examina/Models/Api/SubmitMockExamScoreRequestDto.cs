@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Examina.Models.Api;
 
@@ -11,13 +11,13 @@ public class SubmitMockExamScoreRequestDto
     /// 得分
     /// </summary>
     [Range(0, double.MaxValue, ErrorMessage = "得分不能为负数")]
-    public decimal? Score { get; set; }
+    public double? Score { get; set; }
 
     /// <summary>
     /// 最大得分
     /// </summary>
     [Range(0, double.MaxValue, ErrorMessage = "最大得分不能为负数")]
-    public decimal? MaxScore { get; set; }
+    public double? MaxScore { get; set; }
 
     /// <summary>
     /// 用时（秒）

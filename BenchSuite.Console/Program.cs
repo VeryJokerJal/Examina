@@ -19,7 +19,7 @@ internal class Program
         if (args.Length > 0 && args[0].Equals("windows", StringComparison.OrdinalIgnoreCase))
         {
             // 移除第一个参数（"windows"），传递剩余参数给Windows测试程序
-            string[] windowsArgs = args.Skip(1).ToArray();
+            string[] windowsArgs = [.. args.Skip(1)];
             await WindowsTestProgram.RunWindowsTestAsync(windowsArgs);
             return;
         }
@@ -301,7 +301,7 @@ internal class Program
     /// </summary>
     /// <param name="scoreRate">得分率</param>
     /// <returns>评分等级</returns>
-    private static string GetGrade(decimal scoreRate)
+    private static string GetGrade(double scoreRate)
     {
         return scoreRate switch
         {
@@ -422,7 +422,7 @@ internal class Program
     /// <param name="allResults">所有评分结果</param>
     private static void AnalyzeStabilityResults(List<ScoringResult> allResults)
     {
-        List<ScoringResult> successfulResults = allResults.Where(r => r.IsSuccess).ToList();
+        List<ScoringResult> successfulResults = [.. allResults.Where(r => r.IsSuccess)];
 
         System.Console.WriteLine($"成功评分次数: {successfulResults.Count}/{allResults.Count}");
 
@@ -444,9 +444,9 @@ internal class Program
 
         if (!achievedScoreStable)
         {
-            decimal avgScore = achievedScores.Average();
-            decimal variance = achievedScores.Select(s => (decimal)Math.Pow((double)(s - avgScore), 2)).Average();
-            decimal stdDev = (decimal)Math.Sqrt((double)variance);
+            double avgScore = achievedScores.Average();
+            double variance = achievedScores.Select(s => (decimal)Math.Pow((double)(s - avgScore), 2)).Average();
+            double stdDev = (decimal)Math.Sqrt((double)variance);
 
             System.Console.WriteLine($"得分统计: 平均={avgScore:F2}, 标准差={stdDev:F2}");
         }
@@ -514,9 +514,9 @@ internal class Program
                 unstableKnowledgePoints.Add((knowledgePointName, correctCount, totalCount, scores));
             }
 
-            decimal avgScore = scores.Average();
-            decimal minScore = scores.Min();
-            decimal maxScore = scores.Max();
+            double avgScore = scores.Average();
+            double minScore = scores.Min();
+            double maxScore = scores.Max();
 
             System.Console.WriteLine($"{knowledgePointName,-40} {status,-12} {correctCount,2}/{totalCount,2} 正确  得分范围: {minScore:F1}-{maxScore:F1} (平均: {avgScore:F1})");
 
@@ -528,21 +528,19 @@ internal class Program
                 System.Console.WriteLine($"{"",42} 得分分布: {scoreDistribution}");
 
                 // 显示错误信息（如果有）
-                List<string?> errorMessages = results.Where(r => !string.IsNullOrEmpty(r.ErrorMessage))
+                List<string?> errorMessages = [.. results.Where(r => !string.IsNullOrEmpty(r.ErrorMessage))
                                           .Select(r => r.ErrorMessage)
-                                          .Distinct()
-                                          .ToList();
+                                          .Distinct()];
                 if (errorMessages.Count > 0)
                 {
                     System.Console.WriteLine($"{"",42} 错误信息: {string.Join("; ", errorMessages)}");
                 }
 
                 // 显示详细信息（如果有）
-                List<string> detailMessages = results.Where(r => !string.IsNullOrEmpty(r.Details))
+                List<string> detailMessages = [.. results.Where(r => !string.IsNullOrEmpty(r.Details))
                                            .Select(r => r.Details!)
                                            .Distinct()
-                                           .Take(2) // 只显示前2个不同的详情
-                                           .ToList();
+                                           .Take(2)];
                 if (detailMessages.Count > 0)
                 {
                     foreach (string detail in detailMessages)
@@ -565,9 +563,9 @@ internal class Program
 
             foreach ((string name, int correctCount, int totalCount, List<decimal> scores) in unstableKnowledgePoints.OrderBy(x => (double)x.correctCount / x.totalCount))
             {
-                decimal successRate = (decimal)correctCount / totalCount;
-                decimal variance = scores.Select(s => (decimal)Math.Pow((double)(s - scores.Average()), 2)).Average();
-                decimal stdDev = (decimal)Math.Sqrt((double)variance);
+                double successRate = (decimal)correctCount / totalCount;
+                double variance = scores.Select(s => (decimal)Math.Pow((double)(s - scores.Average()), 2)).Average();
+                double stdDev = (decimal)Math.Sqrt((double)variance);
 
                 System.Console.WriteLine($"  • {name}");
                 System.Console.WriteLine($"    成功率: {successRate:P1} ({correctCount}/{totalCount})");

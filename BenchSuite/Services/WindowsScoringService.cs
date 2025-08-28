@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -82,9 +82,7 @@ public class WindowsScoringService : IWindowsScoringService
 
             foreach (QuestionModel question in windowsModule.Questions)
             {
-                List<OperationPointModel> windowsOperationPoints = question.OperationPoints
-                    .Where(op => op.ModuleType == ModuleType.Windows && op.IsEnabled)
-                    .ToList();
+                List<OperationPointModel> windowsOperationPoints = [.. question.OperationPoints.Where(op => op.ModuleType == ModuleType.Windows && op.IsEnabled)];
 
                 allOperationPoints.AddRange(windowsOperationPoints);
 
@@ -147,9 +145,7 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             // 获取题目的操作点（只处理Windows相关的操作点）
-            List<OperationPointModel> windowsOperationPoints = question.OperationPoints
-                .Where(op => op.ModuleType == ModuleType.Windows && op.IsEnabled)
-                .ToList();
+            List<OperationPointModel> windowsOperationPoints = [.. question.OperationPoints.Where(op => op.ModuleType == ModuleType.Windows && op.IsEnabled)];
 
             if (windowsOperationPoints.Count == 0)
             {

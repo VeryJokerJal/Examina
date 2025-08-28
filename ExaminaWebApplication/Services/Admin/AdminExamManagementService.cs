@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
+using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Admin;
 using ExaminaWebApplication.Models.ImportedExam;
-using ExaminaWebApplication.Models;
+using Microsoft.EntityFrameworkCore;
 using ImportedExamEntity = ExaminaWebApplication.Models.ImportedExam.ImportedExam;
 
 namespace ExaminaWebApplication.Services.Admin;
@@ -41,7 +41,7 @@ public class AdminExamManagementService : IAdminExamManagementService
                 .Take(pageSize)
                 .ToListAsync();
 
-            List<AdminExamDto> result = new();
+            List<AdminExamDto> result = [];
 
             foreach (ImportedExamEntity exam in exams)
             {
@@ -56,7 +56,7 @@ public class AdminExamManagementService : IAdminExamManagementService
                     .Where(ec => ec.ExamId == exam.Id && ec.CompletedAt.HasValue)
                     .CountAsync();
 
-                int questionCount = exam.Subjects.Sum(s => s.Questions.Count) + 
+                int questionCount = exam.Subjects.Sum(s => s.Questions.Count) +
                                   exam.Modules.Sum(m => m.Questions.Count);
 
                 AdminExamDto dto = new()
@@ -131,7 +131,7 @@ public class AdminExamManagementService : IAdminExamManagementService
                 .Where(ec => ec.ExamId == examId && ec.CompletedAt.HasValue)
                 .CountAsync();
 
-            int questionCount = exam.Subjects.Sum(s => s.Questions.Count) + 
+            int questionCount = exam.Subjects.Sum(s => s.Questions.Count) +
                               exam.Modules.Sum(m => m.Questions.Count);
 
             AdminExamDto dto = new()
@@ -189,7 +189,7 @@ public class AdminExamManagementService : IAdminExamManagementService
             }
 
             // 检查是否可以修改时间
-            if (exam.Status != "Draft" && exam.Status != "Scheduled")
+            if (exam.Status is not "Draft" and not "Scheduled")
             {
                 _logger.LogWarning("考试状态不允许修改时间，考试ID: {ExamId}, 状态: {Status}", examId, exam.Status);
                 return false;
@@ -199,7 +199,7 @@ public class AdminExamManagementService : IAdminExamManagementService
             exam.EndTime = endTime;
             exam.Status = "Scheduled";
 
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("设置考试时间成功，考试ID: {ExamId}, 开始时间: {StartTime}, 结束时间: {EndTime}",
                 examId, startTime, endTime);
@@ -237,7 +237,7 @@ public class AdminExamManagementService : IAdminExamManagementService
             }
 
             exam.Status = status;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("更新考试状态成功，考试ID: {ExamId}, 新状态: {Status}", examId, status);
 
@@ -266,7 +266,7 @@ public class AdminExamManagementService : IAdminExamManagementService
             }
 
             exam.ExamCategory = category;
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("更新考试类型成功，考试ID: {ExamId}, 新类型: {Category}", examId, category);
 
@@ -295,7 +295,7 @@ public class AdminExamManagementService : IAdminExamManagementService
             }
 
             // 检查是否可以发布
-            if (exam.Status != "Draft" && exam.Status != "Scheduled")
+            if (exam.Status is not "Draft" and not "Scheduled")
             {
                 _logger.LogWarning("考试状态不允许发布，考试ID: {ExamId}, 状态: {Status}", examId, exam.Status);
                 return false;
@@ -308,7 +308,7 @@ public class AdminExamManagementService : IAdminExamManagementService
             }
 
             exam.Status = "Published";
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("发布考试成功，考试ID: {ExamId}", examId);
 
@@ -386,18 +386,17 @@ public class AdminExamManagementService : IAdminExamManagementService
             int inProgressCount = completions.Count(c => c.StartedAt.HasValue && !c.CompletedAt.HasValue);
             int notStartedCount = totalParticipants - completions.Count(c => c.StartedAt.HasValue);
 
-            List<decimal> scores = completions
+            List<double> scores = [.. completions
                 .Where(c => c.Score.HasValue)
-                .Select(c => c.Score!.Value)
-                .ToList();
+                .Select(c => c.Score!.Value)];
 
-            decimal? averageScore = scores.Any() ? scores.Average() : null;
-            decimal? highestScore = scores.Any() ? scores.Max() : null;
-            decimal? lowestScore = scores.Any() ? scores.Min() : null;
+            double? averageScore = scores.Any() ? scores.Average() : null;
+            double? highestScore = scores.Any() ? scores.Max() : null;
+            double? lowestScore = scores.Any() ? scores.Min() : null;
 
             int passedCount = scores.Count(s => s >= exam.PassingScore);
-            decimal passRate = scores.Any() ? (decimal)passedCount / scores.Count * 100 : 0;
-            decimal completionRate = totalParticipants > 0 ? (decimal)completedCount / totalParticipants * 100 : 0;
+            double passRate = (double)(scores.Any() ? passedCount / scores.Count * 100 : 0);
+            double completionRate = (double)(totalParticipants > 0 ? completedCount / totalParticipants * 100 : 0);
 
             return new ExamStatisticsDto
             {
@@ -476,7 +475,7 @@ public class AdminExamManagementService : IAdminExamManagementService
                     return false;
             }
 
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("考试设置更新成功，考试ID: {ExamId}, 设置: {SettingName}, 值: {Value}",
                 examId, settingName, value);
@@ -514,7 +513,7 @@ public class AdminExamManagementService : IAdminExamManagementService
 
             // 特殊字符检查 - 禁止包含危险字符
             string[] forbiddenChars = { "<", ">", "\"", "'", "&", "\\", "/", "?", "*", "|", ":", ";", "%" };
-            if (forbiddenChars.Any(c => newName.Contains(c)))
+            if (forbiddenChars.Any(newName.Contains))
             {
                 _logger.LogWarning("试卷名称包含非法字符，考试ID: {ExamId}, 用户ID: {UserId}, 名称: {Name}",
                     examId, userId, newName);
@@ -551,7 +550,7 @@ public class AdminExamManagementService : IAdminExamManagementService
 
             // 更新试卷名称
             exam.Name = newName.Trim();
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("试卷名称更新成功，考试ID: {ExamId}, 用户ID: {UserId}, 原名称: {OriginalName}, 新名称: {NewName}",
                 examId, userId, originalName, newName);

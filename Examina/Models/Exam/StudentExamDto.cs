@@ -156,7 +156,7 @@ public class StudentSubjectDto
     /// <summary>
     /// 权重
     /// </summary>
-    public decimal Weight { get; set; }
+    public double Weight { get; set; }
 
     /// <summary>
     /// 题目数量

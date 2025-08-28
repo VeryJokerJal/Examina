@@ -1,4 +1,4 @@
-using BenchSuite.Console.Services;
+﻿using BenchSuite.Console.Services;
 using BenchSuite.Models;
 using BenchSuite.Services;
 
@@ -271,7 +271,7 @@ public static class WindowsTestProgram
     /// <param name="allResults">所有评分结果</param>
     private static void AnalyzeWindowsStabilityResults(List<ScoringResult> allResults)
     {
-        List<ScoringResult> successfulResults = allResults.Where(r => r.IsSuccess).ToList();
+        List<ScoringResult> successfulResults = [.. allResults.Where(r => r.IsSuccess)];
 
         System.Console.WriteLine($"成功评分次数: {successfulResults.Count}/{allResults.Count}");
 
@@ -293,9 +293,9 @@ public static class WindowsTestProgram
 
         if (!achievedScoreStable)
         {
-            decimal avgScore = achievedScores.Average();
-            decimal variance = achievedScores.Select(s => (decimal)Math.Pow((double)(s - avgScore), 2)).Average();
-            decimal stdDev = (decimal)Math.Sqrt((double)variance);
+            double avgScore = achievedScores.Average();
+            double variance = achievedScores.Select(s => (decimal)Math.Pow((double)(s - avgScore), 2)).Average();
+            double stdDev = (decimal)Math.Sqrt((double)variance);
 
             System.Console.WriteLine($"得分统计: 平均={avgScore:F2}, 标准差={stdDev:F2}");
         }
@@ -424,9 +424,9 @@ public static class WindowsTestProgram
                     unstableKnowledgePoints.Add((knowledgeType, correctCount, totalCount, scores));
                 }
 
-                decimal avgScore = scores.Average();
-                decimal minScore = scores.Min();
-                decimal maxScore = scores.Max();
+                double avgScore = scores.Average();
+                double minScore = scores.Min();
+                double maxScore = scores.Max();
 
                 System.Console.WriteLine($"  {knowledgeType,-25} {status,-12} {correctCount,2}/{totalCount,2} 正确  得分: {minScore:F1}-{maxScore:F1} (平均: {avgScore:F1})");
 
@@ -480,9 +480,9 @@ public static class WindowsTestProgram
 
             foreach (var (name, correctCount, totalCount, scores) in unstableKnowledgePoints.OrderBy(x => (double)x.correctCount / x.totalCount))
             {
-                decimal successRate = (decimal)correctCount / totalCount;
-                decimal variance = scores.Select(s => (decimal)Math.Pow((double)(s - scores.Average()), 2)).Average();
-                decimal stdDev = (decimal)Math.Sqrt((double)variance);
+                double successRate = (decimal)correctCount / totalCount;
+                double variance = scores.Select(s => (decimal)Math.Pow((double)(s - scores.Average()), 2)).Average();
+                double stdDev = (decimal)Math.Sqrt((double)variance);
 
                 System.Console.WriteLine($"  • {name}");
                 System.Console.WriteLine($"    成功率: {successRate:P1} ({correctCount}/{totalCount})");

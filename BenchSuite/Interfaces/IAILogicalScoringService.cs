@@ -1,6 +1,4 @@
-using BenchSuite.Models;
-
-namespace BenchSuite.Interfaces;
+﻿namespace BenchSuite.Interfaces;
 
 /// <summary>
 /// AI逻辑性判分服务接口
@@ -16,9 +14,9 @@ public interface IAILogicalScoringService
     /// <param name="testCases">测试用例（可选）</param>
     /// <returns>AI逻辑性判分结果</returns>
     Task<AILogicalScoringResult> ScoreLogicalReasoningAsync(
-        string sourceCode, 
-        string problemDescription, 
-        string? expectedOutput = null, 
+        string sourceCode,
+        string problemDescription,
+        string? expectedOutput = null,
         List<string>? testCases = null);
 
     /// <summary>
@@ -28,7 +26,7 @@ public interface IAILogicalScoringService
     /// <param name="problemDescription">题目描述</param>
     /// <returns>逻辑错误分析结果</returns>
     Task<AILogicalAnalysisResult> AnalyzeLogicalErrorsAsync(
-        string sourceCode, 
+        string sourceCode,
         string problemDescription);
 
     /// <summary>
@@ -72,7 +70,7 @@ public class AILogicalScoringResult
     /// <summary>
     /// 逻辑性评分（0-100）
     /// </summary>
-    public decimal LogicalScore { get; set; }
+    public double LogicalScore { get; set; }
 
     /// <summary>
     /// 详细评价
@@ -176,27 +174,27 @@ public class CodeQualityAssessment
     /// <summary>
     /// 逻辑清晰度评分（0-100）
     /// </summary>
-    public decimal LogicalClarity { get; set; }
+    public double LogicalClarity { get; set; }
 
     /// <summary>
     /// 算法效率评分（0-100）
     /// </summary>
-    public decimal AlgorithmEfficiency { get; set; }
+    public double AlgorithmEfficiency { get; set; }
 
     /// <summary>
     /// 代码结构评分（0-100）
     /// </summary>
-    public decimal CodeStructure { get; set; }
+    public double CodeStructure { get; set; }
 
     /// <summary>
     /// 错误处理评分（0-100）
     /// </summary>
-    public decimal ErrorHandling { get; set; }
+    public double ErrorHandling { get; set; }
 
     /// <summary>
     /// 总体评分（0-100）
     /// </summary>
-    public decimal OverallScore { get; set; }
+    public double OverallScore { get; set; }
 }
 
 /// <summary>
@@ -253,7 +251,7 @@ public class AIServiceConfiguration
     /// <summary>
     /// 温度参数
     /// </summary>
-    public decimal Temperature { get; set; } = 0.1m;
+    public double Temperature { get; set; } = 0.1;
 
     /// <summary>
     /// 超时时间（秒）

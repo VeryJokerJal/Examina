@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
@@ -141,7 +141,7 @@ public class TeacherOrganizationService : ITeacherOrganizationService
                 .OrderByDescending(to => to.JoinedAt)
                 .ToListAsync();
 
-            return teacherOrganizations.Select(MapToDto).ToList();
+            return [.. teacherOrganizations.Select(MapToDto)];
         }
         catch (Exception ex)
         {
@@ -173,7 +173,7 @@ public class TeacherOrganizationService : ITeacherOrganizationService
                 .OrderByDescending(to => to.JoinedAt)
                 .ToListAsync();
 
-            return teacherOrganizations.Select(MapToDto).ToList();
+            return [.. teacherOrganizations.Select(MapToDto)];
         }
         catch (Exception ex)
         {

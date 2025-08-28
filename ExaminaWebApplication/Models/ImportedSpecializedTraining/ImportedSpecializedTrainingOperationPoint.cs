@@ -49,8 +49,8 @@ public class ImportedSpecializedTrainingOperationPoint
     /// <summary>
     /// 操作点分值
     /// </summary>
-    [Column(TypeName = "decimal(6,2)")]
-    public decimal Score { get; set; }
+    [Column(TypeName = "double")]
+    public double Score { get; set; }
 
     /// <summary>
     /// 操作点排序

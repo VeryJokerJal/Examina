@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  * jQuery JavaScript Library v3.7.1
  * https://jquery.com/
  *
@@ -747,7 +747,7 @@ var i,
 			return nonHex;
 		}
 
-		// Replace a hexadecimal escape sequence with the encoded Unicode code point
+		// Replace a hexadouble escape sequence with the encoded Unicode code point
 		// Support: IE <=11+
 		// For values outside the Basic Multilingual Plane (BMP), manually construct a
 		// surrogate pair

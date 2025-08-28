@@ -82,9 +82,7 @@ public class PositionParameterController : ReactiveObject
     public static void UpdateParameterVisibility(ObservableCollection<ConfigurationParameter> parameters, string changedParameterName, string? newValue)
     {
         // 获取依赖于此参数的所有参数
-        List<ConfigurationParameter> dependentParameters = parameters
-            .Where(p => p.DependsOn == changedParameterName)
-            .ToList();
+        List<ConfigurationParameter> dependentParameters = [.. parameters.Where(p => p.DependsOn == changedParameterName)];
 
         foreach (ConfigurationParameter parameter in dependentParameters)
         {

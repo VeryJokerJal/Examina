@@ -96,12 +96,12 @@ public class ExamResultViewModel : ViewModelBase
     /// <summary>
     /// 得分
     /// </summary>
-    [Reactive] public decimal? Score { get; set; }
+    [Reactive] public double? Score { get; set; }
 
     /// <summary>
     /// 总分
     /// </summary>
-    [Reactive] public decimal? TotalScore { get; set; }
+    [Reactive] public double? TotalScore { get; set; }
 
     /// <summary>
     /// 是否正在评分
@@ -336,7 +336,7 @@ public class ExamResultViewModel : ViewModelBase
     /// </summary>
     public void SetExamResult(string examName, ExamType examType, bool isSuccessful,
         DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
-        decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "")
+        double? score = null, double? totalScore = null, string errorMessage = "", string notes = "")
     {
         ExamName = examName;
         ExamType = examType;
@@ -370,7 +370,7 @@ public class ExamResultViewModel : ViewModelBase
     /// <summary>
     /// 更新评分结果
     /// </summary>
-    public void UpdateScore(decimal? score, decimal? totalScore = null, string notes = "")
+    public void UpdateScore(double? score, double? totalScore = null, string notes = "")
     {
         IsScoring = false;
         Score = score;
@@ -414,7 +414,7 @@ public class ExamResultViewModel : ViewModelBase
     /// <summary>
     /// 从BenchSuite评分结果创建详细分数信息
     /// </summary>
-    public void SetScoreDetailFromBenchSuite(Dictionary<ModuleType, ScoringResult> benchSuiteResults, decimal passThreshold = 60)
+    public void SetScoreDetailFromBenchSuite(Dictionary<ModuleType, ScoringResult> benchSuiteResults, double passThreshold = 60)
     {
         if (benchSuiteResults == null || benchSuiteResults.Count == 0)
         {
@@ -422,9 +422,9 @@ public class ExamResultViewModel : ViewModelBase
         }
 
         // 计算总分和得分
-        decimal totalScore = benchSuiteResults.Values.Sum(r => r.TotalScore);
-        decimal achievedScore = benchSuiteResults.Values.Sum(r => r.AchievedScore);
-        decimal scoreRate = totalScore > 0 ? achievedScore / totalScore : 0;
+        double totalScore = benchSuiteResults.Values.Sum(r => r.TotalScore);
+        double achievedScore = benchSuiteResults.Values.Sum(r => r.AchievedScore);
+        double scoreRate = totalScore > 0 ? achievedScore / totalScore : 0;
 
         ExamScoreDetail scoreDetail = new()
         {

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Text;
 using ReactiveUI;
 using BenchSuite.Models;
@@ -15,9 +15,9 @@ public class TrainingResultViewModel : ViewModelBase
 {
     private string _title = string.Empty;
     private string _trainingName = string.Empty;
-    private decimal _totalScore = 0;
-    private decimal _achievedScore = 0;
-    private decimal _scoreRate = 0;
+    private double _totalScore = 0;
+    private double _achievedScore = 0;
+    private double _scoreRate = 0;
     private string _grade = string.Empty;
     private DateTime _completionTime = DateTime.Now;
     private TimeSpan _duration = TimeSpan.Zero;
@@ -46,7 +46,7 @@ public class TrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore
+    public double TotalScore
     {
         get => _totalScore;
         set => this.RaiseAndSetIfChanged(ref _totalScore, value);
@@ -55,7 +55,7 @@ public class TrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 获得分数
     /// </summary>
-    public decimal AchievedScore
+    public double AchievedScore
     {
         get => _achievedScore;
         set => this.RaiseAndSetIfChanged(ref _achievedScore, value);
@@ -64,7 +64,7 @@ public class TrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 得分率（百分比）
     /// </summary>
-    public decimal ScoreRate
+    public double ScoreRate
     {
         get => _scoreRate;
         set => this.RaiseAndSetIfChanged(ref _scoreRate, value);
@@ -127,7 +127,7 @@ public class TrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 正确率（百分比）
     /// </summary>
-    public decimal CorrectRate => TotalQuestions > 0 ? (decimal)CorrectQuestions / TotalQuestions * 100 : 0;
+    public double CorrectRate => TotalQuestions > 0 ? CorrectQuestions / TotalQuestions * 100 : 0;
 
     /// <summary>
     /// 模块结果列表
@@ -164,8 +164,8 @@ public class TrainingResultViewModel : ViewModelBase
         Title = $"训练结果 - {trainingName}";
 
         // 计算总分和得分
-        decimal totalScore = scoringResults.Values.Sum(r => r.TotalScore);
-        decimal achievedScore = scoringResults.Values.Sum(r => r.AchievedScore);
+        double totalScore = scoringResults.Values.Sum(r => r.TotalScore);
+        double achievedScore = scoringResults.Values.Sum(r => r.AchievedScore);
 
         TotalScore = totalScore;
         AchievedScore = achievedScore;
@@ -210,7 +210,7 @@ public class TrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 计算成绩等级
     /// </summary>
-    private string CalculateGrade(decimal scoreRate)
+    private string CalculateGrade(double scoreRate)
     {
         return scoreRate switch
         {
@@ -474,17 +474,17 @@ public class ModuleResultItem
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 获得分数
     /// </summary>
-    public decimal AchievedScore { get; set; }
+    public double AchievedScore { get; set; }
 
     /// <summary>
     /// 得分率（百分比）
     /// </summary>
-    public decimal ScoreRate { get; set; }
+    public double ScoreRate { get; set; }
 
     /// <summary>
     /// 是否成功
@@ -514,7 +514,7 @@ public class ModuleResultItem
     /// <summary>
     /// AI逻辑性评分（0-100）
     /// </summary>
-    public decimal AILogicalScore { get; set; }
+    public double AILogicalScore { get; set; }
 
     /// <summary>
     /// AI最终答案
@@ -580,17 +580,17 @@ public class QuestionResultItem
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 获得分数
     /// </summary>
-    public decimal AchievedScore { get; set; }
+    public double AchievedScore { get; set; }
 
     /// <summary>
     /// 得分率（百分比）
     /// </summary>
-    public decimal ScoreRate { get; set; }
+    public double ScoreRate { get; set; }
 
     /// <summary>
     /// 是否正确

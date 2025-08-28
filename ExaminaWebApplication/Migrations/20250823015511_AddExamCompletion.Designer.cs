@@ -39,7 +39,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal?>("CompletionPercentage")
+                    b.Property<double?>("CompletionPercentage")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -51,14 +51,14 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<decimal?>("MaxScore")
+                    b.Property<double?>("MaxScore")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<decimal?>("Score")
+                    b.Property<double?>("Score")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime?>("StartedAt")
@@ -99,7 +99,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal?>("CompletionPercentage")
+                    b.Property<double?>("CompletionPercentage")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -116,14 +116,14 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<decimal?>("MaxScore")
+                    b.Property<double?>("MaxScore")
                         .HasColumnType("decimal(6,2)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<decimal?>("Score")
+                    b.Property<double?>("Score")
                         .HasColumnType("decimal(6,2)");
 
                     b.Property<DateTime?>("StartedAt")
@@ -702,7 +702,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<decimal?>("MinScore")
+                    b.Property<double?>("MinScore")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("OriginalSubjectId")
@@ -1302,7 +1302,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<decimal?>("MinScore")
+                    b.Property<double?>("MinScore")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("OriginalSubjectId")
@@ -1849,7 +1849,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal?>("CompletionPercentage")
+                    b.Property<double?>("CompletionPercentage")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1863,7 +1863,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
 
-                    b.Property<decimal?>("MaxScore")
+                    b.Property<double?>("MaxScore")
                         .HasColumnType("decimal(6,2)");
 
                     b.Property<int>("MockExamId")
@@ -1873,7 +1873,7 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<decimal?>("Score")
+                    b.Property<double?>("Score")
                         .HasColumnType("decimal(6,2)");
 
                     b.Property<DateTime?>("StartedAt")
@@ -2340,7 +2340,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal?>("CompletionPercentage")
+                    b.Property<double?>("CompletionPercentage")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -2352,7 +2352,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<decimal?>("MaxScore")
+                    b.Property<double?>("MaxScore")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("Notes")
@@ -2362,7 +2362,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<int>("PracticeId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("Score")
+                    b.Property<double?>("Score")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime?>("StartedAt")

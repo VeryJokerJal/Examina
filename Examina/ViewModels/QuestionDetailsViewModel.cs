@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using ReactiveUI;
 
 namespace Examina.ViewModels;
@@ -88,7 +88,7 @@ public class ModuleItem
     /// <summary>
     /// 模块分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 题目数量

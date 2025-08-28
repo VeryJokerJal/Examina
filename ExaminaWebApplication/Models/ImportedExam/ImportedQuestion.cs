@@ -61,8 +61,8 @@ public class ImportedQuestion
     /// <summary>
     /// 题目分值
     /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal Score { get; set; } = 10.0m;
+    [Column(TypeName = "double")]
+    public double Score { get; set; } = 10.0;
 
     /// <summary>
     /// 难度级别
@@ -153,7 +153,7 @@ public class ImportedQuestion
     /// C#题目直接分数（仅调试纠错和编写实现类型使用）
     /// </summary>
     [Column(TypeName = "decimal(5,2)")]
-    public decimal? CSharpDirectScore { get; set; }
+    public double? CSharpDirectScore { get; set; }
 
     /// <summary>
     /// 代码补全填空处集合（JSON格式，仅C#模块代码补全类型使用）

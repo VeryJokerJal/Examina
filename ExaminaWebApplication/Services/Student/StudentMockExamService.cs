@@ -93,7 +93,7 @@ public class StudentMockExamService : IStudentMockExamService
             // 如果需要随机排序
             if (request.RandomizeQuestions)
             {
-                extractedQuestions = extractedQuestions.OrderBy(x => _random.Next()).ToList();
+                extractedQuestions = [.. extractedQuestions.OrderBy(x => _random.Next())];
             }
 
             // 重新设置排序顺序
@@ -176,7 +176,7 @@ public class StudentMockExamService : IStudentMockExamService
             // 如果需要随机排序
             if (request.RandomizeQuestions)
             {
-                extractedQuestions = extractedQuestions.OrderBy(x => _random.Next()).ToList();
+                extractedQuestions = [.. extractedQuestions.OrderBy(x => _random.Next())];
             }
 
             // 重新设置排序顺序
@@ -1120,10 +1120,9 @@ public class StudentMockExamService : IStudentMockExamService
                 rule.QuestionType, rule.DifficultyLevel, availableQuestions.Count, rule.Count);
 
             // 随机抽取指定数量的题目
-            List<ImportedComprehensiveTrainingQuestion> selectedQuestions = availableQuestions
+            List<ImportedComprehensiveTrainingQuestion> selectedQuestions = [.. availableQuestions
                 .OrderBy(x => _random.Next())
-                .Take(rule.Count)
-                .ToList();
+                .Take(rule.Count)];
 
             _logger.LogInformation("抽取规则 {QuestionType}({DifficultyLevel})：成功抽取 {SelectedCount} 道题目",
                 rule.QuestionType, rule.DifficultyLevel, selectedQuestions.Count);
@@ -1150,7 +1149,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Remarks = question.Remarks,
                     ProgramInput = question.ProgramInput,
                     ExpectedOutput = question.ExpectedOutput,
-                    OperationPoints = question.OperationPoints.Select(op => new ExtractedOperationPointInfo
+                    OperationPoints = [.. question.OperationPoints.Select(op => new ExtractedOperationPointInfo
                     {
                         Id = op.Id,
                         Name = op.Name,
@@ -1158,7 +1157,7 @@ public class StudentMockExamService : IStudentMockExamService
                         ModuleType = op.ModuleType,
                         Score = (int)op.Score,
                         Order = op.Order,
-                        Parameters = op.Parameters.Select(p => new ExtractedParameterInfo
+                        Parameters = [.. op.Parameters.Select(p => new ExtractedParameterInfo
                         {
                             Id = p.Id,
                             Name = p.Name,
@@ -1167,8 +1166,8 @@ public class StudentMockExamService : IStudentMockExamService
                             DefaultValue = p.DefaultValue?.ToString() ?? string.Empty,
                             MinValue = p.MinValue?.ToString() ?? string.Empty,
                             MaxValue = p.MaxValue?.ToString() ?? string.Empty
-                        }).ToList()
-                    }).ToList()
+                        })]
+                    })]
                 };
 
                 extractedQuestions.Add(extractedQuestion);
@@ -1208,10 +1207,9 @@ public class StudentMockExamService : IStudentMockExamService
             }
 
             // 随机抽取指定数量的题目
-            List<ImportedComprehensiveTrainingQuestion> selectedQuestions = availableQuestions
+            List<ImportedComprehensiveTrainingQuestion> selectedQuestions = [.. availableQuestions
                 .OrderBy(x => _random.Next())
-                .Take(count)
-                .ToList();
+                .Take(count)];
 
             List<ExtractedQuestionInfo> extractedQuestions = [];
 
@@ -1270,7 +1268,7 @@ public class StudentMockExamService : IStudentMockExamService
             StartedAt = mockExam.StartedAt,
             CompletedAt = mockExam.CompletedAt,
             ExpiresAt = mockExam.ExpiresAt,
-            Questions = questions.Select(q => new StudentMockExamQuestionDto
+            Questions = [.. questions.Select(q => new StudentMockExamQuestionDto
             {
                 OriginalQuestionId = q.OriginalQuestionId,
                 Title = q.Title,
@@ -1283,7 +1281,7 @@ public class StudentMockExamService : IStudentMockExamService
                 Remarks = q.Remarks,
                 ProgramInput = q.ProgramInput,
                 ExpectedOutput = q.ExpectedOutput,
-                OperationPoints = q.OperationPoints.Select(op => new StudentMockExamOperationPointDto
+                OperationPoints = [.. q.OperationPoints.Select(op => new StudentMockExamOperationPointDto
                 {
                     Id = op.Id,
                     Name = op.Name,
@@ -1291,7 +1289,7 @@ public class StudentMockExamService : IStudentMockExamService
                     ModuleType = op.ModuleType,
                     Score = op.Score,
                     Order = op.Order,
-                    Parameters = op.Parameters.Select(p => new StudentMockExamParameterDto
+                    Parameters = [.. op.Parameters.Select(p => new StudentMockExamParameterDto
                     {
                         Id = p.Id,
                         Name = p.Name,
@@ -1300,9 +1298,9 @@ public class StudentMockExamService : IStudentMockExamService
                         DefaultValue = p.DefaultValue,
                         MinValue = p.MinValue,
                         MaxValue = p.MaxValue
-                    }).ToList()
-                }).ToList()
-            }).ToList()
+                    })]
+                })]
+            })]
         };
     }
 
@@ -1436,10 +1434,9 @@ public class StudentMockExamService : IStudentMockExamService
         try
         {
             // 获取相关的ImportedComprehensiveTraining数据
-            List<int> comprehensiveTrainingIds = extractedQuestions
+            List<int> comprehensiveTrainingIds = [.. extractedQuestions
                 .Select(q => q.ComprehensiveTrainingId)
-                .Distinct()
-                .ToList();
+                .Distinct()];
 
             // 查询相关的综合训练数据
             List<Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining> comprehensiveTrainings =
@@ -1473,7 +1470,7 @@ public class StudentMockExamService : IStudentMockExamService
                 Description = mockExam.Description,
                 ComprehensiveTrainingType = "MockExam",
                 Status = mockExam.Status,
-                TotalScore = (decimal)mockExam.TotalScore,
+                TotalScore = mockExam.TotalScore,
                 DurationMinutes = mockExam.DurationMinutes,
                 StartTime = mockExam.StartedAt,
                 EndTime = mockExam.CompletedAt,
@@ -1526,7 +1523,7 @@ public class StudentMockExamService : IStudentMockExamService
             Description = mockExam.Description,
             ComprehensiveTrainingType = "MockExam",
             Status = mockExam.Status,
-            TotalScore = (decimal)mockExam.TotalScore,
+            TotalScore = mockExam.TotalScore,
             DurationMinutes = mockExam.DurationMinutes,
             StartTime = mockExam.StartedAt,
             EndTime = mockExam.CompletedAt,
@@ -1563,7 +1560,7 @@ public class StudentMockExamService : IStudentMockExamService
                 ModuleId = eq.ModuleId,
                 Title = eq.Title,
                 Content = eq.Content,
-                Score = (decimal)eq.Score,
+                Score = eq.Score,
                 SortOrder = eq.SortOrder,
                 IsRequired = true,
                 IsEnabled = true,
@@ -1755,7 +1752,7 @@ public class StudentMockExamService : IStudentMockExamService
             ModuleId = eq.ModuleId,
             Title = eq.Title,
             Content = eq.Content,
-            Score = (decimal)eq.Score,
+            Score = eq.Score,
             SortOrder = eq.SortOrder,
             IsRequired = true,
             IsEnabled = true,
@@ -1778,7 +1775,7 @@ public class StudentMockExamService : IStudentMockExamService
                 Name = op.Name,
                 Description = op.Description,
                 ModuleType = op.ModuleType,
-                Score = (decimal)op.Score,
+                Score = op.Score,
                 Order = op.Order,
                 IsEnabled = true,
                 CreatedTime = DateTime.UtcNow.ToString(),
@@ -1859,7 +1856,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Name = "PowerPoint演示文稿",
                     Type = "ppt",
                     Description = "PowerPoint演示文稿制作与编辑",
-                    Score = (decimal)extractedQuestions.Sum(q => q.Score),
+                    Score = extractedQuestions.Sum(q => q.Score),
                     Order = 1,
                     IsEnabled = true,
                     ImportedAt = DateTime.UtcNow,
@@ -1876,7 +1873,7 @@ public class StudentMockExamService : IStudentMockExamService
         foreach (var group in moduleQuestionGroups)
         {
             int moduleId = group.Key;
-            List<ExtractedQuestionInfo> moduleQuestions = group.ToList();
+            List<ExtractedQuestionInfo> moduleQuestions = [.. group];
 
             // 查找对应的模块信息
             ImportedComprehensiveTrainingModule? originalModule = allModules.FirstOrDefault(m => m.Id == moduleId);
@@ -1893,7 +1890,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Name = originalModule.Name,
                     Type = originalModule.Type,
                     Description = originalModule.Description,
-                    Score = (decimal)moduleQuestions.Sum(q => q.Score),
+                    Score = moduleQuestions.Sum(q => q.Score),
                     Order = originalModule.Order,
                     IsEnabled = originalModule.IsEnabled,
                     ImportedAt = originalModule.ImportedAt,
@@ -1914,7 +1911,7 @@ public class StudentMockExamService : IStudentMockExamService
                     Name = GetModuleDisplayName(GetDefaultModuleType(moduleId)),
                     Type = GetDefaultModuleType(moduleId),
                     Description = $"{GetModuleDisplayName(GetDefaultModuleType(moduleId))}模块考试",
-                    Score = (decimal)moduleQuestions.Sum(q => q.Score),
+                    Score = moduleQuestions.Sum(q => q.Score),
                     Order = moduleId,
                     IsEnabled = true,
                     ImportedAt = DateTime.UtcNow,
@@ -1925,7 +1922,7 @@ public class StudentMockExamService : IStudentMockExamService
             }
         }
 
-        return modules.OrderBy(m => m.Order).ToList();
+        return [.. modules.OrderBy(m => m.Order)];
     }
 
     /// <summary>
@@ -1948,7 +1945,7 @@ public class StudentMockExamService : IStudentMockExamService
         foreach (var group in subjectQuestionGroups)
         {
             int subjectId = group.Key;
-            List<ExtractedQuestionInfo> subjectQuestions = group.ToList();
+            List<ExtractedQuestionInfo> subjectQuestions = [.. group];
 
             // 查找对应的科目信息
             ImportedComprehensiveTrainingSubject? originalSubject = allSubjects.FirstOrDefault(s => s.Id == subjectId);
@@ -1965,7 +1962,7 @@ public class StudentMockExamService : IStudentMockExamService
                     SubjectType = originalSubject.SubjectType,
                     SubjectName = originalSubject.SubjectName,
                     Description = originalSubject.Description,
-                    Score = (decimal)subjectQuestions.Sum(q => q.Score),
+                    Score = subjectQuestions.Sum(q => q.Score),
                     DurationMinutes = originalSubject.DurationMinutes,
                     SortOrder = originalSubject.SortOrder,
                     IsRequired = originalSubject.IsRequired,
@@ -1986,7 +1983,7 @@ public class StudentMockExamService : IStudentMockExamService
             }
         }
 
-        return subjects.OrderBy(s => s.SortOrder).ToList();
+        return [.. subjects.OrderBy(s => s.SortOrder)];
     }
 
     /// <summary>
@@ -2019,9 +2016,7 @@ public class StudentMockExamService : IStudentMockExamService
         }
 
         // 找出未分组的题目
-        List<ExtractedQuestionInfo> ungroupedQuestions = extractedQuestions
-            .Where(q => !groupedQuestionIds.Contains(q.OriginalQuestionId))
-            .ToList();
+        List<ExtractedQuestionInfo> ungroupedQuestions = [.. extractedQuestions.Where(q => !groupedQuestionIds.Contains(q.OriginalQuestionId))];
 
         _logger.LogInformation("题目分组统计：总题目 {TotalCount} 道，已分组 {GroupedCount} 道，未分组 {UngroupedCount} 道",
             extractedQuestions.Count, groupedQuestionIds.Count, ungroupedQuestions.Count);

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Examina.Models.Exam;
 
@@ -15,8 +15,8 @@ public class ExamAttemptDto : INotifyPropertyChanged
     private ExamAttemptStatus _status;
     private DateTime _startedAt;
     private DateTime? _completedAt;
-    private decimal? _score;
-    private decimal? _maxScore;
+    private double? _score;
+    private double? _maxScore;
     private int? _durationSeconds;
     private string? _notes;
     private bool _isRanked;
@@ -152,7 +152,7 @@ public class ExamAttemptDto : INotifyPropertyChanged
     /// <summary>
     /// 得分
     /// </summary>
-    public decimal? Score
+    public double? Score
     {
         get => _score;
         set
@@ -168,7 +168,7 @@ public class ExamAttemptDto : INotifyPropertyChanged
     /// <summary>
     /// 最大得分
     /// </summary>
-    public decimal? MaxScore
+    public double? MaxScore
     {
         get => _maxScore;
         set
@@ -257,7 +257,7 @@ public class ExamAttemptDto : INotifyPropertyChanged
             if (!Score.HasValue || !MaxScore.HasValue || MaxScore.Value == 0)
                 return "未评分";
 
-            decimal percentage = (Score.Value / MaxScore.Value) * 100;
+            double percentage = (Score.Value / MaxScore.Value) * 100;
             return $"{percentage:F1}%";
         }
     }

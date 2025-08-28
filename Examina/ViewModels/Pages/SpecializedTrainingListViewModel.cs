@@ -761,7 +761,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             QuestionDetailsViewModel detailsViewModel = new();
 
             // 转换模块数据
-            List<ModuleItem> moduleItems = training.Modules.Select(module => new ModuleItem
+            List<ModuleItem> moduleItems = [.. training.Modules.Select(module => new ModuleItem
             {
                 Id = module.Id,
                 Name = module.Name,
@@ -771,7 +771,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 QuestionCount = module.Questions?.Count ?? 0,
                 Order = module.Order,
                 IsEnabled = module.IsEnabled
-            }).ToList();
+            })];
 
             System.Diagnostics.Debug.WriteLine($"模块详情:");
             foreach (ModuleItem module in moduleItems)
@@ -844,7 +844,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             }
 
             // 按排序顺序排列题目
-            questionItems = questionItems.OrderBy(q => q.SortOrder).ToList();
+            questionItems = [.. questionItems.OrderBy(q => q.SortOrder)];
 
             analysisViewModel.SetAnswerAnalysisData(training.Name, questionItems);
 

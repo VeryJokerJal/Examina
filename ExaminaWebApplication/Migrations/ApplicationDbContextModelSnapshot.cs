@@ -100,8 +100,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal?>("CompletionPercentage")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<double?>("CompletionPercentage")
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -112,15 +112,15 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<decimal?>("MaxScore")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<double?>("MaxScore")
+                        .HasColumnType("double");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<decimal?>("Score")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<double?>("Score")
+                        .HasColumnType("double");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime(6)");
@@ -619,7 +619,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("PassingScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(60.0m);
+                        .HasDefaultValue(60m);
 
                     b.Property<bool>("RandomizeQuestions")
                         .ValueGeneratedOnAdd()
@@ -653,7 +653,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("TotalScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(100.0m);
+                        .HasDefaultValue(100m);
 
                     b.HasKey("Id");
 
@@ -912,8 +912,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<string>("AnswerValidationRules")
                         .HasColumnType("json");
 
-                    b.Property<decimal?>("CSharpDirectScore")
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<double?>("CSharpDirectScore")
+                        .HasColumnType("double");
 
                     b.Property<string>("CodeFilePath")
                         .HasMaxLength(500)
@@ -991,7 +991,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(10.0m);
+                        .HasDefaultValue(10m);
 
                     b.Property<string>("ScoringRules")
                         .HasColumnType("json");
@@ -1082,7 +1082,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(20.0m);
+                        .HasDefaultValue(20m);
 
                     b.Property<int>("SortOrder")
                         .ValueGeneratedOnAdd()
@@ -1105,7 +1105,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Weight")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(1.0m);
+                        .HasDefaultValue(1m);
 
                     b.HasKey("Id");
 
@@ -1231,7 +1231,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("PassingScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(60.0m);
+                        .HasDefaultValue(60m);
 
                     b.Property<bool>("RandomizeQuestions")
                         .ValueGeneratedOnAdd()
@@ -1265,7 +1265,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("TotalScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(6,2)")
-                        .HasDefaultValue(100.0m);
+                        .HasDefaultValue(100m);
 
                     b.HasKey("Id");
 
@@ -1402,7 +1402,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(0.0m);
+                        .HasDefaultValue(0m);
 
                     b.HasKey("Id");
 
@@ -1610,7 +1610,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(10.0m);
+                        .HasDefaultValue(10m);
 
                     b.Property<string>("ScoringRules")
                         .HasColumnType("json");
@@ -1700,7 +1700,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Score")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(20.0m);
+                        .HasDefaultValue(20m);
 
                     b.Property<int>("SortOrder")
                         .ValueGeneratedOnAdd()
@@ -1723,7 +1723,7 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<decimal>("Weight")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
-                        .HasDefaultValue(1.0m);
+                        .HasDefaultValue(1m);
 
                     b.HasKey("Id");
 
@@ -1922,8 +1922,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Score")
-                        .HasColumnType("decimal(6,2)");
+                    b.Property<double>("Score")
+                        .HasColumnType("double");
 
                     b.HasKey("Id");
 
@@ -2018,8 +2018,8 @@ namespace ExaminaWebApplication.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal?>("CSharpDirectScore")
-                        .HasColumnType("decimal(6,2)");
+                    b.Property<double?>("CSharpDirectScore")
+                        .HasColumnType("double");
 
                     b.Property<string>("CodeFilePath")
                         .HasMaxLength(500)
@@ -2136,8 +2136,8 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<int>("PassingScore")
-                        .HasColumnType("int");
+                    b.Property<double>("PassingScore")
+                        .HasColumnType("double");
 
                     b.Property<bool>("RandomizeQuestions")
                         .HasColumnType("tinyint(1)");
@@ -2213,10 +2213,10 @@ namespace ExaminaWebApplication.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<int>("PassingScore")
+                    b.Property<double>("PassingScore")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(60);
+                        .HasColumnType("double")
+                        .HasDefaultValue(60.0);
 
                     b.Property<bool>("RandomizeQuestions")
                         .ValueGeneratedOnAdd()
@@ -2744,8 +2744,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal?>("CompletionPercentage")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<double?>("CompletionPercentage")
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -2756,8 +2756,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<decimal?>("MaxScore")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<double?>("MaxScore")
+                        .HasColumnType("double");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -2766,8 +2766,8 @@ namespace ExaminaWebApplication.Migrations
                     b.Property<int>("PracticeId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("Score")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<double?>("Score")
+                        .HasColumnType("double");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime(6)");

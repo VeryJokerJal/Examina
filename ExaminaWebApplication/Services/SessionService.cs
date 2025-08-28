@@ -177,7 +177,7 @@ public class SessionService : ISessionService
 
             if (excludeSessionId.HasValue)
             {
-                sessions = sessions.Where(s => s.Id != excludeSessionId.Value).ToList();
+                sessions = [.. sessions.Where(s => s.Id != excludeSessionId.Value)];
             }
 
             foreach (var session in sessions)

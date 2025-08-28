@@ -142,7 +142,7 @@ public class ConfigurationParameter : ReactiveObject
         }
 
         // 默认按逗号分割
-        return enumOptions.Split(',').Select(s => s.Trim()).ToList();
+        return [.. enumOptions.Split(',').Select(s => s.Trim())];
     }
 
     /// <summary>

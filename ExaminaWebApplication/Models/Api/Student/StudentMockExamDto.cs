@@ -35,7 +35,7 @@ public class StudentMockExamDto
     /// <summary>
     /// 及格分数
     /// </summary>
-    public int PassingScore { get; set; }
+    public double PassingScore { get; set; }
 
     /// <summary>
     /// 是否随机题目顺序

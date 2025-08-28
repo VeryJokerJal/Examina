@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedExam;
@@ -43,7 +43,7 @@ public class StudentExamService : IStudentExamService
                 .Take(pageSize)
                 .ToListAsync();
 
-            List<StudentExamDto> result = exams.Select(MapToStudentExamDto).ToList();
+            List<StudentExamDto> result = [.. exams.Select(MapToStudentExamDto)];
 
             _logger.LogInformation("获取学生可访问考试列表成功，学生ID: {StudentUserId}, 返回数量: {Count}", 
                 studentUserId, result.Count);
@@ -229,7 +229,7 @@ public class StudentExamService : IStudentExamService
                 return [];
             }
 
-            List<StudentExamDto> result = exams.Select(MapToStudentExamDto).ToList();
+            List<StudentExamDto> result = [.. exams.Select(MapToStudentExamDto)];
 
             _logger.LogInformation("按类型获取学生可访问考试列表成功，学生ID: {StudentUserId}, 考试类型: {ExamCategory}, 返回数量: {Count}",
                 studentUserId, examCategory, result.Count);
@@ -338,7 +338,7 @@ public class StudentExamService : IStudentExamService
         StudentExamDto dto = MapToStudentExamDto(exam);
 
         // 映射科目
-        dto.Subjects = exam.Subjects.Select(subject => new StudentSubjectDto
+        dto.Subjects = [.. exam.Subjects.Select(subject => new StudentSubjectDto
         {
             Id = subject.Id,
             SubjectType = subject.SubjectType,
@@ -351,11 +351,11 @@ public class StudentExamService : IStudentExamService
             MinScore = subject.MinScore.HasValue ? (int)subject.MinScore.Value : 0,
             Weight = subject.Weight,
             QuestionCount = subject.QuestionCount,
-            Questions = subject.Questions.Select(MapToStudentQuestionDto).ToList()
-        }).ToList();
+            Questions = [.. subject.Questions.Select(MapToStudentQuestionDto)]
+        })];
 
         // 映射模块
-        dto.Modules = exam.Modules.Select(module => new StudentModuleDto
+        dto.Modules = [.. exam.Modules.Select(module => new StudentModuleDto
         {
             Id = module.Id,
             Name = module.Name,
@@ -363,8 +363,8 @@ public class StudentExamService : IStudentExamService
             Description = module.Description,
             Score = module.Score,
             Order = module.Order,
-            Questions = module.Questions.Select(MapToStudentQuestionDto).ToList()
-        }).ToList();
+            Questions = [.. module.Questions.Select(MapToStudentQuestionDto)]
+        })];
 
         return dto;
     }
@@ -390,7 +390,7 @@ public class StudentExamService : IStudentExamService
             Remarks = question.Remarks,
             ProgramInput = question.ProgramInput,
             ExpectedOutput = question.ExpectedOutput,
-            OperationPoints = question.OperationPoints.Select(op => new StudentOperationPointDto
+            OperationPoints = [.. question.OperationPoints.Select(op => new StudentOperationPointDto
             {
                 Id = op.Id,
                 Name = op.Name,
@@ -398,7 +398,7 @@ public class StudentExamService : IStudentExamService
                 ModuleType = op.ModuleType,
                 Score = (int)op.Score,
                 Order = op.Order,
-                Parameters = op.Parameters.Select(param => new StudentParameterDto
+                Parameters = [.. op.Parameters.Select(param => new StudentParameterDto
                 {
                     Id = param.Id,
                     Name = param.Name,
@@ -407,8 +407,8 @@ public class StudentExamService : IStudentExamService
                     DefaultValue = param.DefaultValue,
                     MinValue = param.MinValue?.ToString(),
                     MaxValue = param.MaxValue?.ToString()
-                }).ToList()
-            }).ToList()
+                })]
+            })]
         };
     }
 

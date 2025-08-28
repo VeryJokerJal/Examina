@@ -619,7 +619,7 @@ public class UnifiedExamViewModel : ViewModelBase
     {
         DateTime now = DateTime.Now;
 
-        List<StudentExamDto> result = exams.Where(exam =>
+        List<StudentExamDto> result = [.. exams.Where(exam =>
         {
             if (exam.Status is "Published" or "Scheduled" or "InProgress")
             {
@@ -632,7 +632,7 @@ public class UnifiedExamViewModel : ViewModelBase
                 return true;
             }
             return false;
-        }).ToList();
+        })];
 
         return result;
     }
@@ -646,10 +646,10 @@ public class UnifiedExamViewModel : ViewModelBase
     {
         DateTime now = DateTime.Now;
 
-        List<StudentExamDto> result = exams.Where(exam =>
+        List<StudentExamDto> result = [.. exams.Where(exam =>
         {
             return exam.Status == "Completed" || exam.EndTime.HasValue && now > exam.EndTime.Value;
-        }).ToList();
+        })];
 
         return result;
     }
@@ -960,8 +960,8 @@ public class UnifiedExamViewModel : ViewModelBase
         bool submitResult = false;
         string errorMessage = "";
         int? actualDurationSeconds = null;
-        decimal? score = null;
-        decimal? maxScore = null;
+        double? score = null;
+        double? maxScore = null;
 
         try
         {
@@ -1056,7 +1056,7 @@ public class UnifiedExamViewModel : ViewModelBase
     /// <summary>
     /// 显示考试结果窗口
     /// </summary>
-    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, decimal? score, decimal? maxScore, string errorMessage = "")
+    private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful, int? actualDurationSeconds, double? score, double? maxScore, string errorMessage = "")
     {
         try
         {

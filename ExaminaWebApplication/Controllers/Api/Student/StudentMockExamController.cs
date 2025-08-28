@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Services.Student;

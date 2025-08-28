@@ -104,7 +104,7 @@ public class OrganizationService : IOrganizationService
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
-            return organizations.Select(MapToDto).ToList();
+            return [.. organizations.Select(MapToDto)];
         }
         catch (Exception ex)
         {
@@ -488,7 +488,7 @@ public class OrganizationService : IOrganizationService
                 .OrderByDescending(so => so.JoinedAt)
                 .ToListAsync();
 
-            return userOrganizations.Select(MapToStudentOrganizationDto).ToList();
+            return [.. userOrganizations.Select(MapToStudentOrganizationDto)];
         }
         catch (Exception ex)
         {
@@ -595,7 +595,7 @@ public class OrganizationService : IOrganizationService
             }
 
             // 按加入时间排序
-            result = result.OrderByDescending(dto => dto.JoinedAt).ToList();
+            result = [.. result.OrderByDescending(dto => dto.JoinedAt)];
 
             _logger.LogInformation("从数据库获取到 {UserCount} 个注册学生和 {NonOrgCount} 个非组织学生，总计 {TotalCount} 个成员",
                 userOrganizations.Count, nonOrgStudentCount, result.Count);
@@ -798,7 +798,7 @@ public class OrganizationService : IOrganizationService
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
-            return schools.Select(MapToDto).ToList();
+            return [.. schools.Select(MapToDto)];
         }
         catch (Exception ex)
         {
@@ -830,7 +830,7 @@ public class OrganizationService : IOrganizationService
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
-            return classes.Select(MapToDto).ToList();
+            return [.. classes.Select(MapToDto)];
         }
         catch (Exception ex)
         {
@@ -862,7 +862,7 @@ public class OrganizationService : IOrganizationService
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
-            return classes.Select(MapToDto).ToList();
+            return [.. classes.Select(MapToDto)];
         }
         catch (Exception ex)
         {

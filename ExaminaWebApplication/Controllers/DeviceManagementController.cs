@@ -52,10 +52,9 @@ public class DeviceManagementController : Controller
             List<Models.DeviceInfo> allDevices = await _deviceService.GetAllDevicesAsync(includeInactive, searchKeyword, userRole);
 
             // 分页
-            List<DeviceInfo> pagedDevices = allDevices
+            List<DeviceInfo> pagedDevices = [.. allDevices
                 .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+                .Take(pageSize)];
 
             viewModel.Devices = pagedDevices;
             viewModel.UpdateStatistics();

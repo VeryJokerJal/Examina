@@ -70,7 +70,7 @@ public class AILogicalScoringService : IAILogicalScoringService
             {
                 options.ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
                     jsonSchemaFormatName: "csharp_logical_analysis",
-                    jsonSchema: BinaryData.FromBytes(AIJsonSchemas.CSharpLogicalAnalysisSchema.ToCharArray().Select(c => (byte)c).ToArray()),
+                    jsonSchema: BinaryData.FromBytes([.. AIJsonSchemas.CSharpLogicalAnalysisSchema.ToCharArray().Select(c => (byte)c)]),
                     jsonSchemaIsStrict: true);
             }
 
@@ -87,11 +87,11 @@ public class AILogicalScoringService : IAILogicalScoringService
             if (analysisResponse != null)
             {
                 // 转换为结果格式
-                result.Steps = analysisResponse.Steps.Select(step => new ReasoningStep
+                result.Steps = [.. analysisResponse.Steps.Select(step => new ReasoningStep
                 {
                     Explanation = step.Explanation,
                     Output = step.Output
-                }).ToList();
+                })];
 
                 result.FinalAnswer = analysisResponse.FinalAnswer;
                 result.LogicalScore = analysisResponse.LogicalScore;
@@ -137,14 +137,14 @@ public class AILogicalScoringService : IAILogicalScoringService
 
                 if (analysisResponse != null)
                 {
-                    result.LogicalErrors = analysisResponse.LogicalErrors.Select(error => new AIDetectedLogicalError
+                    result.LogicalErrors = [.. analysisResponse.LogicalErrors.Select(error => new AIDetectedLogicalError
                     {
                         ErrorType = error.ErrorType,
                         Description = error.Description,
                         Severity = ParseSeverity(error.Severity),
                         LineNumber = error.LineNumber,
                         FixSuggestion = error.FixSuggestion
-                    }).ToList();
+                    })];
 
                     result.ImprovementSuggestions = analysisResponse.ImprovementSuggestions;
                     result.QualityAssessment = new CodeQualityAssessment
@@ -281,7 +281,7 @@ public class AILogicalScoringService : IAILogicalScoringService
     /// <summary>
     /// 计算逻辑清晰度评分
     /// </summary>
-    private static decimal CalculateLogicalClarity(CSharpLogicalAnalysisResponse response)
+    private static double CalculateLogicalClarity(CSharpLogicalAnalysisResponse response)
     {
         // 基于逻辑错误数量和严重程度计算
         int severityPenalty = response.LogicalErrors.Sum(e => e.Severity.ToLower() switch
@@ -299,7 +299,7 @@ public class AILogicalScoringService : IAILogicalScoringService
     /// <summary>
     /// 计算算法效率评分
     /// </summary>
-    private static decimal CalculateAlgorithmEfficiency(CSharpLogicalAnalysisResponse response)
+    private static double CalculateAlgorithmEfficiency(CSharpLogicalAnalysisResponse response)
     {
         // 简化实现，基于整体评分
         return Math.Max(0, response.LogicalScore - 10);
@@ -308,7 +308,7 @@ public class AILogicalScoringService : IAILogicalScoringService
     /// <summary>
     /// 计算代码结构评分
     /// </summary>
-    private static decimal CalculateCodeStructure(CSharpLogicalAnalysisResponse response)
+    private static double CalculateCodeStructure(CSharpLogicalAnalysisResponse response)
     {
         // 简化实现，基于整体评分
         return Math.Max(0, response.LogicalScore - 5);
@@ -317,7 +317,7 @@ public class AILogicalScoringService : IAILogicalScoringService
     /// <summary>
     /// 计算错误处理评分
     /// </summary>
-    private static decimal CalculateErrorHandling(CSharpLogicalAnalysisResponse response)
+    private static double CalculateErrorHandling(CSharpLogicalAnalysisResponse response)
     {
         // 基于是否有异常处理相关的改进建议
         bool hasErrorHandlingSuggestions = response.ImprovementSuggestions

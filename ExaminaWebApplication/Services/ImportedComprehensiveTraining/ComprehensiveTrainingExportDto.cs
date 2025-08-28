@@ -93,7 +93,7 @@ public class ComprehensiveTrainingDto
     /// </summary>
     [JsonPropertyName("totalScore")]
     [XmlElement("TotalScore")]
-    public decimal TotalScore { get; set; } = 100.0m;
+    public double TotalScore { get; set; } = 100.0;
 
     /// <summary>
     /// 训练时长（分钟）
@@ -135,7 +135,7 @@ public class ComprehensiveTrainingDto
     /// </summary>
     [JsonPropertyName("passingScore")]
     [XmlElement("PassingScore")]
-    public decimal PassingScore { get; set; } = 60.0m;
+    public double PassingScore { get; set; } = 60.0;
 
     /// <summary>
     /// 是否随机题目顺序
@@ -271,7 +271,7 @@ public class ComprehensiveTrainingSubjectDto
     /// 科目分值
     /// </summary>
     [JsonPropertyName("score")]
-    public decimal Score { get; set; } = 20.0m;
+    public double Score { get; set; } = 20.0;
 
     /// <summary>
     /// 科目训练时长（分钟）
@@ -301,13 +301,13 @@ public class ComprehensiveTrainingSubjectDto
     /// 最低分数要求
     /// </summary>
     [JsonPropertyName("minScore")]
-    public decimal? MinScore { get; set; }
+    public double? MinScore { get; set; }
 
     /// <summary>
     /// 科目权重
     /// </summary>
     [JsonPropertyName("weight")]
-    public decimal Weight { get; set; } = 1.0m;
+    public double Weight { get; set; } = 1.0;
 
     /// <summary>
     /// 科目配置

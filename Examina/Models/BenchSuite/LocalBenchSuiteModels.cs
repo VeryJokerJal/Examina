@@ -1,4 +1,4 @@
-using Examina.Models;
+﻿using Examina.Models;
 using BenchSuite.Models;
 
 namespace Examina.Models.BenchSuite;
@@ -88,17 +88,17 @@ public class BenchSuiteScoringResult
     /// <summary>
     /// 总分
     /// </summary>
-    public decimal TotalScore { get; set; }
+    public double TotalScore { get; set; }
 
     /// <summary>
     /// 获得分数
     /// </summary>
-    public decimal AchievedScore { get; set; }
+    public double AchievedScore { get; set; }
 
     /// <summary>
     /// 得分率
     /// </summary>
-    public decimal ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
+    public double ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
 
     /// <summary>
     /// 开始时间
@@ -154,7 +154,7 @@ public static class BenchSuiteScoringResultExtensions
         foreach (var group in groupedResults)
         {
             ModuleType moduleType = group.Key;
-            List<KnowledgePointResult> knowledgePoints = group.ToList();
+            List<KnowledgePointResult> knowledgePoints = [.. group];
 
             ScoringResult scoringResult = new()
             {

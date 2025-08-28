@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using ReactiveUI;
 using Examina.Models.MockExam;
 
@@ -83,7 +83,7 @@ public class MockExamQuestionDetailsViewModel : ViewModelBase
     /// <summary>
     /// 总分值
     /// </summary>
-    public decimal TotalScore => MockExamData?.TotalScore ?? 0;
+    public double TotalScore => MockExamData?.TotalScore ?? 0;
 
     /// <summary>
     /// 考试时长（分钟）

@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Examina.Models.SpecializedTraining;
@@ -280,7 +280,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     /// <summary>
     /// 提交专项训练成绩并标记为完成
     /// </summary>
-    public async Task<bool> CompleteSpecializedTrainingAsync(int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    public async Task<bool> CompleteSpecializedTrainingAsync(int trainingId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null)
     {
         try
         {

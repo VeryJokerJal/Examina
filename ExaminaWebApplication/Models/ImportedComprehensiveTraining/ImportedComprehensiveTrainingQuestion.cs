@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.ImportedComprehensiveTraining;
@@ -62,7 +62,7 @@ public class ImportedComprehensiveTrainingQuestion
     /// 题目分值
     /// </summary>
     [Column(TypeName = "decimal(5,2)")]
-    public decimal Score { get; set; } = 10.0m;
+    public double Score { get; set; } = 10.0;
 
     /// <summary>
     /// 难度级别
@@ -146,8 +146,8 @@ public class ImportedComprehensiveTrainingQuestion
     /// <summary>
     /// C#题目直接分数（仅调试纠错和编写实现类型使用）
     /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal? CSharpDirectScore { get; set; }
+    [Column(TypeName = "double")]
+    public double? CSharpDirectScore { get; set; }
 
     /// <summary>
     /// Office文档文件路径（仅Office模块使用）

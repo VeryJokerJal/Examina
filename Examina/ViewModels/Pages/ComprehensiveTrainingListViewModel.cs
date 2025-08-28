@@ -585,8 +585,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             // 尝试进行BenchSuite评分
             BenchSuiteScoringResult? scoringResult = null;
-            decimal? score = null;
-            decimal? maxScore = null;
+            double? score = null;
+            double? maxScore = null;
             string? benchSuiteScoringResultJson = null;
 
             if (currentTrainingId.HasValue)
@@ -993,7 +993,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 按排序顺序排列题目
-            questionItems = questionItems.OrderBy(q => q.SortOrder).ToList();
+            questionItems = [.. questionItems.OrderBy(q => q.SortOrder)];
 
             analysisViewModel.SetAnswerAnalysisData(training.Name, questionItems);
 
@@ -1189,14 +1189,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             AchievedScore = moduleResults.Values.Sum(r => r.AchievedScore),
             StartTime = moduleResults.Values.Any() ? moduleResults.Values.Min(r => r.StartTime) : DateTime.Now,
             EndTime = moduleResults.Values.Any() ? moduleResults.Values.Max(r => r.EndTime) : DateTime.Now,
-            KnowledgePointResults = moduleResults.Values.SelectMany(r => r.KnowledgePointResults).ToList()
+            KnowledgePointResults = [.. moduleResults.Values.SelectMany(r => r.KnowledgePointResults)]
         };
 
         // 设置错误信息（如果有失败的模块）
-        List<string> errorMessages = moduleResults.Values
+        List<string> errorMessages = [.. moduleResults.Values
             .Where(r => !r.IsSuccess && !string.IsNullOrEmpty(r.ErrorMessage))
-            .Select(r => r.ErrorMessage!)
-            .ToList();
+            .Select(r => r.ErrorMessage!)];
 
         if (errorMessages.Count > 0)
         {

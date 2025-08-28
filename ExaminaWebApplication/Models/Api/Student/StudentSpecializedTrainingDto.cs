@@ -162,7 +162,7 @@ public class StudentSpecializedTrainingQuestionDto
     /// <summary>
     /// 题目分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 难度等级（1-5）
@@ -248,7 +248,7 @@ public class StudentSpecializedTrainingOperationPointDto
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 排序顺序

@@ -353,7 +353,7 @@ public class ExamImportService
                 ExpectedOutput = questionDto.ExpectedOutput,
                 CSharpQuestionType = questionDto.CSharpQuestionType,
                 CodeFilePath = questionDto.CodeFilePath,
-                CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? (decimal)questionDto.CSharpDirectScore.Value : null,
+                CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? questionDto.CSharpDirectScore.Value : null,
                 CodeBlanks = questionDto.CodeBlanks != null ? JsonSerializer.Serialize(questionDto.CodeBlanks) : null,
                 DocumentFilePath = questionDto.DocumentFilePath,
                 OriginalCreatedAt = questionDto.CreatedAt,

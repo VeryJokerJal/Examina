@@ -765,8 +765,8 @@ public class MockExamViewModel : ViewModelBase
                                     {
                                         // 练习模式不需要计算时间，使用默认值
                                         actualDurationSeconds = 0;
-                                        decimal totalAchieved = localScoringResults.Values.Sum(r => r.AchievedScore);
-                                        decimal totalMax = localScoringResults.Values.Sum(r => r.TotalScore);
+                                        double totalAchieved = localScoringResults.Values.Sum(r => r.AchievedScore);
+                                        double totalMax = localScoringResults.Values.Sum(r => r.TotalScore);
                                         System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 练习模式本地评分完成，得分: {totalAchieved}/{totalMax}");
                                     }
                                 }
@@ -1018,7 +1018,7 @@ public class MockExamViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 准备显示全屏考试结果窗口 - {examName}");
 
             // 使用简化的全屏考试结果窗口，只显示最终得分
-            decimal? totalAchieved = scoringResults?.Values.Sum(r => r.AchievedScore);
+            double? totalAchieved = scoringResults?.Values.Sum(r => r.AchievedScore);
             System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 显示简化分数结果 - 得分: {totalAchieved}");
 
             _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(

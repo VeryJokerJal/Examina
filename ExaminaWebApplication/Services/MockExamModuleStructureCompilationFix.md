@@ -1,4 +1,4 @@
-# 模拟考试模块结构编译错误修复说明
+﻿# 模拟考试模块结构编译错误修复说明
 
 ## 修复的编译错误
 
@@ -139,7 +139,7 @@ MockExamSubjectDto subjectDto = new()
 | `SortOrder` | `SortOrder` | `int` | 直接映射 |
 | `IsRequired` | `IsRequired` | `bool` | 直接映射 |
 | `IsEnabled` | `IsEnabled` | `bool` | 直接映射 |
-| `MinScore` | `MinScore` | `decimal` ← `decimal?` | 需要空值处理 |
+| `MinScore` | `MinScore` | `decimal` ← `double?` | 需要空值处理 |
 | `Weight` | `Weight` | `decimal` | 直接映射 |
 | `SubjectConfig` | `SubjectConfig` | `string?` | 直接映射 |
 | `QuestionCount` | `QuestionCount` | `int` | 直接映射 |
@@ -151,7 +151,7 @@ MockExamSubjectDto subjectDto = new()
 
 **修复前**：
 ```csharp
-Score = (decimal)op.Score,  // 冗余的类型转换
+Score = op.Score,  // 冗余的类型转换
 ```
 
 **修复后**：

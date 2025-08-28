@@ -123,7 +123,7 @@ public class ImportedExam
                     ExpectedOutput = questionDto.ExpectedOutput,
                     CSharpQuestionType = questionDto.CSharpQuestionType,
                     CodeFilePath = questionDto.CodeFilePath,
-                    CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? (decimal)questionDto.CSharpDirectScore.Value : null,
+                    CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? questionDto.CSharpDirectScore.Value : null,
                     CodeBlanks = SerializeToJsonOrNull(questionDto.CodeBlanks),
                     DocumentFilePath = questionDto.DocumentFilePath,
                     OriginalCreatedAt = questionDto.CreatedAt,
@@ -226,7 +226,7 @@ public class ImportedExam
                     ExpectedOutput = questionDto.ExpectedOutput,
                     CSharpQuestionType = questionDto.CSharpQuestionType,
                     CodeFilePath = questionDto.CodeFilePath,
-                    CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? (decimal)questionDto.CSharpDirectScore.Value : null,
+                    CSharpDirectScore = questionDto.CSharpDirectScore.HasValue ? questionDto.CSharpDirectScore.Value : null,
                     CodeBlanks = SerializeToJsonOrNull(questionDto.CodeBlanks),
                     DocumentFilePath = questionDto.DocumentFilePath,
                     OriginalCreatedAt = questionDto.CreatedAt,
@@ -346,7 +346,7 @@ public class ImportedExam
     /// 总分
     /// </summary>
     [Column(TypeName = "decimal(6,2)")]
-    public decimal TotalScore { get; set; } = 100.0m;
+    public double TotalScore { get; set; } = 100.0;
 
     /// <summary>
     /// 考试时长（分钟）
@@ -382,7 +382,7 @@ public class ImportedExam
     /// 及格分数
     /// </summary>
     [Column(TypeName = "decimal(6,2)")]
-    public decimal PassingScore { get; set; } = 60.0m;
+    public double PassingScore { get; set; } = 60.0;
 
     /// <summary>
     /// 是否随机题目顺序

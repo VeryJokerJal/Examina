@@ -416,7 +416,7 @@ public class FileDownloadService : IFileDownloadService
     /// <returns>需要跳过的根目录名称，如果不需要扁平化则返回null</returns>
     private static string? GetRootDirectoryToSkip(IEnumerable<string> archiveEntries, string archiveFileName)
     {
-        List<string> entries = archiveEntries.ToList();
+        List<string> entries = [.. archiveEntries];
         if (entries.Count == 0)
         {
             return null;
@@ -560,7 +560,7 @@ public class FileDownloadService : IFileDownloadService
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
 
                 // 检查是否需要目录扁平化
-                List<string> entryPaths = archive.Entries.Where(e => !string.IsNullOrEmpty(e.Name)).Select(e => e.FullName).Where(path => !string.IsNullOrEmpty(path)).ToList();
+                List<string> entryPaths = [.. archive.Entries.Where(e => !string.IsNullOrEmpty(e.Name)).Select(e => e.FullName).Where(path => !string.IsNullOrEmpty(path))];
                 string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
 
                 foreach (ZipArchiveEntry entry in archive.Entries)
@@ -658,7 +658,7 @@ public class FileDownloadService : IFileDownloadService
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
 
                 // 检查是否需要目录扁平化
-                List<string> entryPaths = archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!).ToList();
+                List<string> entryPaths = [.. archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!)];
                 string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
 
                 foreach (IArchiveEntry entry in archive.Entries.Where(entry => !entry.IsDirectory))
@@ -732,7 +732,7 @@ public class FileDownloadService : IFileDownloadService
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
 
                 // 检查是否需要目录扁平化
-                List<string> entryPaths = archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!).ToList();
+                List<string> entryPaths = [.. archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!)];
                 string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
 
                 foreach (IArchiveEntry entry in archive.Entries.Where(entry => !entry.IsDirectory))

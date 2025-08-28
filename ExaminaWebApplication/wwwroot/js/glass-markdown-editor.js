@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Glass Markdown Editor
  * 玻璃拟态风格的Markdown编辑器组件
  */

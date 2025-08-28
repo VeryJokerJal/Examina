@@ -643,8 +643,8 @@ public class ExamViewModel : ViewModelBase
         {
             if (CurrentExamAttempt != null && _examAttemptService != null)
             {
-                decimal? score = null;
-                decimal? maxScore = null;
+                double? score = null;
+                double? maxScore = null;
                 string notes = "自动提交";
 
                 // 尝试获取BenchSuite评分结果
@@ -723,8 +723,8 @@ public class ExamViewModel : ViewModelBase
         {
             if (CurrentExamAttempt != null && _examAttemptService != null)
             {
-                decimal? score = null;
-                decimal? maxScore = null;
+                double? score = null;
+                double? maxScore = null;
                 string notes = "手动提交";
 
                 // 尝试获取BenchSuite评分结果

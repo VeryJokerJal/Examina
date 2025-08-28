@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Api.Student;
+﻿using ExaminaWebApplication.Models.Api.Student;
 
 namespace ExaminaWebApplication.Services.Student;
 
@@ -94,5 +94,5 @@ public interface IStudentSpecializedTrainingService
     /// <param name="durationSeconds">用时（秒）</param>
     /// <param name="notes">备注信息</param>
     /// <returns>是否成功</returns>
-    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
+    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null);
 }

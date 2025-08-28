@@ -154,7 +154,7 @@ public partial class ExamResultWindow : Window
     /// </summary>
     public void SetExamResult(string examName, Models.ExamType examType, bool isSuccessful,
         DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
-        decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "")
+        double? score = null, double? totalScore = null, string errorMessage = "", string notes = "")
     {
         try
         {
@@ -174,7 +174,7 @@ public partial class ExamResultWindow : Window
     /// </summary>
     public static async Task<bool?> ShowExamResultAsync(Window? owner, string examName, Models.ExamType examType,
         bool isSuccessful, DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
-        decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "")
+        double? score = null, double? totalScore = null, string errorMessage = "", string notes = "")
     {
         try
         {

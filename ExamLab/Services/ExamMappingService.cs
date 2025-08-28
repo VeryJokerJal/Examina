@@ -32,7 +32,7 @@ public static class ExamMappingService
             UpdatedAt = DateTime.TryParse(exam.LastModifiedTime, out DateTime modifiedTime) ? modifiedTime : null,
             IsEnabled = true,
             Tags = string.Join(",", GetExamTags(exam)),
-            Modules = exam.Modules.Select(ToModuleDto).ToList()
+            Modules = [.. exam.Modules.Select(ToModuleDto)]
         };
 
         // 根据导出级别决定包含的内容
@@ -136,7 +136,7 @@ public static class ExamMappingService
             Score = module.TotalScore, // 使用动态计算的总分，保持小数精度
             Order = module.Order,
             IsEnabled = module.IsEnabled,
-            Questions = module.Questions.Select(ToQuestionDto).ToList()
+            Questions = [.. module.Questions.Select(ToQuestionDto)]
         };
     }
 
@@ -233,7 +233,7 @@ public static class ExamMappingService
             CodeBlanks = question.CodeBlanks?.Select(ToCodeBlankDto).ToList(),
             // Office文档题目特有字段
             DocumentFilePath = question.DocumentFilePath,
-            OperationPoints = question.OperationPoints.Select(ToOperationPointDto).ToList()
+            OperationPoints = [.. question.OperationPoints.Select(ToOperationPointDto)]
         };
 
         return questionDto;
@@ -301,7 +301,7 @@ public static class ExamMappingService
             Order = operationPoint.Order,
             IsEnabled = operationPoint.IsEnabled,
             CreatedTime = operationPoint.CreatedTime,
-            Parameters = operationPoint.Parameters.Select(ToParameterDto).ToList()
+            Parameters = [.. operationPoint.Parameters.Select(ToParameterDto)]
         };
     }
 

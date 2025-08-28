@@ -1,4 +1,4 @@
-using Examina.Models;
+﻿using Examina.Models;
 using Examina.Models.SpecializedTraining;
 
 namespace Examina.Services;
@@ -78,7 +78,7 @@ public interface IStudentSpecializedTrainingService
     /// <param name="durationSeconds">用时（秒）</param>
     /// <param name="notes">备注</param>
     /// <returns>是否成功</returns>
-    Task<bool> CompleteSpecializedTrainingAsync(int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
+    Task<bool> CompleteSpecializedTrainingAsync(int trainingId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null);
 
     /// <summary>
     /// 获取专项训练进度统计
@@ -115,17 +115,17 @@ public class SpecializedTrainingProgressDto
     /// <summary>
     /// 完成率（百分比）
     /// </summary>
-    public decimal CompletionRate => TotalTrainings > 0 ? (decimal)CompletedTrainings / TotalTrainings * 100 : 0;
+    public double CompletionRate => TotalTrainings > 0 ? CompletedTrainings / TotalTrainings * 100 : 0;
 
     /// <summary>
     /// 平均得分
     /// </summary>
-    public decimal? AverageScore { get; set; }
+    public double? AverageScore { get; set; }
 
     /// <summary>
     /// 最高得分
     /// </summary>
-    public decimal? HighestScore { get; set; }
+    public double? HighestScore { get; set; }
 
     /// <summary>
     /// 最近完成的专项训练

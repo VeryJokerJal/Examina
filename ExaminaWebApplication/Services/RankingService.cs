@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Ranking;
 using Microsoft.EntityFrameworkCore;
@@ -98,13 +98,12 @@ public class RankingService
         _logger.LogInformation("上机统考排行榜查询，去重后总记录数: {TotalCount}, 试卷筛选: {ExamId}", totalCount, query.ExamId);
 
         // 对去重后的结果进行最终排序并分页
-        List<ExamCompletion> completions = deduplicatedCompletions
+        List<ExamCompletion> completions = [.. deduplicatedCompletions
             .OrderByDescending(ec => ec.Score)
             .ThenBy(ec => ec.DurationSeconds)
             .ThenBy(ec => ec.CompletedAt)
             .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToList();
+            .Take(query.PageSize)];
 
         _logger.LogInformation("上机统考排行榜查询完成，返回记录数: {Count}", completions.Count);
 
@@ -188,13 +187,12 @@ public class RankingService
             totalMockExamCompletions, completedRecords, activeRecords, recordsWithScore, recordsWithCompletedAt, totalCount, query.ExamId);
 
         // 对去重后的结果进行最终排序并分页
-        List<MockExamCompletion> completions = deduplicatedCompletions
+        List<MockExamCompletion> completions = [.. deduplicatedCompletions
             .OrderByDescending(mec => mec.Score)
             .ThenBy(mec => mec.DurationSeconds)
             .ThenBy(mec => mec.CompletedAt)
             .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToList();
+            .Take(query.PageSize)];
 
         _logger.LogInformation("模拟考试排行榜查询完成，返回记录数: {Count}", completions.Count);
 
@@ -274,13 +272,12 @@ public class RankingService
             totalTrainingCompletions, completedRecords, activeRecords, recordsWithScore, recordsWithCompletedAt, totalCount, query.ExamId);
 
         // 对去重后的结果进行最终排序并分页
-        List<ComprehensiveTrainingCompletion> completions = deduplicatedCompletions
+        List<ComprehensiveTrainingCompletion> completions = [.. deduplicatedCompletions
             .OrderByDescending(ctc => ctc.Score ?? 0) // 没有分数的记录视为0分
             .ThenBy(ctc => ctc.DurationSeconds ?? int.MaxValue) // 没有用时的记录排在最后
             .ThenBy(ctc => ctc.CompletedAt)
             .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToList();
+            .Take(query.PageSize)];
 
         _logger.LogInformation("综合实训排行榜查询完成，返回记录数: {Count}", completions.Count);
 

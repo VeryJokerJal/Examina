@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using BenchSuite.Models;
@@ -289,10 +289,9 @@ public static class CSharpCompilationChecker
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
             IEnumerable<Diagnostic> diagnostics = syntaxTree.GetDiagnostics();
 
-            List<string> errors = diagnostics
+            List<string> errors = [.. diagnostics
                 .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Select(d => $"行 {d.Location.GetLineSpan().StartLinePosition.Line + 1}: {d.GetMessage()}")
-                .ToList();
+                .Select(d => $"行 {d.Location.GetLineSpan().StartLinePosition.Line + 1}: {d.GetMessage()}")];
 
             return (errors.Count == 0, errors);
         }

@@ -574,12 +574,12 @@ public static class SpecializedExamMappingService
     private static DataSourceType DetectDataSourceByHeuristics(ExamDto examDto)
     {
         // 获取所有模块类型
-        List<string> moduleTypes = examDto.Modules.Select(m => m.Type).Distinct().ToList();
+        List<string> moduleTypes = [.. examDto.Modules.Select(m => m.Type).Distinct()];
 
         // 如果没有模块，检查科目
         if (moduleTypes.Count == 0 && examDto.Subjects.Count > 0)
         {
-            moduleTypes = examDto.Subjects.Select(s => s.SubjectType).Distinct().ToList();
+            moduleTypes = [.. examDto.Subjects.Select(s => s.SubjectType).Distinct()];
         }
 
         // 专项试卷特征：
@@ -881,10 +881,10 @@ public static class SpecializedExamMappingService
         }
 
         // 检查模块类型一致性
-        List<string> moduleTypes = examDto.Modules.Select(m => m.Type).Distinct().ToList();
+        List<string> moduleTypes = [.. examDto.Modules.Select(m => m.Type).Distinct()];
         if (moduleTypes.Count == 0 && examDto.Subjects.Count > 0)
         {
-            moduleTypes = examDto.Subjects.Select(s => s.SubjectType).Distinct().ToList();
+            moduleTypes = [.. examDto.Subjects.Select(s => s.SubjectType).Distinct()];
         }
 
         if (moduleTypes.Count == 1)

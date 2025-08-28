@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.ImportedComprehensiveTraining;
 using ExaminaWebApplication.Services.ImportedComprehensiveTraining;
 using Microsoft.EntityFrameworkCore;

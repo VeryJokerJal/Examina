@@ -1,4 +1,4 @@
-using BenchSuite.Interfaces;
+﻿using BenchSuite.Interfaces;
 using BenchSuite.Models;
 
 namespace BenchSuite.Services;
@@ -103,9 +103,7 @@ public class MockWindowsScoringService : IScoringService
         try
         {
             // 获取题目的操作点（只处理Windows相关的操作点）
-            List<OperationPointModel> windowsOperationPoints = question.OperationPoints
-                .Where(op => op.ModuleType == ModuleType.Windows && op.IsEnabled)
-                .ToList();
+            List<OperationPointModel> windowsOperationPoints = [.. question.OperationPoints.Where(op => op.ModuleType == ModuleType.Windows && op.IsEnabled)];
 
             if (windowsOperationPoints.Count == 0)
             {

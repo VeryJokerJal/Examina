@@ -637,7 +637,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
     /// <summary>
     /// 标记综合训练为已完成
     /// </summary>
-    public async Task<bool> MarkTrainingAsCompletedAsync(int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    public async Task<bool> MarkTrainingAsCompletedAsync(int trainingId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null)
     {
         try
         {

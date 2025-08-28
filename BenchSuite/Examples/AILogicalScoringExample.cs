@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using BenchSuite.Services;
@@ -29,7 +29,7 @@ public static class AILogicalScoringExample
                 ApiEndpoint = customEndpoint ?? "https://api.gptnb.ai/v1/chat/completions",
                 ModelName = "gpt-5-2025-08-07",
                 MaxTokens = 2000,
-                Temperature = 0.1m,
+                Temperature = 0.1,
                 TimeoutSeconds = 30,
                 EnableStructuredOutput = true
             };
@@ -51,7 +51,7 @@ public static class AILogicalScoringExample
             // 4. 测试示例代码
             await TestCorrectImplementation(aiService);
             await TestIncorrectImplementation(aiService);
-            await TestStructuredOutputParsing();
+            TestStructuredOutputParsing();
 
             Console.WriteLine("=== AI逻辑性判分示例完成 ===");
             return true;
@@ -111,7 +111,7 @@ public static class AILogicalScoringExample
         string problemDescription = "从字符串中提取所有数字并计算它们的总和";
 
         AILogicalScoringResult result = await aiService.ScoreLogicalReasoningAsync(
-            correctCode, 
+            correctCode,
             problemDescription,
             "对于输入'a123b45c6'，应该返回174（123+45+6）"
         );
@@ -160,7 +160,7 @@ public static class AILogicalScoringExample
         string problemDescription = "从字符串中提取所有数字并计算它们的总和";
 
         AILogicalScoringResult result = await aiService.ScoreLogicalReasoningAsync(
-            incorrectCode, 
+            incorrectCode,
             problemDescription,
             "对于输入'a123b45c6'，应该返回174（123+45+6）"
         );
@@ -171,7 +171,7 @@ public static class AILogicalScoringExample
     /// <summary>
     /// 测试结构化输出解析
     /// </summary>
-    private static async Task TestStructuredOutputParsing()
+    private static void TestStructuredOutputParsing()
     {
         Console.WriteLine("\n--- 测试结构化输出解析 ---");
 
@@ -208,7 +208,7 @@ public static class AILogicalScoringExample
         try
         {
             CSharpLogicalAnalysisResponse? response = JsonSerializer.Deserialize<CSharpLogicalAnalysisResponse>(mockJsonResponse);
-            
+
             if (response != null)
             {
                 Console.WriteLine("✅ JSON解析成功");
@@ -235,13 +235,13 @@ public static class AILogicalScoringExample
     {
         Console.WriteLine($"\n{testName} - 评分结果:");
         Console.WriteLine($"成功: {(result.IsSuccess ? "✅" : "❌")}");
-        
+
         if (result.IsSuccess)
         {
             Console.WriteLine($"逻辑评分: {result.LogicalScore}/100");
             Console.WriteLine($"处理耗时: {result.ProcessingTimeMs}ms");
             Console.WriteLine($"分析步骤数: {result.Steps.Count}");
-            
+
             if (result.Steps.Count > 0)
             {
                 Console.WriteLine("主要分析步骤:");
@@ -250,7 +250,7 @@ public static class AILogicalScoringExample
                     Console.WriteLine($"  • {step.Explanation}");
                 }
             }
-            
+
             if (!string.IsNullOrEmpty(result.FinalAnswer))
             {
                 Console.WriteLine($"最终评估: {result.FinalAnswer}");
@@ -338,13 +338,13 @@ public static class AILogicalScoringExample
             Console.WriteLine($"总分: {result.TotalScore}");
             Console.WriteLine($"得分: {result.AchievedScore}");
             Console.WriteLine($"得分率: {result.ScoreRate:P2}");
-            
+
             if (result.AILogicalResult != null)
             {
                 Console.WriteLine($"AI逻辑评分: {result.AILogicalResult.LogicalScore}/100");
                 Console.WriteLine($"AI分析成功: {(result.AILogicalResult.IsSuccess ? "✅" : "❌")}");
             }
-            
+
             Console.WriteLine($"详细信息:\n{result.Details}");
 
             return result.IsSuccess;

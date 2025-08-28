@@ -1,4 +1,4 @@
-using BenchSuite.Interfaces;
+﻿using BenchSuite.Interfaces;
 using BenchSuite.Models;
 
 namespace BenchSuite.Services;
@@ -141,10 +141,9 @@ public class CSharpScoringService : ICSharpScoringService
         }
         else if (correctBlanks < totalBlanks)
         {
-            List<int> incorrectBlanks = fillResults
+            List<int> incorrectBlanks = [.. fillResults
                 .Where(f => !f.Matched)
-                .Select(f => f.BlankIndex + 1)
-                .ToList();
+                .Select(f => f.BlankIndex + 1)];
             result.Details += $"\n错误的填空位置: {string.Join(", ", incorrectBlanks)}";
         }
     }
@@ -164,7 +163,7 @@ public class CSharpScoringService : ICSharpScoringService
         }
 
         // 第一个元素作为期望错误列表，第二个元素（如果有）作为测试代码
-        List<string> expectedErrors = expectedImplementations[0].Split('\n', StringSplitOptions.RemoveEmptyEntries).ToList();
+        List<string> expectedErrors = [.. expectedImplementations[0].Split('\n', StringSplitOptions.RemoveEmptyEntries)];
         string? testCode = expectedImplementations.Count > 1 ? expectedImplementations[1] : null;
 
         DebuggingResult debuggingResult = await DebugCodeAsync(buggyCode, studentCode, expectedErrors, testCode);
@@ -275,20 +274,20 @@ public class CSharpScoringService : ICSharpScoringService
     private static void CalculateComprehensiveScore(CSharpScoringResult result, UnitTestResult testResult, AILogicalScoringResult? aiResult)
     {
         // 基础评分：编译 + 单元测试
-        decimal baseScore = testResult.TotalTests + 1; // +1 for compilation
-        decimal achievedBaseScore = testResult.PassedTests + 1; // +1 for successful compilation
+        double baseScore = testResult.TotalTests + 1; // +1 for compilation
+        double achievedBaseScore = testResult.PassedTests + 1; // +1 for successful compilation
 
         if (aiResult?.IsSuccess == true)
         {
             // 如果有AI判分结果，将其纳入综合评分
             // AI逻辑性评分权重为30%，单元测试权重为70%
-            decimal testWeight = 0.7m;
-            decimal aiWeight = 0.3m;
+            double testWeight = 0.7;
+            double aiWeight = 0.3;
 
-            decimal testScoreRatio = baseScore > 0 ? achievedBaseScore / baseScore : 0;
-            decimal aiScoreRatio = aiResult.LogicalScore / 100m;
+            double testScoreRatio = baseScore > 0 ? achievedBaseScore / baseScore : 0;
+            double aiScoreRatio = aiResult.LogicalScore / 100.0;
 
-            decimal comprehensiveRatio = (testScoreRatio * testWeight) + (aiScoreRatio * aiWeight);
+            double comprehensiveRatio = (testScoreRatio * testWeight) + (aiScoreRatio * aiWeight);
 
             result.TotalScore = baseScore;
             result.AchievedScore = Math.Round(baseScore * comprehensiveRatio, 2);
@@ -324,7 +323,7 @@ public class CSharpScoringService : ICSharpScoringService
                 details.Add($"错误信息: {testResult.ErrorMessage}");
             }
 
-            List<TestCaseResult> failedTests = testResult.TestCaseResults.Where(t => !t.Passed).Take(3).ToList();
+            List<TestCaseResult> failedTests = [.. testResult.TestCaseResults.Where(t => !t.Passed).Take(3)];
             if (failedTests.Count > 0)
             {
                 details.Add("失败的测试:");
@@ -393,8 +392,8 @@ public class CSharpScoringService : ICSharpScoringService
 
             // 处理试卷中的所有C#题目
             List<KnowledgePointResult> allResults = [];
-            decimal totalScore = 0;
-            decimal achievedScore = 0;
+            double totalScore = 0;
+            double achievedScore = 0;
 
             // 从所有模块中获取C#题目
             var csharpQuestions = examModel.Modules

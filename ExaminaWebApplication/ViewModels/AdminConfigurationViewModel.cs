@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Admin;
+﻿using ExaminaWebApplication.Models.Admin;
 using System.ComponentModel.DataAnnotations;
 
 namespace ExaminaWebApplication.ViewModels;
@@ -88,11 +88,11 @@ public class AdminConfigurationViewModel : ViewModelBase
             }
 
             string keyword = SearchKeyword.ToLowerInvariant();
-            return AllConfigurations.Where(c =>
+            return [.. AllConfigurations.Where(c =>
                 c.ConfigKey.ToLowerInvariant().Contains(keyword) ||
                 (c.Description?.ToLowerInvariant().Contains(keyword) ?? false) ||
                 c.Category.ToLowerInvariant().Contains(keyword)
-            ).ToList();
+            )];
         }
     }
 
@@ -103,11 +103,10 @@ public class AdminConfigurationViewModel : ViewModelBase
     {
         get
         {
-            return AllConfigurations
+            return [.. AllConfigurations
                 .Select(c => c.Category)
                 .Distinct()
-                .OrderBy(c => c)
-                .ToList();
+                .OrderBy(c => c)];
         }
     }
 
@@ -118,10 +117,9 @@ public class AdminConfigurationViewModel : ViewModelBase
     {
         get
         {
-            return AllConfigurations
+            return [.. AllConfigurations
                 .Where(c => c.Category == "DeviceManagement")
-                .OrderBy(c => c.ConfigKey)
-                .ToList();
+                .OrderBy(c => c.ConfigKey)];
         }
     }
 
@@ -187,10 +185,9 @@ public class AdminConfigurationViewModel : ViewModelBase
     /// <returns>配置列表</returns>
     public List<SystemConfigurationDto> GetConfigurationsByCategory(string category)
     {
-        return AllConfigurations
+        return [.. AllConfigurations
             .Where(c => c.Category == category)
-            .OrderBy(c => c.ConfigKey)
-            .ToList();
+            .OrderBy(c => c.ConfigKey)];
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -43,7 +43,7 @@ public class ExamSchoolConfigurationController : ControllerBase
         {
             List<OrganizationEntity> schools = await _schoolPermissionService.GetExamAssociatedSchoolsAsync(examId);
 
-            List<OrganizationDto> result = schools.Select(s => new OrganizationDto
+            List<OrganizationDto> result = [.. schools.Select(s => new OrganizationDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -52,7 +52,7 @@ public class ExamSchoolConfigurationController : ControllerBase
                 CreatedAt = s.CreatedAt,
                 CreatedBy = s.CreatedBy,
                 IsActive = s.IsActive
-            }).ToList();
+            })];
 
             _logger.LogInformation("获取考试关联学校列表成功，考试ID: {ExamId}, 学校数量: {Count}", 
                 examId, result.Count);
@@ -235,7 +235,7 @@ public class ExamSchoolConfigurationController : ControllerBase
                 .Take(20) // 限制返回数量
                 .ToListAsync();
 
-            List<OrganizationDto> result = schools.Select(s => new OrganizationDto
+            List<OrganizationDto> result = [.. schools.Select(s => new OrganizationDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -244,7 +244,7 @@ public class ExamSchoolConfigurationController : ControllerBase
                 CreatedAt = s.CreatedAt,
                 CreatedBy = s.CreatedBy,
                 IsActive = s.IsActive
-            }).ToList();
+            })];
 
             _logger.LogInformation("搜索学校成功，关键词: {Keyword}, 考试ID: {ExamId}, 返回数量: {Count}",
                 keyword, examId, result.Count);

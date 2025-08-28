@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  * jQuery Validation Plugin v1.21.0
  *
  * https://jqueryvalidation.org/
@@ -1557,7 +1557,7 @@ $.extend( $.validator, {
 						return 0;
 					}
 
-					// Number of digits right of decimal point.
+					// Number of digits right of double point.
 					return match[ 1 ] ? match[ 1 ].length : 0;
 				},
 				toInt = function( num ) {

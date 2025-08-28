@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models;
@@ -46,17 +46,17 @@ public class ComprehensiveTrainingCompletion
     /// <summary>
     /// 得分（可选）
     /// </summary>
-    public decimal? Score { get; set; }
+    public double? Score { get; set; }
 
     /// <summary>
     /// 最大得分（可选）
     /// </summary>
-    public decimal? MaxScore { get; set; }
+    public double? MaxScore { get; set; }
 
     /// <summary>
     /// 完成百分比（0-100）
     /// </summary>
-    public decimal? CompletionPercentage { get; set; }
+    public double? CompletionPercentage { get; set; }
 
     /// <summary>
     /// 用时（秒）

@@ -152,7 +152,7 @@ public partial class FullScreenExamResultWindow : Window
     /// </summary>
     public void SetExamResult(string examName, ExamType examType, bool isSuccessful,
         DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
-        decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "",
+        double? score = null, double? totalScore = null, string errorMessage = "", string notes = "",
         bool showContinue = true, bool showClose = true)
     {
         try
@@ -179,7 +179,7 @@ public partial class FullScreenExamResultWindow : Window
     /// <summary>
     /// 更新评分结果
     /// </summary>
-    public void UpdateScore(decimal? score, decimal? totalScore = null, string notes = "")
+    public void UpdateScore(double? score, double? totalScore = null, string notes = "")
     {
         _viewModel?.UpdateScore(score, totalScore, notes);
     }
@@ -203,7 +203,7 @@ public partial class FullScreenExamResultWindow : Window
     /// <summary>
     /// 从BenchSuite评分结果设置详细分数信息
     /// </summary>
-    public void SetScoreDetailFromBenchSuite(Dictionary<ModuleType, ScoringResult> benchSuiteResults, decimal passThreshold = 60)
+    public void SetScoreDetailFromBenchSuite(Dictionary<ModuleType, ScoringResult> benchSuiteResults, double passThreshold = 60)
     {
         _viewModel?.SetScoreDetailFromBenchSuite(benchSuiteResults, passThreshold);
     }
@@ -213,7 +213,7 @@ public partial class FullScreenExamResultWindow : Window
     /// </summary>
     public static FullScreenExamResultWindow ShowFullScreenExamResult(string examName, ExamType examType,
         bool isSuccessful, DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
-        decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "",
+        double? score = null, double? totalScore = null, string errorMessage = "", string notes = "",
         bool showContinue = true, bool showClose = true)
     {
         try
@@ -253,7 +253,7 @@ public partial class FullScreenExamResultWindow : Window
     /// </summary>
     public static async Task<bool> ShowFullScreenExamResultAsync(string examName, ExamType examType,
         bool isSuccessful, DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
-        decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "",
+        double? score = null, double? totalScore = null, string errorMessage = "", string notes = "",
         bool showContinue = true, bool showClose = true)
     {
         try
@@ -283,8 +283,8 @@ public partial class FullScreenExamResultWindow : Window
             FullScreenExamResultViewModel viewModel = new();
 
             // 设置基本考试结果信息
-            decimal? score = scoreDetail?.AchievedScore;
-            decimal? totalScore = scoreDetail?.TotalScore;
+            double? score = scoreDetail?.AchievedScore;
+            double? totalScore = scoreDetail?.TotalScore;
 
             viewModel.SetFullScreenExamResult(examName, examType, isSuccessful, startTime, endTime,
                 durationMinutes, score, totalScore, errorMessage, notes, showContinue, showClose);
@@ -336,15 +336,15 @@ public partial class FullScreenExamResultWindow : Window
     public static FullScreenExamResultWindow ShowFullScreenExamResultFromBenchSuite(string examName, ExamType examType,
         bool isSuccessful, Dictionary<ModuleType, ScoringResult>? benchSuiteResults = null, DateTime? startTime = null, DateTime? endTime = null,
         int? durationMinutes = null, string errorMessage = "", string notes = "",
-        bool showContinue = true, bool showClose = true, decimal passThreshold = 60)
+        bool showContinue = true, bool showClose = true, double passThreshold = 60)
     {
         try
         {
             FullScreenExamResultViewModel viewModel = new();
 
             // 设置基本考试结果信息
-            decimal? score = benchSuiteResults?.Values.Sum(r => r.AchievedScore);
-            decimal? totalScore = benchSuiteResults?.Values.Sum(r => r.TotalScore);
+            double? score = benchSuiteResults?.Values.Sum(r => r.AchievedScore);
+            double? totalScore = benchSuiteResults?.Values.Sum(r => r.TotalScore);
 
             viewModel.SetFullScreenExamResult(examName, examType, isSuccessful, startTime, endTime,
                 durationMinutes, score, totalScore, errorMessage, notes, showContinue, showClose);
@@ -374,7 +374,7 @@ public partial class FullScreenExamResultWindow : Window
     public static async Task<bool> ShowFullScreenExamResultFromBenchSuiteAsync(string examName, ExamType examType,
         bool isSuccessful, Dictionary<ModuleType, ScoringResult>? benchSuiteResults = null, DateTime? startTime = null, DateTime? endTime = null,
         int? durationMinutes = null, string errorMessage = "", string notes = "",
-        bool showContinue = true, bool showClose = true, decimal passThreshold = 60)
+        bool showContinue = true, bool showClose = true, double passThreshold = 60)
     {
         try
         {

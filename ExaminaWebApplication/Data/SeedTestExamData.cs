@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.ImportedExam;
+﻿using ExaminaWebApplication.Models.ImportedExam;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExaminaWebApplication.Data;
@@ -24,8 +24,8 @@ public static class SeedTestExamData
         DateTime now = DateTime.UtcNow;
 
         // 创建测试考试数据
-        List<ImportedExam> testExams = new()
-        {
+        List<ImportedExam> testExams =
+        [
             // 全省统考 - 已发布状态
             new ImportedExam
             {
@@ -34,13 +34,13 @@ public static class SeedTestExamData
                 Description = "面向全省学生的计算机应用能力统一考试",
                 ExamType = "UnifiedExam",
                 Status = "Published",
-                TotalScore = 100.0m,
+                TotalScore = 100.0,
                 DurationMinutes = 150,
                 StartTime = now.AddDays(7), // 7天后开始
                 EndTime = now.AddDays(7).AddMinutes(150), // 开始后150分钟结束
                 AllowRetake = false,
                 MaxRetakeCount = 0,
-                PassingScore = 60.0m,
+                PassingScore = 60.0,
                 RandomizeQuestions = true,
                 ShowScore = true,
                 ShowAnswers = false,
@@ -65,13 +65,13 @@ public static class SeedTestExamData
                 Description = "夏季学期全省计算机应用能力统一考试",
                 ExamType = "UnifiedExam",
                 Status = "Draft",
-                TotalScore = 100.0m,
+                TotalScore = 100.0,
                 DurationMinutes = 120,
                 StartTime = null,
                 EndTime = null,
                 AllowRetake = false,
                 MaxRetakeCount = 0,
-                PassingScore = 60.0m,
+                PassingScore = 60.0,
                 RandomizeQuestions = true,
                 ShowScore = true,
                 ShowAnswers = false,
@@ -96,13 +96,13 @@ public static class SeedTestExamData
                 Description = "计算机基础课程期中考试",
                 ExamType = "UnifiedExam",
                 Status = "Scheduled",
-                TotalScore = 100.0m,
+                TotalScore = 100.0,
                 DurationMinutes = 90,
                 StartTime = now.AddDays(3), // 3天后开始
                 EndTime = now.AddDays(3).AddMinutes(90), // 开始后90分钟结束
                 AllowRetake = true,
                 MaxRetakeCount = 1,
-                PassingScore = 60.0m,
+                PassingScore = 60.0,
                 RandomizeQuestions = false,
                 ShowScore = true,
                 ShowAnswers = true,
@@ -127,13 +127,13 @@ public static class SeedTestExamData
                 Description = "Microsoft Office应用技能综合测试",
                 ExamType = "UnifiedExam",
                 Status = "InProgress",
-                TotalScore = 100.0m,
+                TotalScore = 100.0,
                 DurationMinutes = 120,
                 StartTime = now.AddMinutes(-30), // 30分钟前开始
                 EndTime = now.AddMinutes(90), // 90分钟后结束
                 AllowRetake = false,
                 MaxRetakeCount = 0,
-                PassingScore = 70.0m,
+                PassingScore = 70.0,
                 RandomizeQuestions = true,
                 ShowScore = false,
                 ShowAnswers = false,
@@ -158,13 +158,13 @@ public static class SeedTestExamData
                 Description = "C#程序设计基础课程考试",
                 ExamType = "UnifiedExam",
                 Status = "Completed",
-                TotalScore = 100.0m,
+                TotalScore = 100.0,
                 DurationMinutes = 180,
                 StartTime = now.AddDays(-2), // 2天前开始
                 EndTime = now.AddDays(-2).AddMinutes(180), // 开始后180分钟结束
                 AllowRetake = false,
                 MaxRetakeCount = 0,
-                PassingScore = 60.0m,
+                PassingScore = 60.0,
                 RandomizeQuestions = false,
                 ShowScore = true,
                 ShowAnswers = true,
@@ -180,11 +180,11 @@ public static class SeedTestExamData
                 ImportVersion = "1.0",
                 ImportStatus = "Success"
             }
-        };
+        ];
 
         // 添加到数据库
         await context.ImportedExams.AddRangeAsync(testExams);
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
 
         Console.WriteLine($"已创建 {testExams.Count} 个测试考试数据");
     }

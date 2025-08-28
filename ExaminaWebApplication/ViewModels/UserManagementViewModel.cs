@@ -169,7 +169,7 @@ public class UserManagementViewModel : ViewModelBase
     /// <summary>
     /// 可用的班级列表（根据选中的学校过滤）
     /// </summary>
-    public List<OrganizationDto> AvailableClasses => CreateUserRequest.SchoolId == null ? [] : Classes.Where(c => c.ParentOrganizationId == CreateUserRequest.SchoolId).ToList();
+    public List<OrganizationDto> AvailableClasses => CreateUserRequest.SchoolId == null ? [] : [.. Classes.Where(c => c.ParentOrganizationId == CreateUserRequest.SchoolId)];
 
     /// <summary>
     /// 清除错误和成功消息

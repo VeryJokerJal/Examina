@@ -328,8 +328,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 else
                 {
                     // 多个文件时，合并结果
-                    decimal totalScore = 0;
-                    decimal achievedScore = 0;
+                    double totalScore = 0;
+                    double achievedScore = 0;
                     List<KnowledgePointResult> allKnowledgePoints = [];
 
                     foreach (string filePath in filePaths)
@@ -558,7 +558,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = mockExamDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(mockExamDto.Name) ? $"模拟考试_{mockExamDto.Id}" : mockExamDto.Name,
             Description = mockExamDto.Description ?? string.Empty,
-            TotalScore = mockExamDto.TotalScore > 0 ? mockExamDto.TotalScore : 100m,
+            TotalScore = (double)(mockExamDto.TotalScore > 0 ? mockExamDto.TotalScore : 100m),
             DurationMinutes = mockExamDto.DurationMinutes > 0 ? mockExamDto.DurationMinutes : 120,
             Modules = []
         };
@@ -577,7 +577,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Name = $"{targetModuleType}模块",
                 Type = targetModuleType,
                 Description = $"模拟考试 - {targetModuleType}模块",
-                Score = (decimal)relevantQuestions.Sum(q => q.Score),
+                Score = relevantQuestions.Sum(q => q.Score),
                 Order = 1,
                 Questions = []
             };
@@ -590,7 +590,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.OriginalQuestionId}" : questionDto.Title,
                     Content = questionDto.Content ?? string.Empty,
 #pragma warning disable CS0618 // 类型或成员已过时
-                    Score = (decimal)questionDto.Score,
+                    Score = questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
                     OperationPoints = []
@@ -607,7 +607,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                         Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
                         Description = opDto.Description ?? string.Empty,
                         ModuleType = ParseModuleType(opDto.ModuleType),
-                        Score = (decimal)opDto.Score,
+                        Score = opDto.Score,
                         Order = opDto.Order,
                         IsEnabled = true,
                         Parameters = MapMockExamParametersToConfigurationParameters(opDto.Parameters)
@@ -656,7 +656,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = trainingDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(trainingDto.Name) ? $"综合实训_{trainingDto.Id}" : trainingDto.Name,
             Description = trainingDto.Description ?? string.Empty,
-            TotalScore = trainingDto.CalculatedTotalScore > 0 ? (decimal)trainingDto.CalculatedTotalScore : trainingDto.TotalScore,
+            TotalScore = trainingDto.CalculatedTotalScore > 0 ? trainingDto.CalculatedTotalScore : trainingDto.TotalScore,
             DurationMinutes = trainingDto.DurationMinutes > 0 ? trainingDto.DurationMinutes : 120,
             Modules = []
         };
@@ -673,7 +673,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Name = string.IsNullOrWhiteSpace(moduleDto.Name) ? $"{targetModuleType}模块" : moduleDto.Name,
                 Type = ParseModuleType(moduleDto.Type),
                 Description = moduleDto.Description ?? string.Empty,
-                Score = (decimal)moduleDto.Score,
+                Score = moduleDto.Score,
                 Order = moduleDto.Order,
                 Questions = []
             };
@@ -711,7 +711,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                         Name = $"{subjectDto.SubjectName} - {targetModuleType}",
                         Type = targetModuleType,
                         Description = subjectDto.Description ?? $"{subjectDto.SubjectName}科目 - {targetModuleType}模块",
-                        Score = (decimal)relevantQuestions.Sum(q => q.Score),
+                        Score = relevantQuestions.Sum(q => q.Score),
                         Order = subjectDto.SortOrder,
                         Questions = []
                     };
@@ -754,7 +754,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Title = string.IsNullOrWhiteSpace(questionDto.Title) ? $"题目_{questionDto.Id}" : questionDto.Title,
             Content = questionDto.Content ?? string.Empty,
 #pragma warning disable CS0618 // 类型或成员已过时
-            Score = (decimal)questionDto.Score,
+            Score = questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
             Order = questionDto.SortOrder,
             OperationPoints = []
@@ -771,7 +771,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
                 Description = opDto.Description ?? string.Empty,
                 ModuleType = ParseModuleType(opDto.ModuleType),
-                Score = (decimal)opDto.Score,
+                Score = opDto.Score,
                 Order = opDto.Order,
                 IsEnabled = true,
                 Parameters = MapComprehensiveTrainingParametersToConfigurationParameters(opDto.Parameters)
@@ -868,7 +868,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = Guid.NewGuid().ToString(),
             Name = examName,
             Description = $"{examName} - {targetModuleType}模块",
-            TotalScore = 100m,
+            TotalScore = (double)100m,
             DurationMinutes = 120,
             Modules = []
         };
@@ -892,7 +892,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Id = examDto.Id.ToString(),
             Name = string.IsNullOrWhiteSpace(examDto.Name) ? $"考试_{examDto.Id}" : examDto.Name,
             Description = examDto.Description ?? string.Empty,
-            TotalScore = examDto.TotalScore > 0 ? examDto.TotalScore : 100m,
+            TotalScore = (double)(examDto.TotalScore > 0 ? examDto.TotalScore : 100m),
             DurationMinutes = examDto.DurationMinutes > 0 ? examDto.DurationMinutes : 120,
             Modules = []
         };
@@ -909,7 +909,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 Name = moduleDto.Name,
                 Type = ParseModuleType(moduleDto.Type),
                 Description = moduleDto.Description,
-                Score = (decimal)moduleDto.Score,
+                Score = moduleDto.Score,
                 Order = moduleDto.Order,
                 Questions = []
             };
@@ -922,7 +922,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     Title = questionDto.Title,
                     Content = questionDto.Content,
 #pragma warning disable CS0618 // 类型或成员已过时
-                    Score = (decimal)questionDto.Score,
+                    Score = questionDto.Score,
 #pragma warning restore CS0618 // 类型或成员已过时
                     Order = questionDto.SortOrder,
                     OperationPoints = []
@@ -936,7 +936,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                         Name = opDto.Name,
                         Description = opDto.Description,
                         ModuleType = ParseModuleType(opDto.ModuleType),
-                        Score = (decimal)opDto.Score,
+                        Score = opDto.Score,
                         Order = opDto.Order,
                         IsEnabled = true,
                         Parameters = []

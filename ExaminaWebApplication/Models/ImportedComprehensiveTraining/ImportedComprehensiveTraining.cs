@@ -339,7 +339,7 @@ public class ImportedComprehensiveTraining
     /// 总分
     /// </summary>
     [Column(TypeName = "decimal(6,2)")]
-    public decimal TotalScore { get; set; } = 100.0m;
+    public double TotalScore { get; set; } = 100.0;
 
     /// <summary>
     /// 训练时长（分钟）
@@ -370,7 +370,7 @@ public class ImportedComprehensiveTraining
     /// 及格分数
     /// </summary>
     [Column(TypeName = "decimal(6,2)")]
-    public decimal PassingScore { get; set; } = 60.0m;
+    public double PassingScore { get; set; } = 60.0;
 
     /// <summary>
     /// 是否随机题目顺序

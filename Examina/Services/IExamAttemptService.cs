@@ -1,4 +1,4 @@
-using Examina.Models.Exam;
+﻿using Examina.Models.Exam;
 
 namespace Examina.Services;
 
@@ -33,7 +33,7 @@ public interface IExamAttemptService
     /// <param name="durationSeconds">用时（秒）</param>
     /// <param name="notes">备注</param>
     /// <returns>是否成功</returns>
-    Task<bool> CompleteExamAttemptAsync(int attemptId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
+    Task<bool> CompleteExamAttemptAsync(int attemptId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null);
 
     /// <summary>
     /// 放弃考试尝试
@@ -51,7 +51,7 @@ public interface IExamAttemptService
     /// <param name="maxScore">最大得分（如果有）</param>
     /// <param name="durationSeconds">实际用时（秒）</param>
     /// <returns>是否成功</returns>
-    Task<bool> TimeoutExamAttemptAsync(int attemptId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null);
+    Task<bool> TimeoutExamAttemptAsync(int attemptId, double? score = null, double? maxScore = null, int? durationSeconds = null);
 
     /// <summary>
     /// 获取学生的考试尝试历史
@@ -174,17 +174,17 @@ public class ExamAttemptStatisticsDto
     /// <summary>
     /// 平均得分
     /// </summary>
-    public decimal? AverageScore { get; set; }
+    public double? AverageScore { get; set; }
 
     /// <summary>
     /// 最高得分
     /// </summary>
-    public decimal? HighestScore { get; set; }
+    public double? HighestScore { get; set; }
 
     /// <summary>
     /// 最低得分
     /// </summary>
-    public decimal? LowestScore { get; set; }
+    public double? LowestScore { get; set; }
 
     /// <summary>
     /// 平均用时（秒）
@@ -194,14 +194,14 @@ public class ExamAttemptStatisticsDto
     /// <summary>
     /// 完成率
     /// </summary>
-    public decimal CompletionRate
+    public double CompletionRate
     {
         get
         {
             if (TotalAttempts == 0)
                 return 0;
 
-            return (decimal)CompletedAttempts / TotalAttempts * 100;
+            return CompletedAttempts / TotalAttempts * 100;
         }
     }
 

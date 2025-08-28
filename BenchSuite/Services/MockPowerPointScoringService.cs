@@ -139,9 +139,7 @@ public class MockPowerPointScoringService : IScoringService
             }
 
             // 获取题目的操作点（只处理PowerPoint相关的操作点）
-            List<OperationPointModel> pptOperationPoints = question.OperationPoints
-                .Where(op => op.ModuleType == ModuleType.PowerPoint && op.IsEnabled)
-                .ToList();
+            List<OperationPointModel> pptOperationPoints = [.. question.OperationPoints.Where(op => op.ModuleType == ModuleType.PowerPoint && op.IsEnabled)];
 
             if (pptOperationPoints.Count == 0)
             {

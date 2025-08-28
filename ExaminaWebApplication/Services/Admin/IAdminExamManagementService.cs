@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Api.Admin;
+﻿using ExaminaWebApplication.Models.Api.Admin;
 using ExaminaWebApplication.Models.ImportedExam;
 
 namespace ExaminaWebApplication.Services.Admin;
@@ -159,25 +159,25 @@ public class ExamStatisticsDto
     /// <summary>
     /// 平均分
     /// </summary>
-    public decimal? AverageScore { get; set; }
+    public double? AverageScore { get; set; }
 
     /// <summary>
     /// 最高分
     /// </summary>
-    public decimal? HighestScore { get; set; }
+    public double? HighestScore { get; set; }
 
     /// <summary>
     /// 最低分
     /// </summary>
-    public decimal? LowestScore { get; set; }
+    public double? LowestScore { get; set; }
 
     /// <summary>
     /// 及格率
     /// </summary>
-    public decimal PassRate { get; set; }
+    public double PassRate { get; set; }
 
     /// <summary>
     /// 完成率
     /// </summary>
-    public decimal CompletionRate { get; set; }
+    public double CompletionRate { get; set; }
 }

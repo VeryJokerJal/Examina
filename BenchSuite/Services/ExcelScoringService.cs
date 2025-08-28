@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using Task = System.Threading.Tasks.Task;
@@ -155,9 +155,7 @@ public class ExcelScoringService : IExcelScoringService
             }
 
             // 获取题目的操作点（只处理Excel相关的操作点）
-            List<OperationPointModel> excelOperationPoints = question.OperationPoints
-                .Where(op => op.ModuleType == ModuleType.Excel && op.IsEnabled)
-                .ToList();
+            List<OperationPointModel> excelOperationPoints = [.. question.OperationPoints.Where(op => op.ModuleType == ModuleType.Excel && op.IsEnabled)];
 
             if (excelOperationPoints.Count == 0)
             {

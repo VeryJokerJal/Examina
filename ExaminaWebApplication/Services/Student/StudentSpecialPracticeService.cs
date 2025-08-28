@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Dto;
 using Microsoft.EntityFrameworkCore;
@@ -129,7 +129,7 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
     /// <summary>
     /// 标记专项练习为已完成
     /// </summary>
-    public async Task<bool> MarkPracticeAsCompletedAsync(int studentUserId, int practiceId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    public async Task<bool> MarkPracticeAsCompletedAsync(int studentUserId, int practiceId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null)
     {
         try
         {
@@ -310,13 +310,13 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
                 .ToListAsync();
 
             // 获取所有相关的专项训练信息
-            List<int> practiceIds = completionEntities.Select(c => c.PracticeId).Distinct().ToList();
+            List<int> practiceIds = [.. completionEntities.Select(c => c.PracticeId).Distinct()];
             Dictionary<int, Models.ImportedSpecializedTraining.ImportedSpecializedTraining> practiceDict = await _context.ImportedSpecializedTrainings
                 .Where(p => practiceIds.Contains(p.Id))
                 .ToDictionaryAsync(p => p.Id, p => p);
 
             // 构建DTO
-            List<SpecialPracticeCompletionDto> completions = completionEntities.Select(c => new SpecialPracticeCompletionDto
+            List<SpecialPracticeCompletionDto> completions = [.. completionEntities.Select(c => new SpecialPracticeCompletionDto
             {
                 Id = c.Id,
                 PracticeId = c.PracticeId,
@@ -332,7 +332,7 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
                 CompletedAt = c.CompletedAt,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
-            }).ToList();
+            })];
 
             _logger.LogInformation("获取学生专项练习完成记录成功，学生ID: {StudentUserId}, 页码: {PageNumber}, 页大小: {PageSize}, 记录数: {Count}",
                 studentUserId, pageNumber, pageSize, completions.Count);

@@ -360,44 +360,6 @@ public class ExamManagementController : Controller
     }
 
     /// <summary>
-    /// 检查测试数据
-    /// </summary>
-    [HttpGet("check-test-data")]
-    public async Task<IActionResult> CheckTestData()
-    {
-        try
-        {
-            TestDataChecker checker = new(_context);
-            await checker.CheckTestDataAsync();
-            return Ok(new { message = "测试数据检查完成，请查看控制台输出" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "检查测试数据失败");
-            return StatusCode(500, new { message = "检查测试数据失败", error = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// 重新创建测试数据
-    /// </summary>
-    [HttpPost("recreate-test-data")]
-    public async Task<IActionResult> RecreateTestData()
-    {
-        try
-        {
-            TestDataChecker checker = new(_context);
-            await checker.RecreateTestDataAsync();
-            return Ok(new { message = "测试数据重新创建完成，请查看控制台输出" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "重新创建测试数据失败");
-            return StatusCode(500, new { message = "重新创建测试数据失败", error = ex.Message });
-        }
-    }
-
-    /// <summary>
     /// 设置考试时间
     /// </summary>
     [HttpPost("set-schedule/{examId}")]
@@ -585,7 +547,7 @@ public class ExamManagementController : Controller
         try
         {
             // 验证输入
-            if (request.MaxRetakeCount < 0 || request.MaxRetakeCount > 10)
+            if (request.MaxRetakeCount is < 0 or > 10)
             {
                 return Json(new { success = false, message = "重考次数必须在0-10之间" });
             }
@@ -599,7 +561,7 @@ public class ExamManagementController : Controller
 
             // 更新最大重考次数
             exam.MaxRetakeCount = request.MaxRetakeCount;
-            await _examImportService.UpdateImportedExamAsync(exam);
+            _ = await _examImportService.UpdateImportedExamAsync(exam);
 
             _logger.LogInformation("用户更新考试 {ExamId} 的最大重考次数为 {MaxRetakeCount}", id, request.MaxRetakeCount);
 

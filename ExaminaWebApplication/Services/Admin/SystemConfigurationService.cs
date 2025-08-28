@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.Admin;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +32,7 @@ public class SystemConfigurationService : ISystemConfigurationService
                 .ThenBy(c => c.ConfigKey)
                 .ToListAsync();
 
-            return configurations.Select(MapToDto).ToList();
+            return [.. configurations.Select(MapToDto)];
         }
         catch (Exception ex)
         {
@@ -55,7 +55,7 @@ public class SystemConfigurationService : ISystemConfigurationService
                 .OrderBy(c => c.ConfigKey)
                 .ToListAsync();
 
-            return configurations.Select(MapToDto).ToList();
+            return [.. configurations.Select(MapToDto)];
         }
         catch (Exception ex)
         {

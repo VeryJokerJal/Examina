@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
+﻿using System.Text.Json;
 using BenchSuite.Models;
 
 namespace BenchSuite.Services;
@@ -16,13 +13,14 @@ public static class ExamModelConverter
     /// </summary>
     /// <param name="exportDto">ExamLab导出数据</param>
     /// <returns>BenchSuite试卷模型</returns>
+    [Obsolete]
     public static ExamModel FromExamLabExport(dynamic exportDto)
     {
         try
         {
             // 解析JSON对象
-            var examData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(exportDto));
-            var exam = examData.GetProperty("exam");
+            dynamic examData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(exportDto));
+            dynamic exam = examData.GetProperty("exam");
 
             string examId = GetStringProperty(exam, "id");
             string examName = GetStringProperty(exam, "name");
@@ -31,20 +29,20 @@ public static class ExamModelConverter
             // 调试输出
             Console.WriteLine($"[调试] 解析试卷信息: ID='{examId}', Name='{examName}', Description='{examDescription}'");
 
-            var examModel = new ExamModel
+            ExamModel examModel = new()
             {
                 Id = examId,
                 Name = examName,
                 Description = examDescription,
-                
+
                 // 映射ExamLab特有字段
-                TotalScore = GetDecimalProperty(exam, "totalScore", 100.0m),
+                TotalScore = GetDoubleProperty(exam, "totalScore", 100.0),
                 DurationMinutes = GetIntProperty(exam, "durationMinutes", 120),
                 StartTime = GetDateTimeProperty(exam, "startTime"),
                 EndTime = GetDateTimeProperty(exam, "endTime"),
                 AllowRetake = GetBoolProperty(exam, "allowRetake", false),
                 MaxRetakeCount = GetIntProperty(exam, "maxRetakeCount", 0),
-                PassingScore = GetDecimalProperty(exam, "passingScore", 60.0m),
+                PassingScore = GetDoubleProperty(exam, "passingScore", 60.0),
                 RandomizeQuestions = GetBoolProperty(exam, "randomizeQuestions", false),
                 ShowScore = GetBoolProperty(exam, "showScore", true),
                 ShowAnswers = GetBoolProperty(exam, "showAnswers", false),
@@ -60,11 +58,11 @@ public static class ExamModelConverter
             // 转换模块 (优先使用modules，回退到subjects)
             if (exam.TryGetProperty("modules", out JsonElement modules) && modules.ValueKind == JsonValueKind.Array)
             {
-                examModel.Modules = ConvertModulesFromExamLab(modules).ToList();
+                examModel.Modules = [.. ConvertModulesFromExamLab(modules)];
             }
             else if (exam.TryGetProperty("subjects", out JsonElement subjects) && subjects.ValueKind == JsonValueKind.Array)
             {
-                examModel.Modules = ConvertSubjectsToModules(subjects).ToList();
+                examModel.Modules = [.. ConvertSubjectsToModules(subjects)];
             }
 
             return examModel;
@@ -81,6 +79,7 @@ public static class ExamModelConverter
     /// <param name="examModel">BenchSuite试卷模型</param>
     /// <param name="exportLevel">导出级别</param>
     /// <returns>ExamLab格式的JSON对象</returns>
+    [Obsolete]
     public static object ToExamLabExport(ExamModel examModel, string exportLevel = "Complete")
     {
         var examDto = new
@@ -118,36 +117,37 @@ public static class ExamModelConverter
             totalSubjects = examModel.Modules.Count,
             totalQuestions = examModel.Modules.Sum(m => m.Questions.Count),
             totalOperationPoints = examModel.Modules.Sum(m => m.Questions.Sum(q => q.OperationPoints.Count)),
-            exportLevel = exportLevel,
+            exportLevel,
             exportFormat = "JSON"
         };
 
         return new
         {
             exam = examDto,
-            metadata = metadata
+            metadata
         };
     }
 
     /// <summary>
     /// 转换ExamLab模块为BenchSuite模块
     /// </summary>
+    [Obsolete]
     private static IEnumerable<ExamModuleModel> ConvertModulesFromExamLab(JsonElement modules)
     {
-        foreach (var moduleElement in modules.EnumerateArray())
+        foreach (JsonElement moduleElement in modules.EnumerateArray())
         {
-            var module = new ExamModuleModel
+            ExamModuleModel module = new()
             {
                 Id = GetStringProperty(moduleElement, "id"),
                 Name = GetStringProperty(moduleElement, "name"),
                 Description = GetStringProperty(moduleElement, "description"),
-                Score = GetDecimalProperty(moduleElement, "score", 0),
+                Score = GetDoubleProperty(moduleElement, "score", 0),
                 Order = GetIntProperty(moduleElement, "order", 0),
                 IsEnabled = GetBoolProperty(moduleElement, "isEnabled", true),
-                
+
                 // 映射ExamLab特有字段
                 DurationMinutes = GetIntProperty(moduleElement, "durationMinutes", 30),
-                Weight = GetDecimalProperty(moduleElement, "weight", 1.0m),
+                Weight = GetDoubleProperty(moduleElement, "weight", 1.0),
                 MinScore = GetNullableDecimalProperty(moduleElement, "minScore"),
                 IsRequired = GetBoolProperty(moduleElement, "isRequired", true),
                 ModuleConfig = GetStringProperty(moduleElement, "moduleConfig"),
@@ -156,15 +156,15 @@ public static class ExamModelConverter
 
             // 解析模块类型
             string typeString = GetStringProperty(moduleElement, "type");
-            if (Enum.TryParse<ModuleType>(typeString, true, out var moduleType))
+            if (Enum.TryParse<ModuleType>(typeString, true, out ModuleType moduleType))
             {
                 module.Type = moduleType;
             }
 
             // 转换题目
-            if (moduleElement.TryGetProperty("questions", out var questions) && questions.ValueKind == JsonValueKind.Array)
+            if (moduleElement.TryGetProperty("questions", out JsonElement questions) && questions.ValueKind == JsonValueKind.Array)
             {
-                module.Questions = ConvertQuestionsFromExamLab(questions).ToList();
+                module.Questions = [.. ConvertQuestionsFromExamLab(questions)];
             }
 
             yield return module;
@@ -174,20 +174,21 @@ public static class ExamModelConverter
     /// <summary>
     /// 转换ExamLab科目为BenchSuite模块
     /// </summary>
+    [Obsolete]
     private static IEnumerable<ExamModuleModel> ConvertSubjectsToModules(JsonElement subjects)
     {
-        foreach (var subjectElement in subjects.EnumerateArray())
+        foreach (JsonElement subjectElement in subjects.EnumerateArray())
         {
-            var module = new ExamModuleModel
+            ExamModuleModel module = new()
             {
                 Id = GetIntProperty(subjectElement, "id", 0).ToString(),
                 Name = GetStringProperty(subjectElement, "subjectName"),
                 Description = GetStringProperty(subjectElement, "description"),
-                Score = GetDecimalProperty(subjectElement, "score", 20.0m),
+                Score = GetDoubleProperty(subjectElement, "score", 20.0),
                 Order = GetIntProperty(subjectElement, "sortOrder", 1),
                 IsEnabled = GetBoolProperty(subjectElement, "isEnabled", true),
                 DurationMinutes = GetIntProperty(subjectElement, "durationMinutes", 30),
-                Weight = GetDecimalProperty(subjectElement, "weight", 1.0m),
+                Weight = GetDoubleProperty(subjectElement, "weight", 1.0),
                 MinScore = GetNullableDecimalProperty(subjectElement, "minScore"),
                 IsRequired = GetBoolProperty(subjectElement, "isRequired", true),
                 SubjectType = GetStringProperty(subjectElement, "subjectType")
@@ -205,9 +206,9 @@ public static class ExamModelConverter
             };
 
             // 转换题目
-            if (subjectElement.TryGetProperty("questions", out var questions) && questions.ValueKind == JsonValueKind.Array)
+            if (subjectElement.TryGetProperty("questions", out JsonElement questions) && questions.ValueKind == JsonValueKind.Array)
             {
-                module.Questions = ConvertQuestionsFromExamLab(questions).ToList();
+                module.Questions = [.. ConvertQuestionsFromExamLab(questions)];
             }
 
             yield return module;
@@ -217,19 +218,20 @@ public static class ExamModelConverter
     /// <summary>
     /// 转换ExamLab题目为BenchSuite题目
     /// </summary>
+    [Obsolete]
     private static IEnumerable<QuestionModel> ConvertQuestionsFromExamLab(JsonElement questions)
     {
-        foreach (var questionElement in questions.EnumerateArray())
+        foreach (JsonElement questionElement in questions.EnumerateArray())
         {
-            var question = new QuestionModel
+            QuestionModel question = new()
             {
                 Id = GetStringProperty(questionElement, "id"),
                 Title = GetStringProperty(questionElement, "title"),
                 Content = GetStringProperty(questionElement, "content"),
-                Score = GetDecimalProperty(questionElement, "score", 10.0m),
+                Score = GetDoubleProperty(questionElement, "score", 10.0),
                 Order = GetIntProperty(questionElement, "sortOrder", 1),
                 IsEnabled = GetBoolProperty(questionElement, "isEnabled", true),
-                
+
                 // 映射ExamLab特有字段
                 QuestionType = GetStringProperty(questionElement, "questionType", "Practical"),
                 DifficultyLevel = GetIntProperty(questionElement, "difficultyLevel", 1),
@@ -256,15 +258,15 @@ public static class ExamModelConverter
             };
 
             // 转换操作点
-            if (questionElement.TryGetProperty("operationPoints", out var operationPoints) && operationPoints.ValueKind == JsonValueKind.Array)
+            if (questionElement.TryGetProperty("operationPoints", out JsonElement operationPoints) && operationPoints.ValueKind == JsonValueKind.Array)
             {
-                question.OperationPoints = ConvertOperationPointsFromExamLab(operationPoints).ToList();
+                question.OperationPoints = [.. ConvertOperationPointsFromExamLab(operationPoints)];
             }
 
             // 转换代码填空处
-            if (questionElement.TryGetProperty("codeBlanks", out var codeBlanks) && codeBlanks.ValueKind == JsonValueKind.Array)
+            if (questionElement.TryGetProperty("codeBlanks", out JsonElement codeBlanks) && codeBlanks.ValueKind == JsonValueKind.Array)
             {
-                question.CodeBlanks = ConvertCodeBlanksFromExamLab(codeBlanks).ToList();
+                question.CodeBlanks = [.. ConvertCodeBlanksFromExamLab(codeBlanks)];
             }
 
             yield return question;
@@ -276,23 +278,23 @@ public static class ExamModelConverter
     /// </summary>
     private static IEnumerable<OperationPointModel> ConvertOperationPointsFromExamLab(JsonElement operationPoints)
     {
-        foreach (var opElement in operationPoints.EnumerateArray())
+        foreach (JsonElement opElement in operationPoints.EnumerateArray())
         {
-            var operationPoint = new OperationPointModel
+            OperationPointModel operationPoint = new()
             {
                 Id = GetStringProperty(opElement, "id"),
                 Name = GetStringProperty(opElement, "name"),
                 Description = GetStringProperty(opElement, "description"),
-                Score = GetDecimalProperty(opElement, "score", 1.0m),
+                Score = GetDoubleProperty(opElement, "score", 1.0),
                 Order = GetIntProperty(opElement, "order", 1),
                 IsEnabled = GetBoolProperty(opElement, "isEnabled", true),
-                
+
                 // 映射知识点类型
                 PowerPointKnowledgeType = GetStringProperty(opElement, "powerPointKnowledgeType"),
                 WordKnowledgeType = GetStringProperty(opElement, "wordKnowledgeType"),
                 ExcelKnowledgeType = GetStringProperty(opElement, "excelKnowledgeType"),
                 WindowsOperationType = GetStringProperty(opElement, "windowsOperationType"),
-                
+
                 // 映射时间字段
                 CreatedTimeString = GetStringProperty(opElement, "createdTime"),
                 OperationConfig = GetStringProperty(opElement, "operationConfig"),
@@ -301,15 +303,15 @@ public static class ExamModelConverter
 
             // 解析模块类型
             string moduleTypeString = GetStringProperty(opElement, "moduleType");
-            if (Enum.TryParse<ModuleType>(moduleTypeString, true, out var moduleType))
+            if (Enum.TryParse<ModuleType>(moduleTypeString, true, out ModuleType moduleType))
             {
                 operationPoint.ModuleType = moduleType;
             }
 
             // 转换参数
-            if (opElement.TryGetProperty("parameters", out var parameters) && parameters.ValueKind == JsonValueKind.Array)
+            if (opElement.TryGetProperty("parameters", out JsonElement parameters) && parameters.ValueKind == JsonValueKind.Array)
             {
-                operationPoint.Parameters = ConvertParametersFromExamLab(parameters).ToList();
+                operationPoint.Parameters = [.. ConvertParametersFromExamLab(parameters)];
             }
 
             yield return operationPoint;
@@ -321,16 +323,16 @@ public static class ExamModelConverter
     /// </summary>
     private static IEnumerable<ConfigurationParameterModel> ConvertParametersFromExamLab(JsonElement parameters)
     {
-        foreach (var paramElement in parameters.EnumerateArray())
+        foreach (JsonElement paramElement in parameters.EnumerateArray())
         {
-            var parameter = new ConfigurationParameterModel
+            ConfigurationParameterModel parameter = new()
             {
                 Id = GetStringProperty(paramElement, "id"),
                 Name = GetStringProperty(paramElement, "name"),
                 DisplayName = GetStringProperty(paramElement, "displayName"),
                 Value = GetStringProperty(paramElement, "value"),
                 IsRequired = GetBoolProperty(paramElement, "isRequired", false),
-                
+
                 // 映射ExamLab特有字段
                 DefaultValue = GetStringProperty(paramElement, "defaultValue"),
                 ValidationRules = GetStringProperty(paramElement, "validationRules"),
@@ -341,18 +343,18 @@ public static class ExamModelConverter
 
             // 解析参数类型
             string typeString = GetStringProperty(paramElement, "type");
-            if (Enum.TryParse<ParameterType>(typeString, true, out var parameterType))
+            if (Enum.TryParse<ParameterType>(typeString, true, out ParameterType parameterType))
             {
                 parameter.Type = parameterType;
             }
 
             // 解析选项列表
-            if (paramElement.TryGetProperty("options", out var options) && options.ValueKind == JsonValueKind.Array)
+            if (paramElement.TryGetProperty("options", out JsonElement options) && options.ValueKind == JsonValueKind.Array)
             {
                 // 处理 JSON 数组格式的选项
-                parameter.Options = options.EnumerateArray().Select(o => o.GetString() ?? string.Empty).ToList();
+                parameter.Options = [.. options.EnumerateArray().Select(o => o.GetString() ?? string.Empty)];
             }
-            else if (paramElement.TryGetProperty("enumOptions", out var enumOptions) && enumOptions.ValueKind == JsonValueKind.String)
+            else if (paramElement.TryGetProperty("enumOptions", out JsonElement enumOptions) && enumOptions.ValueKind == JsonValueKind.String)
             {
                 // 处理 ExamLab 的 EnumOptions 字符串格式，应用智能解析逻辑
                 string enumOptionsString = enumOptions.GetString() ?? string.Empty;
@@ -366,6 +368,7 @@ public static class ExamModelConverter
     /// <summary>
     /// 转换BenchSuite模块为ExamLab格式
     /// </summary>
+    [Obsolete]
     private static object[] ConvertModulesToExamLab(List<ExamModuleModel> modules, string exportLevel)
     {
         return modules.Select(module => new
@@ -390,6 +393,7 @@ public static class ExamModelConverter
     /// <summary>
     /// 转换BenchSuite题目为ExamLab格式
     /// </summary>
+    [Obsolete]
     private static object[] ConvertQuestionsToExamLab(List<QuestionModel> questions, string exportLevel)
     {
         return questions.Select(question =>
@@ -487,7 +491,7 @@ public static class ExamModelConverter
 
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue = "")
     {
-        if (element.TryGetProperty(propertyName, out var prop))
+        if (element.TryGetProperty(propertyName, out JsonElement prop))
         {
             Console.WriteLine($"[调试] 属性 '{propertyName}' 存在，类型: {prop.ValueKind}");
 
@@ -512,45 +516,43 @@ public static class ExamModelConverter
 
     private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue = 0)
     {
-        return element.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number 
-            ? prop.GetInt32() 
+        return element.TryGetProperty(propertyName, out JsonElement prop) && prop.ValueKind == JsonValueKind.Number
+            ? prop.GetInt32()
             : defaultValue;
     }
 
     private static decimal GetDecimalProperty(JsonElement element, string propertyName, decimal defaultValue = 0)
     {
-        return element.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number 
-            ? prop.GetDecimal() 
+        return element.TryGetProperty(propertyName, out JsonElement prop) && prop.ValueKind == JsonValueKind.Number
+            ? prop.GetDecimal()
             : defaultValue;
     }
 
     private static decimal? GetNullableDecimalProperty(JsonElement element, string propertyName)
     {
-        return element.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number 
-            ? prop.GetDecimal() 
+        return element.TryGetProperty(propertyName, out JsonElement prop) && prop.ValueKind == JsonValueKind.Number
+            ? prop.GetDecimal()
             : null;
     }
 
     private static bool GetBoolProperty(JsonElement element, string propertyName, bool defaultValue = false)
     {
-        if (element.TryGetProperty(propertyName, out var prop))
-        {
-            return prop.ValueKind switch
+        return element.TryGetProperty(propertyName, out JsonElement prop)
+            ? prop.ValueKind switch
             {
                 JsonValueKind.True => true,
                 JsonValueKind.False => false,
                 _ => defaultValue
-            };
-        }
-        return defaultValue;
+            }
+            : defaultValue;
     }
 
     private static DateTime? GetDateTimeProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String)
+        if (element.TryGetProperty(propertyName, out JsonElement prop) && prop.ValueKind == JsonValueKind.String)
         {
             string dateString = prop.GetString() ?? string.Empty;
-            return DateTime.TryParse(dateString, out var result) ? result : null;
+            return DateTime.TryParse(dateString, out DateTime result) ? result : null;
         }
         return null;
     }
@@ -563,7 +565,9 @@ public static class ExamModelConverter
     private static List<string> ParseEnumOptionsString(string enumOptions)
     {
         if (string.IsNullOrEmpty(enumOptions))
+        {
             return [];
+        }
 
         // 特殊处理页码格式：识别 "数字,数字,数字..." 这样的模式
         if (IsPageNumberFormatOptions(enumOptions))
@@ -572,7 +576,7 @@ public static class ExamModelConverter
         }
 
         // 默认按逗号分割
-        return enumOptions.Split(',').Select(s => s.Trim()).ToList();
+        return [.. enumOptions.Split(',').Select(s => s.Trim())];
     }
 
     /// <summary>
@@ -639,7 +643,9 @@ public static class ExamModelConverter
     private static string ConvertOptionsToEnumString(List<string> options)
     {
         if (options == null || options.Count == 0)
+        {
             return string.Empty;
+        }
 
         // 直接用逗号连接，因为选项已经是正确解析的格式
         return string.Join(",", options);
@@ -650,9 +656,9 @@ public static class ExamModelConverter
     /// </summary>
     private static IEnumerable<CodeBlankModel> ConvertCodeBlanksFromExamLab(JsonElement codeBlanks)
     {
-        foreach (var codeBlankElement in codeBlanks.EnumerateArray())
+        foreach (JsonElement codeBlankElement in codeBlanks.EnumerateArray())
         {
-            var codeBlank = new CodeBlankModel
+            CodeBlankModel codeBlank = new()
             {
                 Id = GetStringProperty(codeBlankElement, "id"),
                 Name = GetStringProperty(codeBlankElement, "name"),
@@ -673,7 +679,7 @@ public static class ExamModelConverter
     /// </summary>
     private static double? GetNullableDoubleProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out var property))
+        if (element.TryGetProperty(propertyName, out JsonElement property))
         {
             if (property.ValueKind == JsonValueKind.Number)
             {

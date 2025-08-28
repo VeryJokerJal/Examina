@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.ImportedSpecializedTraining;
 using Microsoft.EntityFrameworkCore;

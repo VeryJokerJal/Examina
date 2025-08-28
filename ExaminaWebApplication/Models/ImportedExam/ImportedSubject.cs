@@ -47,8 +47,8 @@ public class ImportedSubject
     /// <summary>
     /// 科目分值
     /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal Score { get; set; } = 20.0m;
+    [Column(TypeName = "double")]
+    public double Score { get; set; } = 20.0;
 
     /// <summary>
     /// 科目考试时长（分钟）
@@ -73,14 +73,14 @@ public class ImportedSubject
     /// <summary>
     /// 最低分数要求
     /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal? MinScore { get; set; }
+    [Column(TypeName = "double")]
+    public double? MinScore { get; set; }
 
     /// <summary>
     /// 科目权重
     /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal Weight { get; set; } = 1.0m;
+    [Column(TypeName = "double")]
+    public double Weight { get; set; } = 1.0;
 
     /// <summary>
     /// 科目配置（JSON格式）

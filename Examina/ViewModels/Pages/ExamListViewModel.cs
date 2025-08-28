@@ -764,7 +764,7 @@ public class ExamListViewModel : ViewModelBase
     /// 显示考试结果窗口（传统模式，用于错误情况）
     /// </summary>
     private async Task ShowExamResultAsync(int examId, ExamType examType, bool isSuccessful,
-        int? actualDurationSeconds, decimal? score, decimal? totalScore, string errorMessage, string notes)
+        int? actualDurationSeconds, double? score, double? totalScore, string errorMessage, string notes)
     {
         try
         {
@@ -850,8 +850,8 @@ public class ExamListViewModel : ViewModelBase
                 if (scoringResults != null && scoringResults.Count > 0)
                 {
                     // 评分成功，更新分数
-                    decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
-                    decimal totalMax = scoringResults.Values.Sum(r => r.TotalScore);
+                    double totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
+                    double totalMax = scoringResults.Values.Sum(r => r.TotalScore);
                     resultViewModel.UpdateScore(totalAchieved, totalMax, "BenchSuite自动评分完成");
                     System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分完成，得分: {totalAchieved}");
                 }
@@ -915,8 +915,8 @@ public class ExamListViewModel : ViewModelBase
                 if (scoringResults != null && scoringResults.Count > 0)
                 {
                     // 评分成功，更新分数和详细信息
-                    decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
-                    decimal totalMax = scoringResults.Values.Sum(r => r.TotalScore);
+                    double totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
+                    double totalMax = scoringResults.Values.Sum(r => r.TotalScore);
                     resultWindow.UpdateScore(totalAchieved, totalMax, "BenchSuite自动评分完成");
 
                     // 设置详细分数信息
@@ -961,8 +961,8 @@ public class ExamListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 开始自动提交成绩到服务器，考试ID: {examId}");
 
             // 准备成绩提交数据
-            decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
-            decimal totalMax = scoringResults.Values.Sum(r => r.TotalScore);
+            double totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
+            double totalMax = scoringResults.Values.Sum(r => r.TotalScore);
 
             SubmitExamScoreRequestDto scoreRequest = new()
             {

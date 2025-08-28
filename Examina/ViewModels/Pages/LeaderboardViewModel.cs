@@ -704,24 +704,17 @@ public class LeaderboardViewModel : ViewModelBase
         {
             List<LeaderboardEntry> sortedData = SelectedSortType.Id switch
             {
-                "score" => LeaderboardData.OrderByDescending(x => x.Score)
+                "score" => [.. LeaderboardData.OrderByDescending(x => x.Score)
                                          .ThenBy(x => x.CompletionTime)
-                                         .ThenBy(x => x.CompletionDate)
-                                         .ToList(),
-                "school" => LeaderboardData.OrderBy(x => x.SchoolName)
+                                         .ThenBy(x => x.CompletionDate)],
+                "school" => [.. LeaderboardData.OrderBy(x => x.SchoolName)
                                           .ThenBy(x => x.ClassName)
-                                          .ThenByDescending(x => x.Score)
-                                          .ToList(),
-                "class" => LeaderboardData.OrderBy(x => x.ClassName)
+                                          .ThenByDescending(x => x.Score)],
+                "class" => [.. LeaderboardData.OrderBy(x => x.ClassName)
                                          .ThenBy(x => x.SchoolName)
-                                         .ThenByDescending(x => x.Score)
-                                         .ToList(),
-                "time" => LeaderboardData.OrderBy(x => x.CompletionDate)
-                                        .ThenByDescending(x => x.Score)
-                                        .ToList(),
-                _ => LeaderboardData.OrderByDescending(x => x.Score)
-                                   .ThenBy(x => x.CompletionTime)
-                                   .ToList()
+                                         .ThenByDescending(x => x.Score)],
+                "time" => [.. LeaderboardData.OrderBy(x => x.CompletionDate).ThenByDescending(x => x.Score)],
+                _ => [.. LeaderboardData.OrderByDescending(x => x.Score).ThenBy(x => x.CompletionTime)]
             };
 
             for (int i = 0; i < sortedData.Count; i++)

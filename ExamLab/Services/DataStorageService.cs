@@ -76,7 +76,7 @@ public class DataStorageService
             StorageFolder localFolder = await GetStorageFolderAsync();
             StorageFile file = await localFolder.CreateFileAsync(ExamsFileName, CreationCollisionOption.ReplaceExisting);
 
-            List<Exam> examList = exams.ToList();
+            List<Exam> examList = [.. exams];
             string json = JsonSerializer.Serialize(examList, _jsonOptions);
 
             await FileIO.WriteTextAsync(file, json);
@@ -202,9 +202,7 @@ public class DataStorageService
             }
 
             IReadOnlyList<StorageFile> files = await backupFolder.GetFilesAsync();
-            return files.Where(f => f.Name.StartsWith("exams_backup_") && f.Name.EndsWith(".json"))
-                       .OrderByDescending(f => f.Name)
-                       .ToList();
+            return [.. files.Where(f => f.Name.StartsWith("exams_backup_") && f.Name.EndsWith(".json")).OrderByDescending(f => f.Name)];
         }
         catch (Exception ex)
         {
@@ -348,7 +346,7 @@ public class DataStorageService
             }
 
             // 删除多余的旧备份文件
-            List<StorageFile> filesToDelete = backupFiles.Skip(keepCount).ToList();
+            List<StorageFile> filesToDelete = [.. backupFiles.Skip(keepCount)];
             foreach (StorageFile file in filesToDelete)
             {
                 await file.DeleteAsync();

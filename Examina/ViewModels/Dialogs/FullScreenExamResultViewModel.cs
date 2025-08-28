@@ -215,7 +215,7 @@ public class FullScreenExamResultViewModel : ExamResultViewModel
     /// </summary>
     public void SetFullScreenExamResult(string examName, ExamType examType, bool isSuccessful,
         DateTime? startTime = null, DateTime? endTime = null, int? durationMinutes = null,
-        decimal? score = null, decimal? totalScore = null, string errorMessage = "", string notes = "",
+        double? score = null, double? totalScore = null, string errorMessage = "", string notes = "",
         bool showContinue = true, bool showClose = true)
     {
         // 调用基类方法设置基本数据

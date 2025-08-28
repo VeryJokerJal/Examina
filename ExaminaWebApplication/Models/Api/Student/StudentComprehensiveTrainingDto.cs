@@ -58,7 +58,7 @@ public class StudentComprehensiveTrainingDto
     /// <summary>
     /// 及格分数
     /// </summary>
-    public int PassingScore { get; set; }
+    public double PassingScore { get; set; }
 
     /// <summary>
     /// 是否随机题目顺序
@@ -149,7 +149,7 @@ public class StudentComprehensiveTrainingSubjectDto
     /// <summary>
     /// 权重
     /// </summary>
-    public decimal Weight { get; set; }
+    public double Weight { get; set; }
 
     /// <summary>
     /// 题目数量

@@ -1,4 +1,4 @@
-# 模拟考试模块结构修复说明
+﻿# 模拟考试模块结构修复说明
 
 ## 问题描述
 
@@ -112,7 +112,7 @@ private async Task OrganizeQuestionsIntoModulesAndSubjects(
         List<ExtractedQuestionInfo> moduleQuestions = moduleGroup.Value;
 
         // 计算模块总分
-        decimal moduleScore = moduleQuestions.Sum(q => q.Score);
+        double moduleScore = moduleQuestions.Sum(q => q.Score);
 
         MockExamModuleDto moduleDto = new()
         {
@@ -193,7 +193,7 @@ private static List<MockExamQuestionDto> MapQuestionsToDto(List<ExtractedQuestio
             Name = op.Name,
             Description = op.Description,
             ModuleType = op.ModuleType,
-            Score = (decimal)op.Score,
+            Score = op.Score,
             Order = op.Order,
             IsEnabled = true,
             CreatedTime = DateTime.UtcNow.ToString(),

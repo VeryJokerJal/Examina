@@ -32,7 +32,7 @@ public class ExamModel
     /// <summary>
     /// 试卷总分
     /// </summary>
-    public decimal TotalScore { get; set; } = 100.0m;
+    public double TotalScore { get; set; } = 100.0;
 
     /// <summary>
     /// 考试时长（分钟）
@@ -62,7 +62,7 @@ public class ExamModel
     /// <summary>
     /// 及格分数
     /// </summary>
-    public decimal PassingScore { get; set; } = 60.0m;
+    public double PassingScore { get; set; } = 60.0;
 
     /// <summary>
     /// 是否随机题目顺序
@@ -147,7 +147,7 @@ public class ExamModuleModel
     public string TypeString
     {
         get => Type.ToString();
-        set => Type = Enum.TryParse<ModuleType>(value, true, out var result) ? result : ModuleType.Windows;
+        set => Type = Enum.TryParse<ModuleType>(value, true, out ModuleType result) ? result : ModuleType.Windows;
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class ExamModuleModel
     /// <summary>
     /// 模块分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 模块包含的题目
@@ -195,7 +195,7 @@ public class ExamModuleModel
     /// <summary>
     /// 模块权重
     /// </summary>
-    public decimal Weight { get; set; } = 1.0m;
+    public double Weight { get; set; } = 1.0;
 
     /// <summary>
     /// 最低分数要求
@@ -253,12 +253,13 @@ public class QuestionModel
     /// 题目分值（已弃用，使用TotalScore）
     /// </summary>
     [Obsolete("使用TotalScore属性代替")]
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 题目总分值（基于所有操作点分数的总和）
     /// </summary>
-    public decimal TotalScore
+    [Obsolete]
+    public double TotalScore
     {
         get
         {
@@ -440,7 +441,7 @@ public class OperationPointModel
     /// <summary>
     /// 操作点分值
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 配置参数
@@ -476,7 +477,7 @@ public class OperationPointModel
     public string CreatedTimeString
     {
         get => CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
-        set => CreatedAt = DateTime.TryParse(value, out var result) ? result : DateTime.Now;
+        set => CreatedAt = DateTime.TryParse(value, out DateTime result) ? result : DateTime.Now;
     }
 
     /// <summary>

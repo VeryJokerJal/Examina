@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 using ExamLab.ViewModels;
 using ExamLab.Models;
 using ExamLab.Services;
@@ -130,9 +130,7 @@ public sealed partial class OperationPointConfigView : UserControl
         ConfigurationParameter? fillTypeParam = parameters.FirstOrDefault(p => p.Name == "FillType");
 
         // 初始化依赖参数的可见性
-        List<ConfigurationParameter> dependentParameters = parameters
-            .Where(p => p.DependsOn == "FillType")
-            .ToList();
+        List<ConfigurationParameter> dependentParameters = [.. parameters.Where(p => p.DependsOn == "FillType")];
 
         foreach (ConfigurationParameter parameter in dependentParameters)
         {
@@ -152,9 +150,7 @@ public sealed partial class OperationPointConfigView : UserControl
     private static void UpdateBackgroundFillParameterVisibility(ObservableCollection<ConfigurationParameter> parameters, string? fillTypeValue)
     {
         // 获取依赖于FillType的所有参数
-        List<ConfigurationParameter> dependentParameters = parameters
-            .Where(p => p.DependsOn == "FillType")
-            .ToList();
+        List<ConfigurationParameter> dependentParameters = [.. parameters.Where(p => p.DependsOn == "FillType")];
 
         foreach (ConfigurationParameter parameter in dependentParameters)
         {

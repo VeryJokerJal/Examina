@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ReactiveUI.Fody.Helpers;
 
 namespace Examina.Models;
@@ -11,22 +11,22 @@ public class ExamScoreDetail
     /// <summary>
     /// 总分数
     /// </summary>
-    [Reactive] public decimal TotalScore { get; set; }
+    [Reactive] public double TotalScore { get; set; }
 
     /// <summary>
     /// 获得分数
     /// </summary>
-    [Reactive] public decimal AchievedScore { get; set; }
+    [Reactive] public double AchievedScore { get; set; }
 
     /// <summary>
     /// 得分率（0-1）
     /// </summary>
-    public decimal ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
+    public double ScoreRate => TotalScore > 0 ? AchievedScore / TotalScore : 0;
 
     /// <summary>
     /// 得分百分比（0-100）
     /// </summary>
-    public decimal ScorePercentage => ScoreRate * 100;
+    public double ScorePercentage => ScoreRate * 100;
 
     /// <summary>
     /// 是否通过考试
@@ -36,7 +36,7 @@ public class ExamScoreDetail
     /// <summary>
     /// 通过分数线（百分比）
     /// </summary>
-    [Reactive] public decimal PassThreshold { get; set; } = 60; // 默认60%及格
+    [Reactive] public double PassThreshold { get; set; } = 60; // 默认60%及格
 
     /// <summary>
     /// 成绩等级
@@ -45,7 +45,7 @@ public class ExamScoreDetail
     {
         get
         {
-            decimal percentage = ScorePercentage;
+            double percentage = ScorePercentage;
             return percentage switch
             {
                 >= 90 => "优秀",
@@ -64,7 +64,7 @@ public class ExamScoreDetail
     {
         get
         {
-            decimal percentage = ScorePercentage;
+            double percentage = ScorePercentage;
             return percentage switch
             {
                 >= 90 => "#4CAF50", // 绿色 - 优秀
@@ -107,10 +107,10 @@ public class ScoreStatistics
     /// <summary>
     /// 正确率
     /// </summary>
-    public decimal AccuracyRate => TotalQuestions > 0 ? (decimal)CorrectQuestions / TotalQuestions : 0;
+    public double AccuracyRate => TotalQuestions > 0 ? CorrectQuestions / TotalQuestions : 0;
 
     /// <summary>
     /// 正确率百分比
     /// </summary>
-    public decimal AccuracyPercentage => AccuracyRate * 100;
+    public double AccuracyPercentage => AccuracyRate * 100;
 }

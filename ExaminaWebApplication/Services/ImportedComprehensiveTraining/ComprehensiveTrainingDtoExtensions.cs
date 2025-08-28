@@ -104,7 +104,7 @@ public class ComprehensiveTrainingQuestionDto
     /// </summary>
     [JsonPropertyName("score")]
     [XmlElement("Score")]
-    public decimal Score { get; set; } = 10.0m;
+    public double Score { get; set; } = 10.0;
 
     /// <summary>
     /// 难度级别
@@ -230,7 +230,7 @@ public class ComprehensiveTrainingQuestionDto
     /// </summary>
     [JsonPropertyName("csharpDirectScore")]
     [XmlElement("CsharpDirectScore")]
-    public decimal? CsharpDirectScore { get; set; }
+    public double? CsharpDirectScore { get; set; }
 
     /// <summary>
     /// 代码空白填充项（兼容ExamLab导出格式）
@@ -289,7 +289,7 @@ public class ComprehensiveTrainingOperationPointDto
     /// 操作点分值
     /// </summary>
     [JsonPropertyName("score")]
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 操作点顺序

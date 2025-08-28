@@ -1,4 +1,4 @@
-# 模拟考试API响应格式修复说明
+﻿# 模拟考试API响应格式修复说明
 
 ## 问题描述
 
@@ -164,7 +164,7 @@ public class MockExamComprehensiveTrainingDto
     public string? Description { get; set; }
     public string ComprehensiveTrainingType { get; set; } = "MockExam";
     public string Status { get; set; } = "InProgress";
-    public decimal TotalScore { get; set; } = 100.0m;
+    public double TotalScore { get; set; } = 100.0;
     public int DurationMinutes { get; set; } = 120;
     // ... 所有其他属性
     public List<MockExamSubjectDto> Subjects { get; set; } = [];

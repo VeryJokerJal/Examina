@@ -1,4 +1,4 @@
-namespace Examina.Models.Ranking;
+﻿namespace Examina.Models.Ranking;
 
 /// <summary>
 /// 排行榜条目DTO
@@ -28,17 +28,17 @@ public class RankingEntryDto
     /// <summary>
     /// 得分
     /// </summary>
-    public decimal Score { get; set; }
+    public double Score { get; set; }
 
     /// <summary>
     /// 最大得分
     /// </summary>
-    public decimal MaxScore { get; set; }
+    public double MaxScore { get; set; }
 
     /// <summary>
     /// 完成百分比
     /// </summary>
-    public decimal CompletionPercentage { get; set; }
+    public double CompletionPercentage { get; set; }
 
     /// <summary>
     /// 用时（秒）

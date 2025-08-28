@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using BenchSuite.Models;
@@ -80,9 +80,7 @@ public static class CSharpUnitTestRunner
             foreach (Type type in assembly.GetTypes())
             {
                 // 查找带有测试属性的方法
-                MethodInfo[] testMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
-                    .Where(m => HasTestAttribute(m))
-                    .ToArray();
+                MethodInfo[] testMethods = [.. type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).Where(m => HasTestAttribute(m))];
 
                 if (testMethods.Length > 0)
                 {

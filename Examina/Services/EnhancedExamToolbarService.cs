@@ -73,8 +73,8 @@ public class EnhancedExamToolbarService : IDisposable
                 Dictionary<ModuleType, ScoringResult>? scoringResults = await PerformBenchSuiteScoringAsync(ExamType.FormalExam, examId, studentId);
 
                 // 计算总分和得分
-                decimal totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
-                decimal achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
+                double totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
+                double achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
                 bool isSuccess = scoringResults?.Values.All(r => r.IsSuccess) ?? false;
 
                 // 2. 准备成绩提交数据
@@ -149,8 +149,8 @@ public class EnhancedExamToolbarService : IDisposable
                 Dictionary<ModuleType, ScoringResult>? scoringResults = await PerformBenchSuiteScoringAsync(ExamType.MockExam, mockExamId, studentId);
 
                 // 计算总分和得分
-                decimal totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
-                decimal achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
+                double totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
+                double achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
                 bool isSuccess = scoringResults?.Values.All(r => r.IsSuccess) ?? false;
 
                 // 2. 准备成绩提交数据
@@ -247,8 +247,8 @@ public class EnhancedExamToolbarService : IDisposable
                 Dictionary<ModuleType, ScoringResult>? scoringResults = await PerformBenchSuiteScoringAsync(ExamType.ComprehensiveTraining, trainingId, studentId);
 
                 // 计算总分和得分
-                decimal totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
-                decimal achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
+                double totalScore = scoringResults?.Values.Sum(r => r.TotalScore) ?? 0;
+                double achievedScore = scoringResults?.Values.Sum(r => r.AchievedScore) ?? 0;
                 bool isSuccess = scoringResults?.Values.All(r => r.IsSuccess) ?? false;
 
                 // 2. 准备训练提交数据
@@ -416,7 +416,7 @@ public class EnhancedExamToolbarService : IDisposable
                 if (System.IO.Directory.Exists(examDirectory))
                 {
                     string[] files = System.IO.Directory.GetFiles(examDirectory, "*", System.IO.SearchOption.AllDirectories);
-                    filePaths[moduleType] = files.ToList();
+                    filePaths[moduleType] = [.. files];
                 }
                 else
                 {
@@ -478,7 +478,7 @@ public class EnhancedExamToolbarService : IDisposable
                 if (System.IO.Directory.Exists(examDirectory))
                 {
                     string[] files = System.IO.Directory.GetFiles(examDirectory, "*", System.IO.SearchOption.AllDirectories);
-                    filePaths[moduleType] = files.ToList();
+                    filePaths[moduleType] = [.. files];
                 }
                 else
                 {

@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Data;
+﻿using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models;
 using ExaminaWebApplication.Models.Api.Student;
 using ExaminaWebApplication.Models.ImportedSpecializedTraining;
@@ -53,11 +53,10 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
 
                 // 使用随机数生成器进行随机排序
                 Random random = new();
-                trainings = allTrainings
+                trainings = [.. allTrainings
                     .OrderBy(x => random.Next())
                     .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
+                    .Take(pageSize)];
 
                 _logger.LogInformation("使用内存随机排序获取专项训练列表，学生ID: {StudentUserId}, 总数: {TotalCount}, 返回数量: {Count}, 页码: {PageNumber}",
                     studentUserId, totalCount, trainings.Count, pageNumber);
@@ -78,7 +77,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                     studentUserId, totalCount, trainings.Count, pageNumber);
             }
 
-            List<StudentSpecializedTrainingDto> result = trainings.Select(MapToStudentSpecializedTrainingDto).ToList();
+            List<StudentSpecializedTrainingDto> result = [.. trainings.Select(MapToStudentSpecializedTrainingDto)];
 
             // 调试信息：输出每个训练的EnableTrial状态
             foreach (var training in trainings)
@@ -222,7 +221,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                 .Include(t => t.Questions)
                 .ToListAsync();
 
-            List<StudentSpecializedTrainingDto> result = trainings.Select(MapToStudentSpecializedTrainingDto).ToList();
+            List<StudentSpecializedTrainingDto> result = [.. trainings.Select(MapToStudentSpecializedTrainingDto)];
 
             _logger.LogInformation("根据模块类型获取专项训练列表成功，学生ID: {StudentUserId}, 模块类型: {ModuleType}, 返回数量: {Count}",
                 studentUserId, moduleType, result.Count);
@@ -253,7 +252,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                 .Include(t => t.Questions)
                 .ToListAsync();
 
-            List<StudentSpecializedTrainingDto> result = trainings.Select(MapToStudentSpecializedTrainingDto).ToList();
+            List<StudentSpecializedTrainingDto> result = [.. trainings.Select(MapToStudentSpecializedTrainingDto)];
 
             _logger.LogInformation("根据难度等级获取专项训练列表成功，学生ID: {StudentUserId}, 难度等级: {DifficultyLevel}, 返回数量: {Count}",
                 studentUserId, difficultyLevel, result.Count);
@@ -287,7 +286,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                 .Include(t => t.Questions)
                 .ToListAsync();
 
-            List<StudentSpecializedTrainingDto> result = trainings.Select(MapToStudentSpecializedTrainingDto).ToList();
+            List<StudentSpecializedTrainingDto> result = [.. trainings.Select(MapToStudentSpecializedTrainingDto)];
 
             _logger.LogInformation("搜索专项训练成功，学生ID: {StudentUserId}, 搜索关键词: {SearchKeyword}, 返回数量: {Count}",
                 studentUserId, searchKeyword, result.Count);
@@ -367,7 +366,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
         if (training.Modules != null)
         {
             System.Diagnostics.Debug.WriteLine($"映射模块信息，原始模块数量: {training.Modules.Count}");
-            dto.Modules = training.Modules.Select(MapToStudentSpecializedTrainingModuleDto).ToList();
+            dto.Modules = [.. training.Modules.Select(MapToStudentSpecializedTrainingModuleDto)];
             System.Diagnostics.Debug.WriteLine($"映射后模块数量: {dto.Modules.Count}");
         }
         else
@@ -379,7 +378,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
         if (training.Questions != null)
         {
             System.Diagnostics.Debug.WriteLine($"映射题目信息，原始题目数量: {training.Questions.Count}");
-            dto.Questions = training.Questions.Select(MapToStudentSpecializedTrainingQuestionDto).ToList();
+            dto.Questions = [.. training.Questions.Select(MapToStudentSpecializedTrainingQuestionDto)];
             System.Diagnostics.Debug.WriteLine($"映射后题目数量: {dto.Questions.Count}");
         }
         else
@@ -547,7 +546,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     /// <summary>
     /// 标记专项训练为已完成
     /// </summary>
-    public async Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null)
+    public async Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null)
     {
         try
         {

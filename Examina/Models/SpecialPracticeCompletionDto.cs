@@ -1,4 +1,4 @@
-namespace Examina.Models;
+﻿namespace Examina.Models;
 
 /// <summary>
 /// 专项练习完成记录DTO
@@ -33,17 +33,17 @@ public class SpecialPracticeCompletionDto
     /// <summary>
     /// 得分（可选）
     /// </summary>
-    public decimal? Score { get; set; }
+    public double? Score { get; set; }
 
     /// <summary>
     /// 最大得分（可选）
     /// </summary>
-    public decimal? MaxScore { get; set; }
+    public double? MaxScore { get; set; }
 
     /// <summary>
     /// 完成百分比（0-100）
     /// </summary>
-    public decimal? CompletionPercentage { get; set; }
+    public double? CompletionPercentage { get; set; }
 
     /// <summary>
     /// 用时（秒）

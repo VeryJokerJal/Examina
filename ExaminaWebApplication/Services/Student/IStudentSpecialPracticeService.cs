@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Dto;
+﻿using ExaminaWebApplication.Models.Dto;
 
 namespace ExaminaWebApplication.Services.Student;
 
@@ -24,7 +24,7 @@ public interface IStudentSpecialPracticeService
     /// <param name="durationSeconds">用时（秒，可选）</param>
     /// <param name="notes">备注（可选）</param>
     /// <returns>是否标记成功</returns>
-    Task<bool> MarkPracticeAsCompletedAsync(int studentUserId, int practiceId, decimal? score = null, decimal? maxScore = null, int? durationSeconds = null, string? notes = null);
+    Task<bool> MarkPracticeAsCompletedAsync(int studentUserId, int practiceId, double? score = null, double? maxScore = null, int? durationSeconds = null, string? notes = null);
 
     /// <summary>
     /// 标记专项练习为开始状态

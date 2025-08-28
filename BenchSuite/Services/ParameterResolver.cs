@@ -339,11 +339,10 @@ namespace BenchSuite.Services
                 return Array.Empty<int>();
             }
 
-            return resolvedValue.Split(',')
+            return [.. resolvedValue.Split(',')
                 .Select(s => s.Trim())
                 .Where(s => int.TryParse(s, out _))
-                .Select(int.Parse)
-                .ToArray();
+                .Select(int.Parse)];
         }
     }
 }

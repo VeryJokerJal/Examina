@@ -1,4 +1,4 @@
-using ExaminaWebApplication.Models.Organization;
+﻿using ExaminaWebApplication.Models.Organization;
 using ExaminaWebApplication.Models.Organization.Dto;
 using ExaminaWebApplication.Models.Requests;
 
@@ -136,17 +136,17 @@ public class ClassManagementViewModel : ViewModelBase
 
             if (SelectedSchool != null)
             {
-                filtered = filtered.Where(c => c.ParentOrganizationId == SelectedSchool.Id).ToList();
+                filtered = [.. filtered.Where(c => c.ParentOrganizationId == SelectedSchool.Id)];
             }
 
             if (!string.IsNullOrWhiteSpace(SearchKeyword))
             {
-                filtered = filtered.Where(c => c.Name.Contains(SearchKeyword, StringComparison.OrdinalIgnoreCase)).ToList();
+                filtered = [.. filtered.Where(c => c.Name.Contains(SearchKeyword, StringComparison.OrdinalIgnoreCase))];
             }
 
             if (!IncludeInactive)
             {
-                filtered = filtered.Where(c => c.IsActive).ToList();
+                filtered = [.. filtered.Where(c => c.IsActive)];
             }
 
             return filtered;

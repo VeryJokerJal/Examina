@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using BenchSuite.Models;
@@ -20,7 +20,7 @@ public static class CSharpCodeCompletionGrader
         SyntaxTree tree = CSharpSyntaxTree.ParseText(templateCode);
         SyntaxNode root = tree.GetRoot();
         
-        List<ThrowStatementSyntax> throws = root.DescendantNodes()
+        List<ThrowStatementSyntax> throws = [.. root.DescendantNodes()
             .OfType<ThrowStatementSyntax>()
             .Where(t =>
             {
@@ -32,8 +32,7 @@ public static class CSharpCodeCompletionGrader
                     }
                 }
                 return false;
-            })
-            .ToList();
+            })];
 
         List<BlankDescriptor> blanks = [];
         
@@ -113,18 +112,16 @@ public static class CSharpCodeCompletionGrader
         SyntaxNode root = tree.GetRoot();
 
         // 找方法
-        List<MethodDeclarationSyntax> candidateMethods = root.DescendantNodes()
+        List<MethodDeclarationSyntax> candidateMethods = [.. root.DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
-            .Where(m => m.Identifier.Text == descriptor.MethodName)
-            .ToList();
+            .Where(m => m.Identifier.Text == descriptor.MethodName)];
 
         if (!candidateMethods.Any())
         {
             // 也尝试构造函数
-            List<ConstructorDeclarationSyntax> ctors = root.DescendantNodes()
+            List<ConstructorDeclarationSyntax> ctors = [.. root.DescendantNodes()
                 .OfType<ConstructorDeclarationSyntax>()
-                .Where(c => c.Identifier.Text == descriptor.MethodName)
-                .ToList();
+                .Where(c => c.Identifier.Text == descriptor.MethodName)];
             if (ctors.Any())
             {
                 ConstructorDeclarationSyntax ctor = ctors.First();
@@ -141,7 +138,7 @@ public static class CSharpCodeCompletionGrader
             return null;
         }
 
-        List<StatementSyntax> studentStmts = methodNode.Body.Statements.ToList();
+        List<StatementSyntax> studentStmts = [.. methodNode.Body.Statements];
 
         // 如果模板有 prev/next，可以在学生语句中寻找等价语句作为锚点
         return ExtractBetweenAnchors(studentStmts, 
@@ -216,7 +213,7 @@ public static class CSharpCodeCompletionGrader
                 return false;
             }
 
-            List<StatementSyntax> expectedList = block.Statements.ToList();
+            List<StatementSyntax> expectedList = [.. block.Statements];
 
             if (expectedList.Count != studentStmts.Count)
             {

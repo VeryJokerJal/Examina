@@ -50,8 +50,8 @@ public class ImportedOperationPoint
     /// <summary>
     /// 操作点分值
     /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal Score { get; set; }
+    [Column(TypeName = "double")]
+    public double Score { get; set; }
 
     /// <summary>
     /// 操作点顺序
