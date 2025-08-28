@@ -476,6 +476,9 @@ public class WindowsScoringService : IWindowsScoringService
                 case "ExtractZipArchive":
                     result = DetectExtractZipArchive(parameters);
                     break;
+                case "CopyAndRename":
+                    result = DetectCopyAndRename(parameters);
+                    break;
                 default:
                     result.ErrorMessage = $"未知的知识点类型: {knowledgePointType}";
                     break;
@@ -607,6 +610,45 @@ public class WindowsScoringService : IWindowsScoringService
         result.IsCorrect = !originalExists && newExists;
         result.Details = result.IsCorrect ? $"文件已重命名为 {newName}" :
             $"重命名操作未完成 - 原文件存在: {originalExists}, 新文件存在: {newExists}";
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测复制重命名操作
+    /// </summary>
+    private KnowledgePointResult DetectCopyAndRename(Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new() { IsCorrect = false };
+
+        if (!parameters.TryGetValue("SourcePath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
+        {
+            result.ErrorMessage = "缺少源路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("DestinationPath", out string? destinationPath) || string.IsNullOrEmpty(destinationPath))
+        {
+            result.ErrorMessage = "缺少目标路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("NewName", out string? newName) || string.IsNullOrEmpty(newName))
+        {
+            result.ErrorMessage = "缺少新名称参数";
+            return result;
+        }
+
+        // 构建最终的目标文件路径（目标路径 + 新名称）
+        string finalDestinationPath = Path.Combine(destinationPath, newName);
+
+        bool sourceExists = FileExists(sourcePath) || DirectoryExists(sourcePath);
+        bool finalDestinationExists = FileExists(finalDestinationPath) || DirectoryExists(finalDestinationPath);
+
+        result.IsCorrect = sourceExists && finalDestinationExists;
+        result.Details = result.IsCorrect ?
+            $"文件/文件夹已从 {sourcePath} 复制到 {finalDestinationPath}" :
+            $"复制重命名操作未完成 - 源存在: {sourceExists}, 目标存在: {finalDestinationExists}";
 
         return result;
     }
@@ -1214,7 +1256,10 @@ public class WindowsScoringService : IWindowsScoringService
             { "Ping主机", "PingHost" },
             { "下载文件", "DownloadFile" },
             { "创建ZIP压缩包", "CreateZipArchive" },
-            { "解压ZIP压缩包", "ExtractZipArchive" }
+            { "解压ZIP压缩包", "ExtractZipArchive" },
+            // 添加EL导出格式的映射支持
+            { "删除操作", "DeleteFile" },
+            { "复制重命名操作", "CopyAndRename" }
         };
 
         // 尝试精确匹配

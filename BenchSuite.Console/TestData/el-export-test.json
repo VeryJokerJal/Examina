@@ -1,0 +1,79 @@
+{
+  "id": "exam-el-test-001",
+  "name": "EL导出格式测试试卷",
+  "description": "测试EL导出的知识点映射问题",
+  "version": "1.0.0",
+  "totalScore": 20.0,
+  "durationMinutes": 30,
+  "modules": [
+    {
+      "id": "windows-module-el-001",
+      "name": "Windows操作模块",
+      "type": "Windows",
+      "description": "测试EL导出的Windows操作知识点",
+      "score": 20.0,
+      "order": 1,
+      "isEnabled": true,
+      "questions": [
+        {
+          "id": "q001",
+          "title": "文件操作测试",
+          "description": "测试EL导出的删除操作和复制重命名操作",
+          "type": "WindowsOperation",
+          "score": 20.0,
+          "order": 1,
+          "operationPoints": [
+            {
+              "id": "op001",
+              "name": "删除操作",
+              "description": "删除指定的文件或文件夹",
+              "moduleType": "Windows",
+              "score": 10.0,
+              "isEnabled": true,
+              "parameters": [
+                {
+                  "name": "TargetPath",
+                  "value": "\\WINDOWS\\calc.exe",
+                  "type": "Text",
+                  "isRequired": true,
+                  "order": 1
+                }
+              ]
+            },
+            {
+              "id": "op002",
+              "name": "复制重命名操作",
+              "description": "复制并重命名文件或文件夹",
+              "moduleType": "Windows",
+              "score": 10.0,
+              "isEnabled": true,
+              "parameters": [
+                {
+                  "name": "SourcePath",
+                  "value": "\\WINDOWS\\chcp.com",
+                  "type": "Text",
+                  "isRequired": true,
+                  "order": 1
+                },
+                {
+                  "name": "DestinationPath",
+                  "value": "\\WINDOWS\\2",
+                  "type": "Text",
+                  "isRequired": true,
+                  "order": 2
+                },
+                {
+                  "name": "NewName",
+                  "value": "chcp2.com",
+                  "type": "Text",
+                  "isRequired": true,
+                  "order": 3
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -143,16 +143,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// </summary>
     public string GetButtonText(StudentSpecializedTrainingDto training)
     {
-        string buttonText;
-        if (HasFullAccess)
-        {
-            buttonText = "开始答题";
-        }
-        else
-        {
-            buttonText = training.EnableTrial ? "试做" : "解锁";
-        }
-
+        string buttonText = HasFullAccess ? "开始答题" : training.EnableTrial ? "试做" : "解锁";
         System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] GetButtonText - 训练: {training.Name}, HasFullAccess: {HasFullAccess}, EnableTrial: {training.EnableTrial}, 按钮文本: {buttonText}");
         return buttonText;
     }
@@ -599,7 +590,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             };
 
             // 扫描考试文件（简化版本）
-            await ScanTrainingFilesAsync(request, training);
+            ScanTrainingFiles(request, training);
 
             // 执行评分
             BenchSuiteScoringResult result = await _benchSuiteIntegrationService.ScoreExamAsync(request);
@@ -618,7 +609,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 扫描训练文件
     /// </summary>
-    private async Task ScanTrainingFilesAsync(BenchSuiteScoringRequest request, StudentSpecializedTrainingDto training)
+    private void ScanTrainingFiles(BenchSuiteScoringRequest request, StudentSpecializedTrainingDto training)
     {
         try
         {
@@ -626,7 +617,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             BenchSuiteFileType fileType = GetFileTypeFromModuleType(training.ModuleType);
 
             // 简化的文件扫描逻辑
-            request.FilePaths[fileType] = new List<string>();
+            request.FilePaths[fileType] = [];
 
             System.Diagnostics.Debug.WriteLine($"已配置文件类型: {fileType} 用于模块类型: {training.ModuleType}");
         }
@@ -872,19 +863,13 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// </summary>
     private async Task LoadTrainingsAsync(bool append = false)
     {
-        List<StudentSpecializedTrainingDto> trainings;
-
-        // 根据筛选条件选择不同的API
-        if (!string.IsNullOrWhiteSpace(SearchKeyword))
-        {
-            trainings = await _studentSpecializedTrainingService.SearchTrainingsAsync(SearchKeyword, CurrentPage, PageSize);
-        }
-        else
-        {
-            trainings = !string.IsNullOrWhiteSpace(SelectedModuleType)
+        List<StudentSpecializedTrainingDto> trainings = !string.IsNullOrWhiteSpace(SearchKeyword)
+            ? await _studentSpecializedTrainingService.SearchTrainingsAsync(SearchKeyword, CurrentPage, PageSize)
+            : !string.IsNullOrWhiteSpace(SelectedModuleType)
                 ? await _studentSpecializedTrainingService.GetTrainingsByModuleTypeAsync(SelectedModuleType, CurrentPage, PageSize)
                 : await _studentSpecializedTrainingService.GetAvailableTrainingsAsync(CurrentPage, PageSize);
-        }
+
+        // 根据筛选条件选择不同的API
 
         if (!append)
         {
@@ -946,16 +931,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             {
                 if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 {
-                    var mainWindow = desktop.MainWindow;
+                    Avalonia.Controls.Window? mainWindow = desktop.MainWindow;
                     if (mainWindow != null)
                     {
-                        var unlockWindow = new UnlockPromotionWindow();
-                        System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 解锁推广窗口创建成功，准备显示");
-                        unlockWindow.ShowDialog(mainWindow);
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 无法获取主窗口，无法显示解锁推广窗口");
+                        UnlockPromotionWindow unlockWindow = new();
+                        _ = unlockWindow.ShowDialog(mainWindow);
                     }
                 }
                 else

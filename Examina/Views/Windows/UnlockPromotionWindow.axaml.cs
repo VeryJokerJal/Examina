@@ -12,7 +12,5 @@ public partial class UnlockPromotionWindow : Window
     {
         InitializeComponent();
         DataContext = new UnlockPromotionWindowViewModel();
-
-        System.Diagnostics.Debug.WriteLine("[UnlockPromotionWindow] 窗口初始化完成");
     }
 }
