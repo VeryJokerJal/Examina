@@ -4,7 +4,7 @@ using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
 using Examina.Extensions;
 using Examina.Models;
-using Examina.Models.BenchSuite;
+
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -490,7 +490,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            BenchSuiteScoringResult? scoringResult = null;
+            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
             bool submitResult = false;
 
             // 仅支持综合实训类型
@@ -498,8 +498,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             {
                 if (_enhancedExamToolbarService != null)
                 {
-                    scoringResults = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
-                    submitResult = scoringResults != null && scoringResults.Count > 0;
+                    scoringResult = await _enhancedExamToolbarService.SubmitComprehensiveTrainingWithResultAsync(trainingId);
+                    submitResult = scoringResult != null;
                 }
                 else
                 {
@@ -512,7 +512,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             if (submitResult)
             {
-                await ShowTrainingResultAsync(trainingId, examType, scoringResults);
+                await ShowTrainingResultAsync(trainingId, examType, scoringResult);
             }
             else
             {
@@ -583,12 +583,64 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 扫描并添加文件路径到BenchSuite评分请求
     /// </summary>
-    [Obsolete("此方法已过时，请使用EnhancedExamToolbarService进行BenchSuite评分")]
-    private async Task ScanAndAddFilePathsAsync(object request, int trainingId)
+    private async Task ScanAndAddFilePathsAsync(BenchSuiteScoringRequest request, int trainingId)
     {
-        // 此方法已过时，不再实现具体逻辑
-        // 请使用EnhancedExamToolbarService进行BenchSuite评分
-        await Task.CompletedTask;
+        try
+        {
+            IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+            if (directoryService == null) return;
+
+            // 获取支持的文件类型
+            BenchSuiteFileType[] supportedFileTypes =
+            {
+                BenchSuiteFileType.Word,
+                BenchSuiteFileType.Excel,
+                BenchSuiteFileType.CSharp,
+                BenchSuiteFileType.Windows
+            };
+
+            foreach (BenchSuiteFileType fileType in supportedFileTypes)
+            {
+                try
+                {
+                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
+
+                    if (Directory.Exists(directoryPath))
+                    {
+                        List<string> filePaths = new();
+
+                        // 根据文件类型扫描相应的文件
+                        string[] extensions = fileType switch
+                        {
+                            BenchSuiteFileType.Word => new[] { "*.docx", "*.doc" },
+                            BenchSuiteFileType.Excel => new[] { "*.xlsx", "*.xls" },
+                            BenchSuiteFileType.CSharp => new[] { "*.cs" },
+                            BenchSuiteFileType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
+                            _ => new[] { "*.*" }
+                        };
+
+                        foreach (string extension in extensions)
+                        {
+                            string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
+                            filePaths.AddRange(files);
+                        }
+
+                        if (filePaths.Count > 0)
+                        {
+                            request.FilePaths[fileType] = filePaths;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"扫描{fileType}文件时发生错误: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"扫描文件路径时发生错误: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -795,7 +847,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示训练结果
     /// </summary>
-    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, BenchSuiteScoringResult? scoringResult = null)
+    private async Task ShowTrainingResultAsync(int trainingId, ExamType examType, Dictionary<ModuleType, ScoringResult>? scoringResults = null)
     {
         try
         {
@@ -808,18 +860,22 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 如果没有传入评分结果，创建一个基本的失败结果
-            scoringResult ??= new BenchSuiteScoringResult
+            scoringResults ??= new Dictionary<ModuleType, ScoringResult>
             {
-                IsSuccess = false,
-                ErrorMessage = "未能获取评分结果",
-                TotalScore = 100,
-                AchievedScore = 0,
-                StartTime = _trainingStartTime,
-                EndTime = DateTime.Now
+                [ModuleType.Windows] = new ScoringResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "未能获取评分结果",
+                    TotalScore = 100,
+                    AchievedScore = 0,
+                    StartTime = _trainingStartTime,
+                    EndTime = DateTime.Now,
+                    KnowledgePointResults = new List<KnowledgePointResult>()
+                }
             };
 
             // 显示详细的训练结果（使用真实或基本的评分结果）
-            await ShowDetailedTrainingResultAsync(training.Name, scoringResult);
+            await ShowDetailedTrainingResultAsync(training.Name, scoringResults);
         }
         catch
         {
@@ -846,13 +902,13 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示详细的训练结果
     /// </summary>
-    private async Task ShowDetailedTrainingResultAsync(string trainingName, BenchSuiteScoringResult scoringResult)
+    private async Task ShowDetailedTrainingResultAsync(string trainingName, Dictionary<ModuleType, ScoringResult>? scoringResults)
     {
         try
         {
             // 创建训练结果ViewModel
             TrainingResultViewModel resultViewModel = new();
-            resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
+            resultViewModel.SetTrainingResult(trainingName, scoringResults ?? new Dictionary<ModuleType, ScoringResult>(), _trainingStartTime);
 
             // 创建训练结果窗口
             TrainingResultWindow resultWindow = new()
