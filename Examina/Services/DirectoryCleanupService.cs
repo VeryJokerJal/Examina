@@ -26,10 +26,6 @@ public class DirectoryCleanupService : IDirectoryCleanupService
     public async Task<DirectoryCleanupResult> CleanupDirectoryAsync(string directoryPath)
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
-        int deletedFiles = 0;
-        int deletedDirectories = 0;
-        int skippedFiles = 0;
-        int skippedDirectories = 0;
         List<string> detailedErrors = new();
 
         try
@@ -43,10 +39,10 @@ public class DirectoryCleanupService : IDirectoryCleanupService
             }
 
             // 清理文件
-            await CleanupFilesAsync(directoryPath, ref deletedFiles, ref skippedFiles, detailedErrors);
+            (int deletedFiles, int skippedFiles) = await CleanupFilesAsync(directoryPath, detailedErrors);
 
             // 清理子目录
-            await CleanupSubDirectoriesAsync(directoryPath, ref deletedDirectories, ref skippedDirectories, detailedErrors);
+            (int deletedDirectories, int skippedDirectories) = await CleanupSubDirectoriesAsync(directoryPath, detailedErrors);
 
             stopwatch.Stop();
 
@@ -72,7 +68,7 @@ public class DirectoryCleanupService : IDirectoryCleanupService
             stopwatch.Stop();
             string errorMessage = $"清理目录时发生错误: {ex.Message}";
             _logger.LogError(ex, "清理目录失败: {DirectoryPath}", directoryPath);
-            
+
             return DirectoryCleanupResult.Failure(errorMessage, detailedErrors);
         }
     }
@@ -114,12 +110,15 @@ public class DirectoryCleanupService : IDirectoryCleanupService
     /// <summary>
     /// 清理目录中的所有文件
     /// </summary>
-    private async Task CleanupFilesAsync(string directoryPath, ref int deletedFiles, ref int skippedFiles, List<string> detailedErrors)
+    private async Task<(int deletedFiles, int skippedFiles)> CleanupFilesAsync(string directoryPath, List<string> detailedErrors)
     {
+        int deletedFiles = 0;
+        int skippedFiles = 0;
+
         try
         {
             string[] files = Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories);
-            
+
             foreach (string file in files)
             {
                 try
@@ -128,7 +127,7 @@ public class DirectoryCleanupService : IDirectoryCleanupService
                     File.SetAttributes(file, FileAttributes.Normal);
                     File.Delete(file);
                     deletedFiles++;
-                    
+
                     _logger.LogDebug("已删除文件: {FilePath}", file);
                 }
                 catch (Exception ex)
@@ -152,17 +151,22 @@ public class DirectoryCleanupService : IDirectoryCleanupService
             detailedErrors.Add(error);
             _logger.LogError(ex, "枚举目录文件失败: {DirectoryPath}", directoryPath);
         }
+
+        return (deletedFiles, skippedFiles);
     }
 
     /// <summary>
     /// 清理目录中的所有子目录
     /// </summary>
-    private async Task CleanupSubDirectoriesAsync(string directoryPath, ref int deletedDirectories, ref int skippedDirectories, List<string> detailedErrors)
+    private async Task<(int deletedDirectories, int skippedDirectories)> CleanupSubDirectoriesAsync(string directoryPath, List<string> detailedErrors)
     {
+        int deletedDirectories = 0;
+        int skippedDirectories = 0;
+
         try
         {
             string[] directories = Directory.GetDirectories(directoryPath, "*", SearchOption.TopDirectoryOnly);
-            
+
             foreach (string directory in directories)
             {
                 try
@@ -170,7 +174,7 @@ public class DirectoryCleanupService : IDirectoryCleanupService
                     // 递归删除子目录
                     Directory.Delete(directory, true);
                     deletedDirectories++;
-                    
+
                     _logger.LogDebug("已删除目录: {DirectoryPath}", directory);
                 }
                 catch (Exception ex)
@@ -194,5 +198,7 @@ public class DirectoryCleanupService : IDirectoryCleanupService
             detailedErrors.Add(error);
             _logger.LogError(ex, "枚举子目录失败: {DirectoryPath}", directoryPath);
         }
+
+        return (deletedDirectories, skippedDirectories);
     }
 }
