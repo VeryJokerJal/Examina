@@ -96,6 +96,10 @@ public class ImportedSpecializedTraining
                     IsEnabled = questionDto.IsEnabled,
                     StandardAnswer = questionDto.StandardAnswer,
                     Tags = questionDto.Tags,
+                    ProgramInput = questionDto.ProgramInput,
+                    ExpectedOutput = questionDto.ExpectedOutput,
+                    CodeFilePath = questionDto.CodeFilePath,
+                    DocumentFilePath = questionDto.DocumentFilePath,
                     ImportedAt = now,
                     SpecializedTraining = importedSpecializedTraining,
                     Module = module

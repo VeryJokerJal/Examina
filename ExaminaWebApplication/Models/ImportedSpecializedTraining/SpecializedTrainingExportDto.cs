@@ -247,6 +247,34 @@ public class SpecializedTrainingQuestionDto
     public string? Tags { get; set; }
 
     /// <summary>
+    /// C#程序参数输入（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("programInput")]
+    [StringLength(1000)]
+    public string? ProgramInput { get; set; }
+
+    /// <summary>
+    /// C#程序预期控制台输出（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("expectedOutput")]
+    [StringLength(2000)]
+    public string? ExpectedOutput { get; set; }
+
+    /// <summary>
+    /// C#代码文件路径（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("codeFilePath")]
+    [StringLength(500)]
+    public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// Office文档文件路径（仅Office模块使用）
+    /// </summary>
+    [JsonPropertyName("documentFilePath")]
+    [StringLength(500)]
+    public string? DocumentFilePath { get; set; }
+
+    /// <summary>
     /// 操作点列表
     /// </summary>
     [JsonPropertyName("operationPoints")]
