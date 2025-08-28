@@ -2,9 +2,9 @@
 using System.IO;
 using System.Reactive;
 using Avalonia.Controls.ApplicationLifetimes;
-using BenchSuite.Models;
 using Examina.Extensions;
 using Examina.Models;
+using Examina.Models.BenchSuite;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -490,7 +490,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
+            BenchSuiteScoringResult? scoringResult = null;
             bool submitResult = false;
 
             // 仅支持综合实训类型
@@ -552,7 +552,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             }
 
             // 尝试进行BenchSuite评分
-            Dictionary<ModuleType, ScoringResult>? scoringResults = null;
+            BenchSuiteScoringResult? scoringResult = null;
             decimal? score = null;
             decimal? maxScore = null;
             string? benchSuiteScoringResultJson = null;
@@ -566,23 +566,29 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
                     if (benchSuiteService != null && directoryService != null)
                     {
-                        // 构建文件路径字典
-                        Dictionary<ModuleType, List<string>> filePaths = [];
+                        // 创建BenchSuite评分请求
+                        BenchSuiteScoringRequest benchSuiteRequest = new()
+                        {
+                            ExamId = currentTrainingId.Value,
+                            ExamType = ExamType.ComprehensiveTraining,
+                            StudentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0,
+                            BasePath = directoryService.GetBasePath(),
+                            FilePaths = new Dictionary<BenchSuiteFileType, List<string>>()
+                        };
 
                         // 扫描并添加文件路径
-                        ScanAndAddFilePaths(filePaths, currentTrainingId.Value, directoryService);
+                        await ScanAndAddFilePathsAsync(benchSuiteRequest, currentTrainingId.Value);
 
                         // 执行BenchSuite评分
-                        int studentUserId = int.TryParse(_authenticationService.CurrentUser?.Id, out int userId) ? userId : 0;
-                        scoringResults = await benchSuiteService.ScoreExamAsync(ExamType.ComprehensiveTraining, currentTrainingId.Value, studentUserId, filePaths);
+                        scoringResult = await benchSuiteService.ScoreExamAsync(benchSuiteRequest);
 
-                        if (scoringResults != null && scoringResults.Count > 0)
+                        if (scoringResult.IsSuccess)
                         {
-                            score = scoringResults.Values.Sum(r => r.AchievedScore);
-                            maxScore = scoringResults.Values.Sum(r => r.TotalScore);
+                            score = scoringResult.AchievedScore;
+                            maxScore = scoringResult.TotalScore;
 
                             // 序列化评分结果
-                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResults, new System.Text.Json.JsonSerializerOptions
+                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResult, new System.Text.Json.JsonSerializerOptions
                             {
                                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
                                 WriteIndented = true
@@ -621,56 +627,59 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 扫描并添加文件路径到字典
+    /// 扫描并添加文件路径到BenchSuite评分请求
     /// </summary>
-    private void ScanAndAddFilePaths(Dictionary<ModuleType, List<string>> filePaths, int trainingId, IBenchSuiteDirectoryService directoryService)
+    private async Task ScanAndAddFilePathsAsync(BenchSuiteScoringRequest request, int trainingId)
     {
         try
         {
-            // 获取支持的模块类型
-            ModuleType[] supportedModuleTypes =
+            IBenchSuiteDirectoryService? directoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+            if (directoryService == null) return;
+
+            // 获取支持的文件类型
+            BenchSuiteFileType[] supportedFileTypes =
             {
-                ModuleType.Word,
-                ModuleType.Excel,
-                ModuleType.CSharp,
-                ModuleType.Windows
+                BenchSuiteFileType.Word,
+                BenchSuiteFileType.Excel,
+                BenchSuiteFileType.CSharp,
+                BenchSuiteFileType.Windows
             };
 
-            foreach (ModuleType moduleType in supportedModuleTypes)
+            foreach (BenchSuiteFileType fileType in supportedFileTypes)
             {
                 try
                 {
-                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, moduleType);
+                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, fileType);
 
                     if (Directory.Exists(directoryPath))
                     {
-                        List<string> moduleFilePaths = [];
+                        List<string> filePaths = new();
 
-                        // 根据模块类型扫描相应的文件
-                        string[] extensions = moduleType switch
+                        // 根据文件类型扫描相应的文件
+                        string[] extensions = fileType switch
                         {
-                            ModuleType.Word => new[] { "*.docx", "*.doc" },
-                            ModuleType.Excel => new[] { "*.xlsx", "*.xls" },
-                            ModuleType.CSharp => new[] { "*.cs" },
-                            ModuleType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
+                            BenchSuiteFileType.Word => new[] { "*.docx", "*.doc" },
+                            BenchSuiteFileType.Excel => new[] { "*.xlsx", "*.xls" },
+                            BenchSuiteFileType.CSharp => new[] { "*.cs" },
+                            BenchSuiteFileType.Windows => new[] { "*.*" }, // Windows操作检测不依赖特定文件
                             _ => new[] { "*.*" }
                         };
 
                         foreach (string extension in extensions)
                         {
                             string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
-                            moduleFilePaths.AddRange(files);
+                            filePaths.AddRange(files);
                         }
 
-                        if (moduleFilePaths.Count > 0)
+                        if (filePaths.Count > 0)
                         {
-                            filePaths[moduleType] = moduleFilePaths;
+                            request.FilePaths[fileType] = filePaths;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"扫描{moduleType}文件时发生错误: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"扫描{fileType}文件时发生错误: {ex.Message}");
                 }
             }
         }
@@ -904,7 +913,10 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                     IsSuccess = false,
                     ErrorMessage = "未能获取评分结果",
                     TotalScore = 100,
-                    AchievedScore = 0
+                    AchievedScore = 0,
+                    StartTime = _trainingStartTime,
+                    EndTime = DateTime.Now,
+                    KnowledgePointResults = new List<KnowledgePointResult>()
                 }
             };
 
@@ -942,7 +954,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         {
             // 创建训练结果ViewModel
             TrainingResultViewModel resultViewModel = new();
-            resultViewModel.SetTrainingResult(trainingName, scoringResults, _trainingStartTime);
+            resultViewModel.SetTrainingResult(trainingName, scoringResults ?? new Dictionary<ModuleType, ScoringResult>(), _trainingStartTime);
 
             // 创建训练结果窗口
             TrainingResultWindow resultWindow = new()

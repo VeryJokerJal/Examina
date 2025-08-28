@@ -2,15 +2,15 @@
 using System.Reactive;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using BenchSuite.Models;
 using Examina.Extensions;
 using Examina.Models;
 using Examina.Models.Api;
-using BenchSuite.Models;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
-using Examina.Views.Dialogs;
 using Examina.Views;
+using Examina.Views.Dialogs;
 using ReactiveUI;
 
 namespace Examina.ViewModels.Pages;
@@ -402,7 +402,7 @@ public class ExamListViewModel : ViewModelBase
             }
 
             // 启动正式考试界面
-            await StartFormalExamInterfaceAsync(examDetails);
+            StartFormalExamInterface(examDetails);
         }
         catch (Exception ex)
         {
@@ -414,7 +414,7 @@ public class ExamListViewModel : ViewModelBase
     /// <summary>
     /// 启动正式考试界面
     /// </summary>
-    private async Task StartFormalExamInterfaceAsync(StudentExamDto exam)
+    private void StartFormalExamInterface(StudentExamDto exam)
     {
         try
         {
@@ -756,7 +756,7 @@ public class ExamListViewModel : ViewModelBase
             }
 
             // 等待窗口关闭
-            await resultWindow.WaitForCloseAsync();
+            _ = await resultWindow.WaitForCloseAsync();
 
             System.Diagnostics.Debug.WriteLine("ExamListViewModel: 全屏考试结果窗口已显示并关闭（异步评分模式）");
 
@@ -800,7 +800,7 @@ public class ExamListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 准备显示全屏考试结果窗口（传统模式） - {examName}");
 
             // 使用新的全屏考试结果窗口
-            await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
+            _ = await Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResultAsync(
                 examName,
                 examType,
                 isSuccessful,
@@ -990,7 +990,6 @@ public class ExamListViewModel : ViewModelBase
 
             if (submitResult)
             {
-                decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
                 System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 成绩自动提交成功，得分: {totalAchieved}");
             }
             else
