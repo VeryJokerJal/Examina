@@ -869,7 +869,7 @@ public class ExamListViewModel : ViewModelBase
                 else
                 {
                     // 评分失败
-                    string errorMsg = scoringResult?.ErrorMessage ?? "BenchSuite评分服务不可用";
+                    string errorMsg = scoringResults?.Values.FirstOrDefault()?.ErrorMessage ?? "BenchSuite评分服务不可用";
                     resultViewModel.ScoringFailed($"评分失败: {errorMsg}");
                     System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分失败: {errorMsg}");
                 }
@@ -938,7 +938,7 @@ public class ExamListViewModel : ViewModelBase
                 else
                 {
                     // 评分失败
-                    string errorMsg = scoringResult?.ErrorMessage ?? "BenchSuite评分服务不可用";
+                    string errorMsg = scoringResults?.Values.FirstOrDefault()?.ErrorMessage ?? "BenchSuite评分服务不可用";
                     resultWindow.ScoringFailed($"评分失败: {errorMsg}");
                     System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 异步评分失败: {errorMsg}");
                 }
@@ -990,7 +990,8 @@ public class ExamListViewModel : ViewModelBase
 
             if (submitResult)
             {
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 成绩自动提交成功，得分: {scoringResult.AchievedScore}");
+                decimal totalAchieved = scoringResults.Values.Sum(r => r.AchievedScore);
+                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 成绩自动提交成功，得分: {totalAchieved}");
             }
             else
             {
