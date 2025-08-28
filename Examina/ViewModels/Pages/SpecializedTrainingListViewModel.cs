@@ -420,6 +420,22 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
                 System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 文件预下载完成，继续启动专项训练");
 
+                // 清理考试目录
+                IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
+                if (directoryCleanupService != null)
+                {
+                    DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
+                    if (!cleanupResult.IsSuccess)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"SpecializedTrainingListViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
+                        // 继续执行，不因清理失败而阻止训练开始
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"SpecializedTrainingListViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
+                    }
+                }
+
                 // 隐藏主窗口
                 desktop.MainWindow.Hide();
                 System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 主窗口已隐藏");

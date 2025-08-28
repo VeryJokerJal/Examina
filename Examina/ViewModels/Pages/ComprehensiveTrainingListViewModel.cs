@@ -263,21 +263,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 return;
             }
 
-            // 显示规则说明对话框
-            ComprehensiveTrainingRulesViewModel rulesViewModel = new();
-            ComprehensiveTrainingRulesDialog dialog = new(rulesViewModel);
-
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-                desktop.MainWindow != null)
-            {
-                bool? result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
-
-                if (result == true)
-                {
-                    // 用户确认开始，启动综合实训
-                    await StartComprehensiveTrainingAsync(training);
-                }
-            }
+            // 直接启动综合实训，无需确认对话框
+            await StartComprehensiveTrainingAsync(training);
         }
         catch (UnauthorizedAccessException)
         {
@@ -370,6 +357,22 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             // 标记训练为开始状态（即便失败也继续）
             _ = await _studentComprehensiveTrainingService.StartComprehensiveTrainingAsync(training.Id);
+
+            // 清理考试目录
+            IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
+            if (directoryCleanupService != null)
+            {
+                DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
+                if (!cleanupResult.IsSuccess)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
+                    // 继续执行，不因清理失败而阻止训练开始
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"ComprehensiveTrainingListViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
+                }
+            }
 
             // 启动训练界面
             await StartTrainingInterfaceAsync(trainingDetails);
@@ -709,21 +712,6 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             string basePath = directoryService.GetBasePath();
             System.Diagnostics.Debug.WriteLine($"[调试] BenchSuite基础路径: {basePath}");
 
-            // 尝试多个可能的路径位置
-            List<string> possibleBasePaths =
-            [
-                basePath, // BenchSuite标准路径
-                Examina.Extensions.FileDownloadExtensions.GetDownloadDirectoryPath(Examina.Models.FileDownloadTaskType.ComprehensiveTraining, trainingId), // 文件下载路径
-                System.IO.Path.Combine(basePath, "综合实训", trainingId.ToString()), // 中文路径
-                System.IO.Path.Combine(basePath, "ComprehensiveTraining", trainingId.ToString()) // 英文路径（不含模块子目录）
-            ];
-
-            System.Diagnostics.Debug.WriteLine($"[调试] 将尝试以下基础路径:");
-            foreach (string path in possibleBasePaths)
-            {
-                System.Diagnostics.Debug.WriteLine($"[调试]   - {path}");
-            }
-
             // 获取支持的文件类型
             BenchSuiteFileType[] supportedFileTypes =
             {
@@ -739,40 +727,14 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 {
                     // 将BenchSuiteFileType转换为ModuleType
                     ModuleType moduleType = ConvertBenchSuiteFileTypeToModuleType(fileType);
+                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, moduleType);
 
                     System.Diagnostics.Debug.WriteLine($"[调试] 扫描文件类型: {fileType} -> 模块类型: {moduleType}");
+                    System.Diagnostics.Debug.WriteLine($"[调试] 目录路径: {directoryPath}");
+                    System.Diagnostics.Debug.WriteLine($"[调试] 目录是否存在: {Directory.Exists(directoryPath)}");
 
-                    // 尝试多个可能的目录路径
-                    List<string> possibleDirectories = [];
-
-                    // 1. 标准BenchSuite路径
-                    string standardPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, moduleType);
-                    possibleDirectories.Add(standardPath);
-
-                    // 2. 文件下载路径
-                    string downloadBasePath = Examina.Extensions.FileDownloadExtensions.GetDownloadDirectoryPath(Examina.Models.FileDownloadTaskType.ComprehensiveTraining, trainingId);
-                    string moduleSubdirectory = GetModuleSubdirectoryName(moduleType);
-                    possibleDirectories.Add(System.IO.Path.Combine(downloadBasePath, moduleSubdirectory));
-
-                    // 3. 直接在下载根目录查找
-                    possibleDirectories.Add(downloadBasePath);
-
-                    // 4. 其他可能的路径变体
-                    possibleDirectories.Add(System.IO.Path.Combine(basePath, "综合实训", trainingId.ToString(), moduleSubdirectory));
-                    possibleDirectories.Add(System.IO.Path.Combine(basePath, trainingId.ToString(), moduleSubdirectory));
-
-                    System.Diagnostics.Debug.WriteLine($"[调试] 将尝试以下目录路径:");
-                    foreach (string dir in possibleDirectories)
+                    if (Directory.Exists(directoryPath))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[调试]   - {dir} (存在: {Directory.Exists(dir)})");
-                    }
-
-                    // 查找第一个存在的目录
-                    string? existingDirectory = possibleDirectories.FirstOrDefault(Directory.Exists);
-
-                    if (existingDirectory != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[调试] 找到存在的目录: {existingDirectory}");
                         List<string> filePaths = [];
 
                         // 根据文件类型扫描相应的文件
@@ -789,7 +751,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
                         foreach (string extension in extensions)
                         {
-                            string[] files = Directory.GetFiles(existingDirectory, extension, SearchOption.AllDirectories);
+                            string[] files = Directory.GetFiles(directoryPath, extension, SearchOption.AllDirectories);
                             System.Diagnostics.Debug.WriteLine($"[调试] 扩展名 {extension} 找到 {files.Length} 个文件");
                             filePaths.AddRange(files);
                         }
@@ -811,16 +773,12 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"[警告] {fileType} 在目录 {existingDirectory} 中未找到任何文件");
+                            System.Diagnostics.Debug.WriteLine($"[警告] {fileType} 未找到任何文件");
                         }
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[警告] {fileType} 对应的所有目录都不存在:");
-                        foreach (string dir in possibleDirectories)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[警告]   - {dir}");
-                        }
+                        System.Diagnostics.Debug.WriteLine($"[警告] {fileType} 对应的目录不存在: {directoryPath}");
                     }
                 }
                 catch (Exception ex)
@@ -1320,21 +1278,5 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         }
 
         return moduleFilePaths;
-    }
-
-    /// <summary>
-    /// 获取模块类型对应的子目录名称
-    /// </summary>
-    private static string GetModuleSubdirectoryName(ModuleType moduleType)
-    {
-        return moduleType switch
-        {
-            ModuleType.Word => "WORD",
-            ModuleType.Excel => "EXCEL",
-            ModuleType.PowerPoint => "PPT",
-            ModuleType.CSharp => "CSharp",
-            ModuleType.Windows => "WINDOWS",
-            _ => moduleType.ToString()
-        };
     }
 }

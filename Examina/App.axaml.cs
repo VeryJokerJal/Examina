@@ -221,6 +221,9 @@ public partial class App : Application
         // 注册窗口管理服务
         _ = services.AddSingleton<IWindowManagerService, WindowManagerService>();
 
+        // 注册目录清理服务
+        _ = services.AddSingleton<IDirectoryCleanupService, DirectoryCleanupService>();
+
         // 注册ViewModels
         _ = services.AddTransient<LoginViewModel>(provider =>
         {

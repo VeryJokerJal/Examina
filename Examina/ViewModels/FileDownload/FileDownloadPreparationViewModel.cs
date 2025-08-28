@@ -279,6 +279,16 @@ public class FileDownloadPreparationViewModel : ViewModelBase
         finally
         {
             IsDownloading = false;
+
+            // 如果下载完成且没有错误，触发自动关闭
+            if (IsCompleted && !HasError)
+            {
+                // 延迟1秒后自动关闭，让用户看到完成状态
+                _ = Task.Delay(1000).ContinueWith(_ =>
+                {
+                    AutoCloseRequested?.Invoke(this, EventArgs.Empty);
+                });
+            }
         }
     }
 
@@ -320,6 +330,12 @@ public class FileDownloadPreparationViewModel : ViewModelBase
         {
             CancelDownload();
         }
+    }
+
+    /// <summary>
+    /// 自动关闭事件
+    /// </summary>
+    public event EventHandler? AutoCloseRequested;
     }
 
     /// <summary>

@@ -179,6 +179,22 @@ public class MockExamViewModel : ViewModelBase
                     System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 模块 {module.Name} ({module.Type})，包含 {module.Questions.Count} 道题目，描述: {module.Description}");
                 }
 
+                // 清理考试目录
+                IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
+                if (directoryCleanupService != null)
+                {
+                    DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
+                    if (!cleanupResult.IsSuccess)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
+                        // 继续执行，不因清理失败而阻止考试开始
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"MockExamViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
+                    }
+                }
+
                 // 启动模拟考试界面（文件检测和下载在StartMockExamInterfaceAsync中处理）
                 await StartMockExamInterfaceAsync(mockExam);
             }

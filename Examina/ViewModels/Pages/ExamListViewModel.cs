@@ -262,31 +262,9 @@ public class ExamListViewModel : ViewModelBase
                 return;
             }
 
-            // 显示上机统考规则说明对话框
-            FormalExamRulesViewModel rulesViewModel = new();
-            FormalExamRulesDialog dialog = new(rulesViewModel);
-
-            // 设置对话框的父窗口
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-                desktop.MainWindow != null)
-            {
-                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 准备显示上机统考规则对话框");
-
-                bool? result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
-
-                System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 对话框返回结果: {result}");
-
-                if (result == true)
-                {
-                    System.Diagnostics.Debug.WriteLine("ExamListViewModel: 用户确认开始上机统考");
-                    // 用户确认开始，启动正式考试
-                    await StartFormalExamAsync(exam);
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("ExamListViewModel: 用户取消了上机统考");
-                }
-            }
+            // 直接启动正式考试，无需确认对话框
+            System.Diagnostics.Debug.WriteLine("ExamListViewModel: 直接开始上机统考");
+            await StartFormalExamAsync(exam);
             else
             {
                 System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口");
@@ -399,6 +377,22 @@ public class ExamListViewModel : ViewModelBase
             else
             {
                 System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过文件预下载");
+            }
+
+            // 清理考试目录
+            IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
+            if (directoryCleanupService != null)
+            {
+                DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
+                if (!cleanupResult.IsSuccess)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
+                    // 继续执行，不因清理失败而阻止考试开始
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
+                }
             }
 
             // 启动正式考试界面

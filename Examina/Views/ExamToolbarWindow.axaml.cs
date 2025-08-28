@@ -18,6 +18,16 @@ public partial class ExamToolbarWindow : Window, IDisposable
     private ExamToolbarViewModel? _viewModel;
     private bool _disposed;
 
+    // 自动收起/展开相关字段
+    private bool _isCollapsed = false;
+    private double _originalHeight = 60;
+    private double _collapsedHeight = 8;
+    private System.Timers.Timer? _collapseTimer;
+    private System.Timers.Timer? _expandTimer;
+    private const double MouseSensorRange = 50; // 鼠标感应范围（像素）
+    private const int CollapseDelay = 3000; // 收起延迟（毫秒）
+    private const int ExpandDelay = 200; // 展开延迟（毫秒）
+
     /// <summary>
     /// 考试自动提交事件
     /// </summary>
@@ -127,6 +137,13 @@ public partial class ExamToolbarWindow : Window, IDisposable
 
         // 窗口关闭时的处理
         Closing += ExamToolbarWindow_Closing;
+
+        // 鼠标事件处理
+        PointerEntered += ExamToolbarWindow_PointerEntered;
+        PointerExited += ExamToolbarWindow_PointerExited;
+
+        // 初始化定时器
+        InitializeTimers();
 
         _logger.LogInformation("ExamToolbarWindow事件处理程序设置完成");
     }
@@ -298,6 +315,86 @@ public partial class ExamToolbarWindow : Window, IDisposable
     }
 
     /// <summary>
+    /// 初始化定时器
+    /// </summary>
+    private void InitializeTimers()
+    {
+        // 收起定时器
+        _collapseTimer = new System.Timers.Timer(CollapseDelay);
+        _collapseTimer.Elapsed += (sender, e) =>
+        {
+            _collapseTimer?.Stop();
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => CollapseToolbar());
+        };
+        _collapseTimer.AutoReset = false;
+
+        // 展开定时器
+        _expandTimer = new System.Timers.Timer(ExpandDelay);
+        _expandTimer.Elapsed += (sender, e) =>
+        {
+            _expandTimer?.Stop();
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ExpandToolbar());
+        };
+        _expandTimer.AutoReset = false;
+
+        _logger.LogInformation("ExamToolbarWindow定时器初始化完成");
+    }
+
+    /// <summary>
+    /// 鼠标进入事件处理
+    /// </summary>
+    private void ExamToolbarWindow_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        _collapseTimer?.Stop();
+
+        if (_isCollapsed)
+        {
+            _expandTimer?.Start();
+        }
+
+        _logger.LogDebug("鼠标进入工具栏区域");
+    }
+
+    /// <summary>
+    /// 鼠标离开事件处理
+    /// </summary>
+    private void ExamToolbarWindow_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        _expandTimer?.Stop();
+
+        if (!_isCollapsed)
+        {
+            _collapseTimer?.Start();
+        }
+
+        _logger.LogDebug("鼠标离开工具栏区域");
+    }
+
+    /// <summary>
+    /// 收起工具栏
+    /// </summary>
+    private void CollapseToolbar()
+    {
+        if (_isCollapsed) return;
+
+        _isCollapsed = true;
+        Height = _collapsedHeight;
+        _logger.LogDebug("工具栏已收起");
+    }
+
+    /// <summary>
+    /// 展开工具栏
+    /// </summary>
+    private void ExpandToolbar()
+    {
+        if (!_isCollapsed) return;
+
+        _isCollapsed = false;
+        Height = _originalHeight;
+        _logger.LogDebug("工具栏已展开");
+    }
+
+    /// <summary>
     /// 停止考试
     /// </summary>
     public void StopExam()
@@ -313,6 +410,12 @@ public partial class ExamToolbarWindow : Window, IDisposable
     {
         if (!_disposed)
         {
+            // 释放定时器
+            _collapseTimer?.Stop();
+            _collapseTimer?.Dispose();
+            _expandTimer?.Stop();
+            _expandTimer?.Dispose();
+
             // 停止倒计时
             _viewModel?.StopCountdown();
 

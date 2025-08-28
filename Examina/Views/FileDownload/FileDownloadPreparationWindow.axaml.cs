@@ -24,6 +24,12 @@ public partial class FileDownloadPreparationWindow : Window
 
         // 监听ViewModel的关闭事件
         _ = _viewModel?.CloseCommand.Subscribe(_ => Close());
+
+        // 监听ViewModel的自动关闭事件
+        if (_viewModel != null)
+        {
+            _viewModel.AutoCloseRequested += OnAutoCloseRequested;
+        }
     }
 
     /// <summary>
@@ -49,10 +55,28 @@ public partial class FileDownloadPreparationWindow : Window
     }
 
     /// <summary>
+    /// 自动关闭事件处理
+    /// </summary>
+    private void OnAutoCloseRequested(object? sender, EventArgs e)
+    {
+        // 在UI线程上关闭窗口
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            Close();
+        });
+    }
+
+    /// <summary>
     /// 窗口关闭时的处理
     /// </summary>
     protected override void OnClosing(WindowClosingEventArgs e)
     {
+        // 取消订阅事件
+        if (_viewModel != null)
+        {
+            _viewModel.AutoCloseRequested -= OnAutoCloseRequested;
+        }
+
         // 如果正在下载，询问用户是否确认关闭
         if (_viewModel?.IsDownloading == true)
         {
