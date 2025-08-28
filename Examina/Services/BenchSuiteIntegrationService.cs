@@ -22,15 +22,21 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     private readonly Dictionary<ModuleType, IScoringService> _scoringServices;
     private readonly IAILogicalScoringService? _aiScoringService;
     private readonly IStudentExamService? _studentExamService;
+    private readonly IStudentMockExamService? _studentMockExamService;
+    private readonly IStudentComprehensiveTrainingService? _studentComprehensiveTrainingService;
 
     public BenchSuiteIntegrationService(
         ILogger<BenchSuiteIntegrationService> logger,
         IAILogicalScoringService? aiScoringService = null,
-        IStudentExamService? studentExamService = null)
+        IStudentExamService? studentExamService = null,
+        IStudentMockExamService? studentMockExamService = null,
+        IStudentComprehensiveTrainingService? studentComprehensiveTrainingService = null)
     {
         _logger = logger;
         _aiScoringService = aiScoringService;
         _studentExamService = studentExamService;
+        _studentMockExamService = studentMockExamService;
+        _studentComprehensiveTrainingService = studentComprehensiveTrainingService;
 
         _directoryMapping = new Dictionary<ModuleType, string>
         {
@@ -385,56 +391,202 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private async Task<ExamModel> CreateSimplifiedExamModel(ModuleType moduleType, ExamType examType, int examId, int studentUserId)
     {
+        _logger.LogInformation("开始获取考试数据，考试类型: {ExamType}, 模块类型: {ModuleType}, 考试ID: {ExamId}, 学生ID: {StudentUserId}",
+            examType, moduleType, examId, studentUserId);
+
         try
         {
-            // 尝试从API获取真实考试数据
-            if (_studentExamService != null)
+            // 根据考试类型调用不同的API端点
+            object? examData = await GetExamDataByTypeAsync(examType, examId, studentUserId);
+
+            if (examData != null)
             {
-                _logger.LogInformation("尝试从API获取考试数据，考试ID: {ExamId}, 学生ID: {StudentUserId}", examId, studentUserId);
+                _logger.LogInformation("成功从API获取考试数据，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
 
-                StudentExamDto? examDto = await _studentExamService.GetExamDetailsAsync(examId);
-                if (examDto != null)
+                try
                 {
-                    _logger.LogInformation("成功从API获取考试数据: {ExamName}", examDto.Name);
-
-                    try
-                    {
-                        return MapStudentExamDtoToExamModel(examDto!, moduleType);
-                    }
-                    catch (Exception mappingEx)
-                    {
-                        _logger.LogError(mappingEx, "数据映射失败，考试ID: {ExamId}，使用降级数据", examId);
-                    }
+                    return MapExamDataToExamModel(examData, examType, moduleType);
                 }
-                else
+                catch (Exception mappingEx)
                 {
-                    _logger.LogWarning("API返回空数据，考试ID: {ExamId}, 学生ID: {StudentUserId}，可能是权限问题或考试不存在", examId, studentUserId);
+                    _logger.LogError(mappingEx, "数据映射失败，考试类型: {ExamType}, 考试ID: {ExamId}，使用降级数据", examType, examId);
                 }
             }
             else
             {
-                _logger.LogWarning("StudentExamService未注入，使用降级数据");
+                _logger.LogWarning("API返回空数据，考试类型: {ExamType}, 考试ID: {ExamId}, 学生ID: {StudentUserId}，可能是权限问题或考试不存在",
+                    examType, examId, studentUserId);
             }
         }
         catch (HttpRequestException httpEx)
         {
-            _logger.LogError(httpEx, "网络请求失败，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+            _logger.LogError(httpEx, "网络请求失败，考试类型: {ExamType}, 考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据",
+                examType, examId, studentUserId);
         }
         catch (TaskCanceledException timeoutEx)
         {
-            _logger.LogError(timeoutEx, "API请求超时，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+            _logger.LogError(timeoutEx, "API请求超时，考试类型: {ExamType}, 考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据",
+                examType, examId, studentUserId);
         }
         catch (UnauthorizedAccessException authEx)
         {
-            _logger.LogError(authEx, "API访问权限不足，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+            _logger.LogError(authEx, "API访问权限不足，考试类型: {ExamType}, 考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据",
+                examType, examId, studentUserId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "从API获取考试数据时发生未知错误，考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据", examId, studentUserId);
+            _logger.LogError(ex, "从API获取考试数据时发生未知错误，考试类型: {ExamType}, 考试ID: {ExamId}, 学生ID: {StudentUserId}，使用降级数据",
+                examType, examId, studentUserId);
         }
 
         // 降级机制：使用原有的模拟数据逻辑
+        _logger.LogInformation("使用降级数据，考试类型: {ExamType}, 模块类型: {ModuleType}, 考试ID: {ExamId}", examType, moduleType, examId);
         return CreateFallbackExamModel(moduleType, examType, examId);
+    }
+
+    /// <summary>
+    /// 根据考试类型获取考试数据
+    /// </summary>
+    private async Task<object?> GetExamDataByTypeAsync(ExamType examType, int examId, int studentUserId)
+    {
+        return examType switch
+        {
+            ExamType.MockExam => await GetMockExamDataAsync(examId, studentUserId),
+            ExamType.ComprehensiveTraining => await GetComprehensiveTrainingDataAsync(examId, studentUserId),
+            ExamType.FormalExam => await GetFormalExamDataAsync(examId, studentUserId),
+            ExamType.Practice => await GetFormalExamDataAsync(examId, studentUserId), // Practice使用相同的API
+            ExamType.SpecialPractice => await GetFormalExamDataAsync(examId, studentUserId), // 暂时使用相同的API
+            ExamType.SpecializedTraining => await GetFormalExamDataAsync(examId, studentUserId), // 暂时使用相同的API
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// 获取模拟考试数据
+    /// </summary>
+    private async Task<object?> GetMockExamDataAsync(int mockExamId, int studentUserId)
+    {
+        if (_studentMockExamService == null)
+        {
+            _logger.LogWarning("StudentMockExamService未注入，无法获取模拟考试数据");
+            return null;
+        }
+
+        try
+        {
+            return await _studentMockExamService.GetMockExamDetailsAsync(mockExamId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取模拟考试数据失败，模拟考试ID: {MockExamId}", mockExamId);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 获取综合实训数据
+    /// </summary>
+    private async Task<object?> GetComprehensiveTrainingDataAsync(int trainingId, int studentUserId)
+    {
+        if (_studentComprehensiveTrainingService == null)
+        {
+            _logger.LogWarning("StudentComprehensiveTrainingService未注入，无法获取综合实训数据");
+            return null;
+        }
+
+        try
+        {
+            return await _studentComprehensiveTrainingService.GetTrainingDetailsAsync(trainingId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取综合实训数据失败，训练ID: {TrainingId}", trainingId);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 获取正式考试数据
+    /// </summary>
+    private async Task<object?> GetFormalExamDataAsync(int examId, int studentUserId)
+    {
+        if (_studentExamService == null)
+        {
+            _logger.LogWarning("StudentExamService未注入，无法获取正式考试数据");
+            return null;
+        }
+
+        try
+        {
+            return await _studentExamService.GetExamDetailsAsync(examId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取正式考试数据失败，考试ID: {ExamId}", examId);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 根据考试类型映射考试数据到ExamModel
+    /// </summary>
+    private ExamModel MapExamDataToExamModel(object examData, ExamType examType, ModuleType targetModuleType)
+    {
+        return examType switch
+        {
+            ExamType.MockExam => MapMockExamToExamModel(examData, targetModuleType),
+            ExamType.ComprehensiveTraining => MapComprehensiveTrainingToExamModel(examData, targetModuleType),
+            ExamType.FormalExam or ExamType.Practice or ExamType.SpecialPractice or ExamType.SpecializedTraining
+                => MapStudentExamDtoToExamModel((StudentExamDto)examData, targetModuleType),
+            _ => throw new NotSupportedException($"不支持的考试类型: {examType}")
+        };
+    }
+
+    /// <summary>
+    /// 映射模拟考试数据到ExamModel
+    /// </summary>
+    private ExamModel MapMockExamToExamModel(object mockExamData, ModuleType targetModuleType)
+    {
+        // 这里需要根据实际的模拟考试DTO结构进行映射
+        // 暂时使用基础映射，后续可以根据具体需求完善
+        _logger.LogInformation("映射模拟考试数据到ExamModel，目标模块类型: {ModuleType}", targetModuleType);
+
+        // TODO: 实现具体的模拟考试数据映射逻辑
+        // 目前返回基础模型，避免编译错误
+        return CreateBasicExamModel("模拟考试", targetModuleType);
+    }
+
+    /// <summary>
+    /// 映射综合实训数据到ExamModel
+    /// </summary>
+    private ExamModel MapComprehensiveTrainingToExamModel(object trainingData, ModuleType targetModuleType)
+    {
+        // 这里需要根据实际的综合实训DTO结构进行映射
+        // 暂时使用基础映射，后续可以根据具体需求完善
+        _logger.LogInformation("映射综合实训数据到ExamModel，目标模块类型: {ModuleType}", targetModuleType);
+
+        // TODO: 实现具体的综合实训数据映射逻辑
+        // 目前返回基础模型，避免编译错误
+        return CreateBasicExamModel("综合实训", targetModuleType);
+    }
+
+    /// <summary>
+    /// 创建基础考试模型
+    /// </summary>
+    private static ExamModel CreateBasicExamModel(string examName, ModuleType targetModuleType)
+    {
+        ExamModel examModel = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = examName,
+            Description = $"{examName} - {targetModuleType}模块",
+            TotalScore = 100m,
+            DurationMinutes = 120,
+            Modules = new List<ExamModuleModel>()
+        };
+
+        examModel.Modules.Add(CreateBasicModule(targetModuleType));
+        return examModel;
     }
 
     /// <summary>

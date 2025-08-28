@@ -48,7 +48,9 @@ public static class BenchSuiteServiceExtensions
             ILogger<BenchSuiteIntegrationService> logger = provider.GetRequiredService<ILogger<BenchSuiteIntegrationService>>();
             IAILogicalScoringService? aiService = enableAI ? provider.GetService<IAILogicalScoringService>() : null;
             IStudentExamService? studentExamService = provider.GetService<IStudentExamService>();
-            return new BenchSuiteIntegrationService(logger, aiService, studentExamService);
+            IStudentMockExamService? studentMockExamService = provider.GetService<IStudentMockExamService>();
+            IStudentComprehensiveTrainingService? studentComprehensiveTrainingService = provider.GetService<IStudentComprehensiveTrainingService>();
+            return new BenchSuiteIntegrationService(logger, aiService, studentExamService, studentMockExamService, studentComprehensiveTrainingService);
         });
 
         // 注册BenchSuite目录服务
