@@ -224,7 +224,10 @@ public class WindowsScoringService : IWindowsScoringService
             {
                 try
                 {
-                    Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
+                    // 过滤可见参数，只处理IsVisible为true的参数
+                    Dictionary<string, string> parameters = operationPoint.Parameters
+                        .Where(p => p.IsVisible)
+                        .ToDictionary(p => p.Name, p => p.Value);
 
                     // 预处理参数（处理特殊值和路径格式）
                     ResolveParametersForWindows(parameters, context);
@@ -495,6 +498,18 @@ public class WindowsScoringService : IWindowsScoringService
                 case "QuickCreate":
                     result = DetectQuickCreate(parameters);
                     break;
+                case "DeleteOperation":
+                    result = DetectDeleteOperation(parameters);
+                    break;
+                case "CopyOperation":
+                    result = DetectCopyOperation(parameters);
+                    break;
+                case "MoveOperation":
+                    result = DetectMoveOperation(parameters);
+                    break;
+                case "RenameOperation":
+                    result = DetectRenameOperation(parameters);
+                    break;
                 default:
                     result.ErrorMessage = $"未知的知识点类型: {knowledgePointType}";
                     break;
@@ -713,6 +728,204 @@ public class WindowsScoringService : IWindowsScoringService
             case "文件夹":
                 result.IsCorrect = DirectoryExists(targetPath);
                 result.Details = result.IsCorrect ? $"文件夹 {targetPath} 已快捷创建" : $"文件夹 {targetPath} 不存在";
+                break;
+            default:
+                result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
+                break;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测删除操作（ExamLab新增）
+    /// </summary>
+    private KnowledgePointResult DetectDeleteOperation(Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new() { IsCorrect = false };
+
+        if (!parameters.TryGetValue("TargetPath", out string? targetPath) || string.IsNullOrEmpty(targetPath))
+        {
+            result.ErrorMessage = "缺少目标路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("ItemType", out string? itemType) || string.IsNullOrEmpty(itemType))
+        {
+            result.ErrorMessage = "缺少项目类型参数";
+            return result;
+        }
+
+        // 根据项目类型检测删除操作
+        switch (itemType)
+        {
+            case "文件":
+                result.IsCorrect = !FileExists(targetPath);
+                result.Details = result.IsCorrect ? $"文件 {targetPath} 已删除" : $"文件 {targetPath} 仍然存在";
+                break;
+            case "文件夹":
+                result.IsCorrect = !DirectoryExists(targetPath);
+                result.Details = result.IsCorrect ? $"文件夹 {targetPath} 已删除" : $"文件夹 {targetPath} 仍然存在";
+                break;
+            default:
+                result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
+                break;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测复制操作（ExamLab新增）
+    /// </summary>
+    private KnowledgePointResult DetectCopyOperation(Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new() { IsCorrect = false };
+
+        if (!parameters.TryGetValue("SourcePath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
+        {
+            result.ErrorMessage = "缺少源路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("DestinationPath", out string? destinationPath) || string.IsNullOrEmpty(destinationPath))
+        {
+            result.ErrorMessage = "缺少目标路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("ItemType", out string? itemType) || string.IsNullOrEmpty(itemType))
+        {
+            result.ErrorMessage = "缺少项目类型参数";
+            return result;
+        }
+
+        // 根据项目类型检测复制操作
+        switch (itemType)
+        {
+            case "文件":
+                bool sourceFileExists = FileExists(sourcePath);
+                bool destinationFileExists = FileExists(destinationPath);
+                result.IsCorrect = sourceFileExists && destinationFileExists;
+                result.Details = result.IsCorrect ? $"文件已从 {sourcePath} 复制到 {destinationPath}" :
+                    $"复制操作未完成 - 源文件存在: {sourceFileExists}, 目标文件存在: {destinationFileExists}";
+                break;
+            case "文件夹":
+                bool sourceFolderExists = DirectoryExists(sourcePath);
+                bool destinationFolderExists = DirectoryExists(destinationPath);
+                result.IsCorrect = sourceFolderExists && destinationFolderExists;
+                result.Details = result.IsCorrect ? $"文件夹已从 {sourcePath} 复制到 {destinationPath}" :
+                    $"复制操作未完成 - 源文件夹存在: {sourceFolderExists}, 目标文件夹存在: {destinationFolderExists}";
+                break;
+            default:
+                result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
+                break;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测移动操作（ExamLab新增）
+    /// </summary>
+    private KnowledgePointResult DetectMoveOperation(Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new() { IsCorrect = false };
+
+        if (!parameters.TryGetValue("SourcePath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
+        {
+            result.ErrorMessage = "缺少源路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("DestinationPath", out string? destinationPath) || string.IsNullOrEmpty(destinationPath))
+        {
+            result.ErrorMessage = "缺少目标路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("ItemType", out string? itemType) || string.IsNullOrEmpty(itemType))
+        {
+            result.ErrorMessage = "缺少项目类型参数";
+            return result;
+        }
+
+        // 根据项目类型检测移动操作
+        switch (itemType)
+        {
+            case "文件":
+                bool sourceFileExists = FileExists(sourcePath);
+                bool destinationFileExists = FileExists(destinationPath);
+                result.IsCorrect = !sourceFileExists && destinationFileExists;
+                result.Details = result.IsCorrect ? $"文件已从 {sourcePath} 移动到 {destinationPath}" :
+                    $"移动操作未完成 - 源文件存在: {sourceFileExists}, 目标文件存在: {destinationFileExists}";
+                break;
+            case "文件夹":
+                bool sourceFolderExists = DirectoryExists(sourcePath);
+                bool destinationFolderExists = DirectoryExists(destinationPath);
+                result.IsCorrect = !sourceFolderExists && destinationFolderExists;
+                result.Details = result.IsCorrect ? $"文件夹已从 {sourcePath} 移动到 {destinationPath}" :
+                    $"移动操作未完成 - 源文件夹存在: {sourceFolderExists}, 目标文件夹存在: {destinationFolderExists}";
+                break;
+            default:
+                result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
+                break;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测重命名操作（ExamLab新增）
+    /// </summary>
+    private KnowledgePointResult DetectRenameOperation(Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new() { IsCorrect = false };
+
+        if (!parameters.TryGetValue("SourcePath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
+        {
+            result.ErrorMessage = "缺少源路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("NewName", out string? newName) || string.IsNullOrEmpty(newName))
+        {
+            result.ErrorMessage = "缺少新名称参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("ItemType", out string? itemType) || string.IsNullOrEmpty(itemType))
+        {
+            result.ErrorMessage = "缺少项目类型参数";
+            return result;
+        }
+
+        // 构建新路径
+        string? directory = Path.GetDirectoryName(sourcePath);
+        if (directory == null)
+        {
+            result.ErrorMessage = "无法获取父目录";
+            return result;
+        }
+
+        string newPath = Path.Combine(directory, newName);
+
+        // 根据项目类型检测重命名操作
+        switch (itemType)
+        {
+            case "文件":
+                bool originalFileExists = FileExists(sourcePath);
+                bool newFileExists = FileExists(newPath);
+                result.IsCorrect = !originalFileExists && newFileExists;
+                result.Details = result.IsCorrect ? $"文件已重命名为 {newName}" :
+                    $"重命名操作未完成 - 原文件存在: {originalFileExists}, 新文件存在: {newFileExists}";
+                break;
+            case "文件夹":
+                bool originalFolderExists = DirectoryExists(sourcePath);
+                bool newFolderExists = DirectoryExists(newPath);
+                result.IsCorrect = !originalFolderExists && newFolderExists;
+                result.Details = result.IsCorrect ? $"文件夹已重命名为 {newName}" :
+                    $"重命名操作未完成 - 原文件夹存在: {originalFolderExists}, 新文件夹存在: {newFolderExists}";
                 break;
             default:
                 result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
@@ -1299,6 +1512,7 @@ public class WindowsScoringService : IWindowsScoringService
     {
         Dictionary<string, string> nameToTypeMapping = new()
         {
+            // === 传统操作点名称映射 ===
             { "创建文件", "CreateFile" },
             { "删除文件", "DeleteFile" },
             { "复制文件", "CopyFile" },
@@ -1326,9 +1540,15 @@ public class WindowsScoringService : IWindowsScoringService
             { "下载文件", "DownloadFile" },
             { "创建ZIP压缩包", "CreateZipArchive" },
             { "解压ZIP压缩包", "ExtractZipArchive" },
+
+            // === ExamLab新增操作点名称映射 ===
             { "快捷创建", "QuickCreate" },
-            // 添加EL导出格式的映射支持
-            { "删除操作", "DeleteFile" },
+            { "删除操作", "DeleteOperation" },
+            { "复制操作", "CopyOperation" },
+            { "移动操作", "MoveOperation" },
+            { "重命名操作", "RenameOperation" },
+            { "快捷方式操作", "CreateShortcut" },
+            { "文件属性修改操作", "SetFileAttributes" },
             { "复制重命名操作", "CopyAndRename" }
         };
 

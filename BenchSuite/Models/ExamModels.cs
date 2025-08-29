@@ -545,6 +545,46 @@ public class ConfigurationParameterModel
     public string? DefaultValue { get; set; }
 
     /// <summary>
+    /// 验证规则
+    /// </summary>
+    public string? ValidationRules { get; set; }
+
+    /// <summary>
+    /// 参数描述
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// 选项列表（用于枚举和多选类型）
+    /// </summary>
+    public List<string> Options { get; set; } = [];
+
+    /// <summary>
+    /// 显示排序
+    /// </summary>
+    public int Order { get; set; }
+
+    /// <summary>
+    /// 是否可见（基于依赖关系计算）
+    /// </summary>
+    public bool IsVisible { get; set; } = true;
+
+    /// <summary>
+    /// 参数依赖关系 - 依赖的参数名称
+    /// </summary>
+    public string? DependsOn { get; set; }
+
+    /// <summary>
+    /// 参数依赖值 - 当依赖参数的值等于此值时，该参数才可见
+    /// </summary>
+    public string? DependsOnValue { get; set; }
+
+    /// <summary>
+    /// 参数分组 - 用于位置参数的分组显示
+    /// </summary>
+    public string? Group { get; set; }
+
+    /// <summary>
     /// 验证规则 (JSON格式)
     /// </summary>
     public string? ValidationRules { get; set; }

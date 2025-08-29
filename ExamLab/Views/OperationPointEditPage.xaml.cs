@@ -229,12 +229,12 @@ public sealed partial class OperationPointEditPage : Page
         FrameworkElement editControl = CreateEditControlByType(parameter);
 
         // 绑定启用状态到参数的 IsVisible 属性
-        editControl.SetBinding(Control.IsEnabledProperty, new Microsoft.UI.Xaml.Data.Binding
-        {
-            Source = parameter,
-            Path = new PropertyPath("IsVisible"),
-            Converter = new Converters.ParameterEnabledConverter()
-        });
+        //editControl.SetBinding(Control.IsEnabledProperty, new Microsoft.UI.Xaml.Data.Binding
+        //{
+        //    Source = parameter,
+        //    Path = new PropertyPath("IsVisible"),
+        //    Converter = new Converters.ParameterEnabledConverter()
+        //});
 
         _parameterControls[parameter.Name] = editControl;
         contentPanel.Children.Add(editControl);
@@ -850,7 +850,7 @@ public sealed partial class OperationPointEditPage : Page
                 CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
                 TextBox textBox => textBox.Text,
                 ColorPicker colorPicker => $"#{colorPicker.Color.R:X2}{colorPicker.Color.G:X2}{colorPicker.Color.B:X2}",
-                StackPanel stackPanel when parameter.Type == ParameterType.File || parameter.Type == ParameterType.Folder || parameter.Type == ParameterType.Path =>
+                StackPanel stackPanel when parameter.Type is ParameterType.File or ParameterType.Folder or ParameterType.Path =>
                     GetPathFromStackPanel(stackPanel),
                 _ => parameter.Value ?? ""
             };
