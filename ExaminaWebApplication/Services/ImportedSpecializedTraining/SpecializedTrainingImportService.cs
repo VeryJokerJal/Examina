@@ -258,7 +258,7 @@ public class SpecializedTrainingImportService
                                     {
                                         if (operationPoint.Parameters != null)
                                         {
-                                            _context.ImportedSpecializedTrainingOperationPointParameters.RemoveRange(operationPoint.Parameters);
+                                            _context.ImportedSpecializedTrainingParameters.RemoveRange(operationPoint.Parameters);
                                         }
                                     }
                                     _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
@@ -281,7 +281,7 @@ public class SpecializedTrainingImportService
                             {
                                 if (operationPoint.Parameters != null)
                                 {
-                                    _context.ImportedSpecializedTrainingOperationPointParameters.RemoveRange(operationPoint.Parameters);
+                                    _context.ImportedSpecializedTrainingParameters.RemoveRange(operationPoint.Parameters);
                                 }
                             }
                             _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
