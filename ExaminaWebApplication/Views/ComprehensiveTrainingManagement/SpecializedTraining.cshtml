@@ -299,6 +299,8 @@
     </div>
 </div>
 
+@Html.AntiForgeryToken()
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
@@ -336,16 +338,21 @@ function deleteSpecializedTraining(id, name) {
 
 document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
     if (deleteTrainingId) {
+        console.log('开始删除专项训练，ID:', deleteTrainingId);
+
         fetch('@Url.Action("DeleteSpecializedTraining")', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: `id=${deleteTrainingId}`
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('删除请求响应状态:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('删除请求响应数据:', data);
             if (data.success) {
                 location.reload();
             } else {
@@ -353,7 +360,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', function()
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('删除请求错误:', error);
             alert('删除失败，请稍后重试');
         });
 
