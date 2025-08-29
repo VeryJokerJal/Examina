@@ -191,7 +191,7 @@ public sealed partial class OperationPointEditPage : Page
         {
             Source = parameter,
             Path = new PropertyPath("IsVisible"),
-            Converter = (Microsoft.UI.Xaml.Data.IValueConverter)Application.Current.Resources["ParameterVisibilityConverter"]
+            Converter = new Converters.ParameterVisibilityConverter()
         });
 
         parameterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
@@ -233,7 +233,7 @@ public sealed partial class OperationPointEditPage : Page
         {
             Source = parameter,
             Path = new PropertyPath("IsVisible"),
-            Converter = (Microsoft.UI.Xaml.Data.IValueConverter)Application.Current.Resources["ParameterEnabledConverter"]
+            Converter = new Converters.ParameterEnabledConverter()
         });
 
         _parameterControls[parameter.Name] = editControl;
