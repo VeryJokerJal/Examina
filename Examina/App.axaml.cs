@@ -86,10 +86,7 @@ public partial class App : Application
             _ = builder.SetMinimumLevel(LogLevel.Information);
         });
 
-        // 注册BenchSuite相关服务
-        _ = services.ConfigureExaminaServices();
-
-        // 注册其他服务
+        // 注册基础服务（在BenchSuite服务之前）
         _ = services.AddSingleton<IConfigurationService, ConfigurationService>();
         _ = services.AddSingleton<IDeviceService, DeviceService>();
         _ = services.AddSingleton<ISecureStorageService, SecureStorageService>();
@@ -229,6 +226,9 @@ public partial class App : Application
 
         // 注册窗口管理服务
         _ = services.AddSingleton<IWindowManagerService, WindowManagerService>();
+
+        // 注册BenchSuite相关服务（在所有依赖服务注册之后）
+        _ = services.ConfigureExaminaServices();
 
         // 注册目录清理服务
         _ = services.AddSingleton<IDirectoryCleanupService, DirectoryCleanupService>();
