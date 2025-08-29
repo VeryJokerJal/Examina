@@ -18,7 +18,17 @@ public enum ParameterType
     Color,          // 颜色
     File,           // 文件路径
     Folder,         // 文件夹路径
+    Path,           // 路径（可选择文件或文件夹）
     MultipleChoice  // 多选
+}
+
+/// <summary>
+/// 路径类型枚举
+/// </summary>
+public enum PathType
+{
+    File,   // 文件
+    Folder  // 文件夹
 }
 
 /// <summary>
@@ -50,6 +60,11 @@ public class ConfigurationParameter : ReactiveObject
     /// 参数类型
     /// </summary>
     [Reactive] public ParameterType Type { get; set; }
+
+    /// <summary>
+    /// 路径类型（当Type为File或Folder时，用户可以选择具体的路径类型）
+    /// </summary>
+    [Reactive] public PathType PathType { get; set; } = PathType.File;
 
     /// <summary>
     /// 参数值

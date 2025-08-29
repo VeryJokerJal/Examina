@@ -10,6 +10,16 @@
         <TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="操作点分值:" />
         <NumberBox x:Name="ScoreNumberBox" Margin="0,0,0,16" Minimum="0" Maximum="100" Value="5" SmallChange="0.1" LargeChange="1" />
 
+        <!-- 路径类型选择 -->
+        <StackPanel x:Name="PathTypePanel" Margin="0,0,0,16" Visibility="Collapsed">
+            <TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="路径类型:" />
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <RadioButton x:Name="FileTypeRadio" Content="文件类型" IsChecked="True" />
+                <RadioButton x:Name="FolderTypeRadio" Content="文件夹类型" />
+            </StackPanel>
+            <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="Gray" Text="选择此操作点处理的是文件还是文件夹，所有路径参数将统一使用此类型" />
+        </StackPanel>
+
         <TextBlock Margin="0,0,0,8" FontSize="16" FontWeight="SemiBold" Text="参数配置:" />
         <ScrollViewer Height="300" VerticalScrollBarVisibility="Auto">
             <StackPanel x:Name="ParametersPanel" />

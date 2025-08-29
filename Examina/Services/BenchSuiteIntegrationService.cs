@@ -1681,8 +1681,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             // 文件夹类型变体
             "folder" or "directory" or "dir" or "folderpath" or "文件夹" or "目录" or "文件夹路径" or "目录路径" => BenchSuite.Models.ParameterType.Folder,
 
-            // 路径类型变体（通用路径，默认为文件）
-            "path" or "路径" => BenchSuite.Models.ParameterType.File,
+            // 路径类型变体（通用路径）
+            "path" or "路径" => BenchSuite.Models.ParameterType.Path,
 
             // 多选类型变体
             "multiplechoice" or "multiple_choice" or "multichoice" or "多选" or "多项选择" => BenchSuite.Models.ParameterType.MultipleChoice,

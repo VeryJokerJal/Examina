@@ -149,7 +149,7 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要创建的文件完整路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要创建的文件完整路径", Type = ParameterType.Path, IsRequired = true, Order = 1 },
                 new() { Name = "FileContent", DisplayName = "文件内容", Description = "文件的初始内容（可选）", Type = ParameterType.Text, IsRequired = false, Order = 2 }
             ]
         };
@@ -163,7 +163,7 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要删除的文件完整路径", Type = ParameterType.File, IsRequired = true, Order = 1 }
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要删除的文件完整路径", Type = ParameterType.Path, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -176,9 +176,9 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "SourcePath", DisplayName = "源文件路径", Description = "要复制的源文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
-                new() { Name = "DestinationPath", DisplayName = "目标文件路径", Description = "复制到的目标文件路径", Type = ParameterType.File, IsRequired = true, Order = 2 },
-                new() { Name = "Overwrite", DisplayName = "是否覆盖", Description = "如果目标文件存在是否覆盖", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                new() { Name = "SourcePath", DisplayName = "源路径", Description = "要复制的源路径", Type = ParameterType.Path, IsRequired = true, Order = 1 },
+                new() { Name = "DestinationPath", DisplayName = "目标路径", Description = "复制到的目标路径", Type = ParameterType.Path, IsRequired = true, Order = 2 },
+                new() { Name = "Overwrite", DisplayName = "是否覆盖", Description = "如果目标存在是否覆盖", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "是,否" }
             ]
         };
@@ -192,8 +192,8 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "SourcePath", DisplayName = "源文件路径", Description = "要移动的源文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
-                new() { Name = "DestinationPath", DisplayName = "目标文件路径", Description = "移动到的目标文件路径", Type = ParameterType.File, IsRequired = true, Order = 2 }
+                new() { Name = "SourcePath", DisplayName = "源路径", Description = "要移动的源路径", Type = ParameterType.Path, IsRequired = true, Order = 1 },
+                new() { Name = "DestinationPath", DisplayName = "目标路径", Description = "移动到的目标路径", Type = ParameterType.Path, IsRequired = true, Order = 2 }
             ]
         };
 

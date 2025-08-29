@@ -23,6 +23,7 @@ public class ParameterTypeToVisibilityConverter : IValueConverter
                 "Color" => parameterType == ParameterType.Color,
                 "File" => parameterType == ParameterType.File,
                 "Folder" => parameterType == ParameterType.Folder,
+                "Path" => parameterType == ParameterType.Path,
                 "MultipleChoice" => parameterType == ParameterType.MultipleChoice,
                 _ => false
             };

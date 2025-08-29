@@ -51,6 +51,9 @@ public sealed partial class OperationPointEditPage : Page
         DescriptionTextBox.Text = operationPoint.Description;
         ScoreNumberBox.Value = (double)operationPoint.Score;
 
+        // 初始化路径类型选择
+        InitializePathTypeSelection(operationPoint);
+
         // 初始化位置参数控制器
         if (IsPositionKnowledgePoint(operationPoint))
         {
@@ -64,6 +67,58 @@ public sealed partial class OperationPointEditPage : Page
         }
 
         // 创建所有参数的编辑控件
+        foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+        {
+            CreateParameterControl(parameter);
+        }
+    }
+
+    /// <summary>
+    /// 初始化路径类型选择
+    /// </summary>
+    /// <param name="operationPoint">操作点</param>
+    private void InitializePathTypeSelection(OperationPoint operationPoint)
+    {
+        // 检查是否有路径参数
+        bool hasPathParameters = operationPoint.Parameters.Any(p => p.Type == ParameterType.Path);
+
+        if (hasPathParameters)
+        {
+            PathTypePanel.Visibility = Visibility.Visible;
+
+            // 设置当前选择的路径类型
+            FileTypeRadio.IsChecked = operationPoint.PathType == PathType.File;
+            FolderTypeRadio.IsChecked = operationPoint.PathType == PathType.Folder;
+
+            // 绑定事件处理程序
+            FileTypeRadio.Checked += (sender, e) =>
+            {
+                operationPoint.PathType = PathType.File;
+                UpdatePathParameterLabels(operationPoint);
+            };
+
+            FolderTypeRadio.Checked += (sender, e) =>
+            {
+                operationPoint.PathType = PathType.Folder;
+                UpdatePathParameterLabels(operationPoint);
+            };
+        }
+        else
+        {
+            PathTypePanel.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    /// <summary>
+    /// 更新路径参数的显示标签
+    /// </summary>
+    /// <param name="operationPoint">操作点</param>
+    private void UpdatePathParameterLabels(OperationPoint operationPoint)
+    {
+        // 重新创建参数控件以反映新的路径类型
+        ParametersPanel.Children.Clear();
+        _parameterControls.Clear();
+
         foreach (ConfigurationParameter parameter in operationPoint.Parameters)
         {
             CreateParameterControl(parameter);
@@ -223,7 +278,7 @@ public sealed partial class OperationPointEditPage : Page
     /// </summary>
     /// <param name="parameter">参数</param>
     /// <returns>约束信息</returns>
-    private static string GetConstraintInfo(ConfigurationParameter parameter)
+    private string GetConstraintInfo(ConfigurationParameter parameter)
     {
         List<string> constraints = [];
 
@@ -235,6 +290,7 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Boolean => "布尔值",
             ParameterType.File => "文件路径",
             ParameterType.Folder => "文件夹路径",
+            ParameterType.Path => OperationPoint?.PathType == PathType.Folder ? "文件夹路径" : "文件路径",
             ParameterType.Color => "颜色",
             ParameterType.MultipleChoice => "多选",
             _ => "文本"
@@ -288,6 +344,7 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Color => CreateColorControl(parameter),
             ParameterType.File => CreateFileControl(parameter),
             ParameterType.Folder => CreateFolderControl(parameter),
+            ParameterType.Path => CreatePathControl(parameter),
             _ => CreateTextControl(parameter)
         };
     }
@@ -573,6 +630,97 @@ public sealed partial class OperationPointEditPage : Page
     }
 
     /// <summary>
+    /// 创建路径选择控件（根据操作点的PathType动态选择文件或文件夹）
+    /// </summary>
+    /// <param name="parameter">参数</param>
+    /// <returns>路径选择控件组合</returns>
+    private StackPanel CreatePathControl(ConfigurationParameter parameter)
+    {
+        StackPanel pathPanel = new()
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        TextBox pathTextBox = new()
+        {
+            Text = parameter.Value ?? parameter.DefaultValue ?? "",
+            PlaceholderText = GetPathPlaceholderText(),
+            Width = 300
+        };
+
+        Button browseButton = new()
+        {
+            Content = GetBrowseButtonText(),
+            MinWidth = 100
+        };
+
+        browseButton.Click += async (sender, e) =>
+        {
+            try
+            {
+                string? selectedPath = null;
+
+                if (OperationPoint?.PathType == PathType.Folder)
+                {
+                    Windows.Storage.StorageFolder? selectedFolder = await FolderPickerService.PickSingleFolderAsync();
+                    selectedPath = selectedFolder?.Path;
+                }
+                else
+                {
+                    List<string> fileTypes = [".txt", ".xml", ".json", ".exe", ".bat", ".cmd", ".ps1", "*"];
+                    Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(fileTypes);
+                    selectedPath = selectedFile?.Path;
+                }
+
+                if (selectedPath != null)
+                {
+                    pathTextBox.Text = selectedPath;
+                    parameter.Value = selectedPath;
+                }
+            }
+            catch (Exception ex)
+            {
+                string errorType = OperationPoint?.PathType == PathType.Folder ? "文件夹" : "文件";
+                await NotificationService.ShowErrorAsync($"{errorType}选择失败", $"无法选择{errorType}：{ex.Message}");
+            }
+        };
+
+        pathPanel.Children.Add(pathTextBox);
+        pathPanel.Children.Add(browseButton);
+
+        return pathPanel;
+    }
+
+    /// <summary>
+    /// 获取路径输入框的占位符文本
+    /// </summary>
+    /// <returns>占位符文本</returns>
+    private string GetPathPlaceholderText()
+    {
+        return OperationPoint?.PathType == PathType.Folder ? "选择文件夹路径" : "选择文件路径";
+    }
+
+    /// <summary>
+    /// 获取浏览按钮的文本
+    /// </summary>
+    /// <returns>按钮文本</returns>
+    private string GetBrowseButtonText()
+    {
+        return OperationPoint?.PathType == PathType.Folder ? "浏览文件夹..." : "浏览文件...";
+    }
+
+    /// <summary>
+    /// 获取路径类型信息
+    /// </summary>
+    /// <returns>路径类型信息</returns>
+    private string GetPathTypeInfo()
+    {
+        return OperationPoint?.PathType == PathType.Folder ? "文件夹路径" : "文件路径";
+    }
+
+    /// <summary>
     /// 创建颜色编辑控件
     /// </summary>
     /// <param name="parameter">参数</param>
@@ -702,7 +850,7 @@ public sealed partial class OperationPointEditPage : Page
                 CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
                 TextBox textBox => textBox.Text,
                 ColorPicker colorPicker => $"#{colorPicker.Color.R:X2}{colorPicker.Color.G:X2}{colorPicker.Color.B:X2}",
-                StackPanel stackPanel when parameter.Type == ParameterType.File || parameter.Type == ParameterType.Folder =>
+                StackPanel stackPanel when parameter.Type == ParameterType.File || parameter.Type == ParameterType.Folder || parameter.Type == ParameterType.Path =>
                     GetPathFromStackPanel(stackPanel),
                 _ => parameter.Value ?? ""
             };

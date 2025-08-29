@@ -604,6 +604,7 @@ public enum ParameterType
     Color,          // 颜色
     File,           // 文件路径
     Folder,         // 文件夹路径
+    Path,           // 路径（可选择文件或文件夹）
     MultipleChoice,  // 多选
     Date
 }
