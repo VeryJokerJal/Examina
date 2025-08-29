@@ -795,6 +795,7 @@ public class SpecializedExamViewModel : ViewModelBase
                         PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
                     };
                     jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
+                    jsonOptions.Converters.Add(new Converters.PathTypeJsonConverter());
 
                     // 首先尝试专项试卷专用格式
                     try
@@ -973,6 +974,7 @@ public class SpecializedExamViewModel : ViewModelBase
                 // 添加自定义转换器
                 jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
                 jsonOptions.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
+                jsonOptions.Converters.Add(new Converters.PathTypeJsonConverter());
 
                 fileContent = System.Text.Json.JsonSerializer.Serialize(specializedExportDto, jsonOptions);
             }

@@ -1,9 +1,14 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
+using System.Threading.Tasks;
+using Microsoft.Win32;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
-using Microsoft.Win32;
 
 namespace BenchSuite.Services;
 
@@ -298,10 +303,7 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             RegistryKey? root = GetRegistryRoot(rootKey);
-            if (root == null)
-            {
-                return false;
-            }
+            if (root == null) return false;
 
             using RegistryKey? key = root.OpenSubKey(keyPath);
             return key != null;
@@ -320,10 +322,7 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             RegistryKey? root = GetRegistryRoot(rootKey);
-            if (root == null)
-            {
-                return null;
-            }
+            if (root == null) return null;
 
             using RegistryKey? key = root.OpenSubKey(keyPath);
             return key?.GetValue(valueName);
@@ -565,7 +564,8 @@ public class WindowsScoringService : IWindowsScoringService
         KnowledgePointResult result = new() { IsCorrect = false };
 
         // 支持多种参数名称：FilePath（BS标准）和TargetPath（EL导出）
-        if (parameters.TryGetValue("FilePath", out string? filePath) && !string.IsNullOrEmpty(filePath))
+        string? filePath = null;
+        if (parameters.TryGetValue("FilePath", out filePath) && !string.IsNullOrEmpty(filePath))
         {
             // 使用BS标准参数名
         }
@@ -654,9 +654,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 确保路径格式符合Path.GetDirectoryName()的要求
-        string normalizedFilePath = EnsurePathFormatForGetDirectoryName(filePath);
-        string directory = Path.GetDirectoryName(normalizedFilePath) ?? "";
+        string directory = Path.GetDirectoryName(filePath) ?? "";
         string newFilePath = Path.Combine(directory, newName);
 
         bool originalExists = FileExists(filePath);
@@ -924,7 +922,7 @@ public class WindowsScoringService : IWindowsScoringService
     {
         KnowledgePointResult result = new() { IsCorrect = false };
 
-        if (!parameters.TryGetValue("OriginalPath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
+        if (!parameters.TryGetValue("SourcePath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
         {
             result.ErrorMessage = "缺少源路径参数";
             return result;
@@ -943,9 +941,7 @@ public class WindowsScoringService : IWindowsScoringService
         }
 
         // 构建新路径
-        // 确保路径格式符合Path.GetDirectoryName()的要求
-        string normalizedSourcePath = EnsurePathFormatForGetDirectoryName(sourcePath);
-        string? directory = Path.GetDirectoryName(normalizedSourcePath);
+        string? directory = Path.GetDirectoryName(sourcePath);
         if (directory == null)
         {
             result.ErrorMessage = "无法获取父目录";
@@ -1159,9 +1155,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 确保路径格式符合Path.GetDirectoryName()的要求
-        string normalizedFolderPath = EnsurePathFormatForGetDirectoryName(folderPath);
-        string? parentDirectory = Path.GetDirectoryName(normalizedFolderPath);
+        string? parentDirectory = Path.GetDirectoryName(folderPath);
         if (parentDirectory == null)
         {
             result.ErrorMessage = "无法获取父目录";
@@ -1713,16 +1707,18 @@ public class WindowsScoringService : IWindowsScoringService
     /// </summary>
     private void ResolveParametersForWindows(Dictionary<string, string> parameters, ParameterResolutionContext context)
     {
+        System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 开始解析参数，基础路径: '{_basePath}'");
+
         foreach (KeyValuePair<string, string> parameter in parameters)
         {
             // 处理路径参数的格式转换（包括File和Folder类型）
             if (IsPathParameter(parameter.Key) || IsFileParameter(parameter.Key) || IsFolderParameter(parameter.Key))
             {
+                System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 处理路径参数: {parameter.Key} = '{parameter.Value}'");
                 string normalizedPath = NormalizePath(parameter.Value);
-                if (normalizedPath != parameter.Value)
-                {
-                    context.SetResolvedParameter(parameter.Key, normalizedPath);
-                }
+                // 始终设置解析后的路径参数，确保路径组合逻辑被正确应用
+                context.SetResolvedParameter(parameter.Key, normalizedPath);
+                System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 路径参数解析完成: {parameter.Key} = '{normalizedPath}'");
             }
 
             // 处理特殊参数值（如-1等）
@@ -1733,9 +1729,12 @@ public class WindowsScoringService : IWindowsScoringService
                 if (resolvedValue != parameter.Value)
                 {
                     context.SetResolvedParameter(parameter.Key, resolvedValue);
+                    System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 特殊参数解析: {parameter.Key} = '{parameter.Value}' -> '{resolvedValue}'");
                 }
             }
         }
+
+        System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 参数解析完成");
     }
 
     /// <summary>
@@ -1745,7 +1744,8 @@ public class WindowsScoringService : IWindowsScoringService
     {
         string[] pathParameterNames = [
             "FilePath", "FolderPath", "TargetPath", "SourcePath", "DestinationPath",
-            "ShortcutPath", "ProcessPath", "LocalPath", "ZipPath", "ExtractPath"
+            "ShortcutPath", "ProcessPath", "LocalPath", "ZipPath", "ExtractPath",
+            "OriginalPath", "NewPath", "Path", "Directory", "Folder", "File"
         ];
 
         return pathParameterNames.Contains(parameterName, StringComparer.OrdinalIgnoreCase);
@@ -1758,7 +1758,8 @@ public class WindowsScoringService : IWindowsScoringService
     {
         string[] fileParameterNames = [
             "FilePath", "TargetPath", "SourcePath", "DestinationPath",
-            "ShortcutPath", "ProcessPath", "LocalPath", "ZipPath"
+            "ShortcutPath", "ProcessPath", "LocalPath", "ZipPath",
+            "OriginalPath", "NewPath", "File"
         ];
 
         return fileParameterNames.Contains(parameterName, StringComparer.OrdinalIgnoreCase);
@@ -1770,7 +1771,8 @@ public class WindowsScoringService : IWindowsScoringService
     private static bool IsFolderParameter(string parameterName)
     {
         string[] folderParameterNames = [
-            "FolderPath", "ExtractPath", "WorkingDirectory"
+            "FolderPath", "ExtractPath", "WorkingDirectory",
+            "Directory", "Folder", "Path"
         ];
 
         return folderParameterNames.Contains(parameterName, StringComparer.OrdinalIgnoreCase);
@@ -1845,6 +1847,8 @@ public class WindowsScoringService : IWindowsScoringService
             return path;
         }
 
+        string originalPath = path;
+
         // 标准化路径分隔符
         path = path.Replace('/', '\\');
 
@@ -1857,11 +1861,13 @@ public class WindowsScoringService : IWindowsScoringService
                 // 移除开头的反斜杠，然后与基础路径组合
                 string relativePath = path.TrimStart('\\');
                 path = Path.Combine(_basePath, relativePath);
+                System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 路径组合: 基础路径='{_basePath}', 相对路径='{relativePath}', 结果='{path}'");
             }
             else
             {
                 // 如果没有设置基础路径，使用默认的C:前缀
                 path = "C:" + path;
+                System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 路径标准化: 原始='{originalPath}', 结果='{path}' (使用默认C:前缀)");
             }
         }
 
@@ -1871,13 +1877,22 @@ public class WindowsScoringService : IWindowsScoringService
             if (!string.IsNullOrEmpty(_basePath))
             {
                 // 使用基础路径组合相对路径
+                string beforeCombine = path;
                 path = Path.Combine(_basePath, path);
+                System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 相对路径组合: 基础路径='{_basePath}', 相对路径='{beforeCombine}', 结果='{path}'");
             }
             else
             {
                 // 如果没有设置基础路径，转换为绝对路径
+                string beforeFullPath = path;
                 path = Path.GetFullPath(path);
+                System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 转换为绝对路径: 原始='{beforeFullPath}', 结果='{path}'");
             }
+        }
+
+        if (originalPath != path)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WindowsScoring] 路径标准化完成: '{originalPath}' -> '{path}'");
         }
 
         return path;
@@ -1938,27 +1953,5 @@ public class WindowsScoringService : IWindowsScoringService
         {
             return false;
         }
-    }
-
-    /// <summary>
-    /// 确保路径格式符合Path.GetDirectoryName()的要求
-    /// 在调用Path.GetDirectoryName()之前，确保路径以反斜杠开头
-    /// </summary>
-    /// <param name="path">原始路径</param>
-    /// <returns>标准化后的路径</returns>
-    private static string EnsurePathFormatForGetDirectoryName(string path)
-    {
-        if (string.IsNullOrEmpty(path))
-        {
-            return path;
-        }
-
-        // 如果路径不以反斜杠开头，则添加反斜杠前缀
-        if (!path.StartsWith(@"\"))
-        {
-            path = @"\" + path;
-        }
-
-        return path;
     }
 }
