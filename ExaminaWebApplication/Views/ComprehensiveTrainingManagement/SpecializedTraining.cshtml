@@ -356,12 +356,13 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', function()
             console.error('Error:', error);
             alert('删除失败，请稍后重试');
         });
-        
+
         bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
     }
+});
 
-    // 专项训练名称编辑功能
-    function startEditSpecializedTrainingName(trainingId, currentName) {
+// 专项训练名称编辑功能
+function startEditSpecializedTrainingName(trainingId, currentName) {
         const displayElement = document.querySelector(`.specialized-training-name-display[data-training-id="${trainingId}"]`);
         const editElement = document.querySelector(`.specialized-training-name-edit[data-training-id="${trainingId}"]`);
         const inputElement = editElement.querySelector('.specialized-training-name-input');

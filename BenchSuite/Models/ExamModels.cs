@@ -585,31 +585,6 @@ public class ConfigurationParameterModel
     public string? Group { get; set; }
 
     /// <summary>
-    /// 验证规则 (JSON格式)
-    /// </summary>
-    public string? ValidationRules { get; set; }
-
-    /// <summary>
-    /// 参数描述
-    /// </summary>
-    public string? Description { get; set; }
-
-    /// <summary>
-    /// 选项列表 (用于枚举和多选类型)
-    /// </summary>
-    public List<string> Options { get; set; } = [];
-
-    /// <summary>
-    /// 显示顺序
-    /// </summary>
-    public int Order { get; set; }
-
-    /// <summary>
-    /// 是否可见
-    /// </summary>
-    public bool IsVisible { get; set; } = true;
-
-    /// <summary>
     /// 参数类型字符串 (ExamLab兼容)
     /// </summary>
     [JsonPropertyName("type")]

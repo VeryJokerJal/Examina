@@ -216,12 +216,13 @@ public class SpecializedTrainingImportService
     {
         try
         {
+            // 查找专项训练（管理员可以删除任何专项训练）
             ImportedSpecializedTrainingEntity? specializedTraining = await _context.ImportedSpecializedTrainings
-                .Where(st => st.Id == id && st.ImportedBy == userId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(st => st.Id == id);
 
             if (specializedTraining == null)
             {
+                _logger.LogWarning("专项训练不存在，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
                 return false;
             }
 
