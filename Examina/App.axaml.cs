@@ -191,8 +191,8 @@ public partial class App : Application
             };
         });
 
-        // 为学生端专项训练服务配置HttpClient
-        _ = services.AddHttpClient<IStudentSpecializedTrainingService, StudentSpecializedTrainingService>(client =>
+        // 为学生端专项训练服务配置HttpClient（修复版本：显式注册服务）
+        _ = services.AddHttpClient("StudentSpecializedTrainingService", client =>
         {
             client.BaseAddress = new Uri("https://qiuzhenbd.com");
             client.DefaultRequestHeaders.Add("User-Agent", "Examina-Desktop-Client/1.0");
@@ -207,6 +207,15 @@ public partial class App : Application
                 UseProxy = true,
                 ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
             };
+        });
+
+        // 显式注册IStudentSpecializedTrainingService
+        _ = services.AddTransient<IStudentSpecializedTrainingService>(provider =>
+        {
+            HttpClient httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("StudentSpecializedTrainingService");
+            IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
+            ILogger<StudentSpecializedTrainingService> logger = provider.GetRequiredService<ILogger<StudentSpecializedTrainingService>>();
+            return new StudentSpecializedTrainingService(httpClient, authService, logger);
         });
 
         // 确保AuthenticationService为单例
