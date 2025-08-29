@@ -232,7 +232,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "要创建的文件或文件夹的完整路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
                 });
@@ -254,9 +254,19 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "要删除的文件或文件夹路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ItemType",
+                    DisplayName = "项目类型",
+                    Description = "选择要删除的项目类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "文件,文件夹",
+                    IsRequired = true,
+                    Order = 2
                 });
                 break;
 
@@ -266,7 +276,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "SourcePath",
                     DisplayName = "源路径",
                     Description = "要复制的文件或文件夹路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
                 });
@@ -275,9 +285,19 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "DestinationPath",
                     DisplayName = "目标路径",
                     Description = "复制到的目标路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 2
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ItemType",
+                    DisplayName = "项目类型",
+                    Description = "选择要复制的项目类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "文件,文件夹",
+                    IsRequired = true,
+                    Order = 3
                 });
                 break;
 
@@ -287,7 +307,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "SourcePath",
                     DisplayName = "源路径",
                     Description = "要移动的文件或文件夹路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
                 });
@@ -296,9 +316,19 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "DestinationPath",
                     DisplayName = "目标路径",
                     Description = "移动到的目标路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 2
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ItemType",
+                    DisplayName = "项目类型",
+                    Description = "选择要移动的项目类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "文件,文件夹",
+                    IsRequired = true,
+                    Order = 3
                 });
                 break;
 
@@ -308,7 +338,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "OriginalPath",
                     DisplayName = "原路径",
                     Description = "要重命名的文件或文件夹路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
                 });
@@ -321,6 +351,16 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     IsRequired = true,
                     Order = 2
                 });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ItemType",
+                    DisplayName = "项目类型",
+                    Description = "选择要重命名的项目类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "文件,文件夹",
+                    IsRequired = true,
+                    Order = 3
+                });
                 break;
 
             case WindowsOperationType.ShortcutOperation:
@@ -329,7 +369,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "快捷方式指向的目标文件路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
                 });
@@ -338,7 +378,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "ShortcutPath",
                     DisplayName = "快捷方式路径",
                     Description = "快捷方式文件的保存路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 2
                 });
@@ -350,9 +390,19 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "要修改属性的文件或文件夹路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ItemType",
+                    DisplayName = "项目类型",
+                    Description = "选择要修改属性的项目类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "文件,文件夹",
+                    IsRequired = true,
+                    Order = 2
                 });
                 operationPoint.Parameters.Add(new ConfigurationParameter
                 {
@@ -362,7 +412,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Type = ParameterType.Enum,
                     EnumOptions = "只读,隐藏,系统,存档",
                     IsRequired = true,
-                    Order = 2
+                    Order = 3
                 });
                 operationPoint.Parameters.Add(new ConfigurationParameter
                 {
@@ -371,7 +421,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Description = "属性的新值",
                     Type = ParameterType.Boolean,
                     IsRequired = true,
-                    Order = 3
+                    Order = 4
                 });
                 break;
 
@@ -381,7 +431,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "SourcePath",
                     DisplayName = "源路径",
                     Description = "要复制的文件或文件夹路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 1
                 });
@@ -390,7 +440,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "DestinationPath",
                     DisplayName = "目标路径",
                     Description = "复制到的目标路径",
-                    Type = ParameterType.Path,
+                    Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 2
                 });
@@ -402,6 +452,16 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Type = ParameterType.Text,
                     IsRequired = true,
                     Order = 3
+                });
+                operationPoint.Parameters.Add(new ConfigurationParameter
+                {
+                    Name = "ItemType",
+                    DisplayName = "项目类型",
+                    Description = "选择要复制的项目类型",
+                    Type = ParameterType.Enum,
+                    EnumOptions = "文件,文件夹",
+                    IsRequired = true,
+                    Order = 4
                 });
                 break;
         }

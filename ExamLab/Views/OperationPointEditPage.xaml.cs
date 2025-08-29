@@ -51,8 +51,7 @@ public sealed partial class OperationPointEditPage : Page
         DescriptionTextBox.Text = operationPoint.Description;
         ScoreNumberBox.Value = (double)operationPoint.Score;
 
-        // 初始化路径类型选择
-        InitializePathTypeSelection(operationPoint);
+
 
         // 初始化位置参数控制器
         if (IsPositionKnowledgePoint(operationPoint))
@@ -73,57 +72,9 @@ public sealed partial class OperationPointEditPage : Page
         }
     }
 
-    /// <summary>
-    /// 初始化路径类型选择
-    /// </summary>
-    /// <param name="operationPoint">操作点</param>
-    private void InitializePathTypeSelection(OperationPoint operationPoint)
-    {
-        // 检查是否有路径参数
-        bool hasPathParameters = operationPoint.Parameters.Any(p => p.Type == ParameterType.Path);
 
-        if (hasPathParameters)
-        {
-            PathTypePanel.Visibility = Visibility.Visible;
 
-            // 设置当前选择的路径类型
-            FileTypeRadio.IsChecked = operationPoint.PathType == PathType.File;
-            FolderTypeRadio.IsChecked = operationPoint.PathType == PathType.Folder;
 
-            // 绑定事件处理程序
-            FileTypeRadio.Checked += (sender, e) =>
-            {
-                operationPoint.PathType = PathType.File;
-                UpdatePathParameterLabels(operationPoint);
-            };
-
-            FolderTypeRadio.Checked += (sender, e) =>
-            {
-                operationPoint.PathType = PathType.Folder;
-                UpdatePathParameterLabels(operationPoint);
-            };
-        }
-        else
-        {
-            PathTypePanel.Visibility = Visibility.Collapsed;
-        }
-    }
-
-    /// <summary>
-    /// 更新路径参数的显示标签
-    /// </summary>
-    /// <param name="operationPoint">操作点</param>
-    private void UpdatePathParameterLabels(OperationPoint operationPoint)
-    {
-        // 重新创建参数控件以反映新的路径类型
-        ParametersPanel.Children.Clear();
-        _parameterControls.Clear();
-
-        foreach (ConfigurationParameter parameter in operationPoint.Parameters)
-        {
-            CreateParameterControl(parameter);
-        }
-    }
 
     /// <summary>
     /// 判断是否为位置相关的知识点
@@ -290,7 +241,7 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Boolean => "布尔值",
             ParameterType.File => "文件路径",
             ParameterType.Folder => "文件夹路径",
-            ParameterType.Path => OperationPoint?.PathType == PathType.Folder ? "文件夹路径" : "文件路径",
+            ParameterType.Path => "路径",
             ParameterType.Color => "颜色",
             ParameterType.MultipleChoice => "多选",
             _ => "文本"
@@ -591,10 +542,10 @@ public sealed partial class OperationPointEditPage : Page
     }
 
     /// <summary>
-    /// 创建路径选择控件（根据操作点的PathType动态选择文件或文件夹）
+    /// 创建路径输入控件
     /// </summary>
     /// <param name="parameter">参数</param>
-    /// <returns>路径选择控件组合</returns>
+    /// <returns>路径输入控件组合</returns>
     private StackPanel CreatePathControl(ConfigurationParameter parameter)
     {
         StackPanel pathPanel = new()
@@ -607,7 +558,7 @@ public sealed partial class OperationPointEditPage : Page
         TextBox pathTextBox = new()
         {
             Text = parameter.Value ?? parameter.DefaultValue ?? "",
-            PlaceholderText = GetPathPlaceholderText(),
+            PlaceholderText = "输入路径",
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
@@ -622,23 +573,7 @@ public sealed partial class OperationPointEditPage : Page
         return pathPanel;
     }
 
-    /// <summary>
-    /// 获取路径输入框的占位符文本
-    /// </summary>
-    /// <returns>占位符文本</returns>
-    private string GetPathPlaceholderText()
-    {
-        return OperationPoint?.PathType == PathType.Folder ? "输入文件夹路径" : "输入文件路径";
-    }
 
-    /// <summary>
-    /// 获取路径类型信息
-    /// </summary>
-    /// <returns>路径类型信息</returns>
-    private string GetPathTypeInfo()
-    {
-        return OperationPoint?.PathType == PathType.Folder ? "文件夹路径" : "文件路径";
-    }
 
     /// <summary>
     /// 创建颜色编辑控件

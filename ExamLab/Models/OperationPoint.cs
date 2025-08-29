@@ -308,10 +308,7 @@ public class OperationPoint : ReactiveObject
     /// </summary>
     [Reactive] public double Score { get; set; }
 
-    /// <summary>
-    /// 路径类型（用于Windows模块的路径参数统一类型选择）
-    /// </summary>
-    [Reactive] public PathType PathType { get; set; } = PathType.File;
+
 
     /// <summary>
     /// 关联的评分题目ID
