@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using ExaminaWebApplication.Data;
 using ExaminaWebApplication.Models.ImportedSpecializedTraining;
+using ExaminaWebApplication.Services.FileUpload;
 using Microsoft.EntityFrameworkCore;
 using ImportedSpecializedTrainingEntity = ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining;
 
@@ -13,11 +14,13 @@ public class SpecializedTrainingImportService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<SpecializedTrainingImportService> _logger;
+    private readonly FileUploadService _fileUploadService;
 
-    public SpecializedTrainingImportService(ApplicationDbContext context, ILogger<SpecializedTrainingImportService> logger)
+    public SpecializedTrainingImportService(ApplicationDbContext context, ILogger<SpecializedTrainingImportService> logger, FileUploadService fileUploadService)
     {
         _context = context;
         _logger = logger;
+        _fileUploadService = fileUploadService;
     }
 
     /// <summary>
@@ -143,6 +146,9 @@ public class SpecializedTrainingImportService
 
                     _logger.LogInformation("专项训练导入成功：{Name}，ID：{Id}，导入者：{ImportedBy}",
                         importedSpecializedTraining.Name, importedSpecializedTraining.Id, importedBy);
+
+                    // 自动创建导入文件的关联
+                    await CreateImportFileAssociationAsync(importedSpecializedTraining.Id, fileName, fileSize, importedBy);
                 }
                 catch (Exception ex)
                 {
@@ -427,6 +433,60 @@ public class SpecializedTrainingImportService
             _logger.LogError(ex, "更新专项训练名称失败，训练ID: {TrainingId}, 用户ID: {UserId}, 新名称: {NewName}",
                 id, userId, newName);
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 自动创建导入文件的关联
+    /// </summary>
+    /// <param name="specializedTrainingId">专项训练ID</param>
+    /// <param name="fileName">文件名</param>
+    /// <param name="fileSize">文件大小</param>
+    /// <param name="importedBy">导入者ID</param>
+    private async Task CreateImportFileAssociationAsync(int specializedTrainingId, string fileName, long fileSize, int importedBy)
+    {
+        try
+        {
+            // 创建一个虚拟的上传文件记录，代表导入的JSON文件
+            var uploadedFile = new ExaminaWebApplication.Models.FileUpload.UploadedFile
+            {
+                OriginalFileName = fileName,
+                StoredFileName = $"specialized_training_{specializedTrainingId}_{fileName}",
+                FileExtension = Path.GetExtension(fileName).ToLowerInvariant(),
+                ContentType = "application/json",
+                FileSize = fileSize,
+                FilePath = $"imports/specialized-training/{specializedTrainingId}/{fileName}",
+                FileHash = $"import_{specializedTrainingId}_{DateTime.UtcNow:yyyyMMddHHmmss}",
+                UploadStatus = ExaminaWebApplication.Models.FileUpload.UploadStatus.Completed,
+                UploadProgress = 100,
+                Description = $"专项训练导入文件：{fileName}",
+                Tags = "专项训练,导入文件,自动关联",
+                UploadedBy = importedBy,
+                UploadedAt = DateTime.UtcNow
+            };
+
+            _context.UploadedFiles.Add(uploadedFile);
+            await _context.SaveChangesAsync();
+
+            // 创建文件关联
+            bool associationSuccess = await _fileUploadService.AssociateFileToSpecializedTrainingAsync(
+                specializedTrainingId, uploadedFile.Id, "ImportFile", importedBy, "专项训练导入源文件");
+
+            if (associationSuccess)
+            {
+                _logger.LogInformation("专项训练导入文件关联创建成功：SpecializedTrainingId={SpecializedTrainingId}, FileId={FileId}, FileName={FileName}",
+                    specializedTrainingId, uploadedFile.Id, fileName);
+            }
+            else
+            {
+                _logger.LogWarning("专项训练导入文件关联创建失败：SpecializedTrainingId={SpecializedTrainingId}, FileId={FileId}",
+                    specializedTrainingId, uploadedFile.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "创建专项训练导入文件关联时发生错误：SpecializedTrainingId={SpecializedTrainingId}, FileName={FileName}",
+                specializedTrainingId, fileName);
         }
     }
 

@@ -457,25 +457,6 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
                 System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 文件预下载完成，继续启动专项训练");
 
-                // 第三步：调用Web API标记专项训练为开始状态
-                System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 开始调用API标记专项训练开始");
-                IStudentSpecializedTrainingService? specializedTrainingService = AppServiceManager.GetService<IStudentSpecializedTrainingService>();
-                if (specializedTrainingService != null)
-                {
-                    bool apiSuccess = await specializedTrainingService.StartSpecializedTrainingAsync(training.Id);
-                    if (!apiSuccess)
-                    {
-                        ErrorMessage = "无法标记专项训练开始状态，请检查网络连接或联系管理员。";
-                        System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: API调用失败，取消专项训练启动");
-                        return;
-                    }
-                    System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: API调用成功，专项训练状态已更新");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 专项训练服务不可用，跳过API调用");
-                }
-
                 // 隐藏主窗口
                 desktop.MainWindow.Hide();
                 System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 主窗口已隐藏");
