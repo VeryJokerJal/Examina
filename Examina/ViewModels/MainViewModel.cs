@@ -648,26 +648,41 @@ public class MainViewModel : ViewModelBase, IDisposable
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine("[MainViewModel] 开始创建SpecializedTrainingListViewModel");
+
             // 首先尝试从DI容器获取
             SpecializedTrainingListViewModel? viewModel = ((App)Application.Current!).GetService<SpecializedTrainingListViewModel>();
             if (viewModel != null)
             {
+                System.Diagnostics.Debug.WriteLine("[MainViewModel] 从DI容器成功获取SpecializedTrainingListViewModel");
                 return viewModel;
             }
 
+            System.Diagnostics.Debug.WriteLine("[MainViewModel] DI容器未提供SpecializedTrainingListViewModel，尝试手动创建");
+
             // 如果DI容器无法提供，手动创建
             IStudentSpecializedTrainingService? trainingService = ((App)Application.Current!).GetService<IStudentSpecializedTrainingService>();
+            System.Diagnostics.Debug.WriteLine($"[MainViewModel] trainingService: {trainingService?.GetType().Name ?? "NULL"}");
+            System.Diagnostics.Debug.WriteLine($"[MainViewModel] _authenticationService: {_authenticationService?.GetType().Name ?? "NULL"}");
+
             if (trainingService != null && _authenticationService != null)
             {
+                System.Diagnostics.Debug.WriteLine("[MainViewModel] 手动创建SpecializedTrainingListViewModel");
                 SpecializedTrainingListViewModel newViewModel = new(trainingService, _authenticationService);
                 return newViewModel;
             }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainViewModel] 无法手动创建SpecializedTrainingListViewModel：服务为null");
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // 创建SpecializedTrainingListViewModel时发生异常，静默处理
+            System.Diagnostics.Debug.WriteLine($"[MainViewModel] 创建SpecializedTrainingListViewModel时发生异常: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MainViewModel] 异常堆栈: {ex.StackTrace}");
         }
 
+        System.Diagnostics.Debug.WriteLine("[MainViewModel] 创建SpecializedTrainingListViewModel失败，返回null");
         return null;
     }
 

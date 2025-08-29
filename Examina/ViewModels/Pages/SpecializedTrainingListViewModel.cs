@@ -196,8 +196,13 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         IStudentSpecializedTrainingService studentSpecializedTrainingService,
         IAuthenticationService authenticationService)
     {
-        _studentSpecializedTrainingService = studentSpecializedTrainingService;
-        _authenticationService = authenticationService;
+        // 添加调试信息来诊断服务注入问题
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTrainingListViewModel] 构造函数被调用");
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTrainingListViewModel] studentSpecializedTrainingService: {studentSpecializedTrainingService?.GetType().Name ?? "NULL"}");
+        System.Diagnostics.Debug.WriteLine($"[SpecializedTrainingListViewModel] authenticationService: {authenticationService?.GetType().Name ?? "NULL"}");
+
+        _studentSpecializedTrainingService = studentSpecializedTrainingService ?? throw new ArgumentNullException(nameof(studentSpecializedTrainingService), "StudentSpecializedTrainingService不能为null");
+        _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService), "AuthenticationService不能为null");
 
         // 尝试获取BenchSuite服务（可选）
         _benchSuiteIntegrationService = AppServiceManager.GetService<IBenchSuiteIntegrationService>();
@@ -364,6 +369,15 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
             // 获取包含模块详细信息的训练数据
             System.Diagnostics.Debug.WriteLine($"获取训练详情，训练ID: {training.Id}");
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] _studentSpecializedTrainingService状态: {_studentSpecializedTrainingService?.GetType().Name ?? "NULL"}");
+
+            if (_studentSpecializedTrainingService == null)
+            {
+                ErrorMessage = "专项训练服务未初始化，请重新启动应用程序。";
+                System.Diagnostics.Debug.WriteLine("[SpecializedTraining] 错误：_studentSpecializedTrainingService为null");
+                return;
+            }
+
             StudentSpecializedTrainingDto? detailedTraining = await _studentSpecializedTrainingService.GetTrainingDetailsAsync(training.Id);
 
             if (detailedTraining == null)

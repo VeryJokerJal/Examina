@@ -313,6 +313,21 @@ public partial class App : Application
         _ = services.AddTransient<FileDownloadPreparationViewModel>();
 
         _serviceProvider = services.BuildServiceProvider();
+
+        // 添加调试信息来验证服务注册
+        System.Diagnostics.Debug.WriteLine("[App] 服务提供者已构建，开始验证服务注册");
+        try
+        {
+            IStudentSpecializedTrainingService? testService = _serviceProvider.GetService<IStudentSpecializedTrainingService>();
+            System.Diagnostics.Debug.WriteLine($"[App] IStudentSpecializedTrainingService注册验证: {testService?.GetType().Name ?? "NULL"}");
+
+            IAuthenticationService? testAuthService = _serviceProvider.GetService<IAuthenticationService>();
+            System.Diagnostics.Debug.WriteLine($"[App] IAuthenticationService注册验证: {testAuthService?.GetType().Name ?? "NULL"}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[App] 服务注册验证失败: {ex.Message}");
+        }
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -335,6 +350,16 @@ public partial class App : Application
 
     public T? GetService<T>() where T : class
     {
-        return _serviceProvider?.GetService<T>();
+        try
+        {
+            T? service = _serviceProvider?.GetService<T>();
+            System.Diagnostics.Debug.WriteLine($"[App.GetService] 请求服务: {typeof(T).Name}, 结果: {service?.GetType().Name ?? "NULL"}");
+            return service;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[App.GetService] 获取服务 {typeof(T).Name} 时发生异常: {ex.Message}");
+            return null;
+        }
     }
 }
