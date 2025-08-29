@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
+﻿using System.Net.Http.Json;
 using Examina.Models.SpecializedTraining;
 using Microsoft.Extensions.Logging;
 
@@ -53,7 +51,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                 // 调试：检查反序列化后的EnableTrial属性
                 if (trainings != null)
                 {
-                    foreach (var training in trainings)
+                    foreach (StudentSpecializedTrainingDto training in trainings)
                     {
                         System.Diagnostics.Debug.WriteLine($"[StudentSpecializedTrainingService] 反序列化后的训练: {training.Name}, EnableTrial: {training.EnableTrial}");
                     }
@@ -87,7 +85,8 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
 
             if (response.IsSuccessStatusCode)
             {
-                StudentSpecializedTrainingDto? training = await response.Content.ReadFromJsonAsync<StudentSpecializedTrainingDto>(_jsonOptions);
+                string content = await response.Content.ReadAsStringAsync();
+                StudentSpecializedTrainingDto? training = JsonSerializer.Deserialize<StudentSpecializedTrainingDto>(content);
                 if (training != null)
                 {
                     _logger.LogInformation("客户端获取专项训练详情成功，训练ID: {TrainingId}, 模块数量: {ModuleCount}, 题目数量: {QuestionCount}",

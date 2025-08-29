@@ -467,6 +467,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             Description = parameter.Description,
             ParameterType = parameter.Type, // 使用Type属性而不是ParameterType
             DefaultValue = parameter.DefaultValue?.ToString(), // 转换为字符串
+            Value = parameter.Value, // 添加Value字段映射
             MinValue = parameter.MinValue?.ToString(), // 转换为字符串
             MaxValue = parameter.MaxValue?.ToString() // 转换为字符串
         };

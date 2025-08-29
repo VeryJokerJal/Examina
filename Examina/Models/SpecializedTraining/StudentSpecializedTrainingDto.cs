@@ -326,6 +326,11 @@ public class StudentSpecializedTrainingParameterDto
     public string? DefaultValue { get; set; }
 
     /// <summary>
+    /// 
+    /// </summary>
+    public string? Value { get; set; }
+
+    /// <summary>
     /// 最小值
     /// </summary>
     public string? MinValue { get; set; }

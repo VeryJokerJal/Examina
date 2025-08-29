@@ -1312,6 +1312,7 @@ public class StudentMockExamService : IStudentMockExamService
                         Description = p.Description,
                         ParameterType = p.ParameterType,
                         DefaultValue = p.DefaultValue,
+                        Value = p.Value,
                         MinValue = p.MinValue,
                         MaxValue = p.MaxValue
                     })]
@@ -1804,7 +1805,7 @@ public class StudentMockExamService : IStudentMockExamService
                     DisplayName = p.Name,
                     Description = p.Description,
                     Type = p.ParameterType ?? "string",
-                    Value = p.DefaultValue ?? "",
+                    Value = !string.IsNullOrWhiteSpace(p.Value) ? p.Value : (p.DefaultValue ?? ""),
                     DefaultValue = p.DefaultValue ?? "",
                     IsRequired = false,
                     Order = 0,

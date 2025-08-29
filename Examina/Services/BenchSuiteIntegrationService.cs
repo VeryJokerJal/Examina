@@ -1182,7 +1182,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 {
                     Id = paramDto.Id.ToString(),
                     Name = !string.IsNullOrWhiteSpace(paramDto.Name) ? paramDto.Name : $"参数_{paramDto.Id}",
-                    Value = paramDto.DefaultValue ?? string.Empty,
+                    Value = !string.IsNullOrWhiteSpace(paramDto.Value) ? paramDto.Value : (paramDto.DefaultValue ?? string.Empty),
                     Type = ParseParameterType(paramDto.ParameterType),
                     Description = paramDto.Description ?? string.Empty,
                     IsRequired = true,
@@ -1232,7 +1232,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                 {
                     Id = paramDto.Id.ToString(),
                     Name = !string.IsNullOrWhiteSpace(paramDto.Name) ? paramDto.Name : $"参数_{paramDto.Id}",
-                    Value = paramDto.DefaultValue ?? string.Empty,
+                    Value = !string.IsNullOrWhiteSpace(paramDto.Value) ? paramDto.Value : (paramDto.DefaultValue ?? string.Empty),
                     Type = ParseParameterType(paramDto.ParameterType),
                     Description = paramDto.Description ?? string.Empty,
                     IsRequired = true,
