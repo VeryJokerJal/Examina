@@ -275,10 +275,8 @@ public class ComprehensiveTrainingManagementController : Controller
     {
         try
         {
-            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
-            int userId = 1; // 使用管理员用户ID
-
-            List<ImportedSpecializedTrainingEntity> specializedTrainings = await _specializedTrainingImportService.GetImportedSpecializedTrainingsAsync(userId);
+            // 管理员可以查看所有专项训练，不限制用户
+            List<ImportedSpecializedTrainingEntity> specializedTrainings = await _specializedTrainingImportService.GetImportedSpecializedTrainingsAsync();
             return View(specializedTrainings);
         }
         catch (Exception ex)
