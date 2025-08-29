@@ -543,37 +543,17 @@ public sealed partial class OperationPointEditPage : Page
         TextBox pathTextBox = new()
         {
             Text = parameter.Value ?? parameter.DefaultValue ?? "",
-            PlaceholderText = "选择文件路径",
-            Width = 300
+            PlaceholderText = "输入文件路径",
+            HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
-        Button browseButton = new()
+        // 绑定文本变化事件以更新参数值
+        pathTextBox.TextChanged += (sender, e) =>
         {
-            Content = "浏览文件...",
-            MinWidth = 100
-        };
-
-        browseButton.Click += async (sender, e) =>
-        {
-            try
-            {
-                List<string> fileTypes = [".txt", ".xml", ".json", ".exe", ".bat", ".cmd", ".ps1", "*"];
-                Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(fileTypes);
-
-                if (selectedFile != null)
-                {
-                    pathTextBox.Text = selectedFile.Path;
-                    parameter.Value = selectedFile.Path;
-                }
-            }
-            catch (Exception ex)
-            {
-                await NotificationService.ShowErrorAsync("文件选择失败", $"无法选择文件：{ex.Message}");
-            }
+            parameter.Value = pathTextBox.Text;
         };
 
         filePanel.Children.Add(pathTextBox);
-        filePanel.Children.Add(browseButton);
 
         return filePanel;
     }
@@ -595,36 +575,17 @@ public sealed partial class OperationPointEditPage : Page
         TextBox pathTextBox = new()
         {
             Text = parameter.Value ?? parameter.DefaultValue ?? "",
-            PlaceholderText = "选择文件夹路径",
-            Width = 300
+            PlaceholderText = "输入文件夹路径",
+            HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
-        Button browseButton = new()
+        // 绑定文本变化事件以更新参数值
+        pathTextBox.TextChanged += (sender, e) =>
         {
-            Content = "浏览文件夹...",
-            MinWidth = 100
-        };
-
-        browseButton.Click += async (sender, e) =>
-        {
-            try
-            {
-                Windows.Storage.StorageFolder? selectedFolder = await FolderPickerService.PickSingleFolderAsync();
-
-                if (selectedFolder != null)
-                {
-                    pathTextBox.Text = selectedFolder.Path;
-                    parameter.Value = selectedFolder.Path;
-                }
-            }
-            catch (Exception ex)
-            {
-                await NotificationService.ShowErrorAsync("文件夹选择失败", $"无法选择文件夹：{ex.Message}");
-            }
+            parameter.Value = pathTextBox.Text;
         };
 
         folderPanel.Children.Add(pathTextBox);
-        folderPanel.Children.Add(browseButton);
 
         return folderPanel;
     }
@@ -647,48 +608,16 @@ public sealed partial class OperationPointEditPage : Page
         {
             Text = parameter.Value ?? parameter.DefaultValue ?? "",
             PlaceholderText = GetPathPlaceholderText(),
-            Width = 300
+            HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
-        Button browseButton = new()
+        // 绑定文本变化事件以更新参数值
+        pathTextBox.TextChanged += (sender, e) =>
         {
-            Content = GetBrowseButtonText(),
-            MinWidth = 100
-        };
-
-        browseButton.Click += async (sender, e) =>
-        {
-            try
-            {
-                string? selectedPath = null;
-
-                if (OperationPoint?.PathType == PathType.Folder)
-                {
-                    Windows.Storage.StorageFolder? selectedFolder = await FolderPickerService.PickSingleFolderAsync();
-                    selectedPath = selectedFolder?.Path;
-                }
-                else
-                {
-                    List<string> fileTypes = [".txt", ".xml", ".json", ".exe", ".bat", ".cmd", ".ps1", "*"];
-                    Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(fileTypes);
-                    selectedPath = selectedFile?.Path;
-                }
-
-                if (selectedPath != null)
-                {
-                    pathTextBox.Text = selectedPath;
-                    parameter.Value = selectedPath;
-                }
-            }
-            catch (Exception ex)
-            {
-                string errorType = OperationPoint?.PathType == PathType.Folder ? "文件夹" : "文件";
-                await NotificationService.ShowErrorAsync($"{errorType}选择失败", $"无法选择{errorType}：{ex.Message}");
-            }
+            parameter.Value = pathTextBox.Text;
         };
 
         pathPanel.Children.Add(pathTextBox);
-        pathPanel.Children.Add(browseButton);
 
         return pathPanel;
     }
@@ -699,16 +628,7 @@ public sealed partial class OperationPointEditPage : Page
     /// <returns>占位符文本</returns>
     private string GetPathPlaceholderText()
     {
-        return OperationPoint?.PathType == PathType.Folder ? "选择文件夹路径" : "选择文件路径";
-    }
-
-    /// <summary>
-    /// 获取浏览按钮的文本
-    /// </summary>
-    /// <returns>按钮文本</returns>
-    private string GetBrowseButtonText()
-    {
-        return OperationPoint?.PathType == PathType.Folder ? "浏览文件夹..." : "浏览文件...";
+        return OperationPoint?.PathType == PathType.Folder ? "输入文件夹路径" : "输入文件路径";
     }
 
     /// <summary>

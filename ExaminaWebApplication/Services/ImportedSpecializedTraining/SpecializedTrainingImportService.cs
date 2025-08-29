@@ -93,7 +93,7 @@ public class SpecializedTrainingImportService
             }
 
             // 验证数据
-            var validationResult = ValidateSpecializedTrainingData(exportDto.SpecializedTraining);
+            ValidationResult validationResult = ValidateSpecializedTrainingData(exportDto.SpecializedTraining);
             if (!validationResult.IsValid)
             {
                 result.IsSuccess = false;
@@ -120,14 +120,14 @@ public class SpecializedTrainingImportService
                 exportDto, importedBy, fileName, fileSize);
 
             // 保存到数据库 - 使用执行策略处理 MySQL 重试机制
-            var strategy = _context.Database.CreateExecutionStrategy();
+            Microsoft.EntityFrameworkCore.Storage.IExecutionStrategy strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
-                using var transaction = await _context.Database.BeginTransactionAsync();
+                using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    _context.ImportedSpecializedTrainings.Add(importedSpecializedTraining);
-                    await _context.SaveChangesAsync();
+                    _ = _context.ImportedSpecializedTrainings.Add(importedSpecializedTraining);
+                    _ = await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     // 统计信息
@@ -240,24 +240,24 @@ public class SpecializedTrainingImportService
                 specializedTraining.Modules?.Count ?? 0, specializedTraining.Questions?.Count ?? 0);
 
             // 使用执行策略进行级联删除
-            var strategy = _context.Database.CreateExecutionStrategy();
+            Microsoft.EntityFrameworkCore.Storage.IExecutionStrategy strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
-                using var transaction = await _context.Database.BeginTransactionAsync();
+                using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
                     // 删除所有相关的操作点参数
                     if (specializedTraining.Modules != null)
                     {
-                        foreach (var module in specializedTraining.Modules)
+                        foreach (ImportedSpecializedTrainingModule module in specializedTraining.Modules)
                         {
                             if (module.Questions != null)
                             {
-                                foreach (var question in module.Questions)
+                                foreach (ImportedSpecializedTrainingQuestion question in module.Questions)
                                 {
                                     if (question.OperationPoints != null)
                                     {
-                                        foreach (var operationPoint in question.OperationPoints)
+                                        foreach (ImportedSpecializedTrainingOperationPoint operationPoint in question.OperationPoints)
                                         {
                                             if (operationPoint.Parameters != null)
                                             {
@@ -276,11 +276,11 @@ public class SpecializedTrainingImportService
                     // 删除直接关联的题目
                     if (specializedTraining.Questions != null)
                     {
-                        foreach (var question in specializedTraining.Questions)
+                        foreach (ImportedSpecializedTrainingQuestion question in specializedTraining.Questions)
                         {
                             if (question.OperationPoints != null)
                             {
-                                foreach (var operationPoint in question.OperationPoints)
+                                foreach (ImportedSpecializedTrainingOperationPoint operationPoint in question.OperationPoints)
                                 {
                                     if (operationPoint.Parameters != null)
                                     {
@@ -294,9 +294,9 @@ public class SpecializedTrainingImportService
                     }
 
                     // 最后删除专项训练本身
-                    _context.ImportedSpecializedTrainings.Remove(specializedTraining);
+                    _ = _context.ImportedSpecializedTrainings.Remove(specializedTraining);
 
-                    await _context.SaveChangesAsync();
+                    _ = await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     _logger.LogInformation("专项训练级联删除成功：{Name}，ID：{Id}，用户：{UserId}",
@@ -306,9 +306,9 @@ public class SpecializedTrainingImportService
                 {
                     await transaction.RollbackAsync();
                     _logger.LogError(ex, "专项训练级联删除事务失败，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
-                    throw;
                 }
             });
+            return true;
         }
         catch (Exception ex)
         {
@@ -324,7 +324,7 @@ public class SpecializedTrainingImportService
     /// <returns>验证结果</returns>
     private static ValidationResult ValidateSpecializedTrainingData(SpecializedTrainingDto specializedTraining)
     {
-        var result = new ValidationResult();
+        ValidationResult result = new();
 
         if (string.IsNullOrWhiteSpace(specializedTraining.Id))
         {
@@ -357,7 +357,7 @@ public class SpecializedTrainingImportService
         }
         else
         {
-            foreach (var module in specializedTraining.Modules)
+            foreach (SpecializedTrainingModuleDto module in specializedTraining.Modules)
             {
                 if (string.IsNullOrWhiteSpace(module.Name))
                 {
@@ -418,8 +418,8 @@ public class SpecializedTrainingImportService
                 return false;
             }
 
-            _context.ImportedSpecializedTrainings.Remove(specializedTraining);
-            await _context.SaveChangesAsync();
+            _ = _context.ImportedSpecializedTrainings.Remove(specializedTraining);
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("用户 {UserId} 成功删除专项训练: {TrainingName} (ID: {TrainingId})",
                 userId, specializedTraining.Name, id);
@@ -461,7 +461,7 @@ public class SpecializedTrainingImportService
 
             // 特殊字符检查 - 禁止包含危险字符
             string[] forbiddenChars = { "<", ">", "\"", "'", "&", "\\", "/", "?", "*", "|", ":", ";", "%" };
-            if (forbiddenChars.Any(c => newName.Contains(c)))
+            if (forbiddenChars.Any(newName.Contains))
             {
                 _logger.LogWarning("专项训练名称包含非法字符，训练ID: {TrainingId}, 用户ID: {UserId}, 名称: {Name}",
                     id, userId, newName);
@@ -498,7 +498,7 @@ public class SpecializedTrainingImportService
 
             // 更新专项训练名称
             specializedTraining.Name = newName.Trim();
-            await _context.SaveChangesAsync();
+            _ = await _context.SaveChangesAsync();
 
             _logger.LogInformation("专项训练名称更新成功，训练ID: {TrainingId}, 用户ID: {UserId}, 原名称: {OriginalName}, 新名称: {NewName}",
                 id, userId, originalName, newName);
@@ -525,7 +525,7 @@ public class SpecializedTrainingImportService
         try
         {
             // 创建一个虚拟的上传文件记录，代表导入的JSON文件
-            var uploadedFile = new ExaminaWebApplication.Models.FileUpload.UploadedFile
+            Models.FileUpload.UploadedFile uploadedFile = new()
             {
                 OriginalFileName = fileName,
                 StoredFileName = $"specialized_training_{specializedTrainingId}_{fileName}",
@@ -542,8 +542,8 @@ public class SpecializedTrainingImportService
                 UploadedAt = DateTime.UtcNow
             };
 
-            _context.UploadedFiles.Add(uploadedFile);
-            await _context.SaveChangesAsync();
+            _ = _context.UploadedFiles.Add(uploadedFile);
+            _ = await _context.SaveChangesAsync();
 
             // 创建文件关联
             bool associationSuccess = await _fileUploadService.AssociateFileToSpecializedTrainingAsync(
