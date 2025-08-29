@@ -239,74 +239,76 @@ public class SpecializedTrainingImportService
                 specializedTraining.Name, specializedTraining.Id, specializedTraining.ImportedBy,
                 specializedTraining.Modules?.Count ?? 0, specializedTraining.Questions?.Count ?? 0);
 
-            // 使用事务进行级联删除
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // 使用执行策略进行级联删除
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                // 删除所有相关的操作点参数
-                if (specializedTraining.Modules != null)
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    foreach (var module in specializedTraining.Modules)
+                    // 删除所有相关的操作点参数
+                    if (specializedTraining.Modules != null)
                     {
-                        if (module.Questions != null)
+                        foreach (var module in specializedTraining.Modules)
                         {
-                            foreach (var question in module.Questions)
+                            if (module.Questions != null)
                             {
-                                if (question.OperationPoints != null)
+                                foreach (var question in module.Questions)
                                 {
-                                    foreach (var operationPoint in question.OperationPoints)
+                                    if (question.OperationPoints != null)
                                     {
-                                        if (operationPoint.Parameters != null)
+                                        foreach (var operationPoint in question.OperationPoints)
                                         {
-                                            _context.ImportedSpecializedTrainingParameters.RemoveRange(operationPoint.Parameters);
+                                            if (operationPoint.Parameters != null)
+                                            {
+                                                _context.ImportedSpecializedTrainingParameters.RemoveRange(operationPoint.Parameters);
+                                            }
                                         }
+                                        _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
                                     }
-                                    _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
                                 }
+                                _context.ImportedSpecializedTrainingQuestions.RemoveRange(module.Questions);
                             }
-                            _context.ImportedSpecializedTrainingQuestions.RemoveRange(module.Questions);
                         }
+                        _context.ImportedSpecializedTrainingModules.RemoveRange(specializedTraining.Modules);
                     }
-                    _context.ImportedSpecializedTrainingModules.RemoveRange(specializedTraining.Modules);
-                }
 
-                // 删除直接关联的题目
-                if (specializedTraining.Questions != null)
-                {
-                    foreach (var question in specializedTraining.Questions)
+                    // 删除直接关联的题目
+                    if (specializedTraining.Questions != null)
                     {
-                        if (question.OperationPoints != null)
+                        foreach (var question in specializedTraining.Questions)
                         {
-                            foreach (var operationPoint in question.OperationPoints)
+                            if (question.OperationPoints != null)
                             {
-                                if (operationPoint.Parameters != null)
+                                foreach (var operationPoint in question.OperationPoints)
                                 {
-                                    _context.ImportedSpecializedTrainingParameters.RemoveRange(operationPoint.Parameters);
+                                    if (operationPoint.Parameters != null)
+                                    {
+                                        _context.ImportedSpecializedTrainingParameters.RemoveRange(operationPoint.Parameters);
+                                    }
                                 }
+                                _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
                             }
-                            _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
                         }
+                        _context.ImportedSpecializedTrainingQuestions.RemoveRange(specializedTraining.Questions);
                     }
-                    _context.ImportedSpecializedTrainingQuestions.RemoveRange(specializedTraining.Questions);
+
+                    // 最后删除专项训练本身
+                    _context.ImportedSpecializedTrainings.Remove(specializedTraining);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("专项训练级联删除成功：{Name}，ID：{Id}，用户：{UserId}",
+                        specializedTraining.Name, id, userId);
                 }
-
-                // 最后删除专项训练本身
-                _context.ImportedSpecializedTrainings.Remove(specializedTraining);
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                _logger.LogInformation("专项训练级联删除成功：{Name}，ID：{Id}，用户：{UserId}",
-                    specializedTraining.Name, id, userId);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "专项训练级联删除事务失败，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
-                throw;
-            }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "专项训练级联删除事务失败，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+                    throw;
+                }
+            });
         }
         catch (Exception ex)
         {
