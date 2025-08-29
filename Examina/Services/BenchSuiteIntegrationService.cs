@@ -690,33 +690,28 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     question.OperationPoints.Add(operationPoint);
                 }
 
-                // 对于C#题目，即使没有操作点也要添加（C#题目可能不依赖操作点）
+                // 检查是否应该添加题目（扩展逻辑以支持所有模块类型）
                 bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
-                                       (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto));
+                                       (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto)) ||
+                                       ShouldCreateDefaultOperationPointForMockExam(questionDto, targetModuleType);
 
                 if (shouldAddQuestion)
                 {
-                    // 如果是C#题目但没有操作点，创建一个默认操作点
-                    if (targetModuleType == ModuleType.CSharp && question.OperationPoints.Count == 0)
+                    // 如果没有操作点，为所有模块类型创建默认操作点
+                    if (question.OperationPoints.Count == 0)
                     {
-                        _logger.LogDebug("为C#题目 {QuestionId} 创建默认操作点", questionDto.OriginalQuestionId);
-
-                        OperationPointModel defaultOperationPoint = new()
-                        {
-                            Id = $"default_op_{questionDto.OriginalQuestionId}",
-                            Name = "C#编程操作",
-                            Description = "C#编程题目操作点",
-                            ModuleType = ModuleType.CSharp,
-                            Score = questionDto.Score,
-                            Order = 1,
-                            IsEnabled = true,
-                            Parameters = []
-                        };
-
+                        OperationPointModel defaultOperationPoint = CreateDefaultOperationPointForMockExam(questionDto, targetModuleType);
                         question.OperationPoints.Add(defaultOperationPoint);
+
+                        _logger.LogDebug("为模拟考试题目 {QuestionId} 创建默认操作点，模块类型: {ModuleType}",
+                            questionDto.OriginalQuestionId, targetModuleType);
                     }
 
                     module.Questions.Add(question);
+                }
+                else
+                {
+                    _logger.LogDebug("模拟考试题目 {QuestionId} 没有匹配的操作点且不符合默认操作点创建条件，跳过", questionDto.OriginalQuestionId);
                 }
             }
 
@@ -982,31 +977,28 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             {
                 QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
 
-                // 对于C#题目，即使没有操作点也要添加
+                // 检查是否应该添加题目（扩展逻辑以支持所有模块类型）
                 bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
-                                       (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto));
+                                       (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto)) ||
+                                       ShouldCreateDefaultOperationPoint(questionDto, targetModuleType);
 
                 if (shouldAddQuestion)
                 {
-                    // 如果是C#题目但没有操作点，创建一个默认操作点
-                    if (targetModuleType == ModuleType.CSharp && question.OperationPoints.Count == 0)
+                    // 如果没有操作点，为所有模块类型创建默认操作点
+                    if (question.OperationPoints.Count == 0)
                     {
-                        OperationPointModel defaultOperationPoint = new()
-                        {
-                            Id = $"default_op_{questionDto.Id}",
-                            Name = "C#编程操作",
-                            Description = "C#编程题目操作点",
-                            ModuleType = ModuleType.CSharp,
-                            Score = questionDto.Score,
-                            Order = 1,
-                            IsEnabled = true,
-                            Parameters = []
-                        };
-
+                        OperationPointModel defaultOperationPoint = CreateDefaultOperationPoint(questionDto, targetModuleType);
                         question.OperationPoints.Add(defaultOperationPoint);
+
+                        _logger.LogDebug("为题目 {QuestionId} 创建默认操作点，模块类型: {ModuleType}",
+                            questionDto.Id, targetModuleType);
                     }
 
                     module.Questions.Add(question);
+                }
+                else
+                {
+                    _logger.LogDebug("题目 {QuestionId} 没有匹配的操作点且不符合默认操作点创建条件，跳过", questionDto.Id);
                 }
             }
 
@@ -1109,80 +1101,147 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             Tags = questionDto.Tags
         };
 
-        // 只添加匹配目标模块类型的操作点
-        foreach (StudentSpecializedTrainingOperationPointDto opDto in questionDto.OperationPoints
-            .Where(op => IsModuleTypeMatch(op.ModuleType, targetModuleType))
-            .OrderBy(op => op.Order))
+        // 记录操作点过滤前的状态
+        System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingQuestion] 题目 {questionDto.Id} 原始操作点数量: {questionDto.OperationPoints.Count}");
+        foreach (StudentSpecializedTrainingOperationPointDto op in questionDto.OperationPoints)
         {
-            OperationPointModel operationPoint = new()
-            {
-                Id = opDto.Id.ToString(),
-                Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
-                Description = opDto.Description ?? string.Empty,
-                ModuleType = ParseModuleType(opDto.ModuleType),
-                Score = opDto.Score,
-                Order = opDto.Order,
-                IsEnabled = true,
-                Parameters = MapSpecializedTrainingParametersToConfigurationParameters(opDto.Parameters)
-            };
+            System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingQuestion] 原始操作点: ID={op.Id}, Name='{op.Name}', ModuleType='{op.ModuleType}'");
+        }
 
-            question.OperationPoints.Add(operationPoint);
+        // 只添加匹配目标模块类型的操作点
+        IEnumerable<StudentSpecializedTrainingOperationPointDto> matchingOperationPoints = questionDto.OperationPoints
+            .Where(op => IsModuleTypeMatch(op.ModuleType, targetModuleType))
+            .OrderBy(op => op.Order);
+
+        System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingQuestion] 题目 {questionDto.Id} 匹配的操作点数量: {matchingOperationPoints.Count()}/{questionDto.OperationPoints.Count}");
+
+        foreach (StudentSpecializedTrainingOperationPointDto opDto in matchingOperationPoints)
+        {
+            try
+            {
+                OperationPointModel operationPoint = new()
+                {
+                    Id = opDto.Id.ToString(),
+                    Name = string.IsNullOrWhiteSpace(opDto.Name) ? $"操作点_{opDto.Id}" : opDto.Name,
+                    Description = opDto.Description ?? string.Empty,
+                    ModuleType = ParseModuleType(opDto.ModuleType),
+                    Score = opDto.Score,
+                    Order = opDto.Order,
+                    IsEnabled = true,
+                    Parameters = MapSpecializedTrainingParametersToConfigurationParameters(opDto.Parameters)
+                };
+
+                question.OperationPoints.Add(operationPoint);
+
+                System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingQuestion] 成功映射操作点: ID={opDto.Id}, Name='{operationPoint.Name}', ModuleType={operationPoint.ModuleType}, 参数数量={operationPoint.Parameters.Count}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingQuestion] 映射操作点失败: ID={opDto.Id}, Error={ex.Message}");
+                // 继续处理其他操作点
+            }
         }
 
         return question;
     }
 
     /// <summary>
-    /// 映射模拟考试参数到配置参数
+    /// 映射模拟考试参数到配置参数（增强版，包含验证和错误处理）
     /// </summary>
     private static List<ConfigurationParameterModel> MapMockExamParametersToConfigurationParameters(IEnumerable<StudentMockExamParameterDto> parameters)
     {
         List<ConfigurationParameterModel> configParams = [];
 
+        if (parameters == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[MapMockExamParameters] 参数集合为null，返回空列表");
+            return configParams;
+        }
+
         int order = 1;
         foreach (StudentMockExamParameterDto paramDto in parameters)
         {
-            ConfigurationParameterModel configParam = new()
+            try
             {
-                Id = paramDto.Id.ToString(),
-                Name = paramDto.Name ?? string.Empty,
-                Value = paramDto.DefaultValue ?? string.Empty,
-                Type = ParseParameterType(paramDto.ParameterType),
-                Description = paramDto.Description ?? string.Empty,
-                IsRequired = true,
-                Order = order++
-            };
+                if (paramDto == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MapMockExamParameters] 跳过null参数，顺序: {order}");
+                    continue;
+                }
 
-            configParams.Add(configParam);
+                ConfigurationParameterModel configParam = new()
+                {
+                    Id = paramDto.Id.ToString(),
+                    Name = !string.IsNullOrWhiteSpace(paramDto.Name) ? paramDto.Name : $"参数_{paramDto.Id}",
+                    Value = paramDto.DefaultValue ?? string.Empty,
+                    Type = ParseParameterType(paramDto.ParameterType),
+                    Description = paramDto.Description ?? string.Empty,
+                    IsRequired = true,
+                    Order = order++
+                };
+
+                configParams.Add(configParam);
+
+                System.Diagnostics.Debug.WriteLine($"[MapMockExamParameters] 成功映射参数: ID={paramDto.Id}, Name='{configParam.Name}', Type={configParam.Type}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MapMockExamParameters] 映射参数失败: ID={paramDto?.Id}, Error={ex.Message}");
+                // 继续处理其他参数，不因单个参数失败而中断
+            }
         }
 
+        System.Diagnostics.Debug.WriteLine($"[MapMockExamParameters] 完成参数映射，成功映射 {configParams.Count} 个参数");
         return configParams;
     }
 
     /// <summary>
-    /// 映射专项训练参数到配置参数
+    /// 映射专项训练参数到配置参数（增强版，包含验证和错误处理）
     /// </summary>
     private static List<ConfigurationParameterModel> MapSpecializedTrainingParametersToConfigurationParameters(IEnumerable<StudentSpecializedTrainingParameterDto> parameters)
     {
         List<ConfigurationParameterModel> configParams = [];
 
+        if (parameters == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[MapSpecializedTrainingParameters] 参数集合为null，返回空列表");
+            return configParams;
+        }
+
         int order = 1;
         foreach (StudentSpecializedTrainingParameterDto paramDto in parameters)
         {
-            ConfigurationParameterModel configParam = new()
+            try
             {
-                Id = paramDto.Id.ToString(),
-                Name = paramDto.Name ?? string.Empty,
-                Value = paramDto.DefaultValue ?? string.Empty,
-                Type = ParseParameterType(paramDto.ParameterType),
-                Description = paramDto.Description ?? string.Empty,
-                IsRequired = true,
-                Order = order++
-            };
+                if (paramDto == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingParameters] 跳过null参数，顺序: {order}");
+                    continue;
+                }
 
-            configParams.Add(configParam);
+                ConfigurationParameterModel configParam = new()
+                {
+                    Id = paramDto.Id.ToString(),
+                    Name = !string.IsNullOrWhiteSpace(paramDto.Name) ? paramDto.Name : $"参数_{paramDto.Id}",
+                    Value = paramDto.DefaultValue ?? string.Empty,
+                    Type = ParseParameterType(paramDto.ParameterType),
+                    Description = paramDto.Description ?? string.Empty,
+                    IsRequired = true,
+                    Order = order++
+                };
+
+                configParams.Add(configParam);
+
+                System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingParameters] 成功映射参数: ID={paramDto.Id}, Name='{configParam.Name}', Type={configParam.Type}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingParameters] 映射参数失败: ID={paramDto?.Id}, Error={ex.Message}");
+                // 继续处理其他参数，不因单个参数失败而中断
+            }
         }
 
+        System.Diagnostics.Debug.WriteLine($"[MapSpecializedTrainingParameters] 完成参数映射，成功映射 {configParams.Count} 个参数");
         return configParams;
     }
 
@@ -1570,24 +1629,65 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
-    /// 解析参数类型字符串为ParameterType枚举
+    /// 解析参数类型字符串为ParameterType枚举（增强版，支持更多类型和详细日志）
     /// </summary>
     private static BenchSuite.Models.ParameterType ParseParameterType(string? parameterTypeString)
     {
-        return string.IsNullOrWhiteSpace(parameterTypeString)
-            ? ParameterType.Text
-            : parameterTypeString.ToLowerInvariant() switch
-            {
-                "string" or "text" => BenchSuite.Models.ParameterType.Text,
-                "int" or "integer" or "number" => BenchSuite.Models.ParameterType.Number,
-                "bool" or "boolean" => BenchSuite.Models.ParameterType.Boolean,
-                "enum" or "enumeration" => BenchSuite.Models.ParameterType.Enum,
-                "color" => BenchSuite.Models.ParameterType.Color,
-                "file" or "filepath" => BenchSuite.Models.ParameterType.File,
-                "multiplechoice" or "multiple_choice" => BenchSuite.Models.ParameterType.MultipleChoice,
-                "date" or "datetime" => BenchSuite.Models.ParameterType.Date,
-                _ => BenchSuite.Models.ParameterType.Text // 默认值
-            };
+        if (string.IsNullOrWhiteSpace(parameterTypeString))
+        {
+            System.Diagnostics.Debug.WriteLine("[ParseParameterType] 参数类型字符串为空，返回默认值 Text");
+            return ParameterType.Text;
+        }
+
+        string originalInput = parameterTypeString;
+        string normalized = parameterTypeString.ToLowerInvariant().Trim();
+
+        // 首先尝试直接解析枚举
+        if (Enum.TryParse<BenchSuite.Models.ParameterType>(parameterTypeString, true, out BenchSuite.Models.ParameterType directResult))
+        {
+            System.Diagnostics.Debug.WriteLine($"[ParseParameterType] 直接解析成功: '{originalInput}' → {directResult}");
+            return directResult;
+        }
+
+        BenchSuite.Models.ParameterType result = normalized switch
+        {
+            // 文本类型变体
+            "string" or "text" or "str" or "字符串" or "文本" => BenchSuite.Models.ParameterType.Text,
+
+            // 数字类型变体
+            "int" or "integer" or "number" or "numeric" or "数字" or "整数" or "double" or "decimal" or "float" => BenchSuite.Models.ParameterType.Number,
+
+            // 布尔类型变体
+            "bool" or "boolean" or "布尔" or "真假" or "是否" => BenchSuite.Models.ParameterType.Boolean,
+
+            // 枚举类型变体
+            "enum" or "enumeration" or "select" or "选择" or "枚举" => BenchSuite.Models.ParameterType.Enum,
+
+            // 颜色类型变体
+            "color" or "colour" or "颜色" => BenchSuite.Models.ParameterType.Color,
+
+            // 文件类型变体
+            "file" or "filepath" or "path" or "文件" or "文件路径" or "路径" => BenchSuite.Models.ParameterType.File,
+
+            // 多选类型变体
+            "multiplechoice" or "multiple_choice" or "multichoice" or "多选" or "多项选择" => BenchSuite.Models.ParameterType.MultipleChoice,
+
+            // 日期类型变体
+            "date" or "datetime" or "time" or "日期" or "时间" or "日期时间" => BenchSuite.Models.ParameterType.Date,
+
+            _ => BenchSuite.Models.ParameterType.Text // 默认值
+        };
+
+        if (result != BenchSuite.Models.ParameterType.Text || normalized.Contains("text") || normalized.Contains("string"))
+        {
+            System.Diagnostics.Debug.WriteLine($"[ParseParameterType] 变体解析成功: '{originalInput}' (normalized: '{normalized}') → {result}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[ParseParameterType] 无法识别的参数类型: '{originalInput}' (normalized: '{normalized}')，返回默认值 Text");
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -1742,56 +1842,204 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
-    /// 检查模块类型字符串是否与目标模块类型匹配
+    /// 检查模块类型字符串是否与目标模块类型匹配（增强版，包含详细日志）
     /// </summary>
     private static bool IsModuleTypeMatch(string moduleTypeString, ModuleType targetModuleType)
     {
         if (string.IsNullOrWhiteSpace(moduleTypeString))
         {
+            System.Diagnostics.Debug.WriteLine($"[IsModuleTypeMatch] 模块类型字符串为空，目标类型: {targetModuleType}，返回 false");
             return false;
         }
 
         // 首先尝试解析为ModuleType，然后比较
         ModuleType parsedType = ParseModuleType(moduleTypeString);
-        return parsedType == targetModuleType;
+        bool isMatch = parsedType == targetModuleType;
+
+        System.Diagnostics.Debug.WriteLine($"[IsModuleTypeMatch] 模块类型匹配检查: '{moduleTypeString}' → {parsedType} vs {targetModuleType} = {isMatch}");
+
+        return isMatch;
     }
 
     /// <summary>
-    /// 解析模块类型字符串为枚举（增强版，支持更多C#变体）
+    /// 解析模块类型字符串为枚举（增强版，支持更多变体和详细日志）
     /// </summary>
     private static ModuleType ParseModuleType(string moduleTypeString)
     {
         if (string.IsNullOrWhiteSpace(moduleTypeString))
         {
+            System.Diagnostics.Debug.WriteLine("[ParseModuleType] 输入为空，返回默认值 Windows");
             return ModuleType.Windows; // 默认值
         }
+
+        string originalInput = moduleTypeString;
 
         // 首先尝试直接解析
         if (Enum.TryParse<ModuleType>(moduleTypeString, true, out ModuleType result))
         {
+            System.Diagnostics.Debug.WriteLine($"[ParseModuleType] 直接解析成功: '{originalInput}' → {result}");
             return result;
         }
 
         // 处理各种别名和变体
         string normalized = moduleTypeString.Trim().ToLowerInvariant();
-        return normalized switch
+        ModuleType parsedType = normalized switch
         {
             // PowerPoint 变体
-            "ppt" or "powerpoint" or "power-point" or "power_point" => ModuleType.PowerPoint,
+            "ppt" or "powerpoint" or "power-point" or "power_point" or "pptx" or "演示文稿" or "幻灯片" => ModuleType.PowerPoint,
 
             // Word 变体
-            "word" or "msword" or "ms-word" or "microsoft-word" => ModuleType.Word,
+            "word" or "msword" or "ms-word" or "microsoft-word" or "doc" or "docx" or "文档" or "文字处理" => ModuleType.Word,
 
             // Excel 变体
-            "excel" or "msexcel" or "ms-excel" or "microsoft-excel" => ModuleType.Excel,
+            "excel" or "msexcel" or "ms-excel" or "microsoft-excel" or "xls" or "xlsx" or "电子表格" or "表格" => ModuleType.Excel,
 
             // Windows 变体
-            "windows" or "win" or "os" or "操作系统" => ModuleType.Windows,
+            "windows" or "win" or "os" or "操作系统" or "系统操作" or "文件管理" or "system" => ModuleType.Windows,
 
             // C# 变体（重点增强）
-            "csharp" or "c#" or "c-sharp" or "c_sharp" or "cs" or "dotnet" or ".net" or "编程" or "程序设计" => ModuleType.CSharp,
+            "csharp" or "c#" or "c-sharp" or "c_sharp" or "cs" or "dotnet" or ".net" or "编程" or "程序设计" or "代码" or "programming" or "code" => ModuleType.CSharp,
 
             _ => ModuleType.Windows // 默认值
+        };
+
+        if (parsedType != ModuleType.Windows || normalized.Contains("windows") || normalized.Contains("win") || normalized.Contains("操作系统"))
+        {
+            System.Diagnostics.Debug.WriteLine($"[ParseModuleType] 变体解析成功: '{originalInput}' (normalized: '{normalized}') → {parsedType}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[ParseModuleType] 无法识别的模块类型: '{originalInput}' (normalized: '{normalized}')，返回默认值 Windows");
+        }
+
+        return parsedType;
+    }
+
+    /// <summary>
+    /// 判断是否应该为题目创建默认操作点
+    /// </summary>
+    private static bool ShouldCreateDefaultOperationPoint(StudentSpecializedTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        // C#题目的特殊处理
+        if (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto))
+        {
+            return true;
+        }
+
+        // 对于其他模块类型，如果题目有相关内容，也创建默认操作点
+        return targetModuleType switch
+        {
+            ModuleType.Word => !string.IsNullOrWhiteSpace(questionDto.DocumentFilePath) ||
+                              questionDto.Content.Contains("Word") || questionDto.Content.Contains("文档"),
+            ModuleType.Excel => !string.IsNullOrWhiteSpace(questionDto.DocumentFilePath) ||
+                               questionDto.Content.Contains("Excel") || questionDto.Content.Contains("表格"),
+            ModuleType.PowerPoint => !string.IsNullOrWhiteSpace(questionDto.DocumentFilePath) ||
+                                    questionDto.Content.Contains("PowerPoint") || questionDto.Content.Contains("演示"),
+            ModuleType.Windows => questionDto.Content.Contains("文件") || questionDto.Content.Contains("系统") ||
+                                 questionDto.Content.Contains("操作"),
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// 为题目创建默认操作点
+    /// </summary>
+    private static OperationPointModel CreateDefaultOperationPoint(StudentSpecializedTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        string operationName = targetModuleType switch
+        {
+            ModuleType.CSharp => "C#编程操作",
+            ModuleType.Word => "Word文档操作",
+            ModuleType.Excel => "Excel表格操作",
+            ModuleType.PowerPoint => "PowerPoint演示操作",
+            ModuleType.Windows => "Windows系统操作",
+            _ => $"{targetModuleType}操作"
+        };
+
+        string operationDescription = targetModuleType switch
+        {
+            ModuleType.CSharp => "C#编程题目默认操作点",
+            ModuleType.Word => "Word文档处理默认操作点",
+            ModuleType.Excel => "Excel表格处理默认操作点",
+            ModuleType.PowerPoint => "PowerPoint演示制作默认操作点",
+            ModuleType.Windows => "Windows系统操作默认操作点",
+            _ => $"{targetModuleType}模块默认操作点"
+        };
+
+        return new OperationPointModel
+        {
+            Id = $"default_op_{questionDto.Id}_{targetModuleType}",
+            Name = operationName,
+            Description = operationDescription,
+            ModuleType = targetModuleType,
+            Score = questionDto.Score,
+            Order = 1,
+            IsEnabled = true,
+            Parameters = []
+        };
+    }
+
+    /// <summary>
+    /// 判断是否应该为模拟考试题目创建默认操作点
+    /// </summary>
+    private static bool ShouldCreateDefaultOperationPointForMockExam(StudentMockExamQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        // C#题目的特殊处理
+        if (targetModuleType == ModuleType.CSharp && IsCSharpQuestion(questionDto))
+        {
+            return true;
+        }
+
+        // 对于其他模块类型，如果题目有相关内容，也创建默认操作点
+        return targetModuleType switch
+        {
+            ModuleType.Word => !string.IsNullOrWhiteSpace(questionDto.DocumentFilePath) ||
+                              questionDto.Content.Contains("Word") || questionDto.Content.Contains("文档"),
+            ModuleType.Excel => !string.IsNullOrWhiteSpace(questionDto.DocumentFilePath) ||
+                               questionDto.Content.Contains("Excel") || questionDto.Content.Contains("表格"),
+            ModuleType.PowerPoint => !string.IsNullOrWhiteSpace(questionDto.DocumentFilePath) ||
+                                    questionDto.Content.Contains("PowerPoint") || questionDto.Content.Contains("演示"),
+            ModuleType.Windows => questionDto.Content.Contains("文件") || questionDto.Content.Contains("系统") ||
+                                 questionDto.Content.Contains("操作"),
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// 为模拟考试题目创建默认操作点
+    /// </summary>
+    private static OperationPointModel CreateDefaultOperationPointForMockExam(StudentMockExamQuestionDto questionDto, ModuleType targetModuleType)
+    {
+        string operationName = targetModuleType switch
+        {
+            ModuleType.CSharp => "C#编程操作",
+            ModuleType.Word => "Word文档操作",
+            ModuleType.Excel => "Excel表格操作",
+            ModuleType.PowerPoint => "PowerPoint演示操作",
+            ModuleType.Windows => "Windows系统操作",
+            _ => $"{targetModuleType}操作"
+        };
+
+        string operationDescription = targetModuleType switch
+        {
+            ModuleType.CSharp => "C#编程题目默认操作点",
+            ModuleType.Word => "Word文档处理默认操作点",
+            ModuleType.Excel => "Excel表格处理默认操作点",
+            ModuleType.PowerPoint => "PowerPoint演示制作默认操作点",
+            ModuleType.Windows => "Windows系统操作默认操作点",
+            _ => $"{targetModuleType}模块默认操作点"
+        };
+
+        return new OperationPointModel
+        {
+            Id = $"default_op_{questionDto.OriginalQuestionId}_{targetModuleType}",
+            Name = operationName,
+            Description = operationDescription,
+            ModuleType = targetModuleType,
+            Score = questionDto.Score,
+            Order = 1,
+            IsEnabled = true,
+            Parameters = []
         };
     }
 
