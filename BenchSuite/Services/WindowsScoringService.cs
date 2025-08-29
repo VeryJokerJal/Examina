@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
-using System.Threading.Tasks;
-using Microsoft.Win32;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
+using Microsoft.Win32;
 
 namespace BenchSuite.Services;
 
@@ -303,7 +298,10 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             RegistryKey? root = GetRegistryRoot(rootKey);
-            if (root == null) return false;
+            if (root == null)
+            {
+                return false;
+            }
 
             using RegistryKey? key = root.OpenSubKey(keyPath);
             return key != null;
@@ -322,7 +320,10 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             RegistryKey? root = GetRegistryRoot(rootKey);
-            if (root == null) return null;
+            if (root == null)
+            {
+                return null;
+            }
 
             using RegistryKey? key = root.OpenSubKey(keyPath);
             return key?.GetValue(valueName);
@@ -564,8 +565,7 @@ public class WindowsScoringService : IWindowsScoringService
         KnowledgePointResult result = new() { IsCorrect = false };
 
         // 支持多种参数名称：FilePath（BS标准）和TargetPath（EL导出）
-        string? filePath = null;
-        if (parameters.TryGetValue("FilePath", out filePath) && !string.IsNullOrEmpty(filePath))
+        if (parameters.TryGetValue("FilePath", out string? filePath) && !string.IsNullOrEmpty(filePath))
         {
             // 使用BS标准参数名
         }
@@ -654,7 +654,9 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        string directory = Path.GetDirectoryName(filePath) ?? "";
+        // 确保路径格式符合Path.GetDirectoryName()的要求
+        string normalizedFilePath = EnsurePathFormatForGetDirectoryName(filePath);
+        string directory = Path.GetDirectoryName(normalizedFilePath) ?? "";
         string newFilePath = Path.Combine(directory, newName);
 
         bool originalExists = FileExists(filePath);
@@ -922,7 +924,7 @@ public class WindowsScoringService : IWindowsScoringService
     {
         KnowledgePointResult result = new() { IsCorrect = false };
 
-        if (!parameters.TryGetValue("SourcePath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
+        if (!parameters.TryGetValue("OriginalPath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
         {
             result.ErrorMessage = "缺少源路径参数";
             return result;
@@ -941,7 +943,9 @@ public class WindowsScoringService : IWindowsScoringService
         }
 
         // 构建新路径
-        string? directory = Path.GetDirectoryName(sourcePath);
+        // 确保路径格式符合Path.GetDirectoryName()的要求
+        string normalizedSourcePath = EnsurePathFormatForGetDirectoryName(sourcePath);
+        string? directory = Path.GetDirectoryName(normalizedSourcePath);
         if (directory == null)
         {
             result.ErrorMessage = "无法获取父目录";
@@ -1155,7 +1159,9 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        string? parentDirectory = Path.GetDirectoryName(folderPath);
+        // 确保路径格式符合Path.GetDirectoryName()的要求
+        string normalizedFolderPath = EnsurePathFormatForGetDirectoryName(folderPath);
+        string? parentDirectory = Path.GetDirectoryName(normalizedFolderPath);
         if (parentDirectory == null)
         {
             result.ErrorMessage = "无法获取父目录";
@@ -1932,5 +1938,27 @@ public class WindowsScoringService : IWindowsScoringService
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 确保路径格式符合Path.GetDirectoryName()的要求
+    /// 在调用Path.GetDirectoryName()之前，确保路径以反斜杠开头
+    /// </summary>
+    /// <param name="path">原始路径</param>
+    /// <returns>标准化后的路径</returns>
+    private static string EnsurePathFormatForGetDirectoryName(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return path;
+        }
+
+        // 如果路径不以反斜杠开头，则添加反斜杠前缀
+        if (!path.StartsWith(@"\"))
+        {
+            path = @"\" + path;
+        }
+
+        return path;
     }
 }

@@ -624,7 +624,6 @@ public class MainWindowViewModel : ViewModelBase
                 // 添加自定义转换器
                 jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
                 jsonOptions.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
-                jsonOptions.Converters.Add(new Converters.PathTypeJsonConverter());
 
                 try
                 {
@@ -765,7 +764,6 @@ public class MainWindowViewModel : ViewModelBase
                 // 添加自定义转换器
                 jsonOptions.Converters.Add(new Converters.ModuleTypeJsonConverter());
                 jsonOptions.Converters.Add(new Converters.CSharpQuestionTypeJsonConverter());
-                jsonOptions.Converters.Add(new Converters.PathTypeJsonConverter());
 
                 fileContent = System.Text.Json.JsonSerializer.Serialize(exportDto, jsonOptions);
             }
