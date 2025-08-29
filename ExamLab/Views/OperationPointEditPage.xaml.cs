@@ -233,6 +233,10 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Number => "数字",
             ParameterType.Enum => "选择项",
             ParameterType.Boolean => "布尔值",
+            ParameterType.File => "文件路径",
+            ParameterType.Folder => "文件夹路径",
+            ParameterType.Color => "颜色",
+            ParameterType.MultipleChoice => "多选",
             _ => "文本"
         };
         constraints.Add($"类型：{typeInfo}");
@@ -282,6 +286,8 @@ public sealed partial class OperationPointEditPage : Page
             ParameterType.Enum => CreateEnumControl(parameter),
             ParameterType.Boolean => CreateBooleanControl(parameter),
             ParameterType.Color => CreateColorControl(parameter),
+            ParameterType.File => CreateFileControl(parameter),
+            ParameterType.Folder => CreateFolderControl(parameter),
             _ => CreateTextControl(parameter)
         };
     }
@@ -464,6 +470,109 @@ public sealed partial class OperationPointEditPage : Page
     }
 
     /// <summary>
+    /// 创建文件选择控件
+    /// </summary>
+    /// <param name="parameter">参数</param>
+    /// <returns>文件选择控件组合</returns>
+    private StackPanel CreateFileControl(ConfigurationParameter parameter)
+    {
+        StackPanel filePanel = new()
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        TextBox pathTextBox = new()
+        {
+            Text = parameter.Value ?? parameter.DefaultValue ?? "",
+            PlaceholderText = "选择文件路径",
+            Width = 300
+        };
+
+        Button browseButton = new()
+        {
+            Content = "浏览文件...",
+            MinWidth = 100
+        };
+
+        browseButton.Click += async (sender, e) =>
+        {
+            try
+            {
+                List<string> fileTypes = [".txt", ".xml", ".json", ".exe", ".bat", ".cmd", ".ps1", "*"];
+                Windows.Storage.StorageFile? selectedFile = await FilePickerService.PickSingleFileAsync(fileTypes);
+
+                if (selectedFile != null)
+                {
+                    pathTextBox.Text = selectedFile.Path;
+                    parameter.Value = selectedFile.Path;
+                }
+            }
+            catch (Exception ex)
+            {
+                await NotificationService.ShowErrorAsync("文件选择失败", $"无法选择文件：{ex.Message}");
+            }
+        };
+
+        filePanel.Children.Add(pathTextBox);
+        filePanel.Children.Add(browseButton);
+
+        return filePanel;
+    }
+
+    /// <summary>
+    /// 创建文件夹选择控件
+    /// </summary>
+    /// <param name="parameter">参数</param>
+    /// <returns>文件夹选择控件组合</returns>
+    private StackPanel CreateFolderControl(ConfigurationParameter parameter)
+    {
+        StackPanel folderPanel = new()
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        TextBox pathTextBox = new()
+        {
+            Text = parameter.Value ?? parameter.DefaultValue ?? "",
+            PlaceholderText = "选择文件夹路径",
+            Width = 300
+        };
+
+        Button browseButton = new()
+        {
+            Content = "浏览文件夹...",
+            MinWidth = 100
+        };
+
+        browseButton.Click += async (sender, e) =>
+        {
+            try
+            {
+                Windows.Storage.StorageFolder? selectedFolder = await FolderPickerService.PickSingleFolderAsync();
+
+                if (selectedFolder != null)
+                {
+                    pathTextBox.Text = selectedFolder.Path;
+                    parameter.Value = selectedFolder.Path;
+                }
+            }
+            catch (Exception ex)
+            {
+                await NotificationService.ShowErrorAsync("文件夹选择失败", $"无法选择文件夹：{ex.Message}");
+            }
+        };
+
+        folderPanel.Children.Add(pathTextBox);
+        folderPanel.Children.Add(browseButton);
+
+        return folderPanel;
+    }
+
+    /// <summary>
     /// 创建颜色编辑控件
     /// </summary>
     /// <param name="parameter">参数</param>
@@ -593,8 +702,27 @@ public sealed partial class OperationPointEditPage : Page
                 CheckBox checkBox => checkBox.IsChecked?.ToString() ?? "false",
                 TextBox textBox => textBox.Text,
                 ColorPicker colorPicker => $"#{colorPicker.Color.R:X2}{colorPicker.Color.G:X2}{colorPicker.Color.B:X2}",
+                StackPanel stackPanel when parameter.Type == ParameterType.File || parameter.Type == ParameterType.Folder =>
+                    GetPathFromStackPanel(stackPanel),
                 _ => parameter.Value ?? ""
             };
+    }
+
+    /// <summary>
+    /// 从StackPanel中获取路径值
+    /// </summary>
+    /// <param name="stackPanel">包含TextBox的StackPanel</param>
+    /// <returns>路径值</returns>
+    private static string GetPathFromStackPanel(StackPanel stackPanel)
+    {
+        foreach (UIElement child in stackPanel.Children)
+        {
+            if (child is TextBox textBox)
+            {
+                return textBox.Text;
+            }
+        }
+        return string.Empty;
     }
 
     /// <summary>

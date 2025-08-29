@@ -17,6 +17,7 @@ public enum ParameterType
     Enum,           // 枚举
     Color,          // 颜色
     File,           // 文件路径
+    Folder,         // 文件夹路径
     MultipleChoice  // 多选
 }
 

@@ -86,7 +86,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             if (response.IsSuccessStatusCode)
             {
                 string content = await response.Content.ReadAsStringAsync();
-                StudentSpecializedTrainingDto? training = JsonSerializer.Deserialize<StudentSpecializedTrainingDto>(content);
+                StudentSpecializedTrainingDto? training = JsonSerializer.Deserialize<StudentSpecializedTrainingDto>(content, _jsonOptions);
                 if (training != null)
                 {
                     _logger.LogInformation("客户端获取专项训练详情成功，训练ID: {TrainingId}, 模块数量: {ModuleCount}, 题目数量: {QuestionCount}",

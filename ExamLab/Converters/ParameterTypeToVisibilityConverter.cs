@@ -22,6 +22,7 @@ public class ParameterTypeToVisibilityConverter : IValueConverter
                 "Enum" => parameterType == ParameterType.Enum,
                 "Color" => parameterType == ParameterType.Color,
                 "File" => parameterType == ParameterType.File,
+                "Folder" => parameterType == ParameterType.Folder,
                 "MultipleChoice" => parameterType == ParameterType.MultipleChoice,
                 _ => false
             };

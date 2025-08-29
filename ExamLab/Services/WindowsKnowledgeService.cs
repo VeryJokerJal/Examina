@@ -124,7 +124,7 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要创建的文件完整路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要创建的文件完整路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
                 new() { Name = "FileContent", DisplayName = "文件内容", Description = "文件的初始内容（可选）", Type = ParameterType.Text, IsRequired = false, Order = 2 }
             ]
         };
@@ -138,7 +138,7 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要删除的文件完整路径", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要删除的文件完整路径", Type = ParameterType.File, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -151,8 +151,8 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "SourcePath", DisplayName = "源文件路径", Description = "要复制的源文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "DestinationPath", DisplayName = "目标文件路径", Description = "复制到的目标文件路径", Type = ParameterType.Text, IsRequired = true, Order = 2 },
+                new() { Name = "SourcePath", DisplayName = "源文件路径", Description = "要复制的源文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
+                new() { Name = "DestinationPath", DisplayName = "目标文件路径", Description = "复制到的目标文件路径", Type = ParameterType.File, IsRequired = true, Order = 2 },
                 new() { Name = "Overwrite", DisplayName = "是否覆盖", Description = "如果目标文件存在是否覆盖", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "是,否" }
             ]
@@ -167,8 +167,8 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "SourcePath", DisplayName = "源文件路径", Description = "要移动的源文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "DestinationPath", DisplayName = "目标文件路径", Description = "移动到的目标文件路径", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "SourcePath", DisplayName = "源文件路径", Description = "要移动的源文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
+                new() { Name = "DestinationPath", DisplayName = "目标文件路径", Description = "移动到的目标文件路径", Type = ParameterType.File, IsRequired = true, Order = 2 }
             ]
         };
 
@@ -181,7 +181,7 @@ public class WindowsKnowledgeService
             Category = "文件操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要重命名的文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要重命名的文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
                 new() { Name = "NewName", DisplayName = "新文件名", Description = "文件的新名称", Type = ParameterType.Text, IsRequired = true, Order = 2 }
             ]
         };
@@ -198,7 +198,7 @@ public class WindowsKnowledgeService
             Category = "文件夹操作",
             ParameterTemplates =
             [
-                new() { Name = "FolderPath", DisplayName = "文件夹路径", Description = "要创建的文件夹完整路径", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "FolderPath", DisplayName = "文件夹路径", Description = "要创建的文件夹完整路径", Type = ParameterType.Folder, IsRequired = true, Order = 1 }
             ]
         };
 
@@ -211,7 +211,7 @@ public class WindowsKnowledgeService
             Category = "文件夹操作",
             ParameterTemplates =
             [
-                new() { Name = "FolderPath", DisplayName = "文件夹路径", Description = "要删除的文件夹完整路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FolderPath", DisplayName = "文件夹路径", Description = "要删除的文件夹完整路径", Type = ParameterType.Folder, IsRequired = true, Order = 1 },
                 new() { Name = "Recursive", DisplayName = "递归删除", Description = "是否删除子文件夹和文件", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "是,否" }
             ]
@@ -226,8 +226,8 @@ public class WindowsKnowledgeService
             Category = "文件夹操作",
             ParameterTemplates =
             [
-                new() { Name = "SourcePath", DisplayName = "源文件夹路径", Description = "要复制的源文件夹路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "DestinationPath", DisplayName = "目标文件夹路径", Description = "复制到的目标文件夹路径", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "SourcePath", DisplayName = "源文件夹路径", Description = "要复制的源文件夹路径", Type = ParameterType.Folder, IsRequired = true, Order = 1 },
+                new() { Name = "DestinationPath", DisplayName = "目标文件夹路径", Description = "复制到的目标文件夹路径", Type = ParameterType.Folder, IsRequired = true, Order = 2 }
             ]
         };
 
@@ -240,8 +240,8 @@ public class WindowsKnowledgeService
             Category = "文件夹操作",
             ParameterTemplates =
             [
-                new() { Name = "SourcePath", DisplayName = "源文件夹路径", Description = "要移动的源文件夹路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "DestinationPath", DisplayName = "目标文件夹路径", Description = "移动到的目标文件夹路径", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "SourcePath", DisplayName = "源文件夹路径", Description = "要移动的源文件夹路径", Type = ParameterType.Folder, IsRequired = true, Order = 1 },
+                new() { Name = "DestinationPath", DisplayName = "目标文件夹路径", Description = "移动到的目标文件夹路径", Type = ParameterType.Folder, IsRequired = true, Order = 2 }
             ]
         };
 
@@ -254,7 +254,7 @@ public class WindowsKnowledgeService
             Category = "文件夹操作",
             ParameterTemplates =
             [
-                new() { Name = "FolderPath", DisplayName = "文件夹路径", Description = "要重命名的文件夹路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FolderPath", DisplayName = "文件夹路径", Description = "要重命名的文件夹路径", Type = ParameterType.Folder, IsRequired = true, Order = 1 },
                 new() { Name = "NewName", DisplayName = "新文件夹名", Description = "文件夹的新名称", Type = ParameterType.Text, IsRequired = true, Order = 2 }
             ]
         };
@@ -271,7 +271,7 @@ public class WindowsKnowledgeService
             Category = "文件属性操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要设置属性的文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要设置属性的文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
                 new() { Name = "Attributes", DisplayName = "文件属性", Description = "要设置的文件属性", Type = ParameterType.Enum, IsRequired = true, Order = 2,
                     EnumOptions = "只读,隐藏,系统,存档,正常" }
             ]
@@ -286,7 +286,7 @@ public class WindowsKnowledgeService
             Category = "文件属性操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要设置权限的文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要设置权限的文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
                 new() { Name = "UserName", DisplayName = "用户名", Description = "要设置权限的用户名", Type = ParameterType.Text, IsRequired = true, Order = 2 },
                 new() { Name = "Permission", DisplayName = "权限类型", Description = "要设置的权限类型", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "完全控制,修改,读取和执行,读取,写入" }
@@ -305,7 +305,7 @@ public class WindowsKnowledgeService
             Category = "文件内容操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要写入的文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要写入的文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
                 new() { Name = "Content", DisplayName = "文本内容", Description = "要写入的文本内容", Type = ParameterType.Text, IsRequired = true, Order = 2 },
                 new() { Name = "Encoding", DisplayName = "编码格式", Description = "文本编码格式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "UTF-8,UTF-16,ASCII,GBK" }
@@ -321,7 +321,7 @@ public class WindowsKnowledgeService
             Category = "文件内容操作",
             ParameterTemplates =
             [
-                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要追加内容的文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "FilePath", DisplayName = "文件路径", Description = "要追加内容的文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
                 new() { Name = "Content", DisplayName = "文本内容", Description = "要追加的文本内容", Type = ParameterType.Text, IsRequired = true, Order = 2 }
             ]
         };
@@ -338,8 +338,8 @@ public class WindowsKnowledgeService
             Category = "系统操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetPath", DisplayName = "目标路径", Description = "快捷方式指向的目标路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "ShortcutPath", DisplayName = "快捷方式路径", Description = "快捷方式文件的保存路径", Type = ParameterType.Text, IsRequired = true, Order = 2 },
+                new() { Name = "TargetPath", DisplayName = "目标路径", Description = "快捷方式指向的目标路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
+                new() { Name = "ShortcutPath", DisplayName = "快捷方式路径", Description = "快捷方式文件的保存路径", Type = ParameterType.File, IsRequired = true, Order = 2 },
                 new() { Name = "Description", DisplayName = "描述", Description = "快捷方式的描述信息", Type = ParameterType.Text, IsRequired = false, Order = 3 }
             ]
         };
@@ -451,9 +451,9 @@ public class WindowsKnowledgeService
             Category = "进程操作",
             ParameterTemplates =
             [
-                new() { Name = "ProcessPath", DisplayName = "程序路径", Description = "要启动的程序路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "ProcessPath", DisplayName = "程序路径", Description = "要启动的程序路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
                 new() { Name = "Arguments", DisplayName = "启动参数", Description = "程序启动参数（可选）", Type = ParameterType.Text, IsRequired = false, Order = 2 },
-                new() { Name = "WorkingDirectory", DisplayName = "工作目录", Description = "程序工作目录（可选）", Type = ParameterType.Text, IsRequired = false, Order = 3 }
+                new() { Name = "WorkingDirectory", DisplayName = "工作目录", Description = "程序工作目录（可选）", Type = ParameterType.Folder, IsRequired = false, Order = 3 }
             ]
         };
 
@@ -497,7 +497,7 @@ public class WindowsKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "Url", DisplayName = "下载URL", Description = "要下载的文件URL", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "LocalPath", DisplayName = "本地保存路径", Description = "文件保存到本地的路径", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "LocalPath", DisplayName = "本地保存路径", Description = "文件保存到本地的路径", Type = ParameterType.File, IsRequired = true, Order = 2 }
             ]
         };
     }
@@ -513,8 +513,8 @@ public class WindowsKnowledgeService
             Category = "压缩操作",
             ParameterTemplates =
             [
-                new() { Name = "SourcePath", DisplayName = "源路径", Description = "要压缩的文件或文件夹路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "ZipPath", DisplayName = "压缩包路径", Description = "生成的ZIP文件路径", Type = ParameterType.Text, IsRequired = true, Order = 2 },
+                new() { Name = "SourcePath", DisplayName = "源路径", Description = "要压缩的文件或文件夹路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
+                new() { Name = "ZipPath", DisplayName = "压缩包路径", Description = "生成的ZIP文件路径", Type = ParameterType.File, IsRequired = true, Order = 2 },
                 new() { Name = "CompressionLevel", DisplayName = "压缩级别", Description = "压缩级别", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "无压缩,最快,最优,默认" }
             ]
@@ -529,8 +529,8 @@ public class WindowsKnowledgeService
             Category = "压缩操作",
             ParameterTemplates =
             [
-                new() { Name = "ZipPath", DisplayName = "压缩包路径", Description = "要解压的ZIP文件路径", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "ExtractPath", DisplayName = "解压目录", Description = "解压到的目标目录", Type = ParameterType.Text, IsRequired = true, Order = 2 },
+                new() { Name = "ZipPath", DisplayName = "压缩包路径", Description = "要解压的ZIP文件路径", Type = ParameterType.File, IsRequired = true, Order = 1 },
+                new() { Name = "ExtractPath", DisplayName = "解压目录", Description = "解压到的目标目录", Type = ParameterType.Folder, IsRequired = true, Order = 2 },
                 new() { Name = "Overwrite", DisplayName = "是否覆盖", Description = "如果目标文件存在是否覆盖", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "是,否" }
             ]

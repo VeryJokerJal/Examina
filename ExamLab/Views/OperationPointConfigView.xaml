@@ -61,7 +61,13 @@
                                     <!--  文件路径  -->
                                     <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=File}">
                                         <TextBox Width="300" PlaceholderText="选择文件路径" Text="{Binding Value, Mode=TwoWay}" />
-                                        <Button Content="浏览..." />
+                                        <Button Content="浏览文件..." />
+                                    </StackPanel>
+
+                                    <!--  文件夹路径  -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{Binding Type, Converter={StaticResource ParameterTypeToVisibilityConverter}, ConverterParameter=Folder}">
+                                        <TextBox Width="300" PlaceholderText="选择文件夹路径" Text="{Binding Value, Mode=TwoWay}" />
+                                        <Button Content="浏览文件夹..." />
                                     </StackPanel>
 
                                     <!--  多选  -->

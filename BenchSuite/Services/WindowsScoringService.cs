@@ -1358,8 +1358,8 @@ public class WindowsScoringService : IWindowsScoringService
     {
         foreach (KeyValuePair<string, string> parameter in parameters)
         {
-            // 处理路径参数的格式转换
-            if (IsPathParameter(parameter.Key))
+            // 处理路径参数的格式转换（包括File和Folder类型）
+            if (IsPathParameter(parameter.Key) || IsFileParameter(parameter.Key) || IsFolderParameter(parameter.Key))
             {
                 string normalizedPath = NormalizePath(parameter.Value);
                 if (normalizedPath != parameter.Value)
@@ -1392,6 +1392,31 @@ public class WindowsScoringService : IWindowsScoringService
         ];
 
         return pathParameterNames.Contains(parameterName, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 判断参数是否为文件参数
+    /// </summary>
+    private static bool IsFileParameter(string parameterName)
+    {
+        string[] fileParameterNames = [
+            "FilePath", "TargetPath", "SourcePath", "DestinationPath",
+            "ShortcutPath", "ProcessPath", "LocalPath", "ZipPath"
+        ];
+
+        return fileParameterNames.Contains(parameterName, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 判断参数是否为文件夹参数
+    /// </summary>
+    private static bool IsFolderParameter(string parameterName)
+    {
+        string[] folderParameterNames = [
+            "FolderPath", "ExtractPath", "WorkingDirectory"
+        ];
+
+        return folderParameterNames.Contains(parameterName, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
