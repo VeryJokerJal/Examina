@@ -232,7 +232,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "要创建的文件或文件夹的完整路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -254,7 +254,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "要删除的文件或文件夹路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -266,7 +266,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "SourcePath",
                     DisplayName = "源路径",
                     Description = "要复制的文件或文件夹路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -275,7 +275,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "DestinationPath",
                     DisplayName = "目标路径",
                     Description = "复制到的目标路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 2
                 });
@@ -287,7 +287,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "SourcePath",
                     DisplayName = "源路径",
                     Description = "要移动的文件或文件夹路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -296,7 +296,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "DestinationPath",
                     DisplayName = "目标路径",
                     Description = "移动到的目标路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 2
                 });
@@ -308,7 +308,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "OriginalPath",
                     DisplayName = "原路径",
                     Description = "要重命名的文件或文件夹路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -329,7 +329,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "快捷方式指向的目标文件路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -338,7 +338,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "ShortcutPath",
                     DisplayName = "快捷方式路径",
                     Description = "快捷方式文件的保存路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 2
                 });
@@ -350,7 +350,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "TargetPath",
                     DisplayName = "目标路径",
                     Description = "要修改属性的文件或文件夹路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -381,7 +381,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "SourcePath",
                     DisplayName = "源路径",
                     Description = "要复制的文件或文件夹路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 1
                 });
@@ -390,7 +390,7 @@ public class WindowsModuleViewModel : ModuleViewModelBase
                     Name = "DestinationPath",
                     DisplayName = "目标路径",
                     Description = "复制到的目标路径",
-                    Type = ParameterType.Text,
+                    Type = ParameterType.Path,
                     IsRequired = true,
                     Order = 2
                 });
