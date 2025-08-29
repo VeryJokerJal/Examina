@@ -510,6 +510,15 @@ public class WindowsScoringService : IWindowsScoringService
                 case "RenameOperation":
                     result = DetectRenameOperation(parameters);
                     break;
+                case "FilePropertyModification":
+                    result = DetectFilePropertyModification(parameters);
+                    break;
+                case "CopyRenameOperation":
+                    result = DetectCopyAndRename(parameters);
+                    break;
+                case "ShortcutOperation":
+                    result = DetectCreateShortcut(parameters);
+                    break;
                 default:
                     result.ErrorMessage = $"未知的知识点类型: {knowledgePointType}";
                     break;
@@ -683,17 +692,48 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 路径已在参数预处理阶段标准化，直接使用
-        // 构建最终的目标文件路径（目标路径 + 新名称）
-        string finalDestinationPath = Path.Combine(destinationPath, newName);
+        // 检查是否有ItemType参数（新格式）
+        if (parameters.TryGetValue("ItemType", out string? itemType) && !string.IsNullOrEmpty(itemType))
+        {
+            // 使用新的ItemType参数方式
+            string finalDestinationPath = Path.Combine(destinationPath, newName);
 
-        bool sourceExists = FileExists(sourcePath) || DirectoryExists(sourcePath);
-        bool finalDestinationExists = FileExists(finalDestinationPath) || DirectoryExists(finalDestinationPath);
+            switch (itemType)
+            {
+                case "文件":
+                    bool sourceFileExists = FileExists(sourcePath);
+                    bool finalFileExists = FileExists(finalDestinationPath);
+                    result.IsCorrect = sourceFileExists && finalFileExists;
+                    result.Details = result.IsCorrect ?
+                        $"文件已从 {sourcePath} 复制重命名到 {finalDestinationPath}" :
+                        $"复制重命名操作未完成 - 源文件存在: {sourceFileExists}, 目标文件存在: {finalFileExists}";
+                    break;
+                case "文件夹":
+                    bool sourceFolderExists = DirectoryExists(sourcePath);
+                    bool finalFolderExists = DirectoryExists(finalDestinationPath);
+                    result.IsCorrect = sourceFolderExists && finalFolderExists;
+                    result.Details = result.IsCorrect ?
+                        $"文件夹已从 {sourcePath} 复制重命名到 {finalDestinationPath}" :
+                        $"复制重命名操作未完成 - 源文件夹存在: {sourceFolderExists}, 目标文件夹存在: {finalFolderExists}";
+                    break;
+                default:
+                    result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
+                    break;
+            }
+        }
+        else
+        {
+            // 向后兼容：使用旧的通用检测方式
+            string finalDestinationPath = Path.Combine(destinationPath, newName);
 
-        result.IsCorrect = sourceExists && finalDestinationExists;
-        result.Details = result.IsCorrect ?
-            $"文件/文件夹已从 {sourcePath} 复制到 {finalDestinationPath}" :
-            $"复制重命名操作未完成 - 源存在: {sourceExists}, 目标存在: {finalDestinationExists}";
+            bool sourceExists = FileExists(sourcePath) || DirectoryExists(sourcePath);
+            bool finalDestinationExists = FileExists(finalDestinationPath) || DirectoryExists(finalDestinationPath);
+
+            result.IsCorrect = sourceExists && finalDestinationExists;
+            result.Details = result.IsCorrect ?
+                $"文件/文件夹已从 {sourcePath} 复制到 {finalDestinationPath}" :
+                $"复制重命名操作未完成 - 源存在: {sourceExists}, 目标存在: {finalDestinationExists}";
+        }
 
         return result;
     }
@@ -926,6 +966,81 @@ public class WindowsScoringService : IWindowsScoringService
                 result.IsCorrect = !originalFolderExists && newFolderExists;
                 result.Details = result.IsCorrect ? $"文件夹已重命名为 {newName}" :
                     $"重命名操作未完成 - 原文件夹存在: {originalFolderExists}, 新文件夹存在: {newFolderExists}";
+                break;
+            default:
+                result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
+                break;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测文件属性修改操作（ExamLab新增）
+    /// </summary>
+    private KnowledgePointResult DetectFilePropertyModification(Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new() { IsCorrect = false };
+
+        if (!parameters.TryGetValue("TargetPath", out string? targetPath) || string.IsNullOrEmpty(targetPath))
+        {
+            result.ErrorMessage = "缺少目标路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("ItemType", out string? itemType) || string.IsNullOrEmpty(itemType))
+        {
+            result.ErrorMessage = "缺少项目类型参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("PropertyType", out string? propertyType) || string.IsNullOrEmpty(propertyType))
+        {
+            result.ErrorMessage = "缺少属性类型参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("PropertyValue", out string? propertyValue) || string.IsNullOrEmpty(propertyValue))
+        {
+            result.ErrorMessage = "缺少属性值参数";
+            return result;
+        }
+
+        // 解析属性值（布尔类型）
+        if (!bool.TryParse(propertyValue, out bool expectedValue))
+        {
+            result.ErrorMessage = $"无效的属性值: {propertyValue}，应为true或false";
+            return result;
+        }
+
+        // 根据项目类型检测属性修改操作
+        switch (itemType)
+        {
+            case "文件":
+                if (FileExists(targetPath))
+                {
+                    result.IsCorrect = CheckFileProperty(targetPath, propertyType, expectedValue);
+                    result.Details = result.IsCorrect ?
+                        $"文件 {targetPath} 的 {propertyType} 属性已设置为 {expectedValue}" :
+                        $"文件 {targetPath} 的 {propertyType} 属性设置不正确";
+                }
+                else
+                {
+                    result.Details = $"文件 {targetPath} 不存在";
+                }
+                break;
+            case "文件夹":
+                if (DirectoryExists(targetPath))
+                {
+                    result.IsCorrect = CheckDirectoryProperty(targetPath, propertyType, expectedValue);
+                    result.Details = result.IsCorrect ?
+                        $"文件夹 {targetPath} 的 {propertyType} 属性已设置为 {expectedValue}" :
+                        $"文件夹 {targetPath} 的 {propertyType} 属性设置不正确";
+                }
+                else
+                {
+                    result.Details = $"文件夹 {targetPath} 不存在";
+                }
                 break;
             default:
                 result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
@@ -1170,8 +1285,24 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        result.IsCorrect = FileExists(shortcutPath) && Path.GetExtension(shortcutPath).Equals(".lnk", StringComparison.OrdinalIgnoreCase);
-        result.Details = result.IsCorrect ? $"快捷方式 {shortcutPath} 已创建" : $"快捷方式 {shortcutPath} 不存在";
+        // 检查是否有TargetPath参数（ExamLab新格式）
+        if (parameters.TryGetValue("TargetPath", out string? targetPath) && !string.IsNullOrEmpty(targetPath))
+        {
+            // 验证快捷方式是否存在且指向正确的目标
+            bool shortcutExists = FileExists(shortcutPath) && Path.GetExtension(shortcutPath).Equals(".lnk", StringComparison.OrdinalIgnoreCase);
+            bool targetExists = FileExists(targetPath) || DirectoryExists(targetPath);
+
+            result.IsCorrect = shortcutExists && targetExists;
+            result.Details = result.IsCorrect ?
+                $"快捷方式 {shortcutPath} 已创建，指向 {targetPath}" :
+                $"快捷方式创建不完整 - 快捷方式存在: {shortcutExists}, 目标存在: {targetExists}";
+        }
+        else
+        {
+            // 向后兼容：只检查快捷方式是否存在
+            result.IsCorrect = FileExists(shortcutPath) && Path.GetExtension(shortcutPath).Equals(".lnk", StringComparison.OrdinalIgnoreCase);
+            result.Details = result.IsCorrect ? $"快捷方式 {shortcutPath} 已创建" : $"快捷方式 {shortcutPath} 不存在";
+        }
 
         return result;
     }
@@ -1547,9 +1678,9 @@ public class WindowsScoringService : IWindowsScoringService
             { "复制操作", "CopyOperation" },
             { "移动操作", "MoveOperation" },
             { "重命名操作", "RenameOperation" },
-            { "快捷方式操作", "CreateShortcut" },
-            { "文件属性修改操作", "SetFileAttributes" },
-            { "复制重命名操作", "CopyAndRename" }
+            { "快捷方式操作", "ShortcutOperation" },
+            { "文件属性修改操作", "FilePropertyModification" },
+            { "复制重命名操作", "CopyRenameOperation" }
         };
 
         // 尝试精确匹配
@@ -1744,5 +1875,62 @@ public class WindowsScoringService : IWindowsScoringService
         }
 
         return path;
+    }
+
+    /// <summary>
+    /// 检查文件属性
+    /// </summary>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="propertyType">属性类型</param>
+    /// <param name="expectedValue">期望值</param>
+    /// <returns>属性是否匹配期望值</returns>
+    private static bool CheckFileProperty(string filePath, string propertyType, bool expectedValue)
+    {
+        try
+        {
+            FileAttributes attributes = File.GetAttributes(filePath);
+
+            return propertyType switch
+            {
+                "只读" => attributes.HasFlag(FileAttributes.ReadOnly) == expectedValue,
+                "隐藏" => attributes.HasFlag(FileAttributes.Hidden) == expectedValue,
+                "系统" => attributes.HasFlag(FileAttributes.System) == expectedValue,
+                "存档" => attributes.HasFlag(FileAttributes.Archive) == expectedValue,
+                _ => false
+            };
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查文件夹属性
+    /// </summary>
+    /// <param name="directoryPath">文件夹路径</param>
+    /// <param name="propertyType">属性类型</param>
+    /// <param name="expectedValue">期望值</param>
+    /// <returns>属性是否匹配期望值</returns>
+    private static bool CheckDirectoryProperty(string directoryPath, string propertyType, bool expectedValue)
+    {
+        try
+        {
+            DirectoryInfo dirInfo = new(directoryPath);
+            FileAttributes attributes = dirInfo.Attributes;
+
+            return propertyType switch
+            {
+                "只读" => attributes.HasFlag(FileAttributes.ReadOnly) == expectedValue,
+                "隐藏" => attributes.HasFlag(FileAttributes.Hidden) == expectedValue,
+                "系统" => attributes.HasFlag(FileAttributes.System) == expectedValue,
+                "存档" => attributes.HasFlag(FileAttributes.Archive) == expectedValue,
+                _ => false
+            };
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
