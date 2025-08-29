@@ -23,6 +23,9 @@ public static class WindowsTestProgram
             // 解析命令行参数
             (string examFilePath, string? basePath) = ParseCommandLineArguments(args);
 
+            // 测试参数解析功能
+            await TestParameterResolutionAsync();
+
             // 加载试卷模型
             ExamModel examModel = await LoadExamModelAsync(examFilePath);
 
@@ -581,5 +584,73 @@ public static class WindowsTestProgram
         }
 
         System.Console.WriteLine(new string('-', 80));
+    }
+
+    /// <summary>
+    /// 测试参数解析功能
+    /// </summary>
+    private static async Task TestParameterResolutionAsync()
+    {
+        System.Console.WriteLine("=== 测试参数解析功能 ===");
+        System.Console.WriteLine();
+
+        try
+        {
+            // 创建Windows评分服务
+            WindowsScoringService service = new();
+
+            // 模拟快捷创建操作点
+            OperationPointModel quickCreateOp = new()
+            {
+                Id = "test-quick-create",
+                Name = "快捷创建",
+                Parameters = new List<ParameterModel>
+                {
+                    new() { Name = "TargetPath", Value = "\\New Text Document.txt" },
+                    new() { Name = "ItemType", Value = "文件" }
+                }
+            };
+
+            System.Console.WriteLine("测试快捷创建操作点参数解析:");
+            System.Console.WriteLine($"  操作点名称: {quickCreateOp.Name}");
+            System.Console.WriteLine("  原始参数:");
+            foreach (var param in quickCreateOp.Parameters)
+            {
+                System.Console.WriteLine($"    {param.Name}: {param.Value}");
+            }
+
+            // 测试知识点类型映射
+            List<OperationPointModel> testOperations = [quickCreateOp];
+            List<KnowledgePointResult> results = await service.DetectKnowledgePointsAsync(testOperations);
+
+            System.Console.WriteLine();
+            System.Console.WriteLine("  检测结果:");
+            foreach (var result in results)
+            {
+                System.Console.WriteLine($"    知识点类型: {result.KnowledgePointType}");
+                System.Console.WriteLine($"    检测状态: {(result.IsCorrect ? "正确" : "错误")}");
+                if (!string.IsNullOrEmpty(result.ErrorMessage))
+                {
+                    System.Console.WriteLine($"    错误信息: {result.ErrorMessage}");
+                }
+                if (!string.IsNullOrEmpty(result.Details))
+                {
+                    System.Console.WriteLine($"    详细信息: {result.Details}");
+                }
+            }
+
+            System.Console.WriteLine();
+            System.Console.WriteLine("✓ 参数解析测试完成");
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"✗ 参数解析测试失败: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                System.Console.WriteLine($"  内部错误: {ex.InnerException.Message}");
+            }
+        }
+
+        System.Console.WriteLine();
     }
 }

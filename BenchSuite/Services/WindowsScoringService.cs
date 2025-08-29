@@ -226,6 +226,9 @@ public class WindowsScoringService : IWindowsScoringService
                 {
                     Dictionary<string, string> parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value);
 
+                    // 预处理参数（处理特殊值和路径格式）
+                    ResolveParametersForWindows(parameters, context);
+
                     // 使用解析后的参数
                     Dictionary<string, string> resolvedParameters = GetResolvedParameters(parameters, context);
 
@@ -522,9 +525,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 处理路径格式兼容性
-        filePath = NormalizePath(filePath);
-
+        // 路径已在参数预处理阶段标准化，直接使用
         result.IsCorrect = FileExists(filePath);
         result.Details = result.IsCorrect ? $"文件 {filePath} 已创建" : $"文件 {filePath} 不存在";
 
@@ -554,9 +555,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 处理路径格式兼容性：将EL导出的路径格式转换为标准格式
-        filePath = NormalizePath(filePath);
-
+        // 路径已在参数预处理阶段标准化，直接使用
         result.IsCorrect = !FileExists(filePath);
         result.Details = result.IsCorrect ? $"文件 {filePath} 已删除" : $"文件 {filePath} 仍然存在";
 
@@ -576,9 +575,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 处理路径格式兼容性
-        destinationPath = NormalizePath(destinationPath);
-
+        // 路径已在参数预处理阶段标准化，直接使用
         result.IsCorrect = FileExists(destinationPath);
         result.Details = result.IsCorrect ? $"文件已复制到 {destinationPath}" : $"目标文件 {destinationPath} 不存在";
 
@@ -671,10 +668,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 处理路径格式兼容性：将EL导出的路径格式转换为标准格式
-        sourcePath = NormalizePath(sourcePath);
-        destinationPath = NormalizePath(destinationPath);
-
+        // 路径已在参数预处理阶段标准化，直接使用
         // 构建最终的目标文件路径（目标路径 + 新名称）
         string finalDestinationPath = Path.Combine(destinationPath, newName);
 
@@ -708,9 +702,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 处理路径格式兼容性
-        targetPath = NormalizePath(targetPath);
-
+        // 路径已在参数预处理阶段标准化，直接使用
         // 根据项目类型检测相应的创建操作
         switch (itemType)
         {
@@ -1360,6 +1352,64 @@ public class WindowsScoringService : IWindowsScoringService
     }
 
     /// <summary>
+    /// 为Windows操作解析参数
+    /// </summary>
+    private void ResolveParametersForWindows(Dictionary<string, string> parameters, ParameterResolutionContext context)
+    {
+        foreach (KeyValuePair<string, string> parameter in parameters)
+        {
+            // 处理路径参数的格式转换
+            if (IsPathParameter(parameter.Key))
+            {
+                string normalizedPath = NormalizePath(parameter.Value);
+                if (normalizedPath != parameter.Value)
+                {
+                    context.SetResolvedParameter(parameter.Key, normalizedPath);
+                }
+            }
+
+            // 处理特殊参数值（如-1等）
+            if (parameter.Value == "-1")
+            {
+                // 对于Windows操作，-1通常表示默认值或最新值
+                string resolvedValue = ResolveMinusOneParameter(parameter.Key, parameter.Value);
+                if (resolvedValue != parameter.Value)
+                {
+                    context.SetResolvedParameter(parameter.Key, resolvedValue);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 判断参数是否为路径参数
+    /// </summary>
+    private static bool IsPathParameter(string parameterName)
+    {
+        string[] pathParameterNames = [
+            "FilePath", "FolderPath", "TargetPath", "SourcePath", "DestinationPath",
+            "ShortcutPath", "ProcessPath", "LocalPath", "ZipPath", "ExtractPath"
+        ];
+
+        return pathParameterNames.Contains(parameterName, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 解析-1参数值
+    /// </summary>
+    private static string ResolveMinusOneParameter(string parameterName, string parameterValue)
+    {
+        // 对于Windows操作，-1参数的处理相对简单
+        // 大多数情况下保持原值，让具体的检测方法处理
+        return parameterName switch
+        {
+            // 对于某些特定参数，可以提供默认值
+            "Timeout" => "5000", // 默认超时5秒
+            _ => parameterValue // 其他情况保持原值
+        };
+    }
+
+    /// <summary>
     /// 获取解析后的参数
     /// </summary>
     private static Dictionary<string, string> GetResolvedParameters(Dictionary<string, string> parameters, ParameterResolutionContext context)
@@ -1368,10 +1418,16 @@ public class WindowsScoringService : IWindowsScoringService
 
         foreach (KeyValuePair<string, string> parameter in parameters)
         {
-            // 对于Windows操作，大多数参数不需要特殊解析，直接使用原值
-            // 如果需要特殊解析（如-1参数），可以在这里添加逻辑
-            string resolvedValue = parameter.Value;
-            resolvedParameters[parameter.Key] = resolvedValue;
+            // 首先检查context中是否有已解析的参数值
+            if (context.IsParameterResolved(parameter.Key))
+            {
+                resolvedParameters[parameter.Key] = context.GetResolvedParameter(parameter.Key);
+            }
+            else
+            {
+                // 如果没有解析过，使用原始值
+                resolvedParameters[parameter.Key] = parameter.Value;
+            }
         }
 
         return resolvedParameters;
