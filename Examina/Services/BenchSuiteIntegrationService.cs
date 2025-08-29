@@ -33,6 +33,15 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         IStudentComprehensiveTrainingService? studentComprehensiveTrainingService = null,
         IStudentSpecializedTrainingService? studentSpecializedTrainingService = null)
     {
+        // 添加调试信息来验证依赖注入
+        System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] 构造函数被调用");
+        System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] logger: {logger?.GetType().Name ?? "NULL"}");
+        System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] aiScoringService: {aiScoringService?.GetType().Name ?? "NULL"}");
+        System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] studentExamService: {studentExamService?.GetType().Name ?? "NULL"}");
+        System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] studentMockExamService: {studentMockExamService?.GetType().Name ?? "NULL"}");
+        System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] studentComprehensiveTrainingService: {studentComprehensiveTrainingService?.GetType().Name ?? "NULL"}");
+        System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] studentSpecializedTrainingService: {studentSpecializedTrainingService?.GetType().Name ?? "NULL"}");
+
         _logger = logger;
         _aiScoringService = aiScoringService;
         _studentExamService = studentExamService;
