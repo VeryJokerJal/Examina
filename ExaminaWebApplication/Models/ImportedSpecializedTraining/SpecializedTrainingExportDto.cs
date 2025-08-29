@@ -261,11 +261,36 @@ public class SpecializedTrainingQuestionDto
     public string? ExpectedOutput { get; set; }
 
     /// <summary>
+    /// C#题目类型（仅C#模块使用）
+    /// </summary>
+    [JsonPropertyName("cSharpQuestionType")]
+    [StringLength(50)]
+    public string? CSharpQuestionType { get; set; }
+
+    /// <summary>
     /// C#代码文件路径（仅C#模块使用）
     /// </summary>
     [JsonPropertyName("codeFilePath")]
     [StringLength(500)]
     public string? CodeFilePath { get; set; }
+
+    /// <summary>
+    /// C#题目直接分数（仅调试纠错和编写实现类型使用）
+    /// </summary>
+    [JsonPropertyName("cSharpDirectScore")]
+    public double? CSharpDirectScore { get; set; }
+
+    /// <summary>
+    /// 代码补全填空处集合（JSON格式，仅C#模块代码补全类型使用）
+    /// </summary>
+    [JsonPropertyName("codeBlanks")]
+    public List<object>? CodeBlanks { get; set; }
+
+    /// <summary>
+    /// C#模板代码（仅C#模块代码补全类型使用，包含NotImplementedException的完整代码模板）
+    /// </summary>
+    [JsonPropertyName("templateCode")]
+    public string? TemplateCode { get; set; }
 
     /// <summary>
     /// Office文档文件路径（仅Office模块使用）

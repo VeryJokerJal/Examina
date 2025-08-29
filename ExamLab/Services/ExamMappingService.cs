@@ -231,6 +231,7 @@ public static class ExamMappingService
             CodeFilePath = question.CodeFilePath,
             CSharpDirectScore = question.CSharpDirectScore,
             CodeBlanks = question.CodeBlanks?.Select(ToCodeBlankDto).ToList(),
+            TemplateCode = question.TemplateCode,
             // Office文档题目特有字段
             DocumentFilePath = question.DocumentFilePath,
             OperationPoints = [.. question.OperationPoints.Select(ToOperationPointDto)]
@@ -257,6 +258,7 @@ public static class ExamMappingService
             // C#编程题目特有字段
             CodeFilePath = questionDto.CodeFilePath,
             CSharpDirectScore = questionDto.CSharpDirectScore ?? 10.0,
+            TemplateCode = questionDto.TemplateCode,
             // Office文档题目特有字段
             DocumentFilePath = questionDto.DocumentFilePath
         };

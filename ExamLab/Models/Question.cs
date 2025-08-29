@@ -286,6 +286,11 @@ public class Question : ReactiveObject
     public ObservableCollection<CodeBlank> CodeBlanks { get; set; } = [];
 
     /// <summary>
+    /// C#模板代码（仅C#模块代码补全类型使用，包含NotImplementedException的完整代码模板）
+    /// </summary>
+    [Reactive] public string? TemplateCode { get; set; }
+
+    /// <summary>
     /// Office文档文件路径（仅Office模块使用）
     /// </summary>
     [Reactive] public string? DocumentFilePath { get; set; }

@@ -219,6 +219,12 @@ public class ComprehensiveTrainingQuestionDto
     public string? CsharpQuestionType { get; set; }
 
     /// <summary>
+    /// C#题目类型（标准属性名）
+    /// </summary>
+    [JsonIgnore]
+    public string? CSharpQuestionType => CsharpQuestionType;
+
+    /// <summary>
     /// 代码文件路径（兼容ExamLab导出格式）
     /// </summary>
     [JsonPropertyName("codeFilePath")]
@@ -233,12 +239,25 @@ public class ComprehensiveTrainingQuestionDto
     public double? CsharpDirectScore { get; set; }
 
     /// <summary>
+    /// C#直接分数（标准属性名）
+    /// </summary>
+    [JsonIgnore]
+    public double? CSharpDirectScore => CsharpDirectScore;
+
+    /// <summary>
     /// 代码空白填充项（兼容ExamLab导出格式）
     /// </summary>
     [JsonPropertyName("codeBlanks")]
     [XmlArray("CodeBlanks")]
     [XmlArrayItem("CodeBlank")]
     public List<object>? CodeBlanks { get; set; }
+
+    /// <summary>
+    /// C#模板代码（仅C#模块代码补全类型使用，包含NotImplementedException的完整代码模板）
+    /// </summary>
+    [JsonPropertyName("templateCode")]
+    [XmlElement("TemplateCode")]
+    public string? TemplateCode { get; set; }
 
     /// <summary>
     /// 文档文件路径（兼容ExamLab导出格式）

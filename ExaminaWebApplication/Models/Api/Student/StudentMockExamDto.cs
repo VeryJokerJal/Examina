@@ -159,6 +159,11 @@ public class StudentMockExamQuestionDto
     public string? CodeBlanks { get; set; }
 
     /// <summary>
+    /// C#模板代码（仅C#模块代码补全类型使用，包含NotImplementedException的完整代码模板）
+    /// </summary>
+    public string? TemplateCode { get; set; }
+
+    /// <summary>
     /// 操作点列表
     /// </summary>
     public List<StudentMockExamOperationPointDto> OperationPoints { get; set; } = [];

@@ -652,6 +652,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
                     CSharpDirectScore = GetCSharpDirectScore(questionDto),
                     CodeBlanks = GetCodeBlanks(questionDto),
+                    TemplateCode = questionDto.TemplateCode,
                     CodeFilePath = questionDto.CodeFilePath,
                     DocumentFilePath = questionDto.DocumentFilePath,
                     // 添加其他重要字段
@@ -1046,6 +1047,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
             CSharpDirectScore = GetCSharpDirectScore(questionDto),
             CodeBlanks = GetCodeBlanks(questionDto),
+            TemplateCode = questionDto.TemplateCode,
             CodeFilePath = questionDto.CodeFilePath,
             DocumentFilePath = questionDto.DocumentFilePath,
             // 添加其他重要字段
@@ -1098,6 +1100,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             CSharpQuestionType = GetCSharpQuestionTypeString(questionDto),
             CSharpDirectScore = GetCSharpDirectScore(questionDto),
             CodeBlanks = GetCodeBlanks(questionDto),
+            TemplateCode = questionDto.TemplateCode,
             CodeFilePath = questionDto.CodeFilePath,
             DocumentFilePath = questionDto.DocumentFilePath,
             // 添加其他重要字段

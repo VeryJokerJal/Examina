@@ -98,7 +98,11 @@ public class ImportedSpecializedTraining
                     Tags = questionDto.Tags,
                     ProgramInput = questionDto.ProgramInput,
                     ExpectedOutput = questionDto.ExpectedOutput,
+                    CSharpQuestionType = questionDto.CSharpQuestionType,
                     CodeFilePath = questionDto.CodeFilePath,
+                    CSharpDirectScore = questionDto.CSharpDirectScore,
+                    CodeBlanks = SerializeToJsonOrNull(questionDto.CodeBlanks),
+                    TemplateCode = questionDto.TemplateCode,
                     DocumentFilePath = questionDto.DocumentFilePath,
                     ImportedAt = now,
                     SpecializedTraining = importedSpecializedTraining,
@@ -309,4 +313,13 @@ public class ImportedSpecializedTraining
     /// 文件关联列表
     /// </summary>
     public virtual ICollection<ExaminaWebApplication.Models.FileUpload.SpecializedTrainingFileAssociation> FileAssociations { get; set; } = [];
+
+    /// <summary>
+    /// 将对象序列化为JSON字符串，如果对象为null则返回null
+    /// </summary>
+    private static string? SerializeToJsonOrNull(object? obj)
+    {
+        if (obj == null) return null;
+        return JsonSerializer.Serialize(obj);
+    }
 }

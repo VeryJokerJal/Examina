@@ -1153,6 +1153,7 @@ public class StudentMockExamService : IStudentMockExamService
                     CodeFilePath = question.CodeFilePath,
                     CSharpDirectScore = question.CSharpDirectScore,
                     CodeBlanks = question.CodeBlanks,
+                    TemplateCode = question.TemplateCode,
                     DocumentFilePath = question.DocumentFilePath,
                     OperationPoints = [.. question.OperationPoints.Select(op => new ExtractedOperationPointInfo
                     {
@@ -1294,6 +1295,7 @@ public class StudentMockExamService : IStudentMockExamService
                 CodeFilePath = q.CodeFilePath,
                 CSharpDirectScore = q.CSharpDirectScore,
                 CodeBlanks = q.CodeBlanks,
+                TemplateCode = q.TemplateCode,
                 DocumentFilePath = q.DocumentFilePath,
                 OperationPoints = [.. q.OperationPoints.Select(op => new StudentMockExamOperationPointDto
                 {

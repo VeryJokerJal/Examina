@@ -374,6 +374,7 @@ public class StudentComprehensiveTrainingService : IStudentComprehensiveTraining
             CodeFilePath = question.CodeFilePath,
             CSharpDirectScore = question.CSharpDirectScore,
             CodeBlanks = question.CodeBlanks,
+            TemplateCode = question.TemplateCode,
             DocumentFilePath = question.DocumentFilePath,
             OperationPoints = [.. question.OperationPoints.Select(op => new StudentComprehensiveTrainingOperationPointDto
             {

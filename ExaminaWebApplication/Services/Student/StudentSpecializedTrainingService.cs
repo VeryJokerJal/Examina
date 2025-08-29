@@ -432,6 +432,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             CodeFilePath = question.CodeFilePath,
             CSharpDirectScore = question.CSharpDirectScore,
             CodeBlanks = question.CodeBlanks,
+            TemplateCode = question.TemplateCode,
             DocumentFilePath = question.DocumentFilePath,
             OperationPoints = question.OperationPoints?.Select(MapToStudentSpecializedTrainingOperationPointDto).ToList() ?? []
         };
