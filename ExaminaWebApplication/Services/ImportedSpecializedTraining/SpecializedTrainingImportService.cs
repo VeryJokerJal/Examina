@@ -216,6 +216,12 @@ public class SpecializedTrainingImportService
     {
         try
         {
+            _logger.LogInformation("开始删除专项训练，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+
+            // 首先检查数据库中是否有任何专项训练
+            int totalCount = await _context.ImportedSpecializedTrainings.CountAsync();
+            _logger.LogInformation("数据库中专项训练总数: {TotalCount}", totalCount);
+
             // 查找专项训练（管理员可以删除任何专项训练）
             ImportedSpecializedTrainingEntity? specializedTraining = await _context.ImportedSpecializedTrainings
                 .FirstOrDefaultAsync(st => st.Id == id);
@@ -223,8 +229,18 @@ public class SpecializedTrainingImportService
             if (specializedTraining == null)
             {
                 _logger.LogWarning("专项训练不存在，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+
+                // 列出所有存在的专项训练ID用于调试
+                var existingIds = await _context.ImportedSpecializedTrainings
+                    .Select(st => st.Id)
+                    .ToListAsync();
+                _logger.LogInformation("现有的专项训练ID列表: {ExistingIds}", string.Join(", ", existingIds));
+
                 return false;
             }
+
+            _logger.LogInformation("找到专项训练: {Name}, ID: {Id}, 导入者: {ImportedBy}",
+                specializedTraining.Name, specializedTraining.Id, specializedTraining.ImportedBy);
 
             _context.ImportedSpecializedTrainings.Remove(specializedTraining);
             await _context.SaveChangesAsync();

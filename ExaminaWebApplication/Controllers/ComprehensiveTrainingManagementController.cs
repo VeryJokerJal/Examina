@@ -376,10 +376,15 @@ public class ComprehensiveTrainingManagementController : Controller
     {
         try
         {
+            _logger.LogInformation("收到删除专项训练请求，训练ID: {TrainingId}", id);
+
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
             int userId = 1; // 使用管理员用户ID
 
             bool success = await _specializedTrainingImportService.DeleteSpecializedTrainingAsync(id, userId);
+
+            _logger.LogInformation("删除专项训练结果，训练ID: {TrainingId}, 成功: {Success}", id, success);
+
             if (success)
             {
                 return Json(new { success = true, message = "专项训练删除成功" });
