@@ -1170,6 +1170,7 @@ public class StudentMockExamService : IStudentMockExamService
                             Description = p.Description,
                             ParameterType = p.Type,
                             DefaultValue = p.DefaultValue?.ToString() ?? string.Empty,
+                            Value = p.Value ?? string.Empty,
                             MinValue = p.MinValue?.ToString() ?? string.Empty,
                             MaxValue = p.MaxValue?.ToString() ?? string.Empty
                         })]
