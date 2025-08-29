@@ -55,6 +55,21 @@ public class CSharpModuleViewModel : ModuleViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> ResetModuleDescriptionCommand { get; }
 
+    /// <summary>
+    /// 生成模板代码命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> GenerateTemplateCodeCommand { get; }
+
+    /// <summary>
+    /// 清除模板代码命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ClearTemplateCodeCommand { get; }
+
+    /// <summary>
+    /// 从CodeBlanks生成模板代码命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> GenerateTemplateFromBlanksCommand { get; }
+
     private readonly MainWindowViewModel? _mainWindowViewModel;
 
     public CSharpModuleViewModel(ExamModule module, MainWindowViewModel? mainWindowViewModel = null) : base(module)
@@ -78,6 +93,11 @@ public class CSharpModuleViewModel : ModuleViewModelBase
         // 初始化模块描述命令（代理到MainWindowViewModel）
         SaveModuleDescriptionCommand = ReactiveCommand.CreateFromTask(SaveModuleDescriptionAsync);
         ResetModuleDescriptionCommand = ReactiveCommand.CreateFromTask(ResetModuleDescriptionAsync);
+
+        // 初始化模板代码相关命令
+        GenerateTemplateCodeCommand = ReactiveCommand.Create(GenerateTemplateCode);
+        ClearTemplateCodeCommand = ReactiveCommand.Create(ClearTemplateCode);
+        GenerateTemplateFromBlanksCommand = ReactiveCommand.Create(GenerateTemplateFromBlanks);
     }
 
     protected override void AddOperationPoint()
@@ -120,6 +140,12 @@ public class CSharpModuleViewModel : ModuleViewModelBase
         };
 
         SelectedQuestion.CodeBlanks.Add(newCodeBlank);
+
+        // 如果是代码补全类型，自动更新TemplateCode
+        if (SelectedQuestion.CSharpQuestionType == CSharpQuestionType.CodeCompletion)
+        {
+            GenerateTemplateFromBlanks();
+        }
     }
 
     /// <summary>
@@ -217,6 +243,20 @@ public class Solution
         for (int i = 0; i < SelectedQuestion.CodeBlanks.Count; i++)
         {
             SelectedQuestion.CodeBlanks[i].Order = i + 1;
+        }
+
+        // 如果是代码补全类型，自动更新TemplateCode
+        if (SelectedQuestion.CSharpQuestionType == CSharpQuestionType.CodeCompletion)
+        {
+            if (SelectedQuestion.CodeBlanks.Count > 0)
+            {
+                GenerateTemplateFromBlanks();
+            }
+            else
+            {
+                // 如果没有填空了，清除TemplateCode或生成标准模板
+                GenerateTemplateCode();
+            }
         }
     }
 
@@ -332,5 +372,75 @@ public class Solution
             _mainWindowViewModel.ResetModuleDescriptionCommand.Execute().Subscribe();
         }
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 生成标准模板代码
+    /// </summary>
+    private void GenerateTemplateCode()
+    {
+        if (SelectedQuestion == null) return;
+
+        string templateCode = @"using System;
+
+public class Solution
+{
+    /// <summary>
+    /// 请在此处实现您的代码
+    /// </summary>
+    public void Solve()
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+        SelectedQuestion.TemplateCode = templateCode;
+    }
+
+    /// <summary>
+    /// 清除模板代码
+    /// </summary>
+    private void ClearTemplateCode()
+    {
+        if (SelectedQuestion != null)
+        {
+            SelectedQuestion.TemplateCode = null;
+        }
+    }
+
+    /// <summary>
+    /// 从CodeBlanks生成模板代码
+    /// </summary>
+    private void GenerateTemplateFromBlanks()
+    {
+        if (SelectedQuestion?.CodeBlanks == null || SelectedQuestion.CodeBlanks.Count == 0)
+        {
+            GenerateTemplateCode(); // 如果没有CodeBlanks，生成标准模板
+            return;
+        }
+
+        string templateCode = @"using System;
+
+public class Solution
+{";
+
+        for (int i = 0; i < SelectedQuestion.CodeBlanks.Count; i++)
+        {
+            CodeBlank blank = SelectedQuestion.CodeBlanks[i];
+            templateCode += $@"
+
+    /// <summary>
+    /// 填空 {i + 1}: {blank.DetailedDescription}
+    /// </summary>
+    public void Method{i + 1}()
+    {{
+        throw new NotImplementedException();
+    }}";
+        }
+
+        templateCode += @"
+}";
+
+        SelectedQuestion.TemplateCode = templateCode;
     }
 }
