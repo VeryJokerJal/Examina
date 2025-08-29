@@ -353,7 +353,30 @@ public class ExamListViewModel : ViewModelBase
 
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 成功获取考试详情 - 名称: {examDetails.Name}, 时长: {examDetails.DurationMinutes}分钟");
 
-            // 文件预下载准备
+            // 修复执行顺序：先清理目录，再下载解压文件
+            // 第一步：清理考试目录（在下载文件之前）
+            System.Diagnostics.Debug.WriteLine("ExamListViewModel: 开始清理考试目录");
+            IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
+            if (directoryCleanupService != null)
+            {
+                DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
+                if (!cleanupResult.IsSuccess)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
+                    ErrorMessage = $"目录清理失败，无法开始考试: {cleanupResult.ErrorMessage}";
+                    return;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ExamListViewModel: 目录清理服务不可用，跳过清理步骤");
+            }
+
+            // 第二步：文件预下载准备（在目录清理之后）
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
@@ -372,22 +395,6 @@ public class ExamListViewModel : ViewModelBase
             else
             {
                 System.Diagnostics.Debug.WriteLine("ExamListViewModel: 无法获取主窗口，跳过文件预下载");
-            }
-
-            // 清理考试目录
-            IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
-            if (directoryCleanupService != null)
-            {
-                DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
-                if (!cleanupResult.IsSuccess)
-                {
-                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
-                    // 继续执行，不因清理失败而阻止考试开始
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
-                }
             }
 
             // 启动正式考试界面

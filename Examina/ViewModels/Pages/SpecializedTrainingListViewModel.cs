@@ -404,10 +404,33 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"题目数量: {training.QuestionCount}");
             System.Diagnostics.Debug.WriteLine($"预计时长: {training.Duration}分钟");
 
-            // 文件预下载准备
+            // 修复执行顺序：先清理目录，再下载解压文件
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
                 desktop.MainWindow != null)
             {
+                // 第一步：清理考试目录（在下载文件之前）
+                System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 开始清理考试目录");
+                IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
+                if (directoryCleanupService != null)
+                {
+                    DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
+                    if (!cleanupResult.IsSuccess)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"SpecializedTrainingListViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
+                        ErrorMessage = $"目录清理失败，无法开始专项训练: {cleanupResult.ErrorMessage}";
+                        return;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"SpecializedTrainingListViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 目录清理服务不可用，跳过清理步骤");
+                }
+
+                // 第二步：文件预下载准备（在目录清理之后）
                 System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 开始文件预下载准备");
 
                 bool filesReady = await desktop.MainWindow.PrepareFilesForSpecializedTrainingAsync(training.Id, training.Name);
@@ -419,22 +442,6 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 }
 
                 System.Diagnostics.Debug.WriteLine("SpecializedTrainingListViewModel: 文件预下载完成，继续启动专项训练");
-
-                // 清理考试目录
-                IDirectoryCleanupService? directoryCleanupService = AppServiceManager.GetService<IDirectoryCleanupService>();
-                if (directoryCleanupService != null)
-                {
-                    DirectoryCleanupResult cleanupResult = await directoryCleanupService.CleanupExamDirectoryAsync();
-                    if (!cleanupResult.IsSuccess)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"SpecializedTrainingListViewModel: 目录清理失败: {cleanupResult.ErrorMessage}");
-                        // 继续执行，不因清理失败而阻止训练开始
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"SpecializedTrainingListViewModel: 目录清理成功，删除文件: {cleanupResult.DeletedFileCount}, 删除目录: {cleanupResult.DeletedDirectoryCount}");
-                    }
-                }
 
                 // 隐藏主窗口
                 desktop.MainWindow.Hide();
