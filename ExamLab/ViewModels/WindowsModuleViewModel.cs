@@ -52,6 +52,33 @@ public class WindowsModuleViewModel : ModuleViewModelBase
         AddKnowledgePointCommand = ReactiveCommand.Create<WindowsKnowledgeType>(AddKnowledgePoint);
         AddOperationPointByTypeCommand = ReactiveCommand.Create<string>(AddOperationPointByType);
         EditOperationPointCommand = ReactiveCommand.Create<OperationPoint>(EditOperationPoint);
+
+        // 更新现有操作点的参数类型（用于升级现有数据）
+        UpdateExistingOperationPointTypes();
+    }
+
+    /// <summary>
+    /// 更新现有操作点的参数类型
+    /// </summary>
+    private void UpdateExistingOperationPointTypes()
+    {
+        try
+        {
+            foreach (Question question in Module.Questions)
+            {
+                foreach (OperationPoint operationPoint in question.OperationPoints)
+                {
+                    if (operationPoint.ModuleType == ModuleType.Windows)
+                    {
+                        WindowsKnowledgeService.Instance.UpdateOperationPointParameterTypes(operationPoint);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"更新操作点参数类型时发生错误: {ex.Message}");
+        }
     }
 
     protected override void AddOperationPoint()

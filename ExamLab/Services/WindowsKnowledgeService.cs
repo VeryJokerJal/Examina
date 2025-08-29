@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ExamLab.Models;
 
 namespace ExamLab.Services;
@@ -74,6 +75,30 @@ public class WindowsKnowledgeService
         }
 
         return operationPoint;
+    }
+
+    /// <summary>
+    /// 更新现有操作点的参数类型（用于升级现有数据）
+    /// </summary>
+    /// <param name="operationPoint">要更新的操作点</param>
+    public void UpdateOperationPointParameterTypes(OperationPoint operationPoint)
+    {
+        if (operationPoint.WindowsKnowledgeType == null) return;
+
+        WindowsKnowledgeConfig? config = GetKnowledgeConfig(operationPoint.WindowsKnowledgeType.Value);
+        if (config == null) return;
+
+        // 更新每个参数的类型
+        foreach (ConfigurationParameter parameter in operationPoint.Parameters)
+        {
+            ConfigurationParameterTemplate? template = config.ParameterTemplates
+                .FirstOrDefault(t => t.Name == parameter.Name);
+
+            if (template != null && parameter.Type != template.Type)
+            {
+                parameter.Type = template.Type;
+            }
+        }
     }
 
     private Dictionary<WindowsKnowledgeType, WindowsKnowledgeConfig> InitializeKnowledgeConfigs()
