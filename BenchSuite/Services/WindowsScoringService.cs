@@ -489,6 +489,9 @@ public class WindowsScoringService : IWindowsScoringService
                 case "CopyAndRename":
                     result = DetectCopyAndRename(parameters);
                     break;
+                case "QuickCreate":
+                    result = DetectQuickCreate(parameters);
+                    break;
                 default:
                     result.ErrorMessage = $"未知的知识点类型: {knowledgePointType}";
                     break;
@@ -682,6 +685,47 @@ public class WindowsScoringService : IWindowsScoringService
         result.Details = result.IsCorrect ?
             $"文件/文件夹已从 {sourcePath} 复制到 {finalDestinationPath}" :
             $"复制重命名操作未完成 - 源存在: {sourceExists}, 目标存在: {finalDestinationExists}";
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测快捷创建操作
+    /// </summary>
+    private KnowledgePointResult DetectQuickCreate(Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new() { IsCorrect = false };
+
+        if (!parameters.TryGetValue("TargetPath", out string? targetPath) || string.IsNullOrEmpty(targetPath))
+        {
+            result.ErrorMessage = "缺少目标路径参数";
+            return result;
+        }
+
+        if (!parameters.TryGetValue("ItemType", out string? itemType) || string.IsNullOrEmpty(itemType))
+        {
+            result.ErrorMessage = "缺少项目类型参数";
+            return result;
+        }
+
+        // 处理路径格式兼容性
+        targetPath = NormalizePath(targetPath);
+
+        // 根据项目类型检测相应的创建操作
+        switch (itemType)
+        {
+            case "文件":
+                result.IsCorrect = FileExists(targetPath);
+                result.Details = result.IsCorrect ? $"文件 {targetPath} 已快捷创建" : $"文件 {targetPath} 不存在";
+                break;
+            case "文件夹":
+                result.IsCorrect = DirectoryExists(targetPath);
+                result.Details = result.IsCorrect ? $"文件夹 {targetPath} 已快捷创建" : $"文件夹 {targetPath} 不存在";
+                break;
+            default:
+                result.ErrorMessage = $"不支持的项目类型: {itemType}，支持的类型为：文件、文件夹";
+                break;
+        }
 
         return result;
     }
@@ -1290,6 +1334,7 @@ public class WindowsScoringService : IWindowsScoringService
             { "下载文件", "DownloadFile" },
             { "创建ZIP压缩包", "CreateZipArchive" },
             { "解压ZIP压缩包", "ExtractZipArchive" },
+            { "快捷创建", "QuickCreate" },
             // 添加EL导出格式的映射支持
             { "删除操作", "DeleteFile" },
             { "复制重命名操作", "CopyAndRename" }
