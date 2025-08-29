@@ -207,7 +207,7 @@ public class SpecializedTrainingImportService
     }
 
     /// <summary>
-    /// 删除专项训练
+    /// 删除专项训练（级联删除相关数据）
     /// </summary>
     /// <param name="id">专项训练ID</param>
     /// <param name="userId">用户ID</param>
@@ -218,37 +218,95 @@ public class SpecializedTrainingImportService
         {
             _logger.LogInformation("开始删除专项训练，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
 
-            // 首先检查数据库中是否有任何专项训练
-            int totalCount = await _context.ImportedSpecializedTrainings.CountAsync();
-            _logger.LogInformation("数据库中专项训练总数: {TotalCount}", totalCount);
-
-            // 查找专项训练（管理员可以删除任何专项训练）
+            // 查找专项训练及其相关数据（管理员可以删除任何专项训练）
             ImportedSpecializedTrainingEntity? specializedTraining = await _context.ImportedSpecializedTrainings
+                .Include(st => st.Modules)
+                    .ThenInclude(m => m.Questions)
+                        .ThenInclude(q => q.OperationPoints)
+                            .ThenInclude(op => op.Parameters)
+                .Include(st => st.Questions)
+                    .ThenInclude(q => q.OperationPoints)
+                        .ThenInclude(op => op.Parameters)
                 .FirstOrDefaultAsync(st => st.Id == id);
 
             if (specializedTraining == null)
             {
                 _logger.LogWarning("专项训练不存在，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
-
-                // 列出所有存在的专项训练ID用于调试
-                var existingIds = await _context.ImportedSpecializedTrainings
-                    .Select(st => st.Id)
-                    .ToListAsync();
-                _logger.LogInformation("现有的专项训练ID列表: {ExistingIds}", string.Join(", ", existingIds));
-
                 return false;
             }
 
-            _logger.LogInformation("找到专项训练: {Name}, ID: {Id}, 导入者: {ImportedBy}",
-                specializedTraining.Name, specializedTraining.Id, specializedTraining.ImportedBy);
+            _logger.LogInformation("找到专项训练: {Name}, ID: {Id}, 导入者: {ImportedBy}, 模块数: {ModuleCount}, 题目数: {QuestionCount}",
+                specializedTraining.Name, specializedTraining.Id, specializedTraining.ImportedBy,
+                specializedTraining.Modules?.Count ?? 0, specializedTraining.Questions?.Count ?? 0);
 
-            _context.ImportedSpecializedTrainings.Remove(specializedTraining);
-            await _context.SaveChangesAsync();
+            // 使用事务进行级联删除
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 删除所有相关的操作点参数
+                if (specializedTraining.Modules != null)
+                {
+                    foreach (var module in specializedTraining.Modules)
+                    {
+                        if (module.Questions != null)
+                        {
+                            foreach (var question in module.Questions)
+                            {
+                                if (question.OperationPoints != null)
+                                {
+                                    foreach (var operationPoint in question.OperationPoints)
+                                    {
+                                        if (operationPoint.Parameters != null)
+                                        {
+                                            _context.ImportedSpecializedTrainingOperationPointParameters.RemoveRange(operationPoint.Parameters);
+                                        }
+                                    }
+                                    _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
+                                }
+                            }
+                            _context.ImportedSpecializedTrainingQuestions.RemoveRange(module.Questions);
+                        }
+                    }
+                    _context.ImportedSpecializedTrainingModules.RemoveRange(specializedTraining.Modules);
+                }
 
-            _logger.LogInformation("专项训练删除成功：{Name}，ID：{Id}，用户：{UserId}",
-                specializedTraining.Name, id, userId);
+                // 删除直接关联的题目
+                if (specializedTraining.Questions != null)
+                {
+                    foreach (var question in specializedTraining.Questions)
+                    {
+                        if (question.OperationPoints != null)
+                        {
+                            foreach (var operationPoint in question.OperationPoints)
+                            {
+                                if (operationPoint.Parameters != null)
+                                {
+                                    _context.ImportedSpecializedTrainingOperationPointParameters.RemoveRange(operationPoint.Parameters);
+                                }
+                            }
+                            _context.ImportedSpecializedTrainingOperationPoints.RemoveRange(question.OperationPoints);
+                        }
+                    }
+                    _context.ImportedSpecializedTrainingQuestions.RemoveRange(specializedTraining.Questions);
+                }
 
-            return true;
+                // 最后删除专项训练本身
+                _context.ImportedSpecializedTrainings.Remove(specializedTraining);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("专项训练级联删除成功：{Name}，ID：{Id}，用户：{UserId}",
+                    specializedTraining.Name, id, userId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "专项训练级联删除事务失败，训练ID: {TrainingId}, 用户ID: {UserId}", id, userId);
+                throw;
+            }
         }
         catch (Exception ex)
         {

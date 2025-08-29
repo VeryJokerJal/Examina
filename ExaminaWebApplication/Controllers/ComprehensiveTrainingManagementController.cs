@@ -378,11 +378,6 @@ public class ComprehensiveTrainingManagementController : Controller
         {
             _logger.LogInformation("收到删除专项训练请求，训练ID: {TrainingId}", id);
 
-            // 先检查专项训练是否存在
-            var allTrainings = await _specializedTrainingImportService.GetImportedSpecializedTrainingsAsync();
-            _logger.LogInformation("数据库中所有专项训练: {Trainings}",
-                string.Join(", ", allTrainings.Select(t => $"ID:{t.Id},Name:{t.Name},ImportedBy:{t.ImportedBy}")));
-
             // 暂时使用固定的用户ID，后续可以改为从登录用户获取
             int userId = 1; // 使用管理员用户ID
 
