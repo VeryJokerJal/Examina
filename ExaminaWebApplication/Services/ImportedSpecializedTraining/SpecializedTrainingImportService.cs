@@ -14,9 +14,9 @@ public class SpecializedTrainingImportService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<SpecializedTrainingImportService> _logger;
-    private readonly FileUploadService _fileUploadService;
+    private readonly IFileUploadService _fileUploadService;
 
-    public SpecializedTrainingImportService(ApplicationDbContext context, ILogger<SpecializedTrainingImportService> logger, FileUploadService fileUploadService)
+    public SpecializedTrainingImportService(ApplicationDbContext context, ILogger<SpecializedTrainingImportService> logger, IFileUploadService fileUploadService)
     {
         _context = context;
         _logger = logger;
