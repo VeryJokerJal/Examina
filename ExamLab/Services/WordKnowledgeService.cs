@@ -312,10 +312,9 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
-                new() { Name = "ShadingColor", DisplayName = "底纹颜色", Description = "底纹填充颜色", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "无填充,白色,浅灰色,灰色,深灰色,黑色,红色,蓝色,绿色,黄色,紫色,橙色", DefaultValue = "无填充" },
-                new() { Name = "ShadingPattern", DisplayName = "底纹图案", Description = "底纹图案样式", Type = ParameterType.Enum, IsRequired = false, Order = 3,
-                    EnumOptions = "实心,5%,10%,12.5%,15%,20%,25%,30%,37.5%,40%,50%,60%,62.5%,70%,75%,80%,85%,87.5%,90%,95%", DefaultValue = "实心" }
+                new() { Name = "ShadingColor", DisplayName = "底纹颜色", Description = "底纹填充颜色", Type = ParameterType.Color, IsRequired = true, Order = 2, DefaultValue = "#FFFF00" },
+                new() { Name = "ShadingPattern", DisplayName = "底纹图案", Description = "底纹图案样式（基于WdTextureIndex枚举）", Type = ParameterType.Enum, IsRequired = false, Order = 3,
+                    EnumOptions = "无纹理,2.5%,5%,7.5%,10%,12.5%,15%,17.5%,20%,22.5%,25%,27.5%,30%,32.5%,35%,37.5%,40%,42.5%,45%,47.5%,50%,52.5%,55%,57.5%,60%,62.5%,65%,67.5%,70%,72.5%,75%,77.5%,80%,82.5%,85%,87.5%,90%,92.5%,95%,97.5%,实心填充,深色水平线,深色垂直线,深色对角线下,深色对角线上,深色十字,深色对角十字,水平线,垂直线,对角线下,对角线上,十字,对角十字", DefaultValue = "无纹理" }
             ]
         };
     }
