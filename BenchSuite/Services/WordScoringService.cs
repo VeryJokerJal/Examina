@@ -1802,7 +1802,7 @@ public class WordScoringService : IWordScoringService
         // 创建操作点名称到知识点类型的映射
         Dictionary<string, string> nameToTypeMapping = new()
         {
-            // === 段落操作（14个）===
+            // 第一类：段落操作（共14项）
             { "设置段落的字体", "SetParagraphFont" },
             { "设置段落的字号", "SetParagraphFontSize" },
             { "设置段落的字形", "SetParagraphFontStyle" },
@@ -1818,7 +1818,7 @@ public class WordScoringService : IWordScoringService
             { "设置段落边框宽度", "SetParagraphBorderWidth" },
             { "设置段落底纹", "SetParagraphShading" },
 
-            // === 页面设置（15个）===
+            // 第二类：页面设置（共15项）
             { "设置纸张大小", "SetPaperSize" },
             { "设置页边距", "SetPageMargins" },
             { "设置页眉中的文字", "SetHeaderText" },
@@ -1835,16 +1835,16 @@ public class WordScoringService : IWordScoringService
             { "设置页面边框样式", "SetPageBorderStyle" },
             { "设置页面边框宽度", "SetPageBorderWidth" },
 
-            // === 水印设置（4个）===
+            // 第三类：水印设置（共4项）
             { "设置水印文字", "SetWatermarkText" },
             { "设置水印文字的字体", "SetWatermarkFont" },
             { "设置水印文字的字号", "SetWatermarkFontSize" },
             { "设置水印文字水平或倾斜方式", "SetWatermarkOrientation" },
 
-            // === 项目符号与编号（1个）===
+            // 第四类：项目符号与编号（共1项）
             { "设置项目编号", "SetBulletNumbering" },
 
-            // === 表格操作（10个）===
+            // 第五类：表格操作（共10项）
             { "设置表格的行数和列数", "SetTableRowsColumns" },
             { "设置表格底纹", "SetTableShading" },
             { "设置表格行高", "SetTableRowHeight" },
@@ -1856,8 +1856,9 @@ public class WordScoringService : IWordScoringService
             { "设置表格标题内容", "SetTableHeaderContent" },
             { "设置表格标题对齐方式", "SetTableHeaderAlignment" },
 
-            // === 图形和图片设置（16个）===
+            // 第六类：图形和图片设置（共16项）
             { "插入自选图形类型", "InsertAutoShape" },
+            { "设置插入图片的高度和宽度", "SetImageSize" },
             { "设置自选图形大小", "SetAutoShapeSize" },
             { "设置自选图形线条颜色", "SetAutoShapeLineColor" },
             { "设置自选图形填充颜色", "SetAutoShapeFillColor" },
@@ -1872,16 +1873,15 @@ public class WordScoringService : IWordScoringService
             { "设置图片阴影", "SetImageShadow" },
             { "设置图片环绕方式", "SetImageWrapStyle" },
             { "设置图片位置", "SetImagePosition" },
-            { "设置插入图片的高度和宽度", "SetImageSize" },
 
-            // === 文本框设置（5个）===
+            // 第七类：文本框设置（共5项）
             { "设置文本框边框颜色", "SetTextBoxBorderColor" },
             { "设置文本框中文字内容", "SetTextBoxContent" },
             { "设置文本框中文字大小", "SetTextBoxTextSize" },
             { "设置文本框位置", "SetTextBoxPosition" },
             { "设置文本框环绕方式", "SetTextBoxWrapStyle" },
 
-            // === 其他操作（2个）===
+            // 第八类：其他操作（共2项）
             { "查找与替换", "FindAndReplace" },
             { "设置指定文字字号", "SetSpecificTextFontSize" }
         };
