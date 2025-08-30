@@ -3910,7 +3910,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 // 检查XML中的dropCap属性
                 if (framePr.OuterXml.Contains("dropCap="))
                 {
-                    var match = System.Text.RegularExpressions.Regex.Match(framePr.OuterXml, @"dropCap=""([^""]+)""");
+                    System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(framePr.OuterXml, @"dropCap=""([^""]+)""");
                     if (match.Success)
                     {
                         string dropCapValue = match.Groups[1].Value;
@@ -4079,7 +4079,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                     // 方法1：尝试直接获取XML属性值
                     if (topBorder.OuterXml.Contains("val="))
                     {
-                        var match = System.Text.RegularExpressions.Regex.Match(topBorder.OuterXml, @"val=""([^""]+)""");
+                        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(topBorder.OuterXml, @"val=""([^""]+)""");
                         if (match.Success)
                         {
                             borderValue = match.Groups[1].Value;
@@ -4190,7 +4190,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                     // 方法1：尝试直接获取XML属性值
                     if (shading.OuterXml.Contains("val="))
                     {
-                        var match = System.Text.RegularExpressions.Regex.Match(shading.OuterXml, @"val=""([^""]+)""");
+                        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(shading.OuterXml, @"val=""([^""]+)""");
                         if (match.Success)
                         {
                             patternValue = match.Groups[1].Value;
@@ -4415,7 +4415,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 if (justification.OuterXml.Contains("val="))
                 {
                     // 使用正则表达式提取val属性值
-                    var match = System.Text.RegularExpressions.Regex.Match(justification.OuterXml, @"val=""([^""]+)""");
+                    System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(justification.OuterXml, @"val=""([^""]+)""");
                     if (match.Success)
                     {
                         alignmentString = match.Groups[1].Value;
