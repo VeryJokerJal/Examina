@@ -1163,18 +1163,26 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedStyle,
+                GetParagraphBorderStyle,
+                TextEquals, // 使用文本比较函数
+                out Paragraph? matchedParagraph,
+                out string? actualStyle,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            string actualStyle = GetParagraphBorderStyle(targetParagraph!);
-
             result.ExpectedValue = expectedStyle;
-            result.ActualValue = actualStyle;
-            result.IsCorrect = TextEquals(actualStyle, expectedStyle);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = actualStyle ?? string.Empty;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 边框样式: 期望 {expectedStyle}, 实际 {actualStyle}";
@@ -1210,18 +1218,29 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建浮点数比较函数
+            bool FloatEquals(float actual, float expected) => Math.Abs(actual - expected) < 0.1f;
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedWidth,
+                GetParagraphBorderWidth,
+                FloatEquals, // 使用浮点数比较函数
+                out Paragraph? matchedParagraph,
+                out float actualWidth,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            float actualWidth = GetParagraphBorderWidth(targetParagraph!);
-
             result.ExpectedValue = expectedWidth.ToString();
             result.ActualValue = actualWidth.ToString();
-            result.IsCorrect = Math.Abs(actualWidth - expectedWidth) < 0.1f;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 边框宽度: 期望 {expectedWidth}, 实际 {actualWidth}";
@@ -1258,19 +1277,34 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建底纹值组合
+            (string Color, string Pattern) expectedShading = (expectedColor, expectedPattern);
+
+            // 创建底纹比较函数
+            bool ShadingEquals((string Color, string Pattern) actual, (string Color, string Pattern) expected) =>
+                (TextEquals(actual.Color, expected.Color) || ColorEquals(actual.Color, expected.Color)) &&
+                TextEquals(actual.Pattern, expected.Pattern);
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedShading,
+                GetParagraphShading,
+                ShadingEquals, // 使用底纹比较函数
+                out Paragraph? matchedParagraph,
+                out (string Color, string Pattern) actualShading,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            (string Color, string Pattern) shadingInfo = GetParagraphShading(targetParagraph!);
-
             result.ExpectedValue = $"颜色:{expectedColor}, 图案:{expectedPattern}";
-            result.ActualValue = $"颜色:{shadingInfo.Color}, 图案:{shadingInfo.Pattern}";
-            result.IsCorrect = (TextEquals(shadingInfo.Color, expectedColor) || ColorEquals(shadingInfo.Color, expectedColor)) &&
-                              TextEquals(shadingInfo.Pattern, expectedPattern);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = $"颜色:{actualShading.Color}, 图案:{actualShading.Pattern}";
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 底纹: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
