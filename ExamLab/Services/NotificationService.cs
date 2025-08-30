@@ -32,7 +32,33 @@ public static class NotificationService
     /// <param name="dialogAction">对话框操作</param>
     private static async Task EnqueueDialogAsync(Func<Task> dialogAction)
     {
-        _dialogQueue.Enqueue(dialogAction);
+        // 确保在UI线程上执行对话框操作
+        Func<Task> wrappedAction = async () =>
+        {
+            if (App.MainWindow?.DispatcherQueue.HasThreadAccess == true)
+            {
+                await dialogAction();
+            }
+            else
+            {
+                TaskCompletionSource tcs = new();
+                App.MainWindow?.DispatcherQueue.TryEnqueue(async () =>
+                {
+                    try
+                    {
+                        await dialogAction();
+                        tcs.SetResult();
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
+                await tcs.Task;
+            }
+        };
+
+        _dialogQueue.Enqueue(wrappedAction);
         await ProcessDialogQueueAsync();
     }
 
@@ -46,19 +72,42 @@ public static class NotificationService
     {
         TaskCompletionSource<T> tcs = new();
 
-        _dialogQueue.Enqueue(async () =>
+        // 确保在UI线程上执行对话框操作
+        Func<Task> wrappedAction = async () =>
         {
             try
             {
-                T result = await dialogFunc();
+                T result;
+                if (App.MainWindow?.DispatcherQueue.HasThreadAccess == true)
+                {
+                    result = await dialogFunc();
+                }
+                else
+                {
+                    TaskCompletionSource<T> uiTcs = new();
+                    App.MainWindow?.DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        try
+                        {
+                            T uiResult = await dialogFunc();
+                            uiTcs.SetResult(uiResult);
+                        }
+                        catch (Exception ex)
+                        {
+                            uiTcs.SetException(ex);
+                        }
+                    });
+                    result = await uiTcs.Task;
+                }
                 tcs.SetResult(result);
             }
             catch (Exception ex)
             {
                 tcs.SetException(ex);
             }
-        });
+        };
 
+        _dialogQueue.Enqueue(wrappedAction);
         _ = ProcessDialogQueueAsync();
         return await tcs.Task;
     }
@@ -99,7 +148,40 @@ public static class NotificationService
     /// <param name="dialog">要设置XamlRoot的ContentDialog</param>
     private static void SetDialogXamlRoot(ContentDialog dialog)
     {
-        dialog.XamlRoot = App.MainWindow?.Content.XamlRoot;
+        try
+        {
+            // 尝试多种方式获取XamlRoot
+            Microsoft.UI.Xaml.XamlRoot? xamlRoot = null;
+
+            // 方式1：从App.MainWindow获取
+            if (App.MainWindow?.Content?.XamlRoot != null)
+            {
+                xamlRoot = App.MainWindow.Content.XamlRoot;
+            }
+            // 方式2：从当前活动窗口获取
+            else if (Microsoft.UI.Xaml.Window.Current?.Content?.XamlRoot != null)
+            {
+                xamlRoot = Microsoft.UI.Xaml.Window.Current.Content.XamlRoot;
+            }
+            // 方式3：尝试从应用程序主窗口获取
+            else if (Microsoft.UI.Xaml.Application.Current is App app && app.MainWindow?.Content?.XamlRoot != null)
+            {
+                xamlRoot = app.MainWindow.Content.XamlRoot;
+            }
+
+            if (xamlRoot != null)
+            {
+                dialog.XamlRoot = xamlRoot;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Warning: Could not find XamlRoot for ContentDialog");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error setting XamlRoot for ContentDialog: {ex.Message}");
+        }
     }
     /// <summary>
     /// 显示成功消息
