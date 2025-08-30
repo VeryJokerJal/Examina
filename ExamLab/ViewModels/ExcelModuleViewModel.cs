@@ -52,6 +52,11 @@ public class ExcelModuleViewModel : ModuleViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> ClearDocumentFilePathCommand { get; }
 
+    /// <summary>
+    /// 生成Excel文档命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> GenerateExcelDocumentCommand { get; }
+
     public ExcelModuleViewModel(ExamModule module) : base(module)
     {
         // 初始化可用知识点
@@ -66,6 +71,7 @@ public class ExcelModuleViewModel : ModuleViewModelBase
         EditOperationPointCommand = ReactiveCommand.Create<OperationPoint>(EditOperationPoint);
         SelectDocumentFileCommand = ReactiveCommand.CreateFromTask(SelectDocumentFileAsync);
         ClearDocumentFilePathCommand = ReactiveCommand.Create(ClearDocumentFilePath);
+        GenerateExcelDocumentCommand = ReactiveCommand.CreateFromTask(GenerateExcelDocumentAsync);
     }
 
     protected override void AddOperationPoint()
@@ -314,5 +320,44 @@ public class ExcelModuleViewModel : ModuleViewModelBase
 
         string extension = Path.GetExtension(file.Name).ToLowerInvariant();
         return extension == ".xlsx" || extension == ".xls" || extension == ".xlsm" || extension == ".xlsb";
+    }
+
+    /// <summary>
+    /// 生成Excel文档
+    /// </summary>
+    /// <returns>异步任务</returns>
+    private async Task GenerateExcelDocumentAsync()
+    {
+        try
+        {
+            // 检查是否有操作点
+            if (!OperationPoints.Any())
+            {
+                SetError("请先添加Excel操作点");
+                return;
+            }
+
+            // 创建Excel文档生成服务
+            IExcelDocumentGenerationService excelService = new ExcelDocumentGenerationService();
+
+            // 生成Excel文档
+            string outputPath = await excelService.GenerateExcelDocumentAsync(OperationPoints.ToList());
+
+            if (!string.IsNullOrEmpty(outputPath))
+            {
+                SetSuccess($"Excel文档已成功生成：{outputPath}");
+
+                // 可选：打开生成的文件
+                await Windows.System.Launcher.LaunchUriAsync(new Uri($"file:///{outputPath}"));
+            }
+            else
+            {
+                SetError("Excel文档生成失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            SetError($"生成Excel文档时发生错误：{ex.Message}");
+        }
     }
 }
