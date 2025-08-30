@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
-using System.Threading.Tasks;
-using Microsoft.Win32;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
+using IWshRuntimeLibrary;
+using Microsoft.Win32;
+using File = System.IO.File;
 
 namespace BenchSuite.Services;
 
@@ -303,7 +300,10 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             RegistryKey? root = GetRegistryRoot(rootKey);
-            if (root == null) return false;
+            if (root == null)
+            {
+                return false;
+            }
 
             using RegistryKey? key = root.OpenSubKey(keyPath);
             return key != null;
@@ -322,7 +322,10 @@ public class WindowsScoringService : IWindowsScoringService
         try
         {
             RegistryKey? root = GetRegistryRoot(rootKey);
-            if (root == null) return null;
+            if (root == null)
+            {
+                return null;
+            }
 
             using RegistryKey? key = root.OpenSubKey(keyPath);
             return key?.GetValue(valueName);
@@ -564,8 +567,7 @@ public class WindowsScoringService : IWindowsScoringService
         KnowledgePointResult result = new() { IsCorrect = false };
 
         // 支持多种参数名称：FilePath（BS标准）和TargetPath（EL导出）
-        string? filePath = null;
-        if (parameters.TryGetValue("FilePath", out filePath) && !string.IsNullOrEmpty(filePath))
+        if (parameters.TryGetValue("FilePath", out string? filePath) && !string.IsNullOrEmpty(filePath))
         {
             // 使用BS标准参数名
         }
@@ -922,7 +924,7 @@ public class WindowsScoringService : IWindowsScoringService
     {
         KnowledgePointResult result = new() { IsCorrect = false };
 
-        if (!parameters.TryGetValue("SourcePath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
+        if (!parameters.TryGetValue("OriginalPath", out string? sourcePath) || string.IsNullOrEmpty(sourcePath))
         {
             result.ErrorMessage = "缺少源路径参数";
             return result;
@@ -948,7 +950,7 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        string newPath = Path.Combine(directory, newName);
+        string newPath = Path.Combine(directory, newName.TrimStart('\\'));
 
         // 根据项目类型检测重命名操作
         switch (itemType)
@@ -1285,23 +1287,48 @@ public class WindowsScoringService : IWindowsScoringService
             return result;
         }
 
-        // 检查是否有TargetPath参数（ExamLab新格式）
+        // 确保后缀为 .lnk
+        if (!shortcutPath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+        {
+            shortcutPath += ".lnk";
+        }
+
         if (parameters.TryGetValue("TargetPath", out string? targetPath) && !string.IsNullOrEmpty(targetPath))
         {
-            // 验证快捷方式是否存在且指向正确的目标
-            bool shortcutExists = FileExists(shortcutPath) && Path.GetExtension(shortcutPath).Equals(".lnk", StringComparison.OrdinalIgnoreCase);
-            bool targetExists = FileExists(targetPath) || DirectoryExists(targetPath);
+            // 验证快捷方式是否存在且是否真正指向 targetPath
+            bool shortcutExists = FileExists(shortcutPath);
 
-            result.IsCorrect = shortcutExists && targetExists;
-            result.Details = result.IsCorrect ?
-                $"快捷方式 {shortcutPath} 已创建，指向 {targetPath}" :
-                $"快捷方式创建不完整 - 快捷方式存在: {shortcutExists}, 目标存在: {targetExists}";
+            string? realTarget = null;
+            if (shortcutExists)
+            {
+                try
+                {
+                    WshShell shell = new();
+                    IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
+                    realTarget = shortcut.TargetPath;
+                }
+                catch (Exception ex)
+                {
+                    result.ErrorMessage = $"读取快捷方式失败: {ex.Message}";
+                }
+            }
+
+            bool isCorrectTarget = !string.IsNullOrEmpty(realTarget) &&
+                                   string.Equals(Path.GetFullPath(realTarget), Path.GetFullPath(targetPath), StringComparison.OrdinalIgnoreCase);
+
+            result.IsCorrect = shortcutExists && isCorrectTarget;
+            result.Details = result.IsCorrect
+                ? $"快捷方式 {shortcutPath} 已创建，且指向正确的目标 {targetPath}"
+                : $"快捷方式存在: {shortcutExists}, 实际目标: {realTarget ?? "未知"}, 期望目标: {targetPath}";
         }
         else
         {
             // 向后兼容：只检查快捷方式是否存在
-            result.IsCorrect = FileExists(shortcutPath) && Path.GetExtension(shortcutPath).Equals(".lnk", StringComparison.OrdinalIgnoreCase);
-            result.Details = result.IsCorrect ? $"快捷方式 {shortcutPath} 已创建" : $"快捷方式 {shortcutPath} 不存在";
+            result.IsCorrect = FileExists(shortcutPath) &&
+                               Path.GetExtension(shortcutPath).Equals(".lnk", StringComparison.OrdinalIgnoreCase);
+            result.Details = result.IsCorrect
+                ? $"快捷方式 {shortcutPath} 已创建"
+                : $"快捷方式 {shortcutPath} 不存在";
         }
 
         return result;

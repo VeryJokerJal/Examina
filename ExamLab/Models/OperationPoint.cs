@@ -31,8 +31,7 @@ public enum PowerPointKnowledgeType
     DeleteSlide = 2,              // 知识点2：删除幻灯片
     InsertSlide = 3,              // 知识点3：插入幻灯片
     SetSlideFont = 4,             // 知识点4：设置幻灯片的字体
-    SlideTransitionEffect = 5,    // 知识点5：幻灯片切换效果
-    SlideTransitionMode = 6,      // 知识点6：设置幻灯片切换方式
+    SlideTransitionEffect = 5,    // 知识点5：幻灯片切换（合并原有的切换效果和切换方式）
     SlideshowMode = 7,            // 知识点7：幻灯片放映方式
     SlideshowOptions = 8,         // 知识点8：幻灯片放映选项
     InsertHyperlink = 9,          // 知识点9：幻灯片插入超链接

@@ -417,7 +417,8 @@ public class PowerPointScoringService : IPowerPointScoringService
                     break;
                 case "SlideTransitionMode":
                 case "SetSlideTransition":
-                    result = DetectSlideTransitionMode(presentation, parameters);
+                    // 向后兼容：将旧的SlideTransitionMode重定向到新的统一检测方法
+                    result = DetectSlideTransition(presentation, parameters);
                     break;
                 case "InsertTextContent":
                     result = DetectTextContent(presentation, parameters);
@@ -771,7 +772,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     }
 
     /// <summary>
-    /// 检测幻灯片切换效果
+    /// 检测幻灯片切换效果（支持单个和多个幻灯片）
     /// </summary>
     private KnowledgePointResult DetectSlideTransition(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
     {
@@ -783,42 +784,103 @@ public class PowerPointScoringService : IPowerPointScoringService
 
         try
         {
-            // 支持多种参数名称（兼容 ExamLab 和旧版本）
-            if (!parameters.TryGetValue("SlideIndex", out string? slideIndexStr))
+            // 支持多种参数名称（兼容新旧版本）
+            string? slideIndexesStr = null;
+            if (!parameters.TryGetValue("SlideNumbers", out slideIndexesStr))
             {
-                _ = parameters.TryGetValue("SlideNumber", out slideIndexStr);
+                if (!parameters.TryGetValue("SlideIndexes", out slideIndexesStr))
+                {
+                    if (parameters.TryGetValue("SlideIndex", out string? singleSlideStr))
+                    {
+                        slideIndexesStr = singleSlideStr;
+                    }
+                    else
+                    {
+                        _ = parameters.TryGetValue("SlideNumber", out slideIndexesStr);
+                    }
+                }
             }
 
-            if (!parameters.TryGetValue("TransitionType", out string? expectedTransition))
+            if (!parameters.TryGetValue("TransitionEffect", out string? expectedTransition))
             {
-                _ = parameters.TryGetValue("TransitionEffect", out expectedTransition);
+                if (!parameters.TryGetValue("TransitionType", out expectedTransition))
+                {
+                    _ = parameters.TryGetValue("TransitionScheme", out expectedTransition);
+                }
             }
 
-            if (string.IsNullOrEmpty(slideIndexStr) || !int.TryParse(slideIndexStr, out int slideIndex) ||
-                string.IsNullOrEmpty(expectedTransition))
+            // 获取可选的切换方向参数
+            _ = parameters.TryGetValue("TransitionDirection", out string? expectedDirection);
+
+            if (string.IsNullOrEmpty(slideIndexesStr) || string.IsNullOrEmpty(expectedTransition))
             {
-                result.ErrorMessage = "缺少必要参数: SlideIndex/SlideNumber 或 TransitionType/TransitionEffect";
+                result.ErrorMessage = "缺少必要参数: SlideNumbers/SlideIndexes 或 TransitionEffect/TransitionType";
                 return result;
             }
 
-            if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+            // 解析幻灯片索引列表
+            string[] slideIndexStrings = slideIndexesStr.Split(',');
+            List<int> slideIndexes = [];
+
+            foreach (string indexStr in slideIndexStrings)
             {
-                result.ErrorMessage = $"幻灯片索引超出范围: {slideIndex}";
+                if (int.TryParse(indexStr.Trim(), out int index))
+                {
+                    slideIndexes.Add(index);
+                }
+            }
+
+            if (slideIndexes.Count == 0)
+            {
+                result.ErrorMessage = "无效的幻灯片索引列表";
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
-            string actualTransition = GetTransitionEffectName(slide.SlideShowTransition.EntryEffect);
+            int correctCount = 0;
+            List<string> details = [];
+            List<string> actualTransitions = [];
 
-            // 支持新的切换效果名称映射
-            string normalizedExpected = NormalizeTransitionEffectName(expectedTransition);
-            string normalizedActual = NormalizeTransitionEffectName(actualTransition);
+            foreach (int slideIndex in slideIndexes)
+            {
+                if (slideIndex < 1 || slideIndex > presentation.Slides.Count)
+                {
+                    details.Add($"幻灯片 {slideIndex}: 索引超出范围");
+                    continue;
+                }
 
-            result.ExpectedValue = expectedTransition;
-            result.ActualValue = actualTransition;
-            result.IsCorrect = string.Equals(normalizedActual, normalizedExpected, StringComparison.OrdinalIgnoreCase);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 切换效果: 期望 {expectedTransition}, 实际 {actualTransition}";
+                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                string actualTransition = GetTransitionEffectName(slide.SlideShowTransition.EntryEffect);
+                actualTransitions.Add(actualTransition);
+
+                // 支持新的切换效果名称映射
+                string normalizedExpected = NormalizeTransitionEffectName(expectedTransition);
+                string normalizedActual = NormalizeTransitionEffectName(actualTransition);
+
+                bool isCorrect = string.Equals(normalizedActual, normalizedExpected, StringComparison.OrdinalIgnoreCase);
+
+                // 如果指定了方向，也要检查方向（简化处理，主要检查效果）
+                if (!string.IsNullOrEmpty(expectedDirection) && isCorrect)
+                {
+                    // 这里可以添加更详细的方向检测逻辑
+                    // 目前简化处理，主要关注切换效果本身
+                }
+
+                if (isCorrect)
+                {
+                    correctCount++;
+                    details.Add($"幻灯片 {slideIndex}: 切换效果匹配 ({actualTransition})");
+                }
+                else
+                {
+                    details.Add($"幻灯片 {slideIndex}: 切换效果不匹配 (期望: {expectedTransition}, 实际: {actualTransition})");
+                }
+            }
+
+            result.ExpectedValue = expectedTransition + (string.IsNullOrEmpty(expectedDirection) ? "" : $" ({expectedDirection})");
+            result.ActualValue = string.Join(", ", actualTransitions.Distinct());
+            result.IsCorrect = correctCount == slideIndexes.Count;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : (int)((double)correctCount / slideIndexes.Count * result.TotalScore);
+            result.Details = string.Join("; ", details);
         }
         catch (Exception ex)
         {

@@ -140,8 +140,7 @@
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="DeleteSlide" Content="删除幻灯片" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertSlide" Content="插入幻灯片" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSlideFont" Content="设置幻灯片字体" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionEffect" Content="幻灯片切换效果" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionMode" Content="幻灯片切换方式" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideTransitionEffect" Content="幻灯片切换" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideshowMode" Content="幻灯片放映方式" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SlideshowOptions" Content="幻灯片放映选项" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="InsertHyperlink" Content="插入超链接" />

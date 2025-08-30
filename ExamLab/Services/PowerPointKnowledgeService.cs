@@ -165,34 +165,19 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点5：幻灯片切换效果
+        // 知识点5：幻灯片切换（合并原有的切换效果和切换方式）
         configs[PowerPointKnowledgeType.SlideTransitionEffect] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SlideTransitionEffect,
-            Name = "幻灯片切换效果",
-            Description = "设置幻灯片的切换效果",
+            Name = "幻灯片切换",
+            Description = "设置幻灯片的切换效果和方向",
             Category = "幻灯片操作",
             ParameterTemplates =
             [
                 new() { Name = "SlideNumbers", DisplayName = "幻灯片张数（可配置多个）", Description = "以逗号分隔，举例：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "TransitionEffect", DisplayName = "切换方式", Description = "选择切换效果", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "无,平滑,淡入淡出,擦入,推入,覆盖,切入,随机条纹,形状,显示,切出,变换,突出,帘式,布式,风,上拉帘幕,折叠,压碎,到达,页面卷曲,飞机,日式折纸,泡沫,蜂巢,百叶窗,时钟,涟漪,翻转,剥转,库,立方体,门,程,转盘,缩放,随机,平移,传送系统,传送,旋转,宫口,轨道,飞过" }
-            ]
-        };
-
-        // 知识点6：设置幻灯片切换方式
-        configs[PowerPointKnowledgeType.SlideTransitionMode] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SlideTransitionMode,
-            Name = "设置幻灯片切换方式",
-            Description = "设置幻灯片的切换方案和效果",
-            Category = "幻灯片操作",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumbers", DisplayName = "幻灯片张数（可配置多个）", Description = "以逗号分隔，举例：1,3,5", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "TransitionScheme", DisplayName = "幻灯片切换方案", Description = "选择切换方案", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "细微,华丽,动感内容" },
-                new() { Name = "TransitionDirection", DisplayName = "幻灯片切换效果", Description = "选择切换方向", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                new() { Name = "TransitionEffect", DisplayName = "切换效果", Description = "选择切换效果（基于COM组件PpEntryEffect枚举）", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "无,剪切,黑色剪切,随机,水平百叶窗,垂直百叶窗,棋盘交错横向,棋盘交错纵向,覆盖向左,覆盖向上,覆盖向右,覆盖向下,覆盖左上,覆盖右上,覆盖左下,覆盖右下,溶解,淡入淡出,揭开向左,揭开向上,揭开向右,揭开向下,揭开左上,揭开右上,揭开左下,揭开右下,水平随机条纹,垂直随机条纹,条纹左上,条纹右上,条纹左下,条纹右下,条纹左上2,条纹右上2,条纹左下2,条纹右下2,擦除向左,擦除向上,擦除向右,擦除向下,盒状向外,盒状向内,飞入向左,飞入向上,飞入向右,飞入向下,飞入左上,飞入右上,飞入左下,飞入右下,窥视向左,窥视向下,窥视向右,窥视向上,爬行向左,爬行向上,爬行向右,爬行向下,缩放进入,缩放进入轻微,缩放退出,缩放退出轻微,缩放中心,缩放底部,拉伸横向,拉伸向左,拉伸向上,拉伸向右,拉伸向下,旋转,螺旋,分割水平向外,分割水平向内,分割垂直向外,分割垂直向内,闪烁快速,闪烁中等,闪烁缓慢,出现,圆形向外,菱形向外,梳状水平,梳状垂直,平滑淡入,新闻快报,加号向外,推下,推左,推右,推上,楔形,轮1辐,轮2辐,轮3辐,轮4辐,轮8辐,轮反向1辐,涡流向左,涡流向上,涡流向右,涡流向下,涟漪中心,涟漪右上,涟漪左上,涟漪左下,涟漪右下" },
+                new() { Name = "TransitionDirection", DisplayName = "切换方向", Description = "选择切换方向（可选，适用于支持方向的效果）", Type = ParameterType.Enum, IsRequired = false, Order = 3,
                     EnumOptions = "向左,向右,向上,向下,从左上角,从右上角,从左下角,从右下角,水平向内,水平向外,垂直向内,垂直向外,顺时针,逆时针,从中心向外,从外向中心,随机方向" }
             ]
         };
