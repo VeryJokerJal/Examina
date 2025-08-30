@@ -3905,14 +3905,32 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             FrameProperties? framePr = paragraphProperties.GetFirstChild<FrameProperties>();
             if (framePr != null)
             {
-                System.Diagnostics.Debug.WriteLine($"[首字下沉] 找到FrameProperties");
+                System.Diagnostics.Debug.WriteLine($"[首字下沉] 找到FrameProperties: {framePr.OuterXml}");
+
+                // 检查XML中的dropCap属性
+                if (framePr.OuterXml.Contains("dropCap="))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(framePr.OuterXml, @"dropCap=""([^""]+)""");
+                    if (match.Success)
+                    {
+                        string dropCapValue = match.Groups[1].Value;
+                        System.Diagnostics.Debug.WriteLine($"[首字下沉] XML提取DropCap值: {dropCapValue}");
+
+                        return dropCapValue.ToLower() switch
+                        {
+                            "drop" => "首字下沉到段落中",
+                            "margin" => "首字下沉到页边距",
+                            _ => $"首字下沉({dropCapValue})"
+                        };
+                    }
+                }
 
                 if (framePr.DropCap?.Value != null)
                 {
                     string dropCapValue = framePr.DropCap.Value.ToString();
                     string lines = framePr.Lines?.Value.ToString() ?? "3";
 
-                    System.Diagnostics.Debug.WriteLine($"[首字下沉] DropCap值: {dropCapValue}, Lines: {lines}");
+                    System.Diagnostics.Debug.WriteLine($"[首字下沉] 枚举DropCap值: {dropCapValue}, Lines: {lines}");
 
                     return dropCapValue switch
                     {
@@ -4058,39 +4076,45 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 {
                     string borderValue = string.Empty;
 
-                    if (topBorder.Val.HasValue)
+                    // 方法1：尝试直接获取XML属性值
+                    if (topBorder.OuterXml.Contains("val="))
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(topBorder.OuterXml, @"val=""([^""]+)""");
+                        if (match.Success)
+                        {
+                            borderValue = match.Groups[1].Value;
+                        }
+                    }
+
+                    // 方法2：尝试枚举值
+                    if (string.IsNullOrEmpty(borderValue) && topBorder.Val.HasValue)
                     {
                         borderValue = topBorder.Val.Value.ToString();
                     }
-                    else if (!string.IsNullOrEmpty(topBorder.Val.InnerText))
+
+                    // 方法3：尝试InnerText
+                    if (string.IsNullOrEmpty(borderValue) && !string.IsNullOrEmpty(topBorder.Val.InnerText))
                     {
                         borderValue = topBorder.Val.InnerText;
                     }
-                    else
-                    {
-                        borderValue = topBorder.Val.ToString() ?? string.Empty;
-                    }
 
-                    System.Diagnostics.Debug.WriteLine($"[边框样式] 原始值: '{borderValue}', HasValue: {topBorder.Val.HasValue}");
+                    System.Diagnostics.Debug.WriteLine($"[边框样式] XML: {topBorder.OuterXml}");
+                    System.Diagnostics.Debug.WriteLine($"[边框样式] 提取值: '{borderValue}', HasValue: {topBorder.Val.HasValue}");
 
                     if (!string.IsNullOrEmpty(borderValue) && borderValue != "BorderValues { }")
                     {
-                        return borderValue switch
+                        return borderValue.ToLower() switch
                         {
-                            "Single" => "单线",
-                            "Double" => "双线",
-                            "Dotted" => "点线",
-                            "Dashed" => "虚线",
-                            "DashDot" => "点划线",
-                            "DashDotDot" => "双点划线",
-                            "Triple" => "三线",
-                            "Thick" => "粗线",
-                            "Thin" => "细线",
-                            "Wave" => "波浪线",
                             "single" => "单线",
                             "double" => "双线",
                             "dotted" => "点线",
                             "dashed" => "虚线",
+                            "dashdot" => "点划线",
+                            "dashdotdot" => "双点划线",
+                            "triple" => "三线",
+                            "thick" => "粗线",
+                            "thin" => "细线",
+                            "wave" => "波浪线",
                             _ => $"边框样式({borderValue})"
                         };
                     }
@@ -4163,52 +4187,60 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 {
                     string patternValue = string.Empty;
 
-                    if (shading.Val.HasValue)
+                    // 方法1：尝试直接获取XML属性值
+                    if (shading.OuterXml.Contains("val="))
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(shading.OuterXml, @"val=""([^""]+)""");
+                        if (match.Success)
+                        {
+                            patternValue = match.Groups[1].Value;
+                        }
+                    }
+
+                    // 方法2：尝试枚举值
+                    if (string.IsNullOrEmpty(patternValue) && shading.Val.HasValue)
                     {
                         patternValue = shading.Val.Value.ToString();
                     }
-                    else if (!string.IsNullOrEmpty(shading.Val.InnerText))
+
+                    // 方法3：尝试InnerText
+                    if (string.IsNullOrEmpty(patternValue) && !string.IsNullOrEmpty(shading.Val.InnerText))
                     {
                         patternValue = shading.Val.InnerText;
                     }
-                    else
-                    {
-                        patternValue = shading.Val.ToString() ?? string.Empty;
-                    }
 
-                    System.Diagnostics.Debug.WriteLine($"[底纹图案] 原始值: '{patternValue}', HasValue: {shading.Val.HasValue}");
+                    System.Diagnostics.Debug.WriteLine($"[底纹图案] XML: {shading.OuterXml}");
+                    System.Diagnostics.Debug.WriteLine($"[底纹图案] 提取值: '{patternValue}', HasValue: {shading.Val.HasValue}");
 
                     if (!string.IsNullOrEmpty(patternValue) && patternValue != "ShadingPatternValues { }")
                     {
-                        pattern = patternValue switch
+                        pattern = patternValue.ToLower() switch
                         {
-                            "Clear" => "无图案",
-                            "Solid" => "实心",
-                            "Pct5" => "5%",
-                            "Pct10" => "10%",
-                            "Pct12" => "12.5%",
-                            "Pct15" => "15%",
-                            "Pct20" => "20%",
-                            "Pct25" => "25%",
-                            "Pct30" => "30%",
-                            "Pct35" => "35%",
-                            "Pct37" => "37.5%",
-                            "Pct40" => "40%",
-                            "Pct45" => "42.5%",
-                            "Pct50" => "50%",
-                            "Pct55" => "55%",
-                            "Pct60" => "60%",
-                            "Pct62" => "62.5%",
-                            "Pct65" => "65%",
-                            "Pct70" => "70%",
-                            "Pct75" => "75%",
-                            "Pct80" => "80%",
-                            "Pct85" => "85%",
-                            "Pct87" => "87.5%",
-                            "Pct90" => "90%",
-                            "Pct95" => "95%",
                             "clear" => "无图案",
                             "solid" => "实心",
+                            "pct5" => "5%",
+                            "pct10" => "10%",
+                            "pct12" => "12.5%",
+                            "pct15" => "15%",
+                            "pct20" => "20%",
+                            "pct25" => "25%",
+                            "pct30" => "30%",
+                            "pct35" => "35%",
+                            "pct37" => "37.5%",
+                            "pct40" => "40%",
+                            "pct45" => "42.5%",
+                            "pct50" => "50%",
+                            "pct55" => "55%",
+                            "pct60" => "60%",
+                            "pct62" => "62.5%",
+                            "pct65" => "65%",
+                            "pct70" => "70%",
+                            "pct75" => "75%",
+                            "pct80" => "80%",
+                            "pct85" => "85%",
+                            "pct87" => "87.5%",
+                            "pct90" => "90%",
+                            "pct95" => "95%",
                             _ => $"图案({patternValue})"
                         };
                     }
@@ -4376,41 +4408,46 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (justification?.Val != null)
             {
-                // 尝试多种方式获取对齐值
+                // 方法1：尝试直接获取XML属性值
                 string alignmentString = string.Empty;
 
-                if (justification.Val.HasValue)
+                // 检查XML中的val属性
+                if (justification.OuterXml.Contains("val="))
+                {
+                    // 使用正则表达式提取val属性值
+                    var match = System.Text.RegularExpressions.Regex.Match(justification.OuterXml, @"val=""([^""]+)""");
+                    if (match.Success)
+                    {
+                        alignmentString = match.Groups[1].Value;
+                    }
+                }
+
+                // 方法2：尝试枚举值
+                if (string.IsNullOrEmpty(alignmentString) && justification.Val.HasValue)
                 {
                     alignmentString = justification.Val.Value.ToString();
                 }
-                else if (!string.IsNullOrEmpty(justification.Val.InnerText))
+
+                // 方法3：尝试InnerText
+                if (string.IsNullOrEmpty(alignmentString) && !string.IsNullOrEmpty(justification.Val.InnerText))
                 {
                     alignmentString = justification.Val.InnerText;
                 }
-                else
-                {
-                    // 尝试获取原始字符串值
-                    alignmentString = justification.Val.ToString() ?? string.Empty;
-                }
 
-                System.Diagnostics.Debug.WriteLine($"[对齐检测] 原始值: '{alignmentString}', HasValue: {justification.Val.HasValue}");
+                System.Diagnostics.Debug.WriteLine($"[对齐检测] XML: {justification.OuterXml}");
+                System.Diagnostics.Debug.WriteLine($"[对齐检测] 提取值: '{alignmentString}', HasValue: {justification.Val.HasValue}");
 
                 if (!string.IsNullOrEmpty(alignmentString) && alignmentString != "JustificationValues { }")
                 {
-                    return alignmentString switch
+                    return alignmentString.ToLower() switch
                     {
-                        "Left" => "左对齐",
-                        "Center" => "居中",
-                        "Right" => "右对齐",
-                        "Both" => "两端对齐",
-                        "Distribute" => "分散对齐",
-                        "Start" => "左对齐",
-                        "End" => "右对齐",
                         "left" => "左对齐",
                         "center" => "居中",
                         "right" => "右对齐",
                         "both" => "两端对齐",
                         "distribute" => "分散对齐",
+                        "start" => "左对齐",
+                        "end" => "右对齐",
                         _ => $"未知对齐({alignmentString})"
                     };
                 }
