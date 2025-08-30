@@ -164,9 +164,9 @@ public static class NotificationService
                 xamlRoot = Microsoft.UI.Xaml.Window.Current.Content.XamlRoot;
             }
             // 方式3：尝试从应用程序主窗口获取
-            else if (Microsoft.UI.Xaml.Application.Current is App app && app.MainWindow?.Content?.XamlRoot != null)
+            else if (Microsoft.UI.Xaml.Application.Current is App && App.MainWindow?.Content?.XamlRoot != null)
             {
-                xamlRoot = app.MainWindow.Content.XamlRoot;
+                xamlRoot = App.MainWindow.Content.XamlRoot;
             }
 
             if (xamlRoot != null)
