@@ -193,21 +193,211 @@ public class WordDocumentGenerator : IDocumentGenerationService
         {
             switch (operationPoint.WordKnowledgeType.Value)
             {
+                // 段落操作
                 case WordKnowledgeType.SetParagraphFont:
                     ApplyParagraphFont(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetParagraphFontSize:
                     ApplyParagraphFontSize(body, operationPoint);
                     break;
+                case WordKnowledgeType.SetParagraphFontStyle:
+                    ApplyParagraphFontStyle(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphCharacterSpacing:
+                    ApplyParagraphCharacterSpacing(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphTextColor:
+                    ApplyParagraphTextColor(body, operationPoint);
+                    break;
                 case WordKnowledgeType.SetParagraphAlignment:
                     ApplyParagraphAlignment(body, operationPoint);
                     break;
+                case WordKnowledgeType.SetParagraphIndentation:
+                    ApplyParagraphIndentation(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphLineSpacing:
+                    ApplyParagraphLineSpacing(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphDropCap:
+                    ApplyParagraphDropCap(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphSpacing:
+                    ApplyParagraphSpacing(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphBorderColor:
+                    ApplyParagraphBorderColor(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphBorderStyle:
+                    ApplyParagraphBorderStyle(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphBorderWidth:
+                    ApplyParagraphBorderWidth(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetParagraphShading:
+                    ApplyParagraphShading(body, operationPoint);
+                    break;
+
+                // 页面设置
+                case WordKnowledgeType.SetPaperSize:
+                    ApplyPaperSize(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetPageMargins:
+                    ApplyPageMargins(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetHeaderText:
+                    ApplyHeaderText(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetHeaderFont:
+                    ApplyHeaderFont(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetHeaderFontSize:
+                    ApplyHeaderFontSize(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetHeaderAlignment:
+                    ApplyHeaderAlignment(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetFooterText:
+                    WordDocumentGeneratorExtensions.ApplyFooterText(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetFooterFont:
+                    WordDocumentGeneratorExtensions.ApplyFooterFont(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetFooterFontSize:
+                    WordDocumentGeneratorExtensions.ApplyFooterFontSize(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetFooterAlignment:
+                    WordDocumentGeneratorExtensions.ApplyFooterAlignment(document, operationPoint);
+                    break;
+
+                // 水印设置
                 case WordKnowledgeType.SetWatermarkText:
                     ApplyWatermark(document, operationPoint);
                     break;
+                case WordKnowledgeType.SetWatermarkFont:
+                    WordDocumentGeneratorExtensions.ApplyWatermarkFont(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetWatermarkFontSize:
+                    WordDocumentGeneratorExtensions.ApplyWatermarkFontSize(document, operationPoint);
+                    break;
+
+                // 表格操作
                 case WordKnowledgeType.SetTableRowsColumns:
                     ApplyTable(body, operationPoint);
                     break;
+                case WordKnowledgeType.SetTableShading:
+                    WordDocumentGeneratorExtensions.ApplyTableShading(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTableRowHeight:
+                    WordDocumentGeneratorExtensions.ApplyTableRowHeight(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTableColumnWidth:
+                    WordDocumentGeneratorExtensions.ApplyTableColumnWidth(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTableCellContent:
+                    WordDocumentGeneratorExtensions.ApplyTableCellContent(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTableCellAlignment:
+                    WordDocumentGeneratorExtensions.ApplyTableCellAlignment(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTableAlignment:
+                    WordDocumentGeneratorExtensions.ApplyTableAlignment(body, operationPoint);
+                    break;
+                case WordKnowledgeType.MergeTableCells:
+                    WordDocumentGeneratorExtensions.ApplyMergeTableCells(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTableHeaderContent:
+                    WordDocumentGeneratorExtensions.ApplyTableHeaderContent(body, operationPoint);
+                    break;
+
+                // 项目符号与编号
+                case WordKnowledgeType.SetBulletNumbering:
+                    WordDocumentGeneratorExtensions.ApplyBulletNumbering(body, operationPoint);
+                    break;
+
+                // 图形和图片设置
+                case WordKnowledgeType.InsertAutoShape:
+                    WordDocumentGeneratorExtensions.ApplyInsertAutoShape(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImageSize:
+                    WordDocumentGeneratorExtensions.ApplySetImageSize(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetShapeSize:
+                    WordDocumentGeneratorExtensions.ApplySetShapeSize(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetShapeLineColor:
+                    WordDocumentGeneratorExtensions.ApplySetShapeLineColor(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetShapeFillColor:
+                    WordDocumentGeneratorExtensions.ApplySetShapeFillColor(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetShapeTextSize:
+                    WordDocumentGeneratorExtensions.ApplySetShapeTextSize(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetShapeTextColor:
+                    WordDocumentGeneratorExtensions.ApplySetShapeTextColor(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetShapeTextContent:
+                    WordDocumentGeneratorExtensions.ApplySetShapeTextContent(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetShapePosition:
+                    WordDocumentGeneratorExtensions.ApplySetShapePosition(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImageBorderCompoundType:
+                    WordDocumentGeneratorExtensions.ApplySetImageBorderCompoundType(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImageBorderDashType:
+                    WordDocumentGeneratorExtensions.ApplySetImageBorderDashType(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImageBorderWidth:
+                    WordDocumentGeneratorExtensions.ApplySetImageBorderWidth(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImageBorderColor:
+                    WordDocumentGeneratorExtensions.ApplySetImageBorderColor(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImageShadow:
+                    WordDocumentGeneratorExtensions2.ApplySetImageShadow(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImageWrapStyle:
+                    WordDocumentGeneratorExtensions2.ApplySetImageWrapStyle(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetImagePosition:
+                    WordDocumentGeneratorExtensions2.ApplySetImagePosition(body, operationPoint);
+                    break;
+
+                // 文本框设置
+                case WordKnowledgeType.SetTextBoxBorderColor:
+                    WordDocumentGeneratorExtensions2.ApplySetTextBoxBorderColor(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTextBoxContent:
+                    WordDocumentGeneratorExtensions2.ApplySetTextBoxContent(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTextBoxTextSize:
+                    WordDocumentGeneratorExtensions2.ApplySetTextBoxTextSize(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTextBoxPosition:
+                    WordDocumentGeneratorExtensions2.ApplySetTextBoxPosition(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTextBoxWrapStyle:
+                    WordDocumentGeneratorExtensions2.ApplySetTextBoxWrapStyle(body, operationPoint);
+                    break;
+
+                // 其他操作
+                case WordKnowledgeType.FindAndReplace:
+                    WordDocumentGeneratorExtensions2.ApplyFindAndReplace(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetSpecificTextFontSize:
+                    WordDocumentGeneratorExtensions2.ApplySetSpecificTextFontSize(body, operationPoint);
+                    break;
+                case WordKnowledgeType.SetPageNumber:
+                    WordDocumentGeneratorExtensions2.ApplySetPageNumber(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetPageBackground:
+                    WordDocumentGeneratorExtensions2.ApplySetPageBackground(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetPageBorderColor:
+                    WordDocumentGeneratorExtensions2.ApplySetPageBorderColor(document, operationPoint);
+                    break;
+
                 default:
                     // 对于未实现的操作点，添加说明文本
                     AddOperationDescription(body, operationPoint);
@@ -249,19 +439,166 @@ public class WordDocumentGenerator : IDocumentGenerationService
     {
         string fontSize = GetParameterValue(operationPoint, "FontSize", "12");
         string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
-        
+
         // 转换字号为半点单位
         if (int.TryParse(fontSize, out int fontSizeInt))
         {
             Paragraph paragraph = new();
             Run run = new();
             RunProperties runProperties = new();
-            
+
             runProperties.Append(new FontSize() { Val = (fontSizeInt * 2).ToString() });
             run.Append(runProperties);
             run.Append(new Text($"这是第{paragraphNumberStr}段落，字号设置为：{fontSize}磅"));
-            
+
             paragraph.Append(run);
+            body.Append(paragraph);
+        }
+    }
+
+    /// <summary>
+    /// 应用段落字形设置
+    /// </summary>
+    private static void ApplyParagraphFontStyle(Body body, OperationPoint operationPoint)
+    {
+        string fontStyle = GetParameterValue(operationPoint, "FontStyle", "常规");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        RunProperties runProperties = new();
+
+        // 根据字形设置样式
+        switch (fontStyle)
+        {
+            case "加粗":
+                runProperties.Append(new Bold());
+                break;
+            case "斜体":
+                runProperties.Append(new Italic());
+                break;
+            case "加粗+斜体":
+                runProperties.Append(new Bold());
+                runProperties.Append(new Italic());
+                break;
+            case "下划线":
+                runProperties.Append(new Underline() { Val = UnderlineValues.Single });
+                break;
+            case "删除线":
+                runProperties.Append(new Strike());
+                break;
+        }
+
+        run.Append(runProperties);
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，字形设置为：{fontStyle}"));
+
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落字间距设置
+    /// </summary>
+    private static void ApplyParagraphCharacterSpacing(Body body, OperationPoint operationPoint)
+    {
+        string characterSpacing = GetParameterValue(operationPoint, "CharacterSpacing", "0");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        if (double.TryParse(characterSpacing, out double spacingValue))
+        {
+            Paragraph paragraph = new();
+            Run run = new();
+            RunProperties runProperties = new();
+
+            // 字间距以20分之一磅为单位
+            runProperties.Append(new Spacing() { Val = (int)(spacingValue * 20) });
+            run.Append(runProperties);
+            run.Append(new Text($"这是第{paragraphNumberStr}段落，字间距设置为：{characterSpacing}磅"));
+
+            paragraph.Append(run);
+            body.Append(paragraph);
+        }
+    }
+
+    /// <summary>
+    /// 应用段落文字颜色设置
+    /// </summary>
+    private static void ApplyParagraphTextColor(Body body, OperationPoint operationPoint)
+    {
+        string textColor = GetParameterValue(operationPoint, "TextColor", "#000000");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        RunProperties runProperties = new();
+
+        // 移除#号并设置颜色
+        string colorValue = textColor.TrimStart('#');
+        runProperties.Append(new Color() { Val = colorValue });
+        run.Append(runProperties);
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，文字颜色设置为：{textColor}"));
+
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落缩进设置
+    /// </summary>
+    private static void ApplyParagraphIndentation(Body body, OperationPoint operationPoint)
+    {
+        string firstLineIndent = GetParameterValue(operationPoint, "FirstLineIndent", "2");
+        string leftIndent = GetParameterValue(operationPoint, "LeftIndent", "0");
+        string rightIndent = GetParameterValue(operationPoint, "RightIndent", "0");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        ParagraphProperties paragraphProperties = new();
+        Indentation indentation = new();
+
+        // 缩进以字符为单位，转换为twips（1字符约等于240 twips）
+        if (double.TryParse(firstLineIndent, out double firstIndent))
+            indentation.FirstLine = ((int)(firstIndent * 240)).ToString();
+        if (double.TryParse(leftIndent, out double leftInd))
+            indentation.Left = ((int)(leftInd * 240)).ToString();
+        if (double.TryParse(rightIndent, out double rightInd))
+            indentation.Right = ((int)(rightInd * 240)).ToString();
+
+        paragraphProperties.Append(indentation);
+        paragraph.Append(paragraphProperties);
+
+        Run run = new();
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，缩进设置为：首行{firstLineIndent}字符，左{leftIndent}字符，右{rightIndent}字符"));
+        paragraph.Append(run);
+
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落行间距设置
+    /// </summary>
+    private static void ApplyParagraphLineSpacing(Body body, OperationPoint operationPoint)
+    {
+        string lineSpacing = GetParameterValue(operationPoint, "LineSpacing", "1.5");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        if (double.TryParse(lineSpacing, out double spacingValue))
+        {
+            Paragraph paragraph = new();
+            ParagraphProperties paragraphProperties = new();
+            SpacingBetweenLines spacing = new();
+
+            // 行间距以240分之一英寸为单位
+            spacing.Line = ((int)(spacingValue * 240)).ToString();
+            spacing.LineRule = LineSpacingRuleValues.Multiple;
+
+            paragraphProperties.Append(spacing);
+            paragraph.Append(paragraphProperties);
+
+            Run run = new();
+            run.Append(new Text($"这是第{paragraphNumberStr}段落，行间距设置为：{lineSpacing}倍"));
+            paragraph.Append(run);
+
             body.Append(paragraph);
         }
     }
@@ -375,11 +712,208 @@ public class WordDocumentGenerator : IDocumentGenerationService
     }
 
     /// <summary>
+    /// 应用段落首字下沉设置
+    /// </summary>
+    private static void ApplyParagraphDropCap(Body body, OperationPoint operationPoint)
+    {
+        string dropCapType = GetParameterValue(operationPoint, "DropCapType", "不使用下沉");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，首字下沉设置为：{dropCapType}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落间距设置
+    /// </summary>
+    private static void ApplyParagraphSpacing(Body body, OperationPoint operationPoint)
+    {
+        string spaceBefore = GetParameterValue(operationPoint, "SpaceBefore", "0");
+        string spaceAfter = GetParameterValue(operationPoint, "SpaceAfter", "6");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        ParagraphProperties paragraphProperties = new();
+        SpacingBetweenLines spacing = new();
+
+        if (double.TryParse(spaceBefore, out double beforeValue))
+            spacing.Before = ((int)(beforeValue * 20)).ToString(); // 转换为twips
+        if (double.TryParse(spaceAfter, out double afterValue))
+            spacing.After = ((int)(afterValue * 20)).ToString();
+
+        paragraphProperties.Append(spacing);
+        paragraph.Append(paragraphProperties);
+
+        Run run = new();
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，段前间距：{spaceBefore}磅，段后间距：{spaceAfter}磅"));
+        paragraph.Append(run);
+
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落边框颜色设置
+    /// </summary>
+    private static void ApplyParagraphBorderColor(Body body, OperationPoint operationPoint)
+    {
+        string borderColor = GetParameterValue(operationPoint, "BorderColor", "黑色");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，边框颜色设置为：{borderColor}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落边框样式设置
+    /// </summary>
+    private static void ApplyParagraphBorderStyle(Body body, OperationPoint operationPoint)
+    {
+        string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "单实线");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，边框样式设置为：{borderStyle}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落边框宽度设置
+    /// </summary>
+    private static void ApplyParagraphBorderWidth(Body body, OperationPoint operationPoint)
+    {
+        string borderWidth = GetParameterValue(operationPoint, "BorderWidth", "1磅");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，边框宽度设置为：{borderWidth}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用段落底纹设置
+    /// </summary>
+    private static void ApplyParagraphShading(Body body, OperationPoint operationPoint)
+    {
+        string shadingColor = GetParameterValue(operationPoint, "ShadingColor", "#FFFF00");
+        string shadingPattern = GetParameterValue(operationPoint, "ShadingPattern", "无纹理");
+        string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"这是第{paragraphNumberStr}段落，底纹颜色：{shadingColor}，图案：{shadingPattern}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用纸张大小设置
+    /// </summary>
+    private static void ApplyPaperSize(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string paperSize = GetParameterValue(operationPoint, "PaperSize", "A4纸");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页面设置] 纸张大小设置为：{paperSize}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用页边距设置
+    /// </summary>
+    private static void ApplyPageMargins(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string topMargin = GetParameterValue(operationPoint, "TopMargin", "72");
+        string bottomMargin = GetParameterValue(operationPoint, "BottomMargin", "72");
+        string leftMargin = GetParameterValue(operationPoint, "LeftMargin", "90");
+        string rightMargin = GetParameterValue(operationPoint, "RightMargin", "90");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页面设置] 页边距设置为：上{topMargin}磅，下{bottomMargin}磅，左{leftMargin}磅，右{rightMargin}磅"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用页眉文字设置
+    /// </summary>
+    private static void ApplyHeaderText(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string headerText = GetParameterValue(operationPoint, "HeaderText", "页眉内容");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页眉设置] 页眉文字：{headerText}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用页眉字体设置
+    /// </summary>
+    private static void ApplyHeaderFont(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string headerFont = GetParameterValue(operationPoint, "HeaderFont", "宋体");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页眉设置] 页眉字体：{headerFont}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用页眉字号设置
+    /// </summary>
+    private static void ApplyHeaderFontSize(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string headerFontSize = GetParameterValue(operationPoint, "HeaderFontSize", "10");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页眉设置] 页眉字号：{headerFontSize}磅"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用页眉对齐方式设置
+    /// </summary>
+    private static void ApplyHeaderAlignment(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string headerAlignment = GetParameterValue(operationPoint, "HeaderAlignment", "居中对齐");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页眉设置] 页眉对齐方式：{headerAlignment}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
     /// 获取操作点的显示名称
     /// </summary>
     private static string GetOperationDisplayName(OperationPoint operationPoint)
     {
-        return !string.IsNullOrEmpty(operationPoint.Name) ? operationPoint.Name : 
+        return !string.IsNullOrEmpty(operationPoint.Name) ? operationPoint.Name :
                operationPoint.WordKnowledgeType?.ToString() ?? "未知操作";
     }
 
