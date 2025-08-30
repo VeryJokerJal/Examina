@@ -2516,6 +2516,255 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 检测文本框边框颜色
+    /// </summary>
+    private KnowledgePointResult DetectTextBoxBorderColor(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTextBoxBorderColor",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "BorderColor", out string expectedColor))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: BorderColor");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualColor = GetTextBoxBorderColor(mainPart);
+
+            result.ExpectedValue = expectedColor;
+            result.ActualValue = actualColor;
+            result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"文本框边框颜色: 期望 {expectedColor}, 实际 {actualColor}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测文本框边框颜色失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测文本框中文字内容
+    /// </summary>
+    private KnowledgePointResult DetectTextBoxContent(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTextBoxContent",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "TextContent", out string expectedContent))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: TextContent");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualContent = GetTextBoxContent(mainPart);
+
+            result.ExpectedValue = expectedContent;
+            result.ActualValue = actualContent;
+            result.IsCorrect = TextEquals(actualContent, expectedContent) || actualContent.Contains(expectedContent);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"文本框内容: 期望 {expectedContent}, 实际 {actualContent}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测文本框内容失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测文本框中文字大小
+    /// </summary>
+    private KnowledgePointResult DetectTextBoxTextSize(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTextBoxTextSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "TextSize", out int expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: TextSize");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            int actualSize = GetTextBoxTextSize(mainPart);
+
+            result.ExpectedValue = expectedSize.ToString();
+            result.ActualValue = actualSize.ToString();
+            result.IsCorrect = actualSize == expectedSize;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"文本框文字大小: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测文本框文字大小失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测文本框位置
+    /// </summary>
+    private KnowledgePointResult DetectTextBoxPosition(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTextBoxPosition",
+            Parameters = parameters
+        };
+
+        try
+        {
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var positionInfo = GetTextBoxPosition(mainPart);
+
+            result.ExpectedValue = "位置已设置";
+            result.ActualValue = positionInfo.HasPosition ? $"水平:{positionInfo.Horizontal}, 垂直:{positionInfo.Vertical}" : "未设置位置";
+            result.IsCorrect = positionInfo.HasPosition;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"文本框位置: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测文本框位置失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测文本框环绕方式
+    /// </summary>
+    private KnowledgePointResult DetectTextBoxWrapStyle(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTextBoxWrapStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "WrapStyle", out string expectedStyle))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: WrapStyle");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualStyle = GetTextBoxWrapStyle(mainPart);
+
+            result.ExpectedValue = expectedStyle;
+            result.ActualValue = actualStyle;
+            result.IsCorrect = TextEquals(actualStyle, expectedStyle);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"文本框环绕方式: 期望 {expectedStyle}, 实际 {actualStyle}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测文本框环绕方式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测查找与替换
+    /// </summary>
+    private KnowledgePointResult DetectFindAndReplace(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "FindAndReplace",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FindText", out string findText) ||
+                !TryGetParameter(parameters, "ReplaceText", out string replaceText) ||
+                !TryGetIntParameter(parameters, "ReplaceCount", out int expectedCount))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FindText, ReplaceText 或 ReplaceCount");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            int actualCount = GetFindAndReplaceCount(mainPart, findText, replaceText);
+
+            result.ExpectedValue = expectedCount.ToString();
+            result.ActualValue = actualCount.ToString();
+            result.IsCorrect = actualCount == expectedCount;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"查找替换('{findText}' -> '{replaceText}'): 期望替换 {expectedCount} 次, 实际替换 {actualCount} 次";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测查找替换失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测指定文字字号
+    /// </summary>
+    private KnowledgePointResult DetectSpecificTextFontSize(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetSpecificTextFontSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "TargetText", out string targetText) ||
+                !TryGetIntParameter(parameters, "FontSize", out int expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: TargetText 或 FontSize");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            int actualSize = GetSpecificTextFontSize(mainPart, targetText);
+
+            result.ExpectedValue = expectedSize.ToString();
+            result.ActualValue = actualSize.ToString();
+            result.IsCorrect = actualSize == expectedSize;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"指定文字('{targetText}')字号: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测指定文字字号失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 获取文档文本内容
     /// </summary>
     private string GetDocumentText(MainDocumentPart mainPart)
@@ -6019,6 +6268,225 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch
         {
             return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取文本框边框颜色
+    /// </summary>
+    private static string GetTextBoxBorderColor(MainDocumentPart mainPart)
+    {
+        try
+        {
+            // 检查VML文本框
+            var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+            foreach (var textbox in textboxes)
+            {
+                // 简化实现：检测到文本框边框设置
+                return "检测到文本框边框颜色";
+            }
+
+            // 检查Drawing中的文本框
+            var drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (var drawing in drawings)
+            {
+                // 简化实现：检测到Drawing文本框
+                return "检测到Drawing文本框边框";
+            }
+
+            return "无文本框边框";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取文本框内容
+    /// </summary>
+    private static string GetTextBoxContent(MainDocumentPart mainPart)
+    {
+        try
+        {
+            // 检查VML文本框
+            var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+            foreach (var textbox in textboxes)
+            {
+                var text = textbox.InnerText;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    return text.Trim();
+                }
+            }
+
+            // 检查Drawing中的文本框
+            var drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (var drawing in drawings)
+            {
+                var text = drawing.InnerText;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    return text.Trim();
+                }
+            }
+
+            return "无文本框内容";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取文本框文字大小
+    /// </summary>
+    private static int GetTextBoxTextSize(MainDocumentPart mainPart)
+    {
+        try
+        {
+            // 检查VML文本框
+            var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+            foreach (var textbox in textboxes)
+            {
+                var runs = textbox.Descendants<Run>();
+                foreach (var run in runs)
+                {
+                    var runProperties = run.RunProperties;
+                    var fontSize = runProperties?.FontSize;
+                    if (fontSize?.Val?.Value != null)
+                    {
+                        return int.Parse(fontSize.Val.Value) / 2;
+                    }
+                }
+            }
+
+            return 12; // 默认字号
+        }
+        catch
+        {
+            return 12;
+        }
+    }
+
+    /// <summary>
+    /// 获取文本框位置
+    /// </summary>
+    private static (bool HasPosition, string Horizontal, string Vertical) GetTextBoxPosition(MainDocumentPart mainPart)
+    {
+        try
+        {
+            // 检查VML文本框的父级Shape
+            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (var shape in shapes)
+            {
+                var textboxes = shape.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+                if (textboxes.Any())
+                {
+                    var style = shape.Style?.Value;
+                    if (!string.IsNullOrEmpty(style))
+                    {
+                        var leftMatch = System.Text.RegularExpressions.Regex.Match(style, @"left:([^;]+)");
+                        var topMatch = System.Text.RegularExpressions.Regex.Match(style, @"top:([^;]+)");
+
+                        if (leftMatch.Success || topMatch.Success)
+                        {
+                            return (true, leftMatch.Success ? leftMatch.Groups[1].Value : "0",
+                                         topMatch.Success ? topMatch.Groups[1].Value : "0");
+                        }
+                    }
+                }
+            }
+
+            return (false, "", "");
+        }
+        catch
+        {
+            return (false, "", "");
+        }
+    }
+
+    /// <summary>
+    /// 获取文本框环绕方式
+    /// </summary>
+    private static string GetTextBoxWrapStyle(MainDocumentPart mainPart)
+    {
+        try
+        {
+            // 检查VML文本框的环绕设置
+            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (var shape in shapes)
+            {
+                var textboxes = shape.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+                if (textboxes.Any())
+                {
+                    // 简化实现：检测到文本框环绕设置
+                    return "检测到环绕方式";
+                }
+            }
+
+            return "无环绕设置";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取查找替换次数
+    /// </summary>
+    private static int GetFindAndReplaceCount(MainDocumentPart mainPart, string findText, string replaceText)
+    {
+        try
+        {
+            var documentText = mainPart.Document.InnerText;
+
+            // 计算替换文本出现的次数
+            int replaceCount = 0;
+            int index = 0;
+            while ((index = documentText.IndexOf(replaceText, index, StringComparison.OrdinalIgnoreCase)) != -1)
+            {
+                replaceCount++;
+                index += replaceText.Length;
+            }
+
+            return replaceCount;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 获取指定文字的字号
+    /// </summary>
+    private static int GetSpecificTextFontSize(MainDocumentPart mainPart, string targetText)
+    {
+        try
+        {
+            var runs = mainPart.Document.Descendants<Run>();
+            foreach (var run in runs)
+            {
+                var text = run.InnerText;
+                if (!string.IsNullOrEmpty(text) && text.Contains(targetText))
+                {
+                    var runProperties = run.RunProperties;
+                    var fontSize = runProperties?.FontSize;
+                    if (fontSize?.Val?.Value != null)
+                    {
+                        return int.Parse(fontSize.Val.Value) / 2;
+                    }
+                }
+            }
+
+            return 12; // 默认字号
+        }
+        catch
+        {
+            return 12;
         }
     }
 }

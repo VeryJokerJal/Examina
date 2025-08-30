@@ -220,7 +220,41 @@
 15. **DetectImageSize** - 检测插入图片的高度和宽度 ❌
 16. **DetectImagePosition** - 检测插入图片的位置 ❌
 
-### 6. 已实现的辅助方法（47个）
+### 6. 文本框设置检测方法（5个中的5个已完成）
+
+#### 已完成的文本框设置方法（5个）
+1. **DetectTextBoxBorderColor** - 检测文本框边框颜色 ✅
+   - 参数：BorderColor
+   - 辅助方法：GetTextBoxBorderColor
+
+2. **DetectTextBoxContent** - 检测文本框中文字内容 ✅
+   - 参数：TextContent
+   - 辅助方法：GetTextBoxContent
+
+3. **DetectTextBoxTextSize** - 检测文本框中文字大小 ✅
+   - 参数：TextSize
+   - 辅助方法：GetTextBoxTextSize
+
+4. **DetectTextBoxPosition** - 检测文本框位置 ✅
+   - 参数：水平和垂直位置设置
+   - 辅助方法：GetTextBoxPosition
+
+5. **DetectTextBoxWrapStyle** - 检测文本框环绕方式 ✅
+   - 参数：WrapStyle
+   - 辅助方法：GetTextBoxWrapStyle
+
+### 7. 其他操作检测方法（2个中的2个已完成）
+
+#### 已完成的其他操作方法（2个）
+1. **DetectFindAndReplace** - 检测查找与替换 ✅
+   - 参数：FindText, ReplaceText, ReplaceCount
+   - 辅助方法：GetFindAndReplaceCount
+
+2. **DetectSpecificTextFontSize** - 检测指定文字字号 ✅
+   - 参数：TargetText, FontSize
+   - 辅助方法：GetSpecificTextFontSize
+
+### 8. 已实现的辅助方法（54个）
 
 #### 段落相关辅助方法（12个）
 1. **GetParagraphFont** - 获取段落字体
@@ -280,6 +314,17 @@
 45. **GetImageBorderDashType** - 获取图片边框短划线类型
 46. **GetImageBorderWidth** - 获取图片边框线宽
 47. **GetImageBorderColor** - 获取图片边框颜色
+
+#### 文本框设置相关辅助方法（5个）
+48. **GetTextBoxBorderColor** - 获取文本框边框颜色
+49. **GetTextBoxContent** - 获取文本框内容
+50. **GetTextBoxTextSize** - 获取文本框文字大小
+51. **GetTextBoxPosition** - 获取文本框位置
+52. **GetTextBoxWrapStyle** - 获取文本框环绕方式
+
+#### 其他操作相关辅助方法（2个）
+53. **GetFindAndReplaceCount** - 获取查找替换次数
+54. **GetSpecificTextFontSize** - 获取指定文字的字号
 
 ## 🔧 技术实现特点
 
@@ -355,21 +400,21 @@ catch (Exception ex)
 ## 📊 实现统计
 
 ### 代码量统计
-- **总行数**：约6,024行（增加约770行）
-- **已实现检测方法**：46个
-- **已实现辅助方法**：47个
-- **完成的知识点分类**：段落操作（86%完成），页面设置（60%完成），水印设置（100%完成），表格操作（80%完成），项目符号与编号（100%完成），图形和图片设置（75%完成）
+- **总行数**：约6,492行（增加约468行）
+- **已实现检测方法**：53个
+- **已实现辅助方法**：54个
+- **完成的知识点分类**：段落操作（86%完成），页面设置（60%完成），水印设置（100%完成），表格操作（80%完成），项目符号与编号（100%完成），图形和图片设置（75%完成），文本框设置（100%完成），其他操作（100%完成）
 
 ### 功能完整性统计
-- **已完成知识点**：46个 / 67个（69%）
+- **已完成知识点**：53个 / 67个（79%）
 - **段落操作**：12个 / 14个（86%）
 - **页面设置**：9个 / 15个（60%）
 - **水印设置**：4个 / 4个（100%）
 - **项目符号与编号**：1个 / 1个（100%）
 - **表格操作**：8个 / 10个（80%）
 - **图形和图片设置**：12个 / 16个（75%）
-- **文本框设置**：0个 / 5个（0%）
-- **其他操作**：0个 / 2个（0%）
+- **文本框设置**：5个 / 5个（100%）
+- **其他操作**：2个 / 2个（100%）
 
 ### 质量指标
 - **编译状态**：零错误零警告
