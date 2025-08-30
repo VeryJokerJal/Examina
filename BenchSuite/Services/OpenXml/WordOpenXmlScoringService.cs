@@ -7104,7 +7104,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
-    /// 颜色相等比较
+    /// 智能颜色相等比较
+    /// 支持多种颜色格式：RGB、十六进制、颜色名称等
+    /// 支持颜色相似度比较和常见颜色别名
     /// </summary>
     private static bool ColorEquals(string actual, string expected)
     {
@@ -7114,7 +7116,291 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(expected))
             return false;
 
-        // 简化的颜色比较，可以根据需要扩展
-        return string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
+        // 标准化颜色值
+        var normalizedActual = NormalizeColor(actual.Trim());
+        var normalizedExpected = NormalizeColor(expected.Trim());
+
+        // 1. 直接字符串比较（大小写不敏感）
+        if (string.Equals(normalizedActual, normalizedExpected, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // 2. 尝试解析为RGB值进行相似度比较
+        if (TryParseColor(normalizedActual, out var actualRgb) &&
+            TryParseColor(normalizedExpected, out var expectedRgb))
+        {
+            return AreColorsSimilar(actualRgb, expectedRgb);
+        }
+
+        // 3. 检查颜色别名
+        return AreColorAliases(normalizedActual, normalizedExpected);
+    }
+
+    /// <summary>
+    /// 标准化颜色值，移除空格和特殊字符
+    /// </summary>
+    private static string NormalizeColor(string color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+            return string.Empty;
+
+        return color.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
+    }
+
+    /// <summary>
+    /// RGB颜色结构
+    /// </summary>
+    private struct RgbColor
+    {
+        public int R { get; set; }
+        public int G { get; set; }
+        public int B { get; set; }
+
+        public RgbColor(int r, int g, int b)
+        {
+            R = Math.Max(0, Math.Min(255, r));
+            G = Math.Max(0, Math.Min(255, g));
+            B = Math.Max(0, Math.Min(255, b));
+        }
+    }
+
+    /// <summary>
+    /// 尝试解析颜色字符串为RGB值
+    /// 支持格式：#RRGGBB、#RGB、rgb(r,g,b)、颜色名称
+    /// </summary>
+    private static bool TryParseColor(string colorString, out RgbColor rgb)
+    {
+        rgb = new RgbColor();
+
+        if (string.IsNullOrWhiteSpace(colorString))
+            return false;
+
+        var color = colorString.ToLowerInvariant();
+
+        // 1. 十六进制格式 #RRGGBB 或 #RGB
+        if (color.StartsWith("#"))
+        {
+            return TryParseHexColor(color, out rgb);
+        }
+
+        // 2. RGB格式 rgb(r,g,b)
+        if (color.StartsWith("rgb(") && color.EndsWith(")"))
+        {
+            return TryParseRgbFormat(color, out rgb);
+        }
+
+        // 3. 颜色名称
+        return TryParseColorName(color, out rgb);
+    }
+
+    /// <summary>
+    /// 解析十六进制颜色格式
+    /// </summary>
+    private static bool TryParseHexColor(string hexColor, out RgbColor rgb)
+    {
+        rgb = new RgbColor();
+
+        try
+        {
+            var hex = hexColor.Substring(1); // 移除 #
+
+            if (hex.Length == 3)
+            {
+                // #RGB 格式，扩展为 #RRGGBB
+                hex = $"{hex[0]}{hex[0]}{hex[1]}{hex[1]}{hex[2]}{hex[2]}";
+            }
+
+            if (hex.Length == 6)
+            {
+                var r = Convert.ToInt32(hex.Substring(0, 2), 16);
+                var g = Convert.ToInt32(hex.Substring(2, 2), 16);
+                var b = Convert.ToInt32(hex.Substring(4, 2), 16);
+                rgb = new RgbColor(r, g, b);
+                return true;
+            }
+        }
+        catch
+        {
+            // 解析失败
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 解析RGB格式 rgb(r,g,b)
+    /// </summary>
+    private static bool TryParseRgbFormat(string rgbString, out RgbColor rgb)
+    {
+        rgb = new RgbColor();
+
+        try
+        {
+            var content = rgbString.Substring(4, rgbString.Length - 5); // 移除 "rgb(" 和 ")"
+            var parts = content.Split(',');
+
+            if (parts.Length == 3)
+            {
+                var r = int.Parse(parts[0].Trim());
+                var g = int.Parse(parts[1].Trim());
+                var b = int.Parse(parts[2].Trim());
+                rgb = new RgbColor(r, g, b);
+                return true;
+            }
+        }
+        catch
+        {
+            // 解析失败
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 解析颜色名称为RGB值
+    /// </summary>
+    private static bool TryParseColorName(string colorName, out RgbColor rgb)
+    {
+        rgb = new RgbColor();
+
+        var colorMap = GetColorNameMap();
+        if (colorMap.TryGetValue(colorName, out var rgbValue))
+        {
+            rgb = rgbValue;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 获取颜色名称映射表
+    /// </summary>
+    private static Dictionary<string, RgbColor> GetColorNameMap()
+    {
+        return new Dictionary<string, RgbColor>(StringComparer.OrdinalIgnoreCase)
+        {
+            // 中文颜色名称
+            { "红色", new RgbColor(255, 0, 0) },
+            { "绿色", new RgbColor(0, 128, 0) },
+            { "蓝色", new RgbColor(0, 0, 255) },
+            { "黄色", new RgbColor(255, 255, 0) },
+            { "黑色", new RgbColor(0, 0, 0) },
+            { "白色", new RgbColor(255, 255, 255) },
+            { "灰色", new RgbColor(128, 128, 128) },
+            { "橙色", new RgbColor(255, 165, 0) },
+            { "紫色", new RgbColor(128, 0, 128) },
+            { "粉色", new RgbColor(255, 192, 203) },
+            { "棕色", new RgbColor(165, 42, 42) },
+            { "青色", new RgbColor(0, 255, 255) },
+
+            // 英文颜色名称
+            { "red", new RgbColor(255, 0, 0) },
+            { "green", new RgbColor(0, 128, 0) },
+            { "blue", new RgbColor(0, 0, 255) },
+            { "yellow", new RgbColor(255, 255, 0) },
+            { "black", new RgbColor(0, 0, 0) },
+            { "white", new RgbColor(255, 255, 255) },
+            { "gray", new RgbColor(128, 128, 128) },
+            { "grey", new RgbColor(128, 128, 128) },
+            { "orange", new RgbColor(255, 165, 0) },
+            { "purple", new RgbColor(128, 0, 128) },
+            { "pink", new RgbColor(255, 192, 203) },
+            { "brown", new RgbColor(165, 42, 42) },
+            { "cyan", new RgbColor(0, 255, 255) },
+            { "magenta", new RgbColor(255, 0, 255) },
+            { "lime", new RgbColor(0, 255, 0) },
+            { "navy", new RgbColor(0, 0, 128) },
+            { "maroon", new RgbColor(128, 0, 0) },
+            { "olive", new RgbColor(128, 128, 0) },
+            { "teal", new RgbColor(0, 128, 128) },
+            { "silver", new RgbColor(192, 192, 192) },
+
+            // 常见的深浅变体
+            { "darkred", new RgbColor(139, 0, 0) },
+            { "darkgreen", new RgbColor(0, 100, 0) },
+            { "darkblue", new RgbColor(0, 0, 139) },
+            { "lightred", new RgbColor(255, 102, 102) },
+            { "lightgreen", new RgbColor(144, 238, 144) },
+            { "lightblue", new RgbColor(173, 216, 230) },
+            { "lightgray", new RgbColor(211, 211, 211) },
+            { "darkgray", new RgbColor(169, 169, 169) }
+        };
+    }
+
+    /// <summary>
+    /// 比较两个RGB颜色是否相似
+    /// 使用欧几里得距离计算颜色差异，允许一定的容差
+    /// </summary>
+    private static bool AreColorsSimilar(RgbColor color1, RgbColor color2, double tolerance = 30.0)
+    {
+        // 计算RGB空间中的欧几里得距离
+        var distance = Math.Sqrt(
+            Math.Pow(color1.R - color2.R, 2) +
+            Math.Pow(color1.G - color2.G, 2) +
+            Math.Pow(color1.B - color2.B, 2)
+        );
+
+        return distance <= tolerance;
+    }
+
+    /// <summary>
+    /// 检查两个颜色字符串是否为已知的别名
+    /// </summary>
+    private static bool AreColorAliases(string color1, string color2)
+    {
+        var aliases = GetColorAliases();
+
+        foreach (var aliasGroup in aliases)
+        {
+            if (aliasGroup.Contains(color1, StringComparer.OrdinalIgnoreCase) &&
+                aliasGroup.Contains(color2, StringComparer.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 获取颜色别名组
+    /// </summary>
+    private static List<List<string>> GetColorAliases()
+    {
+        return new List<List<string>>
+        {
+            // 红色别名组
+            new List<string> { "红色", "red", "#ff0000", "#f00", "rgb(255,0,0)" },
+
+            // 绿色别名组
+            new List<string> { "绿色", "green", "#008000", "#080", "rgb(0,128,0)" },
+
+            // 蓝色别名组
+            new List<string> { "蓝色", "blue", "#0000ff", "#00f", "rgb(0,0,255)" },
+
+            // 黄色别名组
+            new List<string> { "黄色", "yellow", "#ffff00", "#ff0", "rgb(255,255,0)" },
+
+            // 黑色别名组
+            new List<string> { "黑色", "black", "#000000", "#000", "rgb(0,0,0)" },
+
+            // 白色别名组
+            new List<string> { "白色", "white", "#ffffff", "#fff", "rgb(255,255,255)" },
+
+            // 灰色别名组
+            new List<string> { "灰色", "gray", "grey", "#808080", "rgb(128,128,128)" },
+
+            // 橙色别名组
+            new List<string> { "橙色", "orange", "#ffa500", "rgb(255,165,0)" },
+
+            // 紫色别名组
+            new List<string> { "紫色", "purple", "#800080", "rgb(128,0,128)" },
+
+            // 粉色别名组
+            new List<string> { "粉色", "pink", "#ffc0cb", "rgb(255,192,203)" },
+
+            // 青色别名组
+            new List<string> { "青色", "cyan", "#00ffff", "#0ff", "rgb(0,255,255)" }
+        };
     }
 }
