@@ -2695,13 +2695,34 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有数据，认为有数据操作
+            string operationType = TryGetParameter(parameters, "OperationType", out string opType) ? opType : "";
+            string cellValues = TryGetParameter(parameters, "CellValues", out string values) ? values : "";
+
             foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
                 SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
                 if (sheetData?.HasChildren == true)
                 {
-                    return (true, "检测到单元格数据操作");
+                    // 检查是否有填充或复制操作的迹象
+                    var cellsWithData = sheetData.Descendants<Cell>().Where(c => !string.IsNullOrEmpty(c.CellValue?.Text)).ToList();
+
+                    if (cellsWithData.Count > 0)
+                    {
+                        // 检查是否有重复的值（可能是复制操作）
+                        var cellValueGroups = cellsWithData.GroupBy(c => c.CellValue?.Text).Where(g => g.Count() > 1);
+                        if (cellValueGroups.Any())
+                        {
+                            return (true, "检测到单元格复制操作");
+                        }
+
+                        // 检查是否有连续的数据填充
+                        if (CheckSequentialDataFill(cellsWithData))
+                        {
+                            return (true, "检测到单元格填充操作");
+                        }
+
+                        return (true, "检测到单元格数据操作");
+                    }
                 }
             }
             return (false, string.Empty);
@@ -2743,13 +2764,39 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有多行数据
+            string operationType = TryGetParameter(parameters, "OperationType", out string opType) ? opType : "";
+            string rowNumbers = TryGetParameter(parameters, "RowNumbers", out string rows) ? rows : "";
+
             foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
                 SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
-                if (sheetData?.Elements<Row>().Count() > 1)
+                if (sheetData?.HasChildren == true)
                 {
-                    return (true, "检测到多行数据操作");
+                    var rowList = sheetData.Elements<Row>().ToList();
+
+                    // 检查行数量变化（可能的插入/删除操作）
+                    if (rowList.Count > 1)
+                    {
+                        // 检查是否有非连续的行号（可能是插入操作）
+                        var rowIndexes = rowList.Where(r => r.RowIndex?.Value != null)
+                                               .Select(r => (int)r.RowIndex.Value)
+                                               .OrderBy(i => i)
+                                               .ToList();
+
+                        if (CheckNonSequentialRows(rowIndexes))
+                        {
+                            return (true, "检测到行插入/删除操作");
+                        }
+
+                        // 检查是否有空行（可能是删除操作的结果）
+                        var emptyRows = rowList.Where(r => !r.Elements<Cell>().Any(c => !string.IsNullOrEmpty(c.CellValue?.Text)));
+                        if (emptyRows.Any())
+                        {
+                            return (true, "检测到行删除操作痕迹");
+                        }
+
+                        return (true, "检测到多行数据操作");
+                    }
                 }
             }
             return (false, string.Empty);
@@ -2967,8 +3014,54 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
+            string expectedFormat = TryGetParameter(parameters, "NumberFormat", out string format) ? format : "";
+
             WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
-            return stylesPart?.Stylesheet?.NumberingFormats?.HasChildren == true;
+            if (stylesPart?.Stylesheet != null)
+            {
+                // 检查自定义数字格式
+                var numberingFormats = stylesPart.Stylesheet.NumberingFormats;
+                if (numberingFormats?.HasChildren == true)
+                {
+                    foreach (var numFormat in numberingFormats.Elements<NumberingFormat>())
+                    {
+                        string formatCode = numFormat.FormatCode?.Value ?? "";
+
+                        if (!string.IsNullOrEmpty(expectedFormat))
+                        {
+                            if (TextEquals(formatCode, expectedFormat) ||
+                                CheckNumberFormatMatch(formatCode, expectedFormat))
+                            {
+                                return true;
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(formatCode))
+                        {
+                            return true; // 有自定义格式
+                        }
+                    }
+                }
+
+                // 检查单元格格式中的数字格式
+                var cellFormats = stylesPart.Stylesheet.CellFormats;
+                if (cellFormats?.HasChildren == true)
+                {
+                    foreach (var cellFormat in cellFormats.Elements<CellFormat>())
+                    {
+                        if (cellFormat.NumberFormatId?.Value != null)
+                        {
+                            uint formatId = cellFormat.NumberFormatId.Value;
+                            // 检查是否使用了非默认的数字格式
+                            if (formatId > 0 && formatId != 164) // 164是默认的通用格式
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
         catch
         {
@@ -3047,11 +3140,34 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有排序状态
             foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
-                AutoFilter? autoFilter = worksheetPart.Worksheet.Elements<AutoFilter>().FirstOrDefault();
+                // 检查排序状态
+                var sortState = worksheetPart.Worksheet.Elements<SortState>().FirstOrDefault();
+                if (sortState != null)
+                {
+                    return true;
+                }
+
+                // 检查自动筛选（通常与排序相关）
+                var autoFilter = worksheetPart.Worksheet.Elements<AutoFilter>().FirstOrDefault();
                 if (autoFilter != null)
+                {
+                    // 检查是否有排序条件
+                    var filterColumns = autoFilter.Elements<FilterColumn>();
+                    foreach (var filterColumn in filterColumns)
+                    {
+                        // 检查是否有排序相关的筛选条件
+                        if (filterColumn.HasChildren)
+                        {
+                            return true;
+                        }
+                    }
+                    return true; // 有自动筛选就认为可能有排序
+                }
+
+                // 检查数据是否呈现排序特征
+                if (CheckDataSortingPattern(worksheetPart))
                 {
                     return true;
                 }
@@ -3755,22 +3871,60 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有SUBTOTAL函数
+            string groupByColumn = TryGetParameter(parameters, "GroupByColumn", out string groupCol) ? groupCol : "";
+            string summaryFunction = TryGetParameter(parameters, "SummaryFunction", out string sumFunc) ? sumFunc : "";
+            string summaryColumn = TryGetParameter(parameters, "SummaryColumn", out string sumCol) ? sumCol : "";
+
             foreach (var worksheetPart in workbookPart.WorksheetParts)
             {
                 var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
                 if (sheetData?.HasChildren == true)
                 {
+                    bool hasSubtotalFunction = false;
+                    bool hasGroupingStructure = false;
+
+                    // 检查SUBTOTAL函数
                     foreach (var row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
                     {
                         foreach (var cell in row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>())
                         {
                             var cellFormula = cell.CellFormula?.Text;
-                            if (!string.IsNullOrEmpty(cellFormula) && cellFormula.Contains("SUBTOTAL", StringComparison.OrdinalIgnoreCase))
+                            if (!string.IsNullOrEmpty(cellFormula))
                             {
-                                return true;
+                                if (cellFormula.Contains("SUBTOTAL", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    hasSubtotalFunction = true;
+                                }
+
+                                // 检查其他汇总函数
+                                if (!string.IsNullOrEmpty(summaryFunction))
+                                {
+                                    if (cellFormula.Contains(summaryFunction, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        hasSubtotalFunction = true;
+                                    }
+                                }
                             }
                         }
+                    }
+
+                    // 检查分组结构（行分组）
+                    var rowGroups = worksheetPart.Worksheet.Elements<RowBreaks>().FirstOrDefault();
+                    if (rowGroups != null)
+                    {
+                        hasGroupingStructure = true;
+                    }
+
+                    // 检查大纲级别（分组的另一种表现）
+                    var rowsWithOutlineLevel = sheetData.Elements<Row>().Where(r => r.OutlineLevel?.Value > 0);
+                    if (rowsWithOutlineLevel.Any())
+                    {
+                        hasGroupingStructure = true;
+                    }
+
+                    if (hasSubtotalFunction || hasGroupingStructure)
+                    {
+                        return true;
                     }
                 }
             }
@@ -3793,7 +3947,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             foreach (var worksheetPart in workbookPart.WorksheetParts)
             {
                 var autoFilter = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.AutoFilter>().FirstOrDefault();
-                if (autoFilter?.FilterColumn?.Any() == true)
+                if (autoFilter?.Elements<DocumentFormat.OpenXml.Spreadsheet.FilterColumn>().Any() == true)
                 {
                     return true;
                 }
@@ -3831,14 +3985,83 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             string expectedType = TryGetParameter(parameters, "ChartType", out string expected) ? expected : "";
 
+            // 检查工作表中的图表
             foreach (var worksheetPart in workbookPart.WorksheetParts)
             {
                 if (worksheetPart.DrawingsPart?.ChartParts.Any() == true)
                 {
-                    return (true, "图表类型存在");
+                    foreach (var chartPart in worksheetPart.DrawingsPart.ChartParts)
+                    {
+                        try
+                        {
+                            var chartSpace = chartPart.ChartSpace;
+                            if (chartSpace?.Chart?.PlotArea != null)
+                            {
+                                var plotArea = chartSpace.Chart.PlotArea;
+
+                                // 检查不同类型的图表
+                                if (plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>().Any())
+                                {
+                                    string chartType = "柱形图";
+                                    if (string.IsNullOrEmpty(expectedType) || TextEquals(chartType, expectedType) || expectedType.Contains("柱形"))
+                                    {
+                                        return (true, chartType);
+                                    }
+                                }
+
+                                if (plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>().Any())
+                                {
+                                    string chartType = "折线图";
+                                    if (string.IsNullOrEmpty(expectedType) || TextEquals(chartType, expectedType) || expectedType.Contains("折线"))
+                                    {
+                                        return (true, chartType);
+                                    }
+                                }
+
+                                if (plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>().Any())
+                                {
+                                    string chartType = "饼图";
+                                    if (string.IsNullOrEmpty(expectedType) || TextEquals(chartType, expectedType) || expectedType.Contains("饼"))
+                                    {
+                                        return (true, chartType);
+                                    }
+                                }
+
+                                if (plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ScatterChart>().Any())
+                                {
+                                    string chartType = "散点图";
+                                    if (string.IsNullOrEmpty(expectedType) || TextEquals(chartType, expectedType) || expectedType.Contains("散点"))
+                                    {
+                                        return (true, chartType);
+                                    }
+                                }
+
+                                if (plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.AreaChart>().Any())
+                                {
+                                    string chartType = "面积图";
+                                    if (string.IsNullOrEmpty(expectedType) || TextEquals(chartType, expectedType) || expectedType.Contains("面积"))
+                                    {
+                                        return (true, chartType);
+                                    }
+                                }
+
+                                // 如果有图表但类型不匹配
+                                if (string.IsNullOrEmpty(expectedType))
+                                {
+                                    return (true, "检测到图表");
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // 单个图表解析失败，继续检查其他图表
+                            continue;
+                        }
+                    }
                 }
             }
 
+            // 检查图表工作表
             if (workbookPart.ChartsheetParts.Any())
             {
                 return (true, "图表工作表存在");
@@ -4392,6 +4615,157 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         catch
         {
             return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 检查连续数据填充模式
+    /// </summary>
+    private bool CheckSequentialDataFill(List<Cell> cellsWithData)
+    {
+        try
+        {
+            // 检查是否有连续的数字序列
+            var numericCells = cellsWithData.Where(c =>
+            {
+                if (double.TryParse(c.CellValue?.Text, out double value))
+                {
+                    return true;
+                }
+                return false;
+            }).ToList();
+
+            if (numericCells.Count >= 3)
+            {
+                var values = numericCells.Select(c => double.Parse(c.CellValue.Text)).OrderBy(v => v).ToList();
+
+                // 检查是否是等差数列
+                double diff = values[1] - values[0];
+                for (int i = 2; i < values.Count; i++)
+                {
+                    if (Math.Abs((values[i] - values[i-1]) - diff) < 0.001)
+                    {
+                        return true; // 发现等差数列，可能是填充操作
+                    }
+                }
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查非连续行号
+    /// </summary>
+    private bool CheckNonSequentialRows(List<int> rowIndexes)
+    {
+        try
+        {
+            if (rowIndexes.Count < 2) return false;
+
+            for (int i = 1; i < rowIndexes.Count; i++)
+            {
+                if (rowIndexes[i] - rowIndexes[i-1] > 1)
+                {
+                    return true; // 发现跳跃的行号
+                }
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查数据排序模式
+    /// </summary>
+    private bool CheckDataSortingPattern(WorksheetPart worksheetPart)
+    {
+        try
+        {
+            var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+            if (sheetData?.HasChildren != true) return false;
+
+            var rows = sheetData.Elements<Row>().Take(10).ToList(); // 检查前10行
+            if (rows.Count < 3) return false;
+
+            // 检查第一列的数据是否呈现排序特征
+            var firstColumnValues = new List<string>();
+            foreach (var row in rows)
+            {
+                var firstCell = row.Elements<Cell>().FirstOrDefault();
+                if (firstCell?.CellValue?.Text != null)
+                {
+                    firstColumnValues.Add(firstCell.CellValue.Text);
+                }
+            }
+
+            if (firstColumnValues.Count >= 3)
+            {
+                // 检查是否是升序或降序
+                bool isAscending = true;
+                bool isDescending = true;
+
+                for (int i = 1; i < firstColumnValues.Count; i++)
+                {
+                    int comparison = string.Compare(firstColumnValues[i], firstColumnValues[i-1], StringComparison.OrdinalIgnoreCase);
+                    if (comparison < 0) isAscending = false;
+                    if (comparison > 0) isDescending = false;
+                }
+
+                return isAscending || isDescending;
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查数字格式匹配
+    /// </summary>
+    private bool CheckNumberFormatMatch(string formatCode, string expectedFormat)
+    {
+        try
+        {
+            // 常见数字格式的匹配
+            var formatMappings = new Dictionary<string, string[]>
+            {
+                { "货币", new[] { "¥", "$", "€", "currency", "money" } },
+                { "百分比", new[] { "%", "percent", "percentage" } },
+                { "日期", new[] { "yyyy", "mm", "dd", "date", "年", "月", "日" } },
+                { "时间", new[] { "hh", "mm", "ss", "time", "时", "分", "秒" } },
+                { "科学计数", new[] { "E+", "E-", "scientific", "科学" } },
+                { "分数", new[] { "/", "fraction", "分数" } },
+                { "文本", new[] { "@", "text", "文本" } }
+            };
+
+            string lowerFormatCode = formatCode.ToLowerInvariant();
+            string lowerExpected = expectedFormat.ToLowerInvariant();
+
+            foreach (var mapping in formatMappings)
+            {
+                if (TextEquals(mapping.Key, expectedFormat))
+                {
+                    return mapping.Value.Any(pattern => lowerFormatCode.Contains(pattern));
+                }
+            }
+
+            return lowerFormatCode.Contains(lowerExpected);
+        }
+        catch
+        {
+            return false;
         }
     }
 }
