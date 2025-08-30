@@ -536,13 +536,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                     result = DetectSpecificTextFontSize(document, parameters);
                     break;
 
-                // 补充段落操作的剩余方法
-                case "SetParagraphAlignment":
-                    result = DetectParagraphAlignment(document, parameters);
-                    break;
-                case "SetParagraphSpacing":
-                    result = DetectParagraphSpacing(document, parameters);
-                    break;
+                // 段落操作方法已全部实现
 
                 default:
                     result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
