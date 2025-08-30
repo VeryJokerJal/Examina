@@ -6328,18 +6328,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
             foreach (var shape in shapes)
             {
-                var textboxes = shape.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-                foreach (var textbox in textboxes)
+                // 简化实现：检查形状中的文本格式
+                var runs = shape.Descendants<Run>();
+                foreach (var run in runs)
                 {
-                    var runs = textbox.Descendants<Run>();
-                    foreach (var run in runs)
+                    var runProperties = run.RunProperties;
+                    var fontSize = runProperties?.FontSize;
+                    if (fontSize?.Val?.Value != null)
                     {
-                        var runProperties = run.RunProperties;
-                        var fontSize = runProperties?.FontSize;
-                        if (fontSize?.Val?.Value != null)
-                        {
-                            return int.Parse(fontSize.Val.Value) / 2;
-                        }
+                        return int.Parse(fontSize.Val.Value) / 2;
                     }
                 }
             }
@@ -6362,18 +6359,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
             foreach (var shape in shapes)
             {
-                var textboxes = shape.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-                foreach (var textbox in textboxes)
+                // 简化实现：检查形状中的文本颜色
+                var runs = shape.Descendants<Run>();
+                foreach (var run in runs)
                 {
-                    var runs = textbox.Descendants<Run>();
-                    foreach (var run in runs)
+                    var runProperties = run.RunProperties;
+                    var color = runProperties?.Color;
+                    if (color?.Val?.Value != null)
                     {
-                        var runProperties = run.RunProperties;
-                        var color = runProperties?.Color;
-                        if (color?.Val?.Value != null)
-                        {
-                            return color.Val.Value;
-                        }
+                        return color.Val.Value;
                     }
                 }
             }
@@ -6396,14 +6390,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
             foreach (var shape in shapes)
             {
-                var textboxes = shape.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-                foreach (var textbox in textboxes)
+                // 简化实现：检查形状中的文本内容
+                var text = shape.InnerText;
+                if (!string.IsNullOrEmpty(text))
                 {
-                    var text = textbox.InnerText;
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        return text.Trim();
-                    }
+                    return text.Trim();
                 }
             }
 
