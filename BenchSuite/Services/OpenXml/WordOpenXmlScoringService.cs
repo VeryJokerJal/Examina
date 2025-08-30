@@ -95,11 +95,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 {
                     kpResult.QuestionId = questionId;
 
-                    // 查找题目标题并设置更多题目信息
+                    // 查找题目标题用于调试信息（KnowledgePointResult模型中没有QuestionTitle属性）
                     QuestionModel? question = wordModule.Questions.FirstOrDefault(q => q.Id == questionId);
                     if (question != null)
                     {
-                        kpResult.QuestionTitle = question.Title;
                         System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 知识点 '{kpResult.KnowledgePointName}' 关联到题目 '{question.Title}' (ID: {questionId})");
                     }
                     else
