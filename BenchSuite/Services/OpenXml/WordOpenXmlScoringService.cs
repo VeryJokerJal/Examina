@@ -277,50 +277,101 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     /// </summary>
     protected override string MapOperationPointNameToKnowledgeType(string operationPointName)
     {
-        return operationPointName switch
+        // 创建完整的中文操作点名称到英文知识点类型的映射
+        Dictionary<string, string> nameToTypeMapping = new()
         {
-            // Word特定映射
-            var name when name.Contains("DocumentContent") => "SetDocumentContent",
-            var name when name.Contains("DocumentFont") => "SetDocumentFont",
-            var name when name.Contains("FontStyle") => "SetFontStyle",
-            var name when name.Contains("FontSize") => "SetFontSize",
-            var name when name.Contains("FontColor") => "SetFontColor",
-            var name when name.Contains("ParagraphAlignment") => "SetParagraphAlignment",
-            var name when name.Contains("LineSpacing") => "SetLineSpacing",
-            var name when name.Contains("ParagraphSpacing") => "SetParagraphSpacing",
-            var name when name.Contains("Indent") => "SetIndentation",
-            var name when name.Contains("BulletList") => "CreateBulletList",
-            var name when name.Contains("NumberedList") => "CreateNumberedList",
-            var name when name.Contains("InsertTable") => "InsertTable",
-            var name when name.Contains("TableStyle") => "SetTableStyle",
-            var name when name.Contains("TableBorder") => "SetTableBorder",
-            var name when name.Contains("InsertImage") => "InsertImage",
-            var name when name.Contains("ImagePosition") => "SetImagePosition",
-            var name when name.Contains("ImageSize") => "SetImageSize",
-            var name when name.Contains("HeaderFooter") => "SetHeaderFooter",
-            var name when name.Contains("PageNumber") => "SetPageNumber",
-            var name when name.Contains("PageMargin") => "SetPageMargin",
-            var name when name.Contains("PageOrientation") => "SetPageOrientation",
-            var name when name.Contains("PageSize") => "SetPageSize",
-            var name when name.Contains("Section") => "ManageSection",
-            var name when name.Contains("PageBreak") => "InsertPageBreak",
-            var name when name.Contains("ColumnBreak") => "InsertColumnBreak",
-            var name when name.Contains("Hyperlink") => "InsertHyperlink",
-            var name when name.Contains("Bookmark") => "InsertBookmark",
-            var name when name.Contains("CrossReference") => "InsertCrossReference",
-            var name when name.Contains("TableOfContents") => "InsertTableOfContents",
-            var name when name.Contains("Footnote") => "InsertFootnote",
-            var name when name.Contains("Endnote") => "InsertEndnote",
-            var name when name.Contains("Comment") => "InsertComment",
-            var name when name.Contains("TrackChanges") => "EnableTrackChanges",
-            var name when name.Contains("Protection") => "SetDocumentProtection",
-            var name when name.Contains("Watermark") => "SetWatermark",
-            var name when name.Contains("Background") => "SetPageBackground",
-            var name when name.Contains("Border") => "SetPageBorder",
-            var name when name.Contains("Style") => "ApplyStyle",
-            var name when name.Contains("Template") => "ApplyTemplate",
-            _ => base.MapOperationPointNameToKnowledgeType(operationPointName)
+            // 第一类：段落操作（14个）
+            { "设置段落的字体", "SetParagraphFont" },
+            { "设置段落的字号", "SetParagraphFontSize" },
+            { "设置段落的字形", "SetParagraphFontStyle" },
+            { "设置段落字间距", "SetParagraphCharacterSpacing" },
+            { "设置段落文字的颜色", "SetParagraphTextColor" },
+            { "设置段落对齐方式", "SetParagraphAlignment" },
+            { "设置段落缩进", "SetParagraphIndentation" },
+            { "设置行间距", "SetParagraphLineSpacing" },
+            { "首字下沉", "SetParagraphDropCap" },
+            { "设置段落间距", "SetParagraphSpacing" },
+            { "设置段落边框颜色", "SetParagraphBorderColor" },
+            { "设置段落边框样式", "SetParagraphBorderStyle" },
+            { "设置段落边框宽度", "SetParagraphBorderWidth" },
+            { "设置段落底纹", "SetParagraphShading" },
+
+            // 第二类：页面设置（15个）
+            { "设置纸张大小", "SetPaperSize" },
+            { "设置页边距", "SetPageMargins" },
+            { "设置页眉中的文字", "SetHeaderText" },
+            { "设置页眉中文字的字体", "SetHeaderFont" },
+            { "设置页眉中文字的字号", "SetHeaderFontSize" },
+            { "设置页眉中文字的对齐方式", "SetHeaderAlignment" },
+            { "设置页脚中的文字", "SetFooterText" },
+            { "设置页脚中文字的字体", "SetFooterFont" },
+            { "设置页脚中文字的字号", "SetFooterFontSize" },
+            { "设置页脚中文字的对齐方式", "SetFooterAlignment" },
+            { "设置页码", "SetPageNumber" },
+            { "设置页面背景", "SetPageBackground" },
+            { "设置页面边框颜色", "SetPageBorderColor" },
+            { "设置页面边框样式", "SetPageBorderStyle" },
+            { "设置页面边框宽度", "SetPageBorderWidth" },
+
+            // 第三类：水印设置（4个）
+            { "设置水印文字", "SetWatermarkText" },
+            { "设置水印文字的字体", "SetWatermarkFont" },
+            { "设置水印文字的字号", "SetWatermarkFontSize" },
+            { "设置水印文字水平或倾斜方式", "SetWatermarkOrientation" },
+
+            // 第四类：项目符号与编号（1个）
+            { "设置项目编号", "SetBulletNumbering" },
+
+            // 第五类：表格操作（10个）
+            { "设置表格的行数和列数", "SetTableRowsColumns" },
+            { "设置表格底纹", "SetTableShading" },
+            { "设置表格行高", "SetTableRowHeight" },
+            { "设置表格列宽", "SetTableColumnWidth" },
+            { "设置表格单元格内容", "SetTableCellContent" },
+            { "设置表格单元格对齐方式", "SetTableCellAlignment" },
+            { "设置表格对齐方式", "SetTableAlignment" },
+            { "合并表格单元格", "MergeTableCells" },
+            { "设置表格标题内容", "SetTableHeaderContent" },
+            { "设置表格标题对齐方式", "SetTableHeaderAlignment" },
+
+            // 第六类：图形和图片设置（16个）
+            { "插入自选图形类型", "InsertAutoShape" },
+            { "设置自选图形大小", "SetAutoShapeSize" },
+            { "设置自选图形线条颜色", "SetAutoShapeLineColor" },
+            { "设置自选图形填充颜色", "SetAutoShapeFillColor" },
+            { "设置自选图形文字大小", "SetAutoShapeTextSize" },
+            { "设置自选图形文字颜色", "SetAutoShapeTextColor" },
+            { "设置自选图形文字内容", "SetAutoShapeTextContent" },
+            { "设置自选图形位置", "SetAutoShapePosition" },
+            { "设置图片边框复合类型", "SetImageBorderCompoundType" },
+            { "设置图片边框虚线类型", "SetImageBorderDashType" },
+            { "设置图片边框宽度", "SetImageBorderWidth" },
+            { "设置图片边框颜色", "SetImageBorderColor" },
+            { "设置图片阴影", "SetImageShadow" },
+            { "设置图片环绕方式", "SetImageWrapStyle" },
+            { "设置图片位置", "SetImagePosition" },
+            { "设置插入图片的高度和宽度", "SetImageSize" },
+
+            // 第七类：文本框设置（5个）
+            { "设置文本框边框颜色", "SetTextBoxBorderColor" },
+            { "设置文本框中文字内容", "SetTextBoxContent" },
+            { "设置文本框中文字大小", "SetTextBoxTextSize" },
+            { "设置文本框位置", "SetTextBoxPosition" },
+            { "设置文本框环绕方式", "SetTextBoxWrapStyle" },
+
+            // 第八类：其他操作（2个）
+            { "查找与替换", "FindAndReplace" },
+            { "设置指定文字字号", "SetSpecificTextFontSize" }
         };
+
+        // 尝试精确匹配
+        if (nameToTypeMapping.TryGetValue(operationPointName, out string? exactMatch))
+        {
+            return exactMatch;
+        }
+
+        // 如果没有精确匹配，回退到基类处理
+        return base.MapOperationPointNameToKnowledgeType(operationPointName);
     }
 
     /// <summary>
