@@ -119,9 +119,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "FontFamily", DisplayName = "字体类型", Description = "选择字体", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri" }
+                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri", DefaultValue = "宋体" }
             ]
         };
 
@@ -134,8 +134,8 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "FontSize", DisplayName = "字号值", Description = "字体大小", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 8, MaxValue = 72 }
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
+                new() { Name = "FontSize", DisplayName = "字号值", Description = "字体大小", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 8, MaxValue = 72, DefaultValue = "12" }
             ]
         };
 
@@ -148,9 +148,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "FontStyle", DisplayName = "字形", Description = "选择字体样式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "常规,加粗,斜体,加粗+斜体,下划线,删除线" }
+                    EnumOptions = "常规,加粗,斜体,加粗+斜体,下划线,删除线", DefaultValue = "常规" }
             ]
         };
 
@@ -163,8 +163,8 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "CharacterSpacing", DisplayName = "字间距值", Description = "字符间距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -10, MaxValue = 50 }
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
+                new() { Name = "CharacterSpacing", DisplayName = "字间距值", Description = "字符间距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -10, MaxValue = 50, DefaultValue = "0" }
             ]
         };
 
@@ -177,8 +177,8 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
+                new() { Name = "TextColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 2, DefaultValue = "#000000" }
             ]
         };
 
@@ -191,9 +191,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "Alignment", DisplayName = "对齐方式", Description = "选择对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" }
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐", DefaultValue = "左对齐" }
             ]
         };
 
@@ -206,10 +206,10 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "FirstLineIndent", DisplayName = "首行缩进字符数", Description = "首行缩进值", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0, MaxValue = 10 },
-                new() { Name = "LeftIndent", DisplayName = "左缩进字符数", Description = "左缩进值", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 10 },
-                new() { Name = "RightIndent", DisplayName = "右缩进字符数", Description = "右缩进值", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0, MaxValue = 10 }
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
+                new() { Name = "FirstLineIndent", DisplayName = "首行缩进字符数", Description = "首行缩进值", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0, MaxValue = 10, DefaultValue = "2" },
+                new() { Name = "LeftIndent", DisplayName = "左缩进字符数", Description = "左缩进值", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 10, DefaultValue = "0" },
+                new() { Name = "RightIndent", DisplayName = "右缩进字符数", Description = "右缩进值", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0, MaxValue = 10, DefaultValue = "0" }
             ]
         };
 
@@ -222,8 +222,8 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "LineSpacing", DisplayName = "行间距值", Description = "行间距", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0.5, MaxValue = 5.0 }
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
+                new() { Name = "LineSpacing", DisplayName = "行间距值", Description = "行间距", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0.5, MaxValue = 5.0, DefaultValue = "1.5" }
             ]
         };
 
@@ -236,9 +236,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "DropCapType", DisplayName = "首字下沉形式", Description = "选择下沉形式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "不使用下沉,首字下沉到段落中,首字下沉到页边距" }
+                    EnumOptions = "不使用下沉,首字下沉到段落中,首字下沉到页边距", DefaultValue = "不使用下沉" }
             ]
         };
 
@@ -251,9 +251,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "SpaceBefore", DisplayName = "段前间距", Description = "段前间距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0, MaxValue = 100 },
-                new() { Name = "SpaceAfter", DisplayName = "段后间距", Description = "段后间距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 100 }
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
+                new() { Name = "SpaceBefore", DisplayName = "段前间距", Description = "段前间距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0, MaxValue = 100, DefaultValue = "0" },
+                new() { Name = "SpaceAfter", DisplayName = "段后间距", Description = "段后间距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 100, DefaultValue = "6" }
             ]
         };
 
@@ -266,9 +266,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "边框颜色", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "黑色,红色,蓝色,绿色,黄色,紫色,橙色,灰色,自动" }
+                    EnumOptions = "黑色,红色,蓝色,绿色,黄色,紫色,橙色,灰色,自动", DefaultValue = "黑色" }
             ]
         };
 
@@ -281,9 +281,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "BorderStyle", DisplayName = "边框样式", Description = "边框线型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "无,单实线,双线,点线,虚线,粗线,细线,波浪线" }
+                    EnumOptions = "无,单实线,双线,点线,虚线,粗线,细线,波浪线", DefaultValue = "单实线" }
             ]
         };
 
@@ -296,9 +296,9 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "BorderWidth", DisplayName = "边框宽度", Description = "边框线宽", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "0.25磅,0.5磅,0.75磅,1磅,1.5磅,2.25磅,3磅,4.5磅,6磅" }
+                    EnumOptions = "0.25磅,0.5磅,0.75磅,1磅,1.5磅,2.25磅,3磅,4.5磅,6磅", DefaultValue = "1磅" }
             ]
         };
 
@@ -311,11 +311,11 @@ public class WordKnowledgeService
             Category = "段落操作",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ParagraphNumber", DisplayName = "段落序号", Description = "第几个段落", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "-1" },
                 new() { Name = "ShadingColor", DisplayName = "底纹颜色", Description = "底纹填充颜色", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "无填充,白色,浅灰色,灰色,深灰色,黑色,红色,蓝色,绿色,黄色,紫色,橙色" },
+                    EnumOptions = "无填充,白色,浅灰色,灰色,深灰色,黑色,红色,蓝色,绿色,黄色,紫色,橙色", DefaultValue = "无填充" },
                 new() { Name = "ShadingPattern", DisplayName = "底纹图案", Description = "底纹图案样式", Type = ParameterType.Enum, IsRequired = false, Order = 3,
-                    EnumOptions = "实心,5%,10%,12.5%,15%,20%,25%,30%,37.5%,40%,50%,60%,62.5%,70%,75%,80%,85%,87.5%,90%,95%" }
+                    EnumOptions = "实心,5%,10%,12.5%,15%,20%,25%,30%,37.5%,40%,50%,60%,62.5%,70%,75%,80%,85%,87.5%,90%,95%", DefaultValue = "实心" }
             ]
         };
     }
@@ -332,7 +332,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "PaperSize", DisplayName = "纸张类型", Description = "选择纸张尺寸", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "A4纸,A3纸,B5纸,法律纸尺寸" }
+                    EnumOptions = "A4纸,A3纸,B5纸,法律纸尺寸", DefaultValue = "A4纸" }
             ]
         };
 
@@ -345,10 +345,10 @@ public class WordKnowledgeService
             Category = "页面设置",
             ParameterTemplates =
             [
-                new() { Name = "TopMargin", DisplayName = "上边距", Description = "上边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 0, MaxValue = 200 },
-                new() { Name = "BottomMargin", DisplayName = "下边距", Description = "下边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0, MaxValue = 200 },
-                new() { Name = "LeftMargin", DisplayName = "左边距", Description = "左边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 200 },
-                new() { Name = "RightMargin", DisplayName = "右边距", Description = "右边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0, MaxValue = 200 }
+                new() { Name = "TopMargin", DisplayName = "上边距", Description = "上边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 0, MaxValue = 200, DefaultValue = "72" },
+                new() { Name = "BottomMargin", DisplayName = "下边距", Description = "下边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 0, MaxValue = 200, DefaultValue = "72" },
+                new() { Name = "LeftMargin", DisplayName = "左边距", Description = "左边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, MaxValue = 200, DefaultValue = "90" },
+                new() { Name = "RightMargin", DisplayName = "右边距", Description = "右边距（磅）", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0, MaxValue = 200, DefaultValue = "90" }
             ]
         };
 
@@ -361,7 +361,7 @@ public class WordKnowledgeService
             Category = "页面设置",
             ParameterTemplates =
             [
-                new() { Name = "HeaderText", DisplayName = "页眉文字内容", Description = "页眉中显示的文字", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "HeaderText", DisplayName = "页眉文字内容", Description = "页眉中显示的文字", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "页眉内容" }
             ]
         };
 
@@ -375,7 +375,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "HeaderFont", DisplayName = "页眉字体名称", Description = "选择页眉字体", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri" }
+                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri", DefaultValue = "宋体" }
             ]
         };
 
@@ -388,7 +388,7 @@ public class WordKnowledgeService
             Category = "页面设置",
             ParameterTemplates =
             [
-                new() { Name = "HeaderFontSize", DisplayName = "字号数值", Description = "页眉字体大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72 }
+                new() { Name = "HeaderFontSize", DisplayName = "字号数值", Description = "页眉字体大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72, DefaultValue = "10" }
             ]
         };
 
@@ -402,7 +402,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "HeaderAlignment", DisplayName = "对齐方式", Description = "选择对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" }
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐", DefaultValue = "居中对齐" }
             ]
         };
 
@@ -415,7 +415,7 @@ public class WordKnowledgeService
             Category = "页面设置",
             ParameterTemplates =
             [
-                new() { Name = "FooterText", DisplayName = "页脚文字", Description = "页脚文字内容", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "FooterText", DisplayName = "页脚文字", Description = "页脚文字内容", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "页脚内容" }
             ]
         };
 
@@ -429,7 +429,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "FooterFont", DisplayName = "字体类型", Description = "页脚字体", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri" }
+                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri", DefaultValue = "宋体" }
             ]
         };
 
@@ -442,7 +442,7 @@ public class WordKnowledgeService
             Category = "页面设置",
             ParameterTemplates =
             [
-                new() { Name = "FooterFontSize", DisplayName = "字号数值", Description = "页脚字体大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72 }
+                new() { Name = "FooterFontSize", DisplayName = "字号数值", Description = "页脚字体大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72, DefaultValue = "10" }
             ]
         };
 
@@ -456,7 +456,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "FooterAlignment", DisplayName = "对齐方式", Description = "选择对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐" }
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐,分散对齐", DefaultValue = "居中对齐" }
             ]
         };
 
@@ -470,9 +470,9 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "PageNumberPosition", DisplayName = "页码位置", Description = "页码显示位置", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "页面顶端居中,页面顶端左侧,页面顶端右侧,页面底端居中,页面底端左侧,页面底端右侧" },
+                    EnumOptions = "页面顶端居中,页面顶端左侧,页面顶端右侧,页面底端居中,页面底端左侧,页面底端右侧", DefaultValue = "页面底端居中" },
                 new() { Name = "PageNumberFormat", DisplayName = "页码格式", Description = "页码数字格式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "1,2,3...,a,b,c...,A,B,C...,i,ii,iii...,I,II,III..." }
+                    EnumOptions = "1,2,3...,a,b,c...,A,B,C...,i,ii,iii...,I,II,III...", DefaultValue = "1,2,3..." }
             ]
         };
 
@@ -486,7 +486,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "BackgroundColor", DisplayName = "背景颜色", Description = "页面背景颜色", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "无填充,白色,浅灰色,灰色,深灰色,黑色,红色,蓝色,绿色,黄色,紫色,橙色" }
+                    EnumOptions = "无填充,白色,浅灰色,灰色,深灰色,黑色,红色,蓝色,绿色,黄色,紫色,橙色", DefaultValue = "无填充" }
             ]
         };
 
@@ -500,7 +500,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "页面边框颜色", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "黑色,红色,蓝色,绿色,黄色,紫色,橙色,灰色,自动" }
+                    EnumOptions = "黑色,红色,蓝色,绿色,黄色,紫色,橙色,灰色,自动", DefaultValue = "黑色" }
             ]
         };
 
@@ -514,7 +514,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "BorderStyle", DisplayName = "边框样式", Description = "页面边框线型", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "无,单实线,双线,点线,虚线,粗线,细线,波浪线,艺术型边框" }
+                    EnumOptions = "无,单实线,双线,点线,虚线,粗线,细线,波浪线,艺术型边框", DefaultValue = "单实线" }
             ]
         };
 
@@ -528,7 +528,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "BorderWidth", DisplayName = "边框宽度", Description = "页面边框线宽", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "0.25磅,0.5磅,0.75磅,1磅,1.5磅,2.25磅,3磅,4.5磅,6磅" }
+                    EnumOptions = "0.25磅,0.5磅,0.75磅,1磅,1.5磅,2.25磅,3磅,4.5磅,6磅", DefaultValue = "1磅" }
             ]
         };
     }
@@ -544,7 +544,7 @@ public class WordKnowledgeService
             Category = "水印设置",
             ParameterTemplates =
             [
-                new() { Name = "WatermarkText", DisplayName = "水印文字", Description = "水印显示的文字", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "WatermarkText", DisplayName = "水印文字", Description = "水印显示的文字", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "机密" }
             ]
         };
 
@@ -558,7 +558,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "WatermarkFont", DisplayName = "字体", Description = "选择水印字体", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri" }
+                    EnumOptions = "宋体,黑体,楷体,仿宋,微软雅黑,Arial,Times New Roman,Calibri", DefaultValue = "宋体" }
             ]
         };
 
@@ -571,7 +571,7 @@ public class WordKnowledgeService
             Category = "水印设置",
             ParameterTemplates =
             [
-                new() { Name = "WatermarkFontSize", DisplayName = "字号值", Description = "水印字体大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 144 }
+                new() { Name = "WatermarkFontSize", DisplayName = "字号值", Description = "水印字体大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 144, DefaultValue = "36" }
             ]
         };
 
@@ -584,7 +584,7 @@ public class WordKnowledgeService
             Category = "水印设置",
             ParameterTemplates =
             [
-                new() { Name = "WatermarkAngle", DisplayName = "水印文字倾斜角度", Description = "倾斜角度（度）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = -90, MaxValue = 90 }
+                new() { Name = "WatermarkAngle", DisplayName = "水印文字倾斜角度", Description = "倾斜角度（度）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = -90, MaxValue = 90, DefaultValue = "45" }
             ]
         };
     }
@@ -600,9 +600,9 @@ public class WordKnowledgeService
             Category = "项目符号与编号",
             ParameterTemplates =
             [
-                new() { Name = "ParagraphNumbers", DisplayName = "段落编号ID", Description = "用#分隔的段落编号，如：11#12#13", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "ParagraphNumbers", DisplayName = "段落编号ID", Description = "用#分隔的段落编号，如：11#12#13", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "1#2#3" },
                 new() { Name = "NumberingType", DisplayName = "项目编号类型", Description = "选择编号类型", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "项目符号,数字编号,多级编号,简单数字,小写字母编号,大写字母编号" }
+                    EnumOptions = "项目符号,数字编号,多级编号,简单数字,小写字母编号,大写字母编号", DefaultValue = "数字编号" }
             ]
         };
     }
@@ -618,8 +618,8 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "Rows", DisplayName = "行数", Description = "表格行数", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, MaxValue = 50 },
-                new() { Name = "Columns", DisplayName = "列数", Description = "表格列数", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, MaxValue = 20 }
+                new() { Name = "Rows", DisplayName = "行数", Description = "表格行数", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, MaxValue = 50, DefaultValue = "3" },
+                new() { Name = "Columns", DisplayName = "列数", Description = "表格列数", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, MaxValue = 20, DefaultValue = "3" }
             ]
         };
 
@@ -633,11 +633,11 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "AreaType", DisplayName = "行和列划分区域", Description = "选择区域类型", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "row,column" },
-                new() { Name = "AreaNumber", DisplayName = "第几行和第几列", Description = "按照参数一来判定", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "StartPosition", DisplayName = "起始列或起始行", Description = "起始位置", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
-                new() { Name = "EndPosition", DisplayName = "终止列或终止行", Description = "终止位置", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 },
-                new() { Name = "ShadingColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 5 }
+                    EnumOptions = "row,column", DefaultValue = "row" },
+                new() { Name = "AreaNumber", DisplayName = "第几行和第几列", Description = "按照参数一来判定", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "StartPosition", DisplayName = "起始列或起始行", Description = "起始位置", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "EndPosition", DisplayName = "终止列或终止行", Description = "终止位置", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "ShadingColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 5, DefaultValue = "#FFFF00" }
             ]
         };
 
@@ -650,11 +650,11 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "StartRow", DisplayName = "起始行", Description = "起始行号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "EndRow", DisplayName = "终止行", Description = "终止行号", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "RowHeight", DisplayName = "行高", Description = "行高（磅为单位）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 10, MaxValue = 200 },
+                new() { Name = "StartRow", DisplayName = "起始行", Description = "起始行号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "EndRow", DisplayName = "终止行", Description = "终止行号", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "RowHeight", DisplayName = "行高", Description = "行高（磅为单位）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 10, MaxValue = 200, DefaultValue = "20" },
                 new() { Name = "HeightType", DisplayName = "行高类型", Description = "选择行高类型", Type = ParameterType.Enum, IsRequired = true, Order = 4,
-                    EnumOptions = "自动,最小值,固定值" }
+                    EnumOptions = "自动,最小值,固定值", DefaultValue = "自动" }
             ]
         };
 
@@ -667,11 +667,11 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "StartColumn", DisplayName = "起始列", Description = "起始列号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "EndColumn", DisplayName = "终止列", Description = "终止列号", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "ColumnWidth", DisplayName = "列宽", Description = "列宽（磅为单位）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 10, MaxValue = 500 },
+                new() { Name = "StartColumn", DisplayName = "起始列", Description = "起始列号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "EndColumn", DisplayName = "终止列", Description = "终止列号", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "ColumnWidth", DisplayName = "列宽", Description = "列宽（磅为单位）", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 10, MaxValue = 500, DefaultValue = "100" },
                 new() { Name = "WidthType", DisplayName = "宽度类型", Description = "选择宽度类型", Type = ParameterType.Enum, IsRequired = true, Order = 4,
-                    EnumOptions = "自动,磅单位,百分比" }
+                    EnumOptions = "自动,磅单位,百分比", DefaultValue = "自动" }
             ]
         };
 
@@ -684,9 +684,9 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "RowNumber", DisplayName = "行号", Description = "单元格所在行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "单元格所在列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "CellContent", DisplayName = "单元格内容", Description = "要设置的文字内容", Type = ParameterType.Text, IsRequired = true, Order = 3 }
+                new() { Name = "RowNumber", DisplayName = "行号", Description = "单元格所在行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "单元格所在列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "CellContent", DisplayName = "单元格内容", Description = "要设置的文字内容", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "内容" }
             ]
         };
 
@@ -699,12 +699,12 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "RowNumber", DisplayName = "行号", Description = "单元格所在行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "单元格所在列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "RowNumber", DisplayName = "行号", Description = "单元格所在行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "单元格所在列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
                 new() { Name = "HorizontalAlignment", DisplayName = "水平对齐", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐" },
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐", DefaultValue = "左对齐" },
                 new() { Name = "VerticalAlignment", DisplayName = "垂直对齐", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐" }
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐", DefaultValue = "居中对齐" }
             ]
         };
 
@@ -718,8 +718,8 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "TableAlignment", DisplayName = "表格对齐", Description = "表格对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "左对齐,居中对齐,右对齐" },
-                new() { Name = "LeftIndent", DisplayName = "左缩进", Description = "表格左缩进（磅）", Type = ParameterType.Number, IsRequired = false, Order = 2, MinValue = 0, MaxValue = 100 }
+                    EnumOptions = "左对齐,居中对齐,右对齐", DefaultValue = "左对齐" },
+                new() { Name = "LeftIndent", DisplayName = "左缩进", Description = "表格左缩进（磅）", Type = ParameterType.Number, IsRequired = false, Order = 2, MinValue = 0, MaxValue = 100, DefaultValue = "0" }
             ]
         };
 
@@ -732,10 +732,10 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "StartRow", DisplayName = "起始行", Description = "合并区域起始行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "StartColumn", DisplayName = "起始列", Description = "合并区域起始列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "EndRow", DisplayName = "结束行", Description = "合并区域结束行", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
-                new() { Name = "EndColumn", DisplayName = "结束列", Description = "合并区域结束列", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 }
+                new() { Name = "StartRow", DisplayName = "起始行", Description = "合并区域起始行", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "StartColumn", DisplayName = "起始列", Description = "合并区域起始列", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "EndRow", DisplayName = "结束行", Description = "合并区域结束行", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, DefaultValue = "2" },
+                new() { Name = "EndColumn", DisplayName = "结束列", Description = "合并区域结束列", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1, DefaultValue = "2" }
             ]
         };
 
@@ -748,8 +748,8 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "标题所在列", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "HeaderContent", DisplayName = "标题内容", Description = "标题文字内容", Type = ParameterType.Text, IsRequired = true, Order = 2 }
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "标题所在列", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "HeaderContent", DisplayName = "标题内容", Description = "标题文字内容", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "标题" }
             ]
         };
 
@@ -762,11 +762,11 @@ public class WordKnowledgeService
             Category = "表格操作",
             ParameterTemplates =
             [
-                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "标题所在列", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
+                new() { Name = "ColumnNumber", DisplayName = "列号", Description = "标题所在列", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
                 new() { Name = "HorizontalAlignment", DisplayName = "水平对齐", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 2,
-                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐" },
+                    EnumOptions = "左对齐,居中对齐,右对齐,两端对齐", DefaultValue = "居中对齐" },
                 new() { Name = "VerticalAlignment", DisplayName = "垂直对齐", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐" }
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐", DefaultValue = "居中对齐" }
             ]
         };
     }
@@ -783,7 +783,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "ShapeType", DisplayName = "图形类型", Description = "选择自选图形类型", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "矩形,圆角矩形,椭圆,右箭头,下箭头,左箭头,上箭头,双向箭头,折弯箭头,尖括号,块弧形,爱心形状,笑脸,五角星,16角星,爆炸形状1,爆炸形状2,云形状" }
+                    EnumOptions = "矩形,圆角矩形,椭圆,右箭头,下箭头,左箭头,上箭头,双向箭头,折弯箭头,尖括号,块弧形,爱心形状,笑脸,五角星,16角星,爆炸形状1,爆炸形状2,云形状", DefaultValue = "矩形" }
             ]
         };
 
@@ -796,8 +796,8 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "ImageHeight", DisplayName = "高度", Description = "图片高度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 10, MaxValue = 1000 },
-                new() { Name = "ImageWidth", DisplayName = "宽度", Description = "图片宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 10, MaxValue = 1000 }
+                new() { Name = "ImageHeight", DisplayName = "高度", Description = "图片高度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 10, MaxValue = 1000, DefaultValue = "200" },
+                new() { Name = "ImageWidth", DisplayName = "宽度", Description = "图片宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 10, MaxValue = 1000, DefaultValue = "200" }
             ]
         };
 
@@ -810,8 +810,8 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "ShapeHeight", DisplayName = "高度", Description = "图形高度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 10, MaxValue = 1000 },
-                new() { Name = "ShapeWidth", DisplayName = "宽度", Description = "图形宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 10, MaxValue = 1000 }
+                new() { Name = "ShapeHeight", DisplayName = "高度", Description = "图形高度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 10, MaxValue = 1000, DefaultValue = "100" },
+                new() { Name = "ShapeWidth", DisplayName = "宽度", Description = "图形宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 10, MaxValue = 1000, DefaultValue = "100" }
             ]
         };
 
@@ -824,7 +824,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "LineColor", DisplayName = "线条颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "LineColor", DisplayName = "线条颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 1, DefaultValue = "#000000" }
             ]
         };
 
@@ -837,7 +837,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "FillColor", DisplayName = "填充颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "FillColor", DisplayName = "填充颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 1, DefaultValue = "#FFFFFF" }
             ]
         };
 
@@ -850,7 +850,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "FontSize", DisplayName = "字号", Description = "文字字号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72 }
+                new() { Name = "FontSize", DisplayName = "字号", Description = "文字字号", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72, DefaultValue = "12" }
             ]
         };
 
@@ -863,7 +863,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "TextColor", DisplayName = "文字颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "TextColor", DisplayName = "文字颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 1, DefaultValue = "#000000" }
             ]
         };
 
@@ -876,7 +876,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "TextContent", DisplayName = "文字内容", Description = "要设置的文字", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "TextContent", DisplayName = "文字内容", Description = "要设置的文字", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "文字内容" }
             ]
         };
 
@@ -891,11 +891,11 @@ public class WordKnowledgeService
             [
                 // 水平位置设置
                 new() { Name = "HorizontalPositionType", DisplayName = "水平位置类型", Description = "选择水平位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置", Group = "水平位置" },
+                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置", Group = "水平位置", DefaultValue = "对齐方式" },
                 new() { Name = "HorizontalAlignment", DisplayName = "水平对齐方式", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 2,
-                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式" },
+                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式", DefaultValue = "左对齐" },
                 new() { Name = "HorizontalRelativeTo", DisplayName = "水平相对于", Description = "水平位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 3,
-                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式,相对位置" },
+                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式,相对位置", DefaultValue = "页面" },
                 new() { Name = "HorizontalAbsolutePosition", DisplayName = "水平绝对位置", Description = "水平绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 4, MinValue = -50, MaxValue = 50,
                     Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "绝对位置" },
                 new() { Name = "HorizontalRelativePosition", DisplayName = "水平相对位置", Description = "水平相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = -999, MaxValue = 999,
@@ -903,11 +903,11 @@ public class WordKnowledgeService
 
                 // 垂直位置设置
                 new() { Name = "VerticalPositionType", DisplayName = "垂直位置类型", Description = "选择垂直位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 6,
-                    EnumOptions = "对齐方式,绝对位置,相对位置", Group = "垂直位置" },
+                    EnumOptions = "对齐方式,绝对位置,相对位置", Group = "垂直位置", DefaultValue = "对齐方式" },
                 new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 7,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式" },
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式", DefaultValue = "顶端对齐" },
                 new() { Name = "VerticalRelativeTo", DisplayName = "垂直相对于", Description = "垂直位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 8,
-                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式,相对位置" },
+                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式,相对位置", DefaultValue = "页面" },
                 new() { Name = "VerticalAbsolutePosition", DisplayName = "垂直绝对位置", Description = "垂直绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 9, MinValue = -50, MaxValue = 50,
                     Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "绝对位置" },
                 new() { Name = "VerticalRelativePosition", DisplayName = "垂直相对位置", Description = "垂直相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 10, MinValue = -999, MaxValue = 999,
@@ -931,7 +931,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "CompoundType", DisplayName = "复合类型", Description = "边框复合线型", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "单线,双线,粗细线,细粗线,三线" }
+                    EnumOptions = "单线,双线,粗细线,细粗线,三线", DefaultValue = "单线" }
             ]
         };
 
@@ -945,7 +945,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "DashType", DisplayName = "虚线类型", Description = "边框虚线样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "实线,圆点,方点,短划线,长划线,短划线点,长划线点,长划线点点" }
+                    EnumOptions = "实线,圆点,方点,短划线,长划线,短划线点,长划线点,长划线点点", DefaultValue = "实线" }
             ]
         };
 
@@ -958,7 +958,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "BorderWidth", DisplayName = "边框宽度", Description = "边框宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 0.25, MaxValue = 6 }
+                new() { Name = "BorderWidth", DisplayName = "边框宽度", Description = "边框宽度（磅）", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 0.25, MaxValue = 6, DefaultValue = "1" }
             ]
         };
 
@@ -971,7 +971,7 @@ public class WordKnowledgeService
             Category = "图形和图片设置",
             ParameterTemplates =
             [
-                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 1, DefaultValue = "#000000" }
             ]
         };
 
@@ -985,8 +985,8 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "ShadowType", DisplayName = "阴影类型", Description = "阴影样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "无阴影,偏移对角右下,偏移对角右上,偏移对角左下,偏移对角左上,偏移右,偏移下,偏移左,偏移上" },
-                new() { Name = "ShadowColor", DisplayName = "阴影颜色", Description = "阴影颜色", Type = ParameterType.Text, IsRequired = false, Order = 2 }
+                    EnumOptions = "无阴影,偏移对角右下,偏移对角右上,偏移对角左下,偏移对角左上,偏移右,偏移下,偏移左,偏移上", DefaultValue = "无阴影" },
+                new() { Name = "ShadowColor", DisplayName = "阴影颜色", Description = "阴影颜色", Type = ParameterType.Color, IsRequired = false, Order = 2, DefaultValue = "#808080" }
             ]
         };
 
@@ -1000,7 +1000,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "WrapStyle", DisplayName = "环绕方式", Description = "文字环绕样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "嵌入型,四周型,紧密型,穿越型,上下型,衬于文字下方,浮于文字上方" }
+                    EnumOptions = "嵌入型,四周型,紧密型,穿越型,上下型,衬于文字下方,浮于文字上方", DefaultValue = "嵌入型" }
             ]
         };
 
@@ -1015,11 +1015,11 @@ public class WordKnowledgeService
             [
                 // 水平位置设置
                 new() { Name = "HorizontalPositionType", DisplayName = "水平位置类型", Description = "选择水平位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置", Group = "水平位置" },
+                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置", Group = "水平位置", DefaultValue = "对齐方式" },
                 new() { Name = "HorizontalAlignment", DisplayName = "水平对齐方式", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 2,
-                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式" },
+                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式", DefaultValue = "左对齐" },
                 new() { Name = "HorizontalRelativeTo", DisplayName = "水平相对于", Description = "水平位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 3,
-                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式,相对位置" },
+                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距", Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "对齐方式,相对位置", DefaultValue = "页面" },
                 new() { Name = "HorizontalAbsolutePosition", DisplayName = "水平绝对位置", Description = "水平绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 4, MinValue = -50, MaxValue = 50,
                     Group = "水平位置", DependsOn = "HorizontalPositionType", DependsOnValue = "绝对位置" },
                 new() { Name = "HorizontalRelativePosition", DisplayName = "水平相对位置", Description = "水平相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = -999, MaxValue = 999,
@@ -1027,11 +1027,11 @@ public class WordKnowledgeService
 
                 // 垂直位置设置
                 new() { Name = "VerticalPositionType", DisplayName = "垂直位置类型", Description = "选择垂直位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 6,
-                    EnumOptions = "对齐方式,绝对位置,相对位置", Group = "垂直位置" },
+                    EnumOptions = "对齐方式,绝对位置,相对位置", Group = "垂直位置", DefaultValue = "对齐方式" },
                 new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 7,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式" },
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式", DefaultValue = "顶端对齐" },
                 new() { Name = "VerticalRelativeTo", DisplayName = "垂直相对于", Description = "垂直位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 8,
-                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式,相对位置" },
+                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距", Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "对齐方式,相对位置", DefaultValue = "页面" },
                 new() { Name = "VerticalAbsolutePosition", DisplayName = "垂直绝对位置", Description = "垂直绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 9, MinValue = -50, MaxValue = 50,
                     Group = "垂直位置", DependsOn = "VerticalPositionType", DependsOnValue = "绝对位置" },
                 new() { Name = "VerticalRelativePosition", DisplayName = "垂直相对位置", Description = "垂直相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 10, MinValue = -999, MaxValue = 999,
@@ -1057,7 +1057,7 @@ public class WordKnowledgeService
             Category = "文本框设置",
             ParameterTemplates =
             [
-                new() { Name = "BorderColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "BorderColor", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 1, DefaultValue = "#000000" }
             ]
         };
 
@@ -1070,7 +1070,7 @@ public class WordKnowledgeService
             Category = "文本框设置",
             ParameterTemplates =
             [
-                new() { Name = "TextContent", DisplayName = "文字值", Description = "文本框中的文字", Type = ParameterType.Text, IsRequired = true, Order = 1 }
+                new() { Name = "TextContent", DisplayName = "文字值", Description = "文本框中的文字", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "文本框内容" }
             ]
         };
 
@@ -1083,7 +1083,7 @@ public class WordKnowledgeService
             Category = "文本框设置",
             ParameterTemplates =
             [
-                new() { Name = "TextSize", DisplayName = "字号值", Description = "文字大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72 }
+                new() { Name = "TextSize", DisplayName = "字号值", Description = "文字大小", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 8, MaxValue = 72, DefaultValue = "12" }
             ]
         };
 
@@ -1098,21 +1098,21 @@ public class WordKnowledgeService
             [
                 // 水平位置设置
                 new() { Name = "HorizontalPositionType", DisplayName = "水平位置类型", Description = "选择水平位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置" },
+                    EnumOptions = "对齐方式,书签位置,绝对位置,相对位置", DefaultValue = "对齐方式" },
                 new() { Name = "HorizontalAlignment", DisplayName = "水平对齐方式", Description = "水平对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 2,
-                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐" },
+                    EnumOptions = "左对齐,居中对齐,右对齐,内部,外部,左侧对齐,右侧对齐", DefaultValue = "左对齐" },
                 new() { Name = "HorizontalRelativeTo", DisplayName = "水平相对于", Description = "水平位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 3,
-                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距" },
+                    EnumOptions = "页面,页边距,列,字符,左边距,右边距,内边距,外边距", DefaultValue = "页面" },
                 new() { Name = "HorizontalAbsolutePosition", DisplayName = "水平绝对位置", Description = "水平绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 4, MinValue = -50, MaxValue = 50 },
                 new() { Name = "HorizontalRelativePosition", DisplayName = "水平相对位置", Description = "水平相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 5, MinValue = -999, MaxValue = 999 },
 
                 // 垂直位置设置
                 new() { Name = "VerticalPositionType", DisplayName = "垂直位置类型", Description = "选择垂直位置设置方式", Type = ParameterType.Enum, IsRequired = true, Order = 6,
-                    EnumOptions = "对齐方式,绝对位置,相对位置" },
+                    EnumOptions = "对齐方式,绝对位置,相对位置", DefaultValue = "对齐方式" },
                 new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "垂直对齐方式", Type = ParameterType.Enum, IsRequired = false, Order = 7,
-                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端" },
+                    EnumOptions = "顶端对齐,居中对齐,底端对齐,内部,外部,顶端,底端", DefaultValue = "顶端对齐" },
                 new() { Name = "VerticalRelativeTo", DisplayName = "垂直相对于", Description = "垂直位置相对参考点", Type = ParameterType.Enum, IsRequired = false, Order = 8,
-                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距" },
+                    EnumOptions = "页面,页边距,段落,行,上边距,下边距,内边距,外边距", DefaultValue = "页面" },
                 new() { Name = "VerticalAbsolutePosition", DisplayName = "垂直绝对位置", Description = "垂直绝对位置（厘米）", Type = ParameterType.Number, IsRequired = false, Order = 9, MinValue = -50, MaxValue = 50 },
                 new() { Name = "VerticalRelativePosition", DisplayName = "垂直相对位置", Description = "垂直相对位置（百分比）", Type = ParameterType.Number, IsRequired = false, Order = 10, MinValue = -999, MaxValue = 999 },
 
@@ -1134,7 +1134,7 @@ public class WordKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "WrapStyle", DisplayName = "环绕方式", Description = "文字环绕样式", Type = ParameterType.Enum, IsRequired = true, Order = 1,
-                    EnumOptions = "嵌入型,四周型,紧密型,穿越型,上下型,衬于文字下方,浮于文字上方" }
+                    EnumOptions = "嵌入型,四周型,紧密型,穿越型,上下型,衬于文字下方,浮于文字上方", DefaultValue = "嵌入型" }
             ]
         };
     }
@@ -1150,9 +1150,9 @@ public class WordKnowledgeService
             Category = "其他操作",
             ParameterTemplates =
             [
-                new() { Name = "FindText", DisplayName = "要查找的文本内容", Description = "需要查找的文字", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "ReplaceText", DisplayName = "替换为的文本内容", Description = "替换后的文字", Type = ParameterType.Text, IsRequired = true, Order = 2 },
-                new() { Name = "ReplaceCount", DisplayName = "应替换的总数量", Description = "目标替换次数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 100 }
+                new() { Name = "FindText", DisplayName = "要查找的文本内容", Description = "需要查找的文字", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "查找内容" },
+                new() { Name = "ReplaceText", DisplayName = "替换为的文本内容", Description = "替换后的文字", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "替换内容" },
+                new() { Name = "ReplaceCount", DisplayName = "应替换的总数量", Description = "目标替换次数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 100, DefaultValue = "1" }
             ]
         };
 
@@ -1165,8 +1165,8 @@ public class WordKnowledgeService
             Category = "其他操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetText", DisplayName = "要设置字号的指定文字", Description = "目标文字", Type = ParameterType.Text, IsRequired = true, Order = 1 },
-                new() { Name = "FontSize", DisplayName = "应设置的字号大小", Description = "字号大小（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 8, MaxValue = 72 }
+                new() { Name = "TargetText", DisplayName = "要设置字号的指定文字", Description = "目标文字", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "目标文字" },
+                new() { Name = "FontSize", DisplayName = "应设置的字号大小", Description = "字号大小（磅）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 8, MaxValue = 72, DefaultValue = "12" }
             ]
         };
     }
