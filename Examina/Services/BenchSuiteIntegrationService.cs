@@ -3,6 +3,7 @@ using System.Reflection;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using BenchSuite.Services;
+using BenchSuite.Services.OpenXml;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Models.MockExam;
@@ -58,12 +59,12 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             { ModuleType.Windows, "WINDOWS" }
         };
 
-        // 初始化真实的BenchSuite评分服务，C#服务支持AI功能
+        // 初始化真实的BenchSuite评分服务，使用OpenXML SDK实现，C#服务支持AI功能
         _scoringServices = new Dictionary<ModuleType, IScoringService>
         {
-            { ModuleType.Word, new WordScoringService() },
-            { ModuleType.Excel, new ExcelScoringService() },
-            { ModuleType.PowerPoint, new PowerPointScoringService() },
+            { ModuleType.Word, new BenchSuite.Services.OpenXml.WordOpenXmlScoringService() },
+            { ModuleType.Excel, new BenchSuite.Services.OpenXml.ExcelOpenXmlScoringService() },
+            { ModuleType.PowerPoint, new BenchSuite.Services.OpenXml.PowerPointOpenXmlScoringService() },
             { ModuleType.Windows, new WindowsScoringService() },
             { ModuleType.CSharp, new CSharpScoringService(_aiScoringService) }
         };
