@@ -1,11 +1,13 @@
-using ExamLab.Models;
-using ExamLab.Services.DocumentGeneration;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
-using System.Diagnostics;
+using ExamLab.Models;
 using A = DocumentFormat.OpenXml.Drawing;
-using P = DocumentFormat.OpenXml.Presentation;
 
 namespace ExamLab.Services.DocumentGeneration;
 
@@ -17,17 +19,26 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     /// <summary>
     /// 获取支持的模块类型
     /// </summary>
-    public ModuleType GetSupportedModuleType() => ModuleType.PowerPoint;
+    public ModuleType GetSupportedModuleType()
+    {
+        return ModuleType.PowerPoint;
+    }
 
     /// <summary>
     /// 获取推荐的文件扩展名
     /// </summary>
-    public string GetRecommendedFileExtension() => ".pptx";
+    public string GetRecommendedFileExtension()
+    {
+        return ".pptx";
+    }
 
     /// <summary>
     /// 获取文件类型描述
     /// </summary>
-    public string GetFileTypeDescription() => "PowerPoint演示文稿";
+    public string GetFileTypeDescription()
+    {
+        return "PowerPoint演示文稿";
+    }
 
     /// <summary>
     /// 验证模块是否可以生成文档
@@ -60,7 +71,7 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
         int totalPowerPointOperationPoints = 0;
         foreach (Question question in module.Questions)
         {
-            int powerPointOperationPoints = question.OperationPoints.Count(op => 
+            int powerPointOperationPoints = question.OperationPoints.Count(op =>
                 op.ModuleType == ModuleType.PowerPoint && op.IsEnabled);
             totalPowerPointOperationPoints += powerPointOperationPoints;
         }
@@ -81,7 +92,7 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     public async Task<DocumentGenerationResult> GenerateDocumentAsync(ExamModule module, string filePath, IProgress<DocumentGenerationProgress>? progress = null)
     {
         DateTime startTime = DateTime.Now;
-        
+
         try
         {
             // 验证模块
@@ -111,7 +122,7 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
             await Task.Run(() =>
             {
                 using PresentationDocument document = PresentationDocument.Create(filePath, PresentationDocumentType.Presentation);
-                
+
                 // 创建演示文稿部分
                 PresentationPart presentationPart = document.AddPresentationPart();
                 presentationPart.Presentation = new Presentation();
@@ -164,7 +175,7 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
 
             TimeSpan duration = DateTime.Now - startTime;
             string details = $"成功生成PowerPoint文档，包含{module.Questions.Count}个题目的{totalOperationPoints}个操作点";
-            
+
             return DocumentGenerationResult.Success(filePath, processedCount, totalOperationPoints, duration, details);
         }
         catch (Exception ex)
@@ -181,17 +192,17 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
         SlideMaster slideMaster = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加基本的形状树结构
         NonVisualGroupShapeProperties nonVisualGroupShapeProperties = new();
         GroupShapeProperties groupShapeProperties = new();
-        
+
         shapeTree.Append(nonVisualGroupShapeProperties);
         shapeTree.Append(groupShapeProperties);
-        
+
         commonSlideData.Append(shapeTree);
         slideMaster.Append(commonSlideData);
-        
+
         return slideMaster;
     }
 
@@ -203,17 +214,17 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
         SlideLayout slideLayout = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加基本的形状树结构
         NonVisualGroupShapeProperties nonVisualGroupShapeProperties = new();
         GroupShapeProperties groupShapeProperties = new();
-        
+
         shapeTree.Append(nonVisualGroupShapeProperties);
         shapeTree.Append(groupShapeProperties);
-        
+
         commonSlideData.Append(shapeTree);
         slideLayout.Append(commonSlideData);
-        
+
         return slideLayout;
     }
 
@@ -223,20 +234,20 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     private static void AddTitleSlide(PresentationPart presentationPart, SlideLayoutPart slideLayoutPart, SlideIdList slideIdList, string title)
     {
         SlidePart slidePart = presentationPart.AddNewPart<SlidePart>();
-        slidePart.AddPart(slideLayoutPart);
-        
+        _ = slidePart.AddPart(slideLayoutPart);
+
         Slide slide = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加标题文本框
         Shape titleShape = CreateTextShape(title, 1, 1000000, 1000000, 8000000, 2000000);
         shapeTree.Append(titleShape);
-        
+
         commonSlideData.Append(shapeTree);
         slide.Append(commonSlideData);
         slidePart.Slide = slide;
-        
+
         SlideId slideId = new() { Id = 1, RelationshipId = presentationPart.GetIdOfPart(slidePart) };
         slideIdList.Append(slideId);
     }
@@ -249,18 +260,13 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
         // 根据PowerPoint知识点类型应用不同的操作
         if (operationPoint.PowerPointKnowledgeType.HasValue)
         {
-            switch (operationPoint.PowerPointKnowledgeType.Value)
+            return operationPoint.PowerPointKnowledgeType.Value switch
             {
-                case PowerPointKnowledgeType.SetSlideTitle:
-                    return ApplySlideTitle(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId);
-                case PowerPointKnowledgeType.InsertTextBox:
-                    return ApplyTextBox(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId);
-                case PowerPointKnowledgeType.SetSlideTransition:
-                    return ApplySlideTransition(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId);
-                default:
-                    // 对于未实现的操作点，添加说明幻灯片
-                    return AddOperationSlide(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId);
-            }
+                PowerPointKnowledgeType.SetSlideLayout => ApplySlideTitle(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId),
+                PowerPointKnowledgeType.InsertImage => ApplyTextBox(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId),
+                PowerPointKnowledgeType.SlideTransitionEffect => ApplySlideTransition(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId),
+                _ => AddOperationSlide(presentationPart, slideLayoutPart, slideIdList, operationPoint, slideId),// 对于未实现的操作点，添加说明幻灯片
+            };
         }
         else
         {
@@ -275,29 +281,29 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     private static uint ApplySlideTitle(PresentationPart presentationPart, SlideLayoutPart slideLayoutPart, SlideIdList slideIdList, OperationPoint operationPoint, uint slideId)
     {
         string slideTitle = GetParameterValue(operationPoint, "SlideTitle", "幻灯片标题");
-        
+
         SlidePart slidePart = presentationPart.AddNewPart<SlidePart>();
-        slidePart.AddPart(slideLayoutPart);
-        
+        _ = slidePart.AddPart(slideLayoutPart);
+
         Slide slide = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加标题
         Shape titleShape = CreateTextShape(slideTitle, 1, 1000000, 1000000, 8000000, 1500000);
         shapeTree.Append(titleShape);
-        
+
         // 添加说明文本
         Shape descShape = CreateTextShape($"操作点：设置幻灯片标题为 '{slideTitle}'", 2, 1000000, 3000000, 8000000, 1000000);
         shapeTree.Append(descShape);
-        
+
         commonSlideData.Append(shapeTree);
         slide.Append(commonSlideData);
         slidePart.Slide = slide;
-        
+
         SlideId newSlideId = new() { Id = slideId, RelationshipId = presentationPart.GetIdOfPart(slidePart) };
         slideIdList.Append(newSlideId);
-        
+
         return slideId + 1;
     }
 
@@ -307,29 +313,29 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     private static uint ApplyTextBox(PresentationPart presentationPart, SlideLayoutPart slideLayoutPart, SlideIdList slideIdList, OperationPoint operationPoint, uint slideId)
     {
         string textContent = GetParameterValue(operationPoint, "TextContent", "文本框内容");
-        
+
         SlidePart slidePart = presentationPart.AddNewPart<SlidePart>();
-        slidePart.AddPart(slideLayoutPart);
-        
+        _ = slidePart.AddPart(slideLayoutPart);
+
         Slide slide = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加标题
         Shape titleShape = CreateTextShape("插入文本框", 1, 1000000, 1000000, 8000000, 1500000);
         shapeTree.Append(titleShape);
-        
+
         // 添加文本框
         Shape textBoxShape = CreateTextShape(textContent, 2, 2000000, 3000000, 6000000, 2000000);
         shapeTree.Append(textBoxShape);
-        
+
         commonSlideData.Append(shapeTree);
         slide.Append(commonSlideData);
         slidePart.Slide = slide;
-        
+
         SlideId newSlideId = new() { Id = slideId, RelationshipId = presentationPart.GetIdOfPart(slidePart) };
         slideIdList.Append(newSlideId);
-        
+
         return slideId + 1;
     }
 
@@ -339,29 +345,29 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     private static uint ApplySlideTransition(PresentationPart presentationPart, SlideLayoutPart slideLayoutPart, SlideIdList slideIdList, OperationPoint operationPoint, uint slideId)
     {
         string transitionType = GetParameterValue(operationPoint, "TransitionType", "淡入淡出");
-        
+
         SlidePart slidePart = presentationPart.AddNewPart<SlidePart>();
-        slidePart.AddPart(slideLayoutPart);
-        
+        _ = slidePart.AddPart(slideLayoutPart);
+
         Slide slide = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加标题
         Shape titleShape = CreateTextShape("幻灯片切换效果", 1, 1000000, 1000000, 8000000, 1500000);
         shapeTree.Append(titleShape);
-        
+
         // 添加说明文本
         Shape descShape = CreateTextShape($"操作点：设置幻灯片切换效果为 '{transitionType}'", 2, 1000000, 3000000, 8000000, 1000000);
         shapeTree.Append(descShape);
-        
+
         commonSlideData.Append(shapeTree);
         slide.Append(commonSlideData);
         slidePart.Slide = slide;
-        
+
         SlideId newSlideId = new() { Id = slideId, RelationshipId = presentationPart.GetIdOfPart(slidePart) };
         slideIdList.Append(newSlideId);
-        
+
         return slideId + 1;
     }
 
@@ -371,27 +377,27 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     private static uint AddOperationSlide(PresentationPart presentationPart, SlideLayoutPart slideLayoutPart, SlideIdList slideIdList, OperationPoint operationPoint, uint slideId)
     {
         SlidePart slidePart = presentationPart.AddNewPart<SlidePart>();
-        slidePart.AddPart(slideLayoutPart);
-        
+        _ = slidePart.AddPart(slideLayoutPart);
+
         Slide slide = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加标题
         Shape titleShape = CreateTextShape($"操作点：{operationPoint.Name}", 1, 1000000, 1000000, 8000000, 1500000);
         shapeTree.Append(titleShape);
-        
+
         // 添加描述
         Shape descShape = CreateTextShape(operationPoint.Description, 2, 1000000, 3000000, 8000000, 2000000);
         shapeTree.Append(descShape);
-        
+
         commonSlideData.Append(shapeTree);
         slide.Append(commonSlideData);
         slidePart.Slide = slide;
-        
+
         SlideId newSlideId = new() { Id = slideId, RelationshipId = presentationPart.GetIdOfPart(slidePart) };
         slideIdList.Append(newSlideId);
-        
+
         return slideId + 1;
     }
 
@@ -401,24 +407,24 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     private static void AddErrorSlide(PresentationPart presentationPart, SlideLayoutPart slideLayoutPart, SlideIdList slideIdList, string operationName, string errorMessage, uint slideId)
     {
         SlidePart slidePart = presentationPart.AddNewPart<SlidePart>();
-        slidePart.AddPart(slideLayoutPart);
-        
+        _ = slidePart.AddPart(slideLayoutPart);
+
         Slide slide = new();
         CommonSlideData commonSlideData = new();
         ShapeTree shapeTree = new();
-        
+
         // 添加错误标题
         Shape titleShape = CreateTextShape($"错误：{operationName}", 1, 1000000, 1000000, 8000000, 1500000);
         shapeTree.Append(titleShape);
-        
+
         // 添加错误消息
         Shape errorShape = CreateTextShape(errorMessage, 2, 1000000, 3000000, 8000000, 2000000);
         shapeTree.Append(errorShape);
-        
+
         commonSlideData.Append(shapeTree);
         slide.Append(commonSlideData);
         slidePart.Slide = slide;
-        
+
         SlideId newSlideId = new() { Id = slideId, RelationshipId = presentationPart.GetIdOfPart(slidePart) };
         slideIdList.Append(newSlideId);
     }
@@ -429,33 +435,33 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     private static Shape CreateTextShape(string text, uint shapeId, long x, long y, long width, long height)
     {
         Shape shape = new();
-        
+
         NonVisualShapeProperties nonVisualShapeProperties = new();
         nonVisualShapeProperties.Append(new NonVisualDrawingProperties() { Id = shapeId, Name = $"TextBox {shapeId}" });
         nonVisualShapeProperties.Append(new NonVisualShapeDrawingProperties());
         nonVisualShapeProperties.Append(new ApplicationNonVisualDrawingProperties());
-        
+
         ShapeProperties shapeProperties = new();
         A.Transform2D transform2D = new();
         transform2D.Append(new A.Offset() { X = x, Y = y });
         transform2D.Append(new A.Extents() { Cx = width, Cy = height });
         shapeProperties.Append(transform2D);
         shapeProperties.Append(new A.PresetGeometry() { Preset = A.ShapeTypeValues.Rectangle });
-        
+
         TextBody textBody = new();
         textBody.Append(new A.BodyProperties());
         textBody.Append(new A.ListStyle());
-        
+
         A.Paragraph paragraph = new();
         A.Run run = new();
         run.Append(new A.Text(text));
         paragraph.Append(run);
         textBody.Append(paragraph);
-        
+
         shape.Append(nonVisualShapeProperties);
         shape.Append(shapeProperties);
         shape.Append(textBody);
-        
+
         return shape;
     }
 
@@ -464,7 +470,7 @@ public class PowerPointDocumentGenerator : IDocumentGenerationService
     /// </summary>
     private static string GetOperationDisplayName(OperationPoint operationPoint)
     {
-        return !string.IsNullOrEmpty(operationPoint.Name) ? operationPoint.Name : 
+        return !string.IsNullOrEmpty(operationPoint.Name) ? operationPoint.Name :
                operationPoint.PowerPointKnowledgeType?.ToString() ?? "未知操作";
     }
 

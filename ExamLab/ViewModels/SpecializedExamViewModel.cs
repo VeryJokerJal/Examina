@@ -1109,7 +1109,7 @@ public class SpecializedExamViewModel : ViewModelBase
             }
 
             // 4. 选择保存位置
-            string fileName = $"{SelectedSpecializedExam.Title}_{GetModuleTypeName(moduleType)}_答案_{DateTime.Now:yyyyMMdd_HHmmss}{documentService.GetRecommendedFileExtension()}";
+            string fileName = $"{SelectedSpecializedExam.Name}_{GetModuleTypeName(moduleType)}_答案_{DateTime.Now:yyyyMMdd_HHmmss}{documentService.GetRecommendedFileExtension()}";
 
             Windows.Storage.Pickers.FileSavePicker savePicker = new()
             {
@@ -1124,7 +1124,9 @@ public class SpecializedExamViewModel : ViewModelBase
 
             Windows.Storage.StorageFile? file = await savePicker.PickSaveFileAsync();
             if (file == null)
+            {
                 return;
+            }
 
             // 5. 显示进度对话框
             ContentDialog progressDialog = new()
@@ -1141,20 +1143,20 @@ public class SpecializedExamViewModel : ViewModelBase
                 Progress<DocumentGenerationProgress> progress = new(p =>
                 {
                     // 在UI线程中更新进度
-                    App.MainWindow.DispatcherQueue.TryEnqueue(() =>
+                    _ = (App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
                     {
                         progressDialog.Content = $"{p.CurrentStep}\n进度：{p.ProgressPercentage}%\n已处理：{p.ProcessedCount}/{p.TotalCount}";
                         if (!string.IsNullOrEmpty(p.CurrentOperationPoint))
                         {
                             progressDialog.Content += $"\n当前操作：{p.CurrentOperationPoint}";
                         }
-                    });
+                    }));
                 });
 
                 DocumentGenerationResult result = await documentService.GenerateDocumentAsync(module, file.Path, progress);
 
                 // 在UI线程中处理结果
-                App.MainWindow.DispatcherQueue.TryEnqueue(async () =>
+                _ = (App.MainWindow?.DispatcherQueue.TryEnqueue(async () =>
                 {
                     progressDialog.Hide();
 
@@ -1179,7 +1181,7 @@ public class SpecializedExamViewModel : ViewModelBase
                         if (dialogResult == ContentDialogResult.Primary)
                         {
                             // 打开生成的文件
-                            await Windows.System.Launcher.LaunchFileAsync(file);
+                            _ = await Windows.System.Launcher.LaunchFileAsync(file);
                         }
                     }
                     else
@@ -1191,7 +1193,7 @@ public class SpecializedExamViewModel : ViewModelBase
                         }
                         await NotificationService.ShowErrorAsync("生成失败", errorMessage);
                     }
-                });
+                }));
             });
 
             // 显示进度对话框

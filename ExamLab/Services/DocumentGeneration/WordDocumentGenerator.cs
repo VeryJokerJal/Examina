@@ -1,9 +1,12 @@
-using ExamLab.Models;
-using ExamLab.Services.DocumentGeneration;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using System.Diagnostics;
+using ExamLab.Models;
 
 namespace ExamLab.Services.DocumentGeneration;
 
@@ -15,17 +18,26 @@ public class WordDocumentGenerator : IDocumentGenerationService
     /// <summary>
     /// 获取支持的模块类型
     /// </summary>
-    public ModuleType GetSupportedModuleType() => ModuleType.Word;
+    public ModuleType GetSupportedModuleType()
+    {
+        return ModuleType.Word;
+    }
 
     /// <summary>
     /// 获取推荐的文件扩展名
     /// </summary>
-    public string GetRecommendedFileExtension() => ".docx";
+    public string GetRecommendedFileExtension()
+    {
+        return ".docx";
+    }
 
     /// <summary>
     /// 获取文件类型描述
     /// </summary>
-    public string GetFileTypeDescription() => "Word文档";
+    public string GetFileTypeDescription()
+    {
+        return "Word文档";
+    }
 
     /// <summary>
     /// 验证模块是否可以生成文档
@@ -58,7 +70,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
         int totalWordOperationPoints = 0;
         foreach (Question question in module.Questions)
         {
-            int wordOperationPoints = question.OperationPoints.Count(op => 
+            int wordOperationPoints = question.OperationPoints.Count(op =>
                 op.ModuleType == ModuleType.Word && op.IsEnabled);
             totalWordOperationPoints += wordOperationPoints;
         }
@@ -79,7 +91,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
     public async Task<DocumentGenerationResult> GenerateDocumentAsync(ExamModule module, string filePath, IProgress<DocumentGenerationProgress>? progress = null)
     {
         DateTime startTime = DateTime.Now;
-        
+
         try
         {
             // 验证模块
@@ -109,7 +121,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
             await Task.Run(() =>
             {
                 using WordprocessingDocument document = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
-                
+
                 // 创建主文档部分
                 MainDocumentPart mainPart = document.AddMainDocumentPart();
                 mainPart.Document = new Document();
@@ -146,7 +158,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
 
             TimeSpan duration = DateTime.Now - startTime;
             string details = $"成功生成Word文档，包含{module.Questions.Count}个题目的{totalOperationPoints}个操作点";
-            
+
             return DocumentGenerationResult.Success(filePath, processedCount, totalOperationPoints, duration, details);
         }
         catch (Exception ex)
@@ -163,22 +175,22 @@ public class WordDocumentGenerator : IDocumentGenerationService
         Paragraph titleParagraph = new();
         Run titleRun = new();
         RunProperties titleRunProperties = new();
-        
+
         titleRunProperties.Append(new Bold());
         titleRunProperties.Append(new FontSize() { Val = "28" }); // 14pt = 28 half-points
         titleRunProperties.Append(new RunFonts() { Ascii = "微软雅黑" });
-        
+
         titleRun.Append(titleRunProperties);
         titleRun.Append(new Text(title));
-        
+
         titleParagraph.Append(titleRun);
-        
+
         ParagraphProperties titleParagraphProperties = new();
         titleParagraphProperties.Append(new Justification() { Val = JustificationValues.Center });
-        titleParagraph.PrependChild(titleParagraphProperties);
-        
+        _ = titleParagraph.PrependChild(titleParagraphProperties);
+
         body.Append(titleParagraph);
-        
+
         // 添加空行
         body.Append(new Paragraph());
     }
@@ -432,16 +444,16 @@ public class WordDocumentGenerator : IDocumentGenerationService
     {
         string fontFamily = GetParameterValue(operationPoint, "FontFamily", "宋体");
         string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
-        
+
         // 创建示例段落
         Paragraph paragraph = new();
         Run run = new();
         RunProperties runProperties = new();
-        
+
         runProperties.Append(new RunFonts() { Ascii = fontFamily });
         run.Append(runProperties);
         run.Append(new Text($"这是第{paragraphNumberStr}段落，字体设置为：{fontFamily}"));
-        
+
         paragraph.Append(run);
         body.Append(paragraph);
     }
@@ -572,11 +584,19 @@ public class WordDocumentGenerator : IDocumentGenerationService
 
         // 缩进以字符为单位，转换为twips（1字符约等于240 twips）
         if (double.TryParse(firstLineIndent, out double firstIndent))
+        {
             indentation.FirstLine = ((int)(firstIndent * 240)).ToString();
+        }
+
         if (double.TryParse(leftIndent, out double leftInd))
+        {
             indentation.Left = ((int)(leftInd * 240)).ToString();
+        }
+
         if (double.TryParse(rightIndent, out double rightInd))
+        {
             indentation.Right = ((int)(rightInd * 240)).ToString();
+        }
 
         paragraphProperties.Append(indentation);
         paragraph.Append(paragraphProperties);
@@ -600,11 +620,12 @@ public class WordDocumentGenerator : IDocumentGenerationService
         {
             Paragraph paragraph = new();
             ParagraphProperties paragraphProperties = new();
-            SpacingBetweenLines spacing = new();
-
-            // 行间距以240分之一英寸为单位
-            spacing.Line = ((int)(spacingValue * 240)).ToString();
-            spacing.LineRule = LineSpacingRuleValues.Multiple;
+            SpacingBetweenLines spacing = new()
+            {
+                // 行间距以240分之一英寸为单位
+                Line = ((int)(spacingValue * 240)).ToString(),
+                LineRule = LineSpacingRuleValues.Auto
+            };
 
             paragraphProperties.Append(spacing);
             paragraph.Append(paragraphProperties);
@@ -624,7 +645,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
     {
         string alignment = GetParameterValue(operationPoint, "Alignment", "左对齐");
         string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
-        
+
         JustificationValues justification = alignment switch
         {
             "左对齐" => JustificationValues.Left,
@@ -633,16 +654,16 @@ public class WordDocumentGenerator : IDocumentGenerationService
             "两端对齐" => JustificationValues.Both,
             _ => JustificationValues.Left
         };
-        
+
         Paragraph paragraph = new();
         ParagraphProperties paragraphProperties = new();
         paragraphProperties.Append(new Justification() { Val = justification });
         paragraph.Append(paragraphProperties);
-        
+
         Run run = new();
         run.Append(new Text($"这是第{paragraphNumberStr}段落，对齐方式设置为：{alignment}"));
         paragraph.Append(run);
-        
+
         body.Append(paragraph);
     }
 
@@ -652,18 +673,18 @@ public class WordDocumentGenerator : IDocumentGenerationService
     private static void ApplyWatermark(WordprocessingDocument document, OperationPoint operationPoint)
     {
         string watermarkText = GetParameterValue(operationPoint, "WatermarkText", "机密");
-        
+
         // 简化的水印实现 - 在文档中添加说明
         Body body = document.MainDocumentPart!.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
         RunProperties runProperties = new();
-        
+
         runProperties.Append(new Color() { Val = "C0C0C0" }); // 灰色
         runProperties.Append(new Italic());
         run.Append(runProperties);
         run.Append(new Text($"[水印文字：{watermarkText}]"));
-        
+
         paragraph.Append(run);
         body.Append(paragraph);
     }
@@ -675,11 +696,11 @@ public class WordDocumentGenerator : IDocumentGenerationService
     {
         string rowsStr = GetParameterValue(operationPoint, "Rows", "3");
         string columnsStr = GetParameterValue(operationPoint, "Columns", "3");
-        
+
         if (int.TryParse(rowsStr, out int rows) && int.TryParse(columnsStr, out int columns))
         {
             Table table = new();
-            
+
             // 创建表格属性
             TableProperties tableProperties = new();
             TableBorders tableBorders = new();
@@ -691,7 +712,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
             tableBorders.Append(new InsideVerticalBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 12 });
             tableProperties.Append(tableBorders);
             table.Append(tableProperties);
-            
+
             // 创建表格行和单元格
             for (int i = 0; i < rows; i++)
             {
@@ -708,7 +729,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
                 }
                 table.Append(tableRow);
             }
-            
+
             body.Append(table);
         }
     }
@@ -754,9 +775,14 @@ public class WordDocumentGenerator : IDocumentGenerationService
         SpacingBetweenLines spacing = new();
 
         if (double.TryParse(spaceBefore, out double beforeValue))
+        {
             spacing.Before = ((int)(beforeValue * 20)).ToString(); // 转换为twips
+        }
+
         if (double.TryParse(spaceAfter, out double afterValue))
+        {
             spacing.After = ((int)(afterValue * 20)).ToString();
+        }
 
         paragraphProperties.Append(spacing);
         paragraph.Append(paragraphProperties);

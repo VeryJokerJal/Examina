@@ -1,9 +1,13 @@
-using ExamLab.Models;
+﻿using ExamLab.Models;
 using ExamLab.Services.DocumentGeneration;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ExamLab.Services.DocumentGeneration;
 
@@ -202,13 +206,13 @@ public class ExcelDocumentGenerator : IDocumentGenerationService
         {
             switch (operationPoint.ExcelKnowledgeType.Value)
             {
-                case ExcelKnowledgeType.SetCellValue:
+                case ExcelKnowledgeType.FillOrCopyCellContent:
                     return ApplyCellValue(sheetData, operationPoint, currentRow);
-                case ExcelKnowledgeType.SetCellFormat:
+                case ExcelKnowledgeType.SetNumberFormat:
                     return ApplyCellFormat(sheetData, operationPoint, currentRow);
-                case ExcelKnowledgeType.CreateChart:
+                case ExcelKnowledgeType.ChartType:
                     return ApplyChart(sheetData, operationPoint, currentRow);
-                case ExcelKnowledgeType.SetFormula:
+                case ExcelKnowledgeType.UseFunction:
                     return ApplyFormula(sheetData, operationPoint, currentRow);
                 default:
                     // 对于未实现的操作点，添加说明文本

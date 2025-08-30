@@ -1,3 +1,5 @@
+﻿using System;
+
 namespace ExamLab.Services.DocumentGeneration;
 
 /// <summary>
@@ -46,7 +48,7 @@ public class DocumentGenerationProgress
     public static DocumentGenerationProgress Create(string currentStep, int processedCount, int totalCount, string? currentOperationPoint = null)
     {
         int progressPercentage = totalCount > 0 ? (int)Math.Round((double)processedCount / totalCount * 100) : 0;
-        
+
         return new DocumentGenerationProgress
         {
             CurrentStep = currentStep,

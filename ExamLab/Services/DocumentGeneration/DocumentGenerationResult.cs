@@ -1,3 +1,5 @@
+﻿using System;
+
 namespace ExamLab.Services.DocumentGeneration;
 
 /// <summary>

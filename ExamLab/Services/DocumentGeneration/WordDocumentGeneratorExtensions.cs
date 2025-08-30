@@ -1,7 +1,7 @@
-using ExamLab.Models;
-using DocumentFormat.OpenXml;
+﻿using System.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using ExamLab.Models;
 
 namespace ExamLab.Services.DocumentGeneration;
 
@@ -16,7 +16,7 @@ public static class WordDocumentGeneratorExtensions
     public static void ApplyFooterText(WordprocessingDocument document, OperationPoint operationPoint)
     {
         string footerText = GetParameterValue(operationPoint, "FooterText", "页脚内容");
-        
+
         Body body = document.MainDocumentPart!.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
@@ -31,7 +31,7 @@ public static class WordDocumentGeneratorExtensions
     public static void ApplyFooterFont(WordprocessingDocument document, OperationPoint operationPoint)
     {
         string footerFont = GetParameterValue(operationPoint, "FooterFont", "宋体");
-        
+
         Body body = document.MainDocumentPart!.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
@@ -46,7 +46,7 @@ public static class WordDocumentGeneratorExtensions
     public static void ApplyFooterFontSize(WordprocessingDocument document, OperationPoint operationPoint)
     {
         string footerFontSize = GetParameterValue(operationPoint, "FooterFontSize", "10");
-        
+
         Body body = document.MainDocumentPart!.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
@@ -61,7 +61,7 @@ public static class WordDocumentGeneratorExtensions
     public static void ApplyFooterAlignment(WordprocessingDocument document, OperationPoint operationPoint)
     {
         string footerAlignment = GetParameterValue(operationPoint, "FooterAlignment", "居中对齐");
-        
+
         Body body = document.MainDocumentPart!.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
@@ -76,17 +76,17 @@ public static class WordDocumentGeneratorExtensions
     public static void ApplyWatermarkFont(WordprocessingDocument document, OperationPoint operationPoint)
     {
         string watermarkFont = GetParameterValue(operationPoint, "WatermarkFont", "宋体");
-        
+
         Body body = document.MainDocumentPart!.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
         RunProperties runProperties = new();
-        
+
         runProperties.Append(new Color() { Val = "C0C0C0" }); // 灰色
         runProperties.Append(new Italic());
         run.Append(runProperties);
         run.Append(new Text($"[水印设置] 水印字体：{watermarkFont}"));
-        
+
         paragraph.Append(run);
         body.Append(paragraph);
     }
@@ -97,17 +97,17 @@ public static class WordDocumentGeneratorExtensions
     public static void ApplyWatermarkFontSize(WordprocessingDocument document, OperationPoint operationPoint)
     {
         string watermarkFontSize = GetParameterValue(operationPoint, "WatermarkFontSize", "36");
-        
+
         Body body = document.MainDocumentPart!.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
         RunProperties runProperties = new();
-        
+
         runProperties.Append(new Color() { Val = "C0C0C0" }); // 灰色
         runProperties.Append(new Italic());
         run.Append(runProperties);
         run.Append(new Text($"[水印设置] 水印字号：{watermarkFontSize}磅"));
-        
+
         paragraph.Append(run);
         body.Append(paragraph);
     }
@@ -122,7 +122,7 @@ public static class WordDocumentGeneratorExtensions
         string startPosition = GetParameterValue(operationPoint, "StartPosition", "1");
         string endPosition = GetParameterValue(operationPoint, "EndPosition", "1");
         string shadingColor = GetParameterValue(operationPoint, "ShadingColor", "#FFFF00");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 表格底纹：{areaType}区域{areaNumber}，从{startPosition}到{endPosition}，颜色{shadingColor}"));
@@ -139,7 +139,7 @@ public static class WordDocumentGeneratorExtensions
         string endRow = GetParameterValue(operationPoint, "EndRow", "1");
         string rowHeight = GetParameterValue(operationPoint, "RowHeight", "20");
         string heightType = GetParameterValue(operationPoint, "HeightType", "固定值");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 表格行高：第{startRow}行到第{endRow}行，高度{rowHeight}磅，类型{heightType}"));
@@ -156,7 +156,7 @@ public static class WordDocumentGeneratorExtensions
         string endColumn = GetParameterValue(operationPoint, "EndColumn", "1");
         string columnWidth = GetParameterValue(operationPoint, "ColumnWidth", "100");
         string widthType = GetParameterValue(operationPoint, "WidthType", "固定宽度");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 表格列宽：第{startColumn}列到第{endColumn}列，宽度{columnWidth}磅，类型{widthType}"));
@@ -172,7 +172,7 @@ public static class WordDocumentGeneratorExtensions
         string rowNumber = GetParameterValue(operationPoint, "RowNumber", "1");
         string columnNumber = GetParameterValue(operationPoint, "ColumnNumber", "1");
         string cellContent = GetParameterValue(operationPoint, "CellContent", "单元格内容");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 单元格内容：第{rowNumber}行第{columnNumber}列，内容：{cellContent}"));
@@ -189,7 +189,7 @@ public static class WordDocumentGeneratorExtensions
         string columnNumber = GetParameterValue(operationPoint, "ColumnNumber", "1");
         string horizontalAlignment = GetParameterValue(operationPoint, "HorizontalAlignment", "左对齐");
         string verticalAlignment = GetParameterValue(operationPoint, "VerticalAlignment", "居中对齐");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 单元格对齐：第{rowNumber}行第{columnNumber}列，水平{horizontalAlignment}，垂直{verticalAlignment}"));
@@ -204,7 +204,7 @@ public static class WordDocumentGeneratorExtensions
     {
         string tableAlignment = GetParameterValue(operationPoint, "TableAlignment", "居中");
         string leftIndent = GetParameterValue(operationPoint, "LeftIndent", "0");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 表格对齐：{tableAlignment}，左缩进{leftIndent}磅"));
@@ -221,7 +221,7 @@ public static class WordDocumentGeneratorExtensions
         string startColumn = GetParameterValue(operationPoint, "StartColumn", "1");
         string endRow = GetParameterValue(operationPoint, "EndRow", "1");
         string endColumn = GetParameterValue(operationPoint, "EndColumn", "1");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 合并单元格：从第{startRow}行第{startColumn}列到第{endRow}行第{endColumn}列"));
@@ -236,7 +236,7 @@ public static class WordDocumentGeneratorExtensions
     {
         string columnNumber = GetParameterValue(operationPoint, "ColumnNumber", "1");
         string headerContent = GetParameterValue(operationPoint, "HeaderContent", "标题内容");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[表格设置] 表格标题：第{columnNumber}列，标题：{headerContent}"));
@@ -251,7 +251,7 @@ public static class WordDocumentGeneratorExtensions
     {
         string paragraphNumbers = GetParameterValue(operationPoint, "ParagraphNumbers", "1#2#3");
         string numberingType = GetParameterValue(operationPoint, "NumberingType", "数字编号");
-        
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[编号设置] 段落编号：{paragraphNumbers}，编号类型：{numberingType}"));
