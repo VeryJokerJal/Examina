@@ -926,18 +926,42 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     OperationPoints = []
                 };
 
-                // 为每个问题创建一个操作点
-                OperationPointModel operationPoint = new()
+                // 映射题目中的操作点
+                foreach (StudentSpecializedTrainingOperationPointDto operationPointDto in question.OperationPoints)
                 {
-                    Id = question.Id.ToString(),
-                    Name = question.Title,
-                    Description = question.Content ?? string.Empty,
-                    Score = question.Score,
-                    Parameters = [],
-                    ModuleType = GetModuleTypeFromString(training.ModuleType)
-                };
+                    OperationPointModel operationPoint = new()
+                    {
+                        Id = operationPointDto.Id.ToString(),
+                        Name = string.IsNullOrWhiteSpace(operationPointDto.Name) ? $"操作点_{operationPointDto.Id}" : operationPointDto.Name,
+                        Description = operationPointDto.Description ?? string.Empty,
+                        Score = operationPointDto.Score,
+                        Order = operationPointDto.Order,
+                        IsEnabled = true,
+                        ModuleType = GetModuleTypeFromString(operationPointDto.ModuleType),
+                        Parameters = MapOperationPointParameters(operationPointDto.Parameters)
+                    };
 
-                questionModel.OperationPoints.Add(operationPoint);
+                    questionModel.OperationPoints.Add(operationPoint);
+                }
+
+                // 如果题目没有操作点，创建一个默认操作点
+                if (questionModel.OperationPoints.Count == 0)
+                {
+                    OperationPointModel defaultOperationPoint = new()
+                    {
+                        Id = $"default_{question.Id}",
+                        Name = question.Title,
+                        Description = question.Content ?? string.Empty,
+                        Score = question.Score,
+                        Order = 1,
+                        IsEnabled = true,
+                        ModuleType = GetModuleTypeFromString(training.ModuleType),
+                        Parameters = []
+                    };
+
+                    questionModel.OperationPoints.Add(defaultOperationPoint);
+                }
+
                 examModule.Questions.Add(questionModel);
             }
 
@@ -972,18 +996,42 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     OperationPoints = []
                 };
 
-                // 为每个问题创建一个操作点
-                OperationPointModel operationPoint = new()
+                // 映射题目中的操作点
+                foreach (StudentSpecializedTrainingOperationPointDto operationPointDto in question.OperationPoints)
                 {
-                    Id = question.Id.ToString(),
-                    Name = question.Title,
-                    Description = question.Content ?? string.Empty,
-                    Score = question.Score,
-                    Parameters = [],
-                    ModuleType = GetModuleTypeFromString(training.ModuleType)
-                };
+                    OperationPointModel operationPoint = new()
+                    {
+                        Id = operationPointDto.Id.ToString(),
+                        Name = string.IsNullOrWhiteSpace(operationPointDto.Name) ? $"操作点_{operationPointDto.Id}" : operationPointDto.Name,
+                        Description = operationPointDto.Description ?? string.Empty,
+                        Score = operationPointDto.Score,
+                        Order = operationPointDto.Order,
+                        IsEnabled = true,
+                        ModuleType = GetModuleTypeFromString(operationPointDto.ModuleType),
+                        Parameters = MapOperationPointParameters(operationPointDto.Parameters)
+                    };
 
-                questionModel.OperationPoints.Add(operationPoint);
+                    questionModel.OperationPoints.Add(operationPoint);
+                }
+
+                // 如果题目没有操作点，创建一个默认操作点
+                if (questionModel.OperationPoints.Count == 0)
+                {
+                    OperationPointModel defaultOperationPoint = new()
+                    {
+                        Id = $"default_{question.Id}",
+                        Name = question.Title,
+                        Description = question.Content ?? string.Empty,
+                        Score = question.Score,
+                        Order = 1,
+                        IsEnabled = true,
+                        ModuleType = GetModuleTypeFromString(training.ModuleType),
+                        Parameters = []
+                    };
+
+                    questionModel.OperationPoints.Add(defaultOperationPoint);
+                }
+
                 defaultModule.Questions.Add(questionModel);
             }
 
@@ -991,6 +1039,56 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         }
 
         return examModel;
+    }
+
+    /// <summary>
+    /// 映射操作点参数
+    /// </summary>
+    private static List<ConfigurationParameterModel> MapOperationPointParameters(IEnumerable<StudentSpecializedTrainingParameterDto> parameters)
+    {
+        List<ConfigurationParameterModel> configParameters = [];
+
+        foreach (StudentSpecializedTrainingParameterDto paramDto in parameters)
+        {
+            ConfigurationParameterModel configParam = new()
+            {
+                Id = paramDto.Id.ToString(),
+                Name = paramDto.Name,
+                DisplayName = paramDto.Name,
+                Value = paramDto.Value ?? paramDto.DefaultValue ?? string.Empty,
+                Type = ParseParameterType(paramDto.ParameterType),
+                IsRequired = false, // StudentSpecializedTrainingParameterDto没有IsRequired属性，默认为false
+                DefaultValue = paramDto.DefaultValue,
+                Description = paramDto.Description ?? string.Empty,
+                Order = 0, // StudentSpecializedTrainingParameterDto没有Order属性，默认为0
+                IsVisible = true
+            };
+
+            configParameters.Add(configParam);
+        }
+
+        return configParameters;
+    }
+
+    /// <summary>
+    /// 解析参数类型
+    /// </summary>
+    private static ParameterType ParseParameterType(string parameterType)
+    {
+        return parameterType?.ToLower() switch
+        {
+            "string" or "text" => ParameterType.Text,
+            "int" or "integer" or "number" or "double" or "decimal" or "float" => ParameterType.Number,
+            "bool" or "boolean" => ParameterType.Boolean,
+            "enum" => ParameterType.Enum,
+            "color" => ParameterType.Color,
+            "file" => ParameterType.File,
+            "folder" or "directory" => ParameterType.Folder,
+            "path" => ParameterType.Path,
+            "multiplechoice" or "multiple_choice" => ParameterType.MultipleChoice,
+            "date" or "datetime" => ParameterType.Date,
+            _ => ParameterType.Text
+        };
     }
 
     /// <summary>
