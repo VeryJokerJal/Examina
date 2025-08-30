@@ -216,4 +216,52 @@ public static class NotificationService
             "保存更改",
             "您有未保存的更改，是否要保存？");
     }
+
+    /// <summary>
+    /// 显示带有操作按钮的成功消息
+    /// </summary>
+    /// <param name="title">标题</param>
+    /// <param name="message">消息内容</param>
+    /// <param name="actionButtonText">操作按钮文本</param>
+    /// <param name="closeButtonText">关闭按钮文本</param>
+    /// <returns>用户选择的结果</returns>
+    public static async Task<ContentDialogResult> ShowSuccessWithActionAsync(string title, string message, string actionButtonText, string closeButtonText = "确定")
+    {
+        ContentDialog dialog = new()
+        {
+            Title = title,
+            Content = message,
+            PrimaryButtonText = actionButtonText,
+            CloseButtonText = closeButtonText,
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        SetDialogXamlRoot(dialog);
+
+        return await dialog.ShowAsync();
+    }
+
+    /// <summary>
+    /// 显示带有操作按钮的信息消息
+    /// </summary>
+    /// <param name="title">标题</param>
+    /// <param name="message">消息内容</param>
+    /// <param name="actionButtonText">操作按钮文本</param>
+    /// <param name="closeButtonText">关闭按钮文本</param>
+    /// <returns>用户选择的结果</returns>
+    public static async Task<ContentDialogResult> ShowInfoWithActionAsync(string title, string message, string actionButtonText, string closeButtonText = "确定")
+    {
+        ContentDialog dialog = new()
+        {
+            Title = title,
+            Content = message,
+            PrimaryButtonText = actionButtonText,
+            CloseButtonText = closeButtonText,
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        SetDialogXamlRoot(dialog);
+
+        return await dialog.ShowAsync();
+    }
 }

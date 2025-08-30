@@ -147,6 +147,21 @@ public class SpecializedExamViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> PreviewQuestionCommand { get; }
 
     /// <summary>
+    /// 生成Word文档命令
+    /// </summary>
+    //public ReactiveCommand<Unit, Unit> GenerateWordDocumentCommand { get; }
+
+    /// <summary>
+    /// 生成Excel文档命令
+    /// </summary>
+    //public ReactiveCommand<Unit, Unit> GenerateExcelDocumentCommand { get; }
+
+    /// <summary>
+    /// 生成PowerPoint文档命令
+    /// </summary>
+    //public ReactiveCommand<Unit, Unit> GeneratePowerPointDocumentCommand { get; }
+
+    /// <summary>
     /// 导出题目命令
     /// </summary>
     public ReactiveCommand<Unit, Unit> ExportQuestionCommand { get; }
@@ -182,6 +197,11 @@ public class SpecializedExamViewModel : ViewModelBase
         AddOperationPointCommand = ReactiveCommand.CreateFromTask(AddOperationPointAsync);
         DeleteOperationPointCommand = ReactiveCommand.CreateFromTask<OperationPoint>(DeleteOperationPointAsync);
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
+
+        // 文档生成命令
+        //GenerateWordDocumentCommand = ReactiveCommand.CreateFromTask(GenerateWordDocumentAsync);
+        //GenerateExcelDocumentCommand = ReactiveCommand.CreateFromTask(GenerateExcelDocumentAsync);
+        //GeneratePowerPointDocumentCommand = ReactiveCommand.CreateFromTask(GeneratePowerPointDocumentAsync);
 
         // 监听选中试卷变化
         _ = this.WhenAnyValue(x => x.SelectedSpecializedExam)
@@ -1031,4 +1051,162 @@ public class SpecializedExamViewModel : ViewModelBase
             _ => "未知级别"
         };
     }
+
+    /*
+    /// <summary>
+    /// 生成Word文档
+    /// </summary>
+    private async Task GenerateWordDocumentAsync()
+    {
+        await GenerateDocumentAsync(ModuleType.Word, new WordDocumentGenerator());
+    }
+
+    /// <summary>
+    /// 生成Excel文档
+    /// </summary>
+    private async Task GenerateExcelDocumentAsync()
+    {
+        await GenerateDocumentAsync(ModuleType.Excel, new ExcelDocumentGenerator());
+    }
+
+    /// <summary>
+    /// 生成PowerPoint文档
+    /// </summary>
+    private async Task GeneratePowerPointDocumentAsync()
+    {
+        await GenerateDocumentAsync(ModuleType.PowerPoint, new PowerPointDocumentGenerator());
+    }
+    */
+
+    /*
+    /// <summary>
+    /// 生成文档的通用方法
+    /// </summary>
+    private async Task GenerateDocumentAsync(ModuleType moduleType, IDocumentGenerationService documentService)
+    {
+        try
+        {
+            // 1. 验证当前状态
+            if (SelectedSpecializedExam == null)
+            {
+                await NotificationService.ShowWarningAsync("提示", "请先选择一个专项试卷");
+                return;
+            }
+
+            // 2. 获取对应模块
+            ExamModule? module = SelectedSpecializedExam.Modules.FirstOrDefault(m => m.ModuleType == moduleType);
+            if (module == null)
+            {
+                await NotificationService.ShowWarningAsync("提示", $"当前专项试卷不包含{GetModuleTypeName(moduleType)}模块");
+                return;
+            }
+
+            // 3. 验证模块内容
+            DocumentValidationResult validation = documentService.ValidateModule(module);
+            if (!validation.IsValid)
+            {
+                string errorMessage = string.Join("\n", validation.ErrorMessages);
+                await NotificationService.ShowErrorAsync("验证失败", $"模块验证失败：\n{errorMessage}");
+                return;
+            }
+
+            // 4. 选择保存位置
+            string fileName = $"{SelectedSpecializedExam.Title}_{GetModuleTypeName(moduleType)}_答案_{DateTime.Now:yyyyMMdd_HHmmss}{documentService.GetRecommendedFileExtension()}";
+
+            Windows.Storage.Pickers.FileSavePicker savePicker = new()
+            {
+                SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
+                SuggestedFileName = fileName
+            };
+            savePicker.FileTypeChoices.Add(documentService.GetFileTypeDescription(), [documentService.GetRecommendedFileExtension()]);
+
+            // 获取当前窗口句柄
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+            Windows.Storage.StorageFile? file = await savePicker.PickSaveFileAsync();
+            if (file == null)
+                return;
+
+            // 5. 显示进度对话框
+            ContentDialog progressDialog = new()
+            {
+                Title = "生成文档",
+                Content = "正在生成文档，请稍候...",
+                IsPrimaryButtonEnabled = false,
+                IsSecondaryButtonEnabled = false
+            };
+
+            // 在后台线程中生成文档
+            Task generateTask = Task.Run(async () =>
+            {
+                Progress<DocumentGenerationProgress> progress = new(p =>
+                {
+                    // 在UI线程中更新进度
+                    App.MainWindow.DispatcherQueue.TryEnqueue(() =>
+                    {
+                        progressDialog.Content = $"{p.CurrentStep}\n进度：{p.ProgressPercentage}%\n已处理：{p.ProcessedCount}/{p.TotalCount}";
+                        if (!string.IsNullOrEmpty(p.CurrentOperationPoint))
+                        {
+                            progressDialog.Content += $"\n当前操作：{p.CurrentOperationPoint}";
+                        }
+                    });
+                });
+
+                DocumentGenerationResult result = await documentService.GenerateDocumentAsync(module, file.Path, progress);
+
+                // 在UI线程中处理结果
+                App.MainWindow.DispatcherQueue.TryEnqueue(async () =>
+                {
+                    progressDialog.Hide();
+
+                    if (result.IsSuccess)
+                    {
+                        string successMessage = $"文档生成成功！\n" +
+                                              $"保存位置：{result.FilePath}\n" +
+                                              $"处理操作点：{result.ProcessedOperationPoints}/{result.TotalOperationPoints}\n" +
+                                              $"耗时：{result.Duration.TotalSeconds:F1}秒";
+
+                        if (!string.IsNullOrEmpty(result.Details))
+                        {
+                            successMessage += $"\n\n详细信息：\n{result.Details}";
+                        }
+
+                        ContentDialogResult dialogResult = await NotificationService.ShowSuccessWithActionAsync(
+                            "生成成功",
+                            successMessage,
+                            "打开文件",
+                            "确定");
+
+                        if (dialogResult == ContentDialogResult.Primary)
+                        {
+                            // 打开生成的文件
+                            await Windows.System.Launcher.LaunchFileAsync(file);
+                        }
+                    }
+                    else
+                    {
+                        string errorMessage = $"文档生成失败：{result.ErrorMessage}";
+                        if (!string.IsNullOrEmpty(result.Details))
+                        {
+                            errorMessage += $"\n\n详细信息：\n{result.Details}";
+                        }
+                        await NotificationService.ShowErrorAsync("生成失败", errorMessage);
+                    }
+                });
+            });
+
+            // 显示进度对话框
+            _ = progressDialog.ShowAsync();
+
+            // 等待生成完成
+            await generateTask;
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("生成失败", $"生成{GetModuleTypeName(moduleType)}文档时发生错误：{ex.Message}");
+        }
+    }
+    */
+
 }
