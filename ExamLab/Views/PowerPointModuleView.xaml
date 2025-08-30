@@ -163,9 +163,7 @@
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetTextStyle" Content="设置文本字形" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetElementPosition" Content="设置元素位置" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetElementSize" Content="设置元素尺寸" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetWordArtStyle" Content="艺术字字样" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetWordArtEffect" Content="艺术字文本效果" />
-                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetSmartArtColor" Content="SmartArt颜色" />
+                                            <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetWordArtStyle" Content="艺术字设置" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationDirection" Content="动画方向" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationStyle" Content="动画样式" />
                                             <Button HorizontalAlignment="Stretch" Command="{Binding CurrentContentViewModel.AddOperationPointByTypeCommand}" CommandParameter="SetAnimationDuration" Content="动画持续时间" />

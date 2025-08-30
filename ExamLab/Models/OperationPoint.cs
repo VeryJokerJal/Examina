@@ -50,9 +50,7 @@ public enum PowerPointKnowledgeType
     SetTextStyle = 20,            // 知识点20：幻灯片插入文本字形
     SetElementPosition = 21,      // 知识点21：元素位置
     SetElementSize = 22,          // 知识点22：元素高度和宽度设置
-    SetWordArtStyle = 23,         // 知识点23：艺术字字样
-    SetWordArtEffect = 24,        // 知识点24：艺术字文本效果
-    SetSmartArtColor = 25,        // 知识点25：SmartArt颜色
+    SetWordArtStyle = 23,         // 知识点23：艺术字设置（合并原有的艺术字字样和文本效果）
     SetAnimationDirection = 26,   // 知识点26：动画效果-方向
     SetAnimationStyle = 27,       // 知识点27：动画样式
     SetAnimationDuration = 28,    // 知识点28：动画持续时间

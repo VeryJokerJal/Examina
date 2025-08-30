@@ -438,51 +438,21 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点23：艺术字字样
+        // 知识点23：艺术字设置（合并原有的艺术字字样和文本效果）
         configs[PowerPointKnowledgeType.SetWordArtStyle] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetWordArtStyle,
-            Name = "艺术字字样",
-            Description = "设置艺术字的样式",
+            Name = "艺术字设置",
+            Description = "设置艺术字的样式和特殊效果（基于COM组件MsoPresetTextEffect枚举）",
             Category = "文字与字体设置",
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
                 new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "WordArtStyle", DisplayName = "艺术字样式", Description = "选择艺术字样式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "样式1,样式2,样式3,样式4,样式5,样式6,样式7,样式8,样式9,样式10,样式11,样式12,样式13,样式14,样式15,样式16,样式17,样式18,样式19,样式20" }
-            ]
-        };
-
-        // 知识点24：艺术字文本效果
-        configs[PowerPointKnowledgeType.SetWordArtEffect] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetWordArtEffect,
-            Name = "艺术字文本效果",
-            Description = "设置艺术字的特殊效果",
-            Category = "文字与字体设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "TextEffect", DisplayName = "艺术字文本效果", Description = "选择文本变形效果", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "普通文本（无变形）,停止标志样式（方块包围）,正三角形向上,正三角形向下,尖角向上,尖角向下,内环,外环,向上弧形（曲线）,向下弧形（曲线）,完整圆形,圆角矩形曲线,向上弧形（灌注）,向下弧形（灌注）,圆形灌注,圆角矩形灌注,向上轻微弯曲,向下轻微弯曲,阶梯向上,阶梯向下,波浪样式1,波浪样式2,双波浪样式1,双波浪样式2,向外鼓起,向内收缩,底部向外鼓起,底部向内凹陷" }
-            ]
-        };
-
-        // 知识点25：SmartArt颜色
-        configs[PowerPointKnowledgeType.SetSmartArtColor] = new PowerPointKnowledgeConfig
-        {
-            KnowledgeType = PowerPointKnowledgeType.SetSmartArtColor,
-            Name = "SmartArt颜色",
-            Description = "设置SmartArt图形的颜色",
-            Category = "文字与字体设置",
-            ParameterTemplates =
-            [
-                new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
-                new() { Name = "SmartArtColor", DisplayName = "Smart颜色", Description = "选择SmartArt颜色方案", Type = ParameterType.Enum, IsRequired = true, Order = 3,
-                    EnumOptions = "彩色范围-强调文字颜色1,彩色范围-强调文字颜色2,彩色范围-强调文字颜色3至4,彩色范围-强调文字颜色5到6,单色填充-灰色,渐变范围-强调文字颜色2,浅色填充-强调文字颜色3,强填充-强调文字颜色4,强边框-强调文字颜色5,彩色线框-强调文字颜色6,渐变线框-强调文字颜色4" }
+                new() { Name = "PresetTextEffect", DisplayName = "艺术字预设效果", Description = "选择艺术字预设效果（基于MsoPresetTextEffect枚举）", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "效果1,效果2,效果3,效果4,效果5,效果6,效果7,效果8,效果9,效果10,效果11,效果12,效果13,效果14,效果15,效果16,效果17,效果18,效果19,效果20,效果21,效果22,效果23,效果24,效果25,效果26,效果27,效果28,效果29,效果30" },
+                new() { Name = "TextEffectShape", DisplayName = "艺术字形状效果", Description = "选择艺术字形状效果（基于MsoPresetTextEffectShape枚举）", Type = ParameterType.Enum, IsRequired = false, Order = 4,
+                    EnumOptions = "普通文本,停止标志,正三角形向上,正三角形向下,尖角向上,尖角向下,内环,外环,向上弧形曲线,向下弧形曲线,完整圆形,圆角矩形曲线,向上弧形灌注,向下弧形灌注,圆形灌注,圆角矩形灌注,向上轻微弯曲,向下轻微弯曲,阶梯向上,阶梯向下,波浪样式1,波浪样式2,双波浪样式1,双波浪样式2,向外鼓起,向内收缩,底部向外鼓起,底部向内凹陷,顶部向外鼓起,顶部向内凹陷,收缩鼓起,收缩鼓起收缩,向右淡出,向左淡出,向上淡出,向下淡出,向上倾斜,向下倾斜,向上层叠,向下层叠" }
             ]
         };
 

@@ -486,6 +486,18 @@ public class PowerPointScoringService : IPowerPointScoringService
                 case "SlideshowOptions":
                     result = DetectSlideshowOptions(presentation, parameters);
                     break;
+                case "SetWordArtStyle":
+                    result = DetectWordArtStyle(presentation, parameters);
+                    break;
+                case "SetWordArtEffect":
+                    // 向后兼容：将旧的SetWordArtEffect重定向到新的统一检测方法
+                    result = DetectWordArtStyle(presentation, parameters);
+                    break;
+                case "SetSmartArtColor":
+                    // 已删除的功能，返回不支持错误
+                    result.ErrorMessage = "SetSmartArtColor功能已被删除";
+                    result.IsCorrect = false;
+                    break;
                 default:
                     result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
                     result.IsCorrect = false;
@@ -3827,6 +3839,247 @@ public class PowerPointScoringService : IPowerPointScoringService
             PowerPoint.PpSlideShowAdvanceMode.ppSlideShowUseSlideTimings => "使用幻灯片计时",
             PowerPoint.PpSlideShowAdvanceMode.ppSlideShowRehearseNewTimings => "排练新的计时",
             _ => "未知方式"
+        };
+    }
+
+    /// <summary>
+    /// 检测艺术字设置
+    /// </summary>
+    private KnowledgePointResult DetectWordArtStyle(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWordArtStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            // 获取参数
+            if (!parameters.TryGetValue("SlideNumber", out string? slideNumberStr) ||
+                !int.TryParse(slideNumberStr, out int slideNumber))
+            {
+                result.ErrorMessage = "缺少必要参数: SlideNumber";
+                return result;
+            }
+
+            if (!parameters.TryGetValue("TextBoxOrder", out string? textBoxOrderStr) ||
+                !int.TryParse(textBoxOrderStr, out int textBoxOrder))
+            {
+                result.ErrorMessage = "缺少必要参数: TextBoxOrder";
+                return result;
+            }
+
+            // 检查幻灯片索引
+            if (slideNumber < 1 || slideNumber > presentation.Slides.Count)
+            {
+                result.ErrorMessage = $"幻灯片索引超出范围: {slideNumber}";
+                return result;
+            }
+
+            PowerPoint.Slide slide = presentation.Slides[slideNumber];
+
+            // 查找指定的文本框
+            if (textBoxOrder < 1 || textBoxOrder > slide.Shapes.Count)
+            {
+                result.ErrorMessage = $"文本框索引超出范围: {textBoxOrder}";
+                return result;
+            }
+
+            PowerPoint.Shape shape = slide.Shapes[textBoxOrder];
+
+            // 检查是否为艺术字
+            if (shape.Type != Microsoft.Office.Core.MsoShapeType.msoTextEffect)
+            {
+                result.ErrorMessage = $"指定的形状不是艺术字: {shape.Type}";
+                return result;
+            }
+
+            List<string> details = [];
+            int correctCount = 0;
+            int totalChecks = 0;
+
+            // 检测预设效果 (PresetTextEffect)
+            if (parameters.TryGetValue("PresetTextEffect", out string? expectedPresetEffect))
+            {
+                totalChecks++;
+                string actualPresetEffect = GetPresetTextEffectName(shape.TextEffect.PresetTextEffect);
+                bool presetMatches = string.Equals(actualPresetEffect, expectedPresetEffect, StringComparison.OrdinalIgnoreCase);
+
+                if (presetMatches)
+                {
+                    correctCount++;
+                    details.Add($"预设效果匹配: {actualPresetEffect}");
+                }
+                else
+                {
+                    details.Add($"预设效果不匹配 (期望: {expectedPresetEffect}, 实际: {actualPresetEffect})");
+                }
+            }
+
+            // 检测形状效果 (TextEffectShape)
+            if (parameters.TryGetValue("TextEffectShape", out string? expectedShapeEffect))
+            {
+                totalChecks++;
+                string actualShapeEffect = GetTextEffectShapeName(shape.TextEffect.PresetShape);
+                bool shapeMatches = string.Equals(actualShapeEffect, expectedShapeEffect, StringComparison.OrdinalIgnoreCase);
+
+                if (shapeMatches)
+                {
+                    correctCount++;
+                    details.Add($"形状效果匹配: {actualShapeEffect}");
+                }
+                else
+                {
+                    details.Add($"形状效果不匹配 (期望: {expectedShapeEffect}, 实际: {actualShapeEffect})");
+                }
+            }
+
+            // 向后兼容：检测旧的参数
+            if (parameters.TryGetValue("WordArtStyle", out string? expectedStyle))
+            {
+                totalChecks++;
+                string actualStyle = GetPresetTextEffectName(shape.TextEffect.PresetTextEffect);
+                bool styleMatches = string.Equals(actualStyle, expectedStyle, StringComparison.OrdinalIgnoreCase);
+
+                if (styleMatches)
+                {
+                    correctCount++;
+                    details.Add($"艺术字样式匹配: {actualStyle}");
+                }
+                else
+                {
+                    details.Add($"艺术字样式不匹配 (期望: {expectedStyle}, 实际: {actualStyle})");
+                }
+            }
+
+            if (parameters.TryGetValue("TextEffect", out string? expectedTextEffect))
+            {
+                totalChecks++;
+                string actualTextEffect = GetTextEffectShapeName(shape.TextEffect.PresetShape);
+                bool textEffectMatches = string.Equals(actualTextEffect, expectedTextEffect, StringComparison.OrdinalIgnoreCase);
+
+                if (textEffectMatches)
+                {
+                    correctCount++;
+                    details.Add($"文本效果匹配: {actualTextEffect}");
+                }
+                else
+                {
+                    details.Add($"文本效果不匹配 (期望: {expectedTextEffect}, 实际: {actualTextEffect})");
+                }
+            }
+
+            if (totalChecks == 0)
+            {
+                result.ErrorMessage = "未找到有效的艺术字设置参数";
+                return result;
+            }
+
+            result.IsCorrect = correctCount == totalChecks;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : (int)((double)correctCount / totalChecks * result.TotalScore);
+            result.Details = string.Join("; ", details);
+            result.ExpectedValue = $"检查了 {totalChecks} 个艺术字设置";
+            result.ActualValue = $"匹配了 {correctCount} 个设置";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测艺术字设置失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 获取预设文本效果名称
+    /// </summary>
+    private static string GetPresetTextEffectName(Microsoft.Office.Core.MsoPresetTextEffect presetEffect)
+    {
+        return presetEffect switch
+        {
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect1 => "效果1",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect2 => "效果2",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect3 => "效果3",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect4 => "效果4",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect5 => "效果5",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect6 => "效果6",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect7 => "效果7",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect8 => "效果8",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect9 => "效果9",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect10 => "效果10",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect11 => "效果11",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect12 => "效果12",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect13 => "效果13",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect14 => "效果14",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect15 => "效果15",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect16 => "效果16",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect17 => "效果17",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect18 => "效果18",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect19 => "效果19",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect20 => "效果20",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect21 => "效果21",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect22 => "效果22",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect23 => "效果23",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect24 => "效果24",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect25 => "效果25",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect26 => "效果26",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect27 => "效果27",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect28 => "效果28",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect29 => "效果29",
+            Microsoft.Office.Core.MsoPresetTextEffect.msoTextEffect30 => "效果30",
+            _ => "未知效果"
+        };
+    }
+
+    /// <summary>
+    /// 获取文本效果形状名称
+    /// </summary>
+    private static string GetTextEffectShapeName(Microsoft.Office.Core.MsoPresetTextEffectShape shapeEffect)
+    {
+        return shapeEffect switch
+        {
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapePlainText => "普通文本",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeStop => "停止标志",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeTriangleUp => "正三角形向上",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeTriangleDown => "正三角形向下",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeChevronUp => "尖角向上",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeChevronDown => "尖角向下",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeRingInside => "内环",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeRingOutside => "外环",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeArchUpCurve => "向上弧形曲线",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeArchDownCurve => "向下弧形曲线",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCircleCurve => "完整圆形",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeButtonCurve => "圆角矩形曲线",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeArchUpPour => "向上弧形灌注",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeArchDownPour => "向下弧形灌注",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCirclePour => "圆形灌注",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeButtonPour => "圆角矩形灌注",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCurveUp => "向上轻微弯曲",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCurveDown => "向下轻微弯曲",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCanUp => "阶梯向上",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCanDown => "阶梯向下",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeWave1 => "波浪样式1",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeWave2 => "波浪样式2",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeDoubleWave1 => "双波浪样式1",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeDoubleWave2 => "双波浪样式2",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeInflate => "向外鼓起",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeDeflate => "向内收缩",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeInflateBottom => "底部向外鼓起",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeDeflateBottom => "底部向内凹陷",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeInflateTop => "顶部向外鼓起",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeDeflateTop => "顶部向内凹陷",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeDeflateInflate => "收缩鼓起",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeDeflateInflateDeflate => "收缩鼓起收缩",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeFadeRight => "向右淡出",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeFadeLeft => "向左淡出",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeFadeUp => "向上淡出",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeFadeDown => "向下淡出",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeSlantUp => "向上倾斜",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeSlantDown => "向下倾斜",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCascadeUp => "向上层叠",
+            Microsoft.Office.Core.MsoPresetTextEffectShape.msoTextEffectShapeCascadeDown => "向下层叠",
+            _ => "未知形状"
         };
     }
 }
