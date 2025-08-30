@@ -3785,7 +3785,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 Color? color = runProperties?.Color;
                 if (color?.Val?.Value != null)
                 {
-                    return color.Val.Value;
+                    string colorValue = color.Val.Value;
+                    // 确保颜色值有#前缀
+                    if (!colorValue.StartsWith("#") && colorValue.Length == 6)
+                    {
+                        colorValue = "#" + colorValue;
+                    }
+                    return colorValue;
                 }
             }
             return "自动"; // 默认颜色
@@ -3794,6 +3800,38 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             return "未知颜色";
         }
+    }
+
+    /// <summary>
+    /// 将十六进制颜色代码转换为颜色名称
+    /// </summary>
+    private static string ConvertHexToColorName(string hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor)) return hexColor;
+
+        // 移除#前缀进行比较
+        string hex = hexColor.TrimStart('#').ToUpper();
+
+        return hex switch
+        {
+            "FF0000" => "红色",
+            "00FF00" => "绿色",
+            "0000FF" => "蓝色",
+            "FFFF00" => "黄色",
+            "FF00FF" => "洋红",
+            "00FFFF" => "青色",
+            "000000" => "黑色",
+            "FFFFFF" => "白色",
+            "808080" => "灰色",
+            "FFA500" => "橙色",
+            "800080" => "紫色",
+            "008000" => "深绿色",
+            "000080" => "深蓝色",
+            "800000" => "深红色",
+            "05F8FF" => "浅青色",
+            "FF2E45" => "深粉色",
+            _ => hexColor // 如果没有匹配的颜色名称，返回原始值
+        };
     }
 
     /// <summary>
@@ -3863,38 +3901,60 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 return "无首字下沉";
             }
 
-            // 检查首字下沉设置
+            // 方法1：检查FrameProperties中的首字下沉设置
             FrameProperties? framePr = paragraphProperties.GetFirstChild<FrameProperties>();
             if (framePr != null)
             {
-                // 检查是否有下沉行数设置
                 if (framePr.DropCap?.Value != null)
                 {
-                    DropCapLocationValues dropCapValue = framePr.DropCap.Value;
-                    if (dropCapValue == DropCapLocationValues.Drop)
+                    string dropCapValue = framePr.DropCap.Value.ToString();
+                    string lines = framePr.Lines?.Value.ToString() ?? "3";
+
+                    return dropCapValue switch
                     {
-                        return "首字下沉";
-                    }
-                    else if (dropCapValue == DropCapLocationValues.Margin)
-                    {
-                        return "首字悬挂";
-                    }
+                        "Drop" => $"首字下沉到段落中",
+                        "Margin" => $"首字下沉到页边距",
+                        _ => $"首字下沉({dropCapValue})"
+                    };
                 }
 
-                // 检查下沉行数
                 if (framePr.Lines?.Value != null)
                 {
                     return $"首字下沉 {framePr.Lines.Value} 行";
                 }
             }
 
-            // 检查Run级别的首字下沉（某些情况下可能在Run中设置）
+            // 方法2：检查段落中第一个Run的特殊格式
             Run? firstRun = paragraph.Elements<Run>().FirstOrDefault();
-            return firstRun?.RunProperties?.GetFirstChild<VerticalTextAlignment>() != null ? "检测到首字特殊格式" : "无首字下沉";
+            if (firstRun?.RunProperties != null)
+            {
+                RunProperties runProps = firstRun.RunProperties;
+
+                // 检查垂直对齐
+                VerticalTextAlignment? vertAlign = runProps.VerticalTextAlignment;
+                if (vertAlign?.Val?.HasValue == true)
+                {
+                    return $"首字特殊对齐({vertAlign.Val.Value})";
+                }
+
+                // 检查字号是否明显大于正常字号（首字下沉通常字号较大）
+                FontSize? fontSize = runProps.FontSize;
+                if (fontSize?.Val?.Value != null)
+                {
+                    int size = int.Parse(fontSize.Val.Value) / 2;
+                    if (size > 20) // 如果字号大于20，可能是首字下沉
+                    {
+                        return $"疑似首字下沉(字号{size})";
+                    }
+                }
+            }
+
+            return "无首字下沉";
         }
-        catch
+        catch (Exception ex)
         {
-            return "未知";
+            System.Diagnostics.Debug.WriteLine($"获取首字下沉失败: {ex.Message}");
+            return "检测失败";
         }
     }
 
@@ -3913,7 +3973,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 TopBorder? topBorder = paragraphBorders.TopBorder;
                 if (topBorder?.Color?.Value != null)
                 {
-                    return topBorder.Color.Value;
+                    string colorValue = topBorder.Color.Value;
+                    // 确保颜色值有#前缀
+                    if (!colorValue.StartsWith("#") && colorValue.Length == 6)
+                    {
+                        colorValue = "#" + colorValue;
+                    }
+                    // 尝试转换为颜色名称
+                    return ConvertHexToColorName(colorValue);
                 }
             }
 
@@ -3940,7 +4007,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 TopBorder? topBorder = paragraphBorders.TopBorder;
                 if (topBorder?.Val?.Value != null)
                 {
-                    return topBorder.Val.Value.ToString();
+                    string borderValue = topBorder.Val.Value.ToString();
+                    return borderValue switch
+                    {
+                        "Single" => "单线",
+                        "Double" => "双线",
+                        "Dotted" => "点线",
+                        "Dashed" => "虚线",
+                        "DashDot" => "点划线",
+                        "DashDotDot" => "双点划线",
+                        "Triple" => "三线",
+                        "Thick" => "粗线",
+                        "Thin" => "细线",
+                        "Wave" => "波浪线",
+                        _ => $"边框样式({borderValue})"
+                    };
                 }
             }
 
@@ -3991,16 +4072,64 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (shading != null)
             {
+                // 处理底纹颜色
                 string color = shading.Fill?.Value ?? "无颜色";
-                string pattern = shading.Val?.HasValue == true ? shading.Val.Value.ToString() : "无图案";
+                if (!string.IsNullOrEmpty(color) && color != "无颜色")
+                {
+                    // 确保颜色值有#前缀
+                    if (!color.StartsWith("#") && color.Length == 6)
+                    {
+                        color = "#" + color;
+                    }
+                    // 尝试转换为颜色名称
+                    color = ConvertHexToColorName(color);
+                }
+
+                // 处理底纹图案
+                string pattern = "无图案";
+                if (shading.Val?.HasValue == true)
+                {
+                    string patternValue = shading.Val.Value.ToString();
+                    pattern = patternValue switch
+                    {
+                        "Clear" => "无图案",
+                        "Solid" => "实心",
+                        "Pct5" => "5%",
+                        "Pct10" => "10%",
+                        "Pct12" => "12.5%",
+                        "Pct15" => "15%",
+                        "Pct20" => "20%",
+                        "Pct25" => "25%",
+                        "Pct30" => "30%",
+                        "Pct35" => "35%",
+                        "Pct37" => "37.5%",
+                        "Pct40" => "40%",
+                        "Pct45" => "42.5%",
+                        "Pct50" => "50%",
+                        "Pct55" => "55%",
+                        "Pct60" => "60%",
+                        "Pct62" => "62.5%",
+                        "Pct65" => "65%",
+                        "Pct70" => "70%",
+                        "Pct75" => "75%",
+                        "Pct80" => "80%",
+                        "Pct85" => "85%",
+                        "Pct87" => "87.5%",
+                        "Pct90" => "90%",
+                        "Pct95" => "95%",
+                        _ => $"图案({patternValue})"
+                    };
+                }
+
                 return (color, pattern);
             }
 
             return ("无底纹", "无图案");
         }
-        catch
+        catch (Exception ex)
         {
-            return ("未知", "未知");
+            System.Diagnostics.Debug.WriteLine($"获取段落底纹失败: {ex.Message}");
+            return ("检测失败", "检测失败");
         }
     }
 
@@ -4152,24 +4281,28 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
             Justification? justification = paragraphProperties?.Justification;
 
-            if (justification?.Val?.Value != null)
+            if (justification?.Val?.HasValue == true)
             {
-                return justification.Val.Value.ToString() switch
+                string alignmentString = justification.Val.Value.ToString();
+                return alignmentString switch
                 {
                     "Left" => "左对齐",
                     "Center" => "居中",
                     "Right" => "右对齐",
                     "Both" => "两端对齐",
                     "Distribute" => "分散对齐",
-                    _ => justification.Val.Value.ToString()
+                    "Start" => "左对齐",
+                    "End" => "右对齐",
+                    _ => $"未知对齐({alignmentString})"
                 };
             }
 
             return "左对齐"; // 默认左对齐
         }
-        catch
+        catch (Exception ex)
         {
-            return "未知";
+            System.Diagnostics.Debug.WriteLine($"获取段落对齐方式失败: {ex.Message}");
+            return "未知对齐";
         }
     }
 
