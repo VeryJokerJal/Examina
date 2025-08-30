@@ -757,6 +757,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
+            // 添加调试输出
+            System.Diagnostics.Debug.WriteLine($"[段落字形检测] 期望字形: {expectedStyle}, 段落索引: {paragraphNumber}");
+            if (paragraphNumber == -1)
+            {
+                DebugParagraphFormats(document);
+            }
+
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
                 paragraphNumber,
@@ -3512,15 +3519,18 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         }
 
         // -1 表示搜索所有段落，找到任意一个匹配的即可
+        List<string> debugInfo = [];
         for (int i = 0; i < paragraphs.Count; i++)
         {
             Paragraph paragraph = paragraphs[i];
             T currentValue = getActualValue(paragraph);
+            debugInfo.Add($"段落{i + 1}: {currentValue}");
 
             if (comparer(currentValue, expectedValue))
             {
                 matchedParagraph = paragraph;
                 actualValue = currentValue;
+                System.Diagnostics.Debug.WriteLine($"[段落匹配成功] 在段落{i + 1}找到匹配值: {currentValue}");
                 return true;
             }
         }
@@ -3532,7 +3542,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             actualValue = getActualValue(matchedParagraph);
         }
 
-        errorMessage = $"在所有段落中都没有找到匹配期望值的段落";
+        string allValues = string.Join("; ", debugInfo);
+        errorMessage = $"在所有段落中都没有找到匹配期望值'{expectedValue}'的段落。实际值: {allValues}";
+        System.Diagnostics.Debug.WriteLine($"[段落匹配失败] 期望: {expectedValue}, 实际检查的段落: {allValues}");
         return false;
     }
 
@@ -3685,19 +3697,39 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 if (runProperties != null)
                 {
                     List<string> styles = [];
-                    if (runProperties.Bold != null)
+
+                    // 检查粗体：需要检查值是否为true或者属性存在且没有明确设为false
+                    if (runProperties.Bold != null &&
+                        (runProperties.Bold.Val == null || runProperties.Bold.Val.Value))
                     {
-                        styles.Add("Bold");
+                        styles.Add("粗体");
                     }
 
-                    if (runProperties.Italic != null)
+                    // 检查斜体
+                    if (runProperties.Italic != null &&
+                        (runProperties.Italic.Val == null || runProperties.Italic.Val.Value))
                     {
-                        styles.Add("Italic");
+                        styles.Add("斜体");
                     }
 
+                    // 检查下划线
                     if (runProperties.Underline != null)
                     {
-                        styles.Add("Underline");
+                        styles.Add("下划线");
+                    }
+
+                    // 检查删除线
+                    if (runProperties.Strike != null &&
+                        (runProperties.Strike.Val == null || runProperties.Strike.Val.Value))
+                    {
+                        styles.Add("删除线");
+                    }
+
+                    // 检查双删除线
+                    if (runProperties.DoubleStrike != null &&
+                        (runProperties.DoubleStrike.Val == null || runProperties.DoubleStrike.Val.Value))
+                    {
+                        styles.Add("双删除线");
                     }
 
                     if (styles.Count > 0)
@@ -3706,7 +3738,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                     }
                 }
             }
-            return "Regular";
+            return "常规";
         }
         catch
         {
@@ -3776,17 +3808,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (indentation != null)
             {
-                int firstLine = indentation.FirstLine?.Value != null ? int.Parse(indentation.FirstLine.Value) / 567 : 0; // 转换为字符
-                int left = indentation.Left?.Value != null ? int.Parse(indentation.Left.Value) / 567 : 0;
-                int right = indentation.Right?.Value != null ? int.Parse(indentation.Right.Value) / 567 : 0;
+                // OpenXML中缩进值以twips为单位，1 twip = 1/20 point，1 point ≈ 1.33 pixel
+                // 转换为磅值（points）：twips / 20
+                int firstLine = indentation.FirstLine?.Value != null ? int.Parse(indentation.FirstLine.Value) / 20 : 0;
+                int left = indentation.Left?.Value != null ? int.Parse(indentation.Left.Value) / 20 : 0;
+                int right = indentation.Right?.Value != null ? int.Parse(indentation.Right.Value) / 20 : 0;
 
                 return (firstLine, left, right);
             }
 
             return (0, 0, 0);
         }
-        catch
+        catch (Exception ex)
         {
+            // 添加调试信息
+            System.Diagnostics.Debug.WriteLine($"获取段落缩进失败: {ex.Message}");
             return (0, 0, 0);
         }
     }
@@ -6192,6 +6228,61 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         else
         {
             return value; // 默认当作点处理
+        }
+    }
+
+    /// <summary>
+    /// 调试方法：输出文档中所有段落的格式信息
+    /// </summary>
+    private static void DebugParagraphFormats(WordprocessingDocument document)
+    {
+        try
+        {
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphs.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("[调试] 文档中没有段落");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[调试] 文档共有 {paragraphs.Count} 个段落");
+
+            for (int i = 0; i < paragraphs.Count; i++)
+            {
+                Paragraph paragraph = paragraphs[i];
+                string text = paragraph.InnerText.Trim();
+                if (string.IsNullOrEmpty(text)) continue;
+
+                System.Diagnostics.Debug.WriteLine($"\n=== 段落 {i + 1} ===");
+                System.Diagnostics.Debug.WriteLine($"文本内容: {text.Substring(0, Math.Min(50, text.Length))}...");
+                System.Diagnostics.Debug.WriteLine($"字体: {GetParagraphFont(paragraph)}");
+                System.Diagnostics.Debug.WriteLine($"字号: {GetParagraphFontSize(paragraph)}");
+                System.Diagnostics.Debug.WriteLine($"字形: {GetParagraphFontStyle(paragraph)}");
+                System.Diagnostics.Debug.WriteLine($"文字颜色: {GetParagraphTextColor(paragraph)}");
+                System.Diagnostics.Debug.WriteLine($"对齐方式: {GetParagraphAlignment(paragraph)}");
+
+                var indentation = GetParagraphIndentation(paragraph);
+                System.Diagnostics.Debug.WriteLine($"缩进: 首行{indentation.FirstLine}, 左{indentation.Left}, 右{indentation.Right}");
+
+                System.Diagnostics.Debug.WriteLine($"行间距: {GetParagraphLineSpacing(paragraph)}");
+                System.Diagnostics.Debug.WriteLine($"首字下沉: {GetParagraphDropCap(paragraph)}");
+
+                var spacing = GetParagraphSpacing(paragraph);
+                System.Diagnostics.Debug.WriteLine($"段落间距: 前{spacing.Before}, 后{spacing.After}");
+
+                System.Diagnostics.Debug.WriteLine($"边框颜色: {GetParagraphBorderColor(paragraph)}");
+                System.Diagnostics.Debug.WriteLine($"边框样式: {GetParagraphBorderStyle(paragraph)}");
+                System.Diagnostics.Debug.WriteLine($"边框宽度: {GetParagraphBorderWidth(paragraph)}");
+
+                var shading = GetParagraphShading(paragraph);
+                System.Diagnostics.Debug.WriteLine($"底纹: 颜色{shading.Color}, 图案{shading.Pattern}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[调试] 输出段落格式信息失败: {ex.Message}");
         }
     }
 }
