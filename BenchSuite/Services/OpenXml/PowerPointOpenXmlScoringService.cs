@@ -58,24 +58,33 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 return result;
             }
 
-            // 收集所有操作点并记录题目关联关系
+            // 收集所有PowerPoint相关的操作点并记录题目关联关系
             List<OperationPointModel> allOperationPoints = [];
             Dictionary<string, string> operationPointToQuestionMap = [];
 
             foreach (QuestionModel question in pptModule.Questions)
             {
-                foreach (OperationPointModel operationPoint in question.OperationPoints)
+                // 只处理PowerPoint相关且启用的操作点
+                List<OperationPointModel> pptOperationPoints = question.OperationPoints.Where(op => op.ModuleType == ModuleType.PowerPoint && op.IsEnabled).ToList();
+
+                System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 题目 '{question.Title}' (ID: {question.Id}) 包含 {pptOperationPoints.Count} 个PowerPoint操作点");
+
+                foreach (OperationPointModel operationPoint in pptOperationPoints)
                 {
                     allOperationPoints.Add(operationPoint);
                     operationPointToQuestionMap[operationPoint.Id] = question.Id;
+                    System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 添加操作点: {operationPoint.Name} (ID: {operationPoint.Id}) -> 题目: {question.Id}");
                 }
             }
 
             if (allOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "PowerPoint模块中未找到操作点";
+                result.ErrorMessage = "PowerPoint模块中未找到启用的PowerPoint操作点";
+                System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 警告: PowerPoint模块包含 {pptModule.Questions.Count} 个题目，但没有找到启用的PowerPoint操作点");
                 return result;
             }
+
+            System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 总共收集到 {allOperationPoints.Count} 个PowerPoint操作点，来自 {pptModule.Questions.Count} 个题目");
 
             // 批量检测知识点
             result.KnowledgePointResults = DetectKnowledgePointsAsync(filePath, allOperationPoints).Result;
@@ -86,16 +95,27 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 if (operationPointToQuestionMap.TryGetValue(kpResult.KnowledgePointId, out string? questionId))
                 {
                     kpResult.QuestionId = questionId;
-                    // 查找题目标题
+
+                    // 查找题目标题用于调试信息（KnowledgePointResult模型中没有QuestionTitle属性）
                     QuestionModel? question = pptModule.Questions.FirstOrDefault(q => q.Id == questionId);
                     if (question != null)
                     {
-                        // 可以在这里添加更多题目信息，如果需要的话
+                        System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 知识点 '{kpResult.KnowledgePointName}' 关联到题目 '{question.Title}' (ID: {questionId})");
                     }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 警告: 无法找到ID为 {questionId} 的题目");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 警告: 知识点 '{kpResult.KnowledgePointName}' (ID: {kpResult.KnowledgePointId}) 没有找到对应的题目映射");
                 }
             }
 
             FinalizeScoringResult(result, allOperationPoints);
+
+            System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 评分完成: 总分 {result.TotalScore}, 获得分数 {result.AchievedScore}, 成功率 {(result.TotalScore > 0 ? (result.AchievedScore / result.TotalScore * 100):0):F1}%");
         }
         catch (Exception ex)
         {
