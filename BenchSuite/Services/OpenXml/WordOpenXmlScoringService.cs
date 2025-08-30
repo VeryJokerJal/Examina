@@ -719,20 +719,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            string actualFont = GetParagraphFont(targetParagraph);
+            string actualFont = GetParagraphFont(targetParagraph!);
 
             result.ExpectedValue = expectedFont;
             result.ActualValue = actualFont;
             result.IsCorrect = TextEquals(actualFont, expectedFont);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 字体: 期望 {expectedFont}, 实际 {actualFont}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 字体: 期望 {expectedFont}, 实际 {actualFont}";
         }
         catch (Exception ex)
         {
@@ -765,20 +766,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            int actualSize = GetParagraphFontSize(targetParagraph);
+            int actualSize = GetParagraphFontSize(targetParagraph!);
 
             result.ExpectedValue = expectedSize.ToString();
             result.ActualValue = actualSize.ToString();
             result.IsCorrect = actualSize == expectedSize;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 字号: 期望 {expectedSize}, 实际 {actualSize}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 字号: 期望 {expectedSize}, 实际 {actualSize}";
         }
         catch (Exception ex)
         {
@@ -811,20 +813,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            string actualStyle = GetParagraphFontStyle(targetParagraph);
+            string actualStyle = GetParagraphFontStyle(targetParagraph!);
 
             result.ExpectedValue = expectedStyle;
             result.ActualValue = actualStyle;
             result.IsCorrect = TextEquals(actualStyle, expectedStyle);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 字形: 期望 {expectedStyle}, 实际 {actualStyle}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 字形: 期望 {expectedStyle}, 实际 {actualStyle}";
         }
         catch (Exception ex)
         {
@@ -857,20 +860,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            float actualSpacing = GetParagraphCharacterSpacing(targetParagraph);
+            float actualSpacing = GetParagraphCharacterSpacing(targetParagraph!);
 
             result.ExpectedValue = expectedSpacing.ToString();
             result.ActualValue = actualSpacing.ToString();
             result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 字间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 字间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
         }
         catch (Exception ex)
         {
@@ -903,20 +907,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            string actualColor = GetParagraphTextColor(targetParagraph);
+            string actualColor = GetParagraphTextColor(targetParagraph!);
 
             result.ExpectedValue = expectedColor;
             result.ActualValue = actualColor;
             result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 文字颜色: 期望 {expectedColor}, 实际 {actualColor}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 文字颜色: 期望 {expectedColor}, 实际 {actualColor}";
         }
         catch (Exception ex)
         {
@@ -951,14 +956,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            (int FirstLine, int Left, int Right) = GetParagraphIndentation(targetParagraph);
+            (int FirstLine, int Left, int Right) = GetParagraphIndentation(targetParagraph!);
 
             result.ExpectedValue = $"首行:{expectedFirstLine}, 左:{expectedLeft}, 右:{expectedRight}";
             result.ActualValue = $"首行:{FirstLine}, 左:{Left}, 右:{Right}";
@@ -966,7 +970,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                               Left == expectedLeft &&
                               Right == expectedRight;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 缩进: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 缩进: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -999,20 +1005,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            float actualSpacing = GetParagraphLineSpacing(targetParagraph);
+            float actualSpacing = GetParagraphLineSpacing(targetParagraph!);
 
             result.ExpectedValue = expectedSpacing.ToString();
             result.ActualValue = actualSpacing.ToString();
             result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 行间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 行间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
         }
         catch (Exception ex)
         {
@@ -1045,20 +1052,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            string actualType = GetParagraphDropCap(targetParagraph);
+            string actualType = GetParagraphDropCap(targetParagraph!);
 
             result.ExpectedValue = expectedType;
             result.ActualValue = actualType;
             result.IsCorrect = TextEquals(actualType, expectedType);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 首字下沉: 期望 {expectedType}, 实际 {actualType}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 首字下沉: 期望 {expectedType}, 实际 {actualType}";
         }
         catch (Exception ex)
         {
@@ -1091,20 +1099,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            string actualColor = GetParagraphBorderColor(targetParagraph);
+            string actualColor = GetParagraphBorderColor(targetParagraph!);
 
             result.ExpectedValue = expectedColor;
             result.ActualValue = actualColor;
             result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 边框颜色: 期望 {expectedColor}, 实际 {actualColor}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 边框颜色: 期望 {expectedColor}, 实际 {actualColor}";
         }
         catch (Exception ex)
         {
@@ -1137,20 +1146,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            string actualStyle = GetParagraphBorderStyle(targetParagraph);
+            string actualStyle = GetParagraphBorderStyle(targetParagraph!);
 
             result.ExpectedValue = expectedStyle;
             result.ActualValue = actualStyle;
             result.IsCorrect = TextEquals(actualStyle, expectedStyle);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 边框样式: 期望 {expectedStyle}, 实际 {actualStyle}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 边框样式: 期望 {expectedStyle}, 实际 {actualStyle}";
         }
         catch (Exception ex)
         {
@@ -1183,20 +1193,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            float actualWidth = GetParagraphBorderWidth(targetParagraph);
+            float actualWidth = GetParagraphBorderWidth(targetParagraph!);
 
             result.ExpectedValue = expectedWidth.ToString();
             result.ActualValue = actualWidth.ToString();
             result.IsCorrect = Math.Abs(actualWidth - expectedWidth) < 0.1f;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 边框宽度: 期望 {expectedWidth}, 实际 {actualWidth}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 边框宽度: 期望 {expectedWidth}, 实际 {actualWidth}";
         }
         catch (Exception ex)
         {
@@ -1230,21 +1241,22 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            (string Color, string Pattern) shadingInfo = GetParagraphShading(targetParagraph);
+            (string Color, string Pattern) shadingInfo = GetParagraphShading(targetParagraph!);
 
             result.ExpectedValue = $"颜色:{expectedColor}, 图案:{expectedPattern}";
             result.ActualValue = $"颜色:{shadingInfo.Color}, 图案:{shadingInfo.Pattern}";
             result.IsCorrect = (TextEquals(shadingInfo.Color, expectedColor) || ColorEquals(shadingInfo.Color, expectedColor)) &&
                               TextEquals(shadingInfo.Pattern, expectedPattern);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 底纹: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 底纹: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1277,20 +1289,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            string actualAlignment = GetParagraphAlignment(targetParagraph);
+            string actualAlignment = GetParagraphAlignment(targetParagraph!);
 
             result.ExpectedValue = expectedAlignment;
             result.ActualValue = actualAlignment;
             result.IsCorrect = TextEquals(actualAlignment, expectedAlignment);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 对齐方式: 期望 {expectedAlignment}, 实际 {actualAlignment}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 对齐方式: 期望 {expectedAlignment}, 实际 {actualAlignment}";
         }
         catch (Exception ex)
         {
@@ -1324,21 +1337,22 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
             {
-                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            (float Before, float After) = GetParagraphSpacing(targetParagraph);
+            (float Before, float After) = GetParagraphSpacing(targetParagraph!);
 
             result.ExpectedValue = $"前:{expectedBefore}, 后:{expectedAfter}";
             result.ActualValue = $"前:{Before}, 后:{After}";
             result.IsCorrect = Math.Abs(Before - expectedBefore) < 0.1f &&
                               Math.Abs(After - expectedAfter) < 0.1f;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落 {paragraphNumber} 间距: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+
+            string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+            result.Details = $"{paragraphDescription} 间距: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -5138,6 +5152,49 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 验证段落索引并获取目标段落
+    /// </summary>
+    /// <param name="paragraphs">段落列表</param>
+    /// <param name="paragraphNumber">段落索引（-1表示任意段落）</param>
+    /// <param name="targetParagraph">输出的目标段落</param>
+    /// <param name="errorMessage">错误信息</param>
+    /// <returns>验证是否成功</returns>
+    private static bool ValidateParagraphIndex(List<Paragraph>? paragraphs, int paragraphNumber, out Paragraph? targetParagraph, out string errorMessage)
+    {
+        targetParagraph = null;
+        errorMessage = string.Empty;
+
+        if (paragraphs == null || paragraphs.Count == 0)
+        {
+            errorMessage = "文档中没有段落";
+            return false;
+        }
+
+        // -1 表示任意段落，选择第一个有内容的段落
+        if (paragraphNumber == -1)
+        {
+            // 查找第一个有文本内容的段落
+            targetParagraph = paragraphs.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.InnerText));
+            if (targetParagraph == null)
+            {
+                // 如果没有找到有内容的段落，使用第一个段落
+                targetParagraph = paragraphs.First();
+            }
+            return true;
+        }
+
+        // 验证段落索引范围
+        if (paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+        {
+            errorMessage = $"段落索引超出范围: {paragraphNumber}，有效范围: 1-{paragraphs.Count}";
+            return false;
+        }
+
+        targetParagraph = paragraphs[paragraphNumber - 1];
+        return true;
     }
 
     /// <summary>
