@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ExamLab.Models;
 using ExamLab.Models.ImportExport;
 using ExamLab.Services;
+using ExamLab.Services.DocumentGeneration;
 using ExamLab.Views;
 using Microsoft.UI.Xaml.Controls;
 using ReactiveUI;
@@ -1052,7 +1053,6 @@ public class SpecializedExamViewModel : ViewModelBase
         };
     }
 
-    /*
     /// <summary>
     /// 生成Word文档
     /// </summary>
@@ -1076,9 +1076,7 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         await GenerateDocumentAsync(ModuleType.PowerPoint, new PowerPointDocumentGenerator());
     }
-    */
 
-    /*
     /// <summary>
     /// 生成文档的通用方法
     /// </summary>
@@ -1094,7 +1092,7 @@ public class SpecializedExamViewModel : ViewModelBase
             }
 
             // 2. 获取对应模块
-            ExamModule? module = SelectedSpecializedExam.Modules.FirstOrDefault(m => m.ModuleType == moduleType);
+            ExamModule? module = SelectedSpecializedExam.Modules.FirstOrDefault(m => m.Type == moduleType);
             if (module == null)
             {
                 await NotificationService.ShowWarningAsync("提示", $"当前专项试卷不包含{GetModuleTypeName(moduleType)}模块");
@@ -1121,7 +1119,7 @@ public class SpecializedExamViewModel : ViewModelBase
             savePicker.FileTypeChoices.Add(documentService.GetFileTypeDescription(), [documentService.GetRecommendedFileExtension()]);
 
             // 获取当前窗口句柄
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            IntPtr hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
             WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
 
             Windows.Storage.StorageFile? file = await savePicker.PickSaveFileAsync();
@@ -1207,6 +1205,5 @@ public class SpecializedExamViewModel : ViewModelBase
             await NotificationService.ShowErrorAsync("生成失败", $"生成{GetModuleTypeName(moduleType)}文档时发生错误：{ex.Message}");
         }
     }
-    */
 
 }
