@@ -194,9 +194,16 @@ public abstract class OpenXmlScoringServiceBase : IScoringService
         result.IsCorrect = false;
         result.AchievedScore = 0;
         result.ErrorMessage = errorMessage;
+
+        // 确保Details总是被设置，如果没有提供details参数，则使用errorMessage作为Details
         if (!string.IsNullOrEmpty(details))
         {
             result.Details = details;
+        }
+        else if (string.IsNullOrEmpty(result.Details))
+        {
+            // 如果Details为空，使用errorMessage作为Details
+            result.Details = errorMessage;
         }
     }
 

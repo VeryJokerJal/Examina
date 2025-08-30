@@ -273,6 +273,37 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 设置知识点检测失败并包含完整的Details信息
+    /// </summary>
+    private void SetKnowledgePointFailureWithDetails(KnowledgePointResult result, string errorMessage,
+        string operationType, Dictionary<string, string> parameters, string expectedValue = "", string actualValue = "")
+    {
+        // 构建段落描述
+        string paragraphDesc = "未知段落";
+        if (TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber))
+        {
+            paragraphDesc = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
+        }
+
+        // 构建详细的Details信息
+        string details;
+        if (!string.IsNullOrEmpty(expectedValue) && !string.IsNullOrEmpty(actualValue))
+        {
+            details = $"{paragraphDesc} {operationType}: 期望 {expectedValue}, 实际 {actualValue}";
+        }
+        else if (!string.IsNullOrEmpty(expectedValue))
+        {
+            details = $"{paragraphDesc} {operationType}: 期望 {expectedValue}, 检测失败 - {errorMessage}";
+        }
+        else
+        {
+            details = $"{paragraphDesc} {operationType}检测失败: {errorMessage}";
+        }
+
+        SetKnowledgePointFailure(result, errorMessage, details);
+    }
+
+    /// <summary>
     /// 映射Word操作点名称到知识点类型
     /// </summary>
     protected override string MapOperationPointNameToKnowledgeType(string operationPointName)
@@ -640,7 +671,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
                 !TryGetParameter(parameters, "FontFamily", out string expectedFont))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 FontFamily");
+                SetKnowledgePointFailureWithDetails(result, "缺少必要参数: ParagraphNumber 或 FontFamily",
+                    "字体", parameters);
                 return result;
             }
 
@@ -659,7 +691,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (!isMatch)
             {
-                SetKnowledgePointFailure(result, errorMessage);
+                SetKnowledgePointFailureWithDetails(result, errorMessage, "字体", parameters, expectedFont);
                 return result;
             }
 
@@ -673,7 +705,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         }
         catch (Exception ex)
         {
-            SetKnowledgePointFailure(result, $"检测段落字体失败: {ex.Message}");
+            SetKnowledgePointFailureWithDetails(result, $"检测段落字体失败: {ex.Message}",
+                "字体", parameters);
         }
 
         return result;
@@ -695,7 +728,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
                 !TryGetIntParameter(parameters, "FontSize", out int expectedSize))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 FontSize");
+                SetKnowledgePointFailureWithDetails(result, "缺少必要参数: ParagraphNumber 或 FontSize",
+                    "字号", parameters);
                 return result;
             }
 
@@ -714,7 +748,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (!isMatch)
             {
-                SetKnowledgePointFailure(result, errorMessage);
+                SetKnowledgePointFailureWithDetails(result, errorMessage, "字号", parameters, expectedSize.ToString());
                 return result;
             }
 
@@ -728,7 +762,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         }
         catch (Exception ex)
         {
-            SetKnowledgePointFailure(result, $"检测段落字号失败: {ex.Message}");
+            SetKnowledgePointFailureWithDetails(result, $"检测段落字号失败: {ex.Message}",
+                "字号", parameters);
         }
 
         return result;
