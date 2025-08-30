@@ -7270,4 +7270,33 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             return 0f;
         }
     }
+
+    /// <summary>
+    /// 文本相等比较（忽略大小写和空白）
+    /// </summary>
+    private static bool TextEquals(string actual, string expected)
+    {
+        if (string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected))
+            return true;
+
+        if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(expected))
+            return false;
+
+        return string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 颜色相等比较
+    /// </summary>
+    private static bool ColorEquals(string actual, string expected)
+    {
+        if (string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected))
+            return true;
+
+        if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(expected))
+            return false;
+
+        // 简化的颜色比较，可以根据需要扩展
+        return string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
 }
