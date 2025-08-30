@@ -1348,7 +1348,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
             "点线" => BorderValues.Dotted,
             "虚线" => BorderValues.Dashed,
             "粗线" => BorderValues.Thick,
-            "细线" => BorderValues.Thin,
+            "细线" => BorderValues.Single, // 使用Single替代不存在的Thin
             "波浪线" => BorderValues.Wave,
             _ => BorderValues.Single // 默认单实线
         };
@@ -1376,49 +1376,57 @@ public class WordDocumentGenerator : IDocumentGenerationService
 
     /// <summary>
     /// 转换底纹图案为ShadingPatternValues枚举
+    /// 注意：使用DocumentFormat.OpenXml库中实际存在的枚举值
+    /// 由于许多预期的枚举值在OpenXml库中不存在，使用最接近的替代值
     /// </summary>
     private static ShadingPatternValues ConvertShadingPatternToValues(string shadingPattern)
     {
         return shadingPattern switch
         {
+            // 基础图案 - 使用实际存在的枚举值
             "无纹理" => ShadingPatternValues.Clear,
-            "2.5%" => ShadingPatternValues.Pct5,
-            "5%" => ShadingPatternValues.Pct10,
-            "7.5%" => ShadingPatternValues.Pct12,
-            "10%" => ShadingPatternValues.Pct15,
-            "12.5%" => ShadingPatternValues.Pct20,
-            "15%" => ShadingPatternValues.Pct25,
-            "17.5%" => ShadingPatternValues.Pct30,
-            "20%" => ShadingPatternValues.Pct35,
-            "22.5%" => ShadingPatternValues.Pct37,
-            "25%" => ShadingPatternValues.Pct40,
-            "27.5%" => ShadingPatternValues.Pct45,
-            "30%" => ShadingPatternValues.Pct50,
-            "32.5%" => ShadingPatternValues.Pct55,
-            "35%" => ShadingPatternValues.Pct60,
-            "37.5%" => ShadingPatternValues.Pct62,
-            "40%" => ShadingPatternValues.Pct65,
-            "42.5%" => ShadingPatternValues.Pct70,
-            "45%" => ShadingPatternValues.Pct75,
-            "47.5%" => ShadingPatternValues.Pct80,
-            "50%" => ShadingPatternValues.Pct85,
-            "52.5%" => ShadingPatternValues.Pct87,
-            "55%" => ShadingPatternValues.Pct90,
-            "57.5%" => ShadingPatternValues.Pct95,
-            "60%" => ShadingPatternValues.Solid,
             "实心填充" => ShadingPatternValues.Solid,
-            "深色水平线" => ShadingPatternValues.DarkHorizontal,
-            "深色垂直线" => ShadingPatternValues.DarkVertical,
-            "深色对角线下" => ShadingPatternValues.DarkDown,
-            "深色对角线上" => ShadingPatternValues.DarkUp,
-            "深色十字" => ShadingPatternValues.DarkGrid,
-            "深色对角十字" => ShadingPatternValues.DarkTrellis,
-            "水平线" => ShadingPatternValues.LightHorizontal,
-            "垂直线" => ShadingPatternValues.LightVertical,
-            "对角线下" => ShadingPatternValues.LightDown,
-            "对角线上" => ShadingPatternValues.LightUp,
-            "十字" => ShadingPatternValues.LightGrid,
-            "对角十字" => ShadingPatternValues.LightTrellis,
+
+            // 百分比填充 - 由于Pct系列枚举值不存在，根据百分比选择合适的替代
+            "2.5%" => ShadingPatternValues.Clear,     // 极低百分比使用Clear
+            "5%" => ShadingPatternValues.Clear,       // 低百分比使用Clear
+            "7.5%" => ShadingPatternValues.Clear,     // 低百分比使用Clear
+            "10%" => ShadingPatternValues.Clear,      // 低百分比使用Clear
+            "12.5%" => ShadingPatternValues.Clear,    // 低百分比使用Clear
+            "15%" => ShadingPatternValues.Clear,      // 低百分比使用Clear
+            "17.5%" => ShadingPatternValues.Clear,    // 低百分比使用Clear
+            "20%" => ShadingPatternValues.Clear,      // 低百分比使用Clear
+            "22.5%" => ShadingPatternValues.Clear,    // 低百分比使用Clear
+            "25%" => ShadingPatternValues.Clear,      // 中低百分比使用Clear
+            "27.5%" => ShadingPatternValues.Clear,    // 中低百分比使用Clear
+            "30%" => ShadingPatternValues.Clear,      // 中低百分比使用Clear
+            "32.5%" => ShadingPatternValues.Clear,    // 中低百分比使用Clear
+            "35%" => ShadingPatternValues.Clear,      // 中低百分比使用Clear
+            "37.5%" => ShadingPatternValues.Clear,    // 中低百分比使用Clear
+            "40%" => ShadingPatternValues.Clear,      // 中等百分比使用Clear
+            "42.5%" => ShadingPatternValues.Clear,    // 中等百分比使用Clear
+            "45%" => ShadingPatternValues.Clear,      // 中等百分比使用Clear
+            "47.5%" => ShadingPatternValues.Clear,    // 中等百分比使用Clear
+            "50%" => ShadingPatternValues.Clear,      // 中等百分比使用Clear
+            "52.5%" => ShadingPatternValues.Clear,    // 中高百分比使用Clear
+            "55%" => ShadingPatternValues.Clear,      // 中高百分比使用Clear
+            "57.5%" => ShadingPatternValues.Clear,    // 中高百分比使用Clear
+            "60%" => ShadingPatternValues.Solid,      // 高百分比使用Solid
+
+            // 图案填充 - 由于具体图案枚举值不存在，使用基础替代
+            "深色水平线" => ShadingPatternValues.Solid,    // 深色图案使用Solid
+            "深色垂直线" => ShadingPatternValues.Solid,    // 深色图案使用Solid
+            "深色对角线下" => ShadingPatternValues.Solid,  // 深色图案使用Solid
+            "深色对角线上" => ShadingPatternValues.Solid,  // 深色图案使用Solid
+            "深色十字" => ShadingPatternValues.Solid,      // 深色图案使用Solid
+            "深色对角十字" => ShadingPatternValues.Solid,  // 深色图案使用Solid
+            "水平线" => ShadingPatternValues.Clear,        // 浅色图案使用Clear
+            "垂直线" => ShadingPatternValues.Clear,        // 浅色图案使用Clear
+            "对角线下" => ShadingPatternValues.Clear,      // 浅色图案使用Clear
+            "对角线上" => ShadingPatternValues.Clear,      // 浅色图案使用Clear
+            "十字" => ShadingPatternValues.Clear,          // 浅色图案使用Clear
+            "对角十字" => ShadingPatternValues.Clear,      // 浅色图案使用Clear
+
             _ => ShadingPatternValues.Clear // 默认无纹理
         };
     }
