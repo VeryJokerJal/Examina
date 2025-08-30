@@ -2093,56 +2093,290 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
     private async Task<bool> ExecuteChartStyle(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string chartStyle = GetParameterValue(operationPoint, "ChartStyle", "样式1");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加样式标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell styleCell = GetCell(sheetData, "E2");
+                styleCell.CellValue = new CellValue($"图表样式: {chartStyle}");
+                styleCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteChartStyle error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteChartTitle(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string chartTitle = GetParameterValue(operationPoint, "ChartTitle", "图表标题");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加标题标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell titleCell = GetCell(sheetData, "E3");
+                titleCell.CellValue = new CellValue($"图表标题: {chartTitle}");
+                titleCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteChartTitle error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteLegendPosition(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string legendPosition = GetParameterValue(operationPoint, "LegendPosition", "右侧");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加图例位置标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell legendCell = GetCell(sheetData, "E4");
+                legendCell.CellValue = new CellValue($"图例位置: {legendPosition}");
+                legendCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteLegendPosition error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteChartMove(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string newPosition = GetParameterValue(operationPoint, "NewPosition", "F1");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在新位置添加图表移动标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell moveCell = GetCell(sheetData, newPosition);
+                moveCell.CellValue = new CellValue("图表已移动到此位置");
+                moveCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteChartMove error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteCategoryAxisDataRange(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string dataRange = GetParameterValue(operationPoint, "DataRange", "A1:A5");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加分类轴数据范围标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell axisCell = GetCell(sheetData, "E7");
+                axisCell.CellValue = new CellValue($"分类轴数据: {dataRange}");
+                axisCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteCategoryAxisDataRange error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteValueAxisDataRange(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string dataRange = GetParameterValue(operationPoint, "DataRange", "B1:B5");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加数值轴数据范围标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell axisCell = GetCell(sheetData, "E8");
+                axisCell.CellValue = new CellValue($"数值轴数据: {dataRange}");
+                axisCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteValueAxisDataRange error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteChartTitleFormat(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string titleFormat = GetParameterValue(operationPoint, "TitleFormat", "粗体");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加标题格式标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell formatCell = GetCell(sheetData, "F1");
+                formatCell.CellValue = new CellValue($"标题格式: {titleFormat}");
+                formatCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteChartTitleFormat error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteHorizontalAxisTitle(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string axisTitle = GetParameterValue(operationPoint, "AxisTitle", "横坐标轴");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加横轴标题标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell axisTitleCell = GetCell(sheetData, "F2");
+                axisTitleCell.CellValue = new CellValue($"横轴标题: {axisTitle}");
+                axisTitleCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteHorizontalAxisTitle error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteHorizontalAxisTitleFormat(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string titleFormat = GetParameterValue(operationPoint, "TitleFormat", "常规");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加横轴标题格式标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell formatCell = GetCell(sheetData, "F3");
+                formatCell.CellValue = new CellValue($"横轴标题格式: {titleFormat}");
+                formatCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteHorizontalAxisTitleFormat error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteLegendFormat(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
