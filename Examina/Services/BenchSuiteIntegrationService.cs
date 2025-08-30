@@ -17,6 +17,7 @@ namespace Examina.Services;
 public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 {
     private readonly ILogger<BenchSuiteIntegrationService> _logger;
+    private readonly IBenchSuiteDirectoryService _directoryService;
     private readonly Dictionary<ModuleType, string> _directoryMapping;
     private readonly Dictionary<ModuleType, IScoringService> _scoringServices;
     private readonly IAILogicalScoringService? _aiScoringService;
@@ -27,6 +28,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
     public BenchSuiteIntegrationService(
         ILogger<BenchSuiteIntegrationService> logger,
+        IBenchSuiteDirectoryService directoryService,
         IAILogicalScoringService? aiScoringService = null,
         IStudentExamService? studentExamService = null,
         IStudentMockExamService? studentMockExamService = null,
@@ -43,6 +45,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         System.Diagnostics.Debug.WriteLine($"[BenchSuiteIntegrationService] studentSpecializedTrainingService: {studentSpecializedTrainingService?.GetType().Name ?? "NULL"}");
 
         _logger = logger;
+        _directoryService = directoryService;
         _aiScoringService = aiScoringService;
         _studentExamService = studentExamService;
         _studentMockExamService = studentMockExamService;
@@ -145,8 +148,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             if (benchSuiteAssembly == null)
             {
                 // 尝试加载BenchSuite程序集
-                string benchSuitePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BenchSuite.dll");
-                if (System.IO.File.Exists(benchSuitePath))
+                string benchSuitePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BenchSuite.dll");
+                if (File.Exists(benchSuitePath))
                 {
                     _ = Assembly.LoadFrom(benchSuitePath);
                     _logger.LogInformation("成功加载BenchSuite程序集");
@@ -186,7 +189,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             _logger.LogInformation("验证BenchSuite目录结构，基础路径: {BasePath}", basePath);
 
             // 检查基础目录是否存在
-            if (!System.IO.Directory.Exists(basePath))
+            if (!Directory.Exists(basePath))
             {
                 _logger.LogWarning("基础目录不存在: {BasePath}", basePath);
                 return false;
@@ -195,14 +198,14 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             // 检查各子目录是否存在
             foreach (KeyValuePair<ModuleType, string> mapping in _directoryMapping)
             {
-                string directoryPath = System.IO.Path.Combine(basePath, mapping.Value);
-                if (!System.IO.Directory.Exists(directoryPath))
+                string directoryPath = Path.Combine(basePath, mapping.Value);
+                if (!Directory.Exists(directoryPath))
                 {
                     _logger.LogWarning("缺失目录: {DirectoryPath}", directoryPath);
                     // 尝试创建缺失的目录
                     try
                     {
-                        _ = System.IO.Directory.CreateDirectory(directoryPath);
+                        _ = Directory.CreateDirectory(directoryPath);
                         _logger.LogInformation("成功创建目录: {DirectoryPath}", directoryPath);
                     }
                     catch (Exception ex)
@@ -232,27 +235,27 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         {
             _logger.LogInformation("验证考试目录结构，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
 
-            string basePath = @"C:\河北对口计算机\";
+            string basePath = _directoryService.GetBasePath();
             string examTypeFolder = GetExamTypeFolder(examType);
-            string examTypePath = System.IO.Path.Combine(basePath, examTypeFolder);
-            string examIdPath = System.IO.Path.Combine(examTypePath, examId.ToString());
+            string examTypePath = Path.Combine(basePath, examTypeFolder);
+            string examIdPath = Path.Combine(examTypePath, examId.ToString());
 
             // 检查基础目录是否存在
-            if (!System.IO.Directory.Exists(basePath))
+            if (!Directory.Exists(basePath))
             {
                 _logger.LogWarning("基础目录不存在: {BasePath}", basePath);
                 return false;
             }
 
             // 检查考试类型目录是否存在
-            if (!System.IO.Directory.Exists(examTypePath))
+            if (!Directory.Exists(examTypePath))
             {
                 _logger.LogWarning("考试类型目录不存在: {ExamTypePath}", examTypePath);
                 return false;
             }
 
             // 检查考试ID目录是否存在
-            if (!System.IO.Directory.Exists(examIdPath))
+            if (!Directory.Exists(examIdPath))
             {
                 _logger.LogWarning("考试ID目录不存在: {ExamIdPath}", examIdPath);
                 return false;
@@ -294,9 +297,9 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             // Windows 模块允许在无文件的情况下进行评分
             if (moduleType == ModuleType.Windows)
             {
-                string basePath = @"C:\河北对口计算机\";
+                string basePath = _directoryService.GetBasePath();
                 string examTypeFolder = GetExamTypeFolder(examType);
-                string examRootPath = System.IO.Path.Combine(basePath, examTypeFolder, examId.ToString());
+                string examRootPath = Path.Combine(basePath, examTypeFolder, examId.ToString());
 
                 ExamModel examModelToUse = await CreateSimplifiedExamModel(moduleType, examType, examId, studentUserId);
 
@@ -662,8 +665,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
                     CSharpDirectScore = GetCSharpDirectScore(questionDto),
                     CodeBlanks = GetCodeBlanks(questionDto),
                     TemplateCode = questionDto.TemplateCode,
-                    CodeFilePath = questionDto.CodeFilePath,
-                    DocumentFilePath = questionDto.DocumentFilePath,
+                    CodeFilePath = ConvertToAbsolutePath(questionDto.CodeFilePath, _directoryService),
+                    DocumentFilePath = ConvertToAbsolutePath(questionDto.DocumentFilePath, _directoryService),
                     // 添加其他重要字段
                     QuestionConfig = questionDto.QuestionConfig,
                     AnswerValidationRules = questionDto.AnswerValidationRules,
@@ -794,7 +797,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
             foreach (StudentComprehensiveTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.SortOrder))
             {
-                QuestionModel question = MapComprehensiveTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                QuestionModel question = MapComprehensiveTrainingQuestionToQuestionModel(questionDto, targetModuleType, _directoryService);
 
                 // 对于C#题目，即使没有操作点也要添加
                 bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
@@ -854,7 +857,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
                     foreach (StudentComprehensiveTrainingQuestionDto questionDto in relevantQuestions.OrderBy(q => q.SortOrder))
                     {
-                        QuestionModel question = MapComprehensiveTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                        QuestionModel question = MapComprehensiveTrainingQuestionToQuestionModel(questionDto, targetModuleType, _directoryService);
                         if (question.OperationPoints.Count > 0)
                         {
                             module.Questions.Add(question);
@@ -931,7 +934,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
                 foreach (StudentSpecializedTrainingQuestionDto questionDto in moduleDto.Questions.OrderBy(q => q.Order))
                 {
-                    QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                    QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType, _directoryService);
 
                     // 对于C#题目，即使没有操作点也要添加
                     bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
@@ -984,7 +987,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
 
             foreach (StudentSpecializedTrainingQuestionDto questionDto in trainingDto.Questions.OrderBy(q => q.Order))
             {
-                QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType);
+                QuestionModel question = MapSpecializedTrainingQuestionToQuestionModel(questionDto, targetModuleType, _directoryService);
 
                 // 检查是否应该添加题目（扩展逻辑以支持所有模块类型）
                 bool shouldAddQuestion = question.OperationPoints.Count > 0 ||
@@ -1030,7 +1033,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 映射综合实训题目到QuestionModel
     /// </summary>
-    private static QuestionModel MapComprehensiveTrainingQuestionToQuestionModel(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    private static QuestionModel MapComprehensiveTrainingQuestionToQuestionModel(StudentComprehensiveTrainingQuestionDto questionDto, ModuleType targetModuleType, IBenchSuiteDirectoryService? directoryService = null)
     {
         QuestionModel question = new()
         {
@@ -1049,8 +1052,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             CSharpDirectScore = GetCSharpDirectScore(questionDto),
             CodeBlanks = GetCodeBlanks(questionDto),
             TemplateCode = questionDto.TemplateCode,
-            CodeFilePath = questionDto.CodeFilePath,
-            DocumentFilePath = questionDto.DocumentFilePath,
+            CodeFilePath = ConvertToAbsolutePath(questionDto.CodeFilePath, directoryService),
+            DocumentFilePath = ConvertToAbsolutePath(questionDto.DocumentFilePath, directoryService),
             // 添加其他重要字段
             QuestionConfig = questionDto.QuestionConfig,
             AnswerValidationRules = questionDto.AnswerValidationRules,
@@ -1083,7 +1086,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 映射专项训练题目到QuestionModel
     /// </summary>
-    private static QuestionModel MapSpecializedTrainingQuestionToQuestionModel(StudentSpecializedTrainingQuestionDto questionDto, ModuleType targetModuleType)
+    private static QuestionModel MapSpecializedTrainingQuestionToQuestionModel(StudentSpecializedTrainingQuestionDto questionDto, ModuleType targetModuleType, IBenchSuiteDirectoryService? directoryService = null)
     {
         QuestionModel question = new()
         {
@@ -1102,8 +1105,8 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             CSharpDirectScore = GetCSharpDirectScore(questionDto),
             CodeBlanks = GetCodeBlanks(questionDto),
             TemplateCode = questionDto.TemplateCode,
-            CodeFilePath = questionDto.CodeFilePath,
-            DocumentFilePath = questionDto.DocumentFilePath,
+            CodeFilePath = ConvertToAbsolutePath(questionDto.CodeFilePath, directoryService),
+            DocumentFilePath = ConvertToAbsolutePath(questionDto.DocumentFilePath, directoryService),
             // 添加其他重要字段
             QuestionConfig = questionDto.QuestionConfig,
             AnswerValidationRules = questionDto.AnswerValidationRules,
@@ -2235,6 +2238,44 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         }
 
         return codeBlanks.Count > 0 ? codeBlanks : null;
+    }
+
+    #endregion
+
+    #region 路径处理辅助方法
+
+    /// <summary>
+    /// 将相对路径转换为绝对路径
+    /// </summary>
+    /// <param name="filePath">文件路径（可能是相对路径或绝对路径）</param>
+    /// <param name="directoryService">目录服务</param>
+    /// <returns>绝对路径，如果输入为空则返回空</returns>
+    private static string? ConvertToAbsolutePath(string? filePath, IBenchSuiteDirectoryService? directoryService = null)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return filePath;
+        }
+
+        // 如果已经是绝对路径，直接返回
+        if (Path.IsPathRooted(filePath))
+        {
+            return filePath;
+        }
+
+        // 如果是相对路径，与基础路径拼接
+        if (directoryService != null)
+        {
+            string basePath = directoryService.GetBasePath();
+            string absolutePath = Path.Combine(basePath, filePath);
+
+            System.Diagnostics.Debug.WriteLine($"路径转换: 相对路径='{filePath}', 基础路径='{basePath}', 绝对路径='{absolutePath}'");
+
+            return absolutePath;
+        }
+
+        // 如果没有directoryService，返回原路径
+        return filePath;
     }
 
     #endregion

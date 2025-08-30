@@ -47,6 +47,7 @@ public static class BenchSuiteServiceExtensions
         services.AddSingleton<IBenchSuiteIntegrationService>(provider =>
         {
             ILogger<BenchSuiteIntegrationService> logger = provider.GetRequiredService<ILogger<BenchSuiteIntegrationService>>();
+            IBenchSuiteDirectoryService directoryService = provider.GetRequiredService<IBenchSuiteDirectoryService>();
             IAILogicalScoringService? aiService = enableAI ? provider.GetService<IAILogicalScoringService>() : null;
             IStudentExamService? studentExamService = provider.GetService<IStudentExamService>();
             IStudentMockExamService? studentMockExamService = provider.GetService<IStudentMockExamService>();
@@ -56,7 +57,7 @@ public static class BenchSuiteServiceExtensions
             System.Diagnostics.Debug.WriteLine($"[BenchSuiteServiceExtensions] 创建BenchSuiteIntegrationService");
             System.Diagnostics.Debug.WriteLine($"[BenchSuiteServiceExtensions] studentSpecializedTrainingService: {studentSpecializedTrainingService?.GetType().Name ?? "NULL"}");
 
-            return new BenchSuiteIntegrationService(logger, aiService, studentExamService, studentMockExamService, studentComprehensiveTrainingService, studentSpecializedTrainingService);
+            return new BenchSuiteIntegrationService(logger, directoryService, aiService, studentExamService, studentMockExamService, studentComprehensiveTrainingService, studentSpecializedTrainingService);
         });
 
         // 注册BenchSuite目录服务
