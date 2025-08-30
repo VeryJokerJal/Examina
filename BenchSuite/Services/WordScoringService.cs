@@ -1799,8 +1799,109 @@ public class WordScoringService : IWordScoringService
     /// </summary>
     private string MapOperationPointNameToKnowledgeType(string operationPointName)
     {
-        // 这里可以根据实际的操作点名称进行映射
-        // 暂时返回操作点名称本身
+        // 创建操作点名称到知识点类型的映射
+        Dictionary<string, string> nameToTypeMapping = new()
+        {
+            // === 段落操作（14个）===
+            { "设置段落的字体", "SetParagraphFont" },
+            { "设置段落的字号", "SetParagraphFontSize" },
+            { "设置段落的字形", "SetParagraphFontStyle" },
+            { "设置段落字间距", "SetParagraphCharacterSpacing" },
+            { "设置段落文字的颜色", "SetParagraphTextColor" },
+            { "设置段落对齐方式", "SetParagraphAlignment" },
+            { "设置段落缩进", "SetParagraphIndentation" },
+            { "设置行间距", "SetParagraphLineSpacing" },
+            { "首字下沉", "SetParagraphDropCap" },
+            { "设置段落间距", "SetParagraphSpacing" },
+            { "设置段落边框颜色", "SetParagraphBorderColor" },
+            { "设置段落边框样式", "SetParagraphBorderStyle" },
+            { "设置段落边框宽度", "SetParagraphBorderWidth" },
+            { "设置段落底纹", "SetParagraphShading" },
+
+            // === 页面设置（15个）===
+            { "设置纸张大小", "SetPaperSize" },
+            { "设置页边距", "SetPageMargins" },
+            { "设置页眉中的文字", "SetHeaderText" },
+            { "设置页眉中文字的字体", "SetHeaderFont" },
+            { "设置页眉中文字的字号", "SetHeaderFontSize" },
+            { "设置页眉中文字的对齐方式", "SetHeaderAlignment" },
+            { "设置页脚中的文字", "SetFooterText" },
+            { "设置页脚中文字的字体", "SetFooterFont" },
+            { "设置页脚中文字的字号", "SetFooterFontSize" },
+            { "设置页脚中文字的对齐方式", "SetFooterAlignment" },
+            { "设置页码", "SetPageNumber" },
+            { "设置页面背景", "SetPageBackground" },
+            { "设置页面边框颜色", "SetPageBorderColor" },
+            { "设置页面边框样式", "SetPageBorderStyle" },
+            { "设置页面边框宽度", "SetPageBorderWidth" },
+
+            // === 水印设置（4个）===
+            { "设置水印文字", "SetWatermarkText" },
+            { "设置水印文字的字体", "SetWatermarkFont" },
+            { "设置水印文字的字号", "SetWatermarkFontSize" },
+            { "设置水印文字水平或倾斜方式", "SetWatermarkOrientation" },
+
+            // === 项目符号与编号（1个）===
+            { "设置项目编号", "SetBulletNumbering" },
+
+            // === 表格操作（10个）===
+            { "设置表格的行数和列数", "SetTableRowsColumns" },
+            { "设置表格底纹", "SetTableShading" },
+            { "设置表格行高", "SetTableRowHeight" },
+            { "设置表格列宽", "SetTableColumnWidth" },
+            { "设置表格单元格内容", "SetTableCellContent" },
+            { "设置表格单元格对齐方式", "SetTableCellAlignment" },
+            { "设置表格对齐方式", "SetTableAlignment" },
+            { "合并表格单元格", "MergeTableCells" },
+            { "设置表格标题内容", "SetTableHeaderContent" },
+            { "设置表格标题对齐方式", "SetTableHeaderAlignment" },
+
+            // === 图形和图片设置（16个）===
+            { "插入自选图形类型", "InsertAutoShape" },
+            { "设置自选图形大小", "SetAutoShapeSize" },
+            { "设置自选图形线条颜色", "SetAutoShapeLineColor" },
+            { "设置自选图形填充颜色", "SetAutoShapeFillColor" },
+            { "设置自选图形文字大小", "SetAutoShapeTextSize" },
+            { "设置自选图形文字颜色", "SetAutoShapeTextColor" },
+            { "设置自选图形文字内容", "SetAutoShapeTextContent" },
+            { "设置自选图形位置", "SetAutoShapePosition" },
+            { "设置图片边框复合类型", "SetImageBorderCompoundType" },
+            { "设置图片边框虚线类型", "SetImageBorderDashType" },
+            { "设置图片边框宽度", "SetImageBorderWidth" },
+            { "设置图片边框颜色", "SetImageBorderColor" },
+            { "设置图片阴影", "SetImageShadow" },
+            { "设置图片环绕方式", "SetImageWrapStyle" },
+            { "设置图片位置", "SetImagePosition" },
+            { "设置插入图片的高度和宽度", "SetImageSize" },
+
+            // === 文本框设置（5个）===
+            { "设置文本框边框颜色", "SetTextBoxBorderColor" },
+            { "设置文本框中文字内容", "SetTextBoxContent" },
+            { "设置文本框中文字大小", "SetTextBoxTextSize" },
+            { "设置文本框位置", "SetTextBoxPosition" },
+            { "设置文本框环绕方式", "SetTextBoxWrapStyle" },
+
+            // === 其他操作（2个）===
+            { "查找与替换", "FindAndReplace" },
+            { "设置指定文字字号", "SetSpecificTextFontSize" }
+        };
+
+        // 尝试精确匹配
+        if (nameToTypeMapping.TryGetValue(operationPointName, out string? exactMatch))
+        {
+            return exactMatch;
+        }
+
+        // 如果没有精确匹配，尝试部分匹配
+        foreach (KeyValuePair<string, string> mapping in nameToTypeMapping)
+        {
+            if (operationPointName.Contains(mapping.Key))
+            {
+                return mapping.Value;
+            }
+        }
+
+        // 如果都没有匹配，返回原始名称
         return operationPointName;
     }
 
