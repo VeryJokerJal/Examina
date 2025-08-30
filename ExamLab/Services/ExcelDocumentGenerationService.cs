@@ -1,14 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ExamLab.Models;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using System.Text.RegularExpressions;
-using System.Globalization;
+using ExamLab.Models;
 
 namespace ExamLab.Services;
 
@@ -28,8 +27,8 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         {
             // 创建输出文件路径
             string outputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "ExamLab", "GeneratedExcel");
-            Directory.CreateDirectory(outputDirectory);
-            
+            _ = Directory.CreateDirectory(outputDirectory);
+
             string fileName = $"Excel文档_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
             string filePath = Path.Combine(outputDirectory, fileName);
 
@@ -41,18 +40,18 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                 workbookPart.Workbook = new Workbook();
 
                 // 创建工作表部分
-                WorksheetPart worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+                WorksheetPart? worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
                 worksheetPart.Worksheet = new Worksheet(new SheetData());
 
                 // 创建工作表
-                Sheets sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild(new Sheets());
-                Sheet sheet = new Sheet()
+                Sheets? sheets = spreadsheetDocument.WorkbookPart?.Workbook.AppendChild(new Sheets());
+                Sheet sheet = new()
                 {
-                    Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart),
+                    Id = spreadsheetDocument.WorkbookPart?.GetIdOfPart(worksheetPart),
                     SheetId = 1,
                     Name = "工作簿1"
                 };
-                sheets.Append(sheet);
+                sheets?.Append(sheet);
 
                 // 按类别分组执行操作点
                 await ExecuteOperationPointsByCategory(operationPoints, spreadsheetDocument);
@@ -78,7 +77,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     {
         // 按操作类型分组
         Dictionary<string, List<OperationPoint>> groupedOperations = operationPoints
-            .GroupBy(op => GetOperationCategory(op.ExcelKnowledgeType.Value))
+            .GroupBy(op => GetOperationCategory(op.ExcelKnowledgeType!.Value))
             .ToDictionary(g => g.Key, g => g.ToList());
 
         // 1. 先执行基础操作
@@ -108,15 +107,19 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     private string GetOperationCategory(ExcelKnowledgeType knowledgeType)
     {
         int typeValue = (int)knowledgeType;
-        
-        if (typeValue >= 1 && typeValue <= 23)
+
+        if (typeValue is >= 1 and <= 23)
+        {
             return "基础操作";
-        else if (typeValue >= 24 && typeValue <= 29)
+        }
+        else if (typeValue is >= 24 and <= 29)
+        {
             return "数据清单操作";
-        else if (typeValue >= 30 && typeValue <= 51)
-            return "图表操作";
+        }
         else
-            return "未知操作";
+        {
+            return typeValue is >= 30 and <= 51 ? "图表操作" : "未知操作";
+        }
     }
 
     /// <summary>
@@ -128,7 +131,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     {
         foreach (OperationPoint operationPoint in operationPoints)
         {
-            await ExecuteOperationPointAsync(operationPoint, spreadsheetDocument);
+            _ = await ExecuteOperationPointAsync(operationPoint, spreadsheetDocument);
         }
     }
 
@@ -141,7 +144,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     {
         foreach (OperationPoint operationPoint in operationPoints)
         {
-            await ExecuteOperationPointAsync(operationPoint, spreadsheetDocument);
+            _ = await ExecuteOperationPointAsync(operationPoint, spreadsheetDocument);
         }
     }
 
@@ -154,7 +157,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     {
         foreach (OperationPoint operationPoint in operationPoints)
         {
-            await ExecuteOperationPointAsync(operationPoint, spreadsheetDocument);
+            _ = await ExecuteOperationPointAsync(operationPoint, spreadsheetDocument);
         }
     }
 
@@ -173,14 +176,13 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                 return false;
             }
 
-            SpreadsheetDocument spreadsheetDocument = workbook as SpreadsheetDocument;
-            if (spreadsheetDocument == null)
+            if (workbook is not SpreadsheetDocument spreadsheetDocument)
             {
                 return false;
             }
 
             // 根据操作点类型执行相应的操作
-            switch (operationPoint.ExcelKnowledgeType.Value)
+            switch (operationPoint.ExcelKnowledgeType!.Value)
             {
                 // Excel基础操作（23个）
                 case ExcelKnowledgeType.FillOrCopyCellContent:
@@ -311,18 +313,22 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     public bool ValidateOperationPoint(OperationPoint operationPoint)
     {
         if (operationPoint == null)
+        {
             return false;
+        }
 
         if (operationPoint.Parameters == null || !operationPoint.Parameters.Any())
+        {
             return false;
+        }
 
         // 检查必需参数是否存在
-        ExcelKnowledgeConfig config = ExcelKnowledgeService.Instance.GetKnowledgeConfig(operationPoint.ExcelKnowledgeType.Value);
+        ExcelKnowledgeConfig? config = ExcelKnowledgeService.Instance.GetKnowledgeConfig(operationPoint.ExcelKnowledgeType!.Value);
         if (config?.ParameterTemplates != null)
         {
             foreach (ConfigurationParameterTemplate template in config.ParameterTemplates.Where(t => t.IsRequired))
             {
-                ConfigurationParameter parameter = operationPoint.Parameters.FirstOrDefault(p => p.Name == template.Name);
+                ConfigurationParameter? parameter = operationPoint.Parameters.FirstOrDefault(p => p.Name == template.Name);
                 if (parameter == null || string.IsNullOrWhiteSpace(parameter.Value))
                 {
                     return false;
@@ -344,11 +350,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellValues = GetParameterValue(operationPoint, "CellValues", "");
 
             if (string.IsNullOrEmpty(cellValues))
+            {
                 return false;
+            }
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 解析单元格值格式：A1:内容
             string[] cellValuePairs = cellValues.Split(',');
@@ -384,9 +394,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
 
@@ -398,16 +410,16 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                 SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
                 if (sheetData != null)
                 {
-                    worksheet.InsertAfter(mergeCells, sheetData);
+                    _ = worksheet.InsertAfter(mergeCells, sheetData);
                 }
                 else
                 {
-                    worksheet.AppendChild(mergeCells);
+                    _ = worksheet.AppendChild(mergeCells);
                 }
             }
 
             // 创建合并单元格
-            MergeCell mergeCell = new MergeCell() { Reference = cellRange };
+            MergeCell mergeCell = new() { Reference = cellRange };
             mergeCells.Append(mergeCell);
 
             // 更新合并单元格计数
@@ -434,23 +446,24 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string fontFamily = GetParameterValue(operationPoint, "FontFamily", "宋体");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
             Stylesheet stylesheet = stylesPart.Stylesheet;
 
             // 创建字体
-            Font font = new Font();
+            Font font = new();
             font.Append(new FontName() { Val = fontFamily });
             font.Append(new FontSize() { Val = 11 });
 
             // 添加字体到字体集合
             Fonts fonts = stylesheet.Fonts ?? new Fonts();
-            if (stylesheet.Fonts == null)
-                stylesheet.Fonts = fonts;
+            stylesheet.Fonts ??= fonts;
 
             fonts.Append(font);
             fonts.Count = (uint)fonts.Elements<Font>().Count();
@@ -458,7 +471,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fontIndex = fonts.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FontId = fontIndex,
                 ApplyFont = true
@@ -466,8 +479,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -496,9 +508,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string horizontalAlignment = GetParameterValue(operationPoint, "HorizontalAlignment", "默认");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -508,13 +522,13 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             HorizontalAlignmentValues alignmentValue = MapHorizontalAlignment(horizontalAlignment);
 
             // 创建对齐设置
-            Alignment alignment = new Alignment()
+            Alignment alignment = new()
             {
                 Horizontal = alignmentValue
             };
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 Alignment = alignment,
                 ApplyAlignment = true
@@ -522,8 +536,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -551,9 +564,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:C3");
             string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "无边框");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -563,7 +578,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             BorderStyleValues borderStyleValue = MapBorderStyle(borderStyle);
 
             // 创建边框
-            Border border = new Border();
+            Border border = new();
             border.Append(new LeftBorder() { Style = borderStyleValue });
             border.Append(new RightBorder() { Style = borderStyleValue });
             border.Append(new TopBorder() { Style = borderStyleValue });
@@ -572,8 +587,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加边框到边框集合
             Borders borders = stylesheet.Borders ?? new Borders();
-            if (stylesheet.Borders == null)
-                stylesheet.Borders = borders;
+            stylesheet.Borders ??= borders;
 
             borders.Append(border);
             borders.Count = (uint)borders.Elements<Border>().Count();
@@ -581,7 +595,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint borderIndex = borders.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 BorderId = borderIndex,
                 ApplyBorder = true
@@ -589,8 +603,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -618,9 +631,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:C3");
             string borderColor = GetParameterValue(operationPoint, "BorderColor", "#000000");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -630,21 +645,21 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string colorValue = ParseColor(borderColor);
 
             // 创建边框
-            Border border = new Border();
+            Border border = new();
 
-            LeftBorder leftBorder = new LeftBorder() { Style = BorderStyleValues.Thin };
+            LeftBorder leftBorder = new() { Style = BorderStyleValues.Thin };
             leftBorder.Append(new Color() { Rgb = colorValue });
             border.Append(leftBorder);
 
-            RightBorder rightBorder = new RightBorder() { Style = BorderStyleValues.Thin };
+            RightBorder rightBorder = new() { Style = BorderStyleValues.Thin };
             rightBorder.Append(new Color() { Rgb = colorValue });
             border.Append(rightBorder);
 
-            TopBorder topBorder = new TopBorder() { Style = BorderStyleValues.Thin };
+            TopBorder topBorder = new() { Style = BorderStyleValues.Thin };
             topBorder.Append(new Color() { Rgb = colorValue });
             border.Append(topBorder);
 
-            BottomBorder bottomBorder = new BottomBorder() { Style = BorderStyleValues.Thin };
+            BottomBorder bottomBorder = new() { Style = BorderStyleValues.Thin };
             bottomBorder.Append(new Color() { Rgb = colorValue });
             border.Append(bottomBorder);
 
@@ -652,8 +667,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加边框到边框集合
             Borders borders = stylesheet.Borders ?? new Borders();
-            if (stylesheet.Borders == null)
-                stylesheet.Borders = borders;
+            stylesheet.Borders ??= borders;
 
             borders.Append(border);
             borders.Count = (uint)borders.Elements<Border>().Count();
@@ -661,7 +675,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint borderIndex = borders.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 BorderId = borderIndex,
                 ApplyBorder = true
@@ -669,8 +683,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -700,19 +713,23 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string expectedValue = GetParameterValue(operationPoint, "ExpectedValue", "");
 
             if (string.IsNullOrEmpty(formulaContent))
+            {
                 return false;
+            }
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData == null)
             {
                 sheetData = new SheetData();
-                worksheet.AppendChild(sheetData);
+                _ = worksheet.AppendChild(sheetData);
             }
 
             // 获取或创建单元格
@@ -720,7 +737,9 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 设置公式
             if (!formulaContent.StartsWith("="))
+            {
                 formulaContent = "=" + formulaContent;
+            }
 
             cell.CellFormula = new CellFormula(formulaContent);
             cell.DataType = new EnumValue<CellValues>(CellValues.Number);
@@ -750,11 +769,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string rowHeightStr = GetParameterValue(operationPoint, "RowHeight", "20");
 
             if (!double.TryParse(rowHeightStr, out double rowHeight))
+            {
                 rowHeight = 20;
+            }
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
             SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
@@ -762,7 +785,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             if (sheetData == null)
             {
                 sheetData = new SheetData();
-                worksheet.AppendChild(sheetData);
+                _ = worksheet.AppendChild(sheetData);
             }
 
             // 解析行号
@@ -802,11 +825,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string columnWidthStr = GetParameterValue(operationPoint, "ColumnWidth", "15");
 
             if (!double.TryParse(columnWidthStr, out double columnWidth))
+            {
                 columnWidth = 15;
+            }
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
 
@@ -818,11 +845,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                 SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
                 if (sheetData != null)
                 {
-                    worksheet.InsertBefore(columns, sheetData);
+                    _ = worksheet.InsertBefore(columns, sheetData);
                 }
                 else
                 {
-                    worksheet.AppendChild(columns);
+                    _ = worksheet.AppendChild(columns);
                 }
             }
 
@@ -832,7 +859,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             {
                 uint columnIndex = GetColumnIndex(columnLetter.Trim());
 
-                Column column = new Column()
+                Column column = new()
                 {
                     Min = columnIndex,
                     Max = columnIndex,
@@ -861,9 +888,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string fillColor = GetParameterValue(operationPoint, "FillColor", "#FFFF00");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -873,8 +902,8 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string colorValue = ParseColor(fillColor);
 
             // 创建填充
-            Fill fill = new Fill();
-            PatternFill patternFill = new PatternFill()
+            Fill fill = new();
+            PatternFill patternFill = new()
             {
                 PatternType = PatternValues.Solid
             };
@@ -883,8 +912,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加填充到填充集合
             Fills fills = stylesheet.Fills ?? new Fills();
-            if (stylesheet.Fills == null)
-                stylesheet.Fills = fills;
+            stylesheet.Fills ??= fills;
 
             fills.Append(fill);
             fills.Count = (uint)fills.Elements<Fill>().Count();
@@ -892,7 +920,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fillIndex = fills.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FillId = fillIndex,
                 ApplyFill = true
@@ -900,8 +928,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -929,9 +956,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string verticalAlignment = GetParameterValue(operationPoint, "VerticalAlignment", "顶端对齐");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -941,13 +970,13 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             VerticalAlignmentValues alignmentValue = MapVerticalAlignment(verticalAlignment);
 
             // 创建对齐设置
-            Alignment alignment = new Alignment()
+            Alignment alignment = new()
             {
                 Vertical = alignmentValue
             };
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 Alignment = alignment,
                 ApplyAlignment = true
@@ -955,8 +984,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -985,22 +1013,23 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string newSheetName = GetParameterValue(operationPoint, "NewSheetName", "");
 
             if (string.IsNullOrEmpty(originalSheetName) || string.IsNullOrEmpty(newSheetName))
+            {
                 return false;
+            }
 
             WorkbookPart? workbookPart = spreadsheetDocument.WorkbookPart;
             if (workbookPart?.Workbook?.Sheets == null)
+            {
                 return false;
+            }
 
             // 查找要重命名的工作表
             Sheet? sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
                 .FirstOrDefault(s => s.Name?.Value == originalSheetName);
 
-            if (sheet == null)
-            {
-                // 如果找不到原始名称，尝试使用目标工作表名称
-                sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
-                    .FirstOrDefault(s => s.Name?.Value == targetWorksheet);
-            }
+            // 如果找不到原始名称，尝试使用目标工作表名称
+            sheet ??= workbookPart.Workbook.Sheets.Elements<Sheet>()
+                .FirstOrDefault(s => s.Name?.Value == targetWorksheet);
 
             if (sheet != null)
             {
@@ -1025,16 +1054,18 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string fontStyle = GetParameterValue(operationPoint, "FontStyle", "常规");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
             Stylesheet stylesheet = stylesPart.Stylesheet;
 
             // 创建字体
-            Font font = new Font();
+            Font font = new();
             font.Append(new FontName() { Val = "Calibri" });
             font.Append(new FontSize() { Val = 11 });
 
@@ -1055,8 +1086,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加字体到字体集合
             Fonts fonts = stylesheet.Fonts ?? new Fonts();
-            if (stylesheet.Fonts == null)
-                stylesheet.Fonts = fonts;
+            stylesheet.Fonts ??= fonts;
 
             fonts.Append(font);
             fonts.Count = (uint)fonts.Elements<Font>().Count();
@@ -1064,7 +1094,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fontIndex = fonts.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FontId = fontIndex,
                 ApplyFont = true
@@ -1072,8 +1102,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1102,25 +1131,28 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string fontSizeStr = GetParameterValue(operationPoint, "FontSize", "12");
 
             if (!double.TryParse(fontSizeStr, out double fontSize))
+            {
                 fontSize = 12;
+            }
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
             Stylesheet stylesheet = stylesPart.Stylesheet;
 
             // 创建字体
-            Font font = new Font();
+            Font font = new();
             font.Append(new FontName() { Val = "Calibri" });
             font.Append(new FontSize() { Val = fontSize });
 
             // 添加字体到字体集合
             Fonts fonts = stylesheet.Fonts ?? new Fonts();
-            if (stylesheet.Fonts == null)
-                stylesheet.Fonts = fonts;
+            stylesheet.Fonts ??= fonts;
 
             fonts.Append(font);
             fonts.Count = (uint)fonts.Elements<Font>().Count();
@@ -1128,7 +1160,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fontIndex = fonts.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FontId = fontIndex,
                 ApplyFont = true
@@ -1136,8 +1168,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1165,9 +1196,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string fontColor = GetParameterValue(operationPoint, "FontColor", "#000000");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1177,15 +1210,14 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string colorValue = ParseColor(fontColor);
 
             // 创建字体
-            Font font = new Font();
+            Font font = new();
             font.Append(new FontName() { Val = "Calibri" });
             font.Append(new FontSize() { Val = 11 });
             font.Append(new Color() { Rgb = colorValue });
 
             // 添加字体到字体集合
             Fonts fonts = stylesheet.Fonts ?? new Fonts();
-            if (stylesheet.Fonts == null)
-                stylesheet.Fonts = fonts;
+            stylesheet.Fonts ??= fonts;
 
             fonts.Append(font);
             fonts.Count = (uint)fonts.Elements<Font>().Count();
@@ -1193,7 +1225,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fontIndex = fonts.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FontId = fontIndex,
                 ApplyFont = true
@@ -1201,8 +1233,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1230,9 +1261,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string numberFormat = GetParameterValue(operationPoint, "NumberFormat", "常规");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1243,8 +1276,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 获取或创建数字格式
             NumberingFormats numberingFormats = stylesheet.NumberingFormats ?? new NumberingFormats();
-            if (stylesheet.NumberingFormats == null)
-                stylesheet.NumberingFormats = numberingFormats;
+            stylesheet.NumberingFormats ??= numberingFormats;
 
             // 查找是否已存在相同格式
             NumberingFormat? existingFormat = numberingFormats.Elements<NumberingFormat>()
@@ -1267,7 +1299,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                     numberFormatId = maxId + 1;
                 }
 
-                NumberingFormat newFormat = new NumberingFormat()
+                NumberingFormat newFormat = new()
                 {
                     NumberFormatId = numberFormatId,
                     FormatCode = formatCode
@@ -1277,7 +1309,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             }
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 NumberFormatId = numberFormatId,
                 ApplyNumberFormat = true
@@ -1285,8 +1317,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1314,9 +1345,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string patternStyle = GetParameterValue(operationPoint, "PatternStyle", "无");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1326,8 +1359,8 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             PatternValues patternValue = MapPatternStyle(patternStyle);
 
             // 创建填充
-            Fill fill = new Fill();
-            PatternFill patternFill = new PatternFill()
+            Fill fill = new();
+            PatternFill patternFill = new()
             {
                 PatternType = patternValue
             };
@@ -1335,8 +1368,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加填充到填充集合
             Fills fills = stylesheet.Fills ?? new Fills();
-            if (stylesheet.Fills == null)
-                stylesheet.Fills = fills;
+            stylesheet.Fills ??= fills;
 
             fills.Append(fill);
             fills.Count = (uint)fills.Elements<Fill>().Count();
@@ -1344,7 +1376,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fillIndex = fills.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FillId = fillIndex,
                 ApplyFill = true
@@ -1352,8 +1384,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1381,9 +1412,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string patternColor = GetParameterValue(operationPoint, "PatternColor", "#808080");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1393,8 +1426,8 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string colorValue = ParseColor(patternColor);
 
             // 创建填充
-            Fill fill = new Fill();
-            PatternFill patternFill = new PatternFill()
+            Fill fill = new();
+            PatternFill patternFill = new()
             {
                 PatternType = PatternValues.Solid
             };
@@ -1403,8 +1436,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加填充到填充集合
             Fills fills = stylesheet.Fills ?? new Fills();
-            if (stylesheet.Fills == null)
-                stylesheet.Fills = fills;
+            stylesheet.Fills ??= fills;
 
             fills.Append(fill);
             fills.Count = (uint)fills.Elements<Fill>().Count();
@@ -1412,7 +1444,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fillIndex = fills.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FillId = fillIndex,
                 ApplyFill = true
@@ -1420,8 +1452,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1449,9 +1480,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "无边框");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1461,7 +1494,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             BorderStyleValues borderStyleValue = MapBorderStyle(borderStyle);
 
             // 创建边框（只设置外边框）
-            Border border = new Border();
+            Border border = new();
             border.Append(new LeftBorder() { Style = borderStyleValue });
             border.Append(new RightBorder() { Style = borderStyleValue });
             border.Append(new TopBorder() { Style = borderStyleValue });
@@ -1470,8 +1503,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加边框到边框集合
             Borders borders = stylesheet.Borders ?? new Borders();
-            if (stylesheet.Borders == null)
-                stylesheet.Borders = borders;
+            stylesheet.Borders ??= borders;
 
             borders.Append(border);
             borders.Count = (uint)borders.Elements<Border>().Count();
@@ -1479,7 +1511,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint borderIndex = borders.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 BorderId = borderIndex,
                 ApplyBorder = true
@@ -1487,8 +1519,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1516,9 +1547,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:C3");
             string borderColor = GetParameterValue(operationPoint, "BorderColor", "#000000");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1528,21 +1561,21 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string colorValue = ParseColor(borderColor);
 
             // 创建边框（只设置外边框）
-            Border border = new Border();
+            Border border = new();
 
-            LeftBorder leftBorder = new LeftBorder() { Style = BorderStyleValues.Thin };
+            LeftBorder leftBorder = new() { Style = BorderStyleValues.Thin };
             leftBorder.Append(new Color() { Rgb = colorValue });
             border.Append(leftBorder);
 
-            RightBorder rightBorder = new RightBorder() { Style = BorderStyleValues.Thin };
+            RightBorder rightBorder = new() { Style = BorderStyleValues.Thin };
             rightBorder.Append(new Color() { Rgb = colorValue });
             border.Append(rightBorder);
 
-            TopBorder topBorder = new TopBorder() { Style = BorderStyleValues.Thin };
+            TopBorder topBorder = new() { Style = BorderStyleValues.Thin };
             topBorder.Append(new Color() { Rgb = colorValue });
             border.Append(topBorder);
 
-            BottomBorder bottomBorder = new BottomBorder() { Style = BorderStyleValues.Thin };
+            BottomBorder bottomBorder = new() { Style = BorderStyleValues.Thin };
             bottomBorder.Append(new Color() { Rgb = colorValue });
             border.Append(bottomBorder);
 
@@ -1550,8 +1583,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加边框到边框集合
             Borders borders = stylesheet.Borders ?? new Borders();
-            if (stylesheet.Borders == null)
-                stylesheet.Borders = borders;
+            stylesheet.Borders ??= borders;
 
             borders.Append(border);
             borders.Count = (uint)borders.Elements<Border>().Count();
@@ -1559,7 +1591,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint borderIndex = borders.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 BorderId = borderIndex,
                 ApplyBorder = true
@@ -1567,8 +1599,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1596,9 +1627,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string underlineType = GetParameterValue(operationPoint, "UnderlineType", "无");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1608,7 +1641,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             UnderlineValues underlineValue = MapUnderlineType(underlineType);
 
             // 创建字体
-            Font font = new Font();
+            Font font = new();
             font.Append(new FontName() { Val = "Calibri" });
             font.Append(new FontSize() { Val = 11 });
 
@@ -1619,8 +1652,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加字体到字体集合
             Fonts fonts = stylesheet.Fonts ?? new Fonts();
-            if (stylesheet.Fonts == null)
-                stylesheet.Fonts = fonts;
+            stylesheet.Fonts ??= fonts;
 
             fonts.Append(font);
             fonts.Count = (uint)fonts.Elements<Font>().Count();
@@ -1628,7 +1660,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint fontIndex = fonts.Count - 1;
 
             // 创建单元格格式
-            CellFormat cellFormat = new CellFormat()
+            CellFormat cellFormat = new()
             {
                 FontId = fontIndex,
                 ApplyFont = true
@@ -1636,8 +1668,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1666,9 +1697,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string conditionType = GetParameterValue(operationPoint, "ConditionType", "突出显示单元格规则");
             string conditionValue = GetParameterValue(operationPoint, "ConditionValue", "");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
 
@@ -1678,21 +1711,23 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             if (conditionalFormatting == null)
             {
-                conditionalFormatting = new ConditionalFormatting();
-                conditionalFormatting.SequenceOfReferences = new ListValue<StringValue>() { InnerText = cellRange };
+                conditionalFormatting = new ConditionalFormatting
+                {
+                    SequenceOfReferences = new ListValue<StringValue>() { InnerText = cellRange }
+                };
                 SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
                 if (sheetData != null)
                 {
-                    worksheet.InsertAfter(conditionalFormatting, sheetData);
+                    _ = worksheet.InsertAfter(conditionalFormatting, sheetData);
                 }
                 else
                 {
-                    worksheet.AppendChild(conditionalFormatting);
+                    _ = worksheet.AppendChild(conditionalFormatting);
                 }
             }
 
             // 创建条件格式规则
-            ConditionalFormattingRule rule = new ConditionalFormattingRule()
+            ConditionalFormattingRule rule = new()
             {
                 Type = ConditionalFormatValues.CellIs,
                 Operator = ConditionalFormattingOperatorValues.GreaterThan,
@@ -1703,7 +1738,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             // 添加条件公式
             if (!string.IsNullOrEmpty(conditionValue))
             {
-                Formula formula = new Formula(conditionValue);
+                Formula formula = new(conditionValue);
                 rule.Append(formula);
             }
 
@@ -1727,9 +1762,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string cellRange = GetParameterValue(operationPoint, "CellRange", "A1:A1");
             string styleName = GetParameterValue(operationPoint, "StyleName", "常规");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 获取或创建样式表
             WorkbookStylesPart stylesPart = GetOrCreateStylesPart(spreadsheetDocument);
@@ -1740,8 +1777,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 添加单元格格式到格式集合
             CellFormats cellFormats = stylesheet.CellFormats ?? new CellFormats();
-            if (stylesheet.CellFormats == null)
-                stylesheet.CellFormats = cellFormats;
+            stylesheet.CellFormats ??= cellFormats;
 
             cellFormats.Append(cellFormat);
             cellFormats.Count = (uint)cellFormats.Elements<CellFormat>().Count();
@@ -1769,16 +1805,20 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string filterConditions = GetParameterValue(operationPoint, "FilterConditions", "A:条件值");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
 
             // 解析筛选条件 (格式: A:条件值)
             string[] conditionParts = filterConditions.Split(':');
             if (conditionParts.Length != 2)
+            {
                 return false;
+            }
 
             string columnLetter = conditionParts[0].Trim();
             string filterValue = conditionParts[1].Trim();
@@ -1787,7 +1827,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string dataRange = "A1:Z1000"; // 可以根据实际数据调整
 
             // 创建自动筛选
-            AutoFilter autoFilter = new AutoFilter()
+            AutoFilter autoFilter = new()
             {
                 Reference = dataRange
             };
@@ -1796,14 +1836,14 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint columnIndex = GetColumnIndex(columnLetter);
 
             // 创建筛选列
-            FilterColumn filterColumn = new FilterColumn()
+            FilterColumn filterColumn = new()
             {
                 ColumnId = columnIndex - 1 // 0-based index
             };
 
             // 创建自定义筛选
-            CustomFilters customFilters = new CustomFilters();
-            CustomFilter customFilter = new CustomFilter()
+            CustomFilters customFilters = new();
+            CustomFilter customFilter = new()
             {
                 Operator = FilterOperatorValues.Equal,
                 Val = filterValue
@@ -1815,20 +1855,17 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 移除现有的自动筛选
             AutoFilter? existingAutoFilter = worksheet.Elements<AutoFilter>().FirstOrDefault();
-            if (existingAutoFilter != null)
-            {
-                existingAutoFilter.Remove();
-            }
+            existingAutoFilter?.Remove();
 
             // 添加新的自动筛选
             SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
             if (sheetData != null)
             {
-                worksheet.InsertAfter(autoFilter, sheetData);
+                _ = worksheet.InsertAfter(autoFilter, sheetData);
             }
             else
             {
-                worksheet.AppendChild(autoFilter);
+                _ = worksheet.AppendChild(autoFilter);
             }
 
             await Task.CompletedTask;
@@ -1849,9 +1886,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string sortColumn = GetParameterValue(operationPoint, "SortColumn", "A");
             string sortOrder = GetParameterValue(operationPoint, "SortOrder", "升序");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
 
@@ -1859,7 +1898,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string dataRange = "A1:Z1000";
 
             // 创建排序状态
-            SortState sortState = new SortState()
+            SortState sortState = new()
             {
                 Reference = dataRange
             };
@@ -1868,7 +1907,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             uint columnIndex = GetColumnIndex(sortColumn);
 
             // 创建排序条件
-            SortCondition sortCondition = new SortCondition()
+            SortCondition sortCondition = new()
             {
                 Reference = $"{sortColumn}:{sortColumn}",
                 Descending = sortOrder == "降序"
@@ -1878,20 +1917,17 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
             // 移除现有的排序状态
             SortState? existingSortState = worksheet.Elements<SortState>().FirstOrDefault();
-            if (existingSortState != null)
-            {
-                existingSortState.Remove();
-            }
+            existingSortState?.Remove();
 
             // 添加新的排序状态
             SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
             if (sheetData != null)
             {
-                worksheet.InsertAfter(sortState, sheetData);
+                _ = worksheet.InsertAfter(sortState, sheetData);
             }
             else
             {
-                worksheet.AppendChild(sortState);
+                _ = worksheet.AppendChild(sortState);
             }
 
             await Task.CompletedTask;
@@ -1912,9 +1948,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string sourceRange = GetParameterValue(operationPoint, "SourceRange", "A1:D10");
             string pivotLocation = GetParameterValue(operationPoint, "PivotLocation", "F1");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 注意：完整的数据透视表实现需要创建PivotTablePart和相关的XML结构
             // 这里提供一个简化的实现框架
@@ -1929,7 +1967,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             Worksheet worksheet = worksheetPart.Worksheet;
 
             // 在指定位置添加一个标记，表示数据透视表位置
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
             if (sheetData != null)
             {
                 Cell pivotCell = GetCell(sheetData, pivotLocation);
@@ -1959,12 +1997,14 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string summaryFunction = GetParameterValue(operationPoint, "SummaryFunction", "求和");
             string summaryColumn = GetParameterValue(operationPoint, "SummaryColumn", "B");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2005,12 +2045,14 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string conditionType = GetParameterValue(operationPoint, "ConditionType", "等于");
             string conditionValue = GetParameterValue(operationPoint, "ConditionValue", "");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null && !string.IsNullOrEmpty(conditionValue))
             {
@@ -2045,31 +2087,30 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string criteriaRange = GetParameterValue(operationPoint, "CriteriaRange", "A1:A2");
             string outputRange = GetParameterValue(operationPoint, "OutputRange", "F1");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             Worksheet worksheet = worksheetPart.Worksheet;
 
             // 创建高级筛选（简化实现）
             // 在实际应用中，高级筛选需要复杂的数据处理逻辑
-            AutoFilter autoFilter = new AutoFilter()
+            AutoFilter autoFilter = new()
             {
                 Reference = dataRange
             };
 
             // 移除现有的自动筛选
-            AutoFilter existingAutoFilter = worksheet.Elements<AutoFilter>().FirstOrDefault();
-            if (existingAutoFilter != null)
-            {
-                existingAutoFilter.Remove();
-            }
+            AutoFilter? existingAutoFilter = worksheet?.Elements<AutoFilter>().FirstOrDefault();
+            existingAutoFilter?.Remove();
 
             // 添加新的自动筛选
-            worksheet.InsertAfter(autoFilter, worksheet.Elements<SheetData>().First());
+            _ = (worksheet?.InsertAfter(autoFilter, worksheet.Elements<SheetData>().First()));
 
             // 在输出区域添加标记
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet?.GetFirstChild<SheetData>();
             if (sheetData != null)
             {
                 Cell outputCell = GetCell(sheetData, outputRange);
@@ -2096,9 +2137,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string chartType = GetParameterValue(operationPoint, "ChartType", "柱形图");
             string dataRange = GetParameterValue(operationPoint, "DataRange", "A1:B5");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 注意：完整的图表实现需要创建ChartPart和DrawingsPart
             // 这里提供一个简化的实现框架
@@ -2112,7 +2155,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             Worksheet worksheet = worksheetPart.Worksheet;
 
             // 添加一个标记表示图表位置（简化实现）
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
             if (sheetData != null)
             {
                 Cell chartCell = GetCell(sheetData, "E1");
@@ -2140,13 +2183,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string chartStyle = GetParameterValue(operationPoint, "ChartStyle", "样式1");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加样式标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2172,13 +2217,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string chartTitle = GetParameterValue(operationPoint, "ChartTitle", "图表标题");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加标题标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2204,13 +2251,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string legendPosition = GetParameterValue(operationPoint, "LegendPosition", "右侧");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加图例位置标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2236,13 +2285,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string newPosition = GetParameterValue(operationPoint, "NewPosition", "F1");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在新位置添加图表移动标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2268,13 +2319,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string dataRange = GetParameterValue(operationPoint, "DataRange", "A1:A5");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加分类轴数据范围标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2300,13 +2353,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string dataRange = GetParameterValue(operationPoint, "DataRange", "B1:B5");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加数值轴数据范围标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2332,13 +2387,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string titleFormat = GetParameterValue(operationPoint, "TitleFormat", "粗体");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加标题格式标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2364,13 +2421,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string axisTitle = GetParameterValue(operationPoint, "AxisTitle", "横坐标轴");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加横轴标题标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2396,13 +2455,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string titleFormat = GetParameterValue(operationPoint, "TitleFormat", "常规");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加横轴标题格式标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2429,13 +2490,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string legendFormat = GetParameterValue(operationPoint, "LegendFormat", "常规");
             string fontColor = GetParameterValue(operationPoint, "FontColor", "#000000");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加图例格式标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2463,13 +2526,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string minValue = GetParameterValue(operationPoint, "MinValue", "");
             string maxValue = GetParameterValue(operationPoint, "MaxValue", "");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加纵轴选项标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2501,7 +2566,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "是");
             string gridlineStyle = GetParameterValue(operationPoint, "GridlineStyle", "实线");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
             {
                 Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F9");
@@ -2526,7 +2591,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "否");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
             {
                 Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F10");
@@ -2552,7 +2617,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "否");
             string gridlineStyle = GetParameterValue(operationPoint, "GridlineStyle", "实线");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
             {
                 Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F11");
@@ -2577,7 +2642,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
             string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "否");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
             {
                 Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F12");
@@ -2604,13 +2669,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string seriesColor = GetParameterValue(operationPoint, "SeriesColor", "#0070C0");
             string seriesStyle = GetParameterValue(operationPoint, "SeriesStyle", "实线");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加数据系列格式标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2637,13 +2704,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string labelType = GetParameterValue(operationPoint, "LabelType", "值");
             string labelPosition = GetParameterValue(operationPoint, "LabelPosition", "数据点上方");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加数据标签标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2671,13 +2740,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string fontColor = GetParameterValue(operationPoint, "FontColor", "#000000");
             string fontSize = GetParameterValue(operationPoint, "FontSize", "9");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加数据标签格式标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2705,13 +2776,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "无边框");
             string borderColor = GetParameterValue(operationPoint, "BorderColor", "#000000");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加图表区域格式标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2738,13 +2811,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string floorColor = GetParameterValue(operationPoint, "FloorColor", "#F2F2F2");
             string transparency = GetParameterValue(operationPoint, "Transparency", "0%");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加图表底面颜色标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2772,13 +2847,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             string borderColor = GetParameterValue(operationPoint, "BorderColor", "#000000");
             string borderWidth = GetParameterValue(operationPoint, "BorderWidth", "1pt");
 
-            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            WorksheetPart? worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
             if (worksheetPart == null)
+            {
                 return false;
+            }
 
             // 简化实现：在工作表中添加图表边框标记
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData != null)
             {
@@ -2804,7 +2881,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// </summary>
     private string GetParameterValue(OperationPoint operationPoint, string parameterName, string defaultValue = "")
     {
-        ConfigurationParameter parameter = operationPoint.Parameters.FirstOrDefault(p => p.Name == parameterName);
+        ConfigurationParameter? parameter = operationPoint.Parameters.FirstOrDefault(p => p.Name == parameterName);
         return parameter?.Value ?? defaultValue;
     }
 
@@ -2815,35 +2892,31 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     {
         WorkbookPart? workbookPart = spreadsheetDocument.WorkbookPart;
         if (workbookPart?.Workbook?.Sheets == null)
+        {
             return null;
+        }
 
         Sheet? sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
             .FirstOrDefault(s => s.Name?.Value == worksheetName);
 
-        if (sheet == null)
-        {
-            // 如果找不到指定名称的工作表，使用第一个工作表
-            sheet = workbookPart.Workbook.Sheets.Elements<Sheet>().FirstOrDefault();
-        }
+        // 如果找不到指定名称的工作表，使用第一个工作表
+        sheet ??= workbookPart.Workbook.Sheets.Elements<Sheet>().FirstOrDefault();
 
-        if (sheet?.Id?.Value == null)
-            return null;
-
-        return (WorksheetPart)workbookPart.GetPartById(sheet.Id.Value);
+        return sheet?.Id?.Value == null ? null : (WorksheetPart)workbookPart.GetPartById(sheet.Id.Value);
     }
 
     /// <summary>
     /// 设置单元格值
     /// </summary>
-    private void SetCellValue(WorksheetPart worksheetPart, string cellAddress, string value)
+    private void SetCellValue(WorksheetPart? worksheetPart, string cellAddress, string value)
     {
-        Worksheet worksheet = worksheetPart.Worksheet;
-        SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
+        Worksheet? worksheet = worksheetPart?.Worksheet;
+        SheetData? sheetData = worksheet?.GetFirstChild<SheetData>();
 
         if (sheetData == null)
         {
             sheetData = new SheetData();
-            worksheet.AppendChild(sheetData);
+            _ = (worksheet?.AppendChild(sheetData));
         }
 
         Cell cell = GetCell(sheetData, cellAddress);
@@ -2854,16 +2927,16 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// <summary>
     /// 获取或创建单元格
     /// </summary>
-    private Cell GetCell(SheetData sheetData, string cellAddress)
+    private Cell GetCell(SheetData? sheetData, string cellAddress)
     {
         uint rowIndex = GetRowIndex(cellAddress);
         string columnName = GetColumnName(cellAddress);
 
-        Row? row = sheetData.Elements<Row>().FirstOrDefault(r => r.RowIndex?.Value == rowIndex);
+        Row? row = sheetData?.Elements<Row>().FirstOrDefault(r => r.RowIndex?.Value == rowIndex);
         if (row == null)
         {
             row = new Row() { RowIndex = rowIndex };
-            sheetData.Append(row);
+            sheetData?.Append(row);
         }
 
         Cell? cell = row.Elements<Cell>().FirstOrDefault(c => c.CellReference?.Value == cellAddress);
@@ -2900,11 +2973,15 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     private (string startCell, string endCell) ParseCellRange(string cellRange)
     {
         if (string.IsNullOrEmpty(cellRange))
+        {
             return ("A1", "A1");
+        }
 
         string[] parts = cellRange.Split(':');
         if (parts.Length == 2)
+        {
             return (parts[0].Trim(), parts[1].Trim());
+        }
 
         return (cellRange.Trim(), cellRange.Trim());
     }
@@ -2915,14 +2992,18 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     private string ParseColor(string colorValue)
     {
         if (string.IsNullOrEmpty(colorValue))
+        {
             return "000000";
+        }
 
         // 移除#号
         colorValue = colorValue.TrimStart('#');
 
         // 确保是6位十六进制
         if (colorValue.Length == 6 && Regex.IsMatch(colorValue, @"^[0-9A-Fa-f]{6}$"))
+        {
             return colorValue.ToUpperInvariant();
+        }
 
         return "000000"; // 默认黑色
     }
@@ -2934,7 +3015,9 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     {
         WorkbookPart? workbookPart = spreadsheetDocument.WorkbookPart;
         if (workbookPart == null)
+        {
             throw new InvalidOperationException("WorkbookPart cannot be null");
+        }
 
         WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
 
@@ -2952,11 +3035,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// </summary>
     private Stylesheet CreateDefaultStylesheet()
     {
-        Stylesheet stylesheet = new Stylesheet();
+        Stylesheet stylesheet = new();
 
         // 字体
-        Fonts fonts = new Fonts();
-        Font defaultFont = new Font();
+        Fonts fonts = new();
+        Font defaultFont = new();
         defaultFont.Append(new FontName() { Val = "Calibri" });
         defaultFont.Append(new FontSize() { Val = 11 });
         fonts.Append(defaultFont);
@@ -2964,16 +3047,16 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         stylesheet.Fonts = fonts;
 
         // 填充
-        Fills fills = new Fills();
-        Fill defaultFill = new Fill();
+        Fills fills = new();
+        Fill defaultFill = new();
         defaultFill.Append(new PatternFill() { PatternType = PatternValues.None });
         fills.Append(defaultFill);
         fills.Count = 1;
         stylesheet.Fills = fills;
 
         // 边框
-        Borders borders = new Borders();
-        Border defaultBorder = new Border();
+        Borders borders = new();
+        Border defaultBorder = new();
         defaultBorder.Append(new LeftBorder());
         defaultBorder.Append(new RightBorder());
         defaultBorder.Append(new TopBorder());
@@ -2984,8 +3067,8 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         stylesheet.Borders = borders;
 
         // 单元格格式
-        CellFormats cellFormats = new CellFormats();
-        CellFormat defaultCellFormat = new CellFormat();
+        CellFormats cellFormats = new();
+        CellFormat defaultCellFormat = new();
         cellFormats.Append(defaultCellFormat);
         cellFormats.Count = 1;
         stylesheet.CellFormats = cellFormats;
@@ -2996,14 +3079,14 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// <summary>
     /// 应用样式到单元格区域
     /// </summary>
-    private void ApplyStyleToCellRange(WorksheetPart worksheetPart, string cellRange, uint styleIndex)
+    private void ApplyStyleToCellRange(WorksheetPart? worksheetPart, string cellRange, uint styleIndex)
     {
-        (string startCell, string endCell) = ParseCellRange(cellRange);
+        (string startCell, _) = ParseCellRange(cellRange);
 
         // 简化实现：只应用到起始单元格
         // 完整实现需要遍历整个区域
-        Worksheet worksheet = worksheetPart.Worksheet;
-        SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
+        Worksheet? worksheet = worksheetPart?.Worksheet;
+        SheetData? sheetData = worksheet?.GetFirstChild<SheetData>();
 
         if (sheetData != null)
         {
@@ -3054,7 +3137,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         uint result = 0;
         for (int i = 0; i < columnLetter.Length; i++)
         {
-            result = result * 26 + (uint)(columnLetter[i] - 'A' + 1);
+            result = (result * 26) + (uint)(columnLetter[i] - 'A' + 1);
         }
         return result;
     }
@@ -3150,7 +3233,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// </summary>
     private CellFormat CreatePredefinedCellStyle(string styleName, Stylesheet stylesheet)
     {
-        CellFormat cellFormat = new CellFormat();
+        CellFormat cellFormat = new();
 
         switch (styleName)
         {
@@ -3197,8 +3280,8 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// </summary>
     private uint CreateColorFill(Stylesheet stylesheet, string colorValue)
     {
-        Fill fill = new Fill();
-        PatternFill patternFill = new PatternFill()
+        Fill fill = new();
+        PatternFill patternFill = new()
         {
             PatternType = PatternValues.Solid
         };
@@ -3206,8 +3289,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         fill.Append(patternFill);
 
         Fills fills = stylesheet.Fills ?? new Fills();
-        if (stylesheet.Fills == null)
-            stylesheet.Fills = fills;
+        stylesheet.Fills ??= fills;
 
         fills.Append(fill);
         fills.Count = (uint)fills.Elements<Fill>().Count();
@@ -3220,7 +3302,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// </summary>
     private uint CreateTitleFont(Stylesheet stylesheet, double fontSize, bool bold)
     {
-        Font font = new Font();
+        Font font = new();
         font.Append(new FontName() { Val = "Calibri" });
         font.Append(new FontSize() { Val = fontSize });
         if (bold)
@@ -3229,8 +3311,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         }
 
         Fonts fonts = stylesheet.Fonts ?? new Fonts();
-        if (stylesheet.Fonts == null)
-            stylesheet.Fonts = fonts;
+        stylesheet.Fonts ??= fonts;
 
         fonts.Append(font);
         fonts.Count = (uint)fonts.Elements<Font>().Count();

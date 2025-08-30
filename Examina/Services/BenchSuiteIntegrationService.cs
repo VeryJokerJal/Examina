@@ -58,7 +58,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             { ModuleType.PowerPoint, "PPT" },
             { ModuleType.Word, "WORD" },
             { ModuleType.Excel, "EXCEL" },
-            { ModuleType.Windows, "WINDOWS" }
+            { ModuleType.Windows, "Windows" }
         };
 
         // 初始化真实的BenchSuite评分服务，使用OpenXML SDK实现，C#服务支持AI功能
@@ -297,16 +297,15 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             // Windows 模块允许在无文件的情况下进行评分
             if (moduleType == ModuleType.Windows)
             {
+                // 直接使用目录服务的基础路径，因为基础路径已经包含了专项训练的完整路径
                 string basePath = _directoryService.GetBasePath();
-                string examTypeFolder = GetExamTypeFolder(examType);
-                string examRootPath = Path.Combine(basePath, examTypeFolder, examId.ToString());
 
                 ExamModel examModelToUse = await CreateSimplifiedExamModel(moduleType, examType, examId, studentUserId);
 
                 // 为Windows评分服务设置基础路径
                 if (scoringService is WindowsScoringService windowsService)
                 {
-                    windowsService.SetBasePath(examRootPath);
+                    windowsService.SetBasePath(basePath);
                 }
 
                 // 调用评分（Windows不依赖具体文件路径）

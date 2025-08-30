@@ -18,14 +18,14 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     public BenchSuiteDirectoryService(ILogger<BenchSuiteDirectoryService> logger)
     {
         _logger = logger;
-        _basePath = @"C:\河北对口计算机\";
+        _basePath = @"C:\河北对口计算机\SpecializedTraining\9\";
         _directoryMapping = new Dictionary<ModuleType, string>
         {
             { ModuleType.CSharp, "CSharp" },
             { ModuleType.PowerPoint, "PPT" },
             { ModuleType.Word, "WORD" },
             { ModuleType.Excel, "EXCEL" },
-            { ModuleType.Windows, "WINDOWS" }
+            { ModuleType.Windows, "Windows" }
         };
     }
 
@@ -57,6 +57,13 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
             throw new ArgumentException($"不支持的模块类型: {moduleType}", nameof(moduleType));
         }
 
+        // 对于专项训练ID 9，基础路径已经包含了完整的专项训练路径，直接使用基础路径加模块目录
+        if (examType == ExamType.SpecializedTraining && examId == 9)
+        {
+            return System.IO.Path.Combine(_basePath, subdirectory);
+        }
+
+        // 对于其他考试类型，使用原有的路径组合逻辑
         string examTypeFolder = GetExamTypeFolder(examType);
         return System.IO.Path.Combine(_basePath, examTypeFolder, examId.ToString(), subdirectory);
     }
