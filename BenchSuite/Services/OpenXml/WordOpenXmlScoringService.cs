@@ -930,20 +930,33 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建缩进值组合
+            (int FirstLine, int Left, int Right) expectedIndentation = (expectedFirstLine, expectedLeft, expectedRight);
+
+            // 创建缩进比较函数
+            bool IndentationEquals((int FirstLine, int Left, int Right) actual, (int FirstLine, int Left, int Right) expected) =>
+                actual.FirstLine == expected.FirstLine && actual.Left == expected.Left && actual.Right == expected.Right;
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedIndentation,
+                GetParagraphIndentation,
+                IndentationEquals, // 使用缩进比较函数
+                out Paragraph? matchedParagraph,
+                out (int FirstLine, int Left, int Right) actualIndentation,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            (int FirstLine, int Left, int Right) = GetParagraphIndentation(targetParagraph!);
-
             result.ExpectedValue = $"首行:{expectedFirstLine}, 左:{expectedLeft}, 右:{expectedRight}";
-            result.ActualValue = $"首行:{FirstLine}, 左:{Left}, 右:{Right}";
-            result.IsCorrect = FirstLine == expectedFirstLine &&
-                              Left == expectedLeft &&
-                              Right == expectedRight;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = $"首行:{actualIndentation.FirstLine}, 左:{actualIndentation.Left}, 右:{actualIndentation.Right}";
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 缩进: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
@@ -979,18 +992,29 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建浮点数比较函数
+            bool FloatEquals(float actual, float expected) => Math.Abs(actual - expected) < 0.1f;
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedSpacing,
+                GetParagraphLineSpacing,
+                FloatEquals, // 使用浮点数比较函数
+                out Paragraph? matchedParagraph,
+                out float actualSpacing,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            float actualSpacing = GetParagraphLineSpacing(targetParagraph!);
-
             result.ExpectedValue = expectedSpacing.ToString();
             result.ActualValue = actualSpacing.ToString();
-            result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 行间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
@@ -1026,18 +1050,26 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedType,
+                GetParagraphDropCap,
+                TextEquals, // 使用文本比较函数
+                out Paragraph? matchedParagraph,
+                out string? actualType,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            string actualType = GetParagraphDropCap(targetParagraph!);
-
             result.ExpectedValue = expectedType;
-            result.ActualValue = actualType;
-            result.IsCorrect = TextEquals(actualType, expectedType);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = actualType ?? string.Empty;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 首字下沉: 期望 {expectedType}, 实际 {actualType}";
@@ -1073,18 +1105,29 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建颜色比较函数
+            bool ColorMatches(string actual, string expected) => TextEquals(actual, expected) || ColorEquals(actual, expected);
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedColor,
+                GetParagraphBorderColor,
+                ColorMatches, // 使用颜色比较函数
+                out Paragraph? matchedParagraph,
+                out string? actualColor,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            string actualColor = GetParagraphBorderColor(targetParagraph!);
-
             result.ExpectedValue = expectedColor;
-            result.ActualValue = actualColor;
-            result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = actualColor ?? string.Empty;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 边框颜色: 期望 {expectedColor}, 实际 {actualColor}";
@@ -1319,19 +1362,33 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建间距值组合
+            (float Before, float After) expectedSpacing = (expectedBefore, expectedAfter);
+
+            // 创建间距比较函数
+            bool SpacingEquals((float Before, float After) actual, (float Before, float After) expected) =>
+                Math.Abs(actual.Before - expected.Before) < 0.1f && Math.Abs(actual.After - expected.After) < 0.1f;
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedSpacing,
+                GetParagraphSpacing,
+                SpacingEquals, // 使用间距比较函数
+                out Paragraph? matchedParagraph,
+                out (float Before, float After) actualSpacing,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            (float Before, float After) = GetParagraphSpacing(targetParagraph!);
-
             result.ExpectedValue = $"前:{expectedBefore}, 后:{expectedAfter}";
-            result.ActualValue = $"前:{Before}, 后:{After}";
-            result.IsCorrect = Math.Abs(Before - expectedBefore) < 0.1f &&
-                              Math.Abs(After - expectedAfter) < 0.1f;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = $"前:{actualSpacing.Before}, 后:{actualSpacing.After}";
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 间距: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
