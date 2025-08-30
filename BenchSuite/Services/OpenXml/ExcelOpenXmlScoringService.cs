@@ -660,90 +660,1332 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         return result;
     }
 
-    // 简化实现的检测方法，用于保持API兼容性
-    private KnowledgePointResult DetectInsertDeleteCells(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("InsertDeleteCells", parameters, "插入删除单元格检测已简化");
-
-    private KnowledgePointResult DetectMergeCells(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("MergeCells", parameters, "合并单元格检测已简化");
-
-    private KnowledgePointResult DetectInsertDeleteRows(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("InsertDeleteRows", parameters, "插入删除行检测已简化");
-
-    private KnowledgePointResult DetectSetCellFont(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetCellFont", parameters, "单元格字体检测已简化");
-
-    private KnowledgePointResult DetectSetFontStyle(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetFontStyle", parameters, "字体样式检测已简化");
-
-    private KnowledgePointResult DetectSetFontSize(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetFontSize", parameters, "字体大小检测已简化");
-
-    private KnowledgePointResult DetectSetFontColor(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetFontColor", parameters, "字体颜色检测已简化");
-
-    private KnowledgePointResult DetectSetCellAlignment(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetCellAlignment", parameters, "单元格对齐检测已简化");
-
-    private KnowledgePointResult DetectSetCellBorder(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetCellBorder", parameters, "单元格边框检测已简化");
-
-    private KnowledgePointResult DetectSetCellBackgroundColor(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetCellBackgroundColor", parameters, "单元格背景色检测已简化");
-
-    private KnowledgePointResult DetectSetNumberFormat(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetNumberFormat", parameters, "数字格式检测已简化");
-
-    private KnowledgePointResult DetectUseFunction(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("UseFunction", parameters, "函数使用检测已简化");
-
-    private KnowledgePointResult DetectCreateChart(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("CreateChart", parameters, "图表创建检测已简化");
-
-    private KnowledgePointResult DetectSortData(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SortData", parameters, "数据排序检测已简化");
-
-    private KnowledgePointResult DetectCreatePivotTable(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("CreatePivotTable", parameters, "数据透视表检测已简化");
-
-    private KnowledgePointResult DetectSetConditionalFormatting(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetConditionalFormatting", parameters, "条件格式检测已简化");
-
-    private KnowledgePointResult DetectSetDataValidation(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetDataValidation", parameters, "数据验证检测已简化");
-
-    private KnowledgePointResult DetectFreezePanes(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("FreezePanes", parameters, "冻结窗格检测已简化");
-
-    private KnowledgePointResult DetectSetPageSetup(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetPageSetup", parameters, "页面设置检测已简化");
-
-    private KnowledgePointResult DetectSetPrintArea(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetPrintArea", parameters, "打印区域检测已简化");
-
-    private KnowledgePointResult DetectSetHeaderFooter(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetHeaderFooter", parameters, "页眉页脚检测已简化");
-
-    private KnowledgePointResult DetectManageWorksheet(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("ManageWorksheet", parameters, "工作表管理检测已简化");
-
-    private KnowledgePointResult DetectSetWorksheetProtection(SpreadsheetDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetWorksheetProtection", parameters, "工作表保护检测已简化");
-
     /// <summary>
-    /// 简化的知识点检测方法 - 用于暂时不完全支持的功能
+    /// 检测插入删除单元格
     /// </summary>
-    private KnowledgePointResult CreateSimplifiedDetectionResult(string knowledgePointType, Dictionary<string, string> parameters, string message = "功能检测已简化实现")
+    private KnowledgePointResult DetectInsertDeleteCells(SpreadsheetDocument document, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
-            KnowledgePointType = knowledgePointType,
-            Parameters = parameters,
-            IsCorrect = true, // 简化实现暂时返回成功
-            AchievedScore = 0, // 但不给分
-            Details = $"{message} - {knowledgePointType}"
+            KnowledgePointType = "InsertDeleteCells",
+            Parameters = parameters
         };
 
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            var cellOperationInfo = CheckCellOperationsInWorkbook(workbookPart, parameters);
+
+            result.ExpectedValue = "插入或删除单元格操作";
+            result.ActualValue = cellOperationInfo.Found ? cellOperationInfo.Description : "未检测到单元格操作";
+            result.IsCorrect = cellOperationInfo.Found;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格操作检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测插入删除单元格失败: {ex.Message}");
+        }
+
         return result;
+    }
+
+    /// <summary>
+    /// 检测合并单元格
+    /// </summary>
+    private KnowledgePointResult DetectMergeCells(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "MergeCells",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            var mergedCellsInfo = CheckMergedCellsInWorkbook(workbookPart, parameters);
+
+            result.ExpectedValue = "合并单元格";
+            result.ActualValue = mergedCellsInfo.Found ? $"找到 {mergedCellsInfo.Count} 个合并区域" : "未找到合并单元格";
+            result.IsCorrect = mergedCellsInfo.Found;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"合并单元格检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测合并单元格失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测插入删除行
+    /// </summary>
+    private KnowledgePointResult DetectInsertDeleteRows(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "InsertDeleteRows",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            var rowOperationInfo = CheckRowOperationsInWorkbook(workbookPart, parameters);
+
+            result.ExpectedValue = "插入或删除行操作";
+            result.ActualValue = rowOperationInfo.Found ? rowOperationInfo.Description : "未检测到行操作";
+            result.IsCorrect = rowOperationInfo.Found;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"行操作检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测插入删除行失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测单元格字体
+    /// </summary>
+    private KnowledgePointResult DetectSetCellFont(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetCellFont",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FontName", out string expectedFont))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FontName");
+                return result;
+            }
+
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool fontFound = CheckFontInWorkbook(workbookPart, expectedFont);
+
+            result.ExpectedValue = expectedFont;
+            result.ActualValue = fontFound ? expectedFont : "未找到指定字体";
+            result.IsCorrect = fontFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格字体检测: 期望 {expectedFont}, {(fontFound ? "找到" : "未找到")}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测单元格字体失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测字体样式
+    /// </summary>
+    private KnowledgePointResult DetectSetFontStyle(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetFontStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "StyleType", out string expectedStyle))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: StyleType");
+                return result;
+            }
+
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool styleFound = CheckFontStyleInWorkbook(workbookPart, expectedStyle);
+
+            result.ExpectedValue = expectedStyle;
+            result.ActualValue = styleFound ? expectedStyle : "未找到指定样式";
+            result.IsCorrect = styleFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"字体样式检测: 期望 {expectedStyle}, {(styleFound ? "找到" : "未找到")}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测字体样式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测字体大小
+    /// </summary>
+    private KnowledgePointResult DetectSetFontSize(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetFontSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FontSize", out string expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FontSize");
+                return result;
+            }
+
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool sizeFound = CheckFontSizeInWorkbook(workbookPart, expectedSize);
+
+            result.ExpectedValue = expectedSize;
+            result.ActualValue = sizeFound ? expectedSize : "未找到指定字号";
+            result.IsCorrect = sizeFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"字体大小检测: 期望 {expectedSize}, {(sizeFound ? "找到" : "未找到")}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测字体大小失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测字体颜色
+    /// </summary>
+    private KnowledgePointResult DetectSetFontColor(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetFontColor",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FontColor", out string expectedColor))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FontColor");
+                return result;
+            }
+
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool colorFound = CheckFontColorInWorkbook(workbookPart, expectedColor);
+
+            result.ExpectedValue = expectedColor;
+            result.ActualValue = colorFound ? expectedColor : "未找到指定颜色";
+            result.IsCorrect = colorFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"字体颜色检测: 期望 {expectedColor}, {(colorFound ? "找到" : "未找到")}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测字体颜色失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测单元格对齐
+    /// </summary>
+    private KnowledgePointResult DetectSetCellAlignment(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetCellAlignment",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "Alignment", out string expectedAlignment))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: Alignment");
+                return result;
+            }
+
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool alignmentFound = CheckCellAlignmentInWorkbook(workbookPart, expectedAlignment);
+
+            result.ExpectedValue = expectedAlignment;
+            result.ActualValue = alignmentFound ? expectedAlignment : "未找到指定对齐方式";
+            result.IsCorrect = alignmentFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格对齐检测: 期望 {expectedAlignment}, {(alignmentFound ? "找到" : "未找到")}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测单元格对齐失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测单元格边框
+    /// </summary>
+    private KnowledgePointResult DetectSetCellBorder(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetCellBorder",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool borderFound = CheckCellBorderInWorkbook(workbookPart);
+
+            result.ExpectedValue = "单元格边框";
+            result.ActualValue = borderFound ? "找到单元格边框" : "未找到单元格边框";
+            result.IsCorrect = borderFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格边框检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测单元格边框失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测单元格背景色
+    /// </summary>
+    private KnowledgePointResult DetectSetCellBackgroundColor(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetCellBackgroundColor",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool backgroundFound = CheckCellBackgroundColorInWorkbook(workbookPart, parameters);
+
+            result.ExpectedValue = "单元格背景色";
+            result.ActualValue = backgroundFound ? "找到单元格背景色" : "未找到单元格背景色";
+            result.IsCorrect = backgroundFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格背景色检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测单元格背景色失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测数字格式
+    /// </summary>
+    private KnowledgePointResult DetectSetNumberFormat(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetNumberFormat",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool numberFormatFound = CheckNumberFormatInWorkbook(workbookPart, parameters);
+
+            result.ExpectedValue = "数字格式设置";
+            result.ActualValue = numberFormatFound ? "找到数字格式设置" : "未找到数字格式设置";
+            result.IsCorrect = numberFormatFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"数字格式检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测数字格式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测函数使用
+    /// </summary>
+    private KnowledgePointResult DetectUseFunction(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "UseFunction",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            var functionInfo = CheckFunctionUsageInWorkbook(workbookPart, parameters);
+
+            result.ExpectedValue = TryGetParameter(parameters, "FunctionName", out string expectedFunction) ? expectedFunction : "函数使用";
+            result.ActualValue = functionInfo.Found ? $"找到函数: {functionInfo.FunctionName}" : "未找到函数使用";
+            result.IsCorrect = functionInfo.Found;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"函数使用检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测函数使用失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测图表创建
+    /// </summary>
+    private KnowledgePointResult DetectCreateChart(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "CreateChart",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            var chartInfo = CheckChartInWorkbook(workbookPart);
+
+            result.ExpectedValue = "图表";
+            result.ActualValue = chartInfo.Found ? $"找到 {chartInfo.Count} 个图表" : "未找到图表";
+            result.IsCorrect = chartInfo.Found;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"图表创建检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测图表创建失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测数据排序
+    /// </summary>
+    private KnowledgePointResult DetectSortData(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SortData",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool sortFound = CheckDataSortInWorkbook(workbookPart);
+
+            result.ExpectedValue = "数据排序";
+            result.ActualValue = sortFound ? "找到数据排序" : "未找到数据排序";
+            result.IsCorrect = sortFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"数据排序检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测数据排序失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测数据透视表
+    /// </summary>
+    private KnowledgePointResult DetectCreatePivotTable(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "CreatePivotTable",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool pivotTableFound = CheckPivotTableInWorkbook(workbookPart);
+
+            result.ExpectedValue = "数据透视表";
+            result.ActualValue = pivotTableFound ? "找到数据透视表" : "未找到数据透视表";
+            result.IsCorrect = pivotTableFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"数据透视表检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测数据透视表失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测条件格式
+    /// </summary>
+    private KnowledgePointResult DetectSetConditionalFormatting(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetConditionalFormatting",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool conditionalFormattingFound = CheckConditionalFormattingInWorkbook(workbookPart);
+
+            result.ExpectedValue = "条件格式";
+            result.ActualValue = conditionalFormattingFound ? "找到条件格式" : "未找到条件格式";
+            result.IsCorrect = conditionalFormattingFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"条件格式检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测条件格式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测数据验证
+    /// </summary>
+    private KnowledgePointResult DetectSetDataValidation(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetDataValidation",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool dataValidationFound = CheckDataValidationInWorkbook(workbookPart);
+
+            result.ExpectedValue = "数据验证";
+            result.ActualValue = dataValidationFound ? "找到数据验证" : "未找到数据验证";
+            result.IsCorrect = dataValidationFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"数据验证检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测数据验证失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测冻结窗格
+    /// </summary>
+    private KnowledgePointResult DetectFreezePanes(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "FreezePanes",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool freezePanesFound = CheckFreezePanesInWorkbook(workbookPart);
+
+            result.ExpectedValue = "冻结窗格";
+            result.ActualValue = freezePanesFound ? "找到冻结窗格" : "未找到冻结窗格";
+            result.IsCorrect = freezePanesFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"冻结窗格检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测冻结窗格失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页面设置
+    /// </summary>
+    private KnowledgePointResult DetectSetPageSetup(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetPageSetup",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool pageSetupFound = CheckPageSetupInWorkbook(workbookPart);
+
+            result.ExpectedValue = "页面设置";
+            result.ActualValue = pageSetupFound ? "找到页面设置" : "未找到页面设置";
+            result.IsCorrect = pageSetupFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页面设置检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页面设置失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测打印区域
+    /// </summary>
+    private KnowledgePointResult DetectSetPrintArea(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetPrintArea",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool printAreaFound = CheckPrintAreaInWorkbook(workbookPart);
+
+            result.ExpectedValue = "打印区域";
+            result.ActualValue = printAreaFound ? "找到打印区域设置" : "未找到打印区域设置";
+            result.IsCorrect = printAreaFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"打印区域检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测打印区域失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页眉页脚
+    /// </summary>
+    private KnowledgePointResult DetectSetHeaderFooter(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetHeaderFooter",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool headerFooterFound = CheckHeaderFooterInWorkbook(workbookPart);
+
+            result.ExpectedValue = "页眉页脚";
+            result.ActualValue = headerFooterFound ? "找到页眉页脚设置" : "未找到页眉页脚设置";
+            result.IsCorrect = headerFooterFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页眉页脚检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页眉页脚失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测工作表管理
+    /// </summary>
+    private KnowledgePointResult DetectManageWorksheet(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "ManageWorksheet",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            int worksheetCount = GetWorksheetCountInWorkbook(workbookPart);
+
+            result.ExpectedValue = "多个工作表";
+            result.ActualValue = $"工作簿包含 {worksheetCount} 个工作表";
+            result.IsCorrect = worksheetCount > 1;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"工作表管理检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测工作表管理失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测工作表保护
+    /// </summary>
+    private KnowledgePointResult DetectSetWorksheetProtection(SpreadsheetDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWorksheetProtection",
+            Parameters = parameters
+        };
+
+        try
+        {
+            WorkbookPart workbookPart = document.WorkbookPart!;
+            bool protectionFound = CheckWorksheetProtectionInWorkbook(workbookPart);
+
+            result.ExpectedValue = "工作表保护";
+            result.ActualValue = protectionFound ? "找到工作表保护" : "未找到工作表保护";
+            result.IsCorrect = protectionFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"工作表保护检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测工作表保护失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检查工作簿中的单元格操作
+    /// </summary>
+    private (bool Found, string Description) CheckCellOperationsInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            // 简化实现：检查是否有数据，认为有数据操作
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
+                if (sheetData?.HasChildren == true)
+                {
+                    return (true, "检测到单元格数据操作");
+                }
+            }
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的合并单元格
+    /// </summary>
+    private (bool Found, int Count) CheckMergedCellsInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            int mergedCellCount = 0;
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var mergeCells = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.MergeCells>().FirstOrDefault();
+                if (mergeCells?.HasChildren == true)
+                {
+                    mergedCellCount += mergeCells.Elements<DocumentFormat.OpenXml.Spreadsheet.MergeCell>().Count();
+                }
+            }
+            return (mergedCellCount > 0, mergedCellCount);
+        }
+        catch
+        {
+            return (false, 0);
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的行操作
+    /// </summary>
+    private (bool Found, string Description) CheckRowOperationsInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            // 简化实现：检查是否有多行数据
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
+                if (sheetData?.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>().Count() > 1)
+                {
+                    return (true, "检测到多行数据操作");
+                }
+            }
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的字体
+    /// </summary>
+    private bool CheckFontInWorkbook(WorkbookPart workbookPart, string expectedFont)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.Fonts?.HasChildren == true)
+            {
+                foreach (var font in stylesPart.Stylesheet.Fonts.Elements<DocumentFormat.OpenXml.Spreadsheet.Font>())
+                {
+                    var fontName = font.FontName?.Val?.Value;
+                    if (fontName != null && TextEquals(fontName, expectedFont))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的字体样式
+    /// </summary>
+    private bool CheckFontStyleInWorkbook(WorkbookPart workbookPart, string expectedStyle)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.Fonts?.HasChildren == true)
+            {
+                foreach (var font in stylesPart.Stylesheet.Fonts.Elements<DocumentFormat.OpenXml.Spreadsheet.Font>())
+                {
+                    bool hasStyle = expectedStyle.ToLowerInvariant() switch
+                    {
+                        "bold" or "粗体" => font.Bold != null,
+                        "italic" or "斜体" => font.Italic != null,
+                        "underline" or "下划线" => font.Underline != null,
+                        "strikethrough" or "删除线" => font.Strike != null,
+                        _ => false
+                    };
+
+                    if (hasStyle) return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的字体大小
+    /// </summary>
+    private bool CheckFontSizeInWorkbook(WorkbookPart workbookPart, string expectedSize)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.Fonts?.HasChildren == true)
+            {
+                foreach (var font in stylesPart.Stylesheet.Fonts.Elements<DocumentFormat.OpenXml.Spreadsheet.Font>())
+                {
+                    var fontSize = font.FontSize?.Val?.Value.ToString();
+                    if (fontSize != null && TextEquals(fontSize, expectedSize))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的字体颜色
+    /// </summary>
+    private bool CheckFontColorInWorkbook(WorkbookPart workbookPart, string expectedColor)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.Fonts?.HasChildren == true)
+            {
+                foreach (var font in stylesPart.Stylesheet.Fonts.Elements<DocumentFormat.OpenXml.Spreadsheet.Font>())
+                {
+                    var color = font.Color?.Rgb?.Value;
+                    if (color != null && (TextEquals(color, expectedColor) || TextEquals("#" + color, expectedColor)))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的单元格对齐
+    /// </summary>
+    private bool CheckCellAlignmentInWorkbook(WorkbookPart workbookPart, string expectedAlignment)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.CellFormats?.HasChildren == true)
+            {
+                foreach (var cellFormat in stylesPart.Stylesheet.CellFormats.Elements<DocumentFormat.OpenXml.Spreadsheet.CellFormat>())
+                {
+                    var alignment = cellFormat.Alignment;
+                    if (alignment?.Horizontal?.Value != null)
+                    {
+                        string alignmentValue = alignment.Horizontal.Value.ToString();
+                        if (TextEquals(alignmentValue, expectedAlignment))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的单元格边框
+    /// </summary>
+    private bool CheckCellBorderInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.Borders?.HasChildren == true)
+            {
+                foreach (var border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
+                {
+                    if (border.HasChildren)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的单元格背景色
+    /// </summary>
+    private bool CheckCellBackgroundColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.Fills?.HasChildren == true)
+            {
+                foreach (var fill in stylesPart.Stylesheet.Fills.Elements<DocumentFormat.OpenXml.Spreadsheet.Fill>())
+                {
+                    var patternFill = fill.PatternFill;
+                    if (patternFill?.ForegroundColor != null)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的数字格式
+    /// </summary>
+    private bool CheckNumberFormatInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            var stylesPart = workbookPart.WorkbookStylesPart;
+            if (stylesPart?.Stylesheet?.NumberingFormats?.HasChildren == true)
+            {
+                return true;
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的函数使用
+    /// </summary>
+    private (bool Found, string FunctionName) CheckFunctionUsageInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            string expectedFunction = TryGetParameter(parameters, "FunctionName", out string expected) ? expected : "";
+
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
+                if (sheetData?.HasChildren == true)
+                {
+                    foreach (var row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
+                    {
+                        foreach (var cell in row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>())
+                        {
+                            var cellFormula = cell.CellFormula?.Text;
+                            if (!string.IsNullOrEmpty(cellFormula))
+                            {
+                                if (string.IsNullOrEmpty(expectedFunction) || cellFormula.Contains(expectedFunction, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    return (true, cellFormula);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的图表
+    /// </summary>
+    private (bool Found, int Count) CheckChartInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            int chartCount = 0;
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                chartCount += worksheetPart.ChartsheetParts.Count();
+                chartCount += worksheetPart.DrawingsPart?.ChartParts.Count() ?? 0;
+            }
+            return (chartCount > 0, chartCount);
+        }
+        catch
+        {
+            return (false, 0);
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的数据排序
+    /// </summary>
+    private bool CheckDataSortInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            // 简化实现：检查是否有排序状态
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var autoFilter = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.AutoFilter>().FirstOrDefault();
+                if (autoFilter != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的数据透视表
+    /// </summary>
+    private bool CheckPivotTableInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            return workbookPart.PivotTableCacheDefinitionParts.Any();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的条件格式
+    /// </summary>
+    private bool CheckConditionalFormattingInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var conditionalFormatting = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.ConditionalFormatting>().FirstOrDefault();
+                if (conditionalFormatting != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的数据验证
+    /// </summary>
+    private bool CheckDataValidationInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var dataValidations = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.DataValidations>().FirstOrDefault();
+                if (dataValidations?.HasChildren == true)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的冻结窗格
+    /// </summary>
+    private bool CheckFreezePanesInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var sheetViews = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetViews>();
+                if (sheetViews?.HasChildren == true)
+                {
+                    foreach (var sheetView in sheetViews.Elements<DocumentFormat.OpenXml.Spreadsheet.SheetView>())
+                    {
+                        var pane = sheetView.Pane;
+                        if (pane?.State?.Value == DocumentFormat.OpenXml.Spreadsheet.PaneStateValues.Frozen)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的页面设置
+    /// </summary>
+    private bool CheckPageSetupInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var pageSetup = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.PageSetup>();
+                if (pageSetup != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的打印区域
+    /// </summary>
+    private bool CheckPrintAreaInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            var definedNames = workbookPart.Workbook.DefinedNames;
+            if (definedNames?.HasChildren == true)
+            {
+                foreach (var definedName in definedNames.Elements<DocumentFormat.OpenXml.Spreadsheet.DefinedName>())
+                {
+                    if (definedName.Name?.Value == "Print_Area")
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的页眉页脚
+    /// </summary>
+    private bool CheckHeaderFooterInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var headerFooter = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.HeaderFooter>();
+                if (headerFooter?.HasChildren == true)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取工作簿中的工作表数量
+    /// </summary>
+    private int GetWorksheetCountInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            return workbookPart.WorksheetParts.Count();
+        }
+        catch
+        {
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的工作表保护
+    /// </summary>
+    private bool CheckWorksheetProtectionInWorkbook(WorkbookPart workbookPart)
+    {
+        try
+        {
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var sheetProtection = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetProtection>();
+                if (sheetProtection != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查工作簿中的超链接
+    /// </summary>
+    private (bool Found, string Url) CheckHyperlinkInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            {
+                var hyperlinks = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.Hyperlinks>().FirstOrDefault();
+                if (hyperlinks?.HasChildren == true)
+                {
+                    var firstHyperlink = hyperlinks.Elements<DocumentFormat.OpenXml.Spreadsheet.Hyperlink>().FirstOrDefault();
+                    if (firstHyperlink?.Id?.Value != null)
+                    {
+                        try
+                        {
+                            var relationship = worksheetPart.GetReferenceRelationship(firstHyperlink.Id.Value);
+                            return (true, relationship?.Uri?.ToString() ?? "超链接存在");
+                        }
+                        catch
+                        {
+                            return (true, "超链接存在");
+                        }
+                    }
+                    return (true, "超链接存在");
+                }
+            }
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
     }
 }
