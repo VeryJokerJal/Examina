@@ -118,7 +118,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点4：合并单元格
+        // 操作点2：合并单元格
         configs[ExcelKnowledgeType.MergeCells] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.MergeCells,
@@ -133,7 +133,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点6：设置指定单元格字体
+        // 操作点3：设置指定单元格字体
         configs[ExcelKnowledgeType.SetCellFont] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetCellFont,
@@ -150,7 +150,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点13：设置单元格区域水平对齐方式
+        // 操作点4：设置单元格区域水平对齐方式
         configs[ExcelKnowledgeType.SetHorizontalAlignment] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetHorizontalAlignment,
@@ -167,7 +167,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点10：内边框样式
+        // 操作点5：内边框样式
         configs[ExcelKnowledgeType.SetInnerBorderStyle] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetInnerBorderStyle,
@@ -184,7 +184,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点11：内边框颜色
+        // 操作点6：内边框颜色
         configs[ExcelKnowledgeType.SetInnerBorderColor] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetInnerBorderColor,
@@ -200,7 +200,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点15：使用函数
+        // 操作点7：使用函数
         configs[ExcelKnowledgeType.UseFunction] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.UseFunction,
@@ -217,7 +217,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点16：设置行高
+        // 操作点8：设置行高
         configs[ExcelKnowledgeType.SetRowHeight] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetRowHeight,
@@ -233,7 +233,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点17：设置列宽
+        // 操作点9：设置列宽
         configs[ExcelKnowledgeType.SetColumnWidth] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetColumnWidth,
@@ -249,7 +249,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点20：设置单元格填充颜色
+        // 操作点10：设置单元格填充颜色
         configs[ExcelKnowledgeType.SetCellFillColor] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetCellFillColor,
@@ -265,7 +265,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点26：设置垂直对齐方式
+        // 操作点11：设置垂直对齐方式
         configs[ExcelKnowledgeType.SetVerticalAlignment] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetVerticalAlignment,
@@ -282,7 +282,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点28：修改sheet表名称
+        // 操作点12：修改sheet表名称
         configs[ExcelKnowledgeType.ModifySheetName] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ModifySheetName,
@@ -298,7 +298,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点29：设置字型
+        // 操作点13：设置字型
         configs[ExcelKnowledgeType.SetFontStyle] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetFontStyle,
@@ -315,7 +315,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点30：设置字号
+        // 操作点14：设置字号
         configs[ExcelKnowledgeType.SetFontSize] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetFontSize,
@@ -331,7 +331,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点31：字体颜色
+        // 操作点15：字体颜色
         configs[ExcelKnowledgeType.SetFontColor] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetFontColor,
@@ -347,7 +347,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点32：设置目标区域单元格数字分类格式
+        // 操作点16：设置目标区域单元格数字分类格式
         configs[ExcelKnowledgeType.SetNumberFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetNumberFormat,
@@ -364,7 +364,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点36：设置图案填充样式
+        // 操作点17：设置图案填充样式
         configs[ExcelKnowledgeType.SetPatternFillStyle] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetPatternFillStyle,
@@ -381,7 +381,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点37：设置填充图案颜色
+        // 操作点18：设置填充图案颜色
         configs[ExcelKnowledgeType.SetPatternFillColor] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetPatternFillColor,
@@ -397,7 +397,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点38：设置外边框样式
+        // 操作点19：设置外边框样式
         configs[ExcelKnowledgeType.SetOuterBorderStyle] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetOuterBorderStyle,
@@ -414,7 +414,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点39：设置外边框颜色
+        // 操作点20：设置外边框颜色
         configs[ExcelKnowledgeType.SetOuterBorderColor] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetOuterBorderColor,
@@ -430,7 +430,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点40：添加下划线
+        // 操作点21：添加下划线
         configs[ExcelKnowledgeType.AddUnderline] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.AddUnderline,
@@ -447,7 +447,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点41：条件格式
+        // 操作点22：条件格式
         configs[ExcelKnowledgeType.ConditionalFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ConditionalFormat,
@@ -466,7 +466,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点42：设置单元格样式——数据
+        // 操作点23：设置单元格样式——数据
         configs[ExcelKnowledgeType.SetCellStyleData] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.SetCellStyleData,
@@ -486,7 +486,7 @@ public class ExcelKnowledgeService
 
     private void InitializeDataListOperations(Dictionary<ExcelKnowledgeType, ExcelKnowledgeConfig> configs)
     {
-        // 操作点31：筛选
+        // 操作点24：筛选
         configs[ExcelKnowledgeType.Filter] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.Filter,
@@ -501,7 +501,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点32：排序
+        // 操作点25：排序
         configs[ExcelKnowledgeType.Sort] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.Sort,
@@ -519,7 +519,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点71：数据透视表
+        // 操作点26：数据透视表
         configs[ExcelKnowledgeType.PivotTable] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.PivotTable,
@@ -539,7 +539,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点33：分类汇总
+        // 操作点27：分类汇总
         configs[ExcelKnowledgeType.Subtotal] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.Subtotal,
@@ -557,7 +557,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点34：高级筛选-条件
+        // 操作点28：高级筛选-条件
         configs[ExcelKnowledgeType.AdvancedFilterCondition] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.AdvancedFilterCondition,
@@ -574,7 +574,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点35：高级筛选-数据
+        // 操作点29：高级筛选-数据
         configs[ExcelKnowledgeType.AdvancedFilterData] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.AdvancedFilterData,
@@ -594,7 +594,7 @@ public class ExcelKnowledgeService
 
     private void InitializeChartOperations(Dictionary<ExcelKnowledgeType, ExcelKnowledgeConfig> configs)
     {
-        // 操作点101：图表类型
+        // 操作点30：图表类型
         configs[ExcelKnowledgeType.ChartType] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartType,
@@ -610,7 +610,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点102：图表样式
+        // 操作点31：图表样式
         configs[ExcelKnowledgeType.ChartStyle] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartStyle,
@@ -625,7 +625,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点107：图表标题
+        // 操作点32：图表标题
         configs[ExcelKnowledgeType.ChartTitle] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartTitle,
@@ -641,7 +641,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点122：设置图例位置
+        // 操作点33：设置图例位置
         configs[ExcelKnowledgeType.LegendPosition] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.LegendPosition,
@@ -653,12 +653,12 @@ public class ExcelKnowledgeService
                 new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
-                new() { Name = "LegendPosition", DisplayName = "位置", Description = "图例位置", Type = ParameterType.Enum, IsRequired = true, Order = 4,
+                new() { Name = "LegendPosition", DisplayName = "图例位置", Description = "图例显示位置", Type = ParameterType.Enum, IsRequired = true, Order = 4,
                     EnumOptions = "无图例,图表右侧,图表顶部,图表底部,图表左侧,顶端右侧重叠,图表区域中浮动" }
             ]
         };
 
-        // 操作点103：图表移动
+        // 操作点34：图表移动
         configs[ExcelKnowledgeType.ChartMove] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartMove,
@@ -676,7 +676,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点104：分类轴数据区域
+        // 操作点35：分类轴数据区域
         configs[ExcelKnowledgeType.CategoryAxisDataRange] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.CategoryAxisDataRange,
@@ -692,7 +692,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点105：数值轴数据区域
+        // 操作点36：数值轴数据区域
         configs[ExcelKnowledgeType.ValueAxisDataRange] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ValueAxisDataRange,
@@ -708,7 +708,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点108：图表标题格式
+        // 操作点37：图表标题格式
         configs[ExcelKnowledgeType.ChartTitleFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartTitleFormat,
@@ -726,7 +726,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点109：主要横坐标轴标题
+        // 操作点38：主要横坐标轴标题
         configs[ExcelKnowledgeType.HorizontalAxisTitle] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.HorizontalAxisTitle,
@@ -742,7 +742,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点110：主要横坐标轴标题格式
+        // 操作点39：主要横坐标轴标题格式
         configs[ExcelKnowledgeType.HorizontalAxisTitleFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.HorizontalAxisTitleFormat,
@@ -760,7 +760,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点123：设置图例格式
+        // 操作点40：设置图例格式
         configs[ExcelKnowledgeType.LegendFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.LegendFormat,
@@ -778,7 +778,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点124：设置主要纵坐标轴选项
+        // 操作点41：设置主要纵坐标轴选项
         configs[ExcelKnowledgeType.VerticalAxisOptions] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.VerticalAxisOptions,
@@ -796,7 +796,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点125：设置网格线——主要横网格线
+        // 操作点42：设置网格线——主要横网格线
         configs[ExcelKnowledgeType.MajorHorizontalGridlines] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.MajorHorizontalGridlines,
@@ -813,7 +813,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点126：设置网格线——次要横网格线
+        // 操作点43：设置网格线——次要横网格线
         configs[ExcelKnowledgeType.MinorHorizontalGridlines] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.MinorHorizontalGridlines,
@@ -830,7 +830,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点127：主要纵网格线
+        // 操作点44：主要纵网格线
         configs[ExcelKnowledgeType.MajorVerticalGridlines] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.MajorVerticalGridlines,
@@ -847,7 +847,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点128：次要纵网格线
+        // 操作点45：次要纵网格线
         configs[ExcelKnowledgeType.MinorVerticalGridlines] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.MinorVerticalGridlines,
@@ -864,7 +864,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点129：设置数据系列格式
+        // 操作点46：设置数据系列格式
         configs[ExcelKnowledgeType.DataSeriesFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.DataSeriesFormat,
@@ -881,7 +881,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点130：添加数据标签
+        // 操作点47：添加数据标签
         configs[ExcelKnowledgeType.AddDataLabels] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.AddDataLabels,
@@ -898,7 +898,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点131：设置数据标签格式
+        // 操作点48：设置数据标签格式
         configs[ExcelKnowledgeType.DataLabelsFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.DataLabelsFormat,
@@ -916,7 +916,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点132：设置图表区域格式
+        // 操作点49：设置图表区域格式
         configs[ExcelKnowledgeType.ChartAreaFormat] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartAreaFormat,
@@ -933,7 +933,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点133：显示图表基底颜色
+        // 操作点50：显示图表基底颜色
         configs[ExcelKnowledgeType.ChartFloorColor] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartFloorColor,
@@ -949,7 +949,7 @@ public class ExcelKnowledgeService
             ]
         };
 
-        // 操作点134：设置图表边框线
+        // 操作点51：设置图表边框线
         configs[ExcelKnowledgeType.ChartBorder] = new ExcelKnowledgeConfig
         {
             KnowledgeType = ExcelKnowledgeType.ChartBorder,
