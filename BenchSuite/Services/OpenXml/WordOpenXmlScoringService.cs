@@ -57,24 +57,33 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 return result;
             }
 
-            // 收集所有操作点并记录题目关联关系
+            // 收集所有Word相关的操作点并记录题目关联关系
             List<OperationPointModel> allOperationPoints = [];
             Dictionary<string, string> operationPointToQuestionMap = [];
 
             foreach (QuestionModel question in wordModule.Questions)
             {
-                foreach (OperationPointModel operationPoint in question.OperationPoints)
+                // 只处理Word相关且启用的操作点
+                List<OperationPointModel> wordOperationPoints = question.OperationPoints.Where(op => op.ModuleType == ModuleType.Word && op.IsEnabled).ToList();
+
+                System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 题目 '{question.Title}' (ID: {question.Id}) 包含 {wordOperationPoints.Count} 个Word操作点");
+
+                foreach (OperationPointModel operationPoint in wordOperationPoints)
                 {
                     allOperationPoints.Add(operationPoint);
                     operationPointToQuestionMap[operationPoint.Id] = question.Id;
+                    System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 添加操作点: {operationPoint.Name} (ID: {operationPoint.Id}) -> 题目: {question.Id}");
                 }
             }
 
             if (allOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "Word模块中未找到操作点";
+                result.ErrorMessage = "Word模块中未找到启用的Word操作点";
+                System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 警告: Word模块包含 {wordModule.Questions.Count} 个题目，但没有找到启用的Word操作点");
                 return result;
             }
+
+            System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 总共收集到 {allOperationPoints.Count} 个Word操作点，来自 {wordModule.Questions.Count} 个题目");
 
             // 批量检测知识点
             result.KnowledgePointResults = DetectKnowledgePointsAsync(filePath, allOperationPoints).Result;
@@ -85,16 +94,28 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 if (operationPointToQuestionMap.TryGetValue(kpResult.KnowledgePointId, out string? questionId))
                 {
                     kpResult.QuestionId = questionId;
-                    // 查找题目标题
+
+                    // 查找题目标题并设置更多题目信息
                     QuestionModel? question = wordModule.Questions.FirstOrDefault(q => q.Id == questionId);
                     if (question != null)
                     {
-                        // 可以在这里添加更多题目信息，如果需要的话
+                        kpResult.QuestionTitle = question.Title;
+                        System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 知识点 '{kpResult.KnowledgePointName}' 关联到题目 '{question.Title}' (ID: {questionId})");
                     }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 警告: 无法找到ID为 {questionId} 的题目");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 警告: 知识点 '{kpResult.KnowledgePointName}' (ID: {kpResult.KnowledgePointId}) 没有找到对应的题目映射");
                 }
             }
 
             FinalizeScoringResult(result, allOperationPoints);
+
+            System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 评分完成: 总分 {result.TotalScore}, 获得分数 {result.AchievedScore}, 成功率 {(result.TotalScore > 0 ? (result.AchievedScore / result.TotalScore * 100):0):F1}%");
         }
         catch (Exception ex)
         {
