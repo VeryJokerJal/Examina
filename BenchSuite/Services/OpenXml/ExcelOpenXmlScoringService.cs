@@ -3995,9 +3995,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                         try
                         {
                             var chartSpace = chartPart.ChartSpace;
-                            if (chartSpace?.Chart?.PlotArea != null)
+                            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+                            if (chart?.PlotArea != null)
                             {
-                                var plotArea = chartSpace.Chart.PlotArea;
+                                var plotArea = chart.PlotArea;
 
                                 // 检查不同类型的图表
                                 if (plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>().Any())
