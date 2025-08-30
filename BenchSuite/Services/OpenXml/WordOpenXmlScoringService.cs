@@ -761,6 +761,612 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 检测段落字间距
+    /// </summary>
+    private KnowledgePointResult DetectParagraphCharacterSpacing(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphCharacterSpacing",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetFloatParameter(parameters, "CharacterSpacing", out float expectedSpacing))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 CharacterSpacing");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            float actualSpacing = GetParagraphCharacterSpacing(targetParagraph);
+
+            result.ExpectedValue = expectedSpacing.ToString();
+            result.ActualValue = actualSpacing.ToString();
+            result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 字间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落字间距失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落文字颜色
+    /// </summary>
+    private KnowledgePointResult DetectParagraphTextColor(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphTextColor",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "TextColor", out string expectedColor))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 TextColor");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            string actualColor = GetParagraphTextColor(targetParagraph);
+
+            result.ExpectedValue = expectedColor;
+            result.ActualValue = actualColor;
+            result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 文字颜色: 期望 {expectedColor}, 实际 {actualColor}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落文字颜色失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落缩进
+    /// </summary>
+    private KnowledgePointResult DetectParagraphIndentation(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphIndentation",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetIntParameter(parameters, "FirstLineIndent", out int expectedFirstLine) ||
+                !TryGetIntParameter(parameters, "LeftIndent", out int expectedLeft) ||
+                !TryGetIntParameter(parameters, "RightIndent", out int expectedRight))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber, FirstLineIndent, LeftIndent 或 RightIndent");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            var indentInfo = GetParagraphIndentation(targetParagraph);
+
+            result.ExpectedValue = $"首行:{expectedFirstLine}, 左:{expectedLeft}, 右:{expectedRight}";
+            result.ActualValue = $"首行:{indentInfo.FirstLine}, 左:{indentInfo.Left}, 右:{indentInfo.Right}";
+            result.IsCorrect = indentInfo.FirstLine == expectedFirstLine &&
+                              indentInfo.Left == expectedLeft &&
+                              indentInfo.Right == expectedRight;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 缩进: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落缩进失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落行间距
+    /// </summary>
+    private KnowledgePointResult DetectParagraphLineSpacing(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphLineSpacing",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetFloatParameter(parameters, "LineSpacing", out float expectedSpacing))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 LineSpacing");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            float actualSpacing = GetParagraphLineSpacing(targetParagraph);
+
+            result.ExpectedValue = expectedSpacing.ToString();
+            result.ActualValue = actualSpacing.ToString();
+            result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 行间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落行间距失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落首字下沉
+    /// </summary>
+    private KnowledgePointResult DetectParagraphDropCap(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphDropCap",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "DropCapType", out string expectedType))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 DropCapType");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            string actualType = GetParagraphDropCap(targetParagraph);
+
+            result.ExpectedValue = expectedType;
+            result.ActualValue = actualType;
+            result.IsCorrect = TextEquals(actualType, expectedType);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 首字下沉: 期望 {expectedType}, 实际 {actualType}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落首字下沉失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落边框颜色
+    /// </summary>
+    private KnowledgePointResult DetectParagraphBorderColor(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphBorderColor",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "BorderColor", out string expectedColor))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 BorderColor");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            string actualColor = GetParagraphBorderColor(targetParagraph);
+
+            result.ExpectedValue = expectedColor;
+            result.ActualValue = actualColor;
+            result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 边框颜色: 期望 {expectedColor}, 实际 {actualColor}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落边框颜色失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落边框样式
+    /// </summary>
+    private KnowledgePointResult DetectParagraphBorderStyle(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphBorderStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "BorderStyle", out string expectedStyle))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 BorderStyle");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            string actualStyle = GetParagraphBorderStyle(targetParagraph);
+
+            result.ExpectedValue = expectedStyle;
+            result.ActualValue = actualStyle;
+            result.IsCorrect = TextEquals(actualStyle, expectedStyle);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 边框样式: 期望 {expectedStyle}, 实际 {actualStyle}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落边框样式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落边框宽度
+    /// </summary>
+    private KnowledgePointResult DetectParagraphBorderWidth(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphBorderWidth",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetFloatParameter(parameters, "BorderWidth", out float expectedWidth))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 BorderWidth");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            float actualWidth = GetParagraphBorderWidth(targetParagraph);
+
+            result.ExpectedValue = expectedWidth.ToString();
+            result.ActualValue = actualWidth.ToString();
+            result.IsCorrect = Math.Abs(actualWidth - expectedWidth) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 边框宽度: 期望 {expectedWidth}, 实际 {actualWidth}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落边框宽度失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落底纹
+    /// </summary>
+    private KnowledgePointResult DetectParagraphShading(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphShading",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "ShadingColor", out string expectedColor) ||
+                !TryGetParameter(parameters, "ShadingPattern", out string expectedPattern))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber, ShadingColor 或 ShadingPattern");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            var shadingInfo = GetParagraphShading(targetParagraph);
+
+            result.ExpectedValue = $"颜色:{expectedColor}, 图案:{expectedPattern}";
+            result.ActualValue = $"颜色:{shadingInfo.Color}, 图案:{shadingInfo.Pattern}";
+            result.IsCorrect = (TextEquals(shadingInfo.Color, expectedColor) || ColorEquals(shadingInfo.Color, expectedColor)) &&
+                              TextEquals(shadingInfo.Pattern, expectedPattern);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 底纹: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落底纹失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测纸张大小
+    /// </summary>
+    private KnowledgePointResult DetectPaperSize(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetPaperSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "PaperSize", out string expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: PaperSize");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualSize = GetDocumentPaperSize(mainPart);
+
+            result.ExpectedValue = expectedSize;
+            result.ActualValue = actualSize;
+            result.IsCorrect = TextEquals(actualSize, expectedSize);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"纸张大小: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测纸张大小失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页边距
+    /// </summary>
+    private KnowledgePointResult DetectPageMargins(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetPageMargins",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetFloatParameter(parameters, "TopMargin", out float expectedTop) ||
+                !TryGetFloatParameter(parameters, "BottomMargin", out float expectedBottom) ||
+                !TryGetFloatParameter(parameters, "LeftMargin", out float expectedLeft) ||
+                !TryGetFloatParameter(parameters, "RightMargin", out float expectedRight))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: TopMargin, BottomMargin, LeftMargin 或 RightMargin");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var marginsInfo = GetDocumentMargins(mainPart);
+
+            result.ExpectedValue = $"上:{expectedTop}, 下:{expectedBottom}, 左:{expectedLeft}, 右:{expectedRight}";
+            result.ActualValue = $"上:{marginsInfo.Top}, 下:{marginsInfo.Bottom}, 左:{marginsInfo.Left}, 右:{marginsInfo.Right}";
+            result.IsCorrect = Math.Abs(marginsInfo.Top - expectedTop) < 0.1f &&
+                              Math.Abs(marginsInfo.Bottom - expectedBottom) < 0.1f &&
+                              Math.Abs(marginsInfo.Left - expectedLeft) < 0.1f &&
+                              Math.Abs(marginsInfo.Right - expectedRight) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页边距: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页边距失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页眉文字
+    /// </summary>
+    private KnowledgePointResult DetectHeaderText(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetHeaderText",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "HeaderText", out string expectedText))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: HeaderText");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualText = GetHeaderText(mainPart);
+
+            result.ExpectedValue = expectedText;
+            result.ActualValue = actualText;
+            result.IsCorrect = TextEquals(actualText, expectedText) || actualText.Contains(expectedText);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页眉文字: 期望 {expectedText}, 实际 {actualText}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页眉文字失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页眉字体
+    /// </summary>
+    private KnowledgePointResult DetectHeaderFont(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetHeaderFont",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "HeaderFont", out string expectedFont))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: HeaderFont");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualFont = GetHeaderFont(mainPart);
+
+            result.ExpectedValue = expectedFont;
+            result.ActualValue = actualFont;
+            result.IsCorrect = TextEquals(actualFont, expectedFont);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页眉字体: 期望 {expectedFont}, 实际 {actualFont}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页眉字体失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页眉字号
+    /// </summary>
+    private KnowledgePointResult DetectHeaderFontSize(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetHeaderFontSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "HeaderFontSize", out int expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: HeaderFontSize");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            int actualSize = GetHeaderFontSize(mainPart);
+
+            result.ExpectedValue = expectedSize.ToString();
+            result.ActualValue = actualSize.ToString();
+            result.IsCorrect = actualSize == expectedSize;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页眉字号: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页眉字号失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 获取文档文本内容
     /// </summary>
     private string GetDocumentText(MainDocumentPart mainPart)
@@ -2797,6 +3403,462 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch
         {
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取段落字体
+    /// </summary>
+    private static string GetParagraphFont(Paragraph paragraph)
+    {
+        try
+        {
+            var runs = paragraph.Elements<Run>();
+            foreach (var run in runs)
+            {
+                var runProperties = run.RunProperties;
+                var runFonts = runProperties?.RunFonts;
+                if (runFonts?.Ascii?.Value != null)
+                {
+                    return runFonts.Ascii.Value;
+                }
+            }
+            return "默认字体";
+        }
+        catch
+        {
+            return "未知字体";
+        }
+    }
+
+    /// <summary>
+    /// 获取段落字号
+    /// </summary>
+    private static int GetParagraphFontSize(Paragraph paragraph)
+    {
+        try
+        {
+            var runs = paragraph.Elements<Run>();
+            foreach (var run in runs)
+            {
+                var runProperties = run.RunProperties;
+                var fontSize = runProperties?.FontSize;
+                if (fontSize?.Val?.Value != null)
+                {
+                    return int.Parse(fontSize.Val.Value) / 2; // OpenXML中字号是半点值
+                }
+            }
+            return 12; // 默认字号
+        }
+        catch
+        {
+            return 12;
+        }
+    }
+
+    /// <summary>
+    /// 获取段落字形
+    /// </summary>
+    private static string GetParagraphFontStyle(Paragraph paragraph)
+    {
+        try
+        {
+            var runs = paragraph.Elements<Run>();
+            foreach (var run in runs)
+            {
+                var runProperties = run.RunProperties;
+                if (runProperties != null)
+                {
+                    var styles = new List<string>();
+                    if (runProperties.Bold != null) styles.Add("Bold");
+                    if (runProperties.Italic != null) styles.Add("Italic");
+                    if (runProperties.Underline != null) styles.Add("Underline");
+
+                    if (styles.Count > 0)
+                    {
+                        return string.Join(", ", styles);
+                    }
+                }
+            }
+            return "Regular";
+        }
+        catch
+        {
+            return "未知样式";
+        }
+    }
+
+    /// <summary>
+    /// 获取段落字间距
+    /// </summary>
+    private static float GetParagraphCharacterSpacing(Paragraph paragraph)
+    {
+        try
+        {
+            var runs = paragraph.Elements<Run>();
+            foreach (var run in runs)
+            {
+                var runProperties = run.RunProperties;
+                var spacing = runProperties?.Spacing;
+                if (spacing?.Val?.Value != null)
+                {
+                    return spacing.Val.Value / 20f; // OpenXML中间距是20分之一点
+                }
+            }
+            return 0f; // 默认无额外间距
+        }
+        catch
+        {
+            return 0f;
+        }
+    }
+
+    /// <summary>
+    /// 获取段落文字颜色
+    /// </summary>
+    private static string GetParagraphTextColor(Paragraph paragraph)
+    {
+        try
+        {
+            var runs = paragraph.Elements<Run>();
+            foreach (var run in runs)
+            {
+                var runProperties = run.RunProperties;
+                var color = runProperties?.Color;
+                if (color?.Val?.Value != null)
+                {
+                    return color.Val.Value;
+                }
+            }
+            return "自动"; // 默认颜色
+        }
+        catch
+        {
+            return "未知颜色";
+        }
+    }
+
+    /// <summary>
+    /// 获取段落缩进信息
+    /// </summary>
+    private static (int FirstLine, int Left, int Right) GetParagraphIndentation(Paragraph paragraph)
+    {
+        try
+        {
+            var paragraphProperties = paragraph.ParagraphProperties;
+            var indentation = paragraphProperties?.Indentation;
+
+            if (indentation != null)
+            {
+                int firstLine = indentation.FirstLine?.Value != null ? (int)(indentation.FirstLine.Value / 567) : 0; // 转换为字符
+                int left = indentation.Left?.Value != null ? (int)(indentation.Left.Value / 567) : 0;
+                int right = indentation.Right?.Value != null ? (int)(indentation.Right.Value / 567) : 0;
+
+                return (firstLine, left, right);
+            }
+
+            return (0, 0, 0);
+        }
+        catch
+        {
+            return (0, 0, 0);
+        }
+    }
+
+    /// <summary>
+    /// 获取段落行间距
+    /// </summary>
+    private static float GetParagraphLineSpacing(Paragraph paragraph)
+    {
+        try
+        {
+            var paragraphProperties = paragraph.ParagraphProperties;
+            var spacingBetweenLines = paragraphProperties?.SpacingBetweenLines;
+
+            if (spacingBetweenLines?.Line?.Value != null)
+            {
+                return spacingBetweenLines.Line.Value / 240f; // OpenXML中行距是240分之一
+            }
+
+            return 1.0f; // 默认单倍行距
+        }
+        catch
+        {
+            return 1.0f;
+        }
+    }
+
+    /// <summary>
+    /// 获取段落首字下沉
+    /// </summary>
+    private static string GetParagraphDropCap(Paragraph paragraph)
+    {
+        try
+        {
+            // 简化实现：检查段落是否有特殊格式
+            var paragraphProperties = paragraph.ParagraphProperties;
+            if (paragraphProperties?.HasChildren == true)
+            {
+                return "检测到首字下沉设置";
+            }
+            return "无首字下沉";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取段落边框颜色
+    /// </summary>
+    private static string GetParagraphBorderColor(Paragraph paragraph)
+    {
+        try
+        {
+            var paragraphProperties = paragraph.ParagraphProperties;
+            var paragraphBorders = paragraphProperties?.ParagraphBorders;
+
+            if (paragraphBorders != null)
+            {
+                var topBorder = paragraphBorders.TopBorder;
+                if (topBorder?.Color?.Value != null)
+                {
+                    return topBorder.Color.Value;
+                }
+            }
+
+            return "无边框";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取段落边框样式
+    /// </summary>
+    private static string GetParagraphBorderStyle(Paragraph paragraph)
+    {
+        try
+        {
+            var paragraphProperties = paragraph.ParagraphProperties;
+            var paragraphBorders = paragraphProperties?.ParagraphBorders;
+
+            if (paragraphBorders != null)
+            {
+                var topBorder = paragraphBorders.TopBorder;
+                if (topBorder?.Val?.Value != null)
+                {
+                    return topBorder.Val.Value.ToString();
+                }
+            }
+
+            return "无边框";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取段落边框宽度
+    /// </summary>
+    private static float GetParagraphBorderWidth(Paragraph paragraph)
+    {
+        try
+        {
+            var paragraphProperties = paragraph.ParagraphProperties;
+            var paragraphBorders = paragraphProperties?.ParagraphBorders;
+
+            if (paragraphBorders != null)
+            {
+                var topBorder = paragraphBorders.TopBorder;
+                if (topBorder?.Size?.Value != null)
+                {
+                    return topBorder.Size.Value / 8f; // OpenXML中边框宽度是8分之一点
+                }
+            }
+
+            return 0f;
+        }
+        catch
+        {
+            return 0f;
+        }
+    }
+
+    /// <summary>
+    /// 获取段落底纹信息
+    /// </summary>
+    private static (string Color, string Pattern) GetParagraphShading(Paragraph paragraph)
+    {
+        try
+        {
+            var paragraphProperties = paragraph.ParagraphProperties;
+            var shading = paragraphProperties?.Shading;
+
+            if (shading != null)
+            {
+                string color = shading.Fill?.Value ?? "无颜色";
+                string pattern = shading.Val?.Value?.ToString() ?? "无图案";
+                return (color, pattern);
+            }
+
+            return ("无底纹", "无图案");
+        }
+        catch
+        {
+            return ("未知", "未知");
+        }
+    }
+
+    /// <summary>
+    /// 获取文档纸张大小
+    /// </summary>
+    private static string GetDocumentPaperSize(MainDocumentPart mainPart)
+    {
+        try
+        {
+            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            var pageSize = sectionProperties?.Elements<PageSize>().FirstOrDefault();
+
+            if (pageSize != null)
+            {
+                // 根据宽度和高度判断纸张类型
+                uint width = pageSize.Width?.Value ?? 0;
+                uint height = pageSize.Height?.Value ?? 0;
+
+                // A4纸张的OpenXML尺寸
+                if (Math.Abs(width - 11906) < 100 && Math.Abs(height - 16838) < 100)
+                {
+                    return "A4";
+                }
+                // A3纸张的OpenXML尺寸
+                else if (Math.Abs(width - 16838) < 100 && Math.Abs(height - 23811) < 100)
+                {
+                    return "A3";
+                }
+                else
+                {
+                    return "自定义";
+                }
+            }
+
+            return "A4"; // 默认A4
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取文档页边距
+    /// </summary>
+    private static (float Top, float Bottom, float Left, float Right) GetDocumentMargins(MainDocumentPart mainPart)
+    {
+        try
+        {
+            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            var pageMargin = sectionProperties?.Elements<PageMargin>().FirstOrDefault();
+
+            if (pageMargin != null)
+            {
+                float top = pageMargin.Top?.Value != null ? pageMargin.Top.Value / 20f : 72f; // 转换为点
+                float bottom = pageMargin.Bottom?.Value != null ? pageMargin.Bottom.Value / 20f : 72f;
+                float left = pageMargin.Left?.Value != null ? pageMargin.Left.Value / 20f : 72f;
+                float right = pageMargin.Right?.Value != null ? pageMargin.Right.Value / 20f : 72f;
+
+                return (top, bottom, left, right);
+            }
+
+            return (72f, 72f, 72f, 72f); // 默认1英寸边距
+        }
+        catch
+        {
+            return (72f, 72f, 72f, 72f);
+        }
+    }
+
+    /// <summary>
+    /// 获取页眉文字
+    /// </summary>
+    private static string GetHeaderText(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var text = headerPart.Header.InnerText;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    return text.Trim();
+                }
+            }
+            return "无页眉文字";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取页眉字体
+    /// </summary>
+    private static string GetHeaderFont(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var runs = headerPart.Header.Descendants<Run>();
+                foreach (var run in runs)
+                {
+                    var runProperties = run.RunProperties;
+                    var runFonts = runProperties?.RunFonts;
+                    if (runFonts?.Ascii?.Value != null)
+                    {
+                        return runFonts.Ascii.Value;
+                    }
+                }
+            }
+            return "默认字体";
+        }
+        catch
+        {
+            return "未知字体";
+        }
+    }
+
+    /// <summary>
+    /// 获取页眉字号
+    /// </summary>
+    private static int GetHeaderFontSize(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var runs = headerPart.Header.Descendants<Run>();
+                foreach (var run in runs)
+                {
+                    var runProperties = run.RunProperties;
+                    var fontSize = runProperties?.FontSize;
+                    if (fontSize?.Val?.Value != null)
+                    {
+                        return int.Parse(fontSize.Val.Value) / 2; // OpenXML中字号是半点值
+                    }
+                }
+            }
+            return 12; // 默认字号
+        }
+        catch
+        {
+            return 12;
         }
     }
 }
