@@ -574,6 +574,160 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     }
 
     /// <summary>
+    /// 检测幻灯片字体
+    /// </summary>
+    private KnowledgePointResult DetectSlideFont(PresentationDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetSlideFont",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FontName", out string expectedFont))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FontName");
+                return result;
+            }
+
+            bool fontFound = false;
+            List<string> actualFonts = [];
+            string searchDetails = "";
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            // 尝试获取指定的幻灯片索引
+            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
+                                   slideIndex >= 1 && slideIndex <= (slideIds?.Count ?? 0);
+
+            if (hasSpecificSlide && slideIds != null)
+            {
+                // 检测指定幻灯片
+                SlideId slideId = slideIds[slideIndex - 1];
+                SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+                fontFound = CheckSlideForFont(slidePart, expectedFont, actualFonts);
+                searchDetails = $"幻灯片 {slideIndex}";
+            }
+
+            // 如果在指定幻灯片没找到，或者没有指定幻灯片，则搜索所有幻灯片
+            if (!fontFound && slideIds != null)
+            {
+                actualFonts.Clear();
+                for (int i = 0; i < slideIds.Count; i++)
+                {
+                    SlideId slideId = slideIds[i];
+                    SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+                    if (CheckSlideForFont(slidePart, expectedFont, actualFonts))
+                    {
+                        fontFound = true;
+                        searchDetails = $"在幻灯片 {i + 1} 中找到";
+                        break;
+                    }
+                }
+
+                if (!fontFound)
+                {
+                    searchDetails = $"搜索了所有 {slideIds.Count} 张幻灯片";
+                }
+            }
+
+            result.ExpectedValue = expectedFont;
+            result.ActualValue = string.Join("; ", actualFonts.Distinct());
+            result.IsCorrect = fontFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"字体检测: 期望 {expectedFont}, {searchDetails}, 找到的字体 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测幻灯片字体失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测文本内容
+    /// </summary>
+    private KnowledgePointResult DetectTextContent(PresentationDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "InsertTextContent",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "TextContent", out string expectedText))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: TextContent");
+                return result;
+            }
+
+            bool textFound = false;
+            string allText = "";
+            string searchDetails = "";
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            // 尝试获取指定的幻灯片索引
+            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
+                                   slideIndex >= 1 && slideIndex <= (slideIds?.Count ?? 0);
+
+            if (hasSpecificSlide && slideIds != null)
+            {
+                // 检测指定幻灯片
+                SlideId slideId = slideIds[slideIndex - 1];
+                SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+                allText = GetSlideText(slidePart);
+                textFound = TextContains(allText, expectedText);
+                searchDetails = $"幻灯片 {slideIndex}";
+            }
+
+            // 如果在指定幻灯片没找到文本，或者没有指定幻灯片，则搜索所有幻灯片
+            if (!textFound && slideIds != null)
+            {
+                allText = "";
+                for (int i = 0; i < slideIds.Count; i++)
+                {
+                    SlideId slideId = slideIds[i];
+                    SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+                    string slideText = GetSlideText(slidePart);
+                    allText += slideText + " ";
+
+                    if (TextContains(slideText, expectedText))
+                    {
+                        textFound = true;
+                        searchDetails = $"在幻灯片 {i + 1} 中找到";
+                        break;
+                    }
+                }
+
+                if (!textFound)
+                {
+                    searchDetails = $"搜索了所有 {slideIds.Count} 张幻灯片";
+                }
+            }
+
+            result.ExpectedValue = expectedText;
+            result.ActualValue = allText.Trim();
+            result.IsCorrect = textFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"文本检测: 期望包含 '{expectedText}', {searchDetails}, 实际文本 '{result.ActualValue[..Math.Min(100, result.ActualValue.Length)]}...'";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测文本内容失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 检查幻灯片中是否包含指定字体
     /// </summary>
     private bool CheckSlideForFont(SlidePart slidePart, string expectedFont, List<string> actualFonts)
@@ -586,14 +740,19 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             foreach (var textElement in textElements)
             {
                 var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
-                if (runProperties?.LatinFont?.Typeface?.Value != null)
+                if (runProperties != null)
                 {
-                    string fontName = runProperties.LatinFont.Typeface.Value;
-                    actualFonts.Add(fontName);
-
-                    if (TextEquals(fontName, expectedFont))
+                    // 检查LatinFont
+                    var latinFont = runProperties.Elements<DocumentFormat.OpenXml.Drawing.LatinFont>().FirstOrDefault();
+                    if (latinFont?.Typeface?.Value != null)
                     {
-                        fontFound = true;
+                        string fontName = latinFont.Typeface.Value;
+                        actualFonts.Add(fontName);
+
+                        if (TextEquals(fontName, expectedFont))
+                        {
+                            fontFound = true;
+                        }
                     }
                 }
             }
@@ -749,15 +908,17 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             var transition = slidePart.Slide.Transition;
             if (transition != null)
             {
-                // 简化处理，返回切换类型
-                if (transition.Cut != null) return "Cut";
-                if (transition.Fade != null) return "Fade";
-                if (transition.Push != null) return "Push";
-                if (transition.Wipe != null) return "Wipe";
-                if (transition.Split != null) return "Split";
-                if (transition.Strips != null) return "Strips";
-                if (transition.Random != null) return "Random";
-                // 可以根据需要添加更多切换效果
+                // 简化实现：检查是否有切换效果
+                if (transition.HasChildren)
+                {
+                    // 尝试从子元素获取切换类型
+                    var firstChild = transition.FirstChild;
+                    if (firstChild != null)
+                    {
+                        return firstChild.LocalName; // 返回元素名称作为切换类型
+                    }
+                    return "Custom"; // 有切换但无法确定类型
+                }
             }
             return "None";
         }
@@ -871,14 +1032,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             foreach (var textElement in textElements)
             {
                 var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
-                if (runProperties?.SolidFill?.RgbColorModelHex?.Val?.Value != null)
+                if (runProperties != null)
                 {
-                    string colorHex = "#" + runProperties.SolidFill.RgbColorModelHex.Val.Value;
-                    actualColors.Add(colorHex);
-
-                    if (TextEquals(colorHex, expectedColor))
+                    // 检查SolidFill颜色
+                    var solidFill = runProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    if (solidFill != null)
                     {
-                        colorFound = true;
+                        var rgbColor = solidFill.Elements<DocumentFormat.OpenXml.Drawing.RgbColorModelHex>().FirstOrDefault();
+                        if (rgbColor?.Val?.Value != null)
+                        {
+                            string colorHex = "#" + rgbColor.Val.Value;
+                            actualColors.Add(colorHex);
+
+                            if (TextEquals(colorHex, expectedColor))
+                            {
+                                colorFound = true;
+                            }
+                        }
                     }
                 }
             }
@@ -1092,22 +1262,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         }
     }
 
-    /// <summary>
-    /// 简化的知识点检测方法 - 用于暂时不完全支持的功能
-    /// </summary>
-    private KnowledgePointResult CreateSimplifiedDetectionResult(string knowledgePointType, Dictionary<string, string> parameters, string message = "功能检测已简化实现")
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = knowledgePointType,
-            Parameters = parameters,
-            IsCorrect = true, // 简化实现暂时返回成功
-            AchievedScore = 0, // 但不给分
-            Details = $"{message} - {knowledgePointType}"
-        };
 
-        return result;
-    }
 
     /// <summary>
     /// 检测文本样式
@@ -1443,38 +1598,496 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         return result;
     }
 
+    /// <summary>
+    /// 检测SmartArt图形
+    /// </summary>
     private KnowledgePointResult DetectInsertedSmartArt(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("InsertSmartArt", parameters, "SmartArt检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "InsertSmartArt",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            bool smartArtFound = CheckForSmartArt(slidePart);
+
+            result.ExpectedValue = "存在SmartArt图形";
+            result.ActualValue = smartArtFound ? "找到SmartArt图形" : "未找到SmartArt图形";
+            result.IsCorrect = smartArtFound;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} SmartArt检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测SmartArt失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测演讲者备注
+    /// </summary>
     private KnowledgePointResult DetectInsertedNote(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("InsertNote", parameters, "备注检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "InsertNote",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            string noteText = GetSlideNotes(slidePart);
+            bool hasNotes = !string.IsNullOrEmpty(noteText);
+
+            result.ExpectedValue = "存在演讲者备注";
+            result.ActualValue = hasNotes ? $"备注内容: {noteText[..Math.Min(50, noteText.Length)]}..." : "无备注";
+            result.IsCorrect = hasNotes;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 备注检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测演讲者备注失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测应用的主题
+    /// </summary>
     private KnowledgePointResult DetectAppliedTheme(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("ApplyTheme", parameters, "主题检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "ApplyTheme",
+            Parameters = parameters
+        };
 
+        try
+        {
+            PresentationPart presentationPart = document.PresentationPart!;
+            string themeName = GetAppliedTheme(presentationPart);
+            bool hasCustomTheme = !string.IsNullOrEmpty(themeName) && !themeName.Equals("Office Theme", StringComparison.OrdinalIgnoreCase);
+
+            string expectedTheme = TryGetParameter(parameters, "ThemeName", out string expected) ? expected : "";
+
+            result.ExpectedValue = string.IsNullOrEmpty(expectedTheme) ? "应用自定义主题" : expectedTheme;
+            result.ActualValue = string.IsNullOrEmpty(themeName) ? "默认主题" : themeName;
+            result.IsCorrect = hasCustomTheme && (string.IsNullOrEmpty(expectedTheme) || TextEquals(themeName, expectedTheme));
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"主题检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测应用主题失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测幻灯片背景
+    /// </summary>
     private KnowledgePointResult DetectSlideBackground(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetSlideBackground", parameters, "幻灯片背景检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetSlideBackground",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            string backgroundInfo = GetSlideBackground(slidePart);
+            bool hasCustomBackground = !string.IsNullOrEmpty(backgroundInfo) && !backgroundInfo.Equals("默认背景");
+
+            result.ExpectedValue = "自定义背景";
+            result.ActualValue = backgroundInfo;
+            result.IsCorrect = hasCustomBackground;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 背景检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测幻灯片背景失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格内容
+    /// </summary>
     private KnowledgePointResult DetectTableContent(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetTableContent", parameters, "表格内容检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableContent",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            var tableInfo = GetTableContent(slidePart, parameters);
+
+            result.ExpectedValue = TryGetParameter(parameters, "ExpectedContent", out string expected) ? expected : "表格内容";
+            result.ActualValue = tableInfo.Found ? tableInfo.Content : "未找到表格";
+            result.IsCorrect = tableInfo.Found && (string.IsNullOrEmpty(expected) || TextContains(tableInfo.Content, expected));
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 表格内容检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格内容失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格样式
+    /// </summary>
     private KnowledgePointResult DetectTableStyle(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetTableStyle", parameters, "表格样式检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableStyle",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            string tableStyle = GetTableStyle(slidePart);
+            bool hasCustomStyle = !string.IsNullOrEmpty(tableStyle) && !tableStyle.Equals("默认样式");
+
+            result.ExpectedValue = "自定义表格样式";
+            result.ActualValue = tableStyle;
+            result.IsCorrect = hasCustomStyle;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 表格样式检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格样式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画时间
+    /// </summary>
     private KnowledgePointResult DetectAnimationTiming(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetAnimationTiming", parameters, "动画时间检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationTiming",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            bool hasAnimationTiming = CheckAnimationTiming(slidePart);
+
+            result.ExpectedValue = "设置动画时间";
+            result.ActualValue = hasAnimationTiming ? "找到动画时间设置" : "未找到动画时间设置";
+            result.IsCorrect = hasAnimationTiming;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画时间检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测动画时间失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画持续时间
+    /// </summary>
     private KnowledgePointResult DetectAnimationDuration(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetAnimationDuration", parameters, "动画持续时间检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationDuration",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            string animationDuration = GetAnimationDuration(slidePart);
+            bool hasCustomDuration = !string.IsNullOrEmpty(animationDuration) && !animationDuration.Equals("默认");
+
+            result.ExpectedValue = "自定义动画持续时间";
+            result.ActualValue = animationDuration;
+            result.IsCorrect = hasCustomDuration;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画持续时间检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测动画持续时间失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测动画顺序
+    /// </summary>
     private KnowledgePointResult DetectAnimationOrder(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetAnimationOrder", parameters, "动画顺序检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetAnimationOrder",
+            Parameters = parameters
+        };
 
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            bool hasAnimationOrder = CheckAnimationOrder(slidePart);
+
+            result.ExpectedValue = "设置动画顺序";
+            result.ActualValue = hasAnimationOrder ? "找到动画顺序设置" : "未找到动画顺序设置";
+            result.IsCorrect = hasAnimationOrder;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 动画顺序检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测动画顺序失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测幻灯片放映选项
+    /// </summary>
     private KnowledgePointResult DetectSlideshowOptions(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SlideshowOptions", parameters, "幻灯片放映选项检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SlideshowOptions",
+            Parameters = parameters
+        };
 
+        try
+        {
+            PresentationPart presentationPart = document.PresentationPart!;
+            string slideshowSettings = GetSlideshowOptions(presentationPart);
+            bool hasCustomSettings = !string.IsNullOrEmpty(slideshowSettings) && !slideshowSettings.Equals("默认设置");
+
+            result.ExpectedValue = "自定义放映选项";
+            result.ActualValue = slideshowSettings;
+            result.IsCorrect = hasCustomSettings;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片放映选项检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测幻灯片放映选项失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测艺术字样式
+    /// </summary>
     private KnowledgePointResult DetectWordArtStyle(PresentationDocument document, Dictionary<string, string> parameters)
-        => CreateSimplifiedDetectionResult("SetWordArtStyle", parameters, "艺术字样式检测已简化");
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWordArtStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                return result;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                return result;
+            }
+
+            SlideId slideId = slideIds[slideIndex - 1];
+            SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+
+            bool hasWordArt = CheckWordArtStyle(slidePart);
+
+            result.ExpectedValue = "艺术字样式";
+            result.ActualValue = hasWordArt ? "找到艺术字样式" : "未找到艺术字样式";
+            result.IsCorrect = hasWordArt;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"幻灯片 {slideIndex} 艺术字样式检测: {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测艺术字样式失败: {ex.Message}");
+        }
+
+        return result;
+    }
 
     /// <summary>
     /// 检查幻灯片中的文本样式
@@ -1491,10 +2104,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 {
                     bool hasStyle = expectedStyle.ToLowerInvariant() switch
                     {
-                        "bold" or "粗体" => runProperties.Bold?.Val?.Value == true,
-                        "italic" or "斜体" => runProperties.Italic?.Val?.Value == true,
-                        "underline" or "下划线" => runProperties.Underline?.Val?.Value != null,
-                        "strikethrough" or "删除线" => runProperties.Strike?.Val?.Value != null,
+                        "bold" or "粗体" => runProperties.Bold?.Value == true,
+                        "italic" or "斜体" => runProperties.Italic?.Value == true,
+                        "underline" or "下划线" => runProperties.Underline?.Value != null,
+                        "strikethrough" or "删除线" => runProperties.Strike?.Value != null,
                         _ => false
                     };
 
@@ -1642,18 +2255,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var hyperlinks = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.HyperlinkClick>();
-            foreach (var hyperlink in hyperlinks)
+            // 简化实现：检查是否存在超链接
+            var hyperlinks = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Hyperlink>();
+            if (hyperlinks.Any())
             {
-                if (hyperlink.Id?.Value != null)
+                return (true, "超链接存在");
+            }
+
+            // 也检查文本中是否包含URL模式
+            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (var text in textElements)
+            {
+                if (text.Text.Contains("http://") || text.Text.Contains("https://") || text.Text.Contains("www."))
                 {
-                    var relationship = slidePart.GetReferenceRelationship(hyperlink.Id.Value);
-                    if (relationship?.Uri != null)
-                    {
-                        return (true, relationship.Uri.ToString());
-                    }
+                    return (true, text.Text);
                 }
             }
+
             return (false, string.Empty);
         }
         catch
@@ -1669,22 +2287,16 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            // 检查幻灯片中是否有幻灯片编号占位符
-            var placeholders = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Presentation.PlaceholderShape>();
-            foreach (var placeholder in placeholders)
-            {
-                var placeholderType = placeholder.PlaceholderShapeProperties?.Type?.Value;
-                if (placeholderType == DocumentFormat.OpenXml.Presentation.PlaceholderValues.SlideNumber)
-                {
-                    return true;
-                }
-            }
-
-            // 也可以检查文本中是否包含幻灯片编号
+            // 简化实现：检查文本中是否包含幻灯片编号相关内容
             var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
             foreach (var textElement in textElements)
             {
-                if (textElement.Text.Contains("#") || textElement.Text.Contains("slide", StringComparison.OrdinalIgnoreCase))
+                string text = textElement.Text.ToLowerInvariant();
+                if (text.Contains("#") ||
+                    text.Contains("slide") ||
+                    text.Contains("页") ||
+                    text.Contains("第") ||
+                    System.Text.RegularExpressions.Regex.IsMatch(text, @"\d+"))
                 {
                     return true;
                 }
@@ -1705,16 +2317,29 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            // 检查页脚占位符
-            var placeholders = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Presentation.PlaceholderShape>();
-            foreach (var placeholder in placeholders)
+            // 简化实现：查找可能的页脚文本
+            // 通常页脚文本位于幻灯片底部的文本框中
+            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            var allTexts = textElements.Select(t => t.Text).ToList();
+
+            // 查找可能的页脚关键词
+            foreach (var text in allTexts)
             {
-                var placeholderType = placeholder.PlaceholderShapeProperties?.Type?.Value;
-                if (placeholderType == DocumentFormat.OpenXml.Presentation.PlaceholderValues.Footer)
+                string lowerText = text.ToLowerInvariant();
+                if (lowerText.Contains("footer") ||
+                    lowerText.Contains("页脚") ||
+                    lowerText.Contains("版权") ||
+                    lowerText.Contains("copyright") ||
+                    lowerText.Contains("©"))
                 {
-                    var textElements = placeholder.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-                    return string.Join(" ", textElements.Select(t => t.Text));
+                    return text;
                 }
+            }
+
+            // 如果没有明确的页脚标识，返回最后一个文本元素（通常页脚在底部）
+            if (allTexts.Count > 0)
+            {
+                return allTexts.Last();
             }
 
             return string.Empty;
@@ -1722,6 +2347,268 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         catch
         {
             return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 检查SmartArt图形
+    /// </summary>
+    private bool CheckForSmartArt(SlidePart slidePart)
+    {
+        try
+        {
+            // 检查是否有SmartArt图形
+            var smartArtShapes = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
+            foreach (var shape in smartArtShapes)
+            {
+                var graphic = shape.Graphic;
+                if (graphic?.GraphicData?.Uri?.Value != null &&
+                    graphic.GraphicData.Uri.Value.Contains("smartArt"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取幻灯片备注
+    /// </summary>
+    private string GetSlideNotes(SlidePart slidePart)
+    {
+        try
+        {
+            var notesSlidePart = slidePart.NotesSlidePart;
+            if (notesSlidePart?.NotesSlide != null)
+            {
+                var textElements = notesSlidePart.NotesSlide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+                return string.Join(" ", textElements.Select(t => t.Text).Where(text => !string.IsNullOrWhiteSpace(text)));
+            }
+            return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取应用的主题名称
+    /// </summary>
+    private string GetAppliedTheme(PresentationPart presentationPart)
+    {
+        try
+        {
+            var themePart = presentationPart.ThemePart;
+            if (themePart?.Theme?.ThemeElements?.ColorScheme?.Name?.Value != null)
+            {
+                return themePart.Theme.ThemeElements.ColorScheme.Name.Value;
+            }
+            return "Office Theme";
+        }
+        catch
+        {
+            return "Unknown Theme";
+        }
+    }
+
+    /// <summary>
+    /// 获取幻灯片背景信息
+    /// </summary>
+    private string GetSlideBackground(SlidePart slidePart)
+    {
+        try
+        {
+            var background = slidePart.Slide.CommonSlideData?.Background;
+            if (background != null)
+            {
+                // 检查背景填充
+                var backgroundProperties = background.BackgroundProperties;
+                if (backgroundProperties != null)
+                {
+                    if (backgroundProperties.HasChildren)
+                    {
+                        return "自定义背景";
+                    }
+                }
+
+                // 检查背景样式引用
+                var backgroundStyleReference = background.BackgroundStyleReference;
+                if (backgroundStyleReference?.Index?.Value != null)
+                {
+                    return $"背景样式 {backgroundStyleReference.Index.Value}";
+                }
+            }
+            return "默认背景";
+        }
+        catch
+        {
+            return "未知背景";
+        }
+    }
+
+    /// <summary>
+    /// 获取表格内容
+    /// </summary>
+    private static (bool Found, string Content) GetTableContent(SlidePart slidePart, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            var tables = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Table>();
+            if (tables.Any())
+            {
+                var tableTexts = new List<string>();
+                foreach (var table in tables)
+                {
+                    var textElements = table.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+                    tableTexts.AddRange(textElements.Select(t => t.Text));
+                }
+                return (true, string.Join(" ", tableTexts));
+            }
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 获取表格样式
+    /// </summary>
+    private static string GetTableStyle(SlidePart slidePart)
+    {
+        try
+        {
+            var tables = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Table>();
+            foreach (var table in tables)
+            {
+                var tableProperties = table.TableProperties;
+                if (tableProperties?.HasChildren == true)
+                {
+                    return "自定义样式";
+                }
+            }
+            return "默认样式";
+        }
+        catch
+        {
+            return "未知样式";
+        }
+    }
+
+    /// <summary>
+    /// 检查动画时间设置
+    /// </summary>
+    private static bool CheckAnimationTiming(SlidePart slidePart)
+    {
+        try
+        {
+            // 简化实现：检查幻灯片是否有切换时间设置
+            var transition = slidePart.Slide.Transition;
+            if (transition?.AdvanceAfterTime?.Value != null)
+            {
+                return true;
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取动画持续时间
+    /// </summary>
+    private static string GetAnimationDuration(SlidePart slidePart)
+    {
+        try
+        {
+            var transition = slidePart.Slide.Transition;
+            if (transition?.Duration?.Value != null)
+            {
+                return $"持续时间: {transition.Duration.Value}ms";
+            }
+            return "默认";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 检查动画顺序
+    /// </summary>
+    private static bool CheckAnimationOrder(SlidePart slidePart)
+    {
+        try
+        {
+            // 简化实现：检查是否有多个形状（可能有动画顺序）
+            var shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            return shapes?.Count() > 1;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取幻灯片放映选项
+    /// </summary>
+    private static string GetSlideshowOptions(PresentationPart presentationPart)
+    {
+        try
+        {
+            // 简化实现：检查演示文稿属性
+            var presentation = presentationPart.Presentation;
+            if (presentation.HasChildren)
+            {
+                return "自定义设置";
+            }
+            return "默认设置";
+        }
+        catch
+        {
+            return "未知设置";
+        }
+    }
+
+    /// <summary>
+    /// 检查艺术字样式
+    /// </summary>
+    private static bool CheckWordArtStyle(SlidePart slidePart)
+    {
+        try
+        {
+            // 检查文本是否有特殊效果（艺术字通常有复杂的文本效果）
+            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (var textElement in textElements)
+            {
+                var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                if (runProperties != null)
+                {
+                    // 检查是否有文本效果
+                    if (runProperties.HasChildren &&
+                        (runProperties.Elements<DocumentFormat.OpenXml.Drawing.EffectList>().Any() ||
+                         runProperties.Elements<DocumentFormat.OpenXml.Drawing.EffectDag>().Any()))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
         }
     }
 
