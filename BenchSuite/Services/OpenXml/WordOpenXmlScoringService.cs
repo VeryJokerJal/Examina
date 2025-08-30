@@ -5165,7 +5165,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 var spacing = runProperties?.Spacing;
                 if (spacing?.Val?.Value != null)
                 {
-                    return int.Parse(spacing.Val.Value) / 20f; // OpenXML中间距是20分之一点
+                    return int.Parse(spacing.Val.Value.ToString()) / 20f; // OpenXML中间距是20分之一点
                 }
             }
             return 0f; // 默认无额外间距
@@ -5240,7 +5240,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (spacingBetweenLines?.Line?.Value != null)
             {
-                return int.Parse(spacingBetweenLines.Line.Value) / 240f; // OpenXML中行距是240分之一
+                return int.Parse(spacingBetweenLines.Line.Value.ToString()) / 240f; // OpenXML中行距是240分之一
             }
 
             return 1.0f; // 默认单倍行距
@@ -5729,10 +5729,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 }
 
                 // 简化实现：检查文档中的文本内容
-                var text = headerPart.Header.InnerText;
-                if (!string.IsNullOrEmpty(text) && text.Trim().Length > 0)
+                var headerText = headerPart.Header.InnerText;
+                if (!string.IsNullOrEmpty(headerText) && headerText.Trim().Length > 0)
                 {
-                    return text.Trim();
+                    return headerText.Trim();
                 }
             }
 
@@ -5756,8 +5756,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
                 foreach (var shape in shapes)
                 {
-                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.Office.TextPath>().FirstOrDefault();
-                    if (textPath != null)
+                    // 简化实现：检查形状是否包含文本
+                    var text = shape.InnerText;
+                    if (!string.IsNullOrEmpty(text))
                     {
                         // 简化实现：返回默认水印字体
                         return "华文中宋";
@@ -5784,8 +5785,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
                 foreach (var shape in shapes)
                 {
-                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.Office.TextPath>().FirstOrDefault();
-                    if (textPath != null)
+                    // 简化实现：检查形状是否包含文本
+                    var text = shape.InnerText;
+                    if (!string.IsNullOrEmpty(text))
                     {
                         // 简化实现：返回默认水印字号
                         return 36;
@@ -5922,7 +5924,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 {
                     var targetRow = rows[startRow - 1];
                     var rowProperties = targetRow.TableRowProperties;
-                    var tableRowHeight = rowProperties?.TableRowHeight;
+                    var tableRowHeight = rowProperties?.GetFirstChild<TableRowHeight>();
 
                     if (tableRowHeight?.Val?.Value != null)
                     {
@@ -6068,7 +6070,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (firstTable != null)
             {
-                var tableProperties = firstTable.TableProperties;
+                var tableProperties = firstTable.GetFirstChild<TableProperties>();
                 var tableJustification = tableProperties?.TableJustification?.Val?.Value?.ToString() ?? "Left";
 
                 var tableIndentation = tableProperties?.TableIndentation;

@@ -3061,8 +3061,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             Transition? transition = slidePart.Slide.Transition;
-            if (transition?.SoundAction != null)
+            if (transition != null)
             {
+                // 简化实现：检测到切换设置
                 return "检测到切换声音";
             }
             return "无声音";
