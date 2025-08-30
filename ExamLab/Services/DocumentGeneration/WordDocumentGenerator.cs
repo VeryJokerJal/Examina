@@ -321,25 +321,25 @@ public class WordDocumentGenerator : IDocumentGenerationService
                 case WordKnowledgeType.SetImageSize:
                     WordDocumentGeneratorExtensions.ApplySetImageSize(body, operationPoint);
                     break;
-                case WordKnowledgeType.SetShapeSize:
+                case WordKnowledgeType.SetAutoShapeSize:
                     WordDocumentGeneratorExtensions.ApplySetShapeSize(body, operationPoint);
                     break;
-                case WordKnowledgeType.SetShapeLineColor:
+                case WordKnowledgeType.SetAutoShapeLineColor:
                     WordDocumentGeneratorExtensions.ApplySetShapeLineColor(body, operationPoint);
                     break;
-                case WordKnowledgeType.SetShapeFillColor:
+                case WordKnowledgeType.SetAutoShapeFillColor:
                     WordDocumentGeneratorExtensions.ApplySetShapeFillColor(body, operationPoint);
                     break;
-                case WordKnowledgeType.SetShapeTextSize:
+                case WordKnowledgeType.SetAutoShapeTextSize:
                     WordDocumentGeneratorExtensions.ApplySetShapeTextSize(body, operationPoint);
                     break;
-                case WordKnowledgeType.SetShapeTextColor:
+                case WordKnowledgeType.SetAutoShapeTextColor:
                     WordDocumentGeneratorExtensions.ApplySetShapeTextColor(body, operationPoint);
                     break;
-                case WordKnowledgeType.SetShapeTextContent:
+                case WordKnowledgeType.SetAutoShapeTextContent:
                     WordDocumentGeneratorExtensions.ApplySetShapeTextContent(body, operationPoint);
                     break;
-                case WordKnowledgeType.SetShapePosition:
+                case WordKnowledgeType.SetAutoShapePosition:
                     WordDocumentGeneratorExtensions.ApplySetShapePosition(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetImageBorderCompoundType:
@@ -396,6 +396,20 @@ public class WordDocumentGenerator : IDocumentGenerationService
                     break;
                 case WordKnowledgeType.SetPageBorderColor:
                     WordDocumentGeneratorExtensions2.ApplySetPageBorderColor(document, operationPoint);
+                    break;
+
+                // 遗漏的操作点
+                case WordKnowledgeType.SetPageBorderStyle:
+                    ApplySetPageBorderStyle(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetPageBorderWidth:
+                    ApplySetPageBorderWidth(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetWatermarkOrientation:
+                    ApplySetWatermarkOrientation(document, operationPoint);
+                    break;
+                case WordKnowledgeType.SetTableHeaderAlignment:
+                    ApplySetTableHeaderAlignment(body, operationPoint);
                     break;
 
                 default:
@@ -904,6 +918,73 @@ public class WordDocumentGenerator : IDocumentGenerationService
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[页眉设置] 页眉对齐方式：{headerAlignment}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用设置页面边框样式
+    /// </summary>
+    private static void ApplySetPageBorderStyle(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "单实线");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页面设置] 页面边框样式：{borderStyle}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用设置页面边框宽度
+    /// </summary>
+    private static void ApplySetPageBorderWidth(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string borderWidth = GetParameterValue(operationPoint, "BorderWidth", "1磅");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[页面设置] 页面边框宽度：{borderWidth}"));
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用设置水印方向
+    /// </summary>
+    private static void ApplySetWatermarkOrientation(WordprocessingDocument document, OperationPoint operationPoint)
+    {
+        string orientation = GetParameterValue(operationPoint, "Orientation", "倾斜");
+
+        Body body = document.MainDocumentPart!.Document.Body!;
+        Paragraph paragraph = new();
+        Run run = new();
+        RunProperties runProperties = new();
+
+        runProperties.Append(new Color() { Val = "C0C0C0" }); // 灰色
+        runProperties.Append(new Italic());
+        run.Append(runProperties);
+        run.Append(new Text($"[水印设置] 水印方向：{orientation}"));
+
+        paragraph.Append(run);
+        body.Append(paragraph);
+    }
+
+    /// <summary>
+    /// 应用设置表格标题对齐方式
+    /// </summary>
+    private static void ApplySetTableHeaderAlignment(Body body, OperationPoint operationPoint)
+    {
+        string columnNumber = GetParameterValue(operationPoint, "ColumnNumber", "1");
+        string horizontalAlignment = GetParameterValue(operationPoint, "HorizontalAlignment", "居中对齐");
+        string verticalAlignment = GetParameterValue(operationPoint, "VerticalAlignment", "居中对齐");
+
+        Paragraph paragraph = new();
+        Run run = new();
+        run.Append(new Text($"[表格设置] 表格标题对齐：第{columnNumber}列，水平{horizontalAlignment}，垂直{verticalAlignment}"));
         paragraph.Append(run);
         body.Append(paragraph);
     }
