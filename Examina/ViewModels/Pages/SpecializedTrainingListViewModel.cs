@@ -706,14 +706,17 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     // 验证文件路径
                     if (!string.IsNullOrWhiteSpace(filePath))
                     {
-                        if (File.Exists(filePath))
+                        // 转换为绝对路径
+                        string absolutePath = ConvertToAbsolutePath(filePath);
+
+                        if (File.Exists(absolutePath))
                         {
-                            files.Add(filePath);
-                            System.Diagnostics.Debug.WriteLine($"找到有效文件: {Path.GetFileName(filePath)}");
+                            files.Add(absolutePath);
+                            System.Diagnostics.Debug.WriteLine($"找到有效文件: {Path.GetFileName(absolutePath)} (原路径: {filePath})");
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"文件不存在: {filePath}");
+                            System.Diagnostics.Debug.WriteLine($"文件不存在: {absolutePath} (原路径: {filePath})");
                         }
                     }
                 }
@@ -1291,6 +1294,43 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     private void OnUserInfoUpdated(object? sender, UserInfo? userInfo)
     {
         UpdateUserPermissions();
+    }
+
+    /// <summary>
+    /// 将相对路径转换为绝对路径
+    /// </summary>
+    /// <param name="filePath">文件路径（可能是相对路径或绝对路径）</param>
+    /// <returns>绝对路径</returns>
+    private string ConvertToAbsolutePath(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return filePath;
+        }
+
+        // 如果已经是绝对路径，直接返回
+        if (Path.IsPathRooted(filePath))
+        {
+            return filePath;
+        }
+
+        // 如果是相对路径，与基础路径拼接
+        if (_benchSuiteDirectoryService != null)
+        {
+            string basePath = _benchSuiteDirectoryService.GetBasePath();
+
+            // 处理以反斜杠开头的路径（如 "\a.docx"）
+            string relativePath = filePath.TrimStart('\\', '/');
+            string absolutePath = Path.Combine(basePath, relativePath);
+
+            System.Diagnostics.Debug.WriteLine($"路径转换: 原路径='{filePath}', 基础路径='{basePath}', 绝对路径='{absolutePath}'");
+
+            return absolutePath;
+        }
+
+        // 如果没有directoryService，返回原路径
+        System.Diagnostics.Debug.WriteLine($"警告: IBenchSuiteDirectoryService不可用，无法转换路径: {filePath}");
+        return filePath;
     }
 }
 
