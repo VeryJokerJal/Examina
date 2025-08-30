@@ -5366,7 +5366,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (shading != null)
             {
                 string color = shading.Fill?.Value ?? "无颜色";
-                string pattern = shading.Val?.Value?.ToString() ?? "无图案";
+                string pattern = shading.Val?.HasValue == true ? shading.Val.Value.ToString() : "无图案";
                 return (color, pattern);
             }
 
@@ -6035,7 +6035,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                         var cellProperties = targetCell.TableCellProperties;
 
                         // 获取垂直对齐
-                        var verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.Value?.ToString() ?? "Top";
+                        var verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.HasValue == true ?
+                            cellProperties.TableCellVerticalAlignment.Val.Value.ToString() : "Top";
 
                         // 获取水平对齐（从段落属性）
                         var paragraph = targetCell.Elements<Paragraph>().FirstOrDefault();
@@ -6071,7 +6072,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (firstTable != null)
             {
                 var tableProperties = firstTable.GetFirstChild<TableProperties>();
-                var tableJustification = tableProperties?.TableJustification?.Val?.Value?.ToString() ?? "Left";
+                var tableJustification = tableProperties?.TableJustification?.Val?.HasValue == true ?
+                    tableProperties.TableJustification.Val.Value.ToString() : "Left";
 
                 var tableIndentation = tableProperties?.TableIndentation;
                 float leftIndent = 0f;
@@ -6919,7 +6921,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                         var cellProperties = headerCell.TableCellProperties;
 
                         // 获取垂直对齐
-                        var verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.Value?.ToString() ?? "Top";
+                        var verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.HasValue == true ?
+                            cellProperties.TableCellVerticalAlignment.Val.Value.ToString() : "Top";
 
                         // 获取水平对齐（从段落属性）
                         var paragraph = headerCell.Elements<Paragraph>().FirstOrDefault();
