@@ -5213,9 +5213,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (indentation != null)
             {
-                int firstLine = indentation.FirstLine?.Value != null ? (int)(indentation.FirstLine.Value / 567) : 0; // 转换为字符
-                int left = indentation.Left?.Value != null ? (int)(indentation.Left.Value / 567) : 0;
-                int right = indentation.Right?.Value != null ? (int)(indentation.Right.Value / 567) : 0;
+                int firstLine = indentation.FirstLine?.Value != null ? (int)(int.Parse(indentation.FirstLine.Value) / 567) : 0; // 转换为字符
+                int left = indentation.Left?.Value != null ? (int)(int.Parse(indentation.Left.Value) / 567) : 0;
+                int right = indentation.Right?.Value != null ? (int)(int.Parse(indentation.Right.Value) / 567) : 0;
 
                 return (firstLine, left, right);
             }
@@ -5240,7 +5240,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (spacingBetweenLines?.Line?.Value != null)
             {
-                return spacingBetweenLines.Line.Value / 240f; // OpenXML中行距是240分之一
+                return int.Parse(spacingBetweenLines.Line.Value) / 240f; // OpenXML中行距是240分之一
             }
 
             return 1.0f; // 默认单倍行距
@@ -5720,15 +5720,16 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
                 foreach (var shape in shapes)
                 {
-                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.Office.TextPath>().FirstOrDefault();
-                    if (textPath?.String?.Value != null)
+                    // 简化实现：检测到VML形状中的文字
+                    var text = shape.InnerText;
+                    if (!string.IsNullOrEmpty(text))
                     {
-                        return textPath.String.Value;
+                        return text;
                     }
                 }
 
-                // 检查文本框中的水印文字
-                var textboxes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+                // 简化实现：检查文档中的文本内容
+                // var textboxes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
                 foreach (var textbox in textboxes)
                 {
                     var text = textbox.InnerText;

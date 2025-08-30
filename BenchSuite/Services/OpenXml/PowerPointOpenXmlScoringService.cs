@@ -398,12 +398,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 case "SlideTransitionSound":
                     result = DetectSlideTransitionSound(document, parameters);
                     break;
-                case "SlideNumber":
-                    result = DetectSlideNumber(document, parameters);
-                    break;
-                case "FooterText":
-                    result = DetectFooterText(document, parameters);
-                    break;
+
                 case "SetAnimationDirection":
                     result = DetectAnimationDirection(document, parameters);
                     break;
@@ -422,12 +417,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 case "SetBackgroundStyle":
                     result = DetectBackgroundStyle(document, parameters);
                     break;
-                case "SlideNumber":
-                    result = DetectSlideNumber(document, parameters);
-                    break;
-                case "FooterText":
-                    result = DetectFooterText(document, parameters);
-                    break;
+
                 case "SetWordArtStyle":
                 case "SetWordArtEffect":
                     result = DetectWordArtStyle(document, parameters);
@@ -2428,79 +2418,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         return result;
     }
 
-    /// <summary>
-    /// 检测幻灯片编号显示
-    /// </summary>
-    private KnowledgePointResult DetectSlideNumber(PresentationDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SlideNumber",
-            Parameters = parameters
-        };
 
-        try
-        {
-            if (!TryGetParameter(parameters, "ShowSlideNumber", out string showSlideNumber))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: ShowSlideNumber");
-                return result;
-            }
 
-            bool expectedShow = TextEquals(showSlideNumber, "true") || TextEquals(showSlideNumber, "是");
 
-            PresentationPart presentationPart = document.PresentationPart!;
-            bool actualShow = GetSlideNumberVisibilityFromPresentation(presentationPart);
-
-            result.ExpectedValue = expectedShow ? "显示编号" : "不显示编号";
-            result.ActualValue = actualShow ? "显示编号" : "不显示编号";
-            result.IsCorrect = actualShow == expectedShow;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片编号显示: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测幻灯片编号显示失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测页脚文字
-    /// </summary>
-    private KnowledgePointResult DetectFooterText(PresentationDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "FooterText",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "FooterText", out string expectedFooter))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: FooterText");
-                return result;
-            }
-
-            PresentationPart presentationPart = document.PresentationPart!;
-            string actualFooter = GetFooterTextFromPresentation(presentationPart);
-
-            result.ExpectedValue = expectedFooter;
-            result.ActualValue = actualFooter;
-            result.IsCorrect = TextEquals(actualFooter, expectedFooter) || actualFooter.Contains(expectedFooter);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页脚文字: 期望 {expectedFooter}, 实际 {actualFooter}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页脚文字失败: {ex.Message}");
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// 检测背景样式
