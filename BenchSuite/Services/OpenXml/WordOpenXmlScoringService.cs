@@ -3905,15 +3905,19 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             FrameProperties? framePr = paragraphProperties.GetFirstChild<FrameProperties>();
             if (framePr != null)
             {
+                System.Diagnostics.Debug.WriteLine($"[首字下沉] 找到FrameProperties");
+
                 if (framePr.DropCap?.Value != null)
                 {
                     string dropCapValue = framePr.DropCap.Value.ToString();
                     string lines = framePr.Lines?.Value.ToString() ?? "3";
 
+                    System.Diagnostics.Debug.WriteLine($"[首字下沉] DropCap值: {dropCapValue}, Lines: {lines}");
+
                     return dropCapValue switch
                     {
-                        "Drop" => $"首字下沉到段落中",
-                        "Margin" => $"首字下沉到页边距",
+                        "Drop" => "首字下沉到段落中",
+                        "Margin" => "首字下沉到页边距",
                         _ => $"首字下沉({dropCapValue})"
                     };
                 }
@@ -3924,7 +3928,19 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 }
             }
 
-            // 方法2：检查段落中第一个Run的特殊格式
+            // 方法2：检查段落样式中的首字下沉设置
+            ParagraphStyleId? styleId = paragraphProperties.ParagraphStyleId;
+            if (styleId?.Val?.Value != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[首字下沉] 段落样式ID: {styleId.Val.Value}");
+                // 某些首字下沉可能通过样式定义
+                if (styleId.Val.Value.Contains("DropCap") || styleId.Val.Value.Contains("首字"))
+                {
+                    return "首字下沉(通过样式)";
+                }
+            }
+
+            // 方法3：检查段落中第一个Run的特殊格式
             Run? firstRun = paragraph.Elements<Run>().FirstOrDefault();
             if (firstRun?.RunProperties != null)
             {
@@ -3934,6 +3950,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 VerticalTextAlignment? vertAlign = runProps.VerticalTextAlignment;
                 if (vertAlign?.Val?.HasValue == true)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[首字下沉] 垂直对齐: {vertAlign.Val.Value}");
                     return $"首字特殊对齐({vertAlign.Val.Value})";
                 }
 
@@ -3941,10 +3958,42 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 FontSize? fontSize = runProps.FontSize;
                 if (fontSize?.Val?.Value != null)
                 {
-                    int size = int.Parse(fontSize.Val.Value) / 2;
-                    if (size > 20) // 如果字号大于20，可能是首字下沉
+                    if (int.TryParse(fontSize.Val.Value, out int sizeValue))
                     {
-                        return $"疑似首字下沉(字号{size})";
+                        int size = sizeValue / 2; // OpenXML字号是半点单位
+                        System.Diagnostics.Debug.WriteLine($"[首字下沉] 首字字号: {size}");
+                        if (size > 20) // 如果字号大于20，可能是首字下沉
+                        {
+                            return $"疑似首字下沉(字号{size})";
+                        }
+                    }
+                }
+
+                // 检查是否有特殊的文本效果
+                if (runProps.Bold != null || runProps.Italic != null)
+                {
+                    string text = firstRun.InnerText;
+                    if (!string.IsNullOrEmpty(text) && text.Length == 1)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[首字下沉] 单字符特殊格式: '{text}'");
+                        return $"疑似首字下沉(单字符'{text}')";
+                    }
+                }
+            }
+
+            // 方法4：检查段落是否以特殊格式的单个字符开始
+            string paragraphText = paragraph.InnerText.Trim();
+            if (!string.IsNullOrEmpty(paragraphText))
+            {
+                char firstChar = paragraphText[0];
+                // 检查第一个字符是否在单独的Run中且有特殊格式
+                Run? firstCharRun = paragraph.Elements<Run>().FirstOrDefault();
+                if (firstCharRun != null && firstCharRun.InnerText.Length == 1 && firstCharRun.InnerText[0] == firstChar)
+                {
+                    if (firstCharRun.RunProperties != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[首字下沉] 检测到单字符Run: '{firstChar}'");
+                        return $"疑似首字下沉(首字符'{firstChar}')";
                     }
                 }
             }
@@ -4005,23 +4054,46 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (paragraphBorders != null)
             {
                 TopBorder? topBorder = paragraphBorders.TopBorder;
-                if (topBorder?.Val?.Value != null)
+                if (topBorder?.Val != null)
                 {
-                    string borderValue = topBorder.Val.Value.ToString();
-                    return borderValue switch
+                    string borderValue = string.Empty;
+
+                    if (topBorder.Val.HasValue)
                     {
-                        "Single" => "单线",
-                        "Double" => "双线",
-                        "Dotted" => "点线",
-                        "Dashed" => "虚线",
-                        "DashDot" => "点划线",
-                        "DashDotDot" => "双点划线",
-                        "Triple" => "三线",
-                        "Thick" => "粗线",
-                        "Thin" => "细线",
-                        "Wave" => "波浪线",
-                        _ => $"边框样式({borderValue})"
-                    };
+                        borderValue = topBorder.Val.Value.ToString();
+                    }
+                    else if (!string.IsNullOrEmpty(topBorder.Val.InnerText))
+                    {
+                        borderValue = topBorder.Val.InnerText;
+                    }
+                    else
+                    {
+                        borderValue = topBorder.Val.ToString() ?? string.Empty;
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"[边框样式] 原始值: '{borderValue}', HasValue: {topBorder.Val.HasValue}");
+
+                    if (!string.IsNullOrEmpty(borderValue) && borderValue != "BorderValues { }")
+                    {
+                        return borderValue switch
+                        {
+                            "Single" => "单线",
+                            "Double" => "双线",
+                            "Dotted" => "点线",
+                            "Dashed" => "虚线",
+                            "DashDot" => "点划线",
+                            "DashDotDot" => "双点划线",
+                            "Triple" => "三线",
+                            "Thick" => "粗线",
+                            "Thin" => "细线",
+                            "Wave" => "波浪线",
+                            "single" => "单线",
+                            "double" => "双线",
+                            "dotted" => "点线",
+                            "dashed" => "虚线",
+                            _ => $"边框样式({borderValue})"
+                        };
+                    }
                 }
             }
 
@@ -4087,38 +4159,59 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
                 // 处理底纹图案
                 string pattern = "无图案";
-                if (shading.Val?.HasValue == true)
+                if (shading.Val != null)
                 {
-                    string patternValue = shading.Val.Value.ToString();
-                    pattern = patternValue switch
+                    string patternValue = string.Empty;
+
+                    if (shading.Val.HasValue)
                     {
-                        "Clear" => "无图案",
-                        "Solid" => "实心",
-                        "Pct5" => "5%",
-                        "Pct10" => "10%",
-                        "Pct12" => "12.5%",
-                        "Pct15" => "15%",
-                        "Pct20" => "20%",
-                        "Pct25" => "25%",
-                        "Pct30" => "30%",
-                        "Pct35" => "35%",
-                        "Pct37" => "37.5%",
-                        "Pct40" => "40%",
-                        "Pct45" => "42.5%",
-                        "Pct50" => "50%",
-                        "Pct55" => "55%",
-                        "Pct60" => "60%",
-                        "Pct62" => "62.5%",
-                        "Pct65" => "65%",
-                        "Pct70" => "70%",
-                        "Pct75" => "75%",
-                        "Pct80" => "80%",
-                        "Pct85" => "85%",
-                        "Pct87" => "87.5%",
-                        "Pct90" => "90%",
-                        "Pct95" => "95%",
-                        _ => $"图案({patternValue})"
-                    };
+                        patternValue = shading.Val.Value.ToString();
+                    }
+                    else if (!string.IsNullOrEmpty(shading.Val.InnerText))
+                    {
+                        patternValue = shading.Val.InnerText;
+                    }
+                    else
+                    {
+                        patternValue = shading.Val.ToString() ?? string.Empty;
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"[底纹图案] 原始值: '{patternValue}', HasValue: {shading.Val.HasValue}");
+
+                    if (!string.IsNullOrEmpty(patternValue) && patternValue != "ShadingPatternValues { }")
+                    {
+                        pattern = patternValue switch
+                        {
+                            "Clear" => "无图案",
+                            "Solid" => "实心",
+                            "Pct5" => "5%",
+                            "Pct10" => "10%",
+                            "Pct12" => "12.5%",
+                            "Pct15" => "15%",
+                            "Pct20" => "20%",
+                            "Pct25" => "25%",
+                            "Pct30" => "30%",
+                            "Pct35" => "35%",
+                            "Pct37" => "37.5%",
+                            "Pct40" => "40%",
+                            "Pct45" => "42.5%",
+                            "Pct50" => "50%",
+                            "Pct55" => "55%",
+                            "Pct60" => "60%",
+                            "Pct62" => "62.5%",
+                            "Pct65" => "65%",
+                            "Pct70" => "70%",
+                            "Pct75" => "75%",
+                            "Pct80" => "80%",
+                            "Pct85" => "85%",
+                            "Pct87" => "87.5%",
+                            "Pct90" => "90%",
+                            "Pct95" => "95%",
+                            "clear" => "无图案",
+                            "solid" => "实心",
+                            _ => $"图案({patternValue})"
+                        };
+                    }
                 }
 
                 return (color, pattern);
@@ -4281,20 +4374,46 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
             Justification? justification = paragraphProperties?.Justification;
 
-            if (justification?.Val?.HasValue == true)
+            if (justification?.Val != null)
             {
-                string alignmentString = justification.Val.Value.ToString();
-                return alignmentString switch
+                // 尝试多种方式获取对齐值
+                string alignmentString = string.Empty;
+
+                if (justification.Val.HasValue)
                 {
-                    "Left" => "左对齐",
-                    "Center" => "居中",
-                    "Right" => "右对齐",
-                    "Both" => "两端对齐",
-                    "Distribute" => "分散对齐",
-                    "Start" => "左对齐",
-                    "End" => "右对齐",
-                    _ => $"未知对齐({alignmentString})"
-                };
+                    alignmentString = justification.Val.Value.ToString();
+                }
+                else if (!string.IsNullOrEmpty(justification.Val.InnerText))
+                {
+                    alignmentString = justification.Val.InnerText;
+                }
+                else
+                {
+                    // 尝试获取原始字符串值
+                    alignmentString = justification.Val.ToString() ?? string.Empty;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[对齐检测] 原始值: '{alignmentString}', HasValue: {justification.Val.HasValue}");
+
+                if (!string.IsNullOrEmpty(alignmentString) && alignmentString != "JustificationValues { }")
+                {
+                    return alignmentString switch
+                    {
+                        "Left" => "左对齐",
+                        "Center" => "居中",
+                        "Right" => "右对齐",
+                        "Both" => "两端对齐",
+                        "Distribute" => "分散对齐",
+                        "Start" => "左对齐",
+                        "End" => "右对齐",
+                        "left" => "左对齐",
+                        "center" => "居中",
+                        "right" => "右对齐",
+                        "both" => "两端对齐",
+                        "distribute" => "分散对齐",
+                        _ => $"未知对齐({alignmentString})"
+                    };
+                }
             }
 
             return "左对齐"; // 默认左对齐
