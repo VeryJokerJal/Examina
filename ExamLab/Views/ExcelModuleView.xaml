@@ -24,15 +24,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                    <Button Command="{Binding GenerateExcelDocumentCommand}"
-                            Content="生成Excel文档"
-                            Style="{ThemeResource DefaultButtonStyle}"
-                            Background="{ThemeResource SystemAccentColorLight2}"
-                            Foreground="White">
-                        <Button.Icon>
-                            <FontIcon Glyph="&#xE8A5;" />
-                        </Button.Icon>
-                    </Button>
+                    <Button Background="{ThemeResource SystemAccentColorLight2}" Command="{Binding GenerateExcelDocumentCommand}" Content="生成Excel文档" Foreground="White" Style="{ThemeResource DefaultButtonStyle}" />
                 </StackPanel>
             </Grid>
         </Border>

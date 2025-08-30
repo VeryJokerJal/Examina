@@ -330,10 +330,16 @@ public class ExcelModuleViewModel : ModuleViewModelBase
     {
         try
         {
-            // 检查是否有操作点
-            if (!OperationPoints.Any())
+            // 检查是否有选中的题目和操作点
+            if (SelectedQuestion == null)
             {
-                SetError("请先添加Excel操作点");
+                SetError("请先选择一个题目");
+                return;
+            }
+
+            if (!SelectedQuestion.OperationPoints.Any())
+            {
+                SetError("请先为题目添加Excel操作点");
                 return;
             }
 
@@ -341,11 +347,11 @@ public class ExcelModuleViewModel : ModuleViewModelBase
             IExcelDocumentGenerationService excelService = new ExcelDocumentGenerationService();
 
             // 生成Excel文档
-            string outputPath = await excelService.GenerateExcelDocumentAsync(OperationPoints.ToList());
+            string outputPath = await excelService.GenerateExcelDocumentAsync(SelectedQuestion.OperationPoints.ToList());
 
             if (!string.IsNullOrEmpty(outputPath))
             {
-                SetSuccess($"Excel文档已成功生成：{outputPath}");
+                await NotificationService.ShowSuccessAsync("生成成功", $"Excel文档已成功生成：{outputPath}");
 
                 // 可选：打开生成的文件
                 await Windows.System.Launcher.LaunchUriAsync(new Uri($"file:///{outputPath}"));

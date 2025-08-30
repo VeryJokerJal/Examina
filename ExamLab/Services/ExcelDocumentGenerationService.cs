@@ -76,7 +76,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     {
         // 按操作类型分组
         Dictionary<string, List<OperationPoint>> groupedOperations = operationPoints
-            .GroupBy(op => GetOperationCategory(op.ExcelKnowledgeType))
+            .GroupBy(op => GetOperationCategory(op.ExcelKnowledgeType.Value))
             .ToDictionary(g => g.Key, g => g.ToList());
 
         // 1. 先执行基础操作
@@ -178,7 +178,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             }
 
             // 根据操作点类型执行相应的操作
-            switch (operationPoint.ExcelKnowledgeType)
+            switch (operationPoint.ExcelKnowledgeType.Value)
             {
                 // Excel基础操作（23个）
                 case ExcelKnowledgeType.FillOrCopyCellContent:
@@ -315,13 +315,13 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             return false;
 
         // 检查必需参数是否存在
-        ExcelKnowledgeConfig config = ExcelKnowledgeService.Instance.GetKnowledgeConfig(operationPoint.ExcelKnowledgeType);
+        ExcelKnowledgeConfig config = ExcelKnowledgeService.Instance.GetKnowledgeConfig(operationPoint.ExcelKnowledgeType.Value);
         if (config?.ParameterTemplates != null)
         {
-            foreach (ConfigurationParameter template in config.ParameterTemplates.Where(t => t.IsRequired))
+            foreach (ConfigurationParameterTemplate template in config.ParameterTemplates.Where(t => t.IsRequired))
             {
-                if (!operationPoint.Parameters.ContainsKey(template.Name) || 
-                    string.IsNullOrWhiteSpace(operationPoint.Parameters[template.Name]))
+                ConfigurationParameter parameter = operationPoint.Parameters.FirstOrDefault(p => p.Name == template.Name);
+                if (parameter == null || string.IsNullOrWhiteSpace(parameter.Value))
                 {
                     return false;
                 }
