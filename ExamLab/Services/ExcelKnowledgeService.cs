@@ -48,18 +48,18 @@ public class ExcelKnowledgeService
 
         OperationPoint operationPoint = new()
         {
-            Id = IdGeneratorService.GenerateOperationPointId(),
+            Id = IdGeneratorService.GenerateOperationId(),
             Name = config.Name,
             Description = config.Description,
             ModuleType = ModuleType.Excel,
             ExcelKnowledgeType = type,
             Score = 5.0,
             IsEnabled = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedTime = DateTime.UtcNow.ToString("yyyy-MM-dd")
         };
 
         // 根据参数模板创建配置参数
-        foreach (ParameterTemplate template in config.ParameterTemplates)
+        foreach (ConfigurationParameterTemplate template in config.ParameterTemplates)
         {
             ConfigurationParameter parameter = new()
             {
@@ -83,47 +83,7 @@ public class ExcelKnowledgeService
         return operationPoint;
     }
 
-    /// <summary>
-    /// 根据知识点配置创建操作点
-    /// </summary>
-    public OperationPoint CreateOperationPoint(ExcelKnowledgeType type)
-    {
-        ExcelKnowledgeConfig? config = GetKnowledgeConfig(type);
-        if (config == null)
-        {
-            throw new ArgumentException($"未找到知识点类型 {type} 的配置");
-        }
 
-        OperationPoint operationPoint = new()
-        {
-            Name = config.Name,
-            Description = config.Description,
-            ModuleType = ModuleType.Excel,
-            ExcelKnowledgeType = type
-        };
-
-        // 根据参数模板创建配置参数
-        foreach (ConfigurationParameterTemplate template in config.ParameterTemplates)
-        {
-            ConfigurationParameter parameter = new()
-            {
-                Name = template.Name,
-                DisplayName = template.DisplayName,
-                Description = template.Description,
-                Type = template.Type,
-                IsRequired = template.IsRequired,
-                Order = template.Order,
-                EnumOptions = template.EnumOptions,
-                MinValue = template.MinValue,
-                MaxValue = template.MaxValue,
-                DefaultValue = template.DefaultValue
-            };
-
-            operationPoint.Parameters.Add(parameter);
-        }
-
-        return operationPoint;
-    }
 
     private Dictionary<ExcelKnowledgeType, ExcelKnowledgeConfig> InitializeKnowledgeConfigs()
     {
