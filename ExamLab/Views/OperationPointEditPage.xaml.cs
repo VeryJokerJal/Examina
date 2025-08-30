@@ -338,6 +338,12 @@ public sealed partial class OperationPointEditPage : Page
             numberBox.Maximum = parameter.MaxValue.Value;
         }
 
+        // 添加值变化事件处理，实时更新参数值
+        numberBox.ValueChanged += (sender, args) =>
+        {
+            parameter.Value = numberBox.Value.ToString();
+        };
+
         return numberBox;
     }
 
@@ -402,6 +408,17 @@ public sealed partial class OperationPointEditPage : Page
                 }
             };
         }
+        // 为所有其他枚举参数添加通用的选择变更事件处理
+        else
+        {
+            comboBox.SelectionChanged += (sender, e) =>
+            {
+                if (sender is ComboBox cb && cb.SelectedItem is string selectedValue)
+                {
+                    parameter.Value = selectedValue;
+                }
+            };
+        }
 
         return comboBox;
     }
@@ -457,6 +474,17 @@ public sealed partial class OperationPointEditPage : Page
             checkBox.IsChecked = defaultValue;
         }
 
+        // 添加选中状态变化事件处理，实时更新参数值
+        checkBox.Checked += (sender, args) =>
+        {
+            parameter.Value = "true";
+        };
+
+        checkBox.Unchecked += (sender, args) =>
+        {
+            parameter.Value = "false";
+        };
+
         return checkBox;
     }
 
@@ -472,6 +500,12 @@ public sealed partial class OperationPointEditPage : Page
             Text = parameter.Value ?? parameter.DefaultValue ?? "",
             PlaceholderText = parameter.DefaultValue,
             HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        // 添加文本变化事件处理，实时更新参数值
+        textBox.TextChanged += (sender, args) =>
+        {
+            parameter.Value = textBox.Text;
         };
 
         return textBox;
@@ -622,28 +656,37 @@ public sealed partial class OperationPointEditPage : Page
             hexTextBox.Text = "#000000";
         }
 
-        // ColorPicker变化时更新文本框
+        // ColorPicker变化时更新文本框和参数值
         colorPicker.ColorChanged += (sender, args) =>
         {
             Windows.UI.Color selectedColor = args.NewColor;
             string hexValue = $"#{selectedColor.R:X2}{selectedColor.G:X2}{selectedColor.B:X2}";
             hexTextBox.Text = hexValue;
+            // 实时更新参数值
+            parameter.Value = hexValue;
         };
 
-        // 文本框变化时更新ColorPicker
+        // 文本框变化时更新ColorPicker和参数值
         hexTextBox.TextChanged += (sender, args) =>
         {
-            if (TryParseHexColor(hexTextBox.Text, out Windows.UI.Color parsedColor))
+            string hexText = hexTextBox.Text;
+            if (TryParseHexColor(hexText, out Windows.UI.Color parsedColor))
             {
-                colorPicker.Color = parsedColor;
+                // 防止循环更新
+                if (colorPicker.Color != parsedColor)
+                {
+                    colorPicker.Color = parsedColor;
+                }
             }
+            // 实时更新参数值
+            parameter.Value = hexText;
         };
 
         colorPanel.Children.Add(colorPicker);
         colorPanel.Children.Add(hexTextBox);
 
-        // 将文本框注册为主控件，用于获取值
-        _parameterControls[parameter.Name] = hexTextBox;
+        // 将ColorPicker注册为主控件，用于获取值（与GetParameterValue方法中的逻辑一致）
+        _parameterControls[parameter.Name] = colorPicker;
 
         return colorPanel;
     }
