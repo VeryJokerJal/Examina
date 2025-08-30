@@ -150,17 +150,27 @@ public class SpecializedExamViewModel : ViewModelBase
     /// <summary>
     /// 生成Word文档命令
     /// </summary>
-    //public ReactiveCommand<Unit, Unit> GenerateWordDocumentCommand { get; }
+    public ReactiveCommand<Unit, Unit> GenerateWordDocumentCommand { get; }
 
     /// <summary>
     /// 生成Excel文档命令
     /// </summary>
-    //public ReactiveCommand<Unit, Unit> GenerateExcelDocumentCommand { get; }
+    public ReactiveCommand<Unit, Unit> GenerateExcelDocumentCommand { get; }
 
     /// <summary>
     /// 生成PowerPoint文档命令
     /// </summary>
-    //public ReactiveCommand<Unit, Unit> GeneratePowerPointDocumentCommand { get; }
+    public ReactiveCommand<Unit, Unit> GeneratePowerPointDocumentCommand { get; }
+
+    /// <summary>
+    /// 重置模块描述命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ResetModuleDescriptionCommand { get; }
+
+    /// <summary>
+    /// 保存模块描述命令
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SaveModuleDescriptionCommand { get; }
 
     /// <summary>
     /// 导出题目命令
@@ -200,9 +210,13 @@ public class SpecializedExamViewModel : ViewModelBase
         ConfigureOperationPointCommand = ReactiveCommand.Create<OperationPoint>(ConfigureOperationPoint);
 
         // 文档生成命令
-        //GenerateWordDocumentCommand = ReactiveCommand.CreateFromTask(GenerateWordDocumentAsync);
-        //GenerateExcelDocumentCommand = ReactiveCommand.CreateFromTask(GenerateExcelDocumentAsync);
-        //GeneratePowerPointDocumentCommand = ReactiveCommand.CreateFromTask(GeneratePowerPointDocumentAsync);
+        GenerateWordDocumentCommand = ReactiveCommand.CreateFromTask(GenerateWordDocumentAsync);
+        GenerateExcelDocumentCommand = ReactiveCommand.CreateFromTask(GenerateExcelDocumentAsync);
+        GeneratePowerPointDocumentCommand = ReactiveCommand.CreateFromTask(GeneratePowerPointDocumentAsync);
+
+        // 模块描述管理命令
+        ResetModuleDescriptionCommand = ReactiveCommand.CreateFromTask(ResetModuleDescriptionAsync);
+        SaveModuleDescriptionCommand = ReactiveCommand.CreateFromTask(SaveModuleDescriptionAsync);
 
         // 监听选中试卷变化
         _ = this.WhenAnyValue(x => x.SelectedSpecializedExam)
@@ -1206,6 +1220,93 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             await NotificationService.ShowErrorAsync("生成失败", $"生成{GetModuleTypeName(moduleType)}文档时发生错误：{ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 保存模块描述
+    /// </summary>
+    private async Task SaveModuleDescriptionAsync()
+    {
+        try
+        {
+            if (SelectedModule == null)
+            {
+                await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(SelectedModule.Name))
+            {
+                await NotificationService.ShowErrorAsync("错误", "模块名称不能为空");
+                return;
+            }
+
+            // 更新最后修改时间
+            if (SelectedSpecializedExam != null)
+            {
+                SelectedSpecializedExam.UpdateLastModifiedTime();
+                HasUnsavedChanges = true;
+            }
+
+            await NotificationService.ShowSuccessAsync("保存成功", "模块描述已保存");
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("保存失败", $"保存模块描述时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 重置模块描述
+    /// </summary>
+    private async Task ResetModuleDescriptionAsync()
+    {
+        try
+        {
+            if (SelectedModule == null)
+            {
+                await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+                return;
+            }
+
+            bool confirmed = await NotificationService.ShowDeleteConfirmationAsync("重置模块描述");
+            if (!confirmed)
+            {
+                return;
+            }
+
+            // 根据模块类型重置为默认描述
+            SelectedModule.Description = GetDefaultModuleDescription(SelectedModule.Type);
+
+            // 更新最后修改时间
+            if (SelectedSpecializedExam != null)
+            {
+                SelectedSpecializedExam.UpdateLastModifiedTime();
+                HasUnsavedChanges = true;
+            }
+
+            await NotificationService.ShowSuccessAsync("重置成功", "模块描述已重置为默认值");
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync("重置失败", $"重置模块描述时发生错误：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 获取默认模块描述
+    /// </summary>
+    private static string GetDefaultModuleDescription(ModuleType type)
+    {
+        return type switch
+        {
+            ModuleType.Windows => "Windows系统操作和文件管理相关题目",
+            ModuleType.CSharp => "C#编程语言基础和应用开发题目",
+            ModuleType.PowerPoint => "PowerPoint演示文稿制作和设计题目",
+            ModuleType.Excel => "Excel电子表格操作和数据分析题目",
+            ModuleType.Word => "Word文档编辑和排版设计题目",
+            _ => "专项练习题目"
+        };
     }
 
 }
