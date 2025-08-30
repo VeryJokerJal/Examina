@@ -1760,6 +1760,78 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 检测页面边框样式
+    /// </summary>
+    private KnowledgePointResult DetectPageBorderStyle(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetPageBorderStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "BorderStyle", out string expectedStyle))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: BorderStyle");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualStyle = GetPageBorderStyle(mainPart);
+
+            result.ExpectedValue = expectedStyle;
+            result.ActualValue = actualStyle;
+            result.IsCorrect = TextEquals(actualStyle, expectedStyle);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页面边框样式: 期望 {expectedStyle}, 实际 {actualStyle}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页面边框样式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页面边框宽度
+    /// </summary>
+    private KnowledgePointResult DetectPageBorderWidth(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetPageBorderWidth",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetFloatParameter(parameters, "BorderWidth", out float expectedWidth))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: BorderWidth");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            float actualWidth = GetPageBorderWidth(mainPart);
+
+            result.ExpectedValue = expectedWidth.ToString();
+            result.ActualValue = actualWidth.ToString();
+            result.IsCorrect = Math.Abs(actualWidth - expectedWidth) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页面边框宽度: 期望 {expectedWidth}, 实际 {actualWidth}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页面边框宽度失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 检测水印文字
     /// </summary>
     private KnowledgePointResult DetectWatermarkText(WordprocessingDocument document, Dictionary<string, string> parameters)
@@ -7146,6 +7218,62 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch
         {
             return (false, "", "");
+        }
+    }
+
+    /// <summary>
+    /// 获取页面边框样式
+    /// </summary>
+    private static string GetPageBorderStyle(MainDocumentPart mainPart)
+    {
+        try
+        {
+            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            var pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
+
+            if (pageBorders != null)
+            {
+                var topBorder = pageBorders.TopBorder;
+                if (topBorder?.Val?.Value != null)
+                {
+                    return topBorder.Val.Value.ToString();
+                }
+                return "检测到页面边框样式";
+            }
+
+            return "无页面边框样式";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取页面边框宽度
+    /// </summary>
+    private static float GetPageBorderWidth(MainDocumentPart mainPart)
+    {
+        try
+        {
+            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            var pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
+
+            if (pageBorders != null)
+            {
+                var topBorder = pageBorders.TopBorder;
+                if (topBorder?.Size?.Value != null)
+                {
+                    return topBorder.Size.Value / 8f; // OpenXML中边框宽度是8分之一点
+                }
+                return 1.0f; // 默认边框宽度
+            }
+
+            return 0f;
+        }
+        catch
+        {
+            return 0f;
         }
     }
 }
