@@ -646,7 +646,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -692,7 +692,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -738,7 +738,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -784,7 +784,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -830,7 +830,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -878,7 +878,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -887,13 +887,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            var indentInfo = GetParagraphIndentation(targetParagraph);
+            (int FirstLine, int Left, int Right) = GetParagraphIndentation(targetParagraph);
 
             result.ExpectedValue = $"首行:{expectedFirstLine}, 左:{expectedLeft}, 右:{expectedRight}";
-            result.ActualValue = $"首行:{indentInfo.FirstLine}, 左:{indentInfo.Left}, 右:{indentInfo.Right}";
-            result.IsCorrect = indentInfo.FirstLine == expectedFirstLine &&
-                              indentInfo.Left == expectedLeft &&
-                              indentInfo.Right == expectedRight;
+            result.ActualValue = $"首行:{FirstLine}, 左:{Left}, 右:{Right}";
+            result.IsCorrect = FirstLine == expectedFirstLine &&
+                              Left == expectedLeft &&
+                              Right == expectedRight;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"段落 {paragraphNumber} 缩进: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
@@ -926,7 +926,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -972,7 +972,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -1018,7 +1018,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -1064,7 +1064,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -1110,7 +1110,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -1157,7 +1157,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -1166,7 +1166,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            var shadingInfo = GetParagraphShading(targetParagraph);
+            (string Color, string Pattern) shadingInfo = GetParagraphShading(targetParagraph);
 
             result.ExpectedValue = $"颜色:{expectedColor}, 图案:{expectedPattern}";
             result.ActualValue = $"颜色:{shadingInfo.Color}, 图案:{shadingInfo.Pattern}";
@@ -1204,7 +1204,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -1251,7 +1251,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
             {
@@ -1260,12 +1260,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
-            var spacingInfo = GetParagraphSpacing(targetParagraph);
+            (float Before, float After) = GetParagraphSpacing(targetParagraph);
 
             result.ExpectedValue = $"前:{expectedBefore}, 后:{expectedAfter}";
-            result.ActualValue = $"前:{spacingInfo.Before}, 后:{spacingInfo.After}";
-            result.IsCorrect = Math.Abs(spacingInfo.Before - expectedBefore) < 0.1f &&
-                              Math.Abs(spacingInfo.After - expectedAfter) < 0.1f;
+            result.ActualValue = $"前:{Before}, 后:{After}";
+            result.IsCorrect = Math.Abs(Before - expectedBefore) < 0.1f &&
+                              Math.Abs(After - expectedAfter) < 0.1f;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"段落 {paragraphNumber} 间距: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
@@ -1336,14 +1336,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var marginsInfo = GetDocumentMargins(mainPart);
+            (float Top, float Bottom, float Left, float Right) = GetDocumentMargins(mainPart);
 
             result.ExpectedValue = $"上:{expectedTop}, 下:{expectedBottom}, 左:{expectedLeft}, 右:{expectedRight}";
-            result.ActualValue = $"上:{marginsInfo.Top}, 下:{marginsInfo.Bottom}, 左:{marginsInfo.Left}, 右:{marginsInfo.Right}";
-            result.IsCorrect = Math.Abs(marginsInfo.Top - expectedTop) < 0.1f &&
-                              Math.Abs(marginsInfo.Bottom - expectedBottom) < 0.1f &&
-                              Math.Abs(marginsInfo.Left - expectedLeft) < 0.1f &&
-                              Math.Abs(marginsInfo.Right - expectedRight) < 0.1f;
+            result.ActualValue = $"上:{Top}, 下:{Bottom}, 左:{Left}, 右:{Right}";
+            result.IsCorrect = Math.Abs(Top - expectedTop) < 0.1f &&
+                              Math.Abs(Bottom - expectedBottom) < 0.1f &&
+                              Math.Abs(Left - expectedLeft) < 0.1f &&
+                              Math.Abs(Right - expectedRight) < 0.1f;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"页边距: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
@@ -1664,7 +1664,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var pageNumberInfo = GetPageNumberInfo(mainPart);
+            (string Position, string Format) pageNumberInfo = GetPageNumberInfo(mainPart);
 
             result.ExpectedValue = $"位置:{expectedPosition}, 格式:{expectedFormat}";
             result.ActualValue = $"位置:{pageNumberInfo.Position}, 格式:{pageNumberInfo.Format}";
@@ -1990,7 +1990,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var tableInfo = GetTableRowsColumns(mainPart);
+            (int Rows, int Columns) tableInfo = GetTableRowsColumns(mainPart);
 
             result.ExpectedValue = $"行:{expectedRows}, 列:{expectedColumns}";
             result.ActualValue = $"行:{tableInfo.Rows}, 列:{tableInfo.Columns}";
@@ -2183,12 +2183,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var alignmentInfo = GetTableCellAlignment(mainPart, rowNumber, columnNumber);
+            (string Horizontal, string Vertical) = GetTableCellAlignment(mainPart, rowNumber, columnNumber);
 
             result.ExpectedValue = $"水平:{expectedHorizontal}, 垂直:{expectedVertical}";
-            result.ActualValue = $"水平:{alignmentInfo.Horizontal}, 垂直:{alignmentInfo.Vertical}";
-            result.IsCorrect = TextEquals(alignmentInfo.Horizontal, expectedHorizontal) &&
-                              TextEquals(alignmentInfo.Vertical, expectedVertical);
+            result.ActualValue = $"水平:{Horizontal}, 垂直:{Vertical}";
+            result.IsCorrect = TextEquals(Horizontal, expectedHorizontal) &&
+                              TextEquals(Vertical, expectedVertical);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"单元格({rowNumber},{columnNumber})对齐: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
@@ -2221,12 +2221,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var alignmentInfo = GetTableAlignment(mainPart);
+            (string Alignment, float LeftIndent) = GetTableAlignment(mainPart);
 
             result.ExpectedValue = $"对齐:{expectedAlignment}, 缩进:{expectedIndent}";
-            result.ActualValue = $"对齐:{alignmentInfo.Alignment}, 缩进:{alignmentInfo.LeftIndent}";
-            result.IsCorrect = TextEquals(alignmentInfo.Alignment, expectedAlignment) &&
-                              Math.Abs(alignmentInfo.LeftIndent - expectedIndent) < 0.1f;
+            result.ActualValue = $"对齐:{Alignment}, 缩进:{LeftIndent}";
+            result.IsCorrect = TextEquals(Alignment, expectedAlignment) &&
+                              Math.Abs(LeftIndent - expectedIndent) < 0.1f;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"表格对齐: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
@@ -2336,12 +2336,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var alignmentInfo = GetTableHeaderAlignment(mainPart, columnNumber);
+            (string Horizontal, string Vertical) = GetTableHeaderAlignment(mainPart, columnNumber);
 
             result.ExpectedValue = $"水平:{expectedHorizontal}, 垂直:{expectedVertical}";
-            result.ActualValue = $"水平:{alignmentInfo.Horizontal}, 垂直:{alignmentInfo.Vertical}";
-            result.IsCorrect = TextEquals(alignmentInfo.Horizontal, expectedHorizontal) &&
-                              TextEquals(alignmentInfo.Vertical, expectedVertical);
+            result.ActualValue = $"水平:{Horizontal}, 垂直:{Vertical}";
+            result.IsCorrect = TextEquals(Horizontal, expectedHorizontal) &&
+                              TextEquals(Vertical, expectedVertical);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"表头第{columnNumber}列对齐: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
         }
@@ -2447,7 +2447,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var sizeInfo = GetAutoShapeSize(mainPart);
+            (float Height, float Width) sizeInfo = GetAutoShapeSize(mainPart);
 
             result.ExpectedValue = $"高:{expectedHeight}, 宽:{expectedWidth}";
             result.ActualValue = $"高:{sizeInfo.Height}, 宽:{sizeInfo.Width}";
@@ -2658,11 +2658,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var positionInfo = GetAutoShapePosition(mainPart);
+            (bool HasPosition, string Horizontal, string Vertical) = GetAutoShapePosition(mainPart);
 
             result.ExpectedValue = "位置已设置";
-            result.ActualValue = positionInfo.HasPosition ? $"水平:{positionInfo.Horizontal}, 垂直:{positionInfo.Vertical}" : "未设置位置";
-            result.IsCorrect = positionInfo.HasPosition;
+            result.ActualValue = HasPosition ? $"水平:{Horizontal}, 垂直:{Vertical}" : "未设置位置";
+            result.IsCorrect = HasPosition;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"自选图形位置: {result.ActualValue}";
         }
@@ -2839,7 +2839,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var shadowInfo = GetImageShadowInfo(mainPart);
+            (string Type, string Color) shadowInfo = GetImageShadowInfo(mainPart);
 
             result.ExpectedValue = $"类型:{expectedType}, 颜色:{expectedColor}";
             result.ActualValue = $"类型:{shadowInfo.Type}, 颜色:{shadowInfo.Color}";
@@ -2913,7 +2913,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var sizeInfo = GetImageSize(mainPart);
+            (float Height, float Width) sizeInfo = GetImageSize(mainPart);
 
             result.ExpectedValue = $"高:{expectedHeight}, 宽:{expectedWidth}";
             result.ActualValue = $"高:{sizeInfo.Height}, 宽:{sizeInfo.Width}";
@@ -2944,11 +2944,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var positionInfo = GetImagePosition(mainPart);
+            (bool HasPosition, string Horizontal, string Vertical) = GetImagePosition(mainPart);
 
             result.ExpectedValue = "位置已设置";
-            result.ActualValue = positionInfo.HasPosition ? $"水平:{positionInfo.Horizontal}, 垂直:{positionInfo.Vertical}" : "未设置位置";
-            result.IsCorrect = positionInfo.HasPosition;
+            result.ActualValue = HasPosition ? $"水平:{Horizontal}, 垂直:{Vertical}" : "未设置位置";
+            result.IsCorrect = HasPosition;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"图片位置: {result.ActualValue}";
         }
@@ -3082,11 +3082,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             MainDocumentPart mainPart = document.MainDocumentPart!;
-            var positionInfo = GetTextBoxPosition(mainPart);
+            (bool HasPosition, string Horizontal, string Vertical) = GetTextBoxPosition(mainPart);
 
             result.ExpectedValue = "位置已设置";
-            result.ActualValue = positionInfo.HasPosition ? $"水平:{positionInfo.Horizontal}, 垂直:{positionInfo.Vertical}" : "未设置位置";
-            result.IsCorrect = positionInfo.HasPosition;
+            result.ActualValue = HasPosition ? $"水平:{Horizontal}, 垂直:{Vertical}" : "未设置位置";
+            result.IsCorrect = HasPosition;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"文本框位置: {result.ActualValue}";
         }
@@ -5076,11 +5076,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var runs = paragraph.Elements<Run>();
-            foreach (var run in runs)
+            IEnumerable<Run> runs = paragraph.Elements<Run>();
+            foreach (Run run in runs)
             {
-                var runProperties = run.RunProperties;
-                var runFonts = runProperties?.RunFonts;
+                RunProperties? runProperties = run.RunProperties;
+                RunFonts? runFonts = runProperties?.RunFonts;
                 if (runFonts?.Ascii?.Value != null)
                 {
                     return runFonts.Ascii.Value;
@@ -5101,11 +5101,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var runs = paragraph.Elements<Run>();
-            foreach (var run in runs)
+            IEnumerable<Run> runs = paragraph.Elements<Run>();
+            foreach (Run run in runs)
             {
-                var runProperties = run.RunProperties;
-                var fontSize = runProperties?.FontSize;
+                RunProperties? runProperties = run.RunProperties;
+                FontSize? fontSize = runProperties?.FontSize;
                 if (fontSize?.Val?.Value != null)
                 {
                     return int.Parse(fontSize.Val.Value) / 2; // OpenXML中字号是半点值
@@ -5126,16 +5126,27 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var runs = paragraph.Elements<Run>();
-            foreach (var run in runs)
+            IEnumerable<Run> runs = paragraph.Elements<Run>();
+            foreach (Run run in runs)
             {
-                var runProperties = run.RunProperties;
+                RunProperties? runProperties = run.RunProperties;
                 if (runProperties != null)
                 {
-                    var styles = new List<string>();
-                    if (runProperties.Bold != null) styles.Add("Bold");
-                    if (runProperties.Italic != null) styles.Add("Italic");
-                    if (runProperties.Underline != null) styles.Add("Underline");
+                    List<string> styles = new();
+                    if (runProperties.Bold != null)
+                    {
+                        styles.Add("Bold");
+                    }
+
+                    if (runProperties.Italic != null)
+                    {
+                        styles.Add("Italic");
+                    }
+
+                    if (runProperties.Underline != null)
+                    {
+                        styles.Add("Underline");
+                    }
 
                     if (styles.Count > 0)
                     {
@@ -5158,11 +5169,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var runs = paragraph.Elements<Run>();
-            foreach (var run in runs)
+            IEnumerable<Run> runs = paragraph.Elements<Run>();
+            foreach (Run run in runs)
             {
-                var runProperties = run.RunProperties;
-                var spacing = runProperties?.Spacing;
+                RunProperties? runProperties = run.RunProperties;
+                Spacing? spacing = runProperties?.Spacing;
                 if (spacing?.Val?.Value != null)
                 {
                     return int.Parse(spacing.Val.Value.ToString()) / 20f; // OpenXML中间距是20分之一点
@@ -5183,11 +5194,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var runs = paragraph.Elements<Run>();
-            foreach (var run in runs)
+            IEnumerable<Run> runs = paragraph.Elements<Run>();
+            foreach (Run run in runs)
             {
-                var runProperties = run.RunProperties;
-                var color = runProperties?.Color;
+                RunProperties? runProperties = run.RunProperties;
+                Color? color = runProperties?.Color;
                 if (color?.Val?.Value != null)
                 {
                     return color.Val.Value;
@@ -5208,14 +5219,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var indentation = paragraphProperties?.Indentation;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            Indentation? indentation = paragraphProperties?.Indentation;
 
             if (indentation != null)
             {
-                int firstLine = indentation.FirstLine?.Value != null ? (int)(int.Parse(indentation.FirstLine.Value) / 567) : 0; // 转换为字符
-                int left = indentation.Left?.Value != null ? (int)(int.Parse(indentation.Left.Value) / 567) : 0;
-                int right = indentation.Right?.Value != null ? (int)(int.Parse(indentation.Right.Value) / 567) : 0;
+                int firstLine = indentation.FirstLine?.Value != null ? int.Parse(indentation.FirstLine.Value) / 567 : 0; // 转换为字符
+                int left = indentation.Left?.Value != null ? int.Parse(indentation.Left.Value) / 567 : 0;
+                int right = indentation.Right?.Value != null ? int.Parse(indentation.Right.Value) / 567 : 0;
 
                 return (firstLine, left, right);
             }
@@ -5235,8 +5246,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var spacingBetweenLines = paragraphProperties?.SpacingBetweenLines;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            SpacingBetweenLines? spacingBetweenLines = paragraphProperties?.SpacingBetweenLines;
 
             if (spacingBetweenLines?.Line?.Value != null)
             {
@@ -5258,12 +5269,38 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 简化实现：检查段落是否有特殊格式
-            var paragraphProperties = paragraph.ParagraphProperties;
-            if (paragraphProperties?.HasChildren == true)
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            if (paragraphProperties == null)
+                return "无首字下沉";
+
+            // 检查首字下沉设置
+            var framePr = paragraphProperties.GetFirstChild<FrameProperties>();
+            if (framePr != null)
             {
-                return "检测到首字下沉设置";
+                // 检查是否有下沉行数设置
+                if (framePr.DropCap?.Value != null)
+                {
+                    var dropCapValue = framePr.DropCap.Value;
+                    if (dropCapValue == DropCapLocationValues.Drop)
+                        return "首字下沉";
+                    else if (dropCapValue == DropCapLocationValues.Margin)
+                        return "首字悬挂";
+                }
+
+                // 检查下沉行数
+                if (framePr.Lines?.Value != null)
+                {
+                    return $"首字下沉 {framePr.Lines.Value} 行";
+                }
             }
+
+            // 检查Run级别的首字下沉（某些情况下可能在Run中设置）
+            var firstRun = paragraph.Elements<Run>().FirstOrDefault();
+            if (firstRun?.RunProperties?.GetFirstChild<VerticalTextAlignment>() != null)
+            {
+                return "检测到首字特殊格式";
+            }
+
             return "无首字下沉";
         }
         catch
@@ -5279,12 +5316,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var paragraphBorders = paragraphProperties?.ParagraphBorders;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            ParagraphBorders? paragraphBorders = paragraphProperties?.ParagraphBorders;
 
             if (paragraphBorders != null)
             {
-                var topBorder = paragraphBorders.TopBorder;
+                TopBorder? topBorder = paragraphBorders.TopBorder;
                 if (topBorder?.Color?.Value != null)
                 {
                     return topBorder.Color.Value;
@@ -5306,12 +5343,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var paragraphBorders = paragraphProperties?.ParagraphBorders;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            ParagraphBorders? paragraphBorders = paragraphProperties?.ParagraphBorders;
 
             if (paragraphBorders != null)
             {
-                var topBorder = paragraphBorders.TopBorder;
+                TopBorder? topBorder = paragraphBorders.TopBorder;
                 if (topBorder?.Val?.Value != null)
                 {
                     return topBorder.Val.Value.ToString();
@@ -5333,12 +5370,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var paragraphBorders = paragraphProperties?.ParagraphBorders;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            ParagraphBorders? paragraphBorders = paragraphProperties?.ParagraphBorders;
 
             if (paragraphBorders != null)
             {
-                var topBorder = paragraphBorders.TopBorder;
+                TopBorder? topBorder = paragraphBorders.TopBorder;
                 if (topBorder?.Size?.Value != null)
                 {
                     return uint.Parse(topBorder.Size.Value.ToString()) / 8f; // OpenXML中边框宽度是8分之一点
@@ -5360,8 +5397,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var shading = paragraphProperties?.Shading;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            Shading? shading = paragraphProperties?.Shading;
 
             if (shading != null)
             {
@@ -5385,8 +5422,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            var pageSize = sectionProperties?.Elements<PageSize>().FirstOrDefault();
+            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            PageSize? pageSize = sectionProperties?.Elements<PageSize>().FirstOrDefault();
 
             if (pageSize != null)
             {
@@ -5400,13 +5437,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                     return "A4";
                 }
                 // A3纸张的OpenXML尺寸
-                else if (Math.Abs(width - 16838) < 100 && Math.Abs(height - 23811) < 100)
-                {
-                    return "A3";
-                }
                 else
                 {
-                    return "自定义";
+                    return Math.Abs(width - 16838) < 100 && Math.Abs(height - 23811) < 100 ? "A3" : "自定义";
                 }
             }
 
@@ -5425,8 +5458,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            var pageMargin = sectionProperties?.Elements<PageMargin>().FirstOrDefault();
+            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            PageMargin? pageMargin = sectionProperties?.Elements<PageMargin>().FirstOrDefault();
 
             if (pageMargin != null)
             {
@@ -5453,9 +5486,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var text = headerPart.Header.InnerText;
+                string text = headerPart.Header.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
                     return text.Trim();
@@ -5476,13 +5509,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var runs = headerPart.Header.Descendants<Run>();
-                foreach (var run in runs)
+                IEnumerable<Run> runs = headerPart.Header.Descendants<Run>();
+                foreach (Run run in runs)
                 {
-                    var runProperties = run.RunProperties;
-                    var runFonts = runProperties?.RunFonts;
+                    RunProperties? runProperties = run.RunProperties;
+                    RunFonts? runFonts = runProperties?.RunFonts;
                     if (runFonts?.Ascii?.Value != null)
                     {
                         return runFonts.Ascii.Value;
@@ -5504,13 +5537,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var runs = headerPart.Header.Descendants<Run>();
-                foreach (var run in runs)
+                IEnumerable<Run> runs = headerPart.Header.Descendants<Run>();
+                foreach (Run run in runs)
                 {
-                    var runProperties = run.RunProperties;
-                    var fontSize = runProperties?.FontSize;
+                    RunProperties? runProperties = run.RunProperties;
+                    FontSize? fontSize = runProperties?.FontSize;
                     if (fontSize?.Val?.Value != null)
                     {
                         return int.Parse(fontSize.Val.Value) / 2; // OpenXML中字号是半点值
@@ -5532,8 +5565,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var justification = paragraphProperties?.Justification;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            Justification? justification = paragraphProperties?.Justification;
 
             if (justification?.Val?.Value != null)
             {
@@ -5563,13 +5596,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var paragraphs = headerPart.Header.Descendants<Paragraph>();
-                foreach (var paragraph in paragraphs)
+                IEnumerable<Paragraph> paragraphs = headerPart.Header.Descendants<Paragraph>();
+                foreach (Paragraph paragraph in paragraphs)
                 {
-                    var paragraphProperties = paragraph.ParagraphProperties;
-                    var justification = paragraphProperties?.Justification;
+                    ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+                    Justification? justification = paragraphProperties?.Justification;
 
                     if (justification?.Val?.Value != null)
                     {
@@ -5599,9 +5632,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var footerPart in mainPart.FooterParts)
+            foreach (FooterPart footerPart in mainPart.FooterParts)
             {
-                var text = footerPart.Footer.InnerText;
+                string text = footerPart.Footer.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
                     return text.Trim();
@@ -5622,13 +5655,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var footerPart in mainPart.FooterParts)
+            foreach (FooterPart footerPart in mainPart.FooterParts)
             {
-                var runs = footerPart.Footer.Descendants<Run>();
-                foreach (var run in runs)
+                IEnumerable<Run> runs = footerPart.Footer.Descendants<Run>();
+                foreach (Run run in runs)
                 {
-                    var runProperties = run.RunProperties;
-                    var runFonts = runProperties?.RunFonts;
+                    RunProperties? runProperties = run.RunProperties;
+                    RunFonts? runFonts = runProperties?.RunFonts;
                     if (runFonts?.Ascii?.Value != null)
                     {
                         return runFonts.Ascii.Value;
@@ -5650,13 +5683,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var footerPart in mainPart.FooterParts)
+            foreach (FooterPart footerPart in mainPart.FooterParts)
             {
-                var runs = footerPart.Footer.Descendants<Run>();
-                foreach (var run in runs)
+                IEnumerable<Run> runs = footerPart.Footer.Descendants<Run>();
+                foreach (Run run in runs)
                 {
-                    var runProperties = run.RunProperties;
-                    var fontSize = runProperties?.FontSize;
+                    RunProperties? runProperties = run.RunProperties;
+                    FontSize? fontSize = runProperties?.FontSize;
                     if (fontSize?.Val?.Value != null)
                     {
                         return int.Parse(fontSize.Val.Value) / 2; // OpenXML中字号是半点值
@@ -5678,13 +5711,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var footerPart in mainPart.FooterParts)
+            foreach (FooterPart footerPart in mainPart.FooterParts)
             {
-                var paragraphs = footerPart.Footer.Descendants<Paragraph>();
-                foreach (var paragraph in paragraphs)
+                IEnumerable<Paragraph> paragraphs = footerPart.Footer.Descendants<Paragraph>();
+                foreach (Paragraph paragraph in paragraphs)
                 {
-                    var paragraphProperties = paragraph.ParagraphProperties;
-                    var justification = paragraphProperties?.Justification;
+                    ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+                    Justification? justification = paragraphProperties?.Justification;
 
                     if (justification?.Val?.Value != null)
                     {
@@ -5714,25 +5747,80 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 检查页眉中的水印
-            foreach (var headerPart in mainPart.HeaderParts)
+            // 1. 检查页眉中的VML水印
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
+                // 检查VML形状中的水印文字
                 var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
                 foreach (var shape in shapes)
                 {
-                    // 简化实现：检测到VML形状中的文字
-                    var text = shape.InnerText;
-                    if (!string.IsNullOrEmpty(text))
+                    // 检查形状的文本路径属性（水印通常使用TextPath）
+                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                    if (textPath?.String?.Value != null)
                     {
-                        return text;
+                        return textPath.String.Value;
+                    }
+
+                    // 检查形状内的文本内容
+                    var shapeText = shape.InnerText?.Trim();
+                    if (!string.IsNullOrEmpty(shapeText))
+                    {
+                        return shapeText;
+                    }
+
+                    // 检查形状的填充文本
+                    var fill = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.Fill>();
+                    if (fill?.Type?.Value == DocumentFormat.OpenXml.Vml.FillTypeValues.Pattern)
+                    {
+                        // 可能是图案填充的水印
+                        return "图案水印";
                     }
                 }
 
-                // 简化实现：检查文档中的文本内容
-                var headerText = headerPart.Header.InnerText;
-                if (!string.IsNullOrEmpty(headerText) && headerText.Trim().Length > 0)
+                // 检查页眉中的普通文本（可能是文本水印）
+                var paragraphs = headerPart.Header.Descendants<Paragraph>();
+                foreach (var paragraph in paragraphs)
                 {
-                    return headerText.Trim();
+                    var runs = paragraph.Descendants<Run>();
+                    foreach (var run in runs)
+                    {
+                        var runProps = run.RunProperties;
+                        // 检查是否有水印样式的文本（通常是半透明或特殊颜色）
+                        if (runProps?.Color?.Val?.Value != null)
+                        {
+                            var colorValue = runProps.Color.Val.Value;
+                            // 水印文字通常使用浅色
+                            if (colorValue.ToLowerInvariant().Contains("gray") ||
+                                colorValue.ToLowerInvariant().Contains("silver") ||
+                                colorValue.StartsWith("C0C0C0", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var text = run.InnerText?.Trim();
+                                if (!string.IsNullOrEmpty(text))
+                                {
+                                    return text;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. 检查文档背景中的水印
+            var documentBackground = mainPart.Document.DocumentBackground;
+            if (documentBackground != null)
+            {
+                var background = documentBackground.GetFirstChild<DocumentFormat.OpenXml.Vml.Background>();
+                if (background != null)
+                {
+                    var backgroundShapes = background.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                    foreach (var shape in backgroundShapes)
+                    {
+                        var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                        if (textPath?.String?.Value != null)
+                        {
+                            return textPath.String.Value;
+                        }
+                    }
                 }
             }
 
@@ -5751,13 +5839,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                foreach (var shape in shapes)
+                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
                 {
                     // 简化实现：检查形状是否包含文本
-                    var text = shape.InnerText;
+                    string text = shape.InnerText;
                     if (!string.IsNullOrEmpty(text))
                     {
                         // 简化实现：返回默认水印字体
@@ -5780,13 +5868,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                foreach (var shape in shapes)
+                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
                 {
                     // 简化实现：检查形状是否包含文本
-                    var text = shape.InnerText;
+                    string text = shape.InnerText;
                     if (!string.IsNullOrEmpty(text))
                     {
                         // 简化实现：返回默认水印字号
@@ -5809,16 +5897,16 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                foreach (var shape in shapes)
+                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
                 {
-                    var style = shape.Style?.Value;
+                    string? style = shape.Style?.Value;
                     if (!string.IsNullOrEmpty(style) && style.Contains("rotation"))
                     {
                         // 解析旋转角度
-                        var rotationMatch = System.Text.RegularExpressions.Regex.Match(style, @"rotation:([^;]+)");
+                        System.Text.RegularExpressions.Match rotationMatch = System.Text.RegularExpressions.Regex.Match(style, @"rotation:([^;]+)");
                         if (rotationMatch.Success)
                         {
                             if (float.TryParse(rotationMatch.Groups[1].Value.Trim(), out float angle))
@@ -5844,15 +5932,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var rows = firstTable.Elements<TableRow>().Count();
-                var columns = 0;
+                int rows = firstTable.Elements<TableRow>().Count();
+                int columns = 0;
 
-                var firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
+                TableRow? firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
                 if (firstRow != null)
                 {
                     columns = firstRow.Elements<TableCell>().Count();
@@ -5876,26 +5964,69 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
                 if (areaType.ToLower() == "row" || areaType == "行")
                 {
-                    var rows = firstTable.Elements<TableRow>().ToList();
+                    List<TableRow> rows = firstTable.Elements<TableRow>().ToList();
                     if (areaNumber > 0 && areaNumber <= rows.Count)
                     {
-                        var targetRow = rows[areaNumber - 1];
+                        TableRow targetRow = rows[areaNumber - 1];
+
+                        // 检查行级别的底纹设置
                         var rowProperties = targetRow.TableRowProperties;
-                        // 简化实现：检查行属性中的底纹
-                        return "检测到底纹设置";
+                        if (rowProperties != null)
+                        {
+                            var rowShading = rowProperties.GetFirstChild<Shading>();
+                            if (rowShading != null)
+                            {
+                                var fill = rowShading.Fill?.Value ?? "auto";
+                                var pattern = rowShading.Val?.HasValue == true ?
+                                    rowShading.Val.Value.ToString() : "clear";
+                                return $"行底纹: {fill}, 图案: {pattern}";
+                            }
+                        }
+
+                        // 检查该行中单元格的底纹设置
+                        var cells = targetRow.Elements<TableCell>();
+                        foreach (var cell in cells)
+                        {
+                            var cellProperties = cell.TableCellProperties;
+                            var cellShading = cellProperties?.GetFirstChild<Shading>();
+                            if (cellShading != null)
+                            {
+                                var fill = cellShading.Fill?.Value ?? "auto";
+                                var pattern = cellShading.Val?.HasValue == true ?
+                                    cellShading.Val.Value.ToString() : "clear";
+                                return $"单元格底纹: {fill}, 图案: {pattern}";
+                            }
+                        }
                     }
                 }
                 else if (areaType.ToLower() == "column" || areaType == "列")
                 {
-                    // 简化实现：检查列底纹
-                    return "检测到列底纹设置";
+                    // 检查指定列的底纹设置
+                    var rows = firstTable.Elements<TableRow>().ToList();
+                    foreach (var row in rows)
+                    {
+                        var cells = row.Elements<TableCell>().ToList();
+                        if (areaNumber > 0 && areaNumber <= cells.Count)
+                        {
+                            var targetCell = cells[areaNumber - 1];
+                            var cellProperties = targetCell.TableCellProperties;
+                            var cellShading = cellProperties?.GetFirstChild<Shading>();
+                            if (cellShading != null)
+                            {
+                                var fill = cellShading.Fill?.Value ?? "auto";
+                                var pattern = cellShading.Val?.HasValue == true ?
+                                    cellShading.Val.Value.ToString() : "clear";
+                                return $"列底纹: {fill}, 图案: {pattern}";
+                            }
+                        }
+                    }
                 }
             }
 
@@ -5914,17 +6045,17 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var rows = firstTable.Elements<TableRow>().ToList();
+                List<TableRow> rows = firstTable.Elements<TableRow>().ToList();
                 if (startRow > 0 && startRow <= rows.Count)
                 {
-                    var targetRow = rows[startRow - 1];
-                    var rowProperties = targetRow.TableRowProperties;
-                    var tableRowHeight = rowProperties?.GetFirstChild<TableRowHeight>();
+                    TableRow targetRow = rows[startRow - 1];
+                    TableRowProperties? rowProperties = targetRow.TableRowProperties;
+                    TableRowHeight? tableRowHeight = rowProperties?.GetFirstChild<TableRowHeight>();
 
                     if (tableRowHeight?.Val?.Value != null)
                     {
@@ -5948,20 +6079,20 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
+                TableRow? firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
                 if (firstRow != null)
                 {
-                    var cells = firstRow.Elements<TableCell>().ToList();
+                    List<TableCell> cells = firstRow.Elements<TableCell>().ToList();
                     if (startColumn > 0 && startColumn <= cells.Count)
                     {
-                        var targetCell = cells[startColumn - 1];
-                        var cellProperties = targetCell.TableCellProperties;
-                        var tableWidth = cellProperties?.TableCellWidth;
+                        TableCell targetCell = cells[startColumn - 1];
+                        TableCellProperties? cellProperties = targetCell.TableCellProperties;
+                        TableCellWidth? tableWidth = cellProperties?.TableCellWidth;
 
                         if (tableWidth?.Width?.Value != null)
                         {
@@ -5986,19 +6117,19 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var rows = firstTable.Elements<TableRow>().ToList();
+                List<TableRow> rows = firstTable.Elements<TableRow>().ToList();
                 if (rowNumber > 0 && rowNumber <= rows.Count)
                 {
-                    var targetRow = rows[rowNumber - 1];
-                    var cells = targetRow.Elements<TableCell>().ToList();
+                    TableRow targetRow = rows[rowNumber - 1];
+                    List<TableCell> cells = targetRow.Elements<TableCell>().ToList();
                     if (columnNumber > 0 && columnNumber <= cells.Count)
                     {
-                        var targetCell = cells[columnNumber - 1];
+                        TableCell targetCell = cells[columnNumber - 1];
                         return targetCell.InnerText.Trim();
                     }
                 }
@@ -6019,28 +6150,28 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var rows = firstTable.Elements<TableRow>().ToList();
+                List<TableRow> rows = firstTable.Elements<TableRow>().ToList();
                 if (rowNumber > 0 && rowNumber <= rows.Count)
                 {
-                    var targetRow = rows[rowNumber - 1];
-                    var cells = targetRow.Elements<TableCell>().ToList();
+                    TableRow targetRow = rows[rowNumber - 1];
+                    List<TableCell> cells = targetRow.Elements<TableCell>().ToList();
                     if (columnNumber > 0 && columnNumber <= cells.Count)
                     {
-                        var targetCell = cells[columnNumber - 1];
-                        var cellProperties = targetCell.TableCellProperties;
+                        TableCell targetCell = cells[columnNumber - 1];
+                        TableCellProperties? cellProperties = targetCell.TableCellProperties;
 
                         // 获取垂直对齐
-                        var verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.HasValue == true ?
+                        string verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.HasValue == true ?
                             cellProperties.TableCellVerticalAlignment.Val.Value.ToString() : "Top";
 
                         // 获取水平对齐（从段落属性）
-                        var paragraph = targetCell.Elements<Paragraph>().FirstOrDefault();
-                        var horizontalAlign = "Left";
+                        Paragraph? paragraph = targetCell.Elements<Paragraph>().FirstOrDefault();
+                        string horizontalAlign = "Left";
                         if (paragraph?.ParagraphProperties?.Justification?.Val?.Value != null)
                         {
                             horizontalAlign = paragraph.ParagraphProperties.Justification.Val.Value.ToString();
@@ -6066,16 +6197,16 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var tableProperties = firstTable.GetFirstChild<TableProperties>();
-                var tableJustification = tableProperties?.TableJustification?.Val?.HasValue == true ?
+                TableProperties? tableProperties = firstTable.GetFirstChild<TableProperties>();
+                string tableJustification = tableProperties?.TableJustification?.Val?.HasValue == true ?
                     tableProperties.TableJustification.Val.Value.ToString() : "Left";
 
-                var tableIndentation = tableProperties?.TableIndentation;
+                TableIndentation? tableIndentation = tableProperties?.TableIndentation;
                 float leftIndent = 0f;
                 if (tableIndentation?.Width?.Value != null)
                 {
@@ -6100,33 +6231,33 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var rows = firstTable.Elements<TableRow>().ToList();
+                List<TableRow> rows = firstTable.Elements<TableRow>().ToList();
 
                 // 检查指定范围内是否有合并单元格
                 for (int row = startRow; row <= endRow && row <= rows.Count; row++)
                 {
-                    var targetRow = rows[row - 1];
-                    var cells = targetRow.Elements<TableCell>().ToList();
+                    TableRow targetRow = rows[row - 1];
+                    List<TableCell> cells = targetRow.Elements<TableCell>().ToList();
 
                     for (int col = startColumn; col <= endColumn && col <= cells.Count; col++)
                     {
-                        var targetCell = cells[col - 1];
-                        var cellProperties = targetCell.TableCellProperties;
+                        TableCell targetCell = cells[col - 1];
+                        TableCellProperties? cellProperties = targetCell.TableCellProperties;
 
                         // 检查垂直合并
-                        var verticalMerge = cellProperties?.VerticalMerge;
+                        VerticalMerge? verticalMerge = cellProperties?.VerticalMerge;
                         if (verticalMerge != null)
                         {
                             return true;
                         }
 
                         // 检查水平合并（通过GridSpan）
-                        var gridSpan = cellProperties?.GridSpan;
+                        GridSpan? gridSpan = cellProperties?.GridSpan;
                         if (gridSpan?.Val?.Value > 1)
                         {
                             return true;
@@ -6150,30 +6281,33 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
-            if (paragraphs == null) return "无编号";
+            List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            if (paragraphs == null)
+            {
+                return "无编号";
+            }
 
             // 解析段落号码
-            var numbers = paragraphNumbers.Split(',', ';').Select(n => int.TryParse(n.Trim(), out int num) ? num : 0).Where(n => n > 0);
+            IEnumerable<int> numbers = paragraphNumbers.Split(',', ';').Select(n => int.TryParse(n.Trim(), out int num) ? num : 0).Where(n => n > 0);
 
             foreach (int paragraphNumber in numbers)
             {
                 if (paragraphNumber <= paragraphs.Count)
                 {
-                    var paragraph = paragraphs[paragraphNumber - 1];
-                    var paragraphProperties = paragraph.ParagraphProperties;
-                    var numberingProperties = paragraphProperties?.NumberingProperties;
+                    Paragraph paragraph = paragraphs[paragraphNumber - 1];
+                    ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+                    NumberingProperties? numberingProperties = paragraphProperties?.NumberingProperties;
 
                     if (numberingProperties?.NumberingId?.Val?.Value != null)
                     {
                         // 简化实现：根据编号ID判断类型
-                        var numberingId = numberingProperties.NumberingId.Val.Value;
+                        int numberingId = numberingProperties.NumberingId.Val.Value;
 
                         // 检查编号定义部分以确定类型
                         if (mainPart.NumberingDefinitionsPart?.Numbering != null)
                         {
-                            var numbering = mainPart.NumberingDefinitionsPart.Numbering;
-                            var numberingInstance = numbering.Elements<NumberingInstance>()
+                            Numbering numbering = mainPart.NumberingDefinitionsPart.Numbering;
+                            NumberingInstance? numberingInstance = numbering.Elements<NumberingInstance>()
                                 .FirstOrDefault(ni => ni.NumberID?.Value == numberingId);
 
                             if (numberingInstance != null)
@@ -6203,10 +6337,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             // 检查VML图形
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
-                var type = shape.Type?.Value;
+                string? type = shape.Type?.Value;
                 if (!string.IsNullOrEmpty(type))
                 {
                     return type;
@@ -6214,11 +6348,54 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 检查Drawing图形
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到图形就返回
-                return "检测到自选图形";
+                // 检查Drawing中的图形类型
+                var inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+                var anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+
+                if (inline?.Graphic?.GraphicData != null)
+                {
+                    var graphicData = inline.Graphic.GraphicData;
+                    if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture")
+                    {
+                        return "图片";
+                    }
+                    else if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart")
+                    {
+                        return "图表";
+                    }
+                    else
+                    {
+                        return "自选图形";
+                    }
+                }
+
+                if (anchor != null)
+                {
+                    // 检查Anchor中的图形内容
+                    var graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
+                    if (graphic?.GraphicData != null)
+                    {
+                        var graphicData = graphic.GraphicData;
+                        if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture")
+                        {
+                            return "浮动图片";
+                        }
+                        else if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart")
+                        {
+                            return "浮动图表";
+                        }
+                        else
+                        {
+                            return "浮动自选图形";
+                        }
+                    }
+                    return "浮动Drawing对象";
+                }
+
+                return "Drawing图形";
             }
 
             return "无自选图形";
@@ -6237,29 +6414,65 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             // 检查VML图形
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
-                var style = shape.Style?.Value;
+                string? style = shape.Style?.Value;
                 if (!string.IsNullOrEmpty(style))
                 {
                     // 解析样式中的宽度和高度
-                    var widthMatch = System.Text.RegularExpressions.Regex.Match(style, @"width:([^;]+)");
-                    var heightMatch = System.Text.RegularExpressions.Regex.Match(style, @"height:([^;]+)");
+                    System.Text.RegularExpressions.Match widthMatch = System.Text.RegularExpressions.Regex.Match(style, @"width:([^;]+)");
+                    System.Text.RegularExpressions.Match heightMatch = System.Text.RegularExpressions.Regex.Match(style, @"height:([^;]+)");
 
                     if (widthMatch.Success && heightMatch.Success)
                     {
-                        // 简化实现：返回检测到的尺寸
-                        return (100f, 100f);
+                        try
+                        {
+                            // 解析宽度和高度值
+                            string widthStr = widthMatch.Groups[1].Value.Trim();
+                            string heightStr = heightMatch.Groups[1].Value.Trim();
+
+                            // 移除单位并转换为数值
+                            float width = ParseSizeValue(widthStr);
+                            float height = ParseSizeValue(heightStr);
+
+                            return (height, width);
+                        }
+                        catch
+                        {
+                            return (100f, 100f); // 解析失败时的默认值
+                        }
                     }
                 }
             }
 
             // 检查Drawing图形
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            if (drawings.Any())
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
-                return (100f, 100f); // 默认尺寸
+                // 检查Inline图形的尺寸
+                var inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+                if (inline?.Extent != null)
+                {
+                    // EMU (English Metric Units) 转换为点
+                    // 1 EMU = 1/914400 英寸, 1 英寸 = 72 点
+                    float width = (float)(inline.Extent.Cx?.Value ?? 0) / 914400f * 72f;
+                    float height = (float)(inline.Extent.Cy?.Value ?? 0) / 914400f * 72f;
+                    return (height, width);
+                }
+
+                // 检查Anchor图形的尺寸
+                var anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+                if (anchor != null)
+                {
+                    var extent = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent>();
+                    if (extent != null)
+                    {
+                        float width = (float)(extent.Cx?.Value ?? 0) / 914400f * 72f;
+                        float height = (float)(extent.Cy?.Value ?? 0) / 914400f * 72f;
+                        return (height, width);
+                    }
+                }
             }
 
             return (0f, 0f);
@@ -6277,10 +6490,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
-                var strokeColor = shape.StrokeColor?.Value;
+                string? strokeColor = shape.StrokeColor?.Value;
                 if (!string.IsNullOrEmpty(strokeColor))
                 {
                     return strokeColor;
@@ -6302,10 +6515,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
-                var fillColor = shape.FillColor?.Value;
+                string? fillColor = shape.FillColor?.Value;
                 if (!string.IsNullOrEmpty(fillColor))
                 {
                     return fillColor;
@@ -6327,15 +6540,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
                 // 简化实现：检查形状中的文本格式
-                var runs = shape.Descendants<Run>();
-                foreach (var run in runs)
+                IEnumerable<Run> runs = shape.Descendants<Run>();
+                foreach (Run run in runs)
                 {
-                    var runProperties = run.RunProperties;
-                    var fontSize = runProperties?.FontSize;
+                    RunProperties? runProperties = run.RunProperties;
+                    FontSize? fontSize = runProperties?.FontSize;
                     if (fontSize?.Val?.Value != null)
                     {
                         return int.Parse(fontSize.Val.Value) / 2;
@@ -6358,15 +6571,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
                 // 简化实现：检查形状中的文本颜色
-                var runs = shape.Descendants<Run>();
-                foreach (var run in runs)
+                IEnumerable<Run> runs = shape.Descendants<Run>();
+                foreach (Run run in runs)
                 {
-                    var runProperties = run.RunProperties;
-                    var color = runProperties?.Color;
+                    RunProperties? runProperties = run.RunProperties;
+                    Color? color = runProperties?.Color;
                     if (color?.Val?.Value != null)
                     {
                         return color.Val.Value;
@@ -6389,11 +6602,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
                 // 简化实现：检查形状中的文本内容
-                var text = shape.InnerText;
+                string text = shape.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
                     return text.Trim();
@@ -6415,14 +6628,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
-                var style = shape.Style?.Value;
+                string? style = shape.Style?.Value;
                 if (!string.IsNullOrEmpty(style))
                 {
-                    var leftMatch = System.Text.RegularExpressions.Regex.Match(style, @"left:([^;]+)");
-                    var topMatch = System.Text.RegularExpressions.Regex.Match(style, @"top:([^;]+)");
+                    System.Text.RegularExpressions.Match leftMatch = System.Text.RegularExpressions.Regex.Match(style, @"left:([^;]+)");
+                    System.Text.RegularExpressions.Match topMatch = System.Text.RegularExpressions.Regex.Match(style, @"top:([^;]+)");
 
                     if (leftMatch.Success || topMatch.Success)
                     {
@@ -6447,8 +6660,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：检测到图片边框设置
                 return "检测到边框复合类型";
@@ -6469,8 +6682,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：检测到图片边框设置
                 return "检测到短划线类型";
@@ -6491,8 +6704,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：返回默认边框宽度
                 return 1.0f;
@@ -6513,8 +6726,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：检测到图片边框颜色
                 return "检测到边框颜色";
@@ -6538,15 +6751,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             // 简化实现：检查VML文本框
             // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
             // 简化实现：检测到文本框边框设置
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
             if (shapes.Any())
             {
                 return "检测到文本框边框颜色";
             }
 
             // 检查Drawing中的文本框
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：检测到Drawing文本框
                 return "检测到Drawing文本框边框";
@@ -6569,10 +6782,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             // 简化实现：检查VML文本框
             // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
-                var text = shape.InnerText;
+                string text = shape.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
                     return text.Trim();
@@ -6580,10 +6793,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 检查Drawing中的文本框
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
-                var text = drawing.InnerText;
+                string text = drawing.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
                     return text.Trim();
@@ -6607,14 +6820,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             // 简化实现：检查VML文本框
             // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
-                var runs = shape.Descendants<Run>();
-                foreach (var run in runs)
+                IEnumerable<Run> runs = shape.Descendants<Run>();
+                foreach (Run run in runs)
                 {
-                    var runProperties = run.RunProperties;
-                    var fontSize = runProperties?.FontSize;
+                    RunProperties? runProperties = run.RunProperties;
+                    FontSize? fontSize = runProperties?.FontSize;
                     if (fontSize?.Val?.Value != null)
                     {
                         return int.Parse(fontSize.Val.Value) / 2;
@@ -6638,18 +6851,18 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             // 检查VML文本框的父级Shape
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
                 // 简化实现：检查形状是否包含文本
-                var text = shape.InnerText;
+                string text = shape.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
-                    var style = shape.Style?.Value;
+                    string? style = shape.Style?.Value;
                     if (!string.IsNullOrEmpty(style))
                     {
-                        var leftMatch = System.Text.RegularExpressions.Regex.Match(style, @"left:([^;]+)");
-                        var topMatch = System.Text.RegularExpressions.Regex.Match(style, @"top:([^;]+)");
+                        System.Text.RegularExpressions.Match leftMatch = System.Text.RegularExpressions.Regex.Match(style, @"left:([^;]+)");
+                        System.Text.RegularExpressions.Match topMatch = System.Text.RegularExpressions.Regex.Match(style, @"top:([^;]+)");
 
                         if (leftMatch.Success || topMatch.Success)
                         {
@@ -6676,11 +6889,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             // 检查VML文本框的环绕设置
-            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
             {
                 // 简化实现：检查形状是否包含文本
-                var text = shape.InnerText;
+                string text = shape.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
                     // 简化实现：检测到文本框环绕设置
@@ -6703,7 +6916,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var documentText = mainPart.Document.InnerText;
+            string documentText = mainPart.Document.InnerText;
 
             // 计算替换文本出现的次数
             int replaceCount = 0;
@@ -6729,14 +6942,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var runs = mainPart.Document.Descendants<Run>();
-            foreach (var run in runs)
+            IEnumerable<Run> runs = mainPart.Document.Descendants<Run>();
+            foreach (Run run in runs)
             {
-                var text = run.InnerText;
+                string text = run.InnerText;
                 if (!string.IsNullOrEmpty(text) && text.Contains(targetText))
                 {
-                    var runProperties = run.RunProperties;
-                    var fontSize = runProperties?.FontSize;
+                    RunProperties? runProperties = run.RunProperties;
+                    FontSize? fontSize = runProperties?.FontSize;
                     if (fontSize?.Val?.Value != null)
                     {
                         return int.Parse(fontSize.Val.Value) / 2;
@@ -6759,8 +6972,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var paragraphProperties = paragraph.ParagraphProperties;
-            var spacingBetweenLines = paragraphProperties?.SpacingBetweenLines;
+            ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
+            SpacingBetweenLines? spacingBetweenLines = paragraphProperties?.SpacingBetweenLines;
 
             if (spacingBetweenLines != null)
             {
@@ -6786,10 +6999,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             // 检查页眉页脚中的页码
-            foreach (var headerPart in mainPart.HeaderParts)
+            foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                var fields = headerPart.Header.Descendants<SimpleField>();
-                foreach (var field in fields)
+                IEnumerable<SimpleField> fields = headerPart.Header.Descendants<SimpleField>();
+                foreach (SimpleField field in fields)
                 {
                     if (field.Instruction?.Value?.Contains("PAGE") == true)
                     {
@@ -6798,10 +7011,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 }
             }
 
-            foreach (var footerPart in mainPart.FooterParts)
+            foreach (FooterPart footerPart in mainPart.FooterParts)
             {
-                var fields = footerPart.Footer.Descendants<SimpleField>();
-                foreach (var field in fields)
+                IEnumerable<SimpleField> fields = footerPart.Footer.Descendants<SimpleField>();
+                foreach (SimpleField field in fields)
                 {
                     if (field.Instruction?.Value?.Contains("PAGE") == true)
                     {
@@ -6825,13 +7038,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var documentBackground = mainPart.Document.DocumentBackground;
-            if (documentBackground != null)
-            {
-                return "检测到页面背景";
-            }
-
-            return "无页面背景";
+            DocumentBackground? documentBackground = mainPart.Document.DocumentBackground;
+            return documentBackground != null ? "检测到页面背景" : "无页面背景";
         }
         catch
         {
@@ -6846,17 +7054,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            var pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
+            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            PageBorders? pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
 
             if (pageBorders != null)
             {
-                var topBorder = pageBorders.TopBorder;
-                if (topBorder?.Color?.Value != null)
-                {
-                    return topBorder.Color.Value;
-                }
-                return "检测到页面边框";
+                TopBorder? topBorder = pageBorders.TopBorder;
+                return topBorder?.Color?.Value != null ? topBorder.Color.Value : "检测到页面边框";
             }
 
             return "无页面边框";
@@ -6874,18 +7078,18 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
+                TableRow? firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
                 if (firstRow != null)
                 {
-                    var cells = firstRow.Elements<TableCell>().ToList();
+                    List<TableCell> cells = firstRow.Elements<TableCell>().ToList();
                     if (columnNumber > 0 && columnNumber <= cells.Count)
                     {
-                        var headerCell = cells[columnNumber - 1];
+                        TableCell headerCell = cells[columnNumber - 1];
                         return headerCell.InnerText.Trim();
                     }
                 }
@@ -6906,27 +7110,27 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var tables = mainPart.Document.Descendants<Table>();
-            var firstTable = tables.FirstOrDefault();
+            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
+            Table? firstTable = tables.FirstOrDefault();
 
             if (firstTable != null)
             {
-                var firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
+                TableRow? firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
                 if (firstRow != null)
                 {
-                    var cells = firstRow.Elements<TableCell>().ToList();
+                    List<TableCell> cells = firstRow.Elements<TableCell>().ToList();
                     if (columnNumber > 0 && columnNumber <= cells.Count)
                     {
-                        var headerCell = cells[columnNumber - 1];
-                        var cellProperties = headerCell.TableCellProperties;
+                        TableCell headerCell = cells[columnNumber - 1];
+                        TableCellProperties? cellProperties = headerCell.TableCellProperties;
 
                         // 获取垂直对齐
-                        var verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.HasValue == true ?
+                        string verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.HasValue == true ?
                             cellProperties.TableCellVerticalAlignment.Val.Value.ToString() : "Top";
 
                         // 获取水平对齐（从段落属性）
-                        var paragraph = headerCell.Elements<Paragraph>().FirstOrDefault();
-                        var horizontalAlign = "Left";
+                        Paragraph? paragraph = headerCell.Elements<Paragraph>().FirstOrDefault();
+                        string horizontalAlign = "Left";
                         if (paragraph?.ParagraphProperties?.Justification?.Val?.Value != null)
                         {
                             horizontalAlign = paragraph.ParagraphProperties.Justification.Val.Value.ToString();
@@ -6952,8 +7156,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：检测到图片阴影设置
                 return ("检测到阴影类型", "检测到阴影颜色");
@@ -6974,8 +7178,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：检测到图片环绕设置
                 return "检测到环绕方式";
@@ -6996,8 +7200,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：返回检测到的图片尺寸
                 return (200f, 300f);
@@ -7018,8 +7222,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var drawings = mainPart.Document.Descendants<Drawing>();
-            foreach (var drawing in drawings)
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
             {
                 // 简化实现：检测到图片位置设置
                 return (true, "检测到水平位置", "检测到垂直位置");
@@ -7040,17 +7244,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            var pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
+            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            PageBorders? pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
 
             if (pageBorders != null)
             {
-                var topBorder = pageBorders.TopBorder;
-                if (topBorder?.Val?.Value != null)
-                {
-                    return topBorder.Val.Value.ToString();
-                }
-                return "检测到页面边框样式";
+                TopBorder? topBorder = pageBorders.TopBorder;
+                return topBorder?.Val?.Value != null ? topBorder.Val.Value.ToString() : "检测到页面边框样式";
             }
 
             return "无页面边框样式";
@@ -7068,12 +7268,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            var sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            var pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
+            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
+            PageBorders? pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
 
             if (pageBorders != null)
             {
-                var topBorder = pageBorders.TopBorder;
+                TopBorder? topBorder = pageBorders.TopBorder;
                 if (topBorder?.Size?.Value != null)
                 {
                     return uint.Parse(topBorder.Size.Value.ToString()) / 8f; // OpenXML中边框宽度是8分之一点
@@ -7095,12 +7295,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     private static bool TextEquals(string actual, string expected)
     {
         if (string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected))
+        {
             return true;
+        }
 
-        if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(expected))
-            return false;
-
-        return string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
+        return !string.IsNullOrWhiteSpace(actual) && !string.IsNullOrWhiteSpace(expected) && string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -7111,22 +7310,28 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     private static bool ColorEquals(string actual, string expected)
     {
         if (string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected))
+        {
             return true;
+        }
 
         if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(expected))
+        {
             return false;
+        }
 
         // 标准化颜色值
-        var normalizedActual = NormalizeColor(actual.Trim());
-        var normalizedExpected = NormalizeColor(expected.Trim());
+        string normalizedActual = NormalizeColor(actual.Trim());
+        string normalizedExpected = NormalizeColor(expected.Trim());
 
         // 1. 直接字符串比较（大小写不敏感）
         if (string.Equals(normalizedActual, normalizedExpected, StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         // 2. 尝试解析为RGB值进行相似度比较
-        if (TryParseColor(normalizedActual, out var actualRgb) &&
-            TryParseColor(normalizedExpected, out var expectedRgb))
+        if (TryParseColor(normalizedActual, out RgbColor actualRgb) &&
+            TryParseColor(normalizedExpected, out RgbColor expectedRgb))
         {
             return AreColorsSimilar(actualRgb, expectedRgb);
         }
@@ -7140,10 +7345,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     /// </summary>
     private static string NormalizeColor(string color)
     {
-        if (string.IsNullOrWhiteSpace(color))
-            return string.Empty;
-
-        return color.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
+        return string.IsNullOrWhiteSpace(color) ? string.Empty : color.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
     }
 
     /// <summary>
@@ -7172,9 +7374,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         rgb = new RgbColor();
 
         if (string.IsNullOrWhiteSpace(colorString))
+        {
             return false;
+        }
 
-        var color = colorString.ToLowerInvariant();
+        string color = colorString.ToLowerInvariant();
 
         // 1. 十六进制格式 #RRGGBB 或 #RGB
         if (color.StartsWith("#"))
@@ -7201,7 +7405,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
         try
         {
-            var hex = hexColor.Substring(1); // 移除 #
+            string hex = hexColor[1..]; // 移除 #
 
             if (hex.Length == 3)
             {
@@ -7211,9 +7415,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (hex.Length == 6)
             {
-                var r = Convert.ToInt32(hex.Substring(0, 2), 16);
-                var g = Convert.ToInt32(hex.Substring(2, 2), 16);
-                var b = Convert.ToInt32(hex.Substring(4, 2), 16);
+                int r = Convert.ToInt32(hex[..2], 16);
+                int g = Convert.ToInt32(hex.Substring(2, 2), 16);
+                int b = Convert.ToInt32(hex.Substring(4, 2), 16);
                 rgb = new RgbColor(r, g, b);
                 return true;
             }
@@ -7235,14 +7439,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
         try
         {
-            var content = rgbString.Substring(4, rgbString.Length - 5); // 移除 "rgb(" 和 ")"
-            var parts = content.Split(',');
+            string content = rgbString[4..^1]; // 移除 "rgb(" 和 ")"
+            string[] parts = content.Split(',');
 
             if (parts.Length == 3)
             {
-                var r = int.Parse(parts[0].Trim());
-                var g = int.Parse(parts[1].Trim());
-                var b = int.Parse(parts[2].Trim());
+                int r = int.Parse(parts[0].Trim());
+                int g = int.Parse(parts[1].Trim());
+                int b = int.Parse(parts[2].Trim());
                 rgb = new RgbColor(r, g, b);
                 return true;
             }
@@ -7262,8 +7466,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         rgb = new RgbColor();
 
-        var colorMap = GetColorNameMap();
-        if (colorMap.TryGetValue(colorName, out var rgbValue))
+        Dictionary<string, RgbColor> colorMap = GetColorNameMap();
+        if (colorMap.TryGetValue(colorName, out RgbColor rgbValue))
         {
             rgb = rgbValue;
             return true;
@@ -7334,7 +7538,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     private static bool AreColorsSimilar(RgbColor color1, RgbColor color2, double tolerance = 30.0)
     {
         // 计算RGB空间中的欧几里得距离
-        var distance = Math.Sqrt(
+        double distance = Math.Sqrt(
             Math.Pow(color1.R - color2.R, 2) +
             Math.Pow(color1.G - color2.G, 2) +
             Math.Pow(color1.B - color2.B, 2)
@@ -7348,9 +7552,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     /// </summary>
     private static bool AreColorAliases(string color1, string color2)
     {
-        var aliases = GetColorAliases();
+        List<List<string>> aliases = GetColorAliases();
 
-        foreach (var aliasGroup in aliases)
+        foreach (List<string> aliasGroup in aliases)
         {
             if (aliasGroup.Contains(color1, StringComparer.OrdinalIgnoreCase) &&
                 aliasGroup.Contains(color2, StringComparer.OrdinalIgnoreCase))
@@ -7367,8 +7571,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     /// </summary>
     private static List<List<string>> GetColorAliases()
     {
-        return new List<List<string>>
-        {
+        return
+        [
             // 红色别名组
             new List<string> { "红色", "red", "#ff0000", "#f00", "rgb(255,0,0)" },
 
@@ -7401,6 +7605,52 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             // 青色别名组
             new List<string> { "青色", "cyan", "#00ffff", "#0ff", "rgb(0,255,255)" }
-        };
+        ];
+    }
+
+    /// <summary>
+    /// 解析尺寸值，支持多种单位
+    /// </summary>
+    private static float ParseSizeValue(string sizeStr)
+    {
+        if (string.IsNullOrWhiteSpace(sizeStr))
+            return 0f;
+
+        // 移除空格
+        sizeStr = sizeStr.Trim();
+
+        // 提取数值部分
+        var numberMatch = System.Text.RegularExpressions.Regex.Match(sizeStr, @"^([\d.]+)");
+        if (!numberMatch.Success)
+            return 0f;
+
+        if (!float.TryParse(numberMatch.Groups[1].Value, out float value))
+            return 0f;
+
+        // 检查单位并转换为点（pt）
+        if (sizeStr.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
+        {
+            return value; // 点，直接返回
+        }
+        else if (sizeStr.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        {
+            return value * 0.75f; // 像素转点（1px = 0.75pt）
+        }
+        else if (sizeStr.EndsWith("in", StringComparison.OrdinalIgnoreCase))
+        {
+            return value * 72f; // 英寸转点（1in = 72pt）
+        }
+        else if (sizeStr.EndsWith("cm", StringComparison.OrdinalIgnoreCase))
+        {
+            return value * 28.35f; // 厘米转点（1cm ≈ 28.35pt）
+        }
+        else if (sizeStr.EndsWith("mm", StringComparison.OrdinalIgnoreCase))
+        {
+            return value * 2.835f; // 毫米转点（1mm ≈ 2.835pt）
+        }
+        else
+        {
+            return value; // 默认当作点处理
+        }
     }
 }
