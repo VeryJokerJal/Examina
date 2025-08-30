@@ -6,9 +6,9 @@
 
 ## ✅ 已完成的实现
 
-### 1. 段落操作检测方法（14个中的11个已完成）
+### 1. 段落操作检测方法（14个中的12个已完成）
 
-#### 已完成的段落操作方法（11个）
+#### 已完成的段落操作方法（12个）
 1. **DetectParagraphFont** - 检测段落字体 ✅
    - 参数：ParagraphNumber, FontFamily
    - 辅助方法：GetParagraphFont
@@ -57,13 +57,16 @@
     - 参数：ParagraphNumber, ShadingColor, ShadingPattern
     - 辅助方法：GetParagraphShading
 
-#### 待完成的段落操作方法（3个）
-13. **DetectParagraphAlignment** - 检测段落对齐方式 ❌
+13. **DetectParagraphAlignment** - 检测段落对齐方式 ✅
+    - 参数：ParagraphNumber, Alignment
+    - 辅助方法：GetParagraphAlignment
+
+#### 待完成的段落操作方法（2个）
 14. **DetectParagraphSpacing** - 检测段落间距 ❌
 
-### 2. 页面设置检测方法（15个中的5个已完成）
+### 2. 页面设置检测方法（15个中的9个已完成）
 
-#### 已完成的页面设置方法（5个）
+#### 已完成的页面设置方法（9个）
 1. **DetectPaperSize** - 检测纸张大小 ✅
    - 参数：PaperSize
    - 辅助方法：GetDocumentPaperSize
@@ -84,12 +87,27 @@
    - 参数：HeaderFontSize
    - 辅助方法：GetHeaderFontSize
 
-#### 待完成的页面设置方法（10个）
-6. **DetectHeaderAlignment** - 检测页眉对齐方式 ❌
-7. **DetectFooterText** - 检测页脚文字 ❌
-8. **DetectFooterFont** - 检测页脚字体 ❌
-9. **DetectFooterFontSize** - 检测页脚字号 ❌
-10. **DetectFooterAlignment** - 检测页脚对齐方式 ❌
+6. **DetectHeaderAlignment** - 检测页眉对齐方式 ✅
+   - 参数：HeaderAlignment
+   - 辅助方法：GetHeaderAlignment
+
+7. **DetectFooterText** - 检测页脚文字 ✅
+   - 参数：FooterText
+   - 辅助方法：GetFooterText
+
+8. **DetectFooterFont** - 检测页脚字体 ✅
+   - 参数：FooterFont
+   - 辅助方法：GetFooterFont
+
+9. **DetectFooterFontSize** - 检测页脚字号 ✅
+   - 参数：FooterFontSize
+   - 辅助方法：GetFooterFontSize
+
+10. **DetectFooterAlignment** - 检测页脚对齐方式 ✅
+    - 参数：FooterAlignment
+    - 辅助方法：GetFooterAlignment
+
+#### 待完成的页面设置方法（6个）
 11. **DetectPageNumber** - 检测页码 ❌
 12. **DetectPageBackground** - 检测页面背景 ❌
 13. **DetectPageBorderColor** - 检测页面边框颜色 ❌

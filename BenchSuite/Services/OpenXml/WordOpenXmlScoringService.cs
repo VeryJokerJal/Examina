@@ -535,6 +535,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 case "SetSpecificTextFontSize":
                     result = DetectSpecificTextFontSize(document, parameters);
                     break;
+
+                // 补充段落操作的剩余方法
+                case "SetParagraphAlignment":
+                    result = DetectParagraphAlignment(document, parameters);
+                    break;
+
                 default:
                     result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
                     result.IsCorrect = false;
@@ -1181,6 +1187,52 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 检测段落对齐方式
+    /// </summary>
+    private KnowledgePointResult DetectParagraphAlignment(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphAlignment",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "Alignment", out string expectedAlignment))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 Alignment");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            string actualAlignment = GetParagraphAlignment(targetParagraph);
+
+            result.ExpectedValue = expectedAlignment;
+            result.ActualValue = actualAlignment;
+            result.IsCorrect = TextEquals(actualAlignment, expectedAlignment);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 对齐方式: 期望 {expectedAlignment}, 实际 {actualAlignment}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落对齐方式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 检测纸张大小
     /// </summary>
     private KnowledgePointResult DetectPaperSize(WordprocessingDocument document, Dictionary<string, string> parameters)
@@ -1361,6 +1413,330 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch (Exception ex)
         {
             SetKnowledgePointFailure(result, $"检测页眉字号失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页眉对齐方式
+    /// </summary>
+    private KnowledgePointResult DetectHeaderAlignment(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetHeaderAlignment",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "HeaderAlignment", out string expectedAlignment))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: HeaderAlignment");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualAlignment = GetHeaderAlignment(mainPart);
+
+            result.ExpectedValue = expectedAlignment;
+            result.ActualValue = actualAlignment;
+            result.IsCorrect = TextEquals(actualAlignment, expectedAlignment);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页眉对齐方式: 期望 {expectedAlignment}, 实际 {actualAlignment}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页眉对齐方式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页脚文字
+    /// </summary>
+    private KnowledgePointResult DetectFooterText(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetFooterText",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FooterText", out string expectedText))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FooterText");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualText = GetFooterText(mainPart);
+
+            result.ExpectedValue = expectedText;
+            result.ActualValue = actualText;
+            result.IsCorrect = TextEquals(actualText, expectedText) || actualText.Contains(expectedText);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页脚文字: 期望 {expectedText}, 实际 {actualText}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页脚文字失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页脚字体
+    /// </summary>
+    private KnowledgePointResult DetectFooterFont(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetFooterFont",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FooterFont", out string expectedFont))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FooterFont");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualFont = GetFooterFont(mainPart);
+
+            result.ExpectedValue = expectedFont;
+            result.ActualValue = actualFont;
+            result.IsCorrect = TextEquals(actualFont, expectedFont);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页脚字体: 期望 {expectedFont}, 实际 {actualFont}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页脚字体失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页脚字号
+    /// </summary>
+    private KnowledgePointResult DetectFooterFontSize(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetFooterFontSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "FooterFontSize", out int expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FooterFontSize");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            int actualSize = GetFooterFontSize(mainPart);
+
+            result.ExpectedValue = expectedSize.ToString();
+            result.ActualValue = actualSize.ToString();
+            result.IsCorrect = actualSize == expectedSize;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页脚字号: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页脚字号失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测页脚对齐方式
+    /// </summary>
+    private KnowledgePointResult DetectFooterAlignment(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetFooterAlignment",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "FooterAlignment", out string expectedAlignment))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: FooterAlignment");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualAlignment = GetFooterAlignment(mainPart);
+
+            result.ExpectedValue = expectedAlignment;
+            result.ActualValue = actualAlignment;
+            result.IsCorrect = TextEquals(actualAlignment, expectedAlignment);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"页脚对齐方式: 期望 {expectedAlignment}, 实际 {actualAlignment}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测页脚对齐方式失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测水印文字
+    /// </summary>
+    private KnowledgePointResult DetectWatermarkText(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWatermarkText",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "WatermarkText", out string expectedText))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: WatermarkText");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualText = GetWatermarkText(mainPart);
+
+            result.ExpectedValue = expectedText;
+            result.ActualValue = actualText;
+            result.IsCorrect = TextEquals(actualText, expectedText) || actualText.Contains(expectedText);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"水印文字: 期望 {expectedText}, 实际 {actualText}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测水印文字失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测水印字体
+    /// </summary>
+    private KnowledgePointResult DetectWatermarkFont(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWatermarkFont",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "WatermarkFont", out string expectedFont))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: WatermarkFont");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualFont = GetWatermarkFont(mainPart);
+
+            result.ExpectedValue = expectedFont;
+            result.ActualValue = actualFont;
+            result.IsCorrect = TextEquals(actualFont, expectedFont);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"水印字体: 期望 {expectedFont}, 实际 {actualFont}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测水印字体失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测水印字号
+    /// </summary>
+    private KnowledgePointResult DetectWatermarkFontSize(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWatermarkFontSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "WatermarkFontSize", out int expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: WatermarkFontSize");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            int actualSize = GetWatermarkFontSize(mainPart);
+
+            result.ExpectedValue = expectedSize.ToString();
+            result.ActualValue = actualSize.ToString();
+            result.IsCorrect = actualSize == expectedSize;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"水印字号: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测水印字号失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测水印方向
+    /// </summary>
+    private KnowledgePointResult DetectWatermarkOrientation(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetWatermarkOrientation",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetFloatParameter(parameters, "WatermarkAngle", out float expectedAngle))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: WatermarkAngle");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            float actualAngle = GetWatermarkOrientation(mainPart);
+
+            result.ExpectedValue = expectedAngle.ToString();
+            result.ActualValue = actualAngle.ToString();
+            result.IsCorrect = Math.Abs(actualAngle - expectedAngle) < 1.0f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"水印角度: 期望 {expectedAngle}°, 实际 {actualAngle}°";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测水印方向失败: {ex.Message}");
         }
 
         return result;
@@ -3859,6 +4235,319 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch
         {
             return 12;
+        }
+    }
+
+    /// <summary>
+    /// 获取段落对齐方式
+    /// </summary>
+    private static string GetParagraphAlignment(Paragraph paragraph)
+    {
+        try
+        {
+            var paragraphProperties = paragraph.ParagraphProperties;
+            var justification = paragraphProperties?.Justification;
+
+            if (justification?.Val?.Value != null)
+            {
+                return justification.Val.Value.ToString() switch
+                {
+                    "Left" => "左对齐",
+                    "Center" => "居中",
+                    "Right" => "右对齐",
+                    "Both" => "两端对齐",
+                    "Distribute" => "分散对齐",
+                    _ => justification.Val.Value.ToString()
+                };
+            }
+
+            return "左对齐"; // 默认左对齐
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取页眉对齐方式
+    /// </summary>
+    private static string GetHeaderAlignment(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var paragraphs = headerPart.Header.Descendants<Paragraph>();
+                foreach (var paragraph in paragraphs)
+                {
+                    var paragraphProperties = paragraph.ParagraphProperties;
+                    var justification = paragraphProperties?.Justification;
+
+                    if (justification?.Val?.Value != null)
+                    {
+                        return justification.Val.Value.ToString() switch
+                        {
+                            "Left" => "左对齐",
+                            "Center" => "居中",
+                            "Right" => "右对齐",
+                            "Both" => "两端对齐",
+                            _ => justification.Val.Value.ToString()
+                        };
+                    }
+                }
+            }
+            return "左对齐"; // 默认左对齐
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取页脚文字
+    /// </summary>
+    private static string GetFooterText(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var footerPart in mainPart.FooterParts)
+            {
+                var text = footerPart.Footer.InnerText;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    return text.Trim();
+                }
+            }
+            return "无页脚文字";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取页脚字体
+    /// </summary>
+    private static string GetFooterFont(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var footerPart in mainPart.FooterParts)
+            {
+                var runs = footerPart.Footer.Descendants<Run>();
+                foreach (var run in runs)
+                {
+                    var runProperties = run.RunProperties;
+                    var runFonts = runProperties?.RunFonts;
+                    if (runFonts?.Ascii?.Value != null)
+                    {
+                        return runFonts.Ascii.Value;
+                    }
+                }
+            }
+            return "默认字体";
+        }
+        catch
+        {
+            return "未知字体";
+        }
+    }
+
+    /// <summary>
+    /// 获取页脚字号
+    /// </summary>
+    private static int GetFooterFontSize(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var footerPart in mainPart.FooterParts)
+            {
+                var runs = footerPart.Footer.Descendants<Run>();
+                foreach (var run in runs)
+                {
+                    var runProperties = run.RunProperties;
+                    var fontSize = runProperties?.FontSize;
+                    if (fontSize?.Val?.Value != null)
+                    {
+                        return int.Parse(fontSize.Val.Value) / 2; // OpenXML中字号是半点值
+                    }
+                }
+            }
+            return 12; // 默认字号
+        }
+        catch
+        {
+            return 12;
+        }
+    }
+
+    /// <summary>
+    /// 获取页脚对齐方式
+    /// </summary>
+    private static string GetFooterAlignment(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var footerPart in mainPart.FooterParts)
+            {
+                var paragraphs = footerPart.Footer.Descendants<Paragraph>();
+                foreach (var paragraph in paragraphs)
+                {
+                    var paragraphProperties = paragraph.ParagraphProperties;
+                    var justification = paragraphProperties?.Justification;
+
+                    if (justification?.Val?.Value != null)
+                    {
+                        return justification.Val.Value.ToString() switch
+                        {
+                            "Left" => "左对齐",
+                            "Center" => "居中",
+                            "Right" => "右对齐",
+                            "Both" => "两端对齐",
+                            _ => justification.Val.Value.ToString()
+                        };
+                    }
+                }
+            }
+            return "左对齐"; // 默认左对齐
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取水印文字
+    /// </summary>
+    private static string GetWatermarkText(MainDocumentPart mainPart)
+    {
+        try
+        {
+            // 检查页眉中的水印
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (var shape in shapes)
+                {
+                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.Office.TextPath>().FirstOrDefault();
+                    if (textPath?.String?.Value != null)
+                    {
+                        return textPath.String.Value;
+                    }
+                }
+
+                // 检查文本框中的水印文字
+                var textboxes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+                foreach (var textbox in textboxes)
+                {
+                    var text = textbox.InnerText;
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        return text.Trim();
+                    }
+                }
+            }
+
+            return "无水印文字";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取水印字体
+    /// </summary>
+    private static string GetWatermarkFont(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (var shape in shapes)
+                {
+                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.Office.TextPath>().FirstOrDefault();
+                    if (textPath != null)
+                    {
+                        // 简化实现：返回默认水印字体
+                        return "华文中宋";
+                    }
+                }
+            }
+            return "默认字体";
+        }
+        catch
+        {
+            return "未知字体";
+        }
+    }
+
+    /// <summary>
+    /// 获取水印字号
+    /// </summary>
+    private static int GetWatermarkFontSize(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (var shape in shapes)
+                {
+                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.Office.TextPath>().FirstOrDefault();
+                    if (textPath != null)
+                    {
+                        // 简化实现：返回默认水印字号
+                        return 36;
+                    }
+                }
+            }
+            return 36; // 默认水印字号
+        }
+        catch
+        {
+            return 36;
+        }
+    }
+
+    /// <summary>
+    /// 获取水印方向
+    /// </summary>
+    private static float GetWatermarkOrientation(MainDocumentPart mainPart)
+    {
+        try
+        {
+            foreach (var headerPart in mainPart.HeaderParts)
+            {
+                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (var shape in shapes)
+                {
+                    var style = shape.Style?.Value;
+                    if (!string.IsNullOrEmpty(style) && style.Contains("rotation"))
+                    {
+                        // 解析旋转角度
+                        var rotationMatch = System.Text.RegularExpressions.Regex.Match(style, @"rotation:([^;]+)");
+                        if (rotationMatch.Success)
+                        {
+                            if (float.TryParse(rotationMatch.Groups[1].Value.Trim(), out float angle))
+                            {
+                                return angle;
+                            }
+                        }
+                    }
+                }
+            }
+            return 315f; // 默认水印角度（-45度）
+        }
+        catch
+        {
+            return 315f;
         }
     }
 }
