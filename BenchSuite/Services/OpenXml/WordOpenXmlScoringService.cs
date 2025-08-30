@@ -5165,7 +5165,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 var spacing = runProperties?.Spacing;
                 if (spacing?.Val?.Value != null)
                 {
-                    return spacing.Val.Value / 20f; // OpenXML中间距是20分之一点
+                    return int.Parse(spacing.Val.Value) / 20f; // OpenXML中间距是20分之一点
                 }
             }
             return 0f; // 默认无额外间距
@@ -5341,7 +5341,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 var topBorder = paragraphBorders.TopBorder;
                 if (topBorder?.Size?.Value != null)
                 {
-                    return topBorder.Size.Value / 8f; // OpenXML中边框宽度是8分之一点
+                    return uint.Parse(topBorder.Size.Value.ToString()) / 8f; // OpenXML中边框宽度是8分之一点
                 }
             }
 
@@ -5430,10 +5430,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (pageMargin != null)
             {
-                float top = pageMargin.Top?.Value != null ? pageMargin.Top.Value / 20f : 72f; // 转换为点
-                float bottom = pageMargin.Bottom?.Value != null ? pageMargin.Bottom.Value / 20f : 72f;
-                float left = pageMargin.Left?.Value != null ? pageMargin.Left.Value / 20f : 72f;
-                float right = pageMargin.Right?.Value != null ? pageMargin.Right.Value / 20f : 72f;
+                float top = pageMargin.Top?.Value != null ? int.Parse(pageMargin.Top.Value.ToString()) / 20f : 72f; // 转换为点
+                float bottom = pageMargin.Bottom?.Value != null ? int.Parse(pageMargin.Bottom.Value.ToString()) / 20f : 72f;
+                float left = pageMargin.Left?.Value != null ? int.Parse(pageMargin.Left.Value.ToString()) / 20f : 72f;
+                float right = pageMargin.Right?.Value != null ? int.Parse(pageMargin.Right.Value.ToString()) / 20f : 72f;
 
                 return (top, bottom, left, right);
             }
@@ -5729,14 +5729,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 }
 
                 // 简化实现：检查文档中的文本内容
-                // var textboxes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-                foreach (var textbox in textboxes)
+                var text = headerPart.Header.InnerText;
+                if (!string.IsNullOrEmpty(text) && text.Trim().Length > 0)
                 {
-                    var text = textbox.InnerText;
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        return text.Trim();
-                    }
+                    return text.Trim();
                 }
             }
 
@@ -5930,7 +5926,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
                     if (tableRowHeight?.Val?.Value != null)
                     {
-                        return tableRowHeight.Val.Value / 20f; // 转换为点
+                        return int.Parse(tableRowHeight.Val.Value.ToString()) / 20f; // 转换为点
                     }
                 }
             }
@@ -6079,7 +6075,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 float leftIndent = 0f;
                 if (tableIndentation?.Width?.Value != null)
                 {
-                    leftIndent = tableIndentation.Width.Value / 20f; // 转换为点
+                    leftIndent = int.Parse(tableIndentation.Width.Value.ToString()) / 20f; // 转换为点
                 }
 
                 return (tableJustification, leftIndent);
@@ -6544,11 +6540,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 检查VML文本框
-            var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            foreach (var textbox in textboxes)
+            // 简化实现：检查VML文本框
+            // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+            // 简化实现：检测到文本框边框设置
+            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            if (shapes.Any())
             {
-                // 简化实现：检测到文本框边框设置
                 return "检测到文本框边框颜色";
             }
 
@@ -6575,11 +6572,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 检查VML文本框
-            var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            foreach (var textbox in textboxes)
+            // 简化实现：检查VML文本框
+            // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (var shape in shapes)
             {
-                var text = textbox.InnerText;
+                var text = shape.InnerText;
                 if (!string.IsNullOrEmpty(text))
                 {
                     return text.Trim();
@@ -6612,11 +6610,12 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 检查VML文本框
-            var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            foreach (var textbox in textboxes)
+            // 简化实现：检查VML文本框
+            // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
+            var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (var shape in shapes)
             {
-                var runs = textbox.Descendants<Run>();
+                var runs = shape.Descendants<Run>();
                 foreach (var run in runs)
                 {
                     var runProperties = run.RunProperties;
@@ -6647,8 +6646,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
             foreach (var shape in shapes)
             {
-                var textboxes = shape.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-                if (textboxes.Any())
+                // 简化实现：检查形状是否包含文本
+                var text = shape.InnerText;
+                if (!string.IsNullOrEmpty(text))
                 {
                     var style = shape.Style?.Value;
                     if (!string.IsNullOrEmpty(style))
@@ -6684,8 +6684,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             var shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
             foreach (var shape in shapes)
             {
-                var textboxes = shape.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-                if (textboxes.Any())
+                // 简化实现：检查形状是否包含文本
+                var text = shape.InnerText;
+                if (!string.IsNullOrEmpty(text))
                 {
                     // 简化实现：检测到文本框环绕设置
                     return "检测到环绕方式";
@@ -6768,8 +6769,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (spacingBetweenLines != null)
             {
-                float before = spacingBetweenLines.Before?.Value != null ? spacingBetweenLines.Before.Value / 20f : 0f;
-                float after = spacingBetweenLines.After?.Value != null ? spacingBetweenLines.After.Value / 20f : 0f;
+                float before = spacingBetweenLines.Before?.Value != null ? int.Parse(spacingBetweenLines.Before.Value.ToString()) / 20f : 0f;
+                float after = spacingBetweenLines.After?.Value != null ? int.Parse(spacingBetweenLines.After.Value.ToString()) / 20f : 0f;
 
                 return (before, after);
             }
@@ -7079,7 +7080,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 var topBorder = pageBorders.TopBorder;
                 if (topBorder?.Size?.Value != null)
                 {
-                    return topBorder.Size.Value / 8f; // OpenXML中边框宽度是8分之一点
+                    return uint.Parse(topBorder.Size.Value.ToString()) / 8f; // OpenXML中边框宽度是8分之一点
                 }
                 return 1.0f; // 默认边框宽度
             }

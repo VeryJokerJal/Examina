@@ -3123,7 +3123,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查是否有SmartArt图形
-            var graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<GraphicFrame>();
+            var graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
             if (graphicFrames?.Count() >= elementOrder)
             {
                 return "检测到SmartArt样式";
@@ -3144,7 +3144,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查SmartArt中的文本内容
-            var graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<GraphicFrame>();
+            var graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
             if (graphicFrames?.Count() >= elementOrder)
             {
                 var graphicFrame = graphicFrames.ElementAt(elementOrder - 1);
