@@ -627,7 +627,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
 
             // 扫描考试目录中的文件
-            List<string> moduleFiles = await ScanModuleFilesAsync(moduleType);
+            List<string> moduleFiles = await ScanModuleFilesAsync(moduleType, training);
             filePaths[moduleType] = moduleFiles;
 
             System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件 {moduleFiles.Count} 个");
@@ -664,39 +664,62 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 扫描模块文件
     /// </summary>
-    private async Task<List<string>> ScanModuleFilesAsync(ModuleType moduleType)
+    private async Task<List<string>> ScanModuleFilesAsync(ModuleType moduleType, StudentSpecializedTrainingDto training)
     {
         try
         {
-            if (_benchSuiteDirectoryService == null)
-            {
-                return [];
-            }
-
-            string examDirectory = _benchSuiteDirectoryService.GetBasePath();
-            if (!Directory.Exists(examDirectory))
-            {
-                System.Diagnostics.Debug.WriteLine($"考试目录不存在: {examDirectory}");
-                return [];
-            }
-
-            // 根据模块类型确定文件扩展名
-            string[] extensions = moduleType switch
-            {
-                ModuleType.Word => [".docx", ".doc"],
-                ModuleType.PowerPoint => [".pptx", ".ppt"],
-                ModuleType.Excel => [".xlsx", ".xls"],
-                _ => []
-            };
-
             List<string> files = [];
-            foreach (string extension in extensions)
+
+            // 遍历训练的所有模块
+            foreach (StudentSpecializedTrainingModuleDto module in training.Modules)
             {
-                string[] foundFiles = Directory.GetFiles(examDirectory, $"*{extension}", SearchOption.AllDirectories);
-                files.AddRange(foundFiles);
+                // 根据模块类型获取对应的ModuleType枚举
+                ModuleType currentModuleType = GetModuleTypeFromString(module.Type);
+
+                // 只处理匹配的模块类型
+                if (currentModuleType != moduleType)
+                {
+                    continue;
+                }
+
+                // 遍历模块中的所有题目
+                foreach (StudentSpecializedTrainingQuestionDto question in module.Questions)
+                {
+                    string? filePath = null;
+
+                    // 根据模块类型获取相应的文件路径
+                    switch (moduleType)
+                    {
+                        case ModuleType.CSharp:
+                            filePath = question.CodeFilePath;
+                            break;
+                        case ModuleType.Word:
+                        case ModuleType.PowerPoint:
+                        case ModuleType.Excel:
+                            filePath = question.DocumentFilePath;
+                            break;
+                        default:
+                            System.Diagnostics.Debug.WriteLine($"不支持的模块类型: {moduleType}");
+                            continue;
+                    }
+
+                    // 验证文件路径
+                    if (!string.IsNullOrWhiteSpace(filePath))
+                    {
+                        if (File.Exists(filePath))
+                        {
+                            files.Add(filePath);
+                            System.Diagnostics.Debug.WriteLine($"找到有效文件: {Path.GetFileName(filePath)}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"文件不存在: {filePath}");
+                        }
+                    }
+                }
             }
 
-            System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件: {string.Join(", ", files.Select(Path.GetFileName))}");
+            System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件 {files.Count} 个: {string.Join(", ", files.Select(Path.GetFileName))}");
             return files;
         }
         catch (Exception ex)
@@ -784,6 +807,8 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             _ => ModuleType.Windows
         };
     }
+
+
 
     /// <summary>
     /// 从训练数据创建试卷模型
