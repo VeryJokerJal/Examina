@@ -573,7 +573,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             {
                 System.Diagnostics.Debug.WriteLine("无法获取BenchSuite评分结果或评分失败");
                 // 即使评分失败也显示基本结果，窗口关闭后会自动显示主窗口
-                await ShowBasicTrainingResultAsync(training.Name);
+                ShowBasicTrainingResult(training.Name);
             }
 
             System.Diagnostics.Debug.WriteLine("专项训练已通过BenchSuite完成");
@@ -627,7 +627,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
 
             // 扫描考试目录中的文件
-            List<string> moduleFiles = await ScanModuleFilesAsync(moduleType, training);
+            List<string> moduleFiles = ScanModuleFiles(moduleType, training);
             filePaths[moduleType] = moduleFiles;
 
             System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件 {moduleFiles.Count} 个");
@@ -664,7 +664,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 扫描模块文件
     /// </summary>
-    private async Task<List<string>> ScanModuleFilesAsync(ModuleType moduleType, StudentSpecializedTrainingDto training)
+    private List<string> ScanModuleFiles(ModuleType moduleType, StudentSpecializedTrainingDto training)
     {
         try
         {
@@ -707,7 +707,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     if (!string.IsNullOrWhiteSpace(filePath))
                     {
                         // 转换为绝对路径
-                        string absolutePath = ConvertToAbsolutePath(filePath);
+                        string absolutePath = ConvertToAbsolutePath(filePath, training, moduleType);
 
                         if (File.Exists(absolutePath))
                         {
@@ -816,6 +816,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 从训练数据创建试卷模型
     /// </summary>
+    [Obsolete]
     private static ExamModel CreateExamModelFromTraining(StudentSpecializedTrainingDto training)
     {
         ExamModel examModel = new()
@@ -1007,7 +1008,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 显示基本训练结果（当BenchSuite评分失败时）
     /// </summary>
-    private async Task ShowBasicTrainingResultAsync(string trainingName)
+    private void ShowBasicTrainingResult(string trainingName)
     {
         try
         {
@@ -1300,8 +1301,10 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// 将相对路径转换为绝对路径
     /// </summary>
     /// <param name="filePath">文件路径（可能是相对路径或绝对路径）</param>
+    /// <param name="training">专项训练数据</param>
+    /// <param name="moduleType">模块类型</param>
     /// <returns>绝对路径</returns>
-    private string ConvertToAbsolutePath(string filePath)
+    private string ConvertToAbsolutePath(string filePath, StudentSpecializedTrainingDto training, ModuleType moduleType)
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -1314,18 +1317,39 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             return filePath;
         }
 
-        // 如果是相对路径，与基础路径拼接
+        // 如果是相对路径，使用正确的路径组合逻辑
         if (_benchSuiteDirectoryService != null)
         {
-            string basePath = _benchSuiteDirectoryService.GetBasePath();
+            try
+            {
+                // 使用IBenchSuiteDirectoryService.GetExamDirectoryPath()获取正确的考试目录路径
+                // 路径结构：基础路径\考试类型\考试ID\模块类型目录
+                string examDirectoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(
+                    ExamType.SpecializedTraining,
+                    training.Id,
+                    moduleType);
 
-            // 处理以反斜杠开头的路径（如 "\a.docx"）
-            string relativePath = filePath.TrimStart('\\', '/');
-            string absolutePath = Path.Combine(basePath, relativePath);
+                // 处理以反斜杠开头的路径（如 "\a.docx"）
+                string relativePath = filePath.TrimStart('\\', '/');
+                string absolutePath = Path.Combine(examDirectoryPath, relativePath);
 
-            System.Diagnostics.Debug.WriteLine($"路径转换: 原路径='{filePath}', 基础路径='{basePath}', 绝对路径='{absolutePath}'");
+                System.Diagnostics.Debug.WriteLine($"路径转换: 原路径='{filePath}', 考试目录='{examDirectoryPath}', 绝对路径='{absolutePath}'");
 
-            return absolutePath;
+                return absolutePath;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"路径转换失败: {ex.Message}，使用基础路径拼接");
+
+                // 回退到基础路径拼接
+                string basePath = _benchSuiteDirectoryService.GetBasePath();
+                string relativePath = filePath.TrimStart('\\', '/');
+                string absolutePath = Path.Combine(basePath, relativePath);
+
+                System.Diagnostics.Debug.WriteLine($"回退路径转换: 原路径='{filePath}', 基础路径='{basePath}', 绝对路径='{absolutePath}'");
+
+                return absolutePath;
+            }
         }
 
         // 如果没有directoryService，返回原路径
