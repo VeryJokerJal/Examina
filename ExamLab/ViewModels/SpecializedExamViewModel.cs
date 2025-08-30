@@ -1156,7 +1156,8 @@ public class SpecializedExamViewModel : ViewModelBase
                 Title = "生成文档",
                 Content = "正在生成文档，请稍候...",
                 IsPrimaryButtonEnabled = false,
-                IsSecondaryButtonEnabled = false
+                IsSecondaryButtonEnabled = false,
+                XamlRoot = App.MainWindow?.Content?.XamlRoot
             };
 
             // 在后台线程中生成文档
