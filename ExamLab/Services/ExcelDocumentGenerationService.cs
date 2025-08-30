@@ -391,11 +391,19 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             Worksheet worksheet = worksheetPart.Worksheet;
 
             // 获取或创建MergeCells元素
-            MergeCells mergeCells = worksheet.Elements<MergeCells>().FirstOrDefault();
+            MergeCells? mergeCells = worksheet.Elements<MergeCells>().FirstOrDefault();
             if (mergeCells == null)
             {
                 mergeCells = new MergeCells();
-                worksheet.InsertAfter(mergeCells, worksheet.Elements<SheetData>().First());
+                SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
+                if (sheetData != null)
+                {
+                    worksheet.InsertAfter(mergeCells, sheetData);
+                }
+                else
+                {
+                    worksheet.AppendChild(mergeCells);
+                }
             }
 
             // 创建合并单元格
@@ -749,7 +757,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                 return false;
 
             Worksheet worksheet = worksheetPart.Worksheet;
-            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
             if (sheetData == null)
             {
@@ -763,7 +771,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             {
                 if (uint.TryParse(rowNumberStr.Trim(), out uint rowIndex))
                 {
-                    Row row = sheetData.Elements<Row>().FirstOrDefault(r => r.RowIndex == rowIndex);
+                    Row? row = sheetData.Elements<Row>().FirstOrDefault(r => r.RowIndex?.Value == rowIndex);
                     if (row == null)
                     {
                         row = new Row() { RowIndex = rowIndex };
@@ -803,11 +811,19 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             Worksheet worksheet = worksheetPart.Worksheet;
 
             // 获取或创建列设置
-            Columns columns = worksheet.Elements<Columns>().FirstOrDefault();
+            Columns? columns = worksheet.Elements<Columns>().FirstOrDefault();
             if (columns == null)
             {
                 columns = new Columns();
-                worksheet.InsertBefore(columns, worksheet.GetFirstChild<SheetData>());
+                SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
+                if (sheetData != null)
+                {
+                    worksheet.InsertBefore(columns, sheetData);
+                }
+                else
+                {
+                    worksheet.AppendChild(columns);
+                }
             }
 
             // 解析列字母
@@ -971,19 +987,19 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             if (string.IsNullOrEmpty(originalSheetName) || string.IsNullOrEmpty(newSheetName))
                 return false;
 
-            WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
+            WorkbookPart? workbookPart = spreadsheetDocument.WorkbookPart;
             if (workbookPart?.Workbook?.Sheets == null)
                 return false;
 
             // 查找要重命名的工作表
-            Sheet sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
-                .FirstOrDefault(s => s.Name == originalSheetName);
+            Sheet? sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
+                .FirstOrDefault(s => s.Name?.Value == originalSheetName);
 
             if (sheet == null)
             {
                 // 如果找不到原始名称，尝试使用目标工作表名称
                 sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
-                    .FirstOrDefault(s => s.Name == targetWorksheet);
+                    .FirstOrDefault(s => s.Name?.Value == targetWorksheet);
             }
 
             if (sheet != null)
@@ -1231,13 +1247,13 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                 stylesheet.NumberingFormats = numberingFormats;
 
             // 查找是否已存在相同格式
-            NumberingFormat existingFormat = numberingFormats.Elements<NumberingFormat>()
-                .FirstOrDefault(nf => nf.FormatCode == formatCode);
+            NumberingFormat? existingFormat = numberingFormats.Elements<NumberingFormat>()
+                .FirstOrDefault(nf => nf.FormatCode?.Value == formatCode);
 
             uint numberFormatId;
-            if (existingFormat != null)
+            if (existingFormat?.NumberFormatId?.Value != null)
             {
-                numberFormatId = existingFormat.NumberFormatId;
+                numberFormatId = existingFormat.NumberFormatId.Value;
             }
             else
             {
@@ -1245,8 +1261,10 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
                 numberFormatId = 164; // 自定义格式从164开始
                 if (numberingFormats.Elements<NumberingFormat>().Any())
                 {
-                    numberFormatId = numberingFormats.Elements<NumberingFormat>()
-                        .Max(nf => nf.NumberFormatId) + 1;
+                    uint maxId = numberingFormats.Elements<NumberingFormat>()
+                        .Where(nf => nf.NumberFormatId?.Value != null)
+                        .Max(nf => nf.NumberFormatId!.Value);
+                    numberFormatId = maxId + 1;
                 }
 
                 NumberingFormat newFormat = new NumberingFormat()
@@ -1655,14 +1673,22 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             Worksheet worksheet = worksheetPart.Worksheet;
 
             // 获取或创建条件格式
-            ConditionalFormatting conditionalFormatting = worksheet.Elements<ConditionalFormatting>()
+            ConditionalFormatting? conditionalFormatting = worksheet.Elements<ConditionalFormatting>()
                 .FirstOrDefault(cf => cf.SequenceOfReferences?.InnerText == cellRange);
 
             if (conditionalFormatting == null)
             {
                 conditionalFormatting = new ConditionalFormatting();
                 conditionalFormatting.SequenceOfReferences = new ListValue<StringValue>() { InnerText = cellRange };
-                worksheet.InsertAfter(conditionalFormatting, worksheet.Elements<SheetData>().First());
+                SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
+                if (sheetData != null)
+                {
+                    worksheet.InsertAfter(conditionalFormatting, sheetData);
+                }
+                else
+                {
+                    worksheet.AppendChild(conditionalFormatting);
+                }
             }
 
             // 创建条件格式规则
@@ -1788,14 +1814,22 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             autoFilter.Append(filterColumn);
 
             // 移除现有的自动筛选
-            AutoFilter existingAutoFilter = worksheet.Elements<AutoFilter>().FirstOrDefault();
+            AutoFilter? existingAutoFilter = worksheet.Elements<AutoFilter>().FirstOrDefault();
             if (existingAutoFilter != null)
             {
                 existingAutoFilter.Remove();
             }
 
             // 添加新的自动筛选
-            worksheet.InsertAfter(autoFilter, worksheet.Elements<SheetData>().First());
+            SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
+            if (sheetData != null)
+            {
+                worksheet.InsertAfter(autoFilter, sheetData);
+            }
+            else
+            {
+                worksheet.AppendChild(autoFilter);
+            }
 
             await Task.CompletedTask;
             return true;
@@ -1843,14 +1877,22 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             sortState.Append(sortCondition);
 
             // 移除现有的排序状态
-            SortState existingSortState = worksheet.Elements<SortState>().FirstOrDefault();
+            SortState? existingSortState = worksheet.Elements<SortState>().FirstOrDefault();
             if (existingSortState != null)
             {
                 existingSortState.Remove();
             }
 
             // 添加新的排序状态
-            worksheet.InsertAfter(sortState, worksheet.Elements<SheetData>().First());
+            SheetData? sheetData = worksheet.Elements<SheetData>().FirstOrDefault();
+            if (sheetData != null)
+            {
+                worksheet.InsertAfter(sortState, sheetData);
+            }
+            else
+            {
+                worksheet.AppendChild(sortState);
+            }
 
             await Task.CompletedTask;
             return true;
@@ -2769,14 +2811,14 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// <summary>
     /// 获取工作表部分
     /// </summary>
-    private WorksheetPart GetWorksheetPart(SpreadsheetDocument spreadsheetDocument, string worksheetName)
+    private WorksheetPart? GetWorksheetPart(SpreadsheetDocument spreadsheetDocument, string worksheetName)
     {
-        WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
+        WorkbookPart? workbookPart = spreadsheetDocument.WorkbookPart;
         if (workbookPart?.Workbook?.Sheets == null)
             return null;
 
-        Sheet sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
-            .FirstOrDefault(s => s.Name == worksheetName);
+        Sheet? sheet = workbookPart.Workbook.Sheets.Elements<Sheet>()
+            .FirstOrDefault(s => s.Name?.Value == worksheetName);
 
         if (sheet == null)
         {
@@ -2796,7 +2838,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     private void SetCellValue(WorksheetPart worksheetPart, string cellAddress, string value)
     {
         Worksheet worksheet = worksheetPart.Worksheet;
-        SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+        SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
         if (sheetData == null)
         {
@@ -2817,14 +2859,14 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         uint rowIndex = GetRowIndex(cellAddress);
         string columnName = GetColumnName(cellAddress);
 
-        Row row = sheetData.Elements<Row>().FirstOrDefault(r => r.RowIndex == rowIndex);
+        Row? row = sheetData.Elements<Row>().FirstOrDefault(r => r.RowIndex?.Value == rowIndex);
         if (row == null)
         {
             row = new Row() { RowIndex = rowIndex };
             sheetData.Append(row);
         }
 
-        Cell cell = row.Elements<Cell>().FirstOrDefault(c => c.CellReference == cellAddress);
+        Cell? cell = row.Elements<Cell>().FirstOrDefault(c => c.CellReference?.Value == cellAddress);
         if (cell == null)
         {
             cell = new Cell() { CellReference = cellAddress };
@@ -2890,8 +2932,11 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
     /// </summary>
     private WorkbookStylesPart GetOrCreateStylesPart(SpreadsheetDocument spreadsheetDocument)
     {
-        WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
-        WorkbookStylesPart stylesPart = workbookPart.WorkbookStylesPart;
+        WorkbookPart? workbookPart = spreadsheetDocument.WorkbookPart;
+        if (workbookPart == null)
+            throw new InvalidOperationException("WorkbookPart cannot be null");
+
+        WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
 
         if (stylesPart == null)
         {
@@ -2958,7 +3003,7 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
         // 简化实现：只应用到起始单元格
         // 完整实现需要遍历整个区域
         Worksheet worksheet = worksheetPart.Worksheet;
-        SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+        SheetData? sheetData = worksheet.GetFirstChild<SheetData>();
 
         if (sheetData != null)
         {
@@ -3067,13 +3112,13 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
             "实心" => PatternValues.Solid,
             "5%灰色" => PatternValues.Gray0625,
             "10%灰色" => PatternValues.Gray125,
-            "20%灰色" => PatternValues.Gray25,
-            "25%灰色" => PatternValues.Gray25,
-            "30%灰色" => PatternValues.Gray25,
-            "40%灰色" => PatternValues.Gray50,
-            "50%灰色" => PatternValues.Gray50,
-            "60%灰色" => PatternValues.Gray75,
-            "75%灰色" => PatternValues.Gray75,
+            "20%灰色" => PatternValues.LightGray,
+            "25%灰色" => PatternValues.LightGray,
+            "30%灰色" => PatternValues.LightGray,
+            "40%灰色" => PatternValues.MediumGray,
+            "50%灰色" => PatternValues.MediumGray,
+            "60%灰色" => PatternValues.DarkGray,
+            "75%灰色" => PatternValues.DarkGray,
             "水平条纹" => PatternValues.DarkHorizontal,
             "垂直条纹" => PatternValues.DarkVertical,
             "反向对角条纹" => PatternValues.DarkDown,
