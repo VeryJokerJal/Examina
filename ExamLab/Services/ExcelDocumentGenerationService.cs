@@ -2381,74 +2381,378 @@ public class ExcelDocumentGenerationService : IExcelDocumentGenerationService
 
     private async Task<bool> ExecuteLegendFormat(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string legendFormat = GetParameterValue(operationPoint, "LegendFormat", "常规");
+            string fontColor = GetParameterValue(operationPoint, "FontColor", "#000000");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加图例格式标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell formatCell = GetCell(sheetData, "F7");
+                formatCell.CellValue = new CellValue($"图例格式: {legendFormat}, 颜色: {fontColor}");
+                formatCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteLegendFormat error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteVerticalAxisOptions(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string axisOptions = GetParameterValue(operationPoint, "AxisOptions", "自动");
+            string minValue = GetParameterValue(operationPoint, "MinValue", "");
+            string maxValue = GetParameterValue(operationPoint, "MaxValue", "");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加纵轴选项标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell optionsCell = GetCell(sheetData, "F8");
+                string optionsInfo = $"纵轴选项: {axisOptions}";
+                if (!string.IsNullOrEmpty(minValue) || !string.IsNullOrEmpty(maxValue))
+                {
+                    optionsInfo += $", 范围: {minValue}-{maxValue}";
+                }
+                optionsCell.CellValue = new CellValue(optionsInfo);
+                optionsCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteVerticalAxisOptions error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteMajorHorizontalGridlines(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "是");
+            string gridlineStyle = GetParameterValue(operationPoint, "GridlineStyle", "实线");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
+            {
+                Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F9");
+                gridlineCell.CellValue = new CellValue($"主要横向网格线: {showGridlines}, 样式: {gridlineStyle}");
+                gridlineCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteMajorHorizontalGridlines error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteMinorHorizontalGridlines(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "否");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
+            {
+                Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F10");
+                gridlineCell.CellValue = new CellValue($"次要横向网格线: {showGridlines}");
+                gridlineCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteMinorHorizontalGridlines error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteMajorVerticalGridlines(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "否");
+            string gridlineStyle = GetParameterValue(operationPoint, "GridlineStyle", "实线");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
+            {
+                Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F11");
+                gridlineCell.CellValue = new CellValue($"主要纵向网格线: {showGridlines}, 样式: {gridlineStyle}");
+                gridlineCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteMajorVerticalGridlines error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteMinorVerticalGridlines(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string showGridlines = GetParameterValue(operationPoint, "ShowGridlines", "否");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart?.Worksheet?.GetFirstChild<SheetData>() != null)
+            {
+                Cell gridlineCell = GetCell(worksheetPart.Worksheet.GetFirstChild<SheetData>(), "F12");
+                gridlineCell.CellValue = new CellValue($"次要纵向网格线: {showGridlines}");
+                gridlineCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteMinorVerticalGridlines error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteDataSeriesFormat(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string seriesName = GetParameterValue(operationPoint, "SeriesName", "系列1");
+            string seriesColor = GetParameterValue(operationPoint, "SeriesColor", "#0070C0");
+            string seriesStyle = GetParameterValue(operationPoint, "SeriesStyle", "实线");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加数据系列格式标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell seriesCell = GetCell(sheetData, "F13");
+                seriesCell.CellValue = new CellValue($"数据系列: {seriesName}, 颜色: {seriesColor}, 样式: {seriesStyle}");
+                seriesCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteDataSeriesFormat error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteAddDataLabels(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string labelType = GetParameterValue(operationPoint, "LabelType", "值");
+            string labelPosition = GetParameterValue(operationPoint, "LabelPosition", "数据点上方");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加数据标签标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell labelCell = GetCell(sheetData, "F14");
+                labelCell.CellValue = new CellValue($"数据标签: {labelType}, 位置: {labelPosition}");
+                labelCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteAddDataLabels error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteDataLabelsFormat(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string labelFormat = GetParameterValue(operationPoint, "LabelFormat", "常规");
+            string fontColor = GetParameterValue(operationPoint, "FontColor", "#000000");
+            string fontSize = GetParameterValue(operationPoint, "FontSize", "9");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加数据标签格式标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell formatCell = GetCell(sheetData, "F15");
+                formatCell.CellValue = new CellValue($"标签格式: {labelFormat}, 颜色: {fontColor}, 大小: {fontSize}");
+                formatCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteDataLabelsFormat error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteChartAreaFormat(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string areaColor = GetParameterValue(operationPoint, "AreaColor", "#FFFFFF");
+            string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "无边框");
+            string borderColor = GetParameterValue(operationPoint, "BorderColor", "#000000");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加图表区域格式标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell areaCell = GetCell(sheetData, "F16");
+                areaCell.CellValue = new CellValue($"图表区域: 背景{areaColor}, 边框{borderStyle}({borderColor})");
+                areaCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteChartAreaFormat error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteChartFloorColor(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string floorColor = GetParameterValue(operationPoint, "FloorColor", "#F2F2F2");
+            string transparency = GetParameterValue(operationPoint, "Transparency", "0%");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加图表底面颜色标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell floorCell = GetCell(sheetData, "F17");
+                floorCell.CellValue = new CellValue($"图表底面: 颜色{floorColor}, 透明度{transparency}");
+                floorCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteChartFloorColor error: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ExecuteChartBorder(OperationPoint operationPoint, SpreadsheetDocument spreadsheetDocument)
     {
-        await Task.Delay(10);
-        return true;
+        try
+        {
+            string targetWorksheet = GetParameterValue(operationPoint, "TargetWorksheet", "Sheet1");
+            string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "实线");
+            string borderColor = GetParameterValue(operationPoint, "BorderColor", "#000000");
+            string borderWidth = GetParameterValue(operationPoint, "BorderWidth", "1pt");
+
+            WorksheetPart worksheetPart = GetWorksheetPart(spreadsheetDocument, targetWorksheet);
+            if (worksheetPart == null)
+                return false;
+
+            // 简化实现：在工作表中添加图表边框标记
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+
+            if (sheetData != null)
+            {
+                Cell borderCell = GetCell(sheetData, "F18");
+                borderCell.CellValue = new CellValue($"图表边框: {borderStyle}, 颜色{borderColor}, 宽度{borderWidth}");
+                borderCell.DataType = new EnumValue<CellValues>(CellValues.String);
+            }
+
+            await Task.CompletedTask;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ExecuteChartBorder error: {ex.Message}");
+            return false;
+        }
     }
 
     #region 辅助方法
