@@ -605,7 +605,7 @@ public sealed partial class OperationPointEditPage : Page
         // 创建十六进制文本输入框
         TextBox hexTextBox = new()
         {
-            PlaceholderText = "#B4F4FF",
+            PlaceholderText = parameter.DefaultValue ?? "#000000",
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
