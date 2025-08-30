@@ -1890,7 +1890,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var sheetNameInfo = CheckModifiedSheetNameInWorkbook(workbookPart, parameters);
+            (bool Found, string SheetName) sheetNameInfo = CheckModifiedSheetNameInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "NewSheetName", out string expectedName) ? expectedName : "修改后的工作表名";
             result.ActualValue = sheetNameInfo.Found ? sheetNameInfo.SheetName : "未找到修改的工作表名";
@@ -2130,11 +2130,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var chartTypeInfo = CheckChartTypeInWorkbook(workbookPart, parameters);
+            (bool Found, string ChartType) = CheckChartTypeInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "ChartType", out string expectedType) ? expectedType : "图表类型";
-            result.ActualValue = chartTypeInfo.Found ? chartTypeInfo.ChartType : "未找到图表类型";
-            result.IsCorrect = chartTypeInfo.Found;
+            result.ActualValue = Found ? ChartType : "未找到图表类型";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"图表类型检测: {result.ActualValue}";
         }
@@ -2190,11 +2190,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var chartTitleInfo = CheckChartTitleInWorkbook(workbookPart, parameters);
+            (bool Found, string Title) = CheckChartTitleInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "ChartTitle", out string expectedTitle) ? expectedTitle : "图表标题";
-            result.ActualValue = chartTitleInfo.Found ? chartTitleInfo.Title : "未找到图表标题";
-            result.IsCorrect = chartTitleInfo.Found;
+            result.ActualValue = Found ? Title : "未找到图表标题";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"图表标题检测: {result.ActualValue}";
         }
@@ -2220,11 +2220,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var legendInfo = CheckLegendPositionInWorkbook(workbookPart, parameters);
+            (bool Found, string Position) = CheckLegendPositionInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "LegendPosition", out string expectedPosition) ? expectedPosition : "图例位置";
-            result.ActualValue = legendInfo.Found ? legendInfo.Position : "未找到图例位置";
-            result.IsCorrect = legendInfo.Found;
+            result.ActualValue = Found ? Position : "未找到图例位置";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"图例位置检测: {result.ActualValue}";
         }
@@ -2250,7 +2250,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var chartMoveInfo = CheckChartMoveInWorkbook(workbookPart, parameters);
+            (bool Found, string Location) chartMoveInfo = CheckChartMoveInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "MoveLocation", out string expectedLocation) ? expectedLocation : "图表移动";
             result.ActualValue = chartMoveInfo.Found ? chartMoveInfo.Location : "未检测到图表移动";
@@ -2280,7 +2280,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var axisDataInfo = CheckCategoryAxisDataRangeInWorkbook(workbookPart, parameters);
+            (bool Found, string Range) axisDataInfo = CheckCategoryAxisDataRangeInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "CategoryRange", out string expectedRange) ? expectedRange : "分类轴数据区域";
             result.ActualValue = axisDataInfo.Found ? axisDataInfo.Range : "未找到分类轴数据区域";
@@ -2310,7 +2310,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var axisDataInfo = CheckValueAxisDataRangeInWorkbook(workbookPart, parameters);
+            (bool Found, string Range) axisDataInfo = CheckValueAxisDataRangeInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "ValueRange", out string expectedRange) ? expectedRange : "数值轴数据区域";
             result.ActualValue = axisDataInfo.Found ? axisDataInfo.Range : "未找到数值轴数据区域";
@@ -2340,7 +2340,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var titleFormatInfo = CheckChartTitleFormatInWorkbook(workbookPart, parameters);
+            (bool Found, string Format) titleFormatInfo = CheckChartTitleFormatInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "图表标题格式";
             result.ActualValue = titleFormatInfo.Found ? titleFormatInfo.Format : "未找到图表标题格式";
@@ -2370,11 +2370,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var axisTitleInfo = CheckHorizontalAxisTitleInWorkbook(workbookPart, parameters);
+            (bool Found, string Title) = CheckHorizontalAxisTitleInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "AxisTitle", out string expectedTitle) ? expectedTitle : "横坐标轴标题";
-            result.ActualValue = axisTitleInfo.Found ? axisTitleInfo.Title : "未找到横坐标轴标题";
-            result.IsCorrect = axisTitleInfo.Found;
+            result.ActualValue = Found ? Title : "未找到横坐标轴标题";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"横坐标轴标题检测: {result.ActualValue}";
         }
@@ -2400,11 +2400,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var gridlineInfo = CheckMajorHorizontalGridlinesInWorkbook(workbookPart, parameters);
+            (bool Found, string Style) = CheckMajorHorizontalGridlinesInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "主要横网格线";
-            result.ActualValue = gridlineInfo.Found ? $"找到主要横网格线: {gridlineInfo.Style}" : "未找到主要横网格线";
-            result.IsCorrect = gridlineInfo.Found;
+            result.ActualValue = Found ? $"找到主要横网格线: {Style}" : "未找到主要横网格线";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"主要横网格线检测: {result.ActualValue}";
         }
@@ -2430,11 +2430,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var gridlineInfo = CheckMinorHorizontalGridlinesInWorkbook(workbookPart, parameters);
+            (bool Found, string Style) = CheckMinorHorizontalGridlinesInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "次要横网格线";
-            result.ActualValue = gridlineInfo.Found ? $"找到次要横网格线: {gridlineInfo.Style}" : "未找到次要横网格线";
-            result.IsCorrect = gridlineInfo.Found;
+            result.ActualValue = Found ? $"找到次要横网格线: {Style}" : "未找到次要横网格线";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"次要横网格线检测: {result.ActualValue}";
         }
@@ -2460,11 +2460,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var gridlineInfo = CheckMajorVerticalGridlinesInWorkbook(workbookPart, parameters);
+            (bool Found, string Style) = CheckMajorVerticalGridlinesInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "主要纵网格线";
-            result.ActualValue = gridlineInfo.Found ? $"找到主要纵网格线: {gridlineInfo.Style}" : "未找到主要纵网格线";
-            result.IsCorrect = gridlineInfo.Found;
+            result.ActualValue = Found ? $"找到主要纵网格线: {Style}" : "未找到主要纵网格线";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"主要纵网格线检测: {result.ActualValue}";
         }
@@ -2490,11 +2490,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var gridlineInfo = CheckMinorVerticalGridlinesInWorkbook(workbookPart, parameters);
+            (bool Found, string Style) = CheckMinorVerticalGridlinesInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "次要纵网格线";
-            result.ActualValue = gridlineInfo.Found ? $"找到次要纵网格线: {gridlineInfo.Style}" : "未找到次要纵网格线";
-            result.IsCorrect = gridlineInfo.Found;
+            result.ActualValue = Found ? $"找到次要纵网格线: {Style}" : "未找到次要纵网格线";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"次要纵网格线检测: {result.ActualValue}";
         }
@@ -2520,7 +2520,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var seriesFormatInfo = CheckDataSeriesFormatInWorkbook(workbookPart, parameters);
+            (bool Found, string Format) seriesFormatInfo = CheckDataSeriesFormatInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数据系列格式";
             result.ActualValue = seriesFormatInfo.Found ? $"找到数据系列格式: {seriesFormatInfo.Format}" : "未找到数据系列格式";
@@ -2550,11 +2550,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var dataLabelsInfo = CheckDataLabelsInWorkbook(workbookPart, parameters);
+            (bool Found, string Position) = CheckDataLabelsInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数据标签";
-            result.ActualValue = dataLabelsInfo.Found ? $"找到数据标签: {dataLabelsInfo.Position}" : "未找到数据标签";
-            result.IsCorrect = dataLabelsInfo.Found;
+            result.ActualValue = Found ? $"找到数据标签: {Position}" : "未找到数据标签";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"数据标签检测: {result.ActualValue}";
         }
@@ -2580,7 +2580,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var labelsFormatInfo = CheckDataLabelsFormatInWorkbook(workbookPart, parameters);
+            (bool Found, string Format) labelsFormatInfo = CheckDataLabelsFormatInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数据标签格式";
             result.ActualValue = labelsFormatInfo.Found ? $"找到数据标签格式: {labelsFormatInfo.Format}" : "未找到数据标签格式";
@@ -2610,7 +2610,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var areaFormatInfo = CheckChartAreaFormatInWorkbook(workbookPart, parameters);
+            (bool Found, string Format) areaFormatInfo = CheckChartAreaFormatInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "图表区域格式";
             result.ActualValue = areaFormatInfo.Found ? $"找到图表区域格式: {areaFormatInfo.Format}" : "未找到图表区域格式";
@@ -2640,7 +2640,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var floorColorInfo = CheckChartFloorColorInWorkbook(workbookPart, parameters);
+            (bool Found, string Color) floorColorInfo = CheckChartFloorColorInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "图表基底颜色";
             result.ActualValue = floorColorInfo.Found ? $"找到图表基底颜色: {floorColorInfo.Color}" : "未找到图表基底颜色";
@@ -2670,11 +2670,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            var borderInfo = CheckChartBorderInWorkbook(workbookPart, parameters);
+            (bool Found, string Style) = CheckChartBorderInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "图表边框";
-            result.ActualValue = borderInfo.Found ? $"找到图表边框: {borderInfo.Style}" : "未找到图表边框";
-            result.IsCorrect = borderInfo.Found;
+            result.ActualValue = Found ? $"找到图表边框: {Style}" : "未找到图表边框";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"图表边框检测: {result.ActualValue}";
         }
@@ -2704,12 +2704,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 if (sheetData?.HasChildren == true)
                 {
                     // 检查是否有填充或复制操作的迹象
-                    var cellsWithData = sheetData.Descendants<Cell>().Where(c => !string.IsNullOrEmpty(c.CellValue?.Text)).ToList();
+                    List<Cell> cellsWithData = sheetData.Descendants<Cell>().Where(c => !string.IsNullOrEmpty(c.CellValue?.Text)).ToList();
 
                     if (cellsWithData.Count > 0)
                     {
                         // 检查是否有重复的值（可能是复制操作）
-                        var cellValueGroups = cellsWithData.GroupBy(c => c.CellValue?.Text).Where(g => g.Count() > 1);
+                        IEnumerable<IGrouping<string?, Cell>> cellValueGroups = cellsWithData.GroupBy(c => c.CellValue?.Text).Where(g => g.Count() > 1);
                         if (cellValueGroups.Any())
                         {
                             return (true, "检测到单元格复制操作");
@@ -2772,14 +2772,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
                 if (sheetData?.HasChildren == true)
                 {
-                    var rowList = sheetData.Elements<Row>().ToList();
+                    List<Row> rowList = sheetData.Elements<Row>().ToList();
 
                     // 检查行数量变化（可能的插入/删除操作）
                     if (rowList.Count > 1)
                     {
                         // 检查是否有非连续的行号（可能是插入操作）
-                        var rowIndexes = rowList.Where(r => r.RowIndex?.Value != null)
-                                               .Select(r => (int)r.RowIndex.Value)
+                        List<uint> rowIndexes = rowList.Where(r => r.RowIndex?.Value != null)
+                                               .Select(r => r.RowIndex?.Value ?? 0)
                                                .OrderBy(i => i)
                                                .ToList();
 
@@ -2789,7 +2789,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                         }
 
                         // 检查是否有空行（可能是删除操作的结果）
-                        var emptyRows = rowList.Where(r => !r.Elements<Cell>().Any(c => !string.IsNullOrEmpty(c.CellValue?.Text)));
+                        IEnumerable<Row> emptyRows = rowList.Where(r => !r.Elements<Cell>().Any(c => !string.IsNullOrEmpty(c.CellValue?.Text)));
                         if (emptyRows.Any())
                         {
                             return (true, "检测到行删除操作痕迹");
@@ -3020,10 +3020,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             if (stylesPart?.Stylesheet != null)
             {
                 // 检查自定义数字格式
-                var numberingFormats = stylesPart.Stylesheet.NumberingFormats;
+                NumberingFormats? numberingFormats = stylesPart.Stylesheet.NumberingFormats;
                 if (numberingFormats?.HasChildren == true)
                 {
-                    foreach (var numFormat in numberingFormats.Elements<NumberingFormat>())
+                    foreach (NumberingFormat numFormat in numberingFormats.Elements<NumberingFormat>())
                     {
                         string formatCode = numFormat.FormatCode?.Value ?? "";
 
@@ -3043,16 +3043,16 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 }
 
                 // 检查单元格格式中的数字格式
-                var cellFormats = stylesPart.Stylesheet.CellFormats;
+                CellFormats? cellFormats = stylesPart.Stylesheet.CellFormats;
                 if (cellFormats?.HasChildren == true)
                 {
-                    foreach (var cellFormat in cellFormats.Elements<CellFormat>())
+                    foreach (CellFormat cellFormat in cellFormats.Elements<CellFormat>())
                     {
                         if (cellFormat.NumberFormatId?.Value != null)
                         {
                             uint formatId = cellFormat.NumberFormatId.Value;
                             // 检查是否使用了非默认的数字格式
-                            if (formatId > 0 && formatId != 164) // 164是默认的通用格式
+                            if (formatId is > 0 and not 164) // 164是默认的通用格式
                             {
                                 return true;
                             }
@@ -3143,19 +3143,19 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
                 // 检查排序状态
-                var sortState = worksheetPart.Worksheet.Elements<SortState>().FirstOrDefault();
+                SortState? sortState = worksheetPart.Worksheet.Elements<SortState>().FirstOrDefault();
                 if (sortState != null)
                 {
                     return true;
                 }
 
                 // 检查自动筛选（通常与排序相关）
-                var autoFilter = worksheetPart.Worksheet.Elements<AutoFilter>().FirstOrDefault();
+                AutoFilter? autoFilter = worksheetPart.Worksheet.Elements<AutoFilter>().FirstOrDefault();
                 if (autoFilter != null)
                 {
                     // 检查是否有排序条件
-                    var filterColumns = autoFilter.Elements<FilterColumn>();
-                    foreach (var filterColumn in filterColumns)
+                    IEnumerable<FilterColumn> filterColumns = autoFilter.Elements<FilterColumn>();
+                    foreach (FilterColumn filterColumn in filterColumns)
                     {
                         // 检查是否有排序相关的筛选条件
                         if (filterColumn.HasChildren)
@@ -3424,12 +3424,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.CellFormats?.HasChildren == true)
             {
-                foreach (var cellFormat in stylesPart.Stylesheet.CellFormats.Elements<DocumentFormat.OpenXml.Spreadsheet.CellFormat>())
+                foreach (CellFormat cellFormat in stylesPart.Stylesheet.CellFormats.Elements<DocumentFormat.OpenXml.Spreadsheet.CellFormat>())
                 {
-                    var alignment = cellFormat.Alignment;
+                    Alignment? alignment = cellFormat.Alignment;
                     if (alignment?.Horizontal?.Value != null)
                     {
                         string alignmentValue = alignment.Horizontal.Value.ToString();
@@ -3458,12 +3458,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.CellFormats?.HasChildren == true)
             {
-                foreach (var cellFormat in stylesPart.Stylesheet.CellFormats.Elements<DocumentFormat.OpenXml.Spreadsheet.CellFormat>())
+                foreach (CellFormat cellFormat in stylesPart.Stylesheet.CellFormats.Elements<DocumentFormat.OpenXml.Spreadsheet.CellFormat>())
                 {
-                    var alignment = cellFormat.Alignment;
+                    Alignment? alignment = cellFormat.Alignment;
                     if (alignment?.Vertical?.Value != null)
                     {
                         string alignmentValue = alignment.Vertical.Value.ToString();
@@ -3492,10 +3492,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Borders?.HasChildren == true)
             {
-                foreach (var border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
+                foreach (Border border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
                 {
                     // 检查内边框（左、右、上、下）
                     if (border.LeftBorder?.Style?.Value != null ||
@@ -3522,10 +3522,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Borders?.HasChildren == true)
             {
-                foreach (var border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
+                foreach (Border border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
                 {
                     // 检查内边框颜色
                     if (border.LeftBorder?.Color != null ||
@@ -3552,10 +3552,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Borders?.HasChildren == true)
             {
-                foreach (var border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
+                foreach (Border border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
                 {
                     // 检查外边框
                     if (border.HasChildren)
@@ -3579,10 +3579,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Borders?.HasChildren == true)
             {
-                foreach (var border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
+                foreach (Border border in stylesPart.Stylesheet.Borders.Elements<DocumentFormat.OpenXml.Spreadsheet.Border>())
                 {
                     if (border.HasChildren)
                     {
@@ -3605,12 +3605,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
-                var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
+                SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
                 if (sheetData?.HasChildren == true)
                 {
-                    foreach (var row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
+                    foreach (Row row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
                     {
                         if (row.Height?.Value != null)
                         {
@@ -3634,12 +3634,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
-                var columns = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.Columns>().FirstOrDefault();
+                Columns? columns = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.Columns>().FirstOrDefault();
                 if (columns?.HasChildren == true)
                 {
-                    foreach (var column in columns.Elements<DocumentFormat.OpenXml.Spreadsheet.Column>())
+                    foreach (Column column in columns.Elements<DocumentFormat.OpenXml.Spreadsheet.Column>())
                     {
                         if (column.Width?.Value != null)
                         {
@@ -3663,12 +3663,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Fills?.HasChildren == true)
             {
-                foreach (var fill in stylesPart.Stylesheet.Fills.Elements<DocumentFormat.OpenXml.Spreadsheet.Fill>())
+                foreach (Fill fill in stylesPart.Stylesheet.Fills.Elements<DocumentFormat.OpenXml.Spreadsheet.Fill>())
                 {
-                    var patternFill = fill.PatternFill;
+                    PatternFill? patternFill = fill.PatternFill;
                     if (patternFill?.ForegroundColor != null || patternFill?.BackgroundColor != null)
                     {
                         return true;
@@ -3690,12 +3690,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Fills?.HasChildren == true)
             {
-                foreach (var fill in stylesPart.Stylesheet.Fills.Elements<DocumentFormat.OpenXml.Spreadsheet.Fill>())
+                foreach (Fill fill in stylesPart.Stylesheet.Fills.Elements<DocumentFormat.OpenXml.Spreadsheet.Fill>())
                 {
-                    var patternFill = fill.PatternFill;
+                    PatternFill? patternFill = fill.PatternFill;
                     if (patternFill?.PatternType?.Value != null &&
                         patternFill.PatternType.Value != DocumentFormat.OpenXml.Spreadsheet.PatternValues.None)
                     {
@@ -3718,12 +3718,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Fills?.HasChildren == true)
             {
-                foreach (var fill in stylesPart.Stylesheet.Fills.Elements<DocumentFormat.OpenXml.Spreadsheet.Fill>())
+                foreach (Fill fill in stylesPart.Stylesheet.Fills.Elements<DocumentFormat.OpenXml.Spreadsheet.Fill>())
                 {
-                    var patternFill = fill.PatternFill;
+                    PatternFill? patternFill = fill.PatternFill;
                     if (patternFill?.ForegroundColor != null)
                     {
                         return true;
@@ -3745,10 +3745,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Fonts?.HasChildren == true)
             {
-                foreach (var font in stylesPart.Stylesheet.Fonts.Elements<DocumentFormat.OpenXml.Spreadsheet.Font>())
+                foreach (Font font in stylesPart.Stylesheet.Fonts.Elements<DocumentFormat.OpenXml.Spreadsheet.Font>())
                 {
                     if (font.Underline != null)
                     {
@@ -3773,10 +3773,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             string expectedName = TryGetParameter(parameters, "NewSheetName", out string expected) ? expected : "";
 
-            var sheets = workbookPart.Workbook.Sheets;
+            Sheets? sheets = workbookPart.Workbook.Sheets;
             if (sheets?.HasChildren == true)
             {
-                foreach (var sheet in sheets.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>())
+                foreach (Sheet sheet in sheets.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>())
                 {
                     string sheetName = sheet.Name?.Value ?? "";
                     if (!string.IsNullOrEmpty(expectedName) && TextEquals(sheetName, expectedName))
@@ -3805,12 +3805,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var stylesPart = workbookPart.WorkbookStylesPart;
-            if (stylesPart?.Stylesheet?.CellStyles?.HasChildren == true)
-            {
-                return true;
-            }
-            return false;
+            WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
+            return stylesPart?.Stylesheet?.CellStyles?.HasChildren == true;
         }
         catch
         {
@@ -3825,9 +3821,9 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
-                var autoFilter = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.AutoFilter>().FirstOrDefault();
+                AutoFilter? autoFilter = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.AutoFilter>().FirstOrDefault();
                 if (autoFilter != null)
                 {
                     return true;
@@ -3848,9 +3844,9 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
-                var sortState = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.SortState>().FirstOrDefault();
+                SortState? sortState = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.SortState>().FirstOrDefault();
                 if (sortState != null)
                 {
                     return true;
@@ -3875,20 +3871,20 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             string summaryFunction = TryGetParameter(parameters, "SummaryFunction", out string sumFunc) ? sumFunc : "";
             string summaryColumn = TryGetParameter(parameters, "SummaryColumn", out string sumCol) ? sumCol : "";
 
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
-                var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
+                SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
                 if (sheetData?.HasChildren == true)
                 {
                     bool hasSubtotalFunction = false;
                     bool hasGroupingStructure = false;
 
                     // 检查SUBTOTAL函数
-                    foreach (var row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
+                    foreach (Row row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
                     {
-                        foreach (var cell in row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>())
+                        foreach (Cell cell in row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>())
                         {
-                            var cellFormula = cell.CellFormula?.Text;
+                            string? cellFormula = cell.CellFormula?.Text;
                             if (!string.IsNullOrEmpty(cellFormula))
                             {
                                 if (cellFormula.Contains("SUBTOTAL", StringComparison.OrdinalIgnoreCase))
@@ -3909,14 +3905,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     }
 
                     // 检查分组结构（行分组）
-                    var rowGroups = worksheetPart.Worksheet.Elements<RowBreaks>().FirstOrDefault();
+                    RowBreaks? rowGroups = worksheetPart.Worksheet.Elements<RowBreaks>().FirstOrDefault();
                     if (rowGroups != null)
                     {
                         hasGroupingStructure = true;
                     }
 
                     // 检查大纲级别（分组的另一种表现）
-                    var rowsWithOutlineLevel = sheetData.Elements<Row>().Where(r => r.OutlineLevel?.Value > 0);
+                    IEnumerable<Row> rowsWithOutlineLevel = sheetData.Elements<Row>().Where(r => r.OutlineLevel?.Value > 0);
                     if (rowsWithOutlineLevel.Any())
                     {
                         hasGroupingStructure = true;
@@ -3944,9 +3940,9 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有筛选相关设置
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
-                var autoFilter = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.AutoFilter>().FirstOrDefault();
+                AutoFilter? autoFilter = worksheetPart.Worksheet.Elements<DocumentFormat.OpenXml.Spreadsheet.AutoFilter>().FirstOrDefault();
                 if (autoFilter?.Elements<DocumentFormat.OpenXml.Spreadsheet.FilterColumn>().Any() == true)
                 {
                     return true;
@@ -3986,19 +3982,19 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             string expectedType = TryGetParameter(parameters, "ChartType", out string expected) ? expected : "";
 
             // 检查工作表中的图表
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
                 if (worksheetPart.DrawingsPart?.ChartParts.Any() == true)
                 {
-                    foreach (var chartPart in worksheetPart.DrawingsPart.ChartParts)
+                    foreach (ChartPart chartPart in worksheetPart.DrawingsPart.ChartParts)
                     {
                         try
                         {
-                            var chartSpace = chartPart.ChartSpace;
-                            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+                            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+                            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
                             if (chart?.PlotArea != null)
                             {
-                                var plotArea = chart.PlotArea;
+                                DocumentFormat.OpenXml.Drawing.Charts.PlotArea plotArea = chart.PlotArea;
 
                                 // 检查不同类型的图表
                                 if (plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>().Any())
@@ -4083,8 +4079,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            return chartInfo.Found;
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            return Found;
         }
         catch
         {
@@ -4101,8 +4097,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             string expectedTitle = TryGetParameter(parameters, "ChartTitle", out string expected) ? expected : "";
 
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 return (true, "图表标题存在");
             }
@@ -4124,8 +4120,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             string expectedPosition = TryGetParameter(parameters, "LegendPosition", out string expected) ? expected : "";
 
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 return (true, "图例位置存在");
             }
@@ -4151,9 +4147,9 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             // 检查图表是否存在于指定工作表
             if (!string.IsNullOrEmpty(targetSheet))
             {
-                var targetWorksheet = workbookPart.WorksheetParts.FirstOrDefault(ws =>
+                WorksheetPart? targetWorksheet = workbookPart.WorksheetParts.FirstOrDefault(ws =>
                 {
-                    var sheetName = GetWorksheetName(workbookPart, ws);
+                    string sheetName = GetWorksheetName(workbookPart, ws);
                     return TextEquals(sheetName, targetSheet);
                 });
 
@@ -4165,7 +4161,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
             // 简化检测：检查是否有多个工作表包含图表
             int chartsInSheets = 0;
-            foreach (var worksheetPart in workbookPart.WorksheetParts)
+            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
                 if (worksheetPart.DrawingsPart?.ChartParts.Any() == true)
                 {
@@ -4196,13 +4192,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             string expectedRange = TryGetParameter(parameters, "CategoryRange", out string expected) ? expected : "";
 
             // 简化实现：检查是否有图表和数据区域
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 // 检查是否有数据区域定义
-                foreach (var worksheetPart in workbookPart.WorksheetParts)
+                foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
                 {
-                    var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
+                    SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
                     if (sheetData?.HasChildren == true)
                     {
                         return (true, "检测到分类轴数据区域");
@@ -4228,18 +4224,18 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             string expectedRange = TryGetParameter(parameters, "ValueRange", out string expected) ? expected : "";
 
             // 简化实现：检查是否有图表和数值数据
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 // 检查是否有数值数据
-                foreach (var worksheetPart in workbookPart.WorksheetParts)
+                foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
                 {
-                    var sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
+                    SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.SheetData>();
                     if (sheetData?.HasChildren == true)
                     {
-                        foreach (var row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
+                        foreach (Row row in sheetData.Elements<DocumentFormat.OpenXml.Spreadsheet.Row>())
                         {
-                            foreach (var cell in row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>())
+                            foreach (Cell cell in row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>())
                             {
                                 if (cell.DataType?.Value == DocumentFormat.OpenXml.Spreadsheet.CellValues.Number ||
                                     (cell.DataType == null && !string.IsNullOrEmpty(cell.CellValue?.Text)))
@@ -4268,8 +4264,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和格式设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 // 检查是否有字体格式参数
                 if (TryGetParameter(parameters, "FontName", out string fontName) ||
@@ -4300,8 +4296,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             string expectedTitle = TryGetParameter(parameters, "AxisTitle", out string expected) ? expected : "";
 
             // 简化实现：检查是否有图表
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 return (true, "检测到横坐标轴标题");
             }
@@ -4321,10 +4317,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var sheets = workbookPart.Workbook.Sheets;
+            Sheets? sheets = workbookPart.Workbook.Sheets;
             if (sheets?.HasChildren == true)
             {
-                foreach (var sheet in sheets.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>())
+                foreach (Sheet sheet in sheets.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>())
                 {
                     if (sheet.Id?.Value == workbookPart.GetIdOfPart(worksheetPart))
                     {
@@ -4348,8 +4344,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和网格线设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 bool gridlineVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) &&
                                      (TextEquals(visible, "true") || TextEquals(visible, "是"));
@@ -4378,8 +4374,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和网格线设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 bool gridlineVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) &&
                                      (TextEquals(visible, "true") || TextEquals(visible, "是"));
@@ -4408,8 +4404,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和网格线设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 bool gridlineVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) &&
                                      (TextEquals(visible, "true") || TextEquals(visible, "是"));
@@ -4438,8 +4434,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和网格线设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 bool gridlineVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) &&
                                      (TextEquals(visible, "true") || TextEquals(visible, "是"));
@@ -4468,8 +4464,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和系列格式设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 if (TryGetParameter(parameters, "SeriesIndex", out string seriesIndex) ||
                     TryGetParameter(parameters, "SeriesColor", out string seriesColor))
@@ -4496,8 +4492,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和标签设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 string labelPosition = TryGetParameter(parameters, "LabelPosition", out string position) ? position : "默认位置";
                 return (true, labelPosition);
@@ -4519,8 +4515,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和标签格式设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 if (TryGetParameter(parameters, "FontName", out string fontName) ||
                     TryGetParameter(parameters, "FontSize", out string fontSize) ||
@@ -4548,8 +4544,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和区域格式设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 if (TryGetParameter(parameters, "FillColor", out string fillColor) ||
                     TryGetParameter(parameters, "BorderColor", out string borderColor))
@@ -4576,8 +4572,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和基底颜色设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 string floorColor = TryGetParameter(parameters, "FloorColor", out string color) ? color : "默认颜色";
                 return (true, floorColor);
@@ -4599,8 +4595,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 简化实现：检查是否有图表和边框设置
-            var chartInfo = CheckChartInWorkbook(workbookPart);
-            if (chartInfo.Found)
+            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
+            if (Found)
             {
                 if (TryGetParameter(parameters, "BorderStyle", out string borderStyle) ||
                     TryGetParameter(parameters, "BorderColor", out string borderColor))
@@ -4627,24 +4623,20 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 检查是否有连续的数字序列
-            var numericCells = cellsWithData.Where(c =>
+            List<Cell> numericCells = cellsWithData.Where(c =>
             {
-                if (double.TryParse(c.CellValue?.Text, out double value))
-                {
-                    return true;
-                }
-                return false;
+                return double.TryParse(c.CellValue?.Text, out double value);
             }).ToList();
 
             if (numericCells.Count >= 3)
             {
-                var values = numericCells.Select(c => double.Parse(c.CellValue.Text)).OrderBy(v => v).ToList();
+                List<double> values = numericCells.Select(c => double.Parse(c.CellValue?.Text ?? "0")).OrderBy(v => v).ToList();
 
                 // 检查是否是等差数列
                 double diff = values[1] - values[0];
                 for (int i = 2; i < values.Count; i++)
                 {
-                    if (Math.Abs((values[i] - values[i-1]) - diff) < 0.001)
+                    if (Math.Abs(values[i] - values[i - 1] - diff) < 0.001)
                     {
                         return true; // 发现等差数列，可能是填充操作
                     }
@@ -4662,15 +4654,18 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查非连续行号
     /// </summary>
-    private bool CheckNonSequentialRows(List<int> rowIndexes)
+    private bool CheckNonSequentialRows(List<uint> rowIndexes)
     {
         try
         {
-            if (rowIndexes.Count < 2) return false;
+            if (rowIndexes.Count < 2)
+            {
+                return false;
+            }
 
             for (int i = 1; i < rowIndexes.Count; i++)
             {
-                if (rowIndexes[i] - rowIndexes[i-1] > 1)
+                if (rowIndexes[i] - rowIndexes[i - 1] > 1)
                 {
                     return true; // 发现跳跃的行号
                 }
@@ -4691,17 +4686,23 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
-            if (sheetData?.HasChildren != true) return false;
+            SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+            if (sheetData?.HasChildren != true)
+            {
+                return false;
+            }
 
-            var rows = sheetData.Elements<Row>().Take(10).ToList(); // 检查前10行
-            if (rows.Count < 3) return false;
+            List<Row> rows = sheetData.Elements<Row>().Take(10).ToList(); // 检查前10行
+            if (rows.Count < 3)
+            {
+                return false;
+            }
 
             // 检查第一列的数据是否呈现排序特征
-            var firstColumnValues = new List<string>();
-            foreach (var row in rows)
+            List<string> firstColumnValues = [];
+            foreach (Row? row in rows)
             {
-                var firstCell = row.Elements<Cell>().FirstOrDefault();
+                Cell? firstCell = row.Elements<Cell>().FirstOrDefault();
                 if (firstCell?.CellValue?.Text != null)
                 {
                     firstColumnValues.Add(firstCell.CellValue.Text);
@@ -4716,9 +4717,16 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
                 for (int i = 1; i < firstColumnValues.Count; i++)
                 {
-                    int comparison = string.Compare(firstColumnValues[i], firstColumnValues[i-1], StringComparison.OrdinalIgnoreCase);
-                    if (comparison < 0) isAscending = false;
-                    if (comparison > 0) isDescending = false;
+                    int comparison = string.Compare(firstColumnValues[i], firstColumnValues[i - 1], StringComparison.OrdinalIgnoreCase);
+                    if (comparison < 0)
+                    {
+                        isAscending = false;
+                    }
+
+                    if (comparison > 0)
+                    {
+                        isDescending = false;
+                    }
                 }
 
                 return isAscending || isDescending;
@@ -4740,7 +4748,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 常见数字格式的匹配
-            var formatMappings = new Dictionary<string, string[]>
+            Dictionary<string, string[]> formatMappings = new()
             {
                 { "货币", new[] { "¥", "$", "€", "currency", "money" } },
                 { "百分比", new[] { "%", "percent", "percentage" } },
@@ -4754,11 +4762,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             string lowerFormatCode = formatCode.ToLowerInvariant();
             string lowerExpected = expectedFormat.ToLowerInvariant();
 
-            foreach (var mapping in formatMappings)
+            foreach (KeyValuePair<string, string[]> mapping in formatMappings)
             {
                 if (TextEquals(mapping.Key, expectedFormat))
                 {
-                    return mapping.Value.Any(pattern => lowerFormatCode.Contains(pattern));
+                    return mapping.Value.Any(lowerFormatCode.Contains);
                 }
             }
 
