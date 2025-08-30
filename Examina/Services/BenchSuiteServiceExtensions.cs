@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using BenchSuite.Interfaces;
 using BenchSuite.Services;
+using BenchSuite.Services.OpenXml;
 using Examina.Configuration;
 
 namespace Examina.Services;
@@ -63,6 +64,21 @@ public static class BenchSuiteServiceExtensions
 
         // 注册增强的考试工具栏服务
         _ = services.AddTransient<EnhancedExamToolbarService>();
+
+        // 注册OpenXML评分服务
+        _ = services.AddSingleton<IWordScoringService, WordOpenXmlScoringService>();
+        _ = services.AddSingleton<IPowerPointScoringService, PowerPointOpenXmlScoringService>();
+        _ = services.AddSingleton<IExcelScoringService, ExcelOpenXmlScoringService>();
+
+        // 注册OpenXML评分管理器
+        _ = services.AddSingleton<OpenXmlScoringManager>();
+
+        // 注册通用评分服务（用于文件类型自动识别）
+        _ = services.AddSingleton<IScoringService>(provider =>
+        {
+            // 返回Word评分服务作为默认服务，实际使用时会根据文件扩展名选择合适的服务
+            return provider.GetRequiredService<IWordScoringService>();
+        });
 
         return services;
     }

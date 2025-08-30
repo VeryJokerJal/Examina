@@ -23,6 +23,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     private readonly IAuthenticationService _authenticationService;
     private readonly IBenchSuiteIntegrationService? _benchSuiteIntegrationService;
     private readonly IBenchSuiteDirectoryService? _benchSuiteDirectoryService;
+    private readonly OpenXmlScoringManager? _openXmlScoringManager;
     private DateTime _trainingStartTime;
     private bool _isLoading;
     private string _errorMessage = string.Empty;
@@ -207,6 +208,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         // 尝试获取BenchSuite服务（可选）
         _benchSuiteIntegrationService = AppServiceManager.GetService<IBenchSuiteIntegrationService>();
         _benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
+        _openXmlScoringManager = AppServiceManager.GetService<OpenXmlScoringManager>();
 
         // 初始化命令
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
@@ -605,7 +607,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 获取BenchSuite评分结果
+    /// 获取BenchSuite评分结果（集成OpenXML评分）
     /// </summary>
     private async Task<Dictionary<ModuleType, ScoringResult>?> GetBenchSuiteScoringResultAsync(int trainingId, StudentSpecializedTrainingDto training)
     {
@@ -622,9 +624,25 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
             // 根据训练的模块类型确定文件类型
             ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
-            filePaths[moduleType] = []; // 简化版本，实际应该扫描文件
 
-            // 执行评分
+            // 扫描考试目录中的文件
+            List<string> moduleFiles = await ScanModuleFilesAsync(moduleType);
+            filePaths[moduleType] = moduleFiles;
+
+            System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件 {moduleFiles.Count} 个");
+
+            // 如果有OpenXML评分管理器，优先使用OpenXML评分
+            if (_openXmlScoringManager != null && moduleFiles.Count > 0)
+            {
+                Dictionary<ModuleType, ScoringResult> openXmlResults = await PerformOpenXmlScoringAsync(moduleType, moduleFiles, training);
+                if (openXmlResults.Count > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"OpenXML评分完成，模块数量: {openXmlResults.Count}");
+                    return openXmlResults;
+                }
+            }
+
+            // 回退到传统BenchSuite评分
             Dictionary<ModuleType, ScoringResult> results = await _benchSuiteIntegrationService.ScoreExamAsync(
                 ExamType.SpecializedTraining,
                 trainingId,
@@ -643,21 +661,110 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 扫描训练文件（已废弃，保留用于兼容性）
+    /// 扫描模块文件
     /// </summary>
-    private void ScanTrainingFiles(StudentSpecializedTrainingDto training)
+    private async Task<List<string>> ScanModuleFilesAsync(ModuleType moduleType)
     {
         try
         {
-            // 根据训练的模块类型确定模块类型
-            ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
+            if (_benchSuiteDirectoryService == null)
+            {
+                return [];
+            }
 
-            // 简化的文件扫描逻辑（这个方法已经不再使用，因为接口已更改）
-            System.Diagnostics.Debug.WriteLine($"已配置模块类型: {moduleType} 用于模块类型: {training.ModuleType}");
+            string examDirectory = _benchSuiteDirectoryService.GetExamDirectory();
+            if (!Directory.Exists(examDirectory))
+            {
+                System.Diagnostics.Debug.WriteLine($"考试目录不存在: {examDirectory}");
+                return [];
+            }
+
+            // 根据模块类型确定文件扩展名
+            string[] extensions = moduleType switch
+            {
+                ModuleType.Word => [".docx", ".doc"],
+                ModuleType.PowerPoint => [".pptx", ".ppt"],
+                ModuleType.Excel => [".xlsx", ".xls"],
+                _ => []
+            };
+
+            List<string> files = [];
+            foreach (string extension in extensions)
+            {
+                string[] foundFiles = Directory.GetFiles(examDirectory, $"*{extension}", SearchOption.AllDirectories);
+                files.AddRange(foundFiles);
+            }
+
+            System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件: {string.Join(", ", files.Select(Path.GetFileName))}");
+            return files;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"扫描训练文件失败: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"扫描模块文件失败: {ex.Message}");
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// 执行OpenXML评分
+    /// </summary>
+    private async Task<Dictionary<ModuleType, ScoringResult>> PerformOpenXmlScoringAsync(ModuleType moduleType, List<string> files, StudentSpecializedTrainingDto training)
+    {
+        Dictionary<ModuleType, ScoringResult> results = [];
+
+        try
+        {
+            if (_openXmlScoringManager == null || files.Count == 0)
+            {
+                return results;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"开始OpenXML评分，模块类型: {moduleType}, 文件数量: {files.Count}");
+
+            // 创建模拟的试卷模型（基于训练数据）
+            ExamModel examModel = CreateExamModelFromTraining(training);
+
+            // 对每个文件进行评分
+            List<ScoringResult> fileResults = [];
+            foreach (string filePath in files)
+            {
+                try
+                {
+                    if (_openXmlScoringManager.IsFileSupported(filePath))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"正在评分文件: {Path.GetFileName(filePath)}");
+
+                        ScoringResult fileResult = await _openXmlScoringManager.ScoreFileAsync(filePath, examModel);
+                        fileResults.Add(fileResult);
+
+                        System.Diagnostics.Debug.WriteLine($"文件评分完成: {Path.GetFileName(filePath)}, 得分: {fileResult.AchievedScore}/{fileResult.TotalScore}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"不支持的文件类型: {Path.GetFileName(filePath)}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"文件评分失败: {Path.GetFileName(filePath)}, 错误: {ex.Message}");
+                }
+            }
+
+            // 合并评分结果
+            if (fileResults.Count > 0)
+            {
+                ScoringResult combinedResult = CombineScoringResults(fileResults, training.Name);
+                results[moduleType] = combinedResult;
+
+                System.Diagnostics.Debug.WriteLine($"OpenXML评分完成，模块: {moduleType}, 总得分: {combinedResult.AchievedScore}/{combinedResult.TotalScore}");
+            }
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"OpenXML评分失败: {ex.Message}");
+            return results;
         }
     }
 
@@ -675,6 +782,109 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             "windows" => ModuleType.Windows,
             _ => ModuleType.Windows
         };
+    }
+
+    /// <summary>
+    /// 从训练数据创建试卷模型
+    /// </summary>
+    private static ExamModel CreateExamModelFromTraining(StudentSpecializedTrainingDto training)
+    {
+        ExamModel examModel = new()
+        {
+            Id = training.Id,
+            Name = training.Name,
+            Description = training.Description ?? string.Empty,
+            TotalScore = training.TotalScore,
+            Duration = training.Duration,
+            OperationPoints = []
+        };
+
+        // 从训练模块创建操作点
+        foreach (StudentSpecializedTrainingModuleDto module in training.Modules)
+        {
+            foreach (StudentSpecializedTrainingQuestionDto question in module.Questions)
+            {
+                OperationPointModel operationPoint = new()
+                {
+                    Id = question.Id,
+                    Name = question.Title,
+                    Description = question.Content ?? string.Empty,
+                    Score = question.Score,
+                    Type = question.QuestionType ?? "检测",
+                    Parameters = new Dictionary<string, string>(),
+                    ModuleType = GetModuleTypeFromString(training.ModuleType)
+                };
+
+                examModel.OperationPoints.Add(operationPoint);
+            }
+        }
+
+        // 如果没有模块，从直接题目列表创建
+        if (examModel.OperationPoints.Count == 0)
+        {
+            foreach (StudentSpecializedTrainingQuestionDto question in training.Questions)
+            {
+                OperationPointModel operationPoint = new()
+                {
+                    Id = question.Id,
+                    Name = question.Title,
+                    Description = question.Content ?? string.Empty,
+                    Score = question.Score,
+                    Type = question.QuestionType ?? "检测",
+                    Parameters = new Dictionary<string, string>(),
+                    ModuleType = GetModuleTypeFromString(training.ModuleType)
+                };
+
+                examModel.OperationPoints.Add(operationPoint);
+            }
+        }
+
+        return examModel;
+    }
+
+    /// <summary>
+    /// 合并多个评分结果
+    /// </summary>
+    private static ScoringResult CombineScoringResults(List<ScoringResult> results, string examName)
+    {
+        if (results.Count == 0)
+        {
+            return new ScoringResult
+            {
+                ExamName = examName,
+                TotalScore = 0,
+                AchievedScore = 0,
+                KnowledgePointResults = [],
+                ScoringTime = DateTime.Now,
+                IsSuccess = false,
+                ErrorMessage = "没有评分结果"
+            };
+        }
+
+        if (results.Count == 1)
+        {
+            return results[0];
+        }
+
+        // 合并多个结果
+        ScoringResult combined = new()
+        {
+            ExamName = examName,
+            TotalScore = results.Sum(r => r.TotalScore),
+            AchievedScore = results.Sum(r => r.AchievedScore),
+            KnowledgePointResults = [],
+            ScoringTime = DateTime.Now,
+            IsSuccess = results.All(r => r.IsSuccess),
+            ErrorMessage = string.Join("; ", results.Where(r => !string.IsNullOrEmpty(r.ErrorMessage)).Select(r => r.ErrorMessage))
+        };
+
+        // 合并知识点结果
+        foreach (ScoringResult result in results)
+        {
+            combined.KnowledgePointResults.AddRange(result.KnowledgePointResults);
+        }
+
+        return combined;
     }
 
     /// <summary>

@@ -184,7 +184,8 @@ public enum WordKnowledgeType
 
     // 第八类：其他操作（共2项）
     FindAndReplace = 66,                     // 知识点66：查找与替换
-    SetSpecificTextFontSize = 67             // 知识点67：设置指定文字字号
+    SetSpecificTextFontSize = 67,             // 知识点67：设置指定文字字号
+    SetWatermarkColor = 68              // 知识点68：设置水印文字颜色
 }
 
 /// <summary>
