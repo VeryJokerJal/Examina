@@ -2034,15 +2034,18 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             var tables = mainPart.Document.Descendants<DocumentFormat.OpenXml.Wordprocessing.Table>();
             foreach (var table in tables)
             {
-                var tableProperties = table.TableProperties;
-                var tableStyle = tableProperties?.TableStyle;
-                if (tableStyle?.Val?.Value != null)
+                var tableProperties = table.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableProperties>();
+                if (tableProperties != null)
                 {
-                    return tableStyle.Val.Value;
-                }
-                if (tableProperties?.HasChildren == true)
-                {
-                    return "自定义样式";
+                    var tableStyle = tableProperties.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableStyle>();
+                    if (tableStyle?.Val?.Value != null)
+                    {
+                        return tableStyle.Val.Value;
+                    }
+                    if (tableProperties.HasChildren)
+                    {
+                        return "自定义样式";
+                    }
                 }
             }
             return "默认样式";
@@ -2063,11 +2066,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             var tables = mainPart.Document.Descendants<DocumentFormat.OpenXml.Wordprocessing.Table>();
             foreach (var table in tables)
             {
-                var tableProperties = table.TableProperties;
-                var tableBorders = tableProperties?.TableBorders;
-                if (tableBorders?.HasChildren == true)
+                var tableProperties = table.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableProperties>();
+                if (tableProperties != null)
                 {
-                    return true;
+                    var tableBorders = tableProperties.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableBorders>();
+                    if (tableBorders?.HasChildren == true)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -2146,14 +2152,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             foreach (var headerPart in mainPart.HeaderParts)
             {
                 var pageNumbers = headerPart.Header.Descendants<DocumentFormat.OpenXml.Wordprocessing.SimpleField>()
-                    .Where(sf => sf.Instruction?.Value?.Contains("PAGE") == true);
+                    .Where(sf => sf.Instruction?.Value.Contains("PAGE") == true);
                 if (pageNumbers.Any()) return true;
             }
 
             foreach (var footerPart in mainPart.FooterParts)
             {
                 var pageNumbers = footerPart.Footer.Descendants<DocumentFormat.OpenXml.Wordprocessing.SimpleField>()
-                    .Where(sf => sf.Instruction?.Value?.Contains("PAGE") == true);
+                    .Where(sf => sf.Instruction?.Value.Contains("PAGE") == true);
                 if (pageNumbers.Any()) return true;
             }
 
@@ -2178,10 +2184,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (pageMargin != null)
             {
                 return (true,
-                    pageMargin.Top?.Value?.ToString() ?? "默认",
-                    pageMargin.Bottom?.Value?.ToString() ?? "默认",
-                    pageMargin.Left?.Value?.ToString() ?? "默认",
-                    pageMargin.Right?.Value?.ToString() ?? "默认");
+                    pageMargin.Top?.Value.ToString() ?? "默认",
+                    pageMargin.Bottom?.Value.ToString() ?? "默认",
+                    pageMargin.Left?.Value.ToString() ?? "默认",
+                    pageMargin.Right?.Value.ToString() ?? "默认");
             }
             return (false, "默认", "默认", "默认", "默认");
         }
@@ -2226,8 +2232,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (pageSize != null)
             {
                 return (true,
-                    pageSize.Width?.Value?.ToString() ?? "默认",
-                    pageSize.Height?.Value?.ToString() ?? "默认");
+                    pageSize.Width?.Value.ToString() ?? "默认",
+                    pageSize.Height?.Value.ToString() ?? "默认");
             }
             return (false, "默认", "默认");
         }
