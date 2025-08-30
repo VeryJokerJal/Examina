@@ -209,13 +209,13 @@ public class PowerPointScoringService : IPowerPointScoringService
                 Parameters = parameters
             };
 
-            PowerPoint.Application? pptApp = null;
-            PowerPoint.Presentation? presentation = null;
+            Application? pptApp = null;
+            Presentation? presentation = null;
 
             try
             {
                 // 启动PowerPoint应用程序
-                pptApp = new PowerPoint.Application();
+                pptApp = new Application();
 
                 // 打开演示文稿
                 presentation = pptApp.Presentations.Open(filePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
@@ -246,8 +246,8 @@ public class PowerPointScoringService : IPowerPointScoringService
         return await Task.Run(() =>
         {
             List<KnowledgePointResult> results = [];
-            PowerPoint.Application? pptApp = null;
-            PowerPoint.Presentation? presentation = null;
+            Application? pptApp = null;
+            Presentation? presentation = null;
 
             // 创建基于文件路径的确定性参数解析上下文
             // 使用文件路径确保同一文件的-1参数始终解析为相同值
@@ -257,7 +257,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             try
             {
                 // 启动PowerPoint应用程序
-                pptApp = new PowerPoint.Application();
+                pptApp = new Application();
 
                 // 打开演示文稿
                 presentation = pptApp.Presentations.Open(filePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
@@ -387,7 +387,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测特定知识点
     /// </summary>
-    private KnowledgePointResult DetectSpecificKnowledgePoint(PowerPoint.Presentation presentation, string knowledgePointType, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSpecificKnowledgePoint(Presentation presentation, string knowledgePointType, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -516,7 +516,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测幻灯片版式
     /// </summary>
-    private KnowledgePointResult DetectSlideLayout(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSlideLayout(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -540,7 +540,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
             string actualLayout = GetLayoutDisplayName(slide.Layout);
 
             // 标准化期望的版式名称
@@ -565,7 +565,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测删除的幻灯片
     /// </summary>
-    private KnowledgePointResult DetectDeletedSlide(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectDeletedSlide(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -621,7 +621,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测插入的幻灯片
     /// </summary>
-    private KnowledgePointResult DetectInsertedSlide(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectInsertedSlide(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -679,7 +679,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测幻灯片字体
     /// </summary>
-    private KnowledgePointResult DetectSlideFont(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSlideFont(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -709,14 +709,14 @@ public class PowerPointScoringService : IPowerPointScoringService
             if (hasSpecificSlide)
             {
                 // 检测指定幻灯片
-                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                Slide slide = presentation.Slides[slideIndex];
                 foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
                     try
                     {
                         if (shape.HasTextFrame == MsoTriState.msoTrue)
                         {
-                            PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+                            TextRange textRange = shape.TextFrame.TextRange;
                             string fontName = textRange.Font.Name;
                             actualFonts += fontName + "; ";
 
@@ -740,14 +740,14 @@ public class PowerPointScoringService : IPowerPointScoringService
                 actualFonts = ""; // 重置
                 for (int i = 1; i <= presentation.Slides.Count; i++)
                 {
-                    PowerPoint.Slide slide = presentation.Slides[i];
+                    Slide slide = presentation.Slides[i];
                     foreach (PowerPoint.Shape shape in slide.Shapes)
                     {
                         try
                         {
                             if (shape.HasTextFrame == MsoTriState.msoTrue)
                             {
-                                PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+                                TextRange textRange = shape.TextFrame.TextRange;
                                 string fontName = textRange.Font.Name;
                                 actualFonts += fontName + "; ";
 
@@ -789,7 +789,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测幻灯片切换效果（支持单个和多个幻灯片）
     /// </summary>
-    private KnowledgePointResult DetectSlideTransition(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSlideTransition(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -863,7 +863,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     continue;
                 }
 
-                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                Slide slide = presentation.Slides[slideIndex];
                 string actualTransition = GetTransitionEffectName(slide.SlideShowTransition.EntryEffect);
                 actualTransitions.Add(actualTransition);
 
@@ -909,7 +909,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测文本内容
     /// </summary>
-    private KnowledgePointResult DetectTextContent(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectTextContent(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -939,7 +939,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             if (hasSpecificSlide)
             {
                 // 检测指定幻灯片
-                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                Slide slide = presentation.Slides[slideIndex];
                 foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
                     try
@@ -969,7 +969,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 allText = ""; // 重置
                 for (int i = 1; i <= presentation.Slides.Count; i++)
                 {
-                    PowerPoint.Slide slide = presentation.Slides[i];
+                    Slide slide = presentation.Slides[i];
                     string slideText = "";
 
                     foreach (PowerPoint.Shape shape in slide.Shapes)
@@ -1026,7 +1026,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测文本字号
     /// </summary>
-    private KnowledgePointResult DetectTextFontSize(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectTextFontSize(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -1051,7 +1051,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
             bool sizeFound = false;
             string actualSizes = "";
 
@@ -1087,7 +1087,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测文本颜色
     /// </summary>
-    private KnowledgePointResult DetectTextColor(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectTextColor(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -1111,7 +1111,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
             bool colorFound = false;
             string actualColors = "";
 
@@ -1148,7 +1148,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测插入的图片
     /// </summary>
-    private KnowledgePointResult DetectInsertedImage(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectInsertedImage(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -1172,7 +1172,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             if (hasSpecificSlide)
             {
                 // 检测指定幻灯片
-                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                Slide slide = presentation.Slides[slideIndex];
                 foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
                     string shapeType = shape.Type.ToString();
@@ -1196,7 +1196,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 allShapeTypes.Clear(); // 重置
                 for (int i = 1; i <= presentation.Slides.Count; i++)
                 {
-                    PowerPoint.Slide slide = presentation.Slides[i];
+                    Slide slide = presentation.Slides[i];
                     int slideImageCount = 0;
 
                     foreach (PowerPoint.Shape shape in slide.Shapes)
@@ -1262,7 +1262,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测插入的表格
     /// </summary>
-    private KnowledgePointResult DetectInsertedTable(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectInsertedTable(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -1286,7 +1286,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             if (hasSpecificSlide)
             {
                 // 检测指定幻灯片
-                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                Slide slide = presentation.Slides[slideIndex];
                 foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
                     try
@@ -1321,7 +1321,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 tableInfo = ""; // 重置
                 for (int i = 1; i <= presentation.Slides.Count; i++)
                 {
-                    PowerPoint.Slide slide = presentation.Slides[i];
+                    Slide slide = presentation.Slides[i];
                     int slideTableCount = 0;
 
                     foreach (PowerPoint.Shape shape in slide.Shapes)
@@ -1403,7 +1403,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测应用的主题
     /// </summary>
-    private KnowledgePointResult DetectAppliedTheme(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectAppliedTheme(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -1439,7 +1439,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测幻灯片背景
     /// </summary>
-    private KnowledgePointResult DetectSlideBackground(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSlideBackground(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -1675,7 +1675,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     /// <param name="pattern">图案枚举值</param>
     /// <returns>图案类型名称</returns>
-    private string GetPatternTypeName(Microsoft.Office.Core.MsoPatternType pattern)
+    private string GetPatternTypeName(MsoPatternType pattern)
     {
         return pattern switch
         {
@@ -1756,7 +1756,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 try
                 {
                     // 尝试获取纹理类型
-                    Microsoft.Office.Core.MsoPresetTexture preset = fill.PresetTexture;
+                    MsoPresetTexture preset = fill.PresetTexture;
                     string textureName = GetTextureTypeName(preset);
 
                     if (!string.IsNullOrEmpty(textureName))
@@ -1787,7 +1787,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     /// <param name="texture">纹理枚举值</param>
     /// <returns>纹理类型名称</returns>
-    private string GetTextureTypeName(Microsoft.Office.Core.MsoPresetTexture texture)
+    private string GetTextureTypeName(MsoPresetTexture texture)
     {
         return texture switch
         {
@@ -1873,7 +1873,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     /// <param name="presetGradient">预设渐变枚举值</param>
     /// <returns>渐变类型名称</returns>
-    private string GetPresetGradientTypeName(Microsoft.Office.Core.MsoPresetGradientType presetGradient)
+    private string GetPresetGradientTypeName(MsoPresetGradientType presetGradient)
     {
         return presetGradient switch
         {
@@ -1975,7 +1975,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <param name="gradientStyle">渐变样式</param>
     /// <param name="angle">渐变角度</param>
     /// <returns>渐变方向名称</returns>
-    private string GetLinearGradientDirectionName(Microsoft.Office.Core.MsoGradientStyle gradientStyle, float angle)
+    private string GetLinearGradientDirectionName(MsoGradientStyle gradientStyle, float angle)
     {
         // 根据角度判断具体方向
         float normalizedAngle = angle % 360;
@@ -1999,7 +1999,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     /// <param name="gradientStyle">渐变样式</param>
     /// <returns>基本方向名称</returns>
-    private string GetBasicGradientDirectionName(Microsoft.Office.Core.MsoGradientStyle gradientStyle)
+    private string GetBasicGradientDirectionName(MsoGradientStyle gradientStyle)
     {
         return gradientStyle switch
         {
@@ -2014,7 +2014,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测文本字形（加粗、斜体、下划线、删除线）
     /// </summary>
-    private KnowledgePointResult DetectTextStyle(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectTextStyle(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2041,7 +2041,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
 
             if (textBoxIndex < 1 || textBoxIndex > slide.Shapes.Count)
             {
@@ -2101,7 +2101,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测元素位置
     /// </summary>
-    private KnowledgePointResult DetectElementPosition(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectElementPosition(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2130,7 +2130,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
 
             if (elementIndex < 1 || elementIndex > slide.Shapes.Count)
             {
@@ -2165,7 +2165,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测元素尺寸
     /// </summary>
-    private KnowledgePointResult DetectElementSize(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectElementSize(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2194,7 +2194,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
 
             if (elementIndex < 1 || elementIndex > slide.Shapes.Count)
             {
@@ -2229,7 +2229,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测文本对齐方式
     /// </summary>
-    private KnowledgePointResult DetectTextAlignment(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectTextAlignment(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2256,7 +2256,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
 
             if (textBoxIndex < 1 || textBoxIndex > slide.Shapes.Count)
             {
@@ -2271,7 +2271,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+            TextRange textRange = shape.TextFrame.TextRange;
             int actualAlignment = (int)textRange.ParagraphFormat.Alignment;
 
             static string GetAlignmentName(int alignment)
@@ -2305,7 +2305,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测幻灯片切换方式
     /// </summary>
-    private KnowledgePointResult DetectSlideTransitionMode(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSlideTransitionMode(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2364,7 +2364,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                     continue;
                 }
 
-                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                Slide slide = presentation.Slides[slideIndex];
                 string actualTransition = GetTransitionEffectName(slide.SlideShowTransition.EntryEffect);
 
                 // 检测切换方案是否匹配
@@ -2410,7 +2410,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测超链接
     /// </summary>
-    private KnowledgePointResult DetectHyperlink(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectHyperlink(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2437,7 +2437,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
 
             if (textBoxIndex < 1 || textBoxIndex > slide.Shapes.Count)
             {
@@ -2458,7 +2458,7 @@ public class PowerPointScoringService : IPowerPointScoringService
 
             try
             {
-                PowerPoint.TextRange textRange = shape.TextFrame.TextRange;
+                TextRange textRange = shape.TextFrame.TextRange;
                 if (textRange.ActionSettings[PpMouseActivation.ppMouseClick].Hyperlink.Address != null)
                 {
                     hasHyperlink = true;
@@ -2496,7 +2496,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测幻灯片编号
     /// </summary>
-    private KnowledgePointResult DetectSlideNumber(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSlideNumber(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2520,7 +2520,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 // 检查第一张幻灯片的页眉页脚设置
                 if (presentation.Slides.Count > 0)
                 {
-                    PowerPoint.Slide slide = presentation.Slides[1];
+                    Slide slide = presentation.Slides[1];
                     actualShowSlideNumber = slide.HeadersFooters.SlideNumber.Visible == MsoTriState.msoTrue;
                 }
             }
@@ -2548,7 +2548,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测页脚文字
     /// </summary>
-    private KnowledgePointResult DetectFooterText(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectFooterText(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2573,7 +2573,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 // 检查第一张幻灯片的页脚设置
                 if (presentation.Slides.Count > 0)
                 {
-                    PowerPoint.Slide slide = presentation.Slides[1];
+                    Slide slide = presentation.Slides[1];
                     if (slide.HeadersFooters.Footer.Visible == MsoTriState.msoTrue)
                     {
                         hasFooter = true;
@@ -2608,7 +2608,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测插入的SmartArt图形
     /// </summary>
-    private KnowledgePointResult DetectInsertedSmartArt(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectInsertedSmartArt(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2631,7 +2631,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             if (hasSpecificSlide)
             {
                 // 检测指定幻灯片
-                PowerPoint.Slide slide = presentation.Slides[slideIndex];
+                Slide slide = presentation.Slides[slideIndex];
                 foreach (PowerPoint.Shape shape in slide.Shapes)
                 {
                     if (shape.Type.ToString().Contains("SmartArt") || shape.Type.ToString().Contains("msoSmartArt"))
@@ -2647,7 +2647,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             {
                 for (int i = 1; i <= presentation.Slides.Count; i++)
                 {
-                    PowerPoint.Slide slide = presentation.Slides[i];
+                    Slide slide = presentation.Slides[i];
                     int slideSmartArtCount = 0;
 
                     foreach (PowerPoint.Shape shape in slide.Shapes)
@@ -2702,7 +2702,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测插入的备注
     /// </summary>
-    private KnowledgePointResult DetectInsertedNote(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectInsertedNote(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2726,7 +2726,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
             string actualNoteText = "";
             bool hasNote = false;
 
@@ -2777,7 +2777,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测表格内容
     /// </summary>
-    private KnowledgePointResult DetectTableContent(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectTableContent(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2805,7 +2805,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
             PowerPoint.Shape? tableShape = null;
 
             // 查找表格
@@ -2888,7 +2888,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测表格样式
     /// </summary>
-    private KnowledgePointResult DetectTableStyle(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectTableStyle(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -2912,7 +2912,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideIndex];
+            Slide slide = presentation.Slides[slideIndex];
             PowerPoint.Shape? tableShape = null;
 
             // 查找表格
@@ -2955,7 +2955,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 清理PowerPoint资源
     /// </summary>
-    private static void CleanupPowerPointResources(PowerPoint.Presentation? presentation, PowerPoint.Application? pptApp)
+    private static void CleanupPowerPointResources(Presentation? presentation, Application? pptApp)
     {
         try
         {
@@ -2985,7 +2985,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 为演示文稿解析参数中的-1值
     /// </summary>
-    private static void ResolveParametersForPresentation(Dictionary<string, string> parameters, PowerPoint.Presentation? presentation, ParameterResolutionContext context)
+    private static void ResolveParametersForPresentation(Dictionary<string, string> parameters, Presentation? presentation, ParameterResolutionContext context)
     {
         foreach (KeyValuePair<string, string> parameter in parameters)
         {
@@ -3022,7 +3022,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取参数的最大值
     /// </summary>
-    private static int GetMaxValueForParameter(string parameterName, PowerPoint.Presentation? presentation, Dictionary<string, string> parameters)
+    private static int GetMaxValueForParameter(string parameterName, Presentation? presentation, Dictionary<string, string> parameters)
     {
         if (presentation is null)
         {
@@ -3079,7 +3079,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取版式的显示名称
     /// </summary>
-    private string GetLayoutDisplayName(PowerPoint.PpSlideLayout layout)
+    private string GetLayoutDisplayName(PpSlideLayout layout)
     {
         try
         {
@@ -3125,7 +3125,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测动画计时与延时设置
     /// </summary>
-    private KnowledgePointResult DetectAnimationTiming(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectAnimationTiming(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -3154,7 +3154,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             _ = parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr);
             _ = parameters.TryGetValue("Duration", out string? expectedDurationStr);
 
-            PowerPoint.Slide slide = presentation.Slides[slideNumber];
+            Slide slide = presentation.Slides[slideNumber];
             bool animationFound = false;
             string animationDetails = "";
 
@@ -3204,7 +3204,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测动画持续时间设置
     /// </summary>
-    private KnowledgePointResult DetectAnimationDuration(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectAnimationDuration(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -3239,7 +3239,7 @@ public class PowerPointScoringService : IPowerPointScoringService
             _ = parameters.TryGetValue("Duration", out string? expectedDurationStr);
             _ = parameters.TryGetValue("DelayTime", out string? expectedDelayTimeStr);
 
-            PowerPoint.Slide slide = presentation.Slides[slideNumber];
+            Slide slide = presentation.Slides[slideNumber];
             bool animationFound = false;
             string animationDetails = "";
 
@@ -3297,7 +3297,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测动画播放顺序设置
     /// </summary>
-    private KnowledgePointResult DetectAnimationOrder(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectAnimationOrder(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -3328,7 +3328,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideNumber];
+            Slide slide = presentation.Slides[slideNumber];
             bool animationFound = false;
             List<string> orderDetails = [];
 
@@ -3499,7 +3499,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// </summary>
     /// <param name="entryEffect">PowerPoint 切换效果枚举</param>
     /// <returns>切换效果名称</returns>
-    private static string GetTransitionEffectName(PowerPoint.PpEntryEffect entryEffect)
+    private static string GetTransitionEffectName(PpEntryEffect entryEffect)
     {
         return entryEffect switch
         {
@@ -3651,7 +3651,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测幻灯片放映选项
     /// </summary>
-    private KnowledgePointResult DetectSlideshowOptions(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectSlideshowOptions(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -3662,7 +3662,7 @@ public class PowerPointScoringService : IPowerPointScoringService
         try
         {
             // 获取放映设置
-            PowerPoint.SlideShowSettings settings = presentation.SlideShowSettings;
+            SlideShowSettings settings = presentation.SlideShowSettings;
             List<string> details = [];
             int correctCount = 0;
             int totalChecks = 0;
@@ -3802,7 +3802,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取放映类型名称
     /// </summary>
-    private static string GetSlideshowTypeName(PowerPoint.PpSlideShowType showType)
+    private static string GetSlideshowTypeName(PpSlideShowType showType)
     {
         return showType switch
         {
@@ -3817,7 +3817,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取放映范围名称
     /// </summary>
-    private static string GetSlideshowRangeName(PowerPoint.PpSlideShowRangeType rangeType)
+    private static string GetSlideshowRangeName(PpSlideShowRangeType rangeType)
     {
         return rangeType switch
         {
@@ -3831,7 +3831,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取切换方式名称
     /// </summary>
-    private static string GetAdvanceModeName(PowerPoint.PpSlideShowAdvanceMode advanceMode)
+    private static string GetAdvanceModeName(PpSlideShowAdvanceMode advanceMode)
     {
         return advanceMode switch
         {
@@ -3845,7 +3845,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 检测艺术字设置
     /// </summary>
-    private KnowledgePointResult DetectWordArtStyle(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    private KnowledgePointResult DetectWordArtStyle(Presentation presentation, Dictionary<string, string> parameters)
     {
         KnowledgePointResult result = new()
         {
@@ -3877,7 +3877,7 @@ public class PowerPointScoringService : IPowerPointScoringService
                 return result;
             }
 
-            PowerPoint.Slide slide = presentation.Slides[slideNumber];
+            Slide slide = presentation.Slides[slideNumber];
 
             // 查找指定的文本框
             if (textBoxOrder < 1 || textBoxOrder > slide.Shapes.Count)
@@ -3994,7 +3994,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取预设文本效果名称
     /// </summary>
-    private static string GetPresetTextEffectName(Microsoft.Office.Core.MsoPresetTextEffect presetEffect)
+    private static string GetPresetTextEffectName(MsoPresetTextEffect presetEffect)
     {
         return presetEffect switch
         {
@@ -4035,7 +4035,7 @@ public class PowerPointScoringService : IPowerPointScoringService
     /// <summary>
     /// 获取文本效果形状名称
     /// </summary>
-    private static string GetTextEffectShapeName(Microsoft.Office.Core.MsoPresetTextEffectShape shapeEffect)
+    private static string GetTextEffectShapeName(MsoPresetTextEffectShape shapeEffect)
     {
         return shapeEffect switch
         {

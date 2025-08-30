@@ -28,7 +28,7 @@ public class ParameterTypeJsonConverter : JsonConverter<ParameterType>
                     string normalized = stringValue.Trim();
 
                     // 1) 直接按名称解析（大小写不敏感），例如：Text/Number/Boolean/Enum/Date
-                    if (Enum.TryParse<ParameterType>(normalized, ignoreCase: true, out ParameterType directResult))
+                    if (Enum.TryParse(normalized, ignoreCase: true, out ParameterType directResult))
                     {
                         return directResult;
                     }

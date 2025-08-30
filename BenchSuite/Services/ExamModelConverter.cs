@@ -156,7 +156,7 @@ public static class ExamModelConverter
 
             // 解析模块类型
             string typeString = GetStringProperty(moduleElement, "type");
-            if (Enum.TryParse<ModuleType>(typeString, true, out ModuleType moduleType))
+            if (Enum.TryParse(typeString, true, out ModuleType moduleType))
             {
                 module.Type = moduleType;
             }
@@ -303,7 +303,7 @@ public static class ExamModelConverter
 
             // 解析模块类型
             string moduleTypeString = GetStringProperty(opElement, "moduleType");
-            if (Enum.TryParse<ModuleType>(moduleTypeString, true, out ModuleType moduleType))
+            if (Enum.TryParse(moduleTypeString, true, out ModuleType moduleType))
             {
                 operationPoint.ModuleType = moduleType;
             }
@@ -343,7 +343,7 @@ public static class ExamModelConverter
 
             // 解析参数类型
             string typeString = GetStringProperty(paramElement, "type");
-            if (Enum.TryParse<ParameterType>(typeString, true, out ParameterType parameterType))
+            if (Enum.TryParse(typeString, true, out ParameterType parameterType))
             {
                 parameter.Type = parameterType;
             }

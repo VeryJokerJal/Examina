@@ -147,7 +147,7 @@ public class ExamModuleModel
     public string TypeString
     {
         get => Type.ToString();
-        set => Type = Enum.TryParse<ModuleType>(value, true, out ModuleType result) ? result : ModuleType.Windows;
+        set => Type = Enum.TryParse(value, true, out ModuleType result) ? result : ModuleType.Windows;
     }
 
     /// <summary>
@@ -591,7 +591,7 @@ public class ConfigurationParameterModel
     public string TypeString
     {
         get => Type.ToString();
-        set => Type = Enum.TryParse<ParameterType>(value, true, out ParameterType result) ? result : ParameterType.Text;
+        set => Type = Enum.TryParse(value, true, out ParameterType result) ? result : ParameterType.Text;
     }
 }
 

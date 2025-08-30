@@ -1,9 +1,9 @@
-using BenchSuite.Interfaces;
+﻿using BenchSuite.Interfaces;
 using BenchSuite.Models;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Presentation;
 
 namespace BenchSuite.Services.OpenXml;
 
@@ -216,7 +216,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                         string knowledgePointType = MapOperationPointNameToKnowledgeType(operationPoint.Name);
 
                         KnowledgePointResult result = DetectSpecificKnowledgePoint(document, knowledgePointType, parameters);
-                        
+
                         result.KnowledgePointId = operationPoint.Id;
                         result.OperationPointId = operationPoint.Id;
                         result.KnowledgePointName = operationPoint.Name;
@@ -432,7 +432,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -484,7 +484,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
             int actualCount = slideIds?.Count ?? 0;
 
             // 尝试从参数中获取期望的幻灯片数量
@@ -532,7 +532,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
             int actualCount = slideIds?.Count ?? 0;
 
             // 尝试从参数中获取期望的幻灯片数量
@@ -597,7 +597,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             string searchDetails = "";
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
             bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
@@ -672,7 +672,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             string searchDetails = "";
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
             bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
@@ -736,14 +736,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (var textElement in textElements)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
             {
-                var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                RunProperties? runProperties = textElement.Parent?.Elements<RunProperties>().FirstOrDefault();
                 if (runProperties != null)
                 {
                     // 检查LatinFont
-                    var latinFont = runProperties.Elements<DocumentFormat.OpenXml.Drawing.LatinFont>().FirstOrDefault();
+                    LatinFont? latinFont = runProperties.Elements<LatinFont>().FirstOrDefault();
                     if (latinFont?.Typeface?.Value != null)
                     {
                         string fontName = latinFont.Typeface.Value;
@@ -772,7 +772,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
             return string.Join(" ", textElements.Select(t => t.Text));
         }
         catch
@@ -795,8 +795,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 支持多种参数名称（兼容新旧版本）
-            string? slideIndexesStr = null;
-            if (!parameters.TryGetValue("SlideNumbers", out slideIndexesStr))
+            if (!parameters.TryGetValue("SlideNumbers", out string? slideIndexesStr))
             {
                 if (!parameters.TryGetValue("SlideIndexes", out slideIndexesStr))
                 {
@@ -844,7 +843,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null)
             {
@@ -905,14 +904,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var transition = slidePart.Slide.Transition;
+            Transition? transition = slidePart.Slide.Transition;
             if (transition != null)
             {
                 // 简化实现：检查是否有切换效果
                 if (transition.HasChildren)
                 {
                     // 尝试从子元素获取切换类型
-                    var firstChild = transition.FirstChild;
+                    OpenXmlElement? firstChild = transition.FirstChild;
                     if (firstChild != null)
                     {
                         return firstChild.LocalName; // 返回元素名称作为切换类型
@@ -949,7 +948,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -963,10 +962,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             bool sizeFound = false;
             List<string> actualSizes = [];
 
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (var textElement in textElements)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
             {
-                var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                RunProperties? runProperties = textElement.Parent?.Elements<RunProperties>().FirstOrDefault();
                 if (runProperties?.FontSize?.Value != null)
                 {
                     float fontSize = runProperties.FontSize.Value / 100f; // OpenXML uses points * 100
@@ -1014,7 +1013,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1028,17 +1027,17 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             bool colorFound = false;
             List<string> actualColors = [];
 
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (var textElement in textElements)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
             {
-                var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                RunProperties? runProperties = textElement.Parent?.Elements<RunProperties>().FirstOrDefault();
                 if (runProperties != null)
                 {
                     // 检查SolidFill颜色
-                    var solidFill = runProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    SolidFill? solidFill = runProperties.Elements<SolidFill>().FirstOrDefault();
                     if (solidFill != null)
                     {
-                        var rgbColor = solidFill.Elements<DocumentFormat.OpenXml.Drawing.RgbColorModelHex>().FirstOrDefault();
+                        RgbColorModelHex? rgbColor = solidFill.Elements<RgbColorModelHex>().FirstOrDefault();
                         if (rgbColor?.Val?.Value != null)
                         {
                             string colorHex = "#" + rgbColor.Val.Value;
@@ -1084,7 +1083,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             string searchDetails = "";
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
             bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
@@ -1156,7 +1155,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 计算图片形状
-            var pictures = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Presentation.Picture>();
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Picture> pictures = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Presentation.Picture>();
             return pictures.Count();
         }
         catch
@@ -1182,7 +1181,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             string searchDetails = "";
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
             bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
@@ -1253,7 +1252,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var tables = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Table>();
+            IEnumerable<Table> tables = slidePart.Slide.Descendants<Table>();
             return tables.Count();
         }
         catch
@@ -1285,7 +1284,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1333,7 +1332,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1344,7 +1343,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             SlideId slideId = slideIds[slideIndex - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
-            var positionInfo = GetElementPosition(slidePart, elementType, parameters);
+            (bool Found, long X, long Y) positionInfo = GetElementPosition(slidePart, elementType, parameters);
 
             result.ExpectedValue = $"{elementType}位置";
             result.ActualValue = positionInfo.Found ? $"X:{positionInfo.X}, Y:{positionInfo.Y}" : "未找到元素";
@@ -1381,7 +1380,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1392,7 +1391,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             SlideId slideId = slideIds[slideIndex - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
-            var sizeInfo = GetElementSize(slidePart, elementType, parameters);
+            (bool Found, long Width, long Height) sizeInfo = GetElementSize(slidePart, elementType, parameters);
 
             result.ExpectedValue = $"{elementType}大小";
             result.ActualValue = sizeInfo.Found ? $"宽:{sizeInfo.Width}, 高:{sizeInfo.Height}" : "未找到元素";
@@ -1429,7 +1428,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1476,7 +1475,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1487,13 +1486,13 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             SlideId slideId = slideIds[slideIndex - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
-            var hyperlinkInfo = GetHyperlinkInfo(slidePart, parameters);
+            (bool Found, string Url) = GetHyperlinkInfo(slidePart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "ExpectedUrl", out string expectedUrl) ? expectedUrl : "存在超链接";
-            result.ActualValue = hyperlinkInfo.Found ? hyperlinkInfo.Url : "无超链接";
-            result.IsCorrect = hyperlinkInfo.Found && (string.IsNullOrEmpty(expectedUrl) || TextEquals(hyperlinkInfo.Url, expectedUrl));
+            result.ActualValue = Found ? Url : "无超链接";
+            result.IsCorrect = Found && (string.IsNullOrEmpty(expectedUrl) || TextEquals(Url, expectedUrl));
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 超链接检测: {(hyperlinkInfo.Found ? $"找到超链接 {hyperlinkInfo.Url}" : "未找到超链接")}";
+            result.Details = $"幻灯片 {slideIndex} 超链接检测: {(Found ? $"找到超链接 {Url}" : "未找到超链接")}";
         }
         catch (Exception ex)
         {
@@ -1523,7 +1522,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1570,7 +1569,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1618,7 +1617,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1665,7 +1664,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1707,7 +1706,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             PresentationPart presentationPart = document.PresentationPart!;
-            string themeName = GetAppliedTheme(presentationPart);
+            string? themeName = GetAppliedTheme(presentationPart);
             bool hasCustomTheme = !string.IsNullOrEmpty(themeName) && !themeName.Equals("Office Theme", StringComparison.OrdinalIgnoreCase);
 
             string expectedTheme = TryGetParameter(parameters, "ThemeName", out string expected) ? expected : "";
@@ -1746,7 +1745,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1794,7 +1793,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1805,11 +1804,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             SlideId slideId = slideIds[slideIndex - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
-            var tableInfo = GetTableContent(slidePart, parameters);
+            (bool Found, string Content) = GetTableContent(slidePart, parameters);
 
             result.ExpectedValue = TryGetParameter(parameters, "ExpectedContent", out string expected) ? expected : "表格内容";
-            result.ActualValue = tableInfo.Found ? tableInfo.Content : "未找到表格";
-            result.IsCorrect = tableInfo.Found && (string.IsNullOrEmpty(expected) || TextContains(tableInfo.Content, expected));
+            result.ActualValue = Found ? Content : "未找到表格";
+            result.IsCorrect = Found && (string.IsNullOrEmpty(expected) || TextContains(Content, expected));
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"幻灯片 {slideIndex} 表格内容检测: {result.ActualValue}";
         }
@@ -1841,7 +1840,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1889,7 +1888,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1936,7 +1935,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -1984,7 +1983,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -2062,7 +2061,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
-            var slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
             {
@@ -2096,10 +2095,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (var textElement in textElements)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
             {
-                var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                RunProperties? runProperties = textElement.Parent?.Elements<RunProperties>().FirstOrDefault();
                 if (runProperties != null)
                 {
                     bool hasStyle = expectedStyle.ToLowerInvariant() switch
@@ -2111,7 +2110,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                         _ => false
                     };
 
-                    if (hasStyle) return true;
+                    if (hasStyle)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -2129,12 +2131,15 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
-            if (shapes == null) return (false, 0, 0);
-
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            if (shapes == null)
             {
-                var transform = shape.ShapeProperties?.Transform2D;
+                return (false, 0, 0);
+            }
+
+            foreach (DocumentFormat.OpenXml.Presentation.Shape shape in shapes)
+            {
+                Transform2D? transform = shape.ShapeProperties?.Transform2D;
                 if (transform?.Offset != null)
                 {
                     long x = transform.Offset.X?.Value ?? 0;
@@ -2157,7 +2162,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     /// </summary>
     private bool ValidatePosition((bool Found, long X, long Y) positionInfo, Dictionary<string, string> parameters)
     {
-        if (!positionInfo.Found) return false;
+        if (!positionInfo.Found)
+        {
+            return false;
+        }
 
         // 如果有期望的位置参数，进行验证
         if (TryGetIntParameter(parameters, "ExpectedX", out int expectedX) &&
@@ -2180,12 +2188,15 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
-            if (shapes == null) return (false, 0, 0);
-
-            foreach (var shape in shapes)
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            if (shapes == null)
             {
-                var transform = shape.ShapeProperties?.Transform2D;
+                return (false, 0, 0);
+            }
+
+            foreach (DocumentFormat.OpenXml.Presentation.Shape shape in shapes)
+            {
+                Transform2D? transform = shape.ShapeProperties?.Transform2D;
                 if (transform?.Extents != null)
                 {
                     long width = transform.Extents.Cx?.Value ?? 0;
@@ -2208,7 +2219,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     /// </summary>
     private bool ValidateSize((bool Found, long Width, long Height) sizeInfo, Dictionary<string, string> parameters)
     {
-        if (!sizeInfo.Found) return false;
+        if (!sizeInfo.Found)
+        {
+            return false;
+        }
 
         // 如果有期望的大小参数，进行验证
         if (TryGetIntParameter(parameters, "ExpectedWidth", out int expectedWidth) &&
@@ -2231,10 +2245,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var paragraphs = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Paragraph>();
-            foreach (var paragraph in paragraphs)
+            IEnumerable<Paragraph> paragraphs = slidePart.Slide.Descendants<Paragraph>();
+            foreach (Paragraph paragraph in paragraphs)
             {
-                var paragraphProperties = paragraph.ParagraphProperties;
+                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
                 if (paragraphProperties?.Alignment?.Value != null)
                 {
                     return paragraphProperties.Alignment.Value.ToString();
@@ -2256,15 +2270,15 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查是否存在超链接
-            var hyperlinks = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Hyperlink>();
+            IEnumerable<Hyperlink> hyperlinks = slidePart.Slide.Descendants<Hyperlink>();
             if (hyperlinks.Any())
             {
                 return (true, "超链接存在");
             }
 
             // 也检查文本中是否包含URL模式
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (var text in textElements)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text text in textElements)
             {
                 if (text.Text.Contains("http://") || text.Text.Contains("https://") || text.Text.Contains("www."))
                 {
@@ -2288,8 +2302,8 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查文本中是否包含幻灯片编号相关内容
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (var textElement in textElements)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
             {
                 string text = textElement.Text.ToLowerInvariant();
                 if (text.Contains("#") ||
@@ -2319,11 +2333,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         {
             // 简化实现：查找可能的页脚文本
             // 通常页脚文本位于幻灯片底部的文本框中
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            var allTexts = textElements.Select(t => t.Text).ToList();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            List<string> allTexts = textElements.Select(t => t.Text).ToList();
 
             // 查找可能的页脚关键词
-            foreach (var text in allTexts)
+            foreach (string? text in allTexts)
             {
                 string lowerText = text.ToLowerInvariant();
                 if (lowerText.Contains("footer") ||
@@ -2337,12 +2351,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             // 如果没有明确的页脚标识，返回最后一个文本元素（通常页脚在底部）
-            if (allTexts.Count > 0)
-            {
-                return allTexts.Last();
-            }
-
-            return string.Empty;
+            return allTexts.Count > 0 ? allTexts.Last() : string.Empty;
         }
         catch
         {
@@ -2358,10 +2367,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查是否有SmartArt图形
-            var smartArtShapes = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
-            foreach (var shape in smartArtShapes)
+            IEnumerable<DocumentFormat.OpenXml.Presentation.GraphicFrame> smartArtShapes = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
+            foreach (DocumentFormat.OpenXml.Presentation.GraphicFrame shape in smartArtShapes)
             {
-                var graphic = shape.Graphic;
+                Graphic? graphic = shape.Graphic;
                 if (graphic?.GraphicData?.Uri?.Value != null &&
                     graphic.GraphicData.Uri.Value.Contains("smartArt"))
                 {
@@ -2383,10 +2392,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var notesSlidePart = slidePart.NotesSlidePart;
+            NotesSlidePart? notesSlidePart = slidePart.NotesSlidePart;
             if (notesSlidePart?.NotesSlide != null)
             {
-                var textElements = notesSlidePart.NotesSlide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+                IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = notesSlidePart.NotesSlide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
                 return string.Join(" ", textElements.Select(t => t.Text).Where(text => !string.IsNullOrWhiteSpace(text)));
             }
             return string.Empty;
@@ -2400,16 +2409,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     /// <summary>
     /// 获取应用的主题名称
     /// </summary>
-    private string GetAppliedTheme(PresentationPart presentationPart)
+    private string? GetAppliedTheme(PresentationPart presentationPart)
     {
         try
         {
-            var themePart = presentationPart.ThemePart;
-            if (themePart?.Theme?.ThemeElements?.ColorScheme?.Name?.Value != null)
-            {
-                return themePart.Theme.ThemeElements.ColorScheme.Name.Value;
-            }
-            return "Office Theme";
+            ThemePart? themePart = presentationPart.ThemePart;
+            return themePart?.Theme?.ThemeElements?.ColorScheme?.Name?.Value != null
+                ? themePart.Theme.ThemeElements.ColorScheme.Name.Value
+                : "Office Theme";
         }
         catch
         {
@@ -2424,11 +2431,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var background = slidePart.Slide.CommonSlideData?.Background;
+            Background? background = slidePart.Slide.CommonSlideData?.Background;
             if (background != null)
             {
                 // 检查背景填充
-                var backgroundProperties = background.BackgroundProperties;
+                BackgroundProperties? backgroundProperties = background.BackgroundProperties;
                 if (backgroundProperties != null)
                 {
                     if (backgroundProperties.HasChildren)
@@ -2438,7 +2445,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 }
 
                 // 检查背景样式引用
-                var backgroundStyleReference = background.BackgroundStyleReference;
+                BackgroundStyleReference? backgroundStyleReference = background.BackgroundStyleReference;
                 if (backgroundStyleReference?.Index?.Value != null)
                 {
                     return $"背景样式 {backgroundStyleReference.Index.Value}";
@@ -2459,13 +2466,13 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var tables = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Table>();
+            IEnumerable<Table> tables = slidePart.Slide.Descendants<Table>();
             if (tables.Any())
             {
-                var tableTexts = new List<string>();
-                foreach (var table in tables)
+                List<string> tableTexts = [];
+                foreach (Table table in tables)
                 {
-                    var textElements = table.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+                    IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = table.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
                     tableTexts.AddRange(textElements.Select(t => t.Text));
                 }
                 return (true, string.Join(" ", tableTexts));
@@ -2485,10 +2492,10 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var tables = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Table>();
-            foreach (var table in tables)
+            IEnumerable<Table> tables = slidePart.Slide.Descendants<Table>();
+            foreach (Table table in tables)
             {
-                var tableProperties = table.TableProperties;
+                TableProperties? tableProperties = table.TableProperties;
                 if (tableProperties?.HasChildren == true)
                 {
                     return "自定义样式";
@@ -2510,12 +2517,8 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查幻灯片是否有切换时间设置
-            var transition = slidePart.Slide.Transition;
-            if (transition?.AdvanceAfterTime?.Value != null)
-            {
-                return true;
-            }
-            return false;
+            Transition? transition = slidePart.Slide.Transition;
+            return transition?.AdvanceAfterTime?.Value != null;
         }
         catch
         {
@@ -2530,12 +2533,8 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            var transition = slidePart.Slide.Transition;
-            if (transition?.Duration?.Value != null)
-            {
-                return $"持续时间: {transition.Duration.Value}ms";
-            }
-            return "默认";
+            Transition? transition = slidePart.Slide.Transition;
+            return transition?.Duration?.Value != null ? $"持续时间: {transition.Duration.Value}ms" : "默认";
         }
         catch
         {
@@ -2551,7 +2550,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查是否有多个形状（可能有动画顺序）
-            var shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
             return shapes?.Count() > 1;
         }
         catch
@@ -2568,12 +2567,8 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查演示文稿属性
-            var presentation = presentationPart.Presentation;
-            if (presentation.HasChildren)
-            {
-                return "自定义设置";
-            }
-            return "默认设置";
+            Presentation presentation = presentationPart.Presentation;
+            return presentation.HasChildren ? "自定义设置" : "默认设置";
         }
         catch
         {
@@ -2589,16 +2584,16 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查文本是否有特殊效果（艺术字通常有复杂的文本效果）
-            var textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (var textElement in textElements)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
             {
-                var runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                RunProperties? runProperties = textElement.Parent?.Elements<RunProperties>().FirstOrDefault();
                 if (runProperties != null)
                 {
                     // 检查是否有文本效果
                     if (runProperties.HasChildren &&
-                        (runProperties.Elements<DocumentFormat.OpenXml.Drawing.EffectList>().Any() ||
-                         runProperties.Elements<DocumentFormat.OpenXml.Drawing.EffectDag>().Any()))
+                        (runProperties.Elements<EffectList>().Any() ||
+                         runProperties.Elements<EffectDag>().Any()))
                     {
                         return true;
                     }
