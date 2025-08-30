@@ -227,42 +227,16 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
-    /// 验证考试目录结构
+    /// 验证目录结构（简化版本）
     /// </summary>
     public async Task<bool> ValidateExamDirectoryStructureAsync(ExamType examType, int examId)
     {
         try
         {
-            _logger.LogInformation("验证考试目录结构，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
+            _logger.LogInformation("验证目录结构");
 
-            string basePath = _directoryService.GetBasePath();
-            string examTypeFolder = GetExamTypeFolder(examType);
-            string examTypePath = Path.Combine(basePath, examTypeFolder);
-            string examIdPath = Path.Combine(examTypePath, examId.ToString());
-
-            // 检查基础目录是否存在
-            if (!Directory.Exists(basePath))
-            {
-                _logger.LogWarning("基础目录不存在: {BasePath}", basePath);
-                return false;
-            }
-
-            // 检查考试类型目录是否存在
-            if (!Directory.Exists(examTypePath))
-            {
-                _logger.LogWarning("考试类型目录不存在: {ExamTypePath}", examTypePath);
-                return false;
-            }
-
-            // 检查考试ID目录是否存在
-            if (!Directory.Exists(examIdPath))
-            {
-                _logger.LogWarning("考试ID目录不存在: {ExamIdPath}", examIdPath);
-                return false;
-            }
-
-            _logger.LogInformation("考试目录结构验证通过");
-            return true;
+            // 直接验证基础目录结构
+            return await ValidateDirectoryStructureAsync();
         }
         catch (Exception ex)
         {
@@ -297,15 +271,15 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             // Windows 模块允许在无文件的情况下进行评分
             if (moduleType == ModuleType.Windows)
             {
-                // 直接使用目录服务的基础路径，因为基础路径已经包含了专项训练的完整路径
-                string basePath = _directoryService.GetBasePath();
+                // 使用简化的模块目录路径
+                string windowsModulePath = _directoryService.GetDirectoryPath(ModuleType.Windows);
 
                 ExamModel examModelToUse = await CreateSimplifiedExamModel(moduleType, examType, examId, studentUserId);
 
-                // 为Windows评分服务设置基础路径
+                // 为Windows评分服务设置模块路径
                 if (scoringService is WindowsScoringService windowsService)
                 {
-                    windowsService.SetBasePath(basePath);
+                    windowsService.SetBasePath(windowsModulePath);
                 }
 
                 // 调用评分（Windows不依赖具体文件路径）
@@ -2130,22 +2104,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         };
     }
 
-    /// <summary>
-    /// 获取考试类型对应的文件夹名称
-    /// </summary>
-    private static string GetExamTypeFolder(ExamType examType)
-    {
-        return examType switch
-        {
-            ExamType.MockExam => "MockExams",
-            ExamType.FormalExam => "OnlineExams",
-            ExamType.ComprehensiveTraining => "ComprehensiveTraining",
-            ExamType.SpecializedTraining => "SpecializedTraining",
-            ExamType.Practice => "Practice",
-            ExamType.SpecialPractice => "SpecialPractice",
-            _ => "Unknown"
-        };
-    }
+
 
     #endregion
 

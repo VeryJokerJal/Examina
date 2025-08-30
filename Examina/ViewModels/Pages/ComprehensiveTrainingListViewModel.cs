@@ -735,7 +735,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                 {
                     // 将BenchSuiteFileType转换为ModuleType
                     ModuleType moduleType = ConvertBenchSuiteFileTypeToModuleType(fileType);
-                    string directoryPath = directoryService.GetExamDirectoryPath(ExamType.ComprehensiveTraining, trainingId, moduleType);
+                    string directoryPath = directoryService.GetDirectoryPath(moduleType);
 
                     System.Diagnostics.Debug.WriteLine($"[调试] 扫描文件类型: {fileType} -> 模块类型: {moduleType}");
                     System.Diagnostics.Debug.WriteLine($"[调试] 目录路径: {directoryPath}");

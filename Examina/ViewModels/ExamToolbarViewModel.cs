@@ -900,7 +900,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// 获取考试根目录路径
+    /// 获取考试根目录路径（简化版本）
     /// </summary>
     private string GetExamRootDirectory()
     {
@@ -911,14 +911,8 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
 
         try
         {
-            // 获取基础路径
-            string basePath = _benchSuiteDirectoryService.GetBasePath();
-
-            // 获取考试类型文件夹名称
-            string examTypeFolder = GetExamTypeFolder(CurrentExamType);
-
-            // 组合完整路径
-            return Path.Combine(basePath, examTypeFolder, ExamId.ToString());
+            // 直接返回基础路径
+            return _benchSuiteDirectoryService.GetBasePath();
         }
         catch (Exception ex)
         {
@@ -927,22 +921,7 @@ public class ExamToolbarViewModel : ViewModelBase, IDisposable
         }
     }
 
-    /// <summary>
-    /// 获取考试类型对应的文件夹名称
-    /// </summary>
-    private static string GetExamTypeFolder(ExamType examType)
-    {
-        return examType switch
-        {
-            ExamType.MockExam => "MockExams",
-            ExamType.FormalExam => "OnlineExams",
-            ExamType.ComprehensiveTraining => "ComprehensiveTraining",
-            ExamType.SpecializedTraining => "SpecializedTraining",
-            ExamType.Practice => "Practice",
-            ExamType.SpecialPractice => "SpecialPractice",
-            _ => "Unknown"
-        };
-    }
+
 
     /// <summary>
     /// 使用系统默认文件管理器打开目录

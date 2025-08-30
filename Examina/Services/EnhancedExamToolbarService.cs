@@ -407,15 +407,15 @@ public class EnhancedExamToolbarService : IDisposable
             // 构建文件路径字典
             Dictionary<ModuleType, List<string>> filePaths = new();
 
-            // 扫描各种类型的考试文件
+            // 扫描各种类型的考试文件（简化版本）
             foreach (ModuleType moduleType in _benchSuiteIntegrationService.GetSupportedModuleTypes())
             {
-                string directoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(examType, examId, moduleType);
-                string examDirectory = System.IO.Path.Combine(directoryPath, $"Student_{studentId}");
+                string moduleDirectoryPath = _benchSuiteDirectoryService.GetDirectoryPath(moduleType);
+                string studentDirectory = System.IO.Path.Combine(moduleDirectoryPath, $"Student_{studentId}");
 
-                if (System.IO.Directory.Exists(examDirectory))
+                if (System.IO.Directory.Exists(studentDirectory))
                 {
-                    string[] files = System.IO.Directory.GetFiles(examDirectory, "*", System.IO.SearchOption.AllDirectories);
+                    string[] files = System.IO.Directory.GetFiles(studentDirectory, "*", System.IO.SearchOption.AllDirectories);
                     filePaths[moduleType] = [.. files];
                 }
                 else
@@ -469,15 +469,15 @@ public class EnhancedExamToolbarService : IDisposable
             // 构建文件路径字典
             Dictionary<ModuleType, List<string>> filePaths = new();
 
-            // 扫描各种类型的考试文件
+            // 扫描各种类型的考试文件（简化版本）
             foreach (ModuleType moduleType in _benchSuiteIntegrationService.GetSupportedModuleTypes())
             {
-                string directoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(examType, examId, moduleType);
-                string examDirectory = System.IO.Path.Combine(directoryPath, $"Student_{studentId}");
+                string moduleDirectoryPath = _benchSuiteDirectoryService.GetDirectoryPath(moduleType);
+                string studentDirectory = System.IO.Path.Combine(moduleDirectoryPath, $"Student_{studentId}");
 
-                if (System.IO.Directory.Exists(examDirectory))
+                if (System.IO.Directory.Exists(studentDirectory))
                 {
-                    string[] files = System.IO.Directory.GetFiles(examDirectory, "*", System.IO.SearchOption.AllDirectories);
+                    string[] files = System.IO.Directory.GetFiles(studentDirectory, "*", System.IO.SearchOption.AllDirectories);
                     filePaths[moduleType] = [.. files];
                 }
                 else

@@ -1485,20 +1485,16 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             {
                 System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 开始路径转换，训练ID: {training.Id}, 模块类型: {moduleType}");
 
-                // 使用IBenchSuiteDirectoryService.GetExamDirectoryPath()获取正确的考试目录路径
-                // 路径结构：基础路径\考试类型\考试ID\模块类型目录
-                string examDirectoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(
-                    ExamType.SpecializedTraining,
-                    training.Id,
-                    moduleType);
+                // 使用简化的模块目录路径
+                string moduleDirectoryPath = _benchSuiteDirectoryService.GetDirectoryPath(moduleType);
 
-                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 获取考试目录路径成功: '{examDirectoryPath}'");
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 获取模块目录路径成功: '{moduleDirectoryPath}'");
 
                 // 处理以反斜杠开头的路径（如 "\a.docx"）
                 string relativePath = filePath.TrimStart('\\', '/');
-                string absolutePath = Path.Combine(examDirectoryPath, relativePath);
+                string absolutePath = Path.Combine(moduleDirectoryPath, relativePath);
 
-                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 路径转换完成: 原路径='{filePath}', 相对路径='{relativePath}', 考试目录='{examDirectoryPath}', 绝对路径='{absolutePath}'");
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 路径转换完成: 原路径='{filePath}', 相对路径='{relativePath}', 模块目录='{moduleDirectoryPath}', 绝对路径='{absolutePath}'");
 
                 return absolutePath;
             }

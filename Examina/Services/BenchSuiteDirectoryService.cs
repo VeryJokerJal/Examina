@@ -18,7 +18,7 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     public BenchSuiteDirectoryService(ILogger<BenchSuiteDirectoryService> logger)
     {
         _logger = logger;
-        _basePath = @"C:\河北对口计算机\SpecializedTraining\9\";
+        _basePath = @"C:\河北对口计算机\";
         _directoryMapping = new Dictionary<ModuleType, string>
         {
             { ModuleType.CSharp, "CSharp" },
@@ -48,24 +48,12 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 获取指定考试类型和ID的模块类型目录路径
+    /// 获取指定模块类型的目录路径（简化版本，不再依赖考试类型和ID）
     /// </summary>
     public string GetExamDirectoryPath(ExamType examType, int examId, ModuleType moduleType)
     {
-        if (!_directoryMapping.TryGetValue(moduleType, out string? subdirectory))
-        {
-            throw new ArgumentException($"不支持的模块类型: {moduleType}", nameof(moduleType));
-        }
-
-        // 对于专项训练ID 9，基础路径已经包含了完整的专项训练路径，直接使用基础路径加模块目录
-        if (examType == ExamType.SpecializedTraining && examId == 9)
-        {
-            return System.IO.Path.Combine(_basePath, subdirectory);
-        }
-
-        // 对于其他考试类型，使用原有的路径组合逻辑
-        string examTypeFolder = GetExamTypeFolder(examType);
-        return System.IO.Path.Combine(_basePath, examTypeFolder, examId.ToString(), subdirectory);
+        // 简化路径逻辑：直接使用基础路径 + 模块目录
+        return GetDirectoryPath(moduleType);
     }
 
     /// <summary>
@@ -115,13 +103,13 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
     }
 
     /// <summary>
-    /// 确保指定考试的目录结构存在
+    /// 确保目录结构存在（简化版本，只创建基础目录和模块目录）
     /// </summary>
     public async Task<bool> EnsureExamDirectoryStructureAsync(ExamType examType, int examId)
     {
         try
         {
-            _logger.LogInformation("确保考试目录结构存在，考试类型: {ExamType}, 考试ID: {ExamId}", examType, examId);
+            _logger.LogInformation("确保目录结构存在");
 
             // 首先确保基础目录存在
             bool baseResult = await EnsureDirectoryStructureAsync();
@@ -130,37 +118,20 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
                 return false;
             }
 
-            // 创建考试类型目录
-            string examTypeFolder = GetExamTypeFolder(examType);
-            string examTypePath = System.IO.Path.Combine(_basePath, examTypeFolder);
-            if (!System.IO.Directory.Exists(examTypePath))
-            {
-                _ = System.IO.Directory.CreateDirectory(examTypePath);
-                _logger.LogInformation("创建考试类型目录: {ExamTypePath}", examTypePath);
-            }
-
-            // 创建考试ID目录
-            string examIdPath = System.IO.Path.Combine(examTypePath, examId.ToString());
-            if (!System.IO.Directory.Exists(examIdPath))
-            {
-                _ = System.IO.Directory.CreateDirectory(examIdPath);
-                _logger.LogInformation("创建考试ID目录: {ExamIdPath}", examIdPath);
-            }
-
-            // 创建各科目目录
+            // 创建各模块目录
             int createdCount = 0;
             foreach (KeyValuePair<ModuleType, string> mapping in _directoryMapping)
             {
-                string subjectPath = System.IO.Path.Combine(examIdPath, mapping.Value);
-                if (!System.IO.Directory.Exists(subjectPath))
+                string modulePath = System.IO.Path.Combine(_basePath, mapping.Value);
+                if (!System.IO.Directory.Exists(modulePath))
                 {
-                    _ = System.IO.Directory.CreateDirectory(subjectPath);
+                    _ = System.IO.Directory.CreateDirectory(modulePath);
                     createdCount++;
-                    _logger.LogInformation("创建科目目录: {SubjectPath}", subjectPath);
+                    _logger.LogInformation("创建模块目录: {ModulePath}", modulePath);
                 }
             }
 
-            _logger.LogInformation("考试目录结构确保完成，创建了 {CreatedCount} 个新目录", createdCount);
+            _logger.LogInformation("目录结构确保完成，创建了 {CreatedCount} 个新目录", createdCount);
             return true;
         }
         catch (Exception ex)
@@ -338,22 +309,7 @@ public class BenchSuiteDirectoryService : IBenchSuiteDirectoryService
         };
     }
 
-    /// <summary>
-    /// 获取考试类型对应的文件夹名称
-    /// </summary>
-    private static string GetExamTypeFolder(ExamType examType)
-    {
-        return examType switch
-        {
-            ExamType.MockExam => "MockExams",
-            ExamType.FormalExam => "OnlineExams",
-            ExamType.ComprehensiveTraining => "ComprehensiveTraining",
-            ExamType.SpecializedTraining => "SpecializedTraining",
-            ExamType.Practice => "Practice",
-            ExamType.SpecialPractice => "SpecialPractice",
-            _ => "Unknown"
-        };
-    }
+
 
     #endregion
 }
