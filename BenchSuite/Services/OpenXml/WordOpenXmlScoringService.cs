@@ -304,6 +304,30 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 设置通用知识点检测失败并包含完整的Details信息（用于非段落相关的检测）
+    /// </summary>
+    private void SetGeneralKnowledgePointFailureWithDetails(KnowledgePointResult result, string errorMessage,
+        string operationType, Dictionary<string, string> parameters, string expectedValue = "", string actualValue = "")
+    {
+        // 构建详细的Details信息
+        string details;
+        if (!string.IsNullOrEmpty(expectedValue) && !string.IsNullOrEmpty(actualValue))
+        {
+            details = $"{operationType}: 期望 {expectedValue}, 实际 {actualValue}";
+        }
+        else if (!string.IsNullOrEmpty(expectedValue))
+        {
+            details = $"{operationType}: 期望 {expectedValue}, 检测失败 - {errorMessage}";
+        }
+        else
+        {
+            details = $"{operationType}检测失败: {errorMessage}";
+        }
+
+        SetKnowledgePointFailure(result, errorMessage, details);
+    }
+
+    /// <summary>
     /// 映射Word操作点名称到知识点类型
     /// </summary>
     protected override string MapOperationPointNameToKnowledgeType(string operationPointName)
@@ -785,7 +809,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
                 !TryGetParameter(parameters, "FontStyle", out string expectedStyle))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 FontStyle");
+                SetKnowledgePointFailureWithDetails(result, "缺少必要参数: ParagraphNumber 或 FontStyle",
+                    "字形", parameters);
                 return result;
             }
 
