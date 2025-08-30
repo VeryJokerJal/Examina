@@ -598,11 +598,35 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         try
         {
-            return await _studentSpecializedTrainingService.GetTrainingDetailsAsync(trainingId);
+            System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync] 开始获取训练详情，ID: {trainingId}");
+
+            StudentSpecializedTrainingDto? training = await _studentSpecializedTrainingService.GetTrainingDetailsAsync(trainingId);
+
+            if (training != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync] 训练详情获取成功:");
+                System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync]   名称: {training.Name}");
+                System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync]   模块类型: {training.ModuleType}");
+                System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync]   模块数量: {training.Modules.Count}");
+                System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync]   题目数量: {training.Questions.Count}");
+
+                // 详细输出模块信息
+                foreach (var module in training.Modules)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync]   模块: {module.Name} ({module.Type}), 题目数: {module.Questions.Count}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync] 训练详情为空");
+            }
+
+            return training;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"获取训练信息失败，ID: {trainingId}, 错误: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync] 获取训练信息失败，ID: {trainingId}, 错误: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[GetTrainingByIdAsync] 异常详情: {ex}");
             return null;
         }
     }
@@ -610,6 +634,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 获取BenchSuite评分结果（集成OpenXML评分）
     /// </summary>
+    [Obsolete]
     private async Task<Dictionary<ModuleType, ScoringResult>?> GetBenchSuiteScoringResultAsync(int trainingId, StudentSpecializedTrainingDto training)
     {
         try
@@ -620,17 +645,34 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 return null;
             }
 
+            System.Diagnostics.Debug.WriteLine($"[GetBenchSuiteScoringResultAsync] 开始构建文件路径字典，训练ID: {trainingId}");
+
             // 构建文件路径字典
             Dictionary<ModuleType, List<string>> filePaths = [];
 
             // 根据训练的模块类型确定文件类型
             ModuleType moduleType = GetModuleTypeFromString(training.ModuleType);
+            System.Diagnostics.Debug.WriteLine($"[GetBenchSuiteScoringResultAsync] 训练模块类型: '{training.ModuleType}' -> {moduleType}");
 
             // 扫描考试目录中的文件
+            System.Diagnostics.Debug.WriteLine($"[GetBenchSuiteScoringResultAsync] 开始扫描文件...");
             List<string> moduleFiles = ScanModuleFiles(moduleType, training);
             filePaths[moduleType] = moduleFiles;
 
-            System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件 {moduleFiles.Count} 个");
+            System.Diagnostics.Debug.WriteLine($"[GetBenchSuiteScoringResultAsync] 扫描完成，{moduleType} 模块文件 {moduleFiles.Count} 个");
+
+            if (moduleFiles.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetBenchSuiteScoringResultAsync] ⚠️ 警告：未找到任何文件！");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetBenchSuiteScoringResultAsync] 文件列表:");
+                for (int i = 0; i < moduleFiles.Count; i++)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GetBenchSuiteScoringResultAsync]   {i + 1}. {moduleFiles[i]}");
+                }
+            }
 
             // 如果有OpenXML评分管理器，优先使用OpenXML评分
             if (_openXmlScoringManager != null && moduleFiles.Count > 0)
@@ -668,23 +710,34 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 开始扫描，目标模块类型: {moduleType}, 训练ID: {training.Id}, 训练名称: {training.Name}");
+            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 训练模块类型: {training.ModuleType}, 模块数量: {training.Modules.Count}");
+
             List<string> files = [];
 
             // 遍历训练的所有模块
             foreach (StudentSpecializedTrainingModuleDto module in training.Modules)
             {
+                System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 检查模块: {module.Name}, 类型: {module.Type}, 题目数量: {module.Questions.Count}");
+
                 // 根据模块类型获取对应的ModuleType枚举
                 ModuleType currentModuleType = GetModuleTypeFromString(module.Type);
+                System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 模块类型转换: '{module.Type}' -> {currentModuleType}");
 
                 // 只处理匹配的模块类型
                 if (currentModuleType != moduleType)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 跳过不匹配的模块类型: {currentModuleType} != {moduleType}");
                     continue;
                 }
+
+                System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 处理匹配的模块: {module.Name}");
 
                 // 遍历模块中的所有题目
                 foreach (StudentSpecializedTrainingQuestionDto question in module.Questions)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 检查题目: ID={question.Id}, 标题='{question.Title}'");
+
                     string? filePath = null;
 
                     // 根据模块类型获取相应的文件路径
@@ -692,42 +745,57 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     {
                         case ModuleType.CSharp:
                             filePath = question.CodeFilePath;
+                            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] C#题目，CodeFilePath: '{filePath}'");
                             break;
                         case ModuleType.Word:
                         case ModuleType.PowerPoint:
                         case ModuleType.Excel:
                             filePath = question.DocumentFilePath;
+                            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] Office题目，DocumentFilePath: '{filePath}'");
                             break;
                         default:
-                            System.Diagnostics.Debug.WriteLine($"不支持的模块类型: {moduleType}");
+                            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 不支持的模块类型: {moduleType}");
                             continue;
                     }
 
                     // 验证文件路径
                     if (!string.IsNullOrWhiteSpace(filePath))
                     {
+                        System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 开始路径转换，原路径: '{filePath}'");
+
                         // 转换为绝对路径
                         string absolutePath = ConvertToAbsolutePath(filePath, training, moduleType);
+                        System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 路径转换完成，绝对路径: '{absolutePath}'");
 
                         if (File.Exists(absolutePath))
                         {
                             files.Add(absolutePath);
-                            System.Diagnostics.Debug.WriteLine($"找到有效文件: {Path.GetFileName(absolutePath)} (原路径: {filePath})");
+                            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] ✓ 找到有效文件: {Path.GetFileName(absolutePath)} (原路径: {filePath})");
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"文件不存在: {absolutePath} (原路径: {filePath})");
+                            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] ✗ 文件不存在: {absolutePath} (原路径: {filePath})");
                         }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 题目文件路径为空，跳过");
                     }
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"扫描到 {moduleType} 模块文件 {files.Count} 个: {string.Join(", ", files.Select(Path.GetFileName))}");
+            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 扫描完成，{moduleType} 模块文件 {files.Count} 个");
+            if (files.Count > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 文件列表: {string.Join(", ", files.Select(Path.GetFileName))}");
+            }
+
             return files;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"扫描模块文件失败: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 扫描模块文件失败: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ScanModuleFiles] 异常堆栈: {ex.StackTrace}");
             return [];
         }
     }
@@ -735,6 +803,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// <summary>
     /// 执行OpenXML评分
     /// </summary>
+    [Obsolete]
     private async Task<Dictionary<ModuleType, ScoringResult>> PerformOpenXmlScoringAsync(ModuleType moduleType, List<string> files, StudentSpecializedTrainingDto training)
     {
         Dictionary<ModuleType, ScoringResult> results = [];
@@ -1311,17 +1380,13 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             return filePath;
         }
 
-        // 如果已经是绝对路径，直接返回
-        if (Path.IsPathRooted(filePath))
-        {
-            return filePath;
-        }
-
         // 如果是相对路径，使用正确的路径组合逻辑
         if (_benchSuiteDirectoryService != null)
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 开始路径转换，训练ID: {training.Id}, 模块类型: {moduleType}");
+
                 // 使用IBenchSuiteDirectoryService.GetExamDirectoryPath()获取正确的考试目录路径
                 // 路径结构：基础路径\考试类型\考试ID\模块类型目录
                 string examDirectoryPath = _benchSuiteDirectoryService.GetExamDirectoryPath(
@@ -1329,24 +1394,27 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                     training.Id,
                     moduleType);
 
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 获取考试目录路径成功: '{examDirectoryPath}'");
+
                 // 处理以反斜杠开头的路径（如 "\a.docx"）
                 string relativePath = filePath.TrimStart('\\', '/');
                 string absolutePath = Path.Combine(examDirectoryPath, relativePath);
 
-                System.Diagnostics.Debug.WriteLine($"路径转换: 原路径='{filePath}', 考试目录='{examDirectoryPath}', 绝对路径='{absolutePath}'");
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 路径转换完成: 原路径='{filePath}', 相对路径='{relativePath}', 考试目录='{examDirectoryPath}', 绝对路径='{absolutePath}'");
 
                 return absolutePath;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"路径转换失败: {ex.Message}，使用基础路径拼接");
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 路径转换失败: {ex.Message}，使用基础路径拼接");
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 异常详情: {ex}");
 
                 // 回退到基础路径拼接
                 string basePath = _benchSuiteDirectoryService.GetBasePath();
                 string relativePath = filePath.TrimStart('\\', '/');
                 string absolutePath = Path.Combine(basePath, relativePath);
 
-                System.Diagnostics.Debug.WriteLine($"回退路径转换: 原路径='{filePath}', 基础路径='{basePath}', 绝对路径='{absolutePath}'");
+                System.Diagnostics.Debug.WriteLine($"[ConvertToAbsolutePath] 回退路径转换: 原路径='{filePath}', 基础路径='{basePath}', 绝对路径='{absolutePath}'");
 
                 return absolutePath;
             }
