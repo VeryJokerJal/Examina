@@ -77,6 +77,82 @@ public class WordKnowledgeService
         return operationPoint;
     }
 
+    /// <summary>
+    /// 修复现有操作点的WordKnowledgeType（用于升级现有数据）
+    /// </summary>
+    /// <param name="operationPoint">要修复的操作点</param>
+    public void FixOperationPointWordKnowledgeType(OperationPoint operationPoint)
+    {
+        if (operationPoint.ModuleType != ModuleType.Word)
+        {
+            return; // 只处理Word模块的操作点
+        }
+
+        if (operationPoint.WordKnowledgeType.HasValue)
+        {
+            return; // 已经有WordKnowledgeType，无需修复
+        }
+
+        // 根据操作点名称推断WordKnowledgeType
+        WordKnowledgeType? inferredType = InferWordKnowledgeTypeFromName(operationPoint.Name);
+        if (inferredType.HasValue)
+        {
+            operationPoint.WordKnowledgeType = inferredType.Value;
+            System.Diagnostics.Debug.WriteLine($"修复操作点 '{operationPoint.Name}' 的WordKnowledgeType为 {inferredType.Value}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"无法推断操作点 '{operationPoint.Name}' 的WordKnowledgeType");
+        }
+    }
+
+    /// <summary>
+    /// 根据操作点名称推断WordKnowledgeType
+    /// </summary>
+    private WordKnowledgeType? InferWordKnowledgeTypeFromName(string operationPointName)
+    {
+        // 遍历所有知识点配置，找到名称匹配的
+        foreach (var kvp in _knowledgeConfigs)
+        {
+            if (kvp.Value.Name == operationPointName)
+            {
+                return kvp.Key;
+            }
+        }
+
+        // 如果没有完全匹配，尝试部分匹配
+        return operationPointName switch
+        {
+            var name when name.Contains("字体") && name.Contains("段落") => WordKnowledgeType.SetParagraphFont,
+            var name when name.Contains("字号") && name.Contains("段落") => WordKnowledgeType.SetParagraphFontSize,
+            var name when name.Contains("字形") && name.Contains("段落") => WordKnowledgeType.SetParagraphFontStyle,
+            var name when name.Contains("字间距") && name.Contains("段落") => WordKnowledgeType.SetParagraphCharacterSpacing,
+            var name when name.Contains("颜色") && name.Contains("段落") => WordKnowledgeType.SetParagraphTextColor,
+            var name when name.Contains("对齐") && name.Contains("段落") => WordKnowledgeType.SetParagraphAlignment,
+            var name when name.Contains("缩进") && name.Contains("段落") => WordKnowledgeType.SetParagraphIndentation,
+            var name when name.Contains("行间距") && name.Contains("段落") => WordKnowledgeType.SetParagraphLineSpacing,
+            var name when name.Contains("首字下沉") => WordKnowledgeType.SetParagraphDropCap,
+            var name when name.Contains("间距") && name.Contains("段落") => WordKnowledgeType.SetParagraphSpacing,
+            var name when name.Contains("边框") && name.Contains("段落") => WordKnowledgeType.SetParagraphBorderColor,
+            var name when name.Contains("底纹") && name.Contains("段落") => WordKnowledgeType.SetParagraphShading,
+            var name when name.Contains("纸张") => WordKnowledgeType.SetPaperSize,
+            var name when name.Contains("页边距") => WordKnowledgeType.SetPageMargins,
+            var name when name.Contains("页眉") && name.Contains("文字") => WordKnowledgeType.SetHeaderText,
+            var name when name.Contains("页眉") && name.Contains("字体") => WordKnowledgeType.SetHeaderFont,
+            var name when name.Contains("页眉") && name.Contains("字号") => WordKnowledgeType.SetHeaderFontSize,
+            var name when name.Contains("页眉") && name.Contains("对齐") => WordKnowledgeType.SetHeaderAlignment,
+            var name when name.Contains("页脚") && name.Contains("文字") => WordKnowledgeType.SetFooterText,
+            var name when name.Contains("页脚") && name.Contains("字体") => WordKnowledgeType.SetFooterFont,
+            var name when name.Contains("页脚") && name.Contains("字号") => WordKnowledgeType.SetFooterFontSize,
+            var name when name.Contains("页脚") && name.Contains("对齐") => WordKnowledgeType.SetFooterAlignment,
+            var name when name.Contains("水印") && name.Contains("文字") => WordKnowledgeType.SetWatermarkText,
+            var name when name.Contains("水印") && name.Contains("字体") => WordKnowledgeType.SetWatermarkFont,
+            var name when name.Contains("水印") && name.Contains("字号") => WordKnowledgeType.SetWatermarkFontSize,
+            var name when name.Contains("水印") && name.Contains("颜色") => WordKnowledgeType.SetWatermarkColor,
+            _ => null
+        };
+    }
+
     private Dictionary<WordKnowledgeType, WordKnowledgeConfig> InitializeKnowledgeConfigs()
     {
         Dictionary<WordKnowledgeType, WordKnowledgeConfig> configs = [];

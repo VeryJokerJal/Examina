@@ -139,6 +139,12 @@ public class WordDocumentGenerator : IDocumentGenerationService
 
                     try
                     {
+                        // 自动修复缺失的WordKnowledgeType
+                        if (!operationPoint.WordKnowledgeType.HasValue)
+                        {
+                            WordKnowledgeService.Instance.FixOperationPointWordKnowledgeType(operationPoint);
+                        }
+
                         ApplyOperationPoint(document, body, operationPoint);
                     }
                     catch (Exception ex)
@@ -1350,7 +1356,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
             "粗线" => BorderValues.Thick,
             "细线" => BorderValues.Single, // 使用Single替代不存在的Thin
             "波浪线" => BorderValues.Wave,
-            _ => BorderValues.Single // 默认单实线
+            _ => BorderValues.Nil    // 默认单实线
         };
     }
 
