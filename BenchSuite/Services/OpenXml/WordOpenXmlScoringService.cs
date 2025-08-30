@@ -3459,41 +3459,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         return result;
     }
 
-    /// <summary>
-    /// 检测段落对齐
-    /// </summary>
-    private KnowledgePointResult DetectParagraphAlignment(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetParagraphAlignment",
-            Parameters = parameters
-        };
 
-        try
-        {
-            if (!TryGetParameter(parameters, "Alignment", out string expectedAlignment))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: Alignment");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool alignmentFound = CheckParagraphAlignmentInDocument(mainPart, expectedAlignment);
-
-            result.ExpectedValue = expectedAlignment;
-            result.ActualValue = alignmentFound ? expectedAlignment : "未找到指定对齐方式";
-            result.IsCorrect = alignmentFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落对齐检测: 期望 {expectedAlignment}, {(alignmentFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测段落对齐失败: {ex.Message}");
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// 检测行间距
@@ -3531,41 +3497,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         return result;
     }
 
-    /// <summary>
-    /// 检测段落间距
-    /// </summary>
-    private KnowledgePointResult DetectParagraphSpacing(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetParagraphSpacing",
-            Parameters = parameters
-        };
 
-        try
-        {
-            if (!TryGetParameter(parameters, "ParagraphSpacing", out string expectedSpacing))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphSpacing");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool spacingFound = CheckParagraphSpacingInDocument(mainPart, expectedSpacing);
-
-            result.ExpectedValue = expectedSpacing;
-            result.ActualValue = spacingFound ? expectedSpacing : "未找到指定段落间距";
-            result.IsCorrect = spacingFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"段落间距检测: 期望 {expectedSpacing}, {(spacingFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测段落间距失败: {ex.Message}");
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// 检测缩进
@@ -3726,65 +3658,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         return result;
     }
 
-    /// <summary>
-    /// 检测图片位置
-    /// </summary>
-    private KnowledgePointResult DetectImagePosition(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetImagePosition",
-            Parameters = parameters
-        };
 
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            (bool Found, string Position) imageInfo = GetImagePositionInDocument(mainPart, parameters);
 
-            result.ExpectedValue = "图片位置设置";
-            result.ActualValue = imageInfo.Found ? $"位置: {imageInfo.Position}" : "未找到图片位置信息";
-            result.IsCorrect = imageInfo.Found;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"图片位置检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测图片位置失败: {ex.Message}");
-        }
 
-        return result;
-    }
-
-    /// <summary>
-    /// 检测图片大小
-    /// </summary>
-    private KnowledgePointResult DetectImageSize(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetImageSize",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            (bool Found, string Width, string Height) imageInfo = GetImageSizeInDocument(mainPart, parameters);
-
-            result.ExpectedValue = "图片大小设置";
-            result.ActualValue = imageInfo.Found ? $"大小: {imageInfo.Width}x{imageInfo.Height}" : "未找到图片大小信息";
-            result.IsCorrect = imageInfo.Found;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"图片大小检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测图片大小失败: {ex.Message}");
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// 检测页眉页脚
@@ -3818,35 +3694,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         return result;
     }
 
-    /// <summary>
-    /// 检测页码
-    /// </summary>
-    private KnowledgePointResult DetectPageNumber(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetPageNumber",
-            Parameters = parameters
-        };
 
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasPageNumber = CheckPageNumberInDocument(mainPart);
-
-            result.ExpectedValue = "页码";
-            result.ActualValue = hasPageNumber ? "找到页码" : "未找到页码";
-            result.IsCorrect = hasPageNumber;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页码检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页码失败: {ex.Message}");
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// 检测页边距
@@ -4329,35 +4177,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         return result;
     }
 
-    /// <summary>
-    /// 检测页面背景
-    /// </summary>
-    private KnowledgePointResult DetectPageBackground(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetPageBackground",
-            Parameters = parameters
-        };
 
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasBackground = CheckPageBackgroundInDocument(mainPart);
-
-            result.ExpectedValue = "页面背景";
-            result.ActualValue = hasBackground ? "找到页面背景" : "未找到页面背景";
-            result.IsCorrect = hasBackground;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页面背景检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页面背景失败: {ex.Message}");
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// 检测页面边框
