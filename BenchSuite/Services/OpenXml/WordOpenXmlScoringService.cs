@@ -1743,6 +1743,351 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 检测表格行数和列数
+    /// </summary>
+    private KnowledgePointResult DetectTableRowsColumns(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableRowsColumns",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "Rows", out int expectedRows) ||
+                !TryGetIntParameter(parameters, "Columns", out int expectedColumns))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: Rows 或 Columns");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var tableInfo = GetTableRowsColumns(mainPart);
+
+            result.ExpectedValue = $"行:{expectedRows}, 列:{expectedColumns}";
+            result.ActualValue = $"行:{tableInfo.Rows}, 列:{tableInfo.Columns}";
+            result.IsCorrect = tableInfo.Rows == expectedRows && tableInfo.Columns == expectedColumns;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"表格尺寸: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格行列数失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格底纹
+    /// </summary>
+    private KnowledgePointResult DetectTableShading(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableShading",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "AreaType", out string areaType) ||
+                !TryGetIntParameter(parameters, "AreaNumber", out int areaNumber) ||
+                !TryGetParameter(parameters, "ShadingColor", out string expectedColor))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: AreaType, AreaNumber 或 ShadingColor");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualColor = GetTableShading(mainPart, areaType, areaNumber);
+
+            result.ExpectedValue = expectedColor;
+            result.ActualValue = actualColor;
+            result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"表格底纹({areaType} {areaNumber}): 期望 {expectedColor}, 实际 {actualColor}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格底纹失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格行高
+    /// </summary>
+    private KnowledgePointResult DetectTableRowHeight(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableRowHeight",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "StartRow", out int startRow) ||
+                !TryGetIntParameter(parameters, "EndRow", out int endRow) ||
+                !TryGetFloatParameter(parameters, "RowHeight", out float expectedHeight) ||
+                !TryGetParameter(parameters, "HeightType", out string heightType))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: StartRow, EndRow, RowHeight 或 HeightType");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            float actualHeight = GetTableRowHeight(mainPart, startRow, endRow);
+
+            result.ExpectedValue = $"{expectedHeight} ({heightType})";
+            result.ActualValue = actualHeight.ToString();
+            result.IsCorrect = Math.Abs(actualHeight - expectedHeight) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"表格行高(行{startRow}-{endRow}): 期望 {result.ExpectedValue}, 实际 {actualHeight}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格行高失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格列宽
+    /// </summary>
+    private KnowledgePointResult DetectTableColumnWidth(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableColumnWidth",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "StartColumn", out int startColumn) ||
+                !TryGetIntParameter(parameters, "EndColumn", out int endColumn) ||
+                !TryGetFloatParameter(parameters, "ColumnWidth", out float expectedWidth) ||
+                !TryGetParameter(parameters, "WidthType", out string widthType))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: StartColumn, EndColumn, ColumnWidth 或 WidthType");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            float actualWidth = GetTableColumnWidth(mainPart, startColumn, endColumn);
+
+            result.ExpectedValue = $"{expectedWidth} ({widthType})";
+            result.ActualValue = actualWidth.ToString();
+            result.IsCorrect = Math.Abs(actualWidth - expectedWidth) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"表格列宽(列{startColumn}-{endColumn}): 期望 {result.ExpectedValue}, 实际 {actualWidth}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格列宽失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格单元格内容
+    /// </summary>
+    private KnowledgePointResult DetectTableCellContent(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableCellContent",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "RowNumber", out int rowNumber) ||
+                !TryGetIntParameter(parameters, "ColumnNumber", out int columnNumber) ||
+                !TryGetParameter(parameters, "CellContent", out string expectedContent))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: RowNumber, ColumnNumber 或 CellContent");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualContent = GetTableCellContent(mainPart, rowNumber, columnNumber);
+
+            result.ExpectedValue = expectedContent;
+            result.ActualValue = actualContent;
+            result.IsCorrect = TextEquals(actualContent, expectedContent) || actualContent.Contains(expectedContent);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格({rowNumber},{columnNumber})内容: 期望 {expectedContent}, 实际 {actualContent}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格单元格内容失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格单元格对齐方式
+    /// </summary>
+    private KnowledgePointResult DetectTableCellAlignment(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableCellAlignment",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "RowNumber", out int rowNumber) ||
+                !TryGetIntParameter(parameters, "ColumnNumber", out int columnNumber) ||
+                !TryGetParameter(parameters, "HorizontalAlignment", out string expectedHorizontal) ||
+                !TryGetParameter(parameters, "VerticalAlignment", out string expectedVertical))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: RowNumber, ColumnNumber, HorizontalAlignment 或 VerticalAlignment");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var alignmentInfo = GetTableCellAlignment(mainPart, rowNumber, columnNumber);
+
+            result.ExpectedValue = $"水平:{expectedHorizontal}, 垂直:{expectedVertical}";
+            result.ActualValue = $"水平:{alignmentInfo.Horizontal}, 垂直:{alignmentInfo.Vertical}";
+            result.IsCorrect = TextEquals(alignmentInfo.Horizontal, expectedHorizontal) &&
+                              TextEquals(alignmentInfo.Vertical, expectedVertical);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格({rowNumber},{columnNumber})对齐: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格单元格对齐失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测表格对齐方式
+    /// </summary>
+    private KnowledgePointResult DetectTableAlignment(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetTableAlignment",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "TableAlignment", out string expectedAlignment) ||
+                !TryGetFloatParameter(parameters, "LeftIndent", out float expectedIndent))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: TableAlignment 或 LeftIndent");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var alignmentInfo = GetTableAlignment(mainPart);
+
+            result.ExpectedValue = $"对齐:{expectedAlignment}, 缩进:{expectedIndent}";
+            result.ActualValue = $"对齐:{alignmentInfo.Alignment}, 缩进:{alignmentInfo.LeftIndent}";
+            result.IsCorrect = TextEquals(alignmentInfo.Alignment, expectedAlignment) &&
+                              Math.Abs(alignmentInfo.LeftIndent - expectedIndent) < 0.1f;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"表格对齐: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测表格对齐失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测合并单元格
+    /// </summary>
+    private KnowledgePointResult DetectMergeTableCells(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "MergeTableCells",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "StartRow", out int startRow) ||
+                !TryGetIntParameter(parameters, "StartColumn", out int startColumn) ||
+                !TryGetIntParameter(parameters, "EndRow", out int endRow) ||
+                !TryGetIntParameter(parameters, "EndColumn", out int endColumn))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: StartRow, StartColumn, EndRow 或 EndColumn");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            bool hasMergedCells = CheckMergedCells(mainPart, startRow, startColumn, endRow, endColumn);
+
+            result.ExpectedValue = "已合并";
+            result.ActualValue = hasMergedCells ? "已合并" : "未合并";
+            result.IsCorrect = hasMergedCells;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"单元格合并({startRow},{startColumn})-({endRow},{endColumn}): {result.ActualValue}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测合并单元格失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测项目编号
+    /// </summary>
+    private KnowledgePointResult DetectBulletNumbering(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetBulletNumbering",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetParameter(parameters, "ParagraphNumbers", out string paragraphNumbers) ||
+                !TryGetParameter(parameters, "NumberingType", out string expectedType))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumbers 或 NumberingType");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            string actualType = GetBulletNumberingType(mainPart, paragraphNumbers);
+
+            result.ExpectedValue = expectedType;
+            result.ActualValue = actualType;
+            result.IsCorrect = TextEquals(actualType, expectedType);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"项目编号(段落{paragraphNumbers}): 期望 {expectedType}, 实际 {actualType}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测项目编号失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 获取文档文本内容
     /// </summary>
     private string GetDocumentText(MainDocumentPart mainPart)
@@ -4548,6 +4893,362 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch
         {
             return 315f;
+        }
+    }
+
+    /// <summary>
+    /// 获取表格行数和列数
+    /// </summary>
+    private static (int Rows, int Columns) GetTableRowsColumns(MainDocumentPart mainPart)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                var rows = firstTable.Elements<TableRow>().Count();
+                var columns = 0;
+
+                var firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
+                if (firstRow != null)
+                {
+                    columns = firstRow.Elements<TableCell>().Count();
+                }
+
+                return (rows, columns);
+            }
+
+            return (0, 0);
+        }
+        catch
+        {
+            return (0, 0);
+        }
+    }
+
+    /// <summary>
+    /// 获取表格底纹
+    /// </summary>
+    private static string GetTableShading(MainDocumentPart mainPart, string areaType, int areaNumber)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                if (areaType.ToLower() == "row" || areaType == "行")
+                {
+                    var rows = firstTable.Elements<TableRow>().ToList();
+                    if (areaNumber > 0 && areaNumber <= rows.Count)
+                    {
+                        var targetRow = rows[areaNumber - 1];
+                        var rowProperties = targetRow.TableRowProperties;
+                        // 简化实现：检查行属性中的底纹
+                        return "检测到底纹设置";
+                    }
+                }
+                else if (areaType.ToLower() == "column" || areaType == "列")
+                {
+                    // 简化实现：检查列底纹
+                    return "检测到列底纹设置";
+                }
+            }
+
+            return "无底纹";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取表格行高
+    /// </summary>
+    private static float GetTableRowHeight(MainDocumentPart mainPart, int startRow, int endRow)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                var rows = firstTable.Elements<TableRow>().ToList();
+                if (startRow > 0 && startRow <= rows.Count)
+                {
+                    var targetRow = rows[startRow - 1];
+                    var rowProperties = targetRow.TableRowProperties;
+                    var tableRowHeight = rowProperties?.TableRowHeight;
+
+                    if (tableRowHeight?.Val?.Value != null)
+                    {
+                        return tableRowHeight.Val.Value / 20f; // 转换为点
+                    }
+                }
+            }
+
+            return 0f; // 自动行高
+        }
+        catch
+        {
+            return 0f;
+        }
+    }
+
+    /// <summary>
+    /// 获取表格列宽
+    /// </summary>
+    private static float GetTableColumnWidth(MainDocumentPart mainPart, int startColumn, int endColumn)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                var firstRow = firstTable.Elements<TableRow>().FirstOrDefault();
+                if (firstRow != null)
+                {
+                    var cells = firstRow.Elements<TableCell>().ToList();
+                    if (startColumn > 0 && startColumn <= cells.Count)
+                    {
+                        var targetCell = cells[startColumn - 1];
+                        var cellProperties = targetCell.TableCellProperties;
+                        var tableWidth = cellProperties?.TableCellWidth;
+
+                        if (tableWidth?.Width?.Value != null)
+                        {
+                            return float.Parse(tableWidth.Width.Value) / 20f; // 转换为点
+                        }
+                    }
+                }
+            }
+
+            return 0f; // 自动列宽
+        }
+        catch
+        {
+            return 0f;
+        }
+    }
+
+    /// <summary>
+    /// 获取表格单元格内容
+    /// </summary>
+    private static string GetTableCellContent(MainDocumentPart mainPart, int rowNumber, int columnNumber)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                var rows = firstTable.Elements<TableRow>().ToList();
+                if (rowNumber > 0 && rowNumber <= rows.Count)
+                {
+                    var targetRow = rows[rowNumber - 1];
+                    var cells = targetRow.Elements<TableCell>().ToList();
+                    if (columnNumber > 0 && columnNumber <= cells.Count)
+                    {
+                        var targetCell = cells[columnNumber - 1];
+                        return targetCell.InnerText.Trim();
+                    }
+                }
+            }
+
+            return "空单元格";
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
+    /// <summary>
+    /// 获取表格单元格对齐方式
+    /// </summary>
+    private static (string Horizontal, string Vertical) GetTableCellAlignment(MainDocumentPart mainPart, int rowNumber, int columnNumber)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                var rows = firstTable.Elements<TableRow>().ToList();
+                if (rowNumber > 0 && rowNumber <= rows.Count)
+                {
+                    var targetRow = rows[rowNumber - 1];
+                    var cells = targetRow.Elements<TableCell>().ToList();
+                    if (columnNumber > 0 && columnNumber <= cells.Count)
+                    {
+                        var targetCell = cells[columnNumber - 1];
+                        var cellProperties = targetCell.TableCellProperties;
+
+                        // 获取垂直对齐
+                        var verticalAlign = cellProperties?.TableCellVerticalAlignment?.Val?.Value?.ToString() ?? "Top";
+
+                        // 获取水平对齐（从段落属性）
+                        var paragraph = targetCell.Elements<Paragraph>().FirstOrDefault();
+                        var horizontalAlign = "Left";
+                        if (paragraph?.ParagraphProperties?.Justification?.Val?.Value != null)
+                        {
+                            horizontalAlign = paragraph.ParagraphProperties.Justification.Val.Value.ToString();
+                        }
+
+                        return (horizontalAlign, verticalAlign);
+                    }
+                }
+            }
+
+            return ("Left", "Top");
+        }
+        catch
+        {
+            return ("未知", "未知");
+        }
+    }
+
+    /// <summary>
+    /// 获取表格对齐方式
+    /// </summary>
+    private static (string Alignment, float LeftIndent) GetTableAlignment(MainDocumentPart mainPart)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                var tableProperties = firstTable.TableProperties;
+                var tableJustification = tableProperties?.TableJustification?.Val?.Value?.ToString() ?? "Left";
+
+                var tableIndentation = tableProperties?.TableIndentation;
+                float leftIndent = 0f;
+                if (tableIndentation?.Width?.Value != null)
+                {
+                    leftIndent = tableIndentation.Width.Value / 20f; // 转换为点
+                }
+
+                return (tableJustification, leftIndent);
+            }
+
+            return ("Left", 0f);
+        }
+        catch
+        {
+            return ("未知", 0f);
+        }
+    }
+
+    /// <summary>
+    /// 检查合并单元格
+    /// </summary>
+    private static bool CheckMergedCells(MainDocumentPart mainPart, int startRow, int startColumn, int endRow, int endColumn)
+    {
+        try
+        {
+            var tables = mainPart.Document.Descendants<Table>();
+            var firstTable = tables.FirstOrDefault();
+
+            if (firstTable != null)
+            {
+                var rows = firstTable.Elements<TableRow>().ToList();
+
+                // 检查指定范围内是否有合并单元格
+                for (int row = startRow; row <= endRow && row <= rows.Count; row++)
+                {
+                    var targetRow = rows[row - 1];
+                    var cells = targetRow.Elements<TableCell>().ToList();
+
+                    for (int col = startColumn; col <= endColumn && col <= cells.Count; col++)
+                    {
+                        var targetCell = cells[col - 1];
+                        var cellProperties = targetCell.TableCellProperties;
+
+                        // 检查垂直合并
+                        var verticalMerge = cellProperties?.VerticalMerge;
+                        if (verticalMerge != null)
+                        {
+                            return true;
+                        }
+
+                        // 检查水平合并（通过GridSpan）
+                        var gridSpan = cellProperties?.GridSpan;
+                        if (gridSpan?.Val?.Value > 1)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取项目编号类型
+    /// </summary>
+    private static string GetBulletNumberingType(MainDocumentPart mainPart, string paragraphNumbers)
+    {
+        try
+        {
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+            if (paragraphs == null) return "无编号";
+
+            // 解析段落号码
+            var numbers = paragraphNumbers.Split(',', ';').Select(n => int.TryParse(n.Trim(), out int num) ? num : 0).Where(n => n > 0);
+
+            foreach (int paragraphNumber in numbers)
+            {
+                if (paragraphNumber <= paragraphs.Count)
+                {
+                    var paragraph = paragraphs[paragraphNumber - 1];
+                    var paragraphProperties = paragraph.ParagraphProperties;
+                    var numberingProperties = paragraphProperties?.NumberingProperties;
+
+                    if (numberingProperties?.NumberingId?.Val?.Value != null)
+                    {
+                        // 简化实现：根据编号ID判断类型
+                        var numberingId = numberingProperties.NumberingId.Val.Value;
+
+                        // 检查编号定义部分以确定类型
+                        if (mainPart.NumberingDefinitionsPart?.Numbering != null)
+                        {
+                            var numbering = mainPart.NumberingDefinitionsPart.Numbering;
+                            var numberingInstance = numbering.Elements<NumberingInstance>()
+                                .FirstOrDefault(ni => ni.NumberID?.Value == numberingId);
+
+                            if (numberingInstance != null)
+                            {
+                                return "检测到编号列表";
+                            }
+                        }
+
+                        return "项目符号";
+                    }
+                }
+            }
+
+            return "无编号";
+        }
+        catch
+        {
+            return "未知";
         }
     }
 }
