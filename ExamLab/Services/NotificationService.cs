@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,87 @@ namespace ExamLab.Services;
 public static class NotificationService
 {
     /// <summary>
+    /// ContentDialog队列，确保同时只显示一个对话框
+    /// </summary>
+    private static readonly ConcurrentQueue<Func<Task>> _dialogQueue = new();
+
+    /// <summary>
+    /// 当前是否有对话框正在显示
+    /// </summary>
+    private static bool _isDialogShowing = false;
+
+    /// <summary>
+    /// 队列锁对象
+    /// </summary>
+    private static readonly object _queueLock = new();
+    /// <summary>
+    /// 将对话框操作加入队列并执行
+    /// </summary>
+    /// <param name="dialogAction">对话框操作</param>
+    private static async Task EnqueueDialogAsync(Func<Task> dialogAction)
+    {
+        _dialogQueue.Enqueue(dialogAction);
+        await ProcessDialogQueueAsync();
+    }
+
+    /// <summary>
+    /// 将对话框操作加入队列并执行（带返回值）
+    /// </summary>
+    /// <typeparam name="T">返回值类型</typeparam>
+    /// <param name="dialogFunc">对话框函数</param>
+    /// <returns>对话框结果</returns>
+    private static async Task<T> EnqueueDialogAsync<T>(Func<Task<T>> dialogFunc)
+    {
+        TaskCompletionSource<T> tcs = new();
+
+        _dialogQueue.Enqueue(async () =>
+        {
+            try
+            {
+                T result = await dialogFunc();
+                tcs.SetResult(result);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        });
+
+        _ = ProcessDialogQueueAsync();
+        return await tcs.Task;
+    }
+
+    /// <summary>
+    /// 处理对话框队列
+    /// </summary>
+    private static async Task ProcessDialogQueueAsync()
+    {
+        lock (_queueLock)
+        {
+            if (_isDialogShowing)
+            {
+                return; // 已经有对话框在显示，等待当前对话框完成
+            }
+            _isDialogShowing = true;
+        }
+
+        try
+        {
+            while (_dialogQueue.TryDequeue(out Func<Task>? dialogAction))
+            {
+                await dialogAction();
+            }
+        }
+        finally
+        {
+            lock (_queueLock)
+            {
+                _isDialogShowing = false;
+            }
+        }
+    }
+
+    /// <summary>
     /// 为ContentDialog设置XamlRoot
     /// </summary>
     /// <param name="dialog">要设置XamlRoot的ContentDialog</param>
@@ -24,17 +106,19 @@ public static class NotificationService
     /// </summary>
     public static async Task ShowSuccessAsync(string title, string message)
     {
-        ContentDialog dialog = new()
+        await EnqueueDialogAsync(async () =>
         {
-            Title = title,
-            Content = message,
-            CloseButtonText = "确定",
-            DefaultButton = ContentDialogButton.Close
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "确定",
+                DefaultButton = ContentDialogButton.Close
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        _ = await dialog.ShowAsync();
+            SetDialogXamlRoot(dialog);
+            _ = await dialog.ShowAsync();
+        });
     }
 
     /// <summary>
@@ -42,17 +126,19 @@ public static class NotificationService
     /// </summary>
     public static async Task ShowErrorAsync(string title, string message)
     {
-        ContentDialog dialog = new()
+        await EnqueueDialogAsync(async () =>
         {
-            Title = title,
-            Content = message,
-            CloseButtonText = "确定",
-            DefaultButton = ContentDialogButton.Close
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "确定",
+                DefaultButton = ContentDialogButton.Close
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        _ = await dialog.ShowAsync();
+            SetDialogXamlRoot(dialog);
+            _ = await dialog.ShowAsync();
+        });
     }
 
     /// <summary>
@@ -60,17 +146,19 @@ public static class NotificationService
     /// </summary>
     public static async Task ShowWarningAsync(string title, string message)
     {
-        ContentDialog dialog = new()
+        await EnqueueDialogAsync(async () =>
         {
-            Title = title,
-            Content = message,
-            CloseButtonText = "确定",
-            DefaultButton = ContentDialogButton.Close
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "确定",
+                DefaultButton = ContentDialogButton.Close
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        _ = await dialog.ShowAsync();
+            SetDialogXamlRoot(dialog);
+            _ = await dialog.ShowAsync();
+        });
     }
 
     /// <summary>
@@ -78,19 +166,21 @@ public static class NotificationService
     /// </summary>
     public static async Task<bool> ShowConfirmationAsync(string title, string message)
     {
-        ContentDialog dialog = new()
+        return await EnqueueDialogAsync(async () =>
         {
-            Title = title,
-            Content = message,
-            PrimaryButtonText = "确定",
-            CloseButtonText = "取消",
-            DefaultButton = ContentDialogButton.Primary
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = message,
+                PrimaryButtonText = "确定",
+                CloseButtonText = "取消",
+                DefaultButton = ContentDialogButton.Primary
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        ContentDialogResult result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary;
+            SetDialogXamlRoot(dialog);
+            ContentDialogResult result = await dialog.ShowAsync();
+            return result == ContentDialogResult.Primary;
+        });
     }
 
     /// <summary>
@@ -98,26 +188,28 @@ public static class NotificationService
     /// </summary>
     public static async Task<string?> ShowInputDialogAsync(string title, string placeholder = "", string defaultValue = "")
     {
-        TextBox textBox = new()
+        return await EnqueueDialogAsync(async () =>
         {
-            PlaceholderText = placeholder,
-            Text = defaultValue,
-            AcceptsReturn = false
-        };
+            TextBox textBox = new()
+            {
+                PlaceholderText = placeholder,
+                Text = defaultValue,
+                AcceptsReturn = false
+            };
 
-        ContentDialog dialog = new()
-        {
-            Title = title,
-            Content = textBox,
-            PrimaryButtonText = "确定",
-            CloseButtonText = "取消",
-            DefaultButton = ContentDialogButton.Primary
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = textBox,
+                PrimaryButtonText = "确定",
+                CloseButtonText = "取消",
+                DefaultButton = ContentDialogButton.Primary
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        ContentDialogResult result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary ? textBox.Text : null;
+            SetDialogXamlRoot(dialog);
+            ContentDialogResult result = await dialog.ShowAsync();
+            return result == ContentDialogResult.Primary ? textBox.Text : null;
+        });
     }
 
     /// <summary>
@@ -125,28 +217,30 @@ public static class NotificationService
     /// </summary>
     public static async Task<string?> ShowMultilineInputDialogAsync(string title, string placeholder = "", string defaultValue = "")
     {
-        TextBox textBox = new()
+        return await EnqueueDialogAsync(async () =>
         {
-            PlaceholderText = placeholder,
-            Text = defaultValue,
-            AcceptsReturn = true,
-            TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
-            Height = 150
-        };
+            TextBox textBox = new()
+            {
+                PlaceholderText = placeholder,
+                Text = defaultValue,
+                AcceptsReturn = true,
+                TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
+                Height = 150
+            };
 
-        ContentDialog dialog = new()
-        {
-            Title = title,
-            Content = textBox,
-            PrimaryButtonText = "确定",
-            CloseButtonText = "取消",
-            DefaultButton = ContentDialogButton.Primary
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = textBox,
+                PrimaryButtonText = "确定",
+                CloseButtonText = "取消",
+                DefaultButton = ContentDialogButton.Primary
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        ContentDialogResult result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary ? textBox.Text : null;
+            SetDialogXamlRoot(dialog);
+            ContentDialogResult result = await dialog.ShowAsync();
+            return result == ContentDialogResult.Primary ? textBox.Text : null;
+        });
     }
 
     /// <summary>
@@ -154,25 +248,27 @@ public static class NotificationService
     /// </summary>
     public static async Task<string?> ShowSelectionDialogAsync(string title, IEnumerable<string> options)
     {
-        ComboBox comboBox = new()
+        return await EnqueueDialogAsync(async () =>
         {
-            ItemsSource = options.ToList(),
-            SelectedIndex = 0
-        };
+            ComboBox comboBox = new()
+            {
+                ItemsSource = options.ToList(),
+                SelectedIndex = 0
+            };
 
-        ContentDialog dialog = new()
-        {
-            Title = title,
-            Content = comboBox,
-            PrimaryButtonText = "确定",
-            CloseButtonText = "取消",
-            DefaultButton = ContentDialogButton.Primary
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = comboBox,
+                PrimaryButtonText = "确定",
+                CloseButtonText = "取消",
+                DefaultButton = ContentDialogButton.Primary
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        ContentDialogResult result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary ? comboBox.SelectedItem?.ToString() : null;
+            SetDialogXamlRoot(dialog);
+            ContentDialogResult result = await dialog.ShowAsync();
+            return result == ContentDialogResult.Primary ? comboBox.SelectedItem?.ToString() : null;
+        });
     }
 
     /// <summary>
@@ -227,18 +323,20 @@ public static class NotificationService
     /// <returns>用户选择的结果</returns>
     public static async Task<ContentDialogResult> ShowSuccessWithActionAsync(string title, string message, string actionButtonText, string closeButtonText = "确定")
     {
-        ContentDialog dialog = new()
+        return await EnqueueDialogAsync(async () =>
         {
-            Title = title,
-            Content = message,
-            PrimaryButtonText = actionButtonText,
-            CloseButtonText = closeButtonText,
-            DefaultButton = ContentDialogButton.Close
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = message,
+                PrimaryButtonText = actionButtonText,
+                CloseButtonText = closeButtonText,
+                DefaultButton = ContentDialogButton.Close
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        return await dialog.ShowAsync();
+            SetDialogXamlRoot(dialog);
+            return await dialog.ShowAsync();
+        });
     }
 
     /// <summary>
@@ -251,17 +349,19 @@ public static class NotificationService
     /// <returns>用户选择的结果</returns>
     public static async Task<ContentDialogResult> ShowInfoWithActionAsync(string title, string message, string actionButtonText, string closeButtonText = "确定")
     {
-        ContentDialog dialog = new()
+        return await EnqueueDialogAsync(async () =>
         {
-            Title = title,
-            Content = message,
-            PrimaryButtonText = actionButtonText,
-            CloseButtonText = closeButtonText,
-            DefaultButton = ContentDialogButton.Close
-        };
+            ContentDialog dialog = new()
+            {
+                Title = title,
+                Content = message,
+                PrimaryButtonText = actionButtonText,
+                CloseButtonText = closeButtonText,
+                DefaultButton = ContentDialogButton.Close
+            };
 
-        SetDialogXamlRoot(dialog);
-
-        return await dialog.ShowAsync();
+            SetDialogXamlRoot(dialog);
+            return await dialog.ShowAsync();
+        });
     }
 }
