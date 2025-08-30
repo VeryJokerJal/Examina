@@ -1715,11 +1715,16 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             int chartCount = 0;
+
+            // 检查工作表中的图表
             foreach (var worksheetPart in workbookPart.WorksheetParts)
             {
-                chartCount += worksheetPart.ChartsheetParts.Count();
                 chartCount += worksheetPart.DrawingsPart?.ChartParts.Count() ?? 0;
             }
+
+            // 检查图表工作表
+            chartCount += workbookPart.ChartsheetParts.Count();
+
             return (chartCount > 0, chartCount);
         }
         catch
