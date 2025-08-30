@@ -483,6 +483,9 @@ public class PowerPointScoringService : IPowerPointScoringService
                 case "SetAnimationOrder":
                     result = DetectAnimationOrder(presentation, parameters);
                     break;
+                case "SlideshowOptions":
+                    result = DetectSlideshowOptions(presentation, parameters);
+                    break;
                 default:
                     result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
                     result.IsCorrect = false;
@@ -3631,5 +3634,199 @@ public class PowerPointScoringService : IPowerPointScoringService
         ];
 
         return dynamicEffects.Any(effect => transition.Contains(effect.ToLower()));
+    }
+
+    /// <summary>
+    /// 检测幻灯片放映选项
+    /// </summary>
+    private KnowledgePointResult DetectSlideshowOptions(PowerPoint.Presentation presentation, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SlideshowOptions",
+            Parameters = parameters
+        };
+
+        try
+        {
+            // 获取放映设置
+            PowerPoint.SlideShowSettings settings = presentation.SlideShowSettings;
+            List<string> details = [];
+            int correctCount = 0;
+            int totalChecks = 0;
+
+            // 检测放映类型 (SlideshowType)
+            if (parameters.TryGetValue("SlideshowType", out string? expectedType))
+            {
+                totalChecks++;
+                string actualType = GetSlideshowTypeName(settings.ShowType);
+                bool typeMatches = string.Equals(actualType, expectedType, StringComparison.OrdinalIgnoreCase);
+
+                if (typeMatches)
+                {
+                    correctCount++;
+                    details.Add($"放映类型匹配: {actualType}");
+                }
+                else
+                {
+                    details.Add($"放映类型不匹配 (期望: {expectedType}, 实际: {actualType})");
+                }
+            }
+
+            // 检测放映范围 (SlideshowRange)
+            if (parameters.TryGetValue("SlideshowRange", out string? expectedRange))
+            {
+                totalChecks++;
+                string actualRange = GetSlideshowRangeName(settings.RangeType);
+                bool rangeMatches = string.Equals(actualRange, expectedRange, StringComparison.OrdinalIgnoreCase);
+
+                if (rangeMatches)
+                {
+                    correctCount++;
+                    details.Add($"放映范围匹配: {actualRange}");
+                }
+                else
+                {
+                    details.Add($"放映范围不匹配 (期望: {expectedRange}, 实际: {actualRange})");
+                }
+            }
+
+            // 检测切换方式 (AdvanceMode)
+            if (parameters.TryGetValue("AdvanceMode", out string? expectedAdvance))
+            {
+                totalChecks++;
+                string actualAdvance = GetAdvanceModeName(settings.AdvanceMode);
+                bool advanceMatches = string.Equals(actualAdvance, expectedAdvance, StringComparison.OrdinalIgnoreCase);
+
+                if (advanceMatches)
+                {
+                    correctCount++;
+                    details.Add($"切换方式匹配: {actualAdvance}");
+                }
+                else
+                {
+                    details.Add($"切换方式不匹配 (期望: {expectedAdvance}, 实际: {actualAdvance})");
+                }
+            }
+
+            // 检测循环播放 (LoopUntilStopped)
+            if (parameters.TryGetValue("LoopUntilStopped", out string? expectedLoop))
+            {
+                totalChecks++;
+                bool actualLoop = settings.LoopUntilStopped == Microsoft.Office.Core.MsoTriState.msoTrue;
+                bool expectedLoopBool = expectedLoop == "是";
+                bool loopMatches = actualLoop == expectedLoopBool;
+
+                if (loopMatches)
+                {
+                    correctCount++;
+                    details.Add($"循环播放设置匹配: {(actualLoop ? "是" : "否")}");
+                }
+                else
+                {
+                    details.Add($"循环播放设置不匹配 (期望: {expectedLoop}, 实际: {(actualLoop ? "是" : "否")})");
+                }
+            }
+
+            // 检测使用旁白 (ShowWithNarration)
+            if (parameters.TryGetValue("ShowWithNarration", out string? expectedNarration))
+            {
+                totalChecks++;
+                bool actualNarration = settings.ShowWithNarration == Microsoft.Office.Core.MsoTriState.msoTrue;
+                bool expectedNarrationBool = expectedNarration == "是";
+                bool narrationMatches = actualNarration == expectedNarrationBool;
+
+                if (narrationMatches)
+                {
+                    correctCount++;
+                    details.Add($"旁白设置匹配: {(actualNarration ? "是" : "否")}");
+                }
+                else
+                {
+                    details.Add($"旁白设置不匹配 (期望: {expectedNarration}, 实际: {(actualNarration ? "是" : "否")})");
+                }
+            }
+
+            // 检测使用动画 (ShowWithAnimation)
+            if (parameters.TryGetValue("ShowWithAnimation", out string? expectedAnimation))
+            {
+                totalChecks++;
+                bool actualAnimation = settings.ShowWithAnimation == Microsoft.Office.Core.MsoTriState.msoTrue;
+                bool expectedAnimationBool = expectedAnimation == "是";
+                bool animationMatches = actualAnimation == expectedAnimationBool;
+
+                if (animationMatches)
+                {
+                    correctCount++;
+                    details.Add($"动画设置匹配: {(actualAnimation ? "是" : "否")}");
+                }
+                else
+                {
+                    details.Add($"动画设置不匹配 (期望: {expectedAnimation}, 实际: {(actualAnimation ? "是" : "否")})");
+                }
+            }
+
+            if (totalChecks == 0)
+            {
+                result.ErrorMessage = "未找到有效的放映选项参数";
+                return result;
+            }
+
+            result.IsCorrect = correctCount == totalChecks;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : (int)((double)correctCount / totalChecks * result.TotalScore);
+            result.Details = string.Join("; ", details);
+            result.ExpectedValue = $"检查了 {totalChecks} 个放映选项";
+            result.ActualValue = $"匹配了 {correctCount} 个选项";
+        }
+        catch (Exception ex)
+        {
+            result.ErrorMessage = $"检测放映选项失败: {ex.Message}";
+            result.IsCorrect = false;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 获取放映类型名称
+    /// </summary>
+    private static string GetSlideshowTypeName(PowerPoint.PpSlideShowType showType)
+    {
+        return showType switch
+        {
+            PowerPoint.PpSlideShowType.ppShowTypeSpeaker => "演讲者放映（全屏）",
+            PowerPoint.PpSlideShowType.ppShowTypeWindow => "窗口中放映",
+            PowerPoint.PpSlideShowType.ppShowTypeKiosk => "展示台放映（信息亭模式）",
+            PowerPoint.PpSlideShowType.ppShowTypeWindow2 => "第二窗口放映",
+            _ => "未知类型"
+        };
+    }
+
+    /// <summary>
+    /// 获取放映范围名称
+    /// </summary>
+    private static string GetSlideshowRangeName(PowerPoint.PpSlideShowRangeType rangeType)
+    {
+        return rangeType switch
+        {
+            PowerPoint.PpSlideShowRangeType.ppShowAll => "全部幻灯片",
+            PowerPoint.PpSlideShowRangeType.ppShowSlideRange => "幻灯片范围",
+            PowerPoint.PpSlideShowRangeType.ppShowNamedSlideShow => "自定义放映",
+            _ => "未知范围"
+        };
+    }
+
+    /// <summary>
+    /// 获取切换方式名称
+    /// </summary>
+    private static string GetAdvanceModeName(PowerPoint.PpSlideShowAdvanceMode advanceMode)
+    {
+        return advanceMode switch
+        {
+            PowerPoint.PpSlideShowAdvanceMode.ppSlideShowManualAdvance => "手动切换",
+            PowerPoint.PpSlideShowAdvanceMode.ppSlideShowUseSlideTimings => "使用幻灯片计时",
+            PowerPoint.PpSlideShowAdvanceMode.ppSlideShowRehearseNewTimings => "排练新的计时",
+            _ => "未知方式"
+        };
     }
 }

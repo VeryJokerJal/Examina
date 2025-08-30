@@ -196,20 +196,28 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点8：幻灯片放映选项
+        // 知识点8：幻灯片放映选项（基于COM组件枚举扩展）
         configs[PowerPointKnowledgeType.SlideshowOptions] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SlideshowOptions,
             Name = "幻灯片放映选项",
-            Description = "设置幻灯片的放映选项",
+            Description = "设置幻灯片的放映选项和配置（基于COM组件PpSlideShow枚举）",
             Category = "幻灯片操作",
             ParameterTemplates =
             [
-                new() { Name = "LoopUntilStopped", DisplayName = "是否循环播放", Description = "是否循环播放", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                new() { Name = "SlideshowType", DisplayName = "放映类型", Description = "选择放映类型（基于PpSlideShowType枚举）", Type = ParameterType.Enum, IsRequired = true, Order = 1,
+                    EnumOptions = "演讲者放映（全屏）,窗口中放映,展示台放映（信息亭模式）,第二窗口放映" },
+                new() { Name = "SlideshowRange", DisplayName = "放映范围", Description = "选择放映范围（基于PpSlideShowRangeType枚举）", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                    EnumOptions = "全部幻灯片,幻灯片范围,自定义放映" },
+                new() { Name = "AdvanceMode", DisplayName = "切换方式", Description = "选择幻灯片切换方式（基于PpSlideShowAdvanceMode枚举）", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                    EnumOptions = "手动切换,使用幻灯片计时,排练新的计时" },
+                new() { Name = "PointerType", DisplayName = "指针类型", Description = "选择放映时的指针类型（基于PpSlideShowPointerType枚举）", Type = ParameterType.Enum, IsRequired = false, Order = 4,
+                    EnumOptions = "无指针,箭头,笔,始终隐藏,自动箭头,橡皮擦" },
+                new() { Name = "LoopUntilStopped", DisplayName = "是否循环播放", Description = "是否循环播放", Type = ParameterType.Enum, IsRequired = false, Order = 5,
                     EnumOptions = "是,否" },
-                new() { Name = "ShowWithNarration", DisplayName = "是否使用旁白", Description = "是否使用旁白", Type = ParameterType.Enum, IsRequired = true, Order = 2,
+                new() { Name = "ShowWithNarration", DisplayName = "是否使用旁白", Description = "是否使用旁白", Type = ParameterType.Enum, IsRequired = false, Order = 6,
                     EnumOptions = "是,否" },
-                new() { Name = "ShowWithAnimation", DisplayName = "是否使用动画", Description = "是否使用动画", Type = ParameterType.Enum, IsRequired = true, Order = 3,
+                new() { Name = "ShowWithAnimation", DisplayName = "是否使用动画", Description = "是否使用动画", Type = ParameterType.Enum, IsRequired = false, Order = 7,
                     EnumOptions = "是,否" }
             ]
         };
