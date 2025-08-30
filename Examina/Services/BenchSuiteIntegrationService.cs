@@ -3,7 +3,6 @@ using System.Reflection;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using BenchSuite.Services;
-using BenchSuite.Services.OpenXml;
 using Examina.Models;
 using Examina.Models.Exam;
 using Examina.Models.MockExam;
@@ -1519,14 +1518,11 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         }
 
         // 对于C#模块，尝试按照ExamLab的逻辑计算分数
-        if (questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp)))
-        {
-            return (decimal)questionDto.OperationPoints
+        return questionDto.OperationPoints.Any(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
+            ? (decimal)questionDto.OperationPoints
                 .Where(op => IsModuleTypeMatch(op.ModuleType, ModuleType.CSharp))
-                .Sum(op => op.Score);
-        }
-
-        return (decimal)questionDto.Score;
+                .Sum(op => op.Score)
+            : (decimal)questionDto.Score;
     }
 
     /// <summary>
@@ -2168,16 +2164,14 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static double? GetJsonDoubleProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property))
-        {
-            return property.ValueKind switch
+        return element.TryGetProperty(propertyName, out JsonElement property)
+            ? property.ValueKind switch
             {
                 JsonValueKind.Number => property.GetDouble(),
                 JsonValueKind.String when double.TryParse(property.GetString(), out double value) => value,
                 _ => null
-            };
-        }
-        return null;
+            }
+            : null;
     }
 
     /// <summary>
@@ -2185,16 +2179,14 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static int? GetJsonIntProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property))
-        {
-            return property.ValueKind switch
+        return element.TryGetProperty(propertyName, out JsonElement property)
+            ? property.ValueKind switch
             {
                 JsonValueKind.Number => property.GetInt32(),
                 JsonValueKind.String when int.TryParse(property.GetString(), out int value) => value,
                 _ => null
-            };
-        }
-        return null;
+            }
+            : null;
     }
 
     /// <summary>
@@ -2202,17 +2194,15 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// </summary>
     private static bool? GetJsonBoolProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property))
-        {
-            return property.ValueKind switch
+        return element.TryGetProperty(propertyName, out JsonElement property)
+            ? property.ValueKind switch
             {
                 JsonValueKind.True => true,
                 JsonValueKind.False => false,
                 JsonValueKind.String when bool.TryParse(property.GetString(), out bool value) => value,
                 _ => null
-            };
-        }
-        return null;
+            }
+            : null;
     }
 
     /// <summary>

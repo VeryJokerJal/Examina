@@ -672,7 +672,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 return [];
             }
 
-            string examDirectory = _benchSuiteDirectoryService.GetExamDirectory();
+            string examDirectory = _benchSuiteDirectoryService.GetBasePath();
             if (!Directory.Exists(examDirectory))
             {
                 System.Diagnostics.Debug.WriteLine($"考试目录不存在: {examDirectory}");
@@ -791,52 +791,104 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         ExamModel examModel = new()
         {
-            Id = training.Id,
+            Id = training.Id.ToString(),
             Name = training.Name,
             Description = training.Description ?? string.Empty,
             TotalScore = training.TotalScore,
-            Duration = training.Duration,
-            OperationPoints = []
+            DurationMinutes = training.Duration,
+            Modules = []
         };
 
-        // 从训练模块创建操作点
+        // 从训练模块创建ExamModule和操作点
         foreach (StudentSpecializedTrainingModuleDto module in training.Modules)
         {
+            ExamModuleModel examModule = new()
+            {
+                Id = module.Id.ToString(),
+                Name = module.Name,
+                Description = module.Description ?? string.Empty,
+                Score = module.Score,
+                ModuleType = GetModuleTypeFromString(training.ModuleType),
+                IsEnabled = module.IsEnabled,
+                Order = module.Order,
+                Questions = []
+            };
+
             foreach (StudentSpecializedTrainingQuestionDto question in module.Questions)
             {
+                QuestionModel questionModel = new()
+                {
+                    Id = question.Id.ToString(),
+                    Title = question.Title,
+                    Content = question.Content ?? string.Empty,
+                    Score = question.Score,
+                    QuestionType = question.QuestionType ?? "检测",
+                    Order = question.Order,
+                    OperationPoints = []
+                };
+
+                // 为每个问题创建一个操作点
                 OperationPointModel operationPoint = new()
                 {
-                    Id = question.Id,
+                    Id = question.Id.ToString(),
                     Name = question.Title,
                     Description = question.Content ?? string.Empty,
                     Score = question.Score,
-                    Type = question.QuestionType ?? "检测",
-                    Parameters = new Dictionary<string, string>(),
+                    Parameters = [],
                     ModuleType = GetModuleTypeFromString(training.ModuleType)
                 };
 
-                examModel.OperationPoints.Add(operationPoint);
+                questionModel.OperationPoints.Add(operationPoint);
+                examModule.Questions.Add(questionModel);
             }
+
+            examModel.Modules.Add(examModule);
         }
 
-        // 如果没有模块，从直接题目列表创建
-        if (examModel.OperationPoints.Count == 0)
+        // 如果没有模块，从直接题目列表创建默认模块
+        if (examModel.Modules.Count == 0)
         {
+            ExamModuleModel defaultModule = new()
+            {
+                Id = "default-module",
+                Name = "默认模块",
+                Description = "从直接题目列表创建的默认模块",
+                Score = training.TotalScore,
+                ModuleType = GetModuleTypeFromString(training.ModuleType),
+                IsEnabled = true,
+                Order = 1,
+                Questions = []
+            };
+
             foreach (StudentSpecializedTrainingQuestionDto question in training.Questions)
             {
+                QuestionModel questionModel = new()
+                {
+                    Id = question.Id.ToString(),
+                    Title = question.Title,
+                    Content = question.Content ?? string.Empty,
+                    Score = question.Score,
+                    QuestionType = question.QuestionType ?? "检测",
+                    Order = question.Order,
+                    OperationPoints = []
+                };
+
+                // 为每个问题创建一个操作点
                 OperationPointModel operationPoint = new()
                 {
-                    Id = question.Id,
+                    Id = question.Id.ToString(),
                     Name = question.Title,
                     Description = question.Content ?? string.Empty,
                     Score = question.Score,
-                    Type = question.QuestionType ?? "检测",
-                    Parameters = new Dictionary<string, string>(),
+                    Parameters = [],
                     ModuleType = GetModuleTypeFromString(training.ModuleType)
                 };
 
-                examModel.OperationPoints.Add(operationPoint);
+                questionModel.OperationPoints.Add(operationPoint);
+                defaultModule.Questions.Add(questionModel);
             }
+
+            examModel.Modules.Add(defaultModule);
         }
 
         return examModel;
@@ -851,11 +903,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         {
             return new ScoringResult
             {
-                ExamName = examName,
+                QuestionTitle = examName,
                 TotalScore = 0,
                 AchievedScore = 0,
                 KnowledgePointResults = [],
-                ScoringTime = DateTime.Now,
+                StartTime = DateTime.Now,
                 IsSuccess = false,
                 ErrorMessage = "没有评分结果"
             };
@@ -869,11 +921,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         // 合并多个结果
         ScoringResult combined = new()
         {
-            ExamName = examName,
+            QuestionTitle = examName,
             TotalScore = results.Sum(r => r.TotalScore),
             AchievedScore = results.Sum(r => r.AchievedScore),
             KnowledgePointResults = [],
-            ScoringTime = DateTime.Now,
+            StartTime = DateTime.Now,
             IsSuccess = results.All(r => r.IsSuccess),
             ErrorMessage = string.Join("; ", results.Where(r => !string.IsNullOrEmpty(r.ErrorMessage)).Select(r => r.ErrorMessage))
         };

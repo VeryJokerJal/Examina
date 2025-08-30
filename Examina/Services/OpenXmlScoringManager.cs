@@ -1,3 +1,4 @@
+﻿using System.IO;
 using BenchSuite.Interfaces;
 using BenchSuite.Models;
 using Microsoft.Extensions.Logging;
@@ -95,7 +96,7 @@ public class OpenXmlScoringManager
             IScoringService scoringService = GetScoringService(filePath);
             ScoringResult result = await scoringService.ScoreFileAsync(filePath, examModel, configuration);
 
-            _logger.LogInformation("文件评分完成: {FilePath}, 总分: {TotalScore}, 得分: {AchievedScore}", 
+            _logger.LogInformation("文件评分完成: {FilePath}, 总分: {TotalScore}, 得分: {AchievedScore}",
                 filePath, result.TotalScore, result.AchievedScore);
 
             return result;
@@ -140,7 +141,7 @@ public class OpenXmlScoringManager
                 _ => throw new NotSupportedException($"不支持的文件类型: {extension}")
             };
 
-            _logger.LogInformation("知识点检测完成: {FilePath}, 类型: {KnowledgePointType}, 结果: {IsCorrect}", 
+            _logger.LogInformation("知识点检测完成: {FilePath}, 类型: {KnowledgePointType}, 结果: {IsCorrect}",
                 filePath, knowledgePointType, result.IsCorrect);
 
             return result;
@@ -185,7 +186,7 @@ public class OpenXmlScoringManager
             };
 
             int correctCount = results.Count(r => r.IsCorrect);
-            _logger.LogInformation("批量知识点检测完成: {FilePath}, 总数: {Total}, 正确: {Correct}", 
+            _logger.LogInformation("批量知识点检测完成: {FilePath}, 总数: {Total}, 正确: {Correct}",
                 filePath, results.Count, correctCount);
 
             return results;
