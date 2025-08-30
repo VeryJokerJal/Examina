@@ -112,7 +112,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellValues", DisplayName = "目标区域个别单元格的值", Description = "用单元格+值的方式匹配，比如：E10：我的天啊", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:内容" }
             ]
@@ -127,7 +127,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "起始单元和结束单元格", Description = "用:号分隔，添加合并操作", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:C1" }
             ]
@@ -142,7 +142,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "起始单元格和结束单元格", Description = "单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "FontFamily", DisplayName = "字体", Description = "选择字体", Type = ParameterType.Enum, IsRequired = true, Order = 4, DefaultValue = "宋体",
@@ -159,7 +159,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "起始值", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "HorizontalAlignment", DisplayName = "水平对齐方式", Description = "选择对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 4, DefaultValue = "默认",
@@ -176,7 +176,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "包含起始值", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:C3" },
                 new() { Name = "BorderStyle", DisplayName = "边框线样式", Description = "选择边框样式", Type = ParameterType.Enum, IsRequired = true, Order = 4, DefaultValue = "无边框",
@@ -193,7 +193,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "包含起始值", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:C3" },
                 new() { Name = "BorderColor", DisplayName = "边框线颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 4, DefaultValue = "#000000" }
@@ -209,7 +209,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellAddress", DisplayName = "单元格", Description = "函数所在单元格", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "ExpectedValue", DisplayName = "期望值", Description = "函数计算的期望结果", Type = ParameterType.Text, IsRequired = true, Order = 4 },
@@ -226,7 +226,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "RowNumbers", DisplayName = "行数", Description = "可配置多个行号", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "1" },
                 new() { Name = "RowHeight", DisplayName = "行高值", Description = "行高（磅为单位）", Type = ParameterType.Number, IsRequired = true, Order = 4, DefaultValue = "20", MinValue = 10, MaxValue = 200 }
@@ -242,7 +242,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "ColumnLetters", DisplayName = "列宽", Description = "可配置多个列字母", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A" },
                 new() { Name = "ColumnWidth", DisplayName = "列宽值", Description = "列宽值", Type = ParameterType.Number, IsRequired = true, Order = 4, DefaultValue = "15", MinValue = 5, MaxValue = 100 }
@@ -258,7 +258,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "起始值", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "FillColor", DisplayName = "颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 4, DefaultValue = "#FFFF00" }
@@ -274,7 +274,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "起始值", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "VerticalAlignment", DisplayName = "垂直对齐方式", Description = "选择垂直对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 4, DefaultValue = "顶端对齐",
@@ -291,7 +291,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "OriginalSheetName", DisplayName = "sheet表起始值", Description = "原始工作表名称", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "NewSheetName", DisplayName = "修改后的目标值", Description = "新的工作表名称", Type = ParameterType.Text, IsRequired = true, Order = 4 }
@@ -307,7 +307,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "FontStyle", DisplayName = "字型", Description = "字体样式", Type = ParameterType.Enum, IsRequired = true, Order = 4, DefaultValue = "常规",
@@ -324,7 +324,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "FontSize", DisplayName = "字号", Description = "字体大小", Type = ParameterType.Number, IsRequired = true, Order = 4, DefaultValue = "12", MinValue = 8, MaxValue = 72 }
@@ -340,7 +340,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "FontColor", DisplayName = "字体颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 4, DefaultValue = "#000000" }
@@ -356,7 +356,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "NumberFormat", DisplayName = "数字格式", Description = "数字分类格式", Type = ParameterType.Enum, IsRequired = true, Order = 4, DefaultValue = "常规",
@@ -373,7 +373,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "PatternStyle", DisplayName = "图案样式", Description = "图案填充样式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -390,7 +390,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:A1" },
                 new() { Name = "PatternColor", DisplayName = "图案颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 4, DefaultValue = "#808080" }
@@ -406,7 +406,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "BorderStyle", DisplayName = "边框样式", Description = "外边框样式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -423,7 +423,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A1:C3" },
                 new() { Name = "BorderColor", DisplayName = "边框颜色", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 4, DefaultValue = "#000000" }
@@ -439,7 +439,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "UnderlineType", DisplayName = "下划线类型", Description = "下划线样式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -456,7 +456,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "ConditionType", DisplayName = "条件类型", Description = "条件格式类型", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -475,7 +475,7 @@ public class ExcelKnowledgeService
             Category = "Excel基础操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "CellRange", DisplayName = "单元格区域", Description = "目标单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "StyleName", DisplayName = "样式名称", Description = "预定义的单元格样式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -495,7 +495,7 @@ public class ExcelKnowledgeService
             Category = "数据清单操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "FilterConditions", DisplayName = "筛选条件", Description = "键值对方式，哪一列：筛选的值", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A:条件值" }
             ]
@@ -510,7 +510,7 @@ public class ExcelKnowledgeService
             Category = "数据清单操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "SortColumn", DisplayName = "哪一列", Description = "排序的列", Type = ParameterType.Text, IsRequired = true, Order = 3, DefaultValue = "A" },
                 new() { Name = "SortOrder", DisplayName = "升序还是降序", Description = "排序顺序", Type = ParameterType.Enum, IsRequired = true, Order = 4, DefaultValue = "升序",
@@ -528,7 +528,7 @@ public class ExcelKnowledgeService
             Category = "数据清单操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "PivotRowFields", DisplayName = "行字段", Description = "设置为透视表的行字段", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "PivotColumnFields", DisplayName = "列字段", Description = "设置为透视表的列字段", Type = ParameterType.Text, IsRequired = false, Order = 4 },
@@ -548,7 +548,7 @@ public class ExcelKnowledgeService
             Category = "数据清单操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "GroupByColumn", DisplayName = "分类字段", Description = "按哪一列分类", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "SummaryFunction", DisplayName = "汇总函数", Description = "汇总函数类型", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -566,7 +566,7 @@ public class ExcelKnowledgeService
             Category = "数据清单操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "ConditionRange", DisplayName = "条件区域", Description = "筛选条件的单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "FilterField", DisplayName = "筛选字段", Description = "要筛选的字段名", Type = ParameterType.Text, IsRequired = true, Order = 4 },
@@ -583,7 +583,7 @@ public class ExcelKnowledgeService
             Category = "数据清单操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "A" },
                 new() { Name = "DataRange", DisplayName = "数据区域", Description = "要筛选的数据区域", Type = ParameterType.Text, IsRequired = true, Order = 3 },
                 new() { Name = "CriteriaRange", DisplayName = "条件区域", Description = "筛选条件区域", Type = ParameterType.Text, IsRequired = true, Order = 4 },
@@ -603,7 +603,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartType", DisplayName = "图表类型", Description = "选择图表类型", Type = ParameterType.Enum, IsRequired = true, Order = 3, DefaultValue = "簇状柱形图",
                     EnumOptions = "簇状柱形图,堆积柱形图,百分比堆积柱形图,簇状条形图,堆积条形图,百分比堆积条形图,折线图,带数据标记的折线图,饼图,分离型饼图,圆环图,面积图,散点图,气泡图,雷达图,曲面图,股票图,组合图" }
@@ -619,7 +619,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "工作簿1.xlsx" },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "StyleNumber", DisplayName = "样式编号", Description = "图表样式编号（1-48）", Type = ParameterType.Number, IsRequired = true, Order = 3, DefaultValue = "1", MinValue = 1, MaxValue = 48 }
             ]
@@ -634,7 +634,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "ChartTitle", DisplayName = "图表标题", Description = "图表标题文本值", Type = ParameterType.Text, IsRequired = true, Order = 4 }
@@ -650,7 +650,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "LegendPosition", DisplayName = "图例位置", Description = "图例显示位置", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -667,7 +667,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "MoveLocation", DisplayName = "移动位置", Description = "图表移动的目标位置", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -685,7 +685,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "CategoryRange", DisplayName = "分类轴区域", Description = "分类轴数据的单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 4 }
@@ -701,7 +701,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "ValueRange", DisplayName = "数值轴区域", Description = "数值轴数据的单元格区域", Type = ParameterType.Text, IsRequired = true, Order = 4 }
@@ -717,7 +717,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "FontName", DisplayName = "字体", Description = "标题字体", Type = ParameterType.Text, IsRequired = false, Order = 4 },
@@ -735,7 +735,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "AxisTitle", DisplayName = "轴标题", Description = "横坐标轴标题文本", Type = ParameterType.Text, IsRequired = true, Order = 4 }
@@ -751,7 +751,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "FontName", DisplayName = "字体", Description = "轴标题字体", Type = ParameterType.Text, IsRequired = false, Order = 4 },
@@ -769,7 +769,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "FontName", DisplayName = "字体", Description = "图例字体", Type = ParameterType.Text, IsRequired = false, Order = 4 },
@@ -787,7 +787,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "MinValue", DisplayName = "最小值", Description = "纵轴最小值", Type = ParameterType.Number, IsRequired = false, Order = 4 },
@@ -805,7 +805,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示主要横网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
@@ -822,7 +822,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示次要横网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
@@ -839,7 +839,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示主要纵网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
@@ -856,7 +856,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "GridlineVisible", DisplayName = "网格线可见性", Description = "是否显示次要纵网格线", Type = ParameterType.Boolean, IsRequired = true, Order = 4 },
@@ -873,7 +873,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "SeriesIndex", DisplayName = "系列索引", Description = "数据系列索引", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1 },
@@ -890,7 +890,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "LabelPosition", DisplayName = "标签位置", Description = "数据标签位置", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -907,7 +907,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "FontName", DisplayName = "字体", Description = "数据标签字体", Type = ParameterType.Text, IsRequired = false, Order = 4 },
@@ -925,7 +925,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "FillColor", DisplayName = "填充颜色", Description = "图表区域填充颜色", Type = ParameterType.Color, IsRequired = false, Order = 4, DefaultValue = "#FFFFFF" },
@@ -942,7 +942,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "FloorColor", DisplayName = "基底颜色", Description = "图表基底颜色", Type = ParameterType.Color, IsRequired = true, Order = 4, DefaultValue = "#F2F2F2" }
@@ -958,7 +958,7 @@ public class ExcelKnowledgeService
             Category = "图表操作",
             ParameterTemplates =
             [
-                new() { Name = "TargetWorkbook", DisplayName = "目标工作簿", Description = "目标工作簿", Type = ParameterType.Text, IsRequired = true, Order = 1 },
+                new() { Name = "TargetWorksheet", DisplayName = "目标工作表", Description = "目标工作表", Type = ParameterType.Text, IsRequired = true, Order = 1, DefaultValue = "Sheet1" },
                 new() { Name = "OperationType", DisplayName = "操作类型", Description = "操作类型", Type = ParameterType.Text, IsRequired = true, Order = 2, DefaultValue = "B" },
                 new() { Name = "ChartNumber", DisplayName = "图表编号", Description = "图表编号", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1 },
                 new() { Name = "BorderStyle", DisplayName = "边框样式", Description = "边框线样式", Type = ParameterType.Enum, IsRequired = true, Order = 4,
@@ -968,3 +968,6 @@ public class ExcelKnowledgeService
         };
     }
 }
+
+
+
