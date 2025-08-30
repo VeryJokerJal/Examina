@@ -114,7 +114,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             FinalizeScoringResult(result, allOperationPoints);
 
-            System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 评分完成: 总分 {result.TotalScore}, 获得分数 {result.AchievedScore}, 成功率 {(result.TotalScore > 0 ? (result.AchievedScore / result.TotalScore * 100):0):F1}%");
+            System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 评分完成: 总分 {result.TotalScore}, 获得分数 {result.AchievedScore}, 成功率 {(result.TotalScore > 0 ? (result.AchievedScore / result.TotalScore * 100) : 0):F1}%");
         }
         catch (Exception ex)
         {
@@ -625,78 +625,6 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
-    /// 检测文档内容
-    /// </summary>
-    private KnowledgePointResult DetectDocumentContent(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetDocumentContent",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "ExpectedContent", out string expectedContent))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: ExpectedContent");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            string actualContent = GetDocumentText(mainPart);
-
-            result.ExpectedValue = expectedContent;
-            result.ActualValue = actualContent;
-            result.IsCorrect = TextContains(actualContent, expectedContent);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"文档内容检测: 期望包含 '{expectedContent}', 实际内容长度 {actualContent.Length} 字符";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测文档内容失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测文档字体
-    /// </summary>
-    private KnowledgePointResult DetectDocumentFont(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetDocumentFont",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "FontName", out string expectedFont))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: FontName");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool fontFound = CheckDocumentForFont(mainPart, expectedFont);
-
-            result.ExpectedValue = expectedFont;
-            result.ActualValue = fontFound ? expectedFont : "未找到指定字体";
-            result.IsCorrect = fontFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"文档字体检测: 期望 {expectedFont}, {(fontFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测文档字体失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
     /// 检测段落字体
     /// </summary>
     private KnowledgePointResult DetectParagraphFont(WordprocessingDocument document, Dictionary<string, string> parameters)
@@ -719,18 +647,26 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedFont,
+                GetParagraphFont,
+                TextEquals, // 使用文本比较函数
+                out Paragraph? matchedParagraph,
+                out string? actualFont,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            string actualFont = GetParagraphFont(targetParagraph!);
-
             result.ExpectedValue = expectedFont;
-            result.ActualValue = actualFont;
-            result.IsCorrect = TextEquals(actualFont, expectedFont);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = actualFont ?? string.Empty;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 字体: 期望 {expectedFont}, 实际 {actualFont}";
@@ -766,18 +702,26 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedSize,
+                GetParagraphFontSize,
+                null, // 使用默认相等比较
+                out Paragraph? matchedParagraph,
+                out int actualSize,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            int actualSize = GetParagraphFontSize(targetParagraph!);
-
             result.ExpectedValue = expectedSize.ToString();
             result.ActualValue = actualSize.ToString();
-            result.IsCorrect = actualSize == expectedSize;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 字号: 期望 {expectedSize}, 实际 {actualSize}";
@@ -813,18 +757,26 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedStyle,
+                GetParagraphFontStyle,
+                TextEquals, // 使用文本比较函数
+                out Paragraph? matchedParagraph,
+                out string? actualStyle,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            string actualStyle = GetParagraphFontStyle(targetParagraph!);
-
             result.ExpectedValue = expectedStyle;
-            result.ActualValue = actualStyle;
-            result.IsCorrect = TextEquals(actualStyle, expectedStyle);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = actualStyle ?? string.Empty;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 字形: 期望 {expectedStyle}, 实际 {actualStyle}";
@@ -860,18 +812,29 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建浮点数比较函数
+            bool FloatEquals(float actual, float expected) => Math.Abs(actual - expected) < 0.1f;
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedSpacing,
+                GetParagraphCharacterSpacing,
+                FloatEquals, // 使用浮点数比较函数
+                out Paragraph? matchedParagraph,
+                out float actualSpacing,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            float actualSpacing = GetParagraphCharacterSpacing(targetParagraph!);
-
             result.ExpectedValue = expectedSpacing.ToString();
             result.ActualValue = actualSpacing.ToString();
-            result.IsCorrect = Math.Abs(actualSpacing - expectedSpacing) < 0.1f;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 字间距: 期望 {expectedSpacing}, 实际 {actualSpacing}";
@@ -907,18 +870,29 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            // 创建颜色比较函数
+            bool ColorMatches(string actual, string expected) => TextEquals(actual, expected) || ColorEquals(actual, expected);
+
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedColor,
+                GetParagraphTextColor,
+                ColorMatches, // 使用颜色比较函数
+                out Paragraph? matchedParagraph,
+                out string? actualColor,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            string actualColor = GetParagraphTextColor(targetParagraph!);
-
             result.ExpectedValue = expectedColor;
-            result.ActualValue = actualColor;
-            result.IsCorrect = TextEquals(actualColor, expectedColor) || ColorEquals(actualColor, expectedColor);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = actualColor ?? string.Empty;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 文字颜色: 期望 {expectedColor}, 实际 {actualColor}";
@@ -1289,18 +1263,26 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             MainDocumentPart mainPart = document.MainDocumentPart!;
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
-            if (!ValidateParagraphIndex(paragraphs, paragraphNumber, out Paragraph? targetParagraph, out string errorMessage))
+            bool isMatch = FindMatchingParagraph(
+                paragraphs,
+                paragraphNumber,
+                expectedAlignment,
+                GetParagraphAlignment,
+                TextEquals, // 使用文本比较函数
+                out Paragraph? matchedParagraph,
+                out string? actualAlignment,
+                out string errorMessage);
+
+            if (!isMatch)
             {
                 SetKnowledgePointFailure(result, errorMessage);
                 return result;
             }
 
-            string actualAlignment = GetParagraphAlignment(targetParagraph!);
-
             result.ExpectedValue = expectedAlignment;
-            result.ActualValue = actualAlignment;
-            result.IsCorrect = TextEquals(actualAlignment, expectedAlignment);
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.ActualValue = actualAlignment ?? string.Empty;
+            result.IsCorrect = true; // 如果找到匹配就是正确的
+            result.AchievedScore = result.TotalScore;
 
             string paragraphDescription = paragraphNumber == -1 ? "任意段落" : $"段落 {paragraphNumber}";
             result.Details = $"{paragraphDescription} 对齐方式: 期望 {expectedAlignment}, 实际 {actualAlignment}";
@@ -3342,1819 +3324,6 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
-    /// 检测插入的表格
-    /// </summary>
-    private KnowledgePointResult DetectInsertedTable(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertTable",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            Body? body = mainPart.Document.Body;
-
-            if (body == null)
-            {
-                SetKnowledgePointFailure(result, "无法获取文档主体");
-                return result;
-            }
-
-            IEnumerable<Table> tables = body.Descendants<Table>();
-            int tableCount = tables.Count();
-
-            // 检查期望的表格数量
-            bool hasExpectedCount = true;
-            if (TryGetIntParameter(parameters, "ExpectedTableCount", out int expectedCount))
-            {
-                hasExpectedCount = tableCount >= expectedCount;
-                result.ExpectedValue = $"至少{expectedCount}个表格";
-            }
-            else
-            {
-                hasExpectedCount = tableCount > 0;
-                result.ExpectedValue = "至少1个表格";
-            }
-
-            result.ActualValue = $"{tableCount}个表格";
-            result.IsCorrect = hasExpectedCount;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"表格检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测插入表格失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测插入的图片
-    /// </summary>
-    private KnowledgePointResult DetectInsertedImage(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertImage",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-
-            // 计算图片数量（通过ImagePart计算）
-            int imageCount = mainPart.ImageParts.Count();
-
-            // 检查期望的图片数量
-            bool hasExpectedCount = true;
-            if (TryGetIntParameter(parameters, "ExpectedImageCount", out int expectedCount))
-            {
-                hasExpectedCount = imageCount >= expectedCount;
-                result.ExpectedValue = $"至少{expectedCount}张图片";
-            }
-            else
-            {
-                hasExpectedCount = imageCount > 0;
-                result.ExpectedValue = "至少1张图片";
-            }
-
-            result.ActualValue = $"{imageCount}张图片";
-            result.IsCorrect = hasExpectedCount;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"图片检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测插入图片失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测字体样式
-    /// </summary>
-    private KnowledgePointResult DetectFontStyle(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetFontStyle",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "StyleType", out string expectedStyle))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: StyleType");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool styleFound = CheckFontStyleInDocument(mainPart, expectedStyle);
-
-            result.ExpectedValue = expectedStyle;
-            result.ActualValue = styleFound ? expectedStyle : "未找到指定样式";
-            result.IsCorrect = styleFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"字体样式检测: 期望 {expectedStyle}, {(styleFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测字体样式失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测字体大小
-    /// </summary>
-    private KnowledgePointResult DetectFontSize(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetFontSize",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "FontSize", out string expectedSize))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: FontSize");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool sizeFound = CheckFontSizeInDocument(mainPart, expectedSize);
-
-            result.ExpectedValue = expectedSize;
-            result.ActualValue = sizeFound ? expectedSize : "未找到指定字号";
-            result.IsCorrect = sizeFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"字体大小检测: 期望 {expectedSize}, {(sizeFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测字体大小失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测字体颜色
-    /// </summary>
-    private KnowledgePointResult DetectFontColor(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetFontColor",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "FontColor", out string expectedColor))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: FontColor");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool colorFound = CheckFontColorInDocument(mainPart, expectedColor);
-
-            result.ExpectedValue = expectedColor;
-            result.ActualValue = colorFound ? expectedColor : "未找到指定颜色";
-            result.IsCorrect = colorFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"字体颜色检测: 期望 {expectedColor}, {(colorFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测字体颜色失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-
-
-    /// <summary>
-    /// 检测行间距
-    /// </summary>
-    private KnowledgePointResult DetectLineSpacing(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetLineSpacing",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "LineSpacing", out string expectedSpacing))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: LineSpacing");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool spacingFound = CheckLineSpacingInDocument(mainPart, expectedSpacing);
-
-            result.ExpectedValue = expectedSpacing;
-            result.ActualValue = spacingFound ? expectedSpacing : "未找到指定行间距";
-            result.IsCorrect = spacingFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"行间距检测: 期望 {expectedSpacing}, {(spacingFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测行间距失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-
-
-    /// <summary>
-    /// 检测缩进
-    /// </summary>
-    private KnowledgePointResult DetectIndentation(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetIndentation",
-            Parameters = parameters
-        };
-
-        try
-        {
-            if (!TryGetParameter(parameters, "IndentationType", out string indentationType))
-            {
-                SetKnowledgePointFailure(result, "缺少必要参数: IndentationType");
-                return result;
-            }
-
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool indentationFound = CheckIndentationInDocument(mainPart, indentationType, parameters);
-
-            result.ExpectedValue = indentationType;
-            result.ActualValue = indentationFound ? indentationType : "未找到指定缩进";
-            result.IsCorrect = indentationFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"缩进检测: 期望 {indentationType}, {(indentationFound ? "找到" : "未找到")}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测缩进失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测项目符号列表
-    /// </summary>
-    private KnowledgePointResult DetectBulletList(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "CreateBulletList",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool bulletListFound = CheckBulletListInDocument(mainPart);
-
-            result.ExpectedValue = "项目符号列表";
-            result.ActualValue = bulletListFound ? "找到项目符号列表" : "未找到项目符号列表";
-            result.IsCorrect = bulletListFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"项目符号列表检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测项目符号列表失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测编号列表
-    /// </summary>
-    private KnowledgePointResult DetectNumberedList(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "CreateNumberedList",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool numberedListFound = CheckNumberedListInDocument(mainPart);
-
-            result.ExpectedValue = "编号列表";
-            result.ActualValue = numberedListFound ? "找到编号列表" : "未找到编号列表";
-            result.IsCorrect = numberedListFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"编号列表检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测编号列表失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测表格样式
-    /// </summary>
-    private KnowledgePointResult DetectTableStyle(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetTableStyle",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            string tableStyle = GetTableStyleInDocument(mainPart);
-            bool hasCustomStyle = !string.IsNullOrEmpty(tableStyle) && !tableStyle.Equals("默认样式");
-
-            string expectedStyle = TryGetParameter(parameters, "TableStyle", out string expected) ? expected : "";
-
-            result.ExpectedValue = string.IsNullOrEmpty(expectedStyle) ? "自定义表格样式" : expectedStyle;
-            result.ActualValue = tableStyle;
-            result.IsCorrect = hasCustomStyle && (string.IsNullOrEmpty(expectedStyle) || TextEquals(tableStyle, expectedStyle));
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"表格样式检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测表格样式失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测表格边框
-    /// </summary>
-    private KnowledgePointResult DetectTableBorder(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetTableBorder",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasBorder = CheckTableBorderInDocument(mainPart);
-
-            result.ExpectedValue = "表格边框";
-            result.ActualValue = hasBorder ? "找到表格边框" : "未找到表格边框";
-            result.IsCorrect = hasBorder;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"表格边框检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测表格边框失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-
-
-
-
-    /// <summary>
-    /// 检测页眉页脚
-    /// </summary>
-    private KnowledgePointResult DetectHeaderFooter(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetHeaderFooter",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            (bool HasHeader, bool HasFooter) = GetHeaderFooterInDocument(mainPart);
-
-            result.ExpectedValue = "页眉或页脚";
-            result.ActualValue = HasHeader || HasFooter ?
-                $"页眉: {(HasHeader ? "有" : "无")}, 页脚: {(HasFooter ? "有" : "无")}" :
-                "无页眉页脚";
-            result.IsCorrect = HasHeader || HasFooter;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页眉页脚检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页眉页脚失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-
-
-    /// <summary>
-    /// 检测页边距
-    /// </summary>
-    private KnowledgePointResult DetectPageMargin(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetPageMargin",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            (bool HasCustomMargin, string Top, string Bottom, string Left, string Right) = GetPageMarginInDocument(mainPart);
-
-            result.ExpectedValue = "自定义页边距";
-            result.ActualValue = HasCustomMargin ? $"上:{Top}, 下:{Bottom}, 左:{Left}, 右:{Right}" : "默认页边距";
-            result.IsCorrect = HasCustomMargin;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页边距检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页边距失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测页面方向
-    /// </summary>
-    private KnowledgePointResult DetectPageOrientation(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetPageOrientation",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            string orientation = GetPageOrientationInDocument(mainPart);
-            string expectedOrientation = TryGetParameter(parameters, "Orientation", out string expected) ? expected : "";
-
-            result.ExpectedValue = string.IsNullOrEmpty(expectedOrientation) ? "页面方向设置" : expectedOrientation;
-            result.ActualValue = orientation;
-            result.IsCorrect = !string.IsNullOrEmpty(orientation) && (string.IsNullOrEmpty(expectedOrientation) || TextEquals(orientation, expectedOrientation));
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页面方向检测: 期望 {result.ExpectedValue}, 实际 {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页面方向失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测页面大小
-    /// </summary>
-    private KnowledgePointResult DetectPageSize(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetPageSize",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            (bool HasCustomSize, string Width, string Height) sizeInfo = GetPageSizeInDocument(mainPart);
-
-            result.ExpectedValue = "自定义页面大小";
-            result.ActualValue = sizeInfo.HasCustomSize ? $"宽:{sizeInfo.Width}, 高:{sizeInfo.Height}" : "默认页面大小";
-            result.IsCorrect = sizeInfo.HasCustomSize;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页面大小检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页面大小失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测节管理
-    /// </summary>
-    private KnowledgePointResult DetectManageSection(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "ManageSection",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            int sectionCount = GetSectionCountInDocument(mainPart);
-
-            result.ExpectedValue = "多个节";
-            result.ActualValue = $"文档包含 {sectionCount} 个节";
-            result.IsCorrect = sectionCount > 1;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"节管理检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测节管理失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测分页符
-    /// </summary>
-    private KnowledgePointResult DetectPageBreak(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertPageBreak",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasPageBreak = CheckPageBreakInDocument(mainPart);
-
-            result.ExpectedValue = "分页符";
-            result.ActualValue = hasPageBreak ? "找到分页符" : "未找到分页符";
-            result.IsCorrect = hasPageBreak;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"分页符检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测分页符失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测分栏符
-    /// </summary>
-    private KnowledgePointResult DetectColumnBreak(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertColumnBreak",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasColumnBreak = CheckColumnBreakInDocument(mainPart);
-
-            result.ExpectedValue = "分栏符";
-            result.ActualValue = hasColumnBreak ? "找到分栏符" : "未找到分栏符";
-            result.IsCorrect = hasColumnBreak;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"分栏符检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测分栏符失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测超链接
-    /// </summary>
-    private KnowledgePointResult DetectHyperlink(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertHyperlink",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            (bool Found, string Url) = GetHyperlinkInDocument(mainPart, parameters);
-
-            result.ExpectedValue = "超链接";
-            result.ActualValue = Found ? $"找到超链接: {Url}" : "未找到超链接";
-            result.IsCorrect = Found;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"超链接检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测超链接失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测书签
-    /// </summary>
-    private KnowledgePointResult DetectBookmark(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertBookmark",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasBookmark = CheckBookmarkInDocument(mainPart);
-
-            result.ExpectedValue = "书签";
-            result.ActualValue = hasBookmark ? "找到书签" : "未找到书签";
-            result.IsCorrect = hasBookmark;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"书签检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测书签失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测交叉引用
-    /// </summary>
-    private KnowledgePointResult DetectCrossReference(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertCrossReference",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasCrossReference = CheckCrossReferenceInDocument(mainPart);
-
-            result.ExpectedValue = "交叉引用";
-            result.ActualValue = hasCrossReference ? "找到交叉引用" : "未找到交叉引用";
-            result.IsCorrect = hasCrossReference;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"交叉引用检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测交叉引用失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测目录
-    /// </summary>
-    private KnowledgePointResult DetectTableOfContents(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertTableOfContents",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasTableOfContents = CheckTableOfContentsInDocument(mainPart);
-
-            result.ExpectedValue = "目录";
-            result.ActualValue = hasTableOfContents ? "找到目录" : "未找到目录";
-            result.IsCorrect = hasTableOfContents;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"目录检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测目录失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测脚注
-    /// </summary>
-    private KnowledgePointResult DetectFootnote(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertFootnote",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasFootnote = CheckFootnoteInDocument(mainPart);
-
-            result.ExpectedValue = "脚注";
-            result.ActualValue = hasFootnote ? "找到脚注" : "未找到脚注";
-            result.IsCorrect = hasFootnote;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"脚注检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测脚注失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测尾注
-    /// </summary>
-    private KnowledgePointResult DetectEndnote(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertEndnote",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasEndnote = CheckEndnoteInDocument(mainPart);
-
-            result.ExpectedValue = "尾注";
-            result.ActualValue = hasEndnote ? "找到尾注" : "未找到尾注";
-            result.IsCorrect = hasEndnote;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"尾注检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测尾注失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测批注
-    /// </summary>
-    private KnowledgePointResult DetectComment(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "InsertComment",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasComment = CheckCommentInDocument(mainPart);
-
-            result.ExpectedValue = "批注";
-            result.ActualValue = hasComment ? "找到批注" : "未找到批注";
-            result.IsCorrect = hasComment;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"批注检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测批注失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测修订跟踪
-    /// </summary>
-    private KnowledgePointResult DetectTrackChanges(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "EnableTrackChanges",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasTrackChanges = CheckTrackChangesInDocument(mainPart);
-
-            result.ExpectedValue = "修订跟踪";
-            result.ActualValue = hasTrackChanges ? "启用修订跟踪" : "未启用修订跟踪";
-            result.IsCorrect = hasTrackChanges;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"修订跟踪检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测修订跟踪失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测文档保护
-    /// </summary>
-    private KnowledgePointResult DetectDocumentProtection(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetDocumentProtection",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasProtection = CheckDocumentProtectionInDocument(mainPart);
-
-            result.ExpectedValue = "文档保护";
-            result.ActualValue = hasProtection ? "启用文档保护" : "未启用文档保护";
-            result.IsCorrect = hasProtection;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"文档保护检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测文档保护失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测水印
-    /// </summary>
-    private KnowledgePointResult DetectWatermark(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetWatermark",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasWatermark = CheckWatermarkInDocument(mainPart);
-
-            result.ExpectedValue = "水印";
-            result.ActualValue = hasWatermark ? "找到水印" : "未找到水印";
-            result.IsCorrect = hasWatermark;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"水印检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测水印失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-
-
-    /// <summary>
-    /// 检测页面边框
-    /// </summary>
-    private KnowledgePointResult DetectPageBorder(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "SetPageBorder",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasBorder = CheckPageBorderInDocument(mainPart);
-
-            result.ExpectedValue = "页面边框";
-            result.ActualValue = hasBorder ? "找到页面边框" : "未找到页面边框";
-            result.IsCorrect = hasBorder;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"页面边框检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测页面边框失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测应用样式
-    /// </summary>
-    private KnowledgePointResult DetectAppliedStyle(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "ApplyStyle",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasCustomStyle = CheckAppliedStyleInDocument(mainPart);
-
-            result.ExpectedValue = "应用样式";
-            result.ActualValue = hasCustomStyle ? "找到应用样式" : "未找到应用样式";
-            result.IsCorrect = hasCustomStyle;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"样式应用检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测应用样式失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检测应用模板
-    /// </summary>
-    private KnowledgePointResult DetectAppliedTemplate(WordprocessingDocument document, Dictionary<string, string> parameters)
-    {
-        KnowledgePointResult result = new()
-        {
-            KnowledgePointType = "ApplyTemplate",
-            Parameters = parameters
-        };
-
-        try
-        {
-            MainDocumentPart mainPart = document.MainDocumentPart!;
-            bool hasTemplate = CheckAppliedTemplateInDocument(mainPart);
-
-            result.ExpectedValue = "应用模板";
-            result.ActualValue = hasTemplate ? "找到应用模板" : "未找到应用模板";
-            result.IsCorrect = hasTemplate;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"模板应用检测: {result.ActualValue}";
-        }
-        catch (Exception ex)
-        {
-            SetKnowledgePointFailure(result, $"检测应用模板失败: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检查文档中的字体样式
-    /// </summary>
-    private bool CheckFontStyleInDocument(MainDocumentPart mainPart, string expectedStyle)
-    {
-        try
-        {
-            IEnumerable<Run> runs = mainPart.Document.Descendants<Run>();
-            foreach (Run run in runs)
-            {
-                RunProperties? runProperties = run.RunProperties;
-                if (runProperties != null)
-                {
-                    bool hasStyle = expectedStyle.ToLowerInvariant() switch
-                    {
-                        "bold" or "粗体" => runProperties.Bold?.Val?.Value == true,
-                        "italic" or "斜体" => runProperties.Italic?.Val?.Value == true,
-                        "underline" or "下划线" => runProperties.Underline?.Val?.Value != null,
-                        "strikethrough" or "删除线" => runProperties.Strike?.Val?.Value == true,
-                        _ => false
-                    };
-
-                    if (hasStyle)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的字体大小
-    /// </summary>
-    private bool CheckFontSizeInDocument(MainDocumentPart mainPart, string expectedSize)
-    {
-        try
-        {
-            IEnumerable<Run> runs = mainPart.Document.Descendants<Run>();
-            foreach (Run run in runs)
-            {
-                RunProperties? runProperties = run.RunProperties;
-                if (runProperties?.FontSize?.Val?.Value != null)
-                {
-                    string fontSize = runProperties.FontSize.Val.Value;
-                    if (TextEquals(fontSize, expectedSize))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的字体颜色
-    /// </summary>
-    private bool CheckFontColorInDocument(MainDocumentPart mainPart, string expectedColor)
-    {
-        try
-        {
-            IEnumerable<Run> runs = mainPart.Document.Descendants<Run>();
-            foreach (Run run in runs)
-            {
-                RunProperties? runProperties = run.RunProperties;
-                if (runProperties?.Color?.Val?.Value != null)
-                {
-                    string fontColor = runProperties.Color.Val.Value;
-                    if (TextEquals(fontColor, expectedColor) || TextEquals("#" + fontColor, expectedColor))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的段落对齐
-    /// </summary>
-    private bool CheckParagraphAlignmentInDocument(MainDocumentPart mainPart, string expectedAlignment)
-    {
-        try
-        {
-            IEnumerable<Paragraph> paragraphs = mainPart.Document.Descendants<Paragraph>();
-            foreach (Paragraph paragraph in paragraphs)
-            {
-                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
-                if (paragraphProperties?.Justification?.Val?.Value != null)
-                {
-                    string alignment = paragraphProperties.Justification.Val.Value.ToString();
-                    if (TextEquals(alignment, expectedAlignment))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的行间距
-    /// </summary>
-    private bool CheckLineSpacingInDocument(MainDocumentPart mainPart, string expectedSpacing)
-    {
-        try
-        {
-            IEnumerable<Paragraph> paragraphs = mainPart.Document.Descendants<Paragraph>();
-            foreach (Paragraph paragraph in paragraphs)
-            {
-                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
-                SpacingBetweenLines? spacing = paragraphProperties?.SpacingBetweenLines;
-                if (spacing != null)
-                {
-                    // 简化实现：检查是否有行间距设置
-                    if (spacing.Line?.Value != null || spacing.LineRule?.Value != null)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的段落间距
-    /// </summary>
-    private bool CheckParagraphSpacingInDocument(MainDocumentPart mainPart, string expectedSpacing)
-    {
-        try
-        {
-            IEnumerable<Paragraph> paragraphs = mainPart.Document.Descendants<Paragraph>();
-            foreach (Paragraph paragraph in paragraphs)
-            {
-                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
-                SpacingBetweenLines? spacing = paragraphProperties?.SpacingBetweenLines;
-                if (spacing != null)
-                {
-                    // 检查段前段后间距
-                    if (spacing.Before?.Value != null || spacing.After?.Value != null)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的缩进
-    /// </summary>
-    private bool CheckIndentationInDocument(MainDocumentPart mainPart, string indentationType, Dictionary<string, string> parameters)
-    {
-        try
-        {
-            IEnumerable<Paragraph> paragraphs = mainPart.Document.Descendants<Paragraph>();
-            foreach (Paragraph paragraph in paragraphs)
-            {
-                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
-                Indentation? indentation = paragraphProperties?.Indentation;
-                if (indentation != null)
-                {
-                    bool hasIndentation = indentationType.ToLowerInvariant() switch
-                    {
-                        "left" or "左缩进" => indentation.Left?.Value != null,
-                        "right" or "右缩进" => indentation.Right?.Value != null,
-                        "firstline" or "首行缩进" => indentation.FirstLine?.Value != null,
-                        "hanging" or "悬挂缩进" => indentation.Hanging?.Value != null,
-                        _ => indentation.Left?.Value != null || indentation.Right?.Value != null ||
-                             indentation.FirstLine?.Value != null || indentation.Hanging?.Value != null
-                    };
-
-                    if (hasIndentation)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的项目符号列表
-    /// </summary>
-    private bool CheckBulletListInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<Paragraph> paragraphs = mainPart.Document.Descendants<Paragraph>();
-            foreach (Paragraph paragraph in paragraphs)
-            {
-                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
-                NumberingProperties? numberingProperties = paragraphProperties?.NumberingProperties;
-                if (numberingProperties?.NumberingId?.Val?.Value != null)
-                {
-                    // 简化实现：如果有编号属性，认为是列表
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的编号列表
-    /// </summary>
-    private bool CheckNumberedListInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<Paragraph> paragraphs = mainPart.Document.Descendants<Paragraph>();
-            foreach (Paragraph paragraph in paragraphs)
-            {
-                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
-                NumberingProperties? numberingProperties = paragraphProperties?.NumberingProperties;
-                if (numberingProperties?.NumberingId?.Val?.Value != null)
-                {
-                    // 简化实现：如果有编号属性，认为是列表
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 获取文档中的表格样式
-    /// </summary>
-    private string GetTableStyleInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
-            foreach (Table table in tables)
-            {
-                TableProperties? tableProperties = table.GetFirstChild<TableProperties>();
-                if (tableProperties != null)
-                {
-                    TableStyle? tableStyle = tableProperties.GetFirstChild<TableStyle>();
-                    if (tableStyle?.Val?.Value != null)
-                    {
-                        return tableStyle.Val.Value;
-                    }
-                    if (tableProperties.HasChildren)
-                    {
-                        return "自定义样式";
-                    }
-                }
-            }
-            return "默认样式";
-        }
-        catch
-        {
-            return "未知样式";
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的表格边框
-    /// </summary>
-    private bool CheckTableBorderInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<Table> tables = mainPart.Document.Descendants<Table>();
-            foreach (Table table in tables)
-            {
-                TableProperties? tableProperties = table.GetFirstChild<TableProperties>();
-                if (tableProperties != null)
-                {
-                    TableBorders? tableBorders = tableProperties.GetFirstChild<TableBorders>();
-                    if (tableBorders?.HasChildren == true)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 获取文档中的图片位置信息
-    /// </summary>
-    private (bool Found, string Position) GetImagePositionInDocument(MainDocumentPart mainPart, Dictionary<string, string> parameters)
-    {
-        try
-        {
-            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
-            if (drawings.Any())
-            {
-                return (true, "图片位置已设置");
-            }
-            return (false, string.Empty);
-        }
-        catch
-        {
-            return (false, string.Empty);
-        }
-    }
-
-    /// <summary>
-    /// 获取文档中的图片大小信息
-    /// </summary>
-    private (bool Found, string Width, string Height) GetImageSizeInDocument(MainDocumentPart mainPart, Dictionary<string, string> parameters)
-    {
-        try
-        {
-            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
-            if (drawings.Any())
-            {
-                return (true, "自定义", "自定义");
-            }
-            return (false, string.Empty, string.Empty);
-        }
-        catch
-        {
-            return (false, string.Empty, string.Empty);
-        }
-    }
-
-    /// <summary>
-    /// 获取文档中的页眉页脚信息
-    /// </summary>
-    private (bool HasHeader, bool HasFooter) GetHeaderFooterInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            bool hasHeader = mainPart.HeaderParts.Any();
-            bool hasFooter = mainPart.FooterParts.Any();
-            return (hasHeader, hasFooter);
-        }
-        catch
-        {
-            return (false, false);
-        }
-    }
-
-    /// <summary>
-    /// 检查文档中的页码
-    /// </summary>
-    private bool CheckPageNumberInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            // 检查页眉页脚中的页码
-            foreach (HeaderPart headerPart in mainPart.HeaderParts)
-            {
-                IEnumerable<SimpleField> pageNumbers = headerPart.Header.Descendants<SimpleField>()
-                    .Where(sf => sf.Instruction?.Value?.Contains("PAGE") == true);
-                if (pageNumbers.Any())
-                {
-                    return true;
-                }
-            }
-
-            foreach (FooterPart footerPart in mainPart.FooterParts)
-            {
-                IEnumerable<SimpleField> pageNumbers = footerPart.Footer.Descendants<SimpleField>()
-                    .Where(sf => sf.Instruction?.Value?.Contains("PAGE") == true);
-                if (pageNumbers.Any())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 获取页边距信息
-    /// </summary>
-    private (bool HasCustomMargin, string Top, string Bottom, string Left, string Right) GetPageMarginInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            PageMargin? pageMargin = sectionProperties?.Elements<PageMargin>().FirstOrDefault();
-
-            if (pageMargin != null)
-            {
-                return (true,
-                    pageMargin.Top?.Value.ToString() ?? "默认",
-                    pageMargin.Bottom?.Value.ToString() ?? "默认",
-                    pageMargin.Left?.Value.ToString() ?? "默认",
-                    pageMargin.Right?.Value.ToString() ?? "默认");
-            }
-            return (false, "默认", "默认", "默认", "默认");
-        }
-        catch
-        {
-            return (false, "未知", "未知", "未知", "未知");
-        }
-    }
-
-    /// <summary>
-    /// 获取页面方向
-    /// </summary>
-    private string GetPageOrientationInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            PageSize? pageSize = sectionProperties?.Elements<PageSize>().FirstOrDefault();
-
-            if (pageSize?.Orient?.Value != null)
-            {
-                return pageSize.Orient.Value.ToString();
-            }
-            return "Portrait"; // 默认纵向
-        }
-        catch
-        {
-            return "未知";
-        }
-    }
-
-    /// <summary>
-    /// 获取页面大小信息
-    /// </summary>
-    private (bool HasCustomSize, string Width, string Height) GetPageSizeInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            PageSize? pageSize = sectionProperties?.Elements<PageSize>().FirstOrDefault();
-
-            if (pageSize != null)
-            {
-                return (true,
-                    pageSize.Width?.Value.ToString() ?? "默认",
-                    pageSize.Height?.Value.ToString() ?? "默认");
-            }
-            return (false, "默认", "默认");
-        }
-        catch
-        {
-            return (false, "未知", "未知");
-        }
-    }
-
-    /// <summary>
-    /// 获取文档节数量
-    /// </summary>
-    private int GetSectionCountInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<SectionProperties>? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>();
-            return sectionProperties?.Count() ?? 1;
-        }
-        catch
-        {
-            return 1;
-        }
-    }
-
-    /// <summary>
-    /// 检查分页符
-    /// </summary>
-    private bool CheckPageBreakInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<Break> pageBreaks = mainPart.Document.Descendants<Break>()
-                .Where(b => b.Type?.Value == DocumentFormat.OpenXml.Wordprocessing.BreakValues.Page);
-            return pageBreaks.Any();
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查分栏符
-    /// </summary>
-    private bool CheckColumnBreakInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<Break> columnBreaks = mainPart.Document.Descendants<Break>()
-                .Where(b => b.Type?.Value == DocumentFormat.OpenXml.Wordprocessing.BreakValues.Column);
-            return columnBreaks.Any();
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 获取超链接信息
-    /// </summary>
-    private (bool Found, string Url) GetHyperlinkInDocument(MainDocumentPart mainPart, Dictionary<string, string> parameters)
-    {
-        try
-        {
-            IEnumerable<Hyperlink> hyperlinks = mainPart.Document.Descendants<Hyperlink>();
-            if (hyperlinks.Any())
-            {
-                Hyperlink firstHyperlink = hyperlinks.First();
-                if (firstHyperlink.Id?.Value != null)
-                {
-                    try
-                    {
-                        ReferenceRelationship relationship = mainPart.GetReferenceRelationship(firstHyperlink.Id.Value);
-                        return (true, relationship?.Uri?.ToString() ?? "内部链接");
-                    }
-                    catch
-                    {
-                        return (true, "超链接存在");
-                    }
-                }
-                return (true, "超链接存在");
-            }
-            return (false, string.Empty);
-        }
-        catch
-        {
-            return (false, string.Empty);
-        }
-    }
-
-    /// <summary>
-    /// 检查书签
-    /// </summary>
-    private bool CheckBookmarkInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<BookmarkStart> bookmarks = mainPart.Document.Descendants<BookmarkStart>();
-            return bookmarks.Any();
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查交叉引用
-    /// </summary>
-    private bool CheckCrossReferenceInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<FieldCode> fieldCodes = mainPart.Document.Descendants<FieldCode>();
-            return fieldCodes.Any(fc => fc.Text?.Contains("REF") == true);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查目录
-    /// </summary>
-    private bool CheckTableOfContentsInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<FieldCode> fieldCodes = mainPart.Document.Descendants<FieldCode>();
-            return fieldCodes.Any(fc => fc.Text?.Contains("TOC") == true);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查脚注
-    /// </summary>
-    private bool CheckFootnoteInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            return mainPart.FootnotesPart?.Footnotes?.HasChildren == true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查尾注
-    /// </summary>
-    private bool CheckEndnoteInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            return mainPart.EndnotesPart?.Endnotes?.HasChildren == true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查批注
-    /// </summary>
-    private bool CheckCommentInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            return mainPart.WordprocessingCommentsPart?.Comments?.HasChildren == true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查修订跟踪
-    /// </summary>
-    private bool CheckTrackChangesInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            Settings? documentSettings = mainPart.DocumentSettingsPart?.Settings;
-            TrackRevisions? trackRevisions = documentSettings?.Elements<TrackRevisions>().FirstOrDefault();
-            return trackRevisions != null;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查文档保护
-    /// </summary>
-    private bool CheckDocumentProtectionInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            Settings? documentSettings = mainPart.DocumentSettingsPart?.Settings;
-            DocumentProtection? documentProtection = documentSettings?.Elements<DocumentProtection>().FirstOrDefault();
-            return documentProtection != null;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查水印
-    /// </summary>
-    private bool CheckWatermarkInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            // 简化实现：检查页眉中是否有水印相关内容
-            foreach (HeaderPart headerPart in mainPart.HeaderParts)
-            {
-                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                if (shapes.Any())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查页面背景
-    /// </summary>
-    private bool CheckPageBackgroundInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            DocumentBackground? background = mainPart.Document.Body?.Elements<DocumentBackground>().FirstOrDefault();
-            return background != null;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查页面边框
-    /// </summary>
-    private bool CheckPageBorderInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            SectionProperties? sectionProperties = mainPart.Document.Body?.Elements<SectionProperties>().FirstOrDefault();
-            PageBorders? pageBorders = sectionProperties?.Elements<PageBorders>().FirstOrDefault();
-            return pageBorders?.HasChildren == true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查应用样式
-    /// </summary>
-    private bool CheckAppliedStyleInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            IEnumerable<Paragraph> paragraphs = mainPart.Document.Descendants<Paragraph>();
-            foreach (Paragraph paragraph in paragraphs)
-            {
-                ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
-                if (paragraphProperties?.ParagraphStyleId?.Val?.Value != null)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 检查应用模板
-    /// </summary>
-    private bool CheckAppliedTemplateInDocument(MainDocumentPart mainPart)
-    {
-        try
-        {
-            // 简化实现：检查是否有样式定义部分
-            return mainPart.StyleDefinitionsPart?.Styles?.HasChildren == true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
     /// 验证段落索引并获取目标段落
     /// </summary>
     /// <param name="paragraphs">段落列表</param>
@@ -5173,16 +3342,13 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             return false;
         }
 
-        // -1 表示任意段落，选择第一个有内容的段落
+        // -1 表示任意段落，选择第一个有内容的段落（仅用于简单验证）
         if (paragraphNumber == -1)
         {
             // 查找第一个有文本内容的段落
             targetParagraph = paragraphs.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.InnerText));
-            if (targetParagraph == null)
-            {
-                // 如果没有找到有内容的段落，使用第一个段落
-                targetParagraph = paragraphs.First();
-            }
+            // 如果没有找到有内容的段落，使用第一个段落
+            targetParagraph ??= paragraphs.First();
             return true;
         }
 
@@ -5195,6 +3361,173 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
         targetParagraph = paragraphs[paragraphNumber - 1];
         return true;
+    }
+
+    /// <summary>
+    /// 在段落中搜索匹配指定条件的段落
+    /// </summary>
+    /// <typeparam name="T">期望值的类型</typeparam>
+    /// <param name="paragraphs">段落列表</param>
+    /// <param name="paragraphNumber">段落索引（-1表示搜索所有段落）</param>
+    /// <param name="expectedValue">期望值</param>
+    /// <param name="getActualValue">获取段落实际值的函数</param>
+    /// <param name="comparer">比较函数，如果为null则使用默认相等比较</param>
+    /// <param name="matchedParagraph">匹配的段落</param>
+    /// <param name="actualValue">实际找到的值</param>
+    /// <param name="errorMessage">错误信息</param>
+    /// <returns>是否找到匹配的段落</returns>
+    private static bool FindMatchingParagraph<T>(
+        List<Paragraph>? paragraphs,
+        int paragraphNumber,
+        T expectedValue,
+        Func<Paragraph, T> getActualValue,
+        Func<T, T, bool>? comparer,
+        out Paragraph? matchedParagraph,
+        out T? actualValue,
+        out string errorMessage)
+    {
+        matchedParagraph = null;
+        actualValue = default(T);
+        errorMessage = string.Empty;
+
+        if (paragraphs == null || paragraphs.Count == 0)
+        {
+            errorMessage = "文档中没有段落";
+            return false;
+        }
+
+        // 使用默认比较器如果没有提供
+        comparer ??= EqualityComparer<T>.Default.Equals;
+
+        // 如果指定了具体段落索引
+        if (paragraphNumber != -1)
+        {
+            if (paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                errorMessage = $"段落索引超出范围: {paragraphNumber}，有效范围: 1-{paragraphs.Count}";
+                return false;
+            }
+
+            matchedParagraph = paragraphs[paragraphNumber - 1];
+            actualValue = getActualValue(matchedParagraph);
+            bool isMatch = comparer(actualValue, expectedValue);
+
+            if (!isMatch)
+            {
+                errorMessage = $"段落 {paragraphNumber} 的值不匹配期望值";
+            }
+
+            return isMatch;
+        }
+
+        // -1 表示搜索所有段落，找到任意一个匹配的即可
+        for (int i = 0; i < paragraphs.Count; i++)
+        {
+            Paragraph paragraph = paragraphs[i];
+            T currentValue = getActualValue(paragraph);
+
+            if (comparer(currentValue, expectedValue))
+            {
+                matchedParagraph = paragraph;
+                actualValue = currentValue;
+                return true;
+            }
+        }
+
+        // 没有找到匹配的段落，返回第一个段落的值作为实际值
+        if (paragraphs.Count > 0)
+        {
+            matchedParagraph = paragraphs[0];
+            actualValue = getActualValue(matchedParagraph);
+        }
+
+        errorMessage = $"在所有段落中都没有找到匹配期望值的段落";
+        return false;
+    }
+
+    /// <summary>
+    /// 在元素列表中搜索匹配指定条件的元素（通用方法）
+    /// </summary>
+    /// <typeparam name="TElement">元素类型</typeparam>
+    /// <typeparam name="TValue">期望值的类型</typeparam>
+    /// <param name="elements">元素列表</param>
+    /// <param name="elementIndex">元素索引（-1表示搜索所有元素）</param>
+    /// <param name="expectedValue">期望值</param>
+    /// <param name="getActualValue">获取元素实际值的函数</param>
+    /// <param name="comparer">比较函数，如果为null则使用默认相等比较</param>
+    /// <param name="elementTypeName">元素类型名称（用于错误信息）</param>
+    /// <param name="matchedElement">匹配的元素</param>
+    /// <param name="actualValue">实际找到的值</param>
+    /// <param name="errorMessage">错误信息</param>
+    /// <returns>是否找到匹配的元素</returns>
+    private static bool FindMatchingElement<TElement, TValue>(
+        List<TElement>? elements,
+        int elementIndex,
+        TValue expectedValue,
+        Func<TElement, TValue> getActualValue,
+        Func<TValue, TValue, bool>? comparer,
+        string elementTypeName,
+        out TElement? matchedElement,
+        out TValue? actualValue,
+        out string errorMessage)
+    {
+        matchedElement = default(TElement);
+        actualValue = default(TValue);
+        errorMessage = string.Empty;
+
+        if (elements == null || elements.Count == 0)
+        {
+            errorMessage = $"文档中没有{elementTypeName}";
+            return false;
+        }
+
+        // 使用默认比较器如果没有提供
+        comparer ??= EqualityComparer<TValue>.Default.Equals;
+
+        // 如果指定了具体元素索引
+        if (elementIndex != -1)
+        {
+            if (elementIndex < 1 || elementIndex > elements.Count)
+            {
+                errorMessage = $"{elementTypeName}索引超出范围: {elementIndex}，有效范围: 1-{elements.Count}";
+                return false;
+            }
+
+            matchedElement = elements[elementIndex - 1];
+            actualValue = getActualValue(matchedElement);
+            bool isMatch = comparer(actualValue, expectedValue);
+
+            if (!isMatch)
+            {
+                errorMessage = $"{elementTypeName} {elementIndex} 的值不匹配期望值";
+            }
+
+            return isMatch;
+        }
+
+        // -1 表示搜索所有元素，找到任意一个匹配的即可
+        for (int i = 0; i < elements.Count; i++)
+        {
+            TElement element = elements[i];
+            TValue currentValue = getActualValue(element);
+
+            if (comparer(currentValue, expectedValue))
+            {
+                matchedElement = element;
+                actualValue = currentValue;
+                return true;
+            }
+        }
+
+        // 没有找到匹配的元素，返回第一个元素的值作为实际值
+        if (elements.Count > 0)
+        {
+            matchedElement = elements[0];
+            actualValue = getActualValue(matchedElement);
+        }
+
+        errorMessage = $"在所有{elementTypeName}中都没有找到匹配期望值的{elementTypeName}";
+        return false;
     }
 
     /// <summary>
@@ -5260,7 +3593,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 RunProperties? runProperties = run.RunProperties;
                 if (runProperties != null)
                 {
-                    List<string> styles = new();
+                    List<string> styles = [];
                     if (runProperties.Bold != null)
                     {
                         styles.Add("Bold");
@@ -5399,20 +3732,26 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             ParagraphProperties? paragraphProperties = paragraph.ParagraphProperties;
             if (paragraphProperties == null)
+            {
                 return "无首字下沉";
+            }
 
             // 检查首字下沉设置
-            var framePr = paragraphProperties.GetFirstChild<FrameProperties>();
+            FrameProperties? framePr = paragraphProperties.GetFirstChild<FrameProperties>();
             if (framePr != null)
             {
                 // 检查是否有下沉行数设置
                 if (framePr.DropCap?.Value != null)
                 {
-                    var dropCapValue = framePr.DropCap.Value;
+                    DropCapLocationValues dropCapValue = framePr.DropCap.Value;
                     if (dropCapValue == DropCapLocationValues.Drop)
+                    {
                         return "首字下沉";
+                    }
                     else if (dropCapValue == DropCapLocationValues.Margin)
+                    {
                         return "首字悬挂";
+                    }
                 }
 
                 // 检查下沉行数
@@ -5423,13 +3762,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 检查Run级别的首字下沉（某些情况下可能在Run中设置）
-            var firstRun = paragraph.Elements<Run>().FirstOrDefault();
-            if (firstRun?.RunProperties?.GetFirstChild<VerticalTextAlignment>() != null)
-            {
-                return "检测到首字特殊格式";
-            }
-
-            return "无首字下沉";
+            Run? firstRun = paragraph.Elements<Run>().FirstOrDefault();
+            return firstRun?.RunProperties?.GetFirstChild<VerticalTextAlignment>() != null ? "检测到首字特殊格式" : "无首字下沉";
         }
         catch
         {
@@ -5560,15 +3894,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 uint height = pageSize.Height?.Value ?? 0;
 
                 // A4纸张的OpenXML尺寸
-                if (Math.Abs(width - 11906) < 100 && Math.Abs(height - 16838) < 100)
-                {
-                    return "A4";
-                }
-                // A3纸张的OpenXML尺寸
-                else
-                {
-                    return Math.Abs(width - 16838) < 100 && Math.Abs(height - 23811) < 100 ? "A3" : "自定义";
-                }
+                return Math.Abs(width - 11906) < 100 && Math.Abs(height - 16838) < 100
+                    ? "A4"
+                    // A3纸张的OpenXML尺寸
+                    : Math.Abs(width - 16838) < 100 && Math.Abs(height - 23811) < 100 ? "A3" : "自定义";
             }
 
             return "A4"; // 默认A4
@@ -5879,25 +4208,25 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
                 // 检查VML形状中的水印文字
-                var shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                foreach (var shape in shapes)
+                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
                 {
                     // 检查形状的文本路径属性（水印通常使用TextPath）
-                    var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Vml.TextPath? textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
                     if (textPath?.String?.Value != null)
                     {
                         return textPath.String.Value;
                     }
 
                     // 检查形状内的文本内容
-                    var shapeText = shape.InnerText?.Trim();
+                    string? shapeText = shape.InnerText?.Trim();
                     if (!string.IsNullOrEmpty(shapeText))
                     {
                         return shapeText;
                     }
 
                     // 检查形状的填充文本
-                    var fill = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.Fill>();
+                    DocumentFormat.OpenXml.Vml.Fill? fill = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.Fill>();
                     if (fill?.Type?.Value == DocumentFormat.OpenXml.Vml.FillTypeValues.Pattern)
                     {
                         // 可能是图案填充的水印
@@ -5906,23 +4235,23 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 }
 
                 // 检查页眉中的普通文本（可能是文本水印）
-                var paragraphs = headerPart.Header.Descendants<Paragraph>();
-                foreach (var paragraph in paragraphs)
+                IEnumerable<Paragraph> paragraphs = headerPart.Header.Descendants<Paragraph>();
+                foreach (Paragraph paragraph in paragraphs)
                 {
-                    var runs = paragraph.Descendants<Run>();
-                    foreach (var run in runs)
+                    IEnumerable<Run> runs = paragraph.Descendants<Run>();
+                    foreach (Run run in runs)
                     {
-                        var runProps = run.RunProperties;
+                        RunProperties? runProps = run.RunProperties;
                         // 检查是否有水印样式的文本（通常是半透明或特殊颜色）
                         if (runProps?.Color?.Val?.Value != null)
                         {
-                            var colorValue = runProps.Color.Val.Value;
+                            string colorValue = runProps.Color.Val.Value;
                             // 水印文字通常使用浅色
                             if (colorValue.ToLowerInvariant().Contains("gray") ||
                                 colorValue.ToLowerInvariant().Contains("silver") ||
                                 colorValue.StartsWith("C0C0C0", StringComparison.OrdinalIgnoreCase))
                             {
-                                var text = run.InnerText?.Trim();
+                                string? text = run.InnerText?.Trim();
                                 if (!string.IsNullOrEmpty(text))
                                 {
                                     return text;
@@ -5934,16 +4263,16 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 2. 检查文档背景中的水印
-            var documentBackground = mainPart.Document.DocumentBackground;
+            DocumentBackground? documentBackground = mainPart.Document.DocumentBackground;
             if (documentBackground != null)
             {
-                var background = documentBackground.GetFirstChild<DocumentFormat.OpenXml.Vml.Background>();
+                DocumentFormat.OpenXml.Vml.Background? background = documentBackground.GetFirstChild<DocumentFormat.OpenXml.Vml.Background>();
                 if (background != null)
                 {
-                    var backgroundShapes = background.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                    foreach (var shape in backgroundShapes)
+                    IEnumerable<DocumentFormat.OpenXml.Vml.Shape> backgroundShapes = background.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                    foreach (DocumentFormat.OpenXml.Vml.Shape shape in backgroundShapes)
                     {
-                        var textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                        DocumentFormat.OpenXml.Vml.TextPath? textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
                         if (textPath?.String?.Value != null)
                         {
                             return textPath.String.Value;
@@ -6105,29 +4434,29 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                         TableRow targetRow = rows[areaNumber - 1];
 
                         // 检查行级别的底纹设置
-                        var rowProperties = targetRow.TableRowProperties;
+                        TableRowProperties? rowProperties = targetRow.TableRowProperties;
                         if (rowProperties != null)
                         {
-                            var rowShading = rowProperties.GetFirstChild<Shading>();
+                            Shading? rowShading = rowProperties.GetFirstChild<Shading>();
                             if (rowShading != null)
                             {
-                                var fill = rowShading.Fill?.Value ?? "auto";
-                                var pattern = rowShading.Val?.HasValue == true ?
+                                string fill = rowShading.Fill?.Value ?? "auto";
+                                string pattern = rowShading.Val?.HasValue == true ?
                                     rowShading.Val.Value.ToString() : "clear";
                                 return $"行底纹: {fill}, 图案: {pattern}";
                             }
                         }
 
                         // 检查该行中单元格的底纹设置
-                        var cells = targetRow.Elements<TableCell>();
-                        foreach (var cell in cells)
+                        IEnumerable<TableCell> cells = targetRow.Elements<TableCell>();
+                        foreach (TableCell cell in cells)
                         {
-                            var cellProperties = cell.TableCellProperties;
-                            var cellShading = cellProperties?.GetFirstChild<Shading>();
+                            TableCellProperties? cellProperties = cell.TableCellProperties;
+                            Shading? cellShading = cellProperties?.GetFirstChild<Shading>();
                             if (cellShading != null)
                             {
-                                var fill = cellShading.Fill?.Value ?? "auto";
-                                var pattern = cellShading.Val?.HasValue == true ?
+                                string fill = cellShading.Fill?.Value ?? "auto";
+                                string pattern = cellShading.Val?.HasValue == true ?
                                     cellShading.Val.Value.ToString() : "clear";
                                 return $"单元格底纹: {fill}, 图案: {pattern}";
                             }
@@ -6137,19 +4466,19 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 else if (areaType.ToLower() == "column" || areaType == "列")
                 {
                     // 检查指定列的底纹设置
-                    var rows = firstTable.Elements<TableRow>().ToList();
-                    foreach (var row in rows)
+                    List<TableRow> rows = firstTable.Elements<TableRow>().ToList();
+                    foreach (TableRow? row in rows)
                     {
-                        var cells = row.Elements<TableCell>().ToList();
+                        List<TableCell> cells = row.Elements<TableCell>().ToList();
                         if (areaNumber > 0 && areaNumber <= cells.Count)
                         {
-                            var targetCell = cells[areaNumber - 1];
-                            var cellProperties = targetCell.TableCellProperties;
-                            var cellShading = cellProperties?.GetFirstChild<Shading>();
+                            TableCell targetCell = cells[areaNumber - 1];
+                            TableCellProperties? cellProperties = targetCell.TableCellProperties;
+                            Shading? cellShading = cellProperties?.GetFirstChild<Shading>();
                             if (cellShading != null)
                             {
-                                var fill = cellShading.Fill?.Value ?? "auto";
-                                var pattern = cellShading.Val?.HasValue == true ?
+                                string fill = cellShading.Fill?.Value ?? "auto";
+                                string pattern = cellShading.Val?.HasValue == true ?
                                     cellShading.Val.Value.ToString() : "clear";
                                 return $"列底纹: {fill}, 图案: {pattern}";
                             }
@@ -6480,44 +4809,36 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             foreach (Drawing drawing in drawings)
             {
                 // 检查Drawing中的图形类型
-                var inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
-                var anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
 
                 if (inline?.Graphic?.GraphicData != null)
                 {
-                    var graphicData = inline.Graphic.GraphicData;
+                    DocumentFormat.OpenXml.Drawing.GraphicData graphicData = inline.Graphic.GraphicData;
                     if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture")
                     {
                         return "图片";
                     }
-                    else if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart")
-                    {
-                        return "图表";
-                    }
                     else
                     {
-                        return "自选图形";
+                        return graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart" ? "图表" : "自选图形";
                     }
                 }
 
                 if (anchor != null)
                 {
                     // 检查Anchor中的图形内容
-                    var graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
+                    DocumentFormat.OpenXml.Drawing.Graphic? graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
                     if (graphic?.GraphicData != null)
                     {
-                        var graphicData = graphic.GraphicData;
+                        DocumentFormat.OpenXml.Drawing.GraphicData graphicData = graphic.GraphicData;
                         if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture")
                         {
                             return "浮动图片";
                         }
-                        else if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart")
-                        {
-                            return "浮动图表";
-                        }
                         else
                         {
-                            return "浮动自选图形";
+                            return graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart" ? "浮动图表" : "浮动自选图形";
                         }
                     }
                     return "浮动Drawing对象";
@@ -6579,25 +4900,25 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             foreach (Drawing drawing in drawings)
             {
                 // 检查Inline图形的尺寸
-                var inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
                 if (inline?.Extent != null)
                 {
                     // EMU (English Metric Units) 转换为点
                     // 1 EMU = 1/914400 英寸, 1 英寸 = 72 点
-                    float width = (float)(inline.Extent.Cx?.Value ?? 0) / 914400f * 72f;
-                    float height = (float)(inline.Extent.Cy?.Value ?? 0) / 914400f * 72f;
+                    float width = (inline.Extent.Cx?.Value ?? 0) / 914400f * 72f;
+                    float height = (inline.Extent.Cy?.Value ?? 0) / 914400f * 72f;
                     return (height, width);
                 }
 
                 // 检查Anchor图形的尺寸
-                var anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
                 if (anchor != null)
                 {
-                    var extent = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent>();
+                    DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent? extent = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent>();
                     if (extent != null)
                     {
-                        float width = (float)(extent.Cx?.Value ?? 0) / 914400f * 72f;
-                        float height = (float)(extent.Cy?.Value ?? 0) / 914400f * 72f;
+                        float width = (extent.Cx?.Value ?? 0) / 914400f * 72f;
+                        float height = (extent.Cy?.Value ?? 0) / 914400f * 72f;
                         return (height, width);
                     }
                 }
@@ -7422,12 +5743,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     /// </summary>
     private static bool TextEquals(string actual, string expected)
     {
-        if (string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected))
-        {
-            return true;
-        }
-
-        return !string.IsNullOrWhiteSpace(actual) && !string.IsNullOrWhiteSpace(expected) && string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
+        return string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected) || !string.IsNullOrWhiteSpace(actual) && !string.IsNullOrWhiteSpace(expected) && string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -7702,37 +6018,37 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         return
         [
             // 红色别名组
-            new List<string> { "红色", "red", "#ff0000", "#f00", "rgb(255,0,0)" },
+            ["红色", "red", "#ff0000", "#f00", "rgb(255,0,0)"],
 
             // 绿色别名组
-            new List<string> { "绿色", "green", "#008000", "#080", "rgb(0,128,0)" },
+            ["绿色", "green", "#008000", "#080", "rgb(0,128,0)"],
 
             // 蓝色别名组
-            new List<string> { "蓝色", "blue", "#0000ff", "#00f", "rgb(0,0,255)" },
+            ["蓝色", "blue", "#0000ff", "#00f", "rgb(0,0,255)"],
 
             // 黄色别名组
-            new List<string> { "黄色", "yellow", "#ffff00", "#ff0", "rgb(255,255,0)" },
+            ["黄色", "yellow", "#ffff00", "#ff0", "rgb(255,255,0)"],
 
             // 黑色别名组
-            new List<string> { "黑色", "black", "#000000", "#000", "rgb(0,0,0)" },
+            ["黑色", "black", "#000000", "#000", "rgb(0,0,0)"],
 
             // 白色别名组
-            new List<string> { "白色", "white", "#ffffff", "#fff", "rgb(255,255,255)" },
+            ["白色", "white", "#ffffff", "#fff", "rgb(255,255,255)"],
 
             // 灰色别名组
-            new List<string> { "灰色", "gray", "grey", "#808080", "rgb(128,128,128)" },
+            ["灰色", "gray", "grey", "#808080", "rgb(128,128,128)"],
 
             // 橙色别名组
-            new List<string> { "橙色", "orange", "#ffa500", "rgb(255,165,0)" },
+            ["橙色", "orange", "#ffa500", "rgb(255,165,0)"],
 
             // 紫色别名组
-            new List<string> { "紫色", "purple", "#800080", "rgb(128,0,128)" },
+            ["紫色", "purple", "#800080", "rgb(128,0,128)"],
 
             // 粉色别名组
-            new List<string> { "粉色", "pink", "#ffc0cb", "rgb(255,192,203)" },
+            ["粉色", "pink", "#ffc0cb", "rgb(255,192,203)"],
 
             // 青色别名组
-            new List<string> { "青色", "cyan", "#00ffff", "#0ff", "rgb(0,255,255)" }
+            ["青色", "cyan", "#00ffff", "#0ff", "rgb(0,255,255)"]
         ];
     }
 
@@ -7742,18 +6058,24 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     private static float ParseSizeValue(string sizeStr)
     {
         if (string.IsNullOrWhiteSpace(sizeStr))
+        {
             return 0f;
+        }
 
         // 移除空格
         sizeStr = sizeStr.Trim();
 
         // 提取数值部分
-        var numberMatch = System.Text.RegularExpressions.Regex.Match(sizeStr, @"^([\d.]+)");
+        System.Text.RegularExpressions.Match numberMatch = System.Text.RegularExpressions.Regex.Match(sizeStr, @"^([\d.]+)");
         if (!numberMatch.Success)
+        {
             return 0f;
+        }
 
         if (!float.TryParse(numberMatch.Groups[1].Value, out float value))
+        {
             return 0f;
+        }
 
         // 检查单位并转换为点（pt）
         if (sizeStr.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
