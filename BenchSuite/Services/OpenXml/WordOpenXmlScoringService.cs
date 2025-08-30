@@ -41,7 +41,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             if (!ValidateDocument(filePath))
             {
-                result.ErrorMessage = $"无效的Word文档: {filePath}";
+                result.Details = $"无效的Word文档: {filePath}";
                 return result;
             }
 
@@ -49,7 +49,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             ExamModuleModel? wordModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.Word);
             if (wordModule == null)
             {
-                result.ErrorMessage = "试卷中未找到Word模块，跳过Word评分";
+                result.Details = "试卷中未找到Word模块，跳过Word评分";
                 result.IsSuccess = true;
                 result.TotalScore = 0;
                 result.AchievedScore = 0;
@@ -78,7 +78,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (allOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "Word模块中未找到启用的Word操作点";
+                result.Details = "Word模块中未找到启用的Word操作点";
                 System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 警告: Word模块包含 {wordModule.Questions.Count} 个题目，但没有找到启用的Word操作点");
                 return result;
             }
@@ -135,7 +135,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             if (!ValidateDocument(filePath))
             {
-                result.ErrorMessage = $"无效的Word文档: {filePath}";
+                result.Details = $"无效的Word文档: {filePath}";
                 return result;
             }
 
@@ -144,7 +144,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             if (wordOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "题目没有包含任何Word操作点";
+                result.Details = "题目没有包含任何Word操作点";
                 return result;
             }
 
@@ -184,7 +184,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             {
                 if (!ValidateDocument(filePath))
                 {
-                    result.ErrorMessage = "无效的Word文档";
+                    result.Details = "无效的Word文档";
                     return result;
                 }
 
@@ -193,7 +193,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
             catch (Exception ex)
             {
-                result.ErrorMessage = $"检测知识点时发生错误: {ex.Message}";
+                result.Details = $"检测知识点时发生错误: {ex.Message}";
                 result.IsCorrect = false;
             }
 
@@ -665,14 +665,14 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 // 段落操作方法已全部实现
 
                 default:
-                    result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
+                    result.Details = $"不支持的知识点类型: {knowledgePointType}";
                     result.IsCorrect = false;
                     break;
             }
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = $"检测知识点 {knowledgePointType} 时发生错误: {ex.Message}";
+            result.Details = $"检测知识点 {knowledgePointType} 时发生错误: {ex.Message}";
             result.IsCorrect = false;
         }
 

@@ -48,6 +48,11 @@ public class ScoringResult
     public string? ErrorMessage { get; set; }
 
     /// <summary>
+    /// 详细信息
+    /// </summary>
+    public string Details { get; set; } = string.Empty;
+
+    /// <summary>
     /// 检测开始时间
     /// </summary>
     public DateTime StartTime { get; set; }

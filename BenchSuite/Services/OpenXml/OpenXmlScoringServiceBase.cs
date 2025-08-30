@@ -97,7 +97,7 @@ public abstract class OpenXmlScoringServiceBase : IScoringService
     protected virtual void HandleException(Exception ex, ScoringResult result)
     {
         result.IsSuccess = false;
-        result.ErrorMessage = ex switch
+        result.Details = ex switch
         {
             FileNotFoundException => $"文件不存在: {ex.Message}",
             UnauthorizedAccessException => $"文件访问被拒绝: {ex.Message}",
@@ -130,8 +130,8 @@ public abstract class OpenXmlScoringServiceBase : IScoringService
         result.EndTime = DateTime.Now;
         result.TotalScore = operationPoints.Sum(op => op.Score);
         result.AchievedScore = result.KnowledgePointResults.Sum(kpr => kpr.AchievedScore);
-        
-        if (!result.IsSuccess && string.IsNullOrEmpty(result.ErrorMessage))
+
+        if (!result.IsSuccess && string.IsNullOrEmpty(result.Details))
         {
             result.IsSuccess = true;
         }
@@ -200,9 +200,9 @@ public abstract class OpenXmlScoringServiceBase : IScoringService
         {
             result.Details = details;
         }
-        else if (string.IsNullOrEmpty(result.Details))
+        else
         {
-            // 如果Details为空，使用errorMessage作为Details
+            // 统一使用Details属性，同时保持ErrorMessage的兼容性
             result.Details = errorMessage;
         }
     }

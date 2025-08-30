@@ -42,7 +42,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         {
             if (!ValidateDocument(filePath))
             {
-                result.ErrorMessage = $"无效的PowerPoint文档: {filePath}";
+                result.Details = $"无效的PowerPoint文档: {filePath}";
                 return result;
             }
 
@@ -50,7 +50,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             ExamModuleModel? pptModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.PowerPoint);
             if (pptModule == null)
             {
-                result.ErrorMessage = "试卷中未找到PowerPoint模块，跳过PowerPoint评分";
+                result.Details = "试卷中未找到PowerPoint模块，跳过PowerPoint评分";
                 result.IsSuccess = true;
                 result.TotalScore = 0;
                 result.AchievedScore = 0;
@@ -79,7 +79,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             if (allOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "PowerPoint模块中未找到启用的PowerPoint操作点";
+                result.Details = "PowerPoint模块中未找到启用的PowerPoint操作点";
                 System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 警告: PowerPoint模块包含 {pptModule.Questions.Count} 个题目，但没有找到启用的PowerPoint操作点");
                 return result;
             }
@@ -136,7 +136,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         {
             if (!ValidateDocument(filePath))
             {
-                result.ErrorMessage = $"无效的PowerPoint文档: {filePath}";
+                result.Details = $"无效的PowerPoint文档: {filePath}";
                 return result;
             }
 
@@ -145,7 +145,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             if (pptOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "题目没有包含任何PowerPoint操作点";
+                result.Details = "题目没有包含任何PowerPoint操作点";
                 return result;
             }
 
@@ -185,7 +185,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             {
                 if (!ValidateDocument(filePath))
                 {
-                    result.ErrorMessage = "无效的PowerPoint文档";
+                    result.Details = "无效的PowerPoint文档";
                     return result;
                 }
 
@@ -194,7 +194,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
             catch (Exception ex)
             {
-                result.ErrorMessage = $"检测知识点时发生错误: {ex.Message}";
+                result.Details = $"检测知识点时发生错误: {ex.Message}";
                 result.IsCorrect = false;
             }
 
@@ -443,14 +443,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                     result = DetectWordArtStyle(document, parameters);
                     break;
                 default:
-                    result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
+                    result.Details = $"不支持的知识点类型: {knowledgePointType}";
                     result.IsCorrect = false;
                     break;
             }
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = $"检测知识点 {knowledgePointType} 时发生错误: {ex.Message}";
+            result.Details = $"检测知识点 {knowledgePointType} 时发生错误: {ex.Message}";
             result.IsCorrect = false;
         }
 

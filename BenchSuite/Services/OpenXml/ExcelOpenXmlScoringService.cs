@@ -41,7 +41,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             if (!ValidateDocument(filePath))
             {
-                result.ErrorMessage = $"无效的Excel文档: {filePath}";
+                result.Details = $"无效的Excel文档: {filePath}";
                 return result;
             }
 
@@ -49,7 +49,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             ExamModuleModel? excelModule = examModel.Modules.FirstOrDefault(m => m.Type == ModuleType.Excel);
             if (excelModule == null)
             {
-                result.ErrorMessage = "试卷中未找到Excel模块，跳过Excel评分";
+                result.Details = "试卷中未找到Excel模块，跳过Excel评分";
                 result.IsSuccess = true;
                 result.TotalScore = 0;
                 result.AchievedScore = 0;
@@ -78,7 +78,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
             if (allOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "Excel模块中未找到启用的Excel操作点";
+                result.Details = "Excel模块中未找到启用的Excel操作点";
                 System.Diagnostics.Debug.WriteLine($"[ExcelOpenXmlScoringService] 警告: Excel模块包含 {excelModule.Questions.Count} 个题目，但没有找到启用的Excel操作点");
                 return result;
             }
@@ -135,7 +135,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             if (!ValidateDocument(filePath))
             {
-                result.ErrorMessage = $"无效的Excel文档: {filePath}";
+                result.Details = $"无效的Excel文档: {filePath}";
                 return result;
             }
 
@@ -144,7 +144,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
             if (excelOperationPoints.Count == 0)
             {
-                result.ErrorMessage = "题目没有包含任何Excel操作点";
+                result.Details = "题目没有包含任何Excel操作点";
                 return result;
             }
 
@@ -184,7 +184,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             {
                 if (!ValidateDocument(filePath))
                 {
-                    result.ErrorMessage = "无效的Excel文档";
+                    result.Details = "无效的Excel文档";
                     return result;
                 }
 
@@ -193,7 +193,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
             catch (Exception ex)
             {
-                result.ErrorMessage = $"检测知识点时发生错误: {ex.Message}";
+                result.Details = $"检测知识点时发生错误: {ex.Message}";
                 result.IsCorrect = false;
             }
 
@@ -534,14 +534,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     break;
 
                 default:
-                    result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
+                    result.Details = $"不支持的知识点类型: {knowledgePointType}";
                     result.IsCorrect = false;
                     break;
             }
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = $"检测知识点 {knowledgePointType} 时发生错误: {ex.Message}";
+            result.Details = $"检测知识点 {knowledgePointType} 时发生错误: {ex.Message}";
             result.IsCorrect = false;
         }
 
