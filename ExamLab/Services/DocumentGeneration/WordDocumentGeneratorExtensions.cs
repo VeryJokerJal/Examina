@@ -630,7 +630,62 @@ public static class WordDocumentGeneratorExtensions
     {
         string borderColor = GetParameterValue(operationPoint, "BorderColor", "黑色");
 
-        Body body = document.MainDocumentPart!.Document.Body!;
+        // 获取或创建文档设置
+        DocumentSettingsPart? settingsPart = document.MainDocumentPart!.DocumentSettingsPart;
+        if (settingsPart == null)
+        {
+            settingsPart = document.MainDocumentPart.AddNewPart<DocumentSettingsPart>();
+            settingsPart.Settings = new Settings();
+        }
+
+        // 获取或创建节属性
+        SectionProperties sectionProperties = GetOrCreateSectionProperties(document);
+
+        // 创建页面边框
+        PageBorders pageBorders = sectionProperties.GetFirstChild<PageBorders>() ?? new PageBorders();
+
+        // 转换颜色名称为十六进制值
+        string colorValue = ConvertColorNameToHex(borderColor);
+
+        // 设置页面边框
+        pageBorders.TopBorder = new TopBorder()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 8, // 1磅
+            Space = 0
+        };
+
+        pageBorders.BottomBorder = new BottomBorder()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 8,
+            Space = 0
+        };
+
+        pageBorders.LeftBorder = new LeftBorder()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 8,
+            Space = 0
+        };
+
+        pageBorders.RightBorder = new RightBorder()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 8,
+            Space = 0
+        };
+
+        if (sectionProperties.GetFirstChild<PageBorders>() == null)
+        {
+            sectionProperties.Append(pageBorders);
+        }
+
+        Body body = document.MainDocumentPart.Document.Body!;
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[页面设置] 页面边框颜色：{borderColor}"));
@@ -645,5 +700,42 @@ public static class WordDocumentGeneratorExtensions
     {
         ConfigurationParameter? parameter = operationPoint.Parameters.FirstOrDefault(p => p.Name == parameterName);
         return parameter?.Value ?? defaultValue;
+    }
+
+    /// <summary>
+    /// 获取或创建节属性
+    /// </summary>
+    private static SectionProperties GetOrCreateSectionProperties(WordprocessingDocument document)
+    {
+        Body body = document.MainDocumentPart!.Document.Body!;
+        SectionProperties? sectionProperties = body.GetFirstChild<SectionProperties>();
+
+        if (sectionProperties == null)
+        {
+            sectionProperties = new SectionProperties();
+            body.Append(sectionProperties);
+        }
+
+        return sectionProperties;
+    }
+
+    /// <summary>
+    /// 转换颜色名称为十六进制值
+    /// </summary>
+    private static string ConvertColorNameToHex(string colorName)
+    {
+        return colorName switch
+        {
+            "黑色" => "000000",
+            "红色" => "FF0000",
+            "蓝色" => "0000FF",
+            "绿色" => "008000",
+            "黄色" => "FFFF00",
+            "紫色" => "800080",
+            "橙色" => "FFA500",
+            "灰色" => "808080",
+            "自动" => "000000",
+            _ => "000000" // 默认黑色
+        };
     }
 }

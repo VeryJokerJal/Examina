@@ -803,6 +803,55 @@ public class WordDocumentGenerator : IDocumentGenerationService
         string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
 
         Paragraph paragraph = new();
+        ParagraphProperties paragraphProperties = new();
+
+        // 创建段落边框
+        ParagraphBorders paragraphBorders = new();
+
+        // 转换颜色名称为十六进制值
+        string colorValue = ConvertColorNameToHex(borderColor);
+
+        // 设置所有边框（上下左右）
+        TopBorder topBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 4, // 0.5磅
+            Space = 0
+        };
+
+        BottomBorder bottomBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 4,
+            Space = 0
+        };
+
+        LeftBorder leftBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 4,
+            Space = 0
+        };
+
+        RightBorder rightBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = colorValue,
+            Size = 4,
+            Space = 0
+        };
+
+        paragraphBorders.Append(topBorder);
+        paragraphBorders.Append(bottomBorder);
+        paragraphBorders.Append(leftBorder);
+        paragraphBorders.Append(rightBorder);
+
+        paragraphProperties.Append(paragraphBorders);
+        paragraph.Append(paragraphProperties);
+
         Run run = new();
         run.Append(new Text($"这是第{paragraphNumberStr}段落，边框颜色设置为：{borderColor}"));
         paragraph.Append(run);
@@ -818,6 +867,55 @@ public class WordDocumentGenerator : IDocumentGenerationService
         string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
 
         Paragraph paragraph = new();
+        ParagraphProperties paragraphProperties = new();
+
+        // 创建段落边框
+        ParagraphBorders paragraphBorders = new();
+
+        // 转换边框样式
+        BorderValues borderValue = ConvertBorderStyleToBorderValues(borderStyle);
+
+        // 设置所有边框（上下左右）
+        TopBorder topBorder = new()
+        {
+            Val = borderValue,
+            Color = "000000", // 黑色
+            Size = 4, // 0.5磅
+            Space = 0
+        };
+
+        BottomBorder bottomBorder = new()
+        {
+            Val = borderValue,
+            Color = "000000",
+            Size = 4,
+            Space = 0
+        };
+
+        LeftBorder leftBorder = new()
+        {
+            Val = borderValue,
+            Color = "000000",
+            Size = 4,
+            Space = 0
+        };
+
+        RightBorder rightBorder = new()
+        {
+            Val = borderValue,
+            Color = "000000",
+            Size = 4,
+            Space = 0
+        };
+
+        paragraphBorders.Append(topBorder);
+        paragraphBorders.Append(bottomBorder);
+        paragraphBorders.Append(leftBorder);
+        paragraphBorders.Append(rightBorder);
+
+        paragraphProperties.Append(paragraphBorders);
+        paragraph.Append(paragraphProperties);
+
         Run run = new();
         run.Append(new Text($"这是第{paragraphNumberStr}段落，边框样式设置为：{borderStyle}"));
         paragraph.Append(run);
@@ -833,6 +931,55 @@ public class WordDocumentGenerator : IDocumentGenerationService
         string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
 
         Paragraph paragraph = new();
+        ParagraphProperties paragraphProperties = new();
+
+        // 创建段落边框
+        ParagraphBorders paragraphBorders = new();
+
+        // 转换边框宽度（磅转换为八分之一磅）
+        uint borderSize = ConvertBorderWidthToSize(borderWidth);
+
+        // 设置所有边框（上下左右）
+        TopBorder topBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = "000000", // 黑色
+            Size = borderSize,
+            Space = 0
+        };
+
+        BottomBorder bottomBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = "000000",
+            Size = borderSize,
+            Space = 0
+        };
+
+        LeftBorder leftBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = "000000",
+            Size = borderSize,
+            Space = 0
+        };
+
+        RightBorder rightBorder = new()
+        {
+            Val = BorderValues.Single,
+            Color = "000000",
+            Size = borderSize,
+            Space = 0
+        };
+
+        paragraphBorders.Append(topBorder);
+        paragraphBorders.Append(bottomBorder);
+        paragraphBorders.Append(leftBorder);
+        paragraphBorders.Append(rightBorder);
+
+        paragraphProperties.Append(paragraphBorders);
+        paragraph.Append(paragraphProperties);
+
         Run run = new();
         run.Append(new Text($"这是第{paragraphNumberStr}段落，边框宽度设置为：{borderWidth}"));
         paragraph.Append(run);
@@ -849,6 +996,35 @@ public class WordDocumentGenerator : IDocumentGenerationService
         string paragraphNumberStr = GetParameterValue(operationPoint, "ParagraphNumber", "1");
 
         Paragraph paragraph = new();
+        ParagraphProperties paragraphProperties = new();
+
+        // 创建段落底纹
+        Shading shading = new();
+
+        // 转换颜色（移除#号）
+        string fillColor = shadingColor.TrimStart('#');
+        if (fillColor.Length == 6)
+        {
+            shading.Fill = fillColor;
+        }
+        else
+        {
+            shading.Fill = "FFFF00"; // 默认黄色
+        }
+
+        // 转换底纹图案
+        ShadingPatternValues patternValue = ConvertShadingPatternToValues(shadingPattern);
+        shading.Val = patternValue;
+
+        // 如果有图案，设置图案颜色为黑色
+        if (patternValue != ShadingPatternValues.Clear)
+        {
+            shading.Color = "000000";
+        }
+
+        paragraphProperties.Append(shading);
+        paragraph.Append(paragraphProperties);
+
         Run run = new();
         run.Append(new Text($"这是第{paragraphNumberStr}段落，底纹颜色：{shadingColor}，图案：{shadingPattern}"));
         paragraph.Append(run);
@@ -955,7 +1131,60 @@ public class WordDocumentGenerator : IDocumentGenerationService
     {
         string borderStyle = GetParameterValue(operationPoint, "BorderStyle", "单实线");
 
+        // 获取或创建节属性
         Body body = document.MainDocumentPart!.Document.Body!;
+        SectionProperties? sectionProperties = body.GetFirstChild<SectionProperties>();
+
+        if (sectionProperties == null)
+        {
+            sectionProperties = new SectionProperties();
+            body.Append(sectionProperties);
+        }
+
+        // 创建页面边框
+        PageBorders pageBorders = sectionProperties.GetFirstChild<PageBorders>() ?? new PageBorders();
+
+        // 转换边框样式
+        BorderValues borderValue = ConvertBorderStyleToBorderValues(borderStyle);
+
+        // 设置页面边框样式
+        pageBorders.TopBorder = new TopBorder()
+        {
+            Val = borderValue,
+            Color = "000000", // 黑色
+            Size = 8, // 1磅
+            Space = 0
+        };
+
+        pageBorders.BottomBorder = new BottomBorder()
+        {
+            Val = borderValue,
+            Color = "000000",
+            Size = 8,
+            Space = 0
+        };
+
+        pageBorders.LeftBorder = new LeftBorder()
+        {
+            Val = borderValue,
+            Color = "000000",
+            Size = 8,
+            Space = 0
+        };
+
+        pageBorders.RightBorder = new RightBorder()
+        {
+            Val = borderValue,
+            Color = "000000",
+            Size = 8,
+            Space = 0
+        };
+
+        if (sectionProperties.GetFirstChild<PageBorders>() == null)
+        {
+            sectionProperties.Append(pageBorders);
+        }
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[页面设置] 页面边框样式：{borderStyle}"));
@@ -970,7 +1199,60 @@ public class WordDocumentGenerator : IDocumentGenerationService
     {
         string borderWidth = GetParameterValue(operationPoint, "BorderWidth", "1磅");
 
+        // 获取或创建节属性
         Body body = document.MainDocumentPart!.Document.Body!;
+        SectionProperties? sectionProperties = body.GetFirstChild<SectionProperties>();
+
+        if (sectionProperties == null)
+        {
+            sectionProperties = new SectionProperties();
+            body.Append(sectionProperties);
+        }
+
+        // 创建页面边框
+        PageBorders pageBorders = sectionProperties.GetFirstChild<PageBorders>() ?? new PageBorders();
+
+        // 转换边框宽度（磅转换为八分之一磅）
+        uint borderSize = ConvertBorderWidthToSize(borderWidth);
+
+        // 设置页面边框宽度
+        pageBorders.TopBorder = new TopBorder()
+        {
+            Val = BorderValues.Single,
+            Color = "000000", // 黑色
+            Size = borderSize,
+            Space = 0
+        };
+
+        pageBorders.BottomBorder = new BottomBorder()
+        {
+            Val = BorderValues.Single,
+            Color = "000000",
+            Size = borderSize,
+            Space = 0
+        };
+
+        pageBorders.LeftBorder = new LeftBorder()
+        {
+            Val = BorderValues.Single,
+            Color = "000000",
+            Size = borderSize,
+            Space = 0
+        };
+
+        pageBorders.RightBorder = new RightBorder()
+        {
+            Val = BorderValues.Single,
+            Color = "000000",
+            Size = borderSize,
+            Space = 0
+        };
+
+        if (sectionProperties.GetFirstChild<PageBorders>() == null)
+        {
+            sectionProperties.Append(pageBorders);
+        }
+
         Paragraph paragraph = new();
         Run run = new();
         run.Append(new Text($"[页面设置] 页面边框宽度：{borderWidth}"));
@@ -1031,5 +1313,113 @@ public class WordDocumentGenerator : IDocumentGenerationService
     {
         ConfigurationParameter? parameter = operationPoint.Parameters.FirstOrDefault(p => p.Name == parameterName);
         return parameter?.Value ?? defaultValue;
+    }
+
+    /// <summary>
+    /// 转换颜色名称为十六进制值
+    /// </summary>
+    private static string ConvertColorNameToHex(string colorName)
+    {
+        return colorName switch
+        {
+            "黑色" => "000000",
+            "红色" => "FF0000",
+            "蓝色" => "0000FF",
+            "绿色" => "008000",
+            "黄色" => "FFFF00",
+            "紫色" => "800080",
+            "橙色" => "FFA500",
+            "灰色" => "808080",
+            "自动" => "000000",
+            _ => "000000" // 默认黑色
+        };
+    }
+
+    /// <summary>
+    /// 转换边框样式为BorderValues枚举
+    /// </summary>
+    private static BorderValues ConvertBorderStyleToBorderValues(string borderStyle)
+    {
+        return borderStyle switch
+        {
+            "无" => BorderValues.None,
+            "单实线" => BorderValues.Single,
+            "双线" => BorderValues.Double,
+            "点线" => BorderValues.Dotted,
+            "虚线" => BorderValues.Dashed,
+            "粗线" => BorderValues.Thick,
+            "细线" => BorderValues.Thin,
+            "波浪线" => BorderValues.Wave,
+            _ => BorderValues.Single // 默认单实线
+        };
+    }
+
+    /// <summary>
+    /// 转换边框宽度为尺寸值（八分之一磅）
+    /// </summary>
+    private static uint ConvertBorderWidthToSize(string borderWidth)
+    {
+        return borderWidth switch
+        {
+            "0.25磅" => 2,   // 0.25 * 8
+            "0.5磅" => 4,    // 0.5 * 8
+            "0.75磅" => 6,   // 0.75 * 8
+            "1磅" => 8,      // 1 * 8
+            "1.5磅" => 12,   // 1.5 * 8
+            "2.25磅" => 18,  // 2.25 * 8
+            "3磅" => 24,     // 3 * 8
+            "4.5磅" => 36,   // 4.5 * 8
+            "6磅" => 48,     // 6 * 8
+            _ => 8           // 默认1磅
+        };
+    }
+
+    /// <summary>
+    /// 转换底纹图案为ShadingPatternValues枚举
+    /// </summary>
+    private static ShadingPatternValues ConvertShadingPatternToValues(string shadingPattern)
+    {
+        return shadingPattern switch
+        {
+            "无纹理" => ShadingPatternValues.Clear,
+            "2.5%" => ShadingPatternValues.Pct5,
+            "5%" => ShadingPatternValues.Pct10,
+            "7.5%" => ShadingPatternValues.Pct12,
+            "10%" => ShadingPatternValues.Pct15,
+            "12.5%" => ShadingPatternValues.Pct20,
+            "15%" => ShadingPatternValues.Pct25,
+            "17.5%" => ShadingPatternValues.Pct30,
+            "20%" => ShadingPatternValues.Pct35,
+            "22.5%" => ShadingPatternValues.Pct37,
+            "25%" => ShadingPatternValues.Pct40,
+            "27.5%" => ShadingPatternValues.Pct45,
+            "30%" => ShadingPatternValues.Pct50,
+            "32.5%" => ShadingPatternValues.Pct55,
+            "35%" => ShadingPatternValues.Pct60,
+            "37.5%" => ShadingPatternValues.Pct62,
+            "40%" => ShadingPatternValues.Pct65,
+            "42.5%" => ShadingPatternValues.Pct70,
+            "45%" => ShadingPatternValues.Pct75,
+            "47.5%" => ShadingPatternValues.Pct80,
+            "50%" => ShadingPatternValues.Pct85,
+            "52.5%" => ShadingPatternValues.Pct87,
+            "55%" => ShadingPatternValues.Pct90,
+            "57.5%" => ShadingPatternValues.Pct95,
+            "60%" => ShadingPatternValues.Solid,
+            "实心填充" => ShadingPatternValues.Solid,
+            "深色水平线" => ShadingPatternValues.DarkHorizontal,
+            "深色垂直线" => ShadingPatternValues.DarkVertical,
+            "深色对角线下" => ShadingPatternValues.DarkDown,
+            "深色对角线上" => ShadingPatternValues.DarkUp,
+            "深色十字" => ShadingPatternValues.DarkGrid,
+            "深色对角十字" => ShadingPatternValues.DarkTrellis,
+            "水平线" => ShadingPatternValues.LightHorizontal,
+            "垂直线" => ShadingPatternValues.LightVertical,
+            "对角线下" => ShadingPatternValues.LightDown,
+            "对角线上" => ShadingPatternValues.LightUp,
+            "十字" => ShadingPatternValues.LightGrid,
+            "对角十字" => ShadingPatternValues.LightTrellis,
+            _ => ShadingPatternValues.Clear // 默认无纹理
+        };
     }
 }
