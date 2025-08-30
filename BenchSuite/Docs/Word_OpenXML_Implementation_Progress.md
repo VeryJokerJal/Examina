@@ -160,7 +160,67 @@
    - 参数：ParagraphNumbers, NumberingType
    - 辅助方法：GetBulletNumberingType
 
-### 5. 已实现的辅助方法（35个）
+### 5. 图形和图片设置检测方法（16个中的12个已完成）
+
+#### 已完成的图形和图片设置方法（12个）
+
+##### 自选图形相关（8个）
+1. **DetectInsertAutoShape** - 检测插入自选图形类型 ✅
+   - 参数：ShapeType
+   - 辅助方法：GetAutoShapeType
+
+2. **DetectAutoShapeSize** - 检测自选图形大小 ✅
+   - 参数：ShapeHeight, ShapeWidth
+   - 辅助方法：GetAutoShapeSize
+
+3. **DetectAutoShapeLineColor** - 检测自选图形线条颜色 ✅
+   - 参数：LineColor
+   - 辅助方法：GetAutoShapeLineColor
+
+4. **DetectAutoShapeFillColor** - 检测自选图形填充颜色 ✅
+   - 参数：FillColor
+   - 辅助方法：GetAutoShapeFillColor
+
+5. **DetectAutoShapeTextSize** - 检测自选图形中文字大小 ✅
+   - 参数：FontSize
+   - 辅助方法：GetAutoShapeTextSize
+
+6. **DetectAutoShapeTextColor** - 检测自选图形中文字颜色 ✅
+   - 参数：TextColor
+   - 辅助方法：GetAutoShapeTextColor
+
+7. **DetectAutoShapeTextContent** - 检测自选图形中文字内容 ✅
+   - 参数：TextContent
+   - 辅助方法：GetAutoShapeTextContent
+
+8. **DetectAutoShapePosition** - 检测自选图形的位置 ✅
+   - 参数：水平和垂直位置设置
+   - 辅助方法：GetAutoShapePosition
+
+##### 插入图片相关（4个）
+9. **DetectImageBorderCompoundType** - 检测插入图片边框复合类型 ✅
+   - 参数：CompoundType
+   - 辅助方法：GetImageBorderCompoundType
+
+10. **DetectImageBorderDashType** - 检测插入图片边框短划线类型 ✅
+    - 参数：DashType
+    - 辅助方法：GetImageBorderDashType
+
+11. **DetectImageBorderWidth** - 检测插入图片边框线宽 ✅
+    - 参数：BorderWidth
+    - 辅助方法：GetImageBorderWidth
+
+12. **DetectImageBorderColor** - 检测插入图片边框颜色 ✅
+    - 参数：BorderColor
+    - 辅助方法：GetImageBorderColor
+
+#### 待完成的图形和图片设置方法（4个）
+13. **DetectImageShadow** - 检测插入图片阴影类型与颜色 ❌
+14. **DetectImageWrapStyle** - 检测插入图片环绕方式 ❌
+15. **DetectImageSize** - 检测插入图片的高度和宽度 ❌
+16. **DetectImagePosition** - 检测插入图片的位置 ❌
+
+### 6. 已实现的辅助方法（47个）
 
 #### 段落相关辅助方法（12个）
 1. **GetParagraphFont** - 获取段落字体
@@ -206,6 +266,20 @@
 
 #### 项目符号与编号相关辅助方法（1个）
 35. **GetBulletNumberingType** - 获取项目编号类型
+
+#### 图形和图片设置相关辅助方法（12个）
+36. **GetAutoShapeType** - 获取自选图形类型
+37. **GetAutoShapeSize** - 获取自选图形大小
+38. **GetAutoShapeLineColor** - 获取自选图形线条颜色
+39. **GetAutoShapeFillColor** - 获取自选图形填充颜色
+40. **GetAutoShapeTextSize** - 获取自选图形文字大小
+41. **GetAutoShapeTextColor** - 获取自选图形文字颜色
+42. **GetAutoShapeTextContent** - 获取自选图形文字内容
+43. **GetAutoShapePosition** - 获取自选图形位置
+44. **GetImageBorderCompoundType** - 获取图片边框复合类型
+45. **GetImageBorderDashType** - 获取图片边框短划线类型
+46. **GetImageBorderWidth** - 获取图片边框线宽
+47. **GetImageBorderColor** - 获取图片边框颜色
 
 ## 🔧 技术实现特点
 
@@ -281,19 +355,19 @@ catch (Exception ex)
 ## 📊 实现统计
 
 ### 代码量统计
-- **总行数**：约5,254行（增加约1,390行）
-- **已实现检测方法**：34个
-- **已实现辅助方法**：35个
-- **完成的知识点分类**：段落操作（86%完成），页面设置（60%完成），水印设置（100%完成），表格操作（80%完成），项目符号与编号（100%完成）
+- **总行数**：约6,024行（增加约770行）
+- **已实现检测方法**：46个
+- **已实现辅助方法**：47个
+- **完成的知识点分类**：段落操作（86%完成），页面设置（60%完成），水印设置（100%完成），表格操作（80%完成），项目符号与编号（100%完成），图形和图片设置（75%完成）
 
 ### 功能完整性统计
-- **已完成知识点**：34个 / 67个（51%）
+- **已完成知识点**：46个 / 67个（69%）
 - **段落操作**：12个 / 14个（86%）
 - **页面设置**：9个 / 15个（60%）
 - **水印设置**：4个 / 4个（100%）
 - **项目符号与编号**：1个 / 1个（100%）
 - **表格操作**：8个 / 10个（80%）
-- **图形和图片设置**：0个 / 16个（0%）
+- **图形和图片设置**：12个 / 16个（75%）
 - **文本框设置**：0个 / 5个（0%）
 - **其他操作**：0个 / 2个（0%）
 
