@@ -258,7 +258,15 @@ public class SpecializedExamViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("创建失败", $"创建专项试卷时发生错误：{ex.Message}");
+            try
+            {
+                await NotificationService.ShowErrorAsync("创建失败", $"创建专项试卷时发生错误：{ex.Message}");
+            }
+            catch (Exception notificationEx)
+            {
+                // 如果通知服务也失败，记录错误但不再抛出异常
+                System.Diagnostics.Debug.WriteLine($"NotificationService.ShowErrorAsync failed: {notificationEx.Message}");
+            }
         }
     }
 
@@ -424,11 +432,11 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         if (SelectedModule == null)
         {
-            await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+            await SafeShowErrorAsync("错误", "请先选择一个模块");
             return;
         }
 
-        string? questionTitle = await NotificationService.ShowInputDialogAsync(
+        string? questionTitle = await SafeShowInputDialogAsync(
             "添加题目",
             "请输入题目标题",
             "新题目");
@@ -460,7 +468,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        bool confirmed = await NotificationService.ShowConfirmationAsync(
+        bool confirmed = await SafeShowConfirmationAsync(
             "确认删除",
             $"确定要删除题目\"{question.Title}\"吗？此操作不可撤销。");
 
@@ -527,12 +535,12 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         if (SelectedQuestion == null)
         {
-            await NotificationService.ShowErrorAsync("错误", "请先选择一个题目");
+            await SafeShowErrorAsync("错误", "请先选择一个题目");
             return;
         }
 
         // 这里可以添加题目保存逻辑
-        await NotificationService.ShowSuccessAsync("成功", "题目已保存");
+        await SafeShowSuccessAsync("成功", "题目已保存");
     }
 
     /// <summary>
@@ -542,12 +550,12 @@ public class SpecializedExamViewModel : ViewModelBase
     {
         if (SelectedQuestion == null)
         {
-            await NotificationService.ShowErrorAsync("错误", "请先选择一个题目");
+            await SafeShowErrorAsync("错误", "请先选择一个题目");
             return;
         }
 
         // 这里可以添加题目预览逻辑
-        await NotificationService.ShowSuccessAsync("预览", $"题目预览功能待实现\n题目：{SelectedQuestion.Title}");
+        await SafeShowSuccessAsync("预览", $"题目预览功能待实现\n题目：{SelectedQuestion.Title}");
     }
 
     /// <summary>
@@ -674,7 +682,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        bool confirmed = await NotificationService.ShowConfirmationAsync(
+        bool confirmed = await SafeShowConfirmationAsync(
             "确认删除",
             $"确定要删除专项试卷\"{exam.Name}\"吗？此操作不可撤销。");
 
@@ -711,7 +719,7 @@ public class SpecializedExamViewModel : ViewModelBase
             return;
         }
 
-        string? newName = await NotificationService.ShowInputDialogAsync(
+        string? newName = await SafeShowInputDialogAsync(
             "克隆专项试卷",
             "请输入新试卷名称",
             $"{exam.Name} - 副本");
@@ -752,11 +760,11 @@ public class SpecializedExamViewModel : ViewModelBase
             SelectedSpecializedExam = clonedExam;
             SpecializedExamCount = SpecializedExams.Count;
 
-            await NotificationService.ShowSuccessAsync("克隆成功", $"专项试卷\"{newName}\"已创建");
+            await SafeShowSuccessAsync("克隆成功", $"专项试卷\"{newName}\"已创建");
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("克隆失败", $"克隆专项试卷时发生错误：{ex.Message}");
+            await SafeShowErrorAsync("克隆失败", $"克隆专项试卷时发生错误：{ex.Message}");
         }
     }
 
@@ -773,12 +781,12 @@ public class SpecializedExamViewModel : ViewModelBase
             {
                 await SaveSpecializedExamToStorageAsync(SelectedSpecializedExam);
                 HasUnsavedChanges = false;
-                await NotificationService.ShowSuccessAsync("保存成功", $"已保存专项试卷：{SelectedSpecializedExam.Name}");
+                await SafeShowSuccessAsync("保存成功", $"已保存专项试卷：{SelectedSpecializedExam.Name}");
             }
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("保存失败", $"保存专项试卷时发生错误：{ex.Message}");
+            await SafeShowErrorAsync("保存失败", $"保存专项试卷时发生错误：{ex.Message}");
         }
     }
 
@@ -1101,7 +1109,7 @@ public class SpecializedExamViewModel : ViewModelBase
             // 1. 验证当前状态
             if (SelectedSpecializedExam == null)
             {
-                await NotificationService.ShowWarningAsync("提示", "请先选择一个专项试卷");
+                await SafeShowWarningAsync("提示", "请先选择一个专项试卷");
                 return;
             }
 
@@ -1109,7 +1117,7 @@ public class SpecializedExamViewModel : ViewModelBase
             ExamModule? module = SelectedSpecializedExam.Modules.FirstOrDefault(m => m.Type == moduleType);
             if (module == null)
             {
-                await NotificationService.ShowWarningAsync("提示", $"当前专项试卷不包含{GetModuleTypeName(moduleType)}模块");
+                await SafeShowWarningAsync("提示", $"当前专项试卷不包含{GetModuleTypeName(moduleType)}模块");
                 return;
             }
 
@@ -1186,7 +1194,7 @@ public class SpecializedExamViewModel : ViewModelBase
                             successMessage += $"\n\n详细信息：\n{result.Details}";
                         }
 
-                        ContentDialogResult dialogResult = await NotificationService.ShowSuccessWithActionAsync(
+                        ContentDialogResult dialogResult = await SafeShowSuccessWithActionAsync(
                             "生成成功",
                             successMessage,
                             "打开文件",
@@ -1231,13 +1239,13 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             if (SelectedModule == null)
             {
-                await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+                await SafeShowErrorAsync("错误", "请先选择一个模块");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(SelectedModule.Name))
             {
-                await NotificationService.ShowErrorAsync("错误", "模块名称不能为空");
+                await SafeShowErrorAsync("错误", "模块名称不能为空");
                 return;
             }
 
@@ -1248,11 +1256,11 @@ public class SpecializedExamViewModel : ViewModelBase
                 HasUnsavedChanges = true;
             }
 
-            await NotificationService.ShowSuccessAsync("保存成功", "模块描述已保存");
+            await SafeShowSuccessAsync("保存成功", "模块描述已保存");
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("保存失败", $"保存模块描述时发生错误：{ex.Message}");
+            await SafeShowErrorAsync("保存失败", $"保存模块描述时发生错误：{ex.Message}");
         }
     }
 
@@ -1265,11 +1273,11 @@ public class SpecializedExamViewModel : ViewModelBase
         {
             if (SelectedModule == null)
             {
-                await NotificationService.ShowErrorAsync("错误", "请先选择一个模块");
+                await SafeShowErrorAsync("错误", "请先选择一个模块");
                 return;
             }
 
-            bool confirmed = await NotificationService.ShowDeleteConfirmationAsync("重置模块描述");
+            bool confirmed = await SafeShowDeleteConfirmationAsync("重置模块描述");
             if (!confirmed)
             {
                 return;
@@ -1285,11 +1293,11 @@ public class SpecializedExamViewModel : ViewModelBase
                 HasUnsavedChanges = true;
             }
 
-            await NotificationService.ShowSuccessAsync("重置成功", "模块描述已重置为默认值");
+            await SafeShowSuccessAsync("重置成功", "模块描述已重置为默认值");
         }
         catch (Exception ex)
         {
-            await NotificationService.ShowErrorAsync("重置失败", $"重置模块描述时发生错误：{ex.Message}");
+            await SafeShowErrorAsync("重置失败", $"重置模块描述时发生错误：{ex.Message}");
         }
     }
 
@@ -1307,6 +1315,115 @@ public class SpecializedExamViewModel : ViewModelBase
             ModuleType.Word => "Word文档编辑和排版设计题目",
             _ => "专项练习题目"
         };
+    }
+
+    /// <summary>
+    /// 安全地显示成功消息
+    /// </summary>
+    private static async Task SafeShowSuccessAsync(string title, string message)
+    {
+        try
+        {
+            await NotificationService.ShowSuccessAsync(title, message);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SafeShowSuccessAsync failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 安全地显示错误消息
+    /// </summary>
+    private static async Task SafeShowErrorAsync(string title, string message)
+    {
+        try
+        {
+            await NotificationService.ShowErrorAsync(title, message);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SafeShowErrorAsync failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 安全地显示警告消息
+    /// </summary>
+    private static async Task SafeShowWarningAsync(string title, string message)
+    {
+        try
+        {
+            await NotificationService.ShowWarningAsync(title, message);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SafeShowWarningAsync failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 安全地显示确认对话框
+    /// </summary>
+    private static async Task<bool> SafeShowConfirmationAsync(string title, string message)
+    {
+        try
+        {
+            return await NotificationService.ShowConfirmationAsync(title, message);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SafeShowConfirmationAsync failed: {ex.Message}");
+            return false; // 默认返回false（取消）
+        }
+    }
+
+    /// <summary>
+    /// 安全地显示输入对话框
+    /// </summary>
+    private static async Task<string?> SafeShowInputDialogAsync(string title, string placeholder = "", string defaultValue = "")
+    {
+        try
+        {
+            return await NotificationService.ShowInputDialogAsync(title, placeholder, defaultValue);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SafeShowInputDialogAsync failed: {ex.Message}");
+            return null; // 默认返回null（取消）
+        }
+    }
+
+    /// <summary>
+    /// 安全地显示删除确认对话框
+    /// </summary>
+    private static async Task<bool> SafeShowDeleteConfirmationAsync(string itemName)
+    {
+        try
+        {
+            return await NotificationService.ShowDeleteConfirmationAsync(itemName);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SafeShowDeleteConfirmationAsync failed: {ex.Message}");
+            return false; // 默认返回false（取消）
+        }
+    }
+
+    /// <summary>
+    /// 安全地显示带操作按钮的成功消息
+    /// </summary>
+    private static async Task<ContentDialogResult> SafeShowSuccessWithActionAsync(string title, string message, string actionButtonText, string closeButtonText = "确定")
+    {
+        try
+        {
+            return await NotificationService.ShowSuccessWithActionAsync(title, message, actionButtonText, closeButtonText);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"SafeShowSuccessWithActionAsync failed: {ex.Message}");
+            return ContentDialogResult.None; // 默认返回None
+        }
     }
 
 }
