@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia;
@@ -808,7 +809,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 Name = module.Name,
                 Description = module.Description ?? string.Empty,
                 Score = module.Score,
-                ModuleType = GetModuleTypeFromString(training.ModuleType),
+                Type = GetModuleTypeFromString(training.ModuleType),
                 IsEnabled = module.IsEnabled,
                 Order = module.Order,
                 Questions = []
@@ -854,7 +855,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
                 Name = "默认模块",
                 Description = "从直接题目列表创建的默认模块",
                 Score = training.TotalScore,
-                ModuleType = GetModuleTypeFromString(training.ModuleType),
+                Type = GetModuleTypeFromString(training.ModuleType),
                 IsEnabled = true,
                 Order = 1,
                 Questions = []
