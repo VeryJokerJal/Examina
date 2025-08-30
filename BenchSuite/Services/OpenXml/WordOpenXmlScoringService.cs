@@ -4276,31 +4276,66 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                     {
                         pattern = patternValue.ToLower() switch
                         {
-                            "clear" => "无图案",
-                            "solid" => "实心",
-                            "pct5" => "5%",
-                            "pct10" => "10%",
-                            "pct12" => "12.5%",
-                            "pct15" => "15%",
-                            "pct20" => "20%",
-                            "pct25" => "25%",
-                            "pct30" => "30%",
-                            "pct35" => "35%",
-                            "pct37" => "37.5%",
-                            "pct40" => "40%",
-                            "pct45" => "42.5%",
-                            "pct50" => "50%",
-                            "pct55" => "55%",
-                            "pct60" => "60%",
-                            "pct62" => "62.5%",
-                            "pct65" => "65%",
-                            "pct70" => "70%",
-                            "pct75" => "75%",
-                            "pct80" => "80%",
-                            "pct85" => "85%",
-                            "pct87" => "87.5%",
-                            "pct90" => "90%",
-                            "pct95" => "95%",
+                            // 基础图案类型 - 对应WdTextureIndex基础值
+                            "clear" => "无图案",                    // wdTextureNone = 0
+                            "solid" => "实心",                      // wdTextureSolid = 1000
+
+                            // 百分比图案 - 对应WdTextureIndex百分比值
+                            "pct2" => "2.5%",                      // wdTexture2Pt5Percent = 25
+                            "pct5" => "5%",                        // wdTexture5Percent = 50
+                            "pct7" => "7.5%",                      // wdTexture7Pt5Percent = 75
+                            "pct10" => "10%",                      // wdTexture10Percent = 100
+                            "pct12" => "12.5%",                    // wdTexture12Pt5Percent = 125
+                            "pct15" => "15%",                      // wdTexture15Percent = 150
+                            "pct17" => "17.5%",                    // wdTexture17Pt5Percent = 175
+                            "pct20" => "20%",                      // wdTexture20Percent = 200
+                            "pct22" => "22.5%",                    // wdTexture22Pt5Percent = 225
+                            "pct25" => "25%",                      // wdTexture25Percent = 250
+                            "pct27" => "27.5%",                    // wdTexture27Pt5Percent = 275
+                            "pct30" => "30%",                      // wdTexture30Percent = 300
+                            "pct32" => "32.5%",                    // wdTexture32Pt5Percent = 325
+                            "pct35" => "35%",                      // wdTexture35Percent = 350
+                            "pct37" => "37.5%",                    // wdTexture37Pt5Percent = 375
+                            "pct40" => "40%",                      // wdTexture40Percent = 400
+                            "pct42" => "42.5%",                    // wdTexture42Pt5Percent = 425
+                            "pct45" => "45%",                      // wdTexture45Percent = 450
+                            "pct47" => "47.5%",                    // wdTexture47Pt5Percent = 475
+                            "pct50" => "50%",                      // wdTexture50Percent = 500
+                            "pct52" => "52.5%",                    // wdTexture52Pt5Percent = 525
+                            "pct55" => "55%",                      // wdTexture55Percent = 550
+                            "pct57" => "57.5%",                    // wdTexture57Pt5Percent = 575
+                            "pct60" => "60%",                      // wdTexture60Percent = 600
+                            "pct62" => "62.5%",                    // wdTexture62Pt5Percent = 625
+                            "pct65" => "65%",                      // wdTexture65Percent = 650
+                            "pct67" => "67.5%",                    // wdTexture67Pt5Percent = 675
+                            "pct70" => "70%",                      // wdTexture70Percent = 700
+                            "pct72" => "72.5%",                    // wdTexture72Pt5Percent = 725
+                            "pct75" => "75%",                      // wdTexture75Percent = 750
+                            "pct77" => "77.5%",                    // wdTexture77Pt5Percent = 775
+                            "pct80" => "80%",                      // wdTexture80Percent = 800
+                            "pct82" => "82.5%",                    // wdTexture82Pt5Percent = 825
+                            "pct85" => "85%",                      // wdTexture85Percent = 850
+                            "pct87" => "87.5%",                    // wdTexture87Pt5Percent = 875
+                            "pct90" => "90%",                      // wdTexture90Percent = 900
+                            "pct92" => "92.5%",                    // wdTexture92Pt5Percent = 925
+                            "pct95" => "95%",                      // wdTexture95Percent = 950
+                            "pct97" => "97.5%",                    // wdTexture97Pt5Percent = 975
+
+                            // 特殊图案类型 - 对应WdTextureIndex特殊图案
+                            "darkhorizontal" => "深色水平线",        // wdTextureDarkHorizontal = -1
+                            "darkvertical" => "深色垂直线",          // wdTextureDarkVertical = -2
+                            "darkdiagonaldown" => "深色左斜线",      // wdTextureDarkDiagonalDown = -3
+                            "darkdiagonalup" => "深色右斜线",        // wdTextureDarkDiagonalUp = -4
+                            "darkcross" => "深色十字线",            // wdTextureDarkCross = -5
+                            "darkdiagonalcross" => "深色斜十字线",   // wdTextureDarkDiagonalCross = -6
+                            "horizontal" => "水平线",               // wdTextureHorizontal = -7
+                            "vertical" => "垂直线",                 // wdTextureVertical = -8
+                            "diagonaldown" => "左斜线",             // wdTextureDiagonalDown = -9
+                            "diagonalup" => "右斜线",               // wdTextureDiagonalUp = -10
+                            "cross" => "十字线",                    // wdTextureCross = -11
+                            "diagonalcross" => "斜十字线",          // wdTextureDiagonalCross = -12
+
+                            // 未识别的值保持原有格式
                             _ => $"图案({patternValue})"
                         };
                     }
