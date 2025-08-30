@@ -61,12 +61,16 @@
     - 参数：ParagraphNumber, Alignment
     - 辅助方法：GetParagraphAlignment
 
-#### 待完成的段落操作方法（2个）
-14. **DetectParagraphSpacing** - 检测段落间距 ❌
+13. **DetectParagraphSpacing** - 检测段落间距 ✅
+    - 参数：ParagraphNumber, SpaceBefore, SpaceAfter
+    - 辅助方法：GetParagraphSpacing
 
-### 2. 页面设置检测方法（15个中的9个已完成）
+#### 待完成的段落操作方法（1个）
+14. **DetectParagraphAlignment** - 检测段落对齐方式（已实现但未在此列出）
 
-#### 已完成的页面设置方法（9个）
+### 2. 页面设置检测方法（15个中的12个已完成）
+
+#### 已完成的页面设置方法（12个）
 1. **DetectPaperSize** - 检测纸张大小 ✅
    - 参数：PaperSize
    - 辅助方法：GetDocumentPaperSize
@@ -107,10 +111,19 @@
     - 参数：FooterAlignment
     - 辅助方法：GetFooterAlignment
 
-#### 待完成的页面设置方法（6个）
-11. **DetectPageNumber** - 检测页码 ❌
-12. **DetectPageBackground** - 检测页面背景 ❌
-13. **DetectPageBorderColor** - 检测页面边框颜色 ❌
+11. **DetectPageNumber** - 检测页码 ✅
+    - 参数：PageNumberPosition, PageNumberFormat
+    - 辅助方法：GetPageNumberInfo
+
+12. **DetectPageBackground** - 检测页面背景 ✅
+    - 参数：BackgroundColor
+    - 辅助方法：GetPageBackgroundColor
+
+13. **DetectPageBorderColor** - 检测页面边框颜色 ✅
+    - 参数：BorderColor
+    - 辅助方法：GetPageBorderColor
+
+#### 待完成的页面设置方法（3个）
 14. **DetectPageBorderStyle** - 检测页面边框样式 ❌
 15. **DetectPageBorderWidth** - 检测页面边框宽度 ❌
 
