@@ -319,122 +319,221 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             // 根据知识点类型进行具体检测
             switch (knowledgePointType)
             {
-                case "SetDocumentContent":
-                    result = DetectDocumentContent(document, parameters);
+                // 段落操作（14个）
+                case "SetParagraphFont":
+                    result = DetectParagraphFont(document, parameters);
                     break;
-                case "SetDocumentFont":
-                    result = DetectDocumentFont(document, parameters);
+                case "SetParagraphFontSize":
+                    result = DetectParagraphFontSize(document, parameters);
                     break;
-                case "SetFontStyle":
-                    result = DetectFontStyle(document, parameters);
+                case "SetParagraphFontStyle":
+                    result = DetectParagraphFontStyle(document, parameters);
                     break;
-                case "SetFontSize":
-                    result = DetectFontSize(document, parameters);
+                case "SetParagraphCharacterSpacing":
+                    result = DetectParagraphCharacterSpacing(document, parameters);
                     break;
-                case "SetFontColor":
-                    result = DetectFontColor(document, parameters);
+                case "SetParagraphTextColor":
+                    result = DetectParagraphTextColor(document, parameters);
                     break;
                 case "SetParagraphAlignment":
                     result = DetectParagraphAlignment(document, parameters);
                     break;
-                case "SetLineSpacing":
-                    result = DetectLineSpacing(document, parameters);
+                case "SetParagraphIndentation":
+                    result = DetectParagraphIndentation(document, parameters);
+                    break;
+                case "SetParagraphLineSpacing":
+                    result = DetectParagraphLineSpacing(document, parameters);
+                    break;
+                case "SetParagraphDropCap":
+                    result = DetectParagraphDropCap(document, parameters);
                     break;
                 case "SetParagraphSpacing":
                     result = DetectParagraphSpacing(document, parameters);
                     break;
-                case "SetIndentation":
-                    result = DetectIndentation(document, parameters);
+                case "SetParagraphBorderColor":
+                    result = DetectParagraphBorderColor(document, parameters);
                     break;
-                case "CreateBulletList":
-                    result = DetectBulletList(document, parameters);
+                case "SetParagraphBorderStyle":
+                    result = DetectParagraphBorderStyle(document, parameters);
                     break;
-                case "CreateNumberedList":
-                    result = DetectNumberedList(document, parameters);
+                case "SetParagraphBorderWidth":
+                    result = DetectParagraphBorderWidth(document, parameters);
                     break;
-                case "InsertTable":
-                    result = DetectInsertedTable(document, parameters);
+                case "SetParagraphShading":
+                    result = DetectParagraphShading(document, parameters);
                     break;
-                case "SetTableStyle":
-                    result = DetectTableStyle(document, parameters);
+
+                // 页面设置（15个）
+                case "SetPaperSize":
+                    result = DetectPaperSize(document, parameters);
                     break;
-                case "SetTableBorder":
-                    result = DetectTableBorder(document, parameters);
+                case "SetPageMargins":
+                    result = DetectPageMargins(document, parameters);
                     break;
-                case "InsertImage":
-                    result = DetectInsertedImage(document, parameters);
+                case "SetHeaderText":
+                    result = DetectHeaderText(document, parameters);
                     break;
-                case "SetImagePosition":
-                    result = DetectImagePosition(document, parameters);
+                case "SetHeaderFont":
+                    result = DetectHeaderFont(document, parameters);
                     break;
-                case "SetImageSize":
-                    result = DetectImageSize(document, parameters);
+                case "SetHeaderFontSize":
+                    result = DetectHeaderFontSize(document, parameters);
                     break;
-                case "SetHeaderFooter":
-                    result = DetectHeaderFooter(document, parameters);
+                case "SetHeaderAlignment":
+                    result = DetectHeaderAlignment(document, parameters);
+                    break;
+                case "SetFooterText":
+                    result = DetectFooterText(document, parameters);
+                    break;
+                case "SetFooterFont":
+                    result = DetectFooterFont(document, parameters);
+                    break;
+                case "SetFooterFontSize":
+                    result = DetectFooterFontSize(document, parameters);
+                    break;
+                case "SetFooterAlignment":
+                    result = DetectFooterAlignment(document, parameters);
                     break;
                 case "SetPageNumber":
                     result = DetectPageNumber(document, parameters);
                     break;
-                case "SetPageMargin":
-                    result = DetectPageMargin(document, parameters);
-                    break;
-                case "SetPageOrientation":
-                    result = DetectPageOrientation(document, parameters);
-                    break;
-                case "SetPageSize":
-                    result = DetectPageSize(document, parameters);
-                    break;
-                case "ManageSection":
-                    result = DetectManageSection(document, parameters);
-                    break;
-                case "InsertPageBreak":
-                    result = DetectPageBreak(document, parameters);
-                    break;
-                case "InsertColumnBreak":
-                    result = DetectColumnBreak(document, parameters);
-                    break;
-                case "InsertHyperlink":
-                    result = DetectHyperlink(document, parameters);
-                    break;
-                case "InsertBookmark":
-                    result = DetectBookmark(document, parameters);
-                    break;
-                case "InsertCrossReference":
-                    result = DetectCrossReference(document, parameters);
-                    break;
-                case "InsertTableOfContents":
-                    result = DetectTableOfContents(document, parameters);
-                    break;
-                case "InsertFootnote":
-                    result = DetectFootnote(document, parameters);
-                    break;
-                case "InsertEndnote":
-                    result = DetectEndnote(document, parameters);
-                    break;
-                case "InsertComment":
-                    result = DetectComment(document, parameters);
-                    break;
-                case "EnableTrackChanges":
-                    result = DetectTrackChanges(document, parameters);
-                    break;
-                case "SetDocumentProtection":
-                    result = DetectDocumentProtection(document, parameters);
-                    break;
-                case "SetWatermark":
-                    result = DetectWatermark(document, parameters);
-                    break;
                 case "SetPageBackground":
                     result = DetectPageBackground(document, parameters);
                     break;
-                case "SetPageBorder":
-                    result = DetectPageBorder(document, parameters);
+                case "SetPageBorderColor":
+                    result = DetectPageBorderColor(document, parameters);
                     break;
-                case "ApplyStyle":
-                    result = DetectAppliedStyle(document, parameters);
+                case "SetPageBorderStyle":
+                    result = DetectPageBorderStyle(document, parameters);
                     break;
-                case "ApplyTemplate":
-                    result = DetectAppliedTemplate(document, parameters);
+                case "SetPageBorderWidth":
+                    result = DetectPageBorderWidth(document, parameters);
+                    break;
+
+                // 水印设置（4个）
+                case "SetWatermarkText":
+                    result = DetectWatermarkText(document, parameters);
+                    break;
+                case "SetWatermarkFont":
+                    result = DetectWatermarkFont(document, parameters);
+                    break;
+                case "SetWatermarkFontSize":
+                    result = DetectWatermarkFontSize(document, parameters);
+                    break;
+                case "SetWatermarkOrientation":
+                    result = DetectWatermarkOrientation(document, parameters);
+                    break;
+
+                // 项目符号与编号（1个）
+                case "SetBulletNumbering":
+                    result = DetectBulletNumbering(document, parameters);
+                    break;
+
+                // 表格操作（10个）
+                case "SetTableRowsColumns":
+                    result = DetectTableRowsColumns(document, parameters);
+                    break;
+                case "SetTableShading":
+                    result = DetectTableShading(document, parameters);
+                    break;
+                case "SetTableRowHeight":
+                    result = DetectTableRowHeight(document, parameters);
+                    break;
+                case "SetTableColumnWidth":
+                    result = DetectTableColumnWidth(document, parameters);
+                    break;
+                case "SetTableCellContent":
+                    result = DetectTableCellContent(document, parameters);
+                    break;
+                case "SetTableCellAlignment":
+                    result = DetectTableCellAlignment(document, parameters);
+                    break;
+                case "SetTableAlignment":
+                    result = DetectTableAlignment(document, parameters);
+                    break;
+                case "MergeTableCells":
+                    result = DetectMergeTableCells(document, parameters);
+                    break;
+                case "SetTableHeaderContent":
+                    result = DetectTableHeaderContent(document, parameters);
+                    break;
+                case "SetTableHeaderAlignment":
+                    result = DetectTableHeaderAlignment(document, parameters);
+                    break;
+
+                // 图形和图片设置（16个）
+                case "InsertAutoShape":
+                    result = DetectInsertAutoShape(document, parameters);
+                    break;
+                case "SetAutoShapeSize":
+                    result = DetectAutoShapeSize(document, parameters);
+                    break;
+                case "SetAutoShapeLineColor":
+                    result = DetectAutoShapeLineColor(document, parameters);
+                    break;
+                case "SetAutoShapeFillColor":
+                    result = DetectAutoShapeFillColor(document, parameters);
+                    break;
+                case "SetAutoShapeTextSize":
+                    result = DetectAutoShapeTextSize(document, parameters);
+                    break;
+                case "SetAutoShapeTextColor":
+                    result = DetectAutoShapeTextColor(document, parameters);
+                    break;
+                case "SetAutoShapeTextContent":
+                    result = DetectAutoShapeTextContent(document, parameters);
+                    break;
+                case "SetAutoShapePosition":
+                    result = DetectAutoShapePosition(document, parameters);
+                    break;
+                case "SetImageBorderCompoundType":
+                    result = DetectImageBorderCompoundType(document, parameters);
+                    break;
+                case "SetImageBorderDashType":
+                    result = DetectImageBorderDashType(document, parameters);
+                    break;
+                case "SetImageBorderWidth":
+                    result = DetectImageBorderWidth(document, parameters);
+                    break;
+                case "SetImageBorderColor":
+                    result = DetectImageBorderColor(document, parameters);
+                    break;
+                case "SetImageShadow":
+                    result = DetectImageShadow(document, parameters);
+                    break;
+                case "SetImageWrapStyle":
+                    result = DetectImageWrapStyle(document, parameters);
+                    break;
+                case "SetImageSize":
+                    result = DetectImageSize(document, parameters);
+                    break;
+                case "SetImagePosition":
+                    result = DetectImagePosition(document, parameters);
+                    break;
+
+                // 文本框设置（5个）
+                case "SetTextBoxBorderColor":
+                    result = DetectTextBoxBorderColor(document, parameters);
+                    break;
+                case "SetTextBoxContent":
+                    result = DetectTextBoxContent(document, parameters);
+                    break;
+                case "SetTextBoxTextSize":
+                    result = DetectTextBoxTextSize(document, parameters);
+                    break;
+                case "SetTextBoxPosition":
+                    result = DetectTextBoxPosition(document, parameters);
+                    break;
+                case "SetTextBoxWrapStyle":
+                    result = DetectTextBoxWrapStyle(document, parameters);
+                    break;
+
+                // 其他操作（2个）
+                case "FindAndReplace":
+                    result = DetectFindAndReplace(document, parameters);
+                    break;
+                case "SetSpecificTextFontSize":
+                    result = DetectSpecificTextFontSize(document, parameters);
                     break;
                 default:
                     result.ErrorMessage = $"不支持的知识点类型: {knowledgePointType}";
@@ -518,6 +617,144 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch (Exception ex)
         {
             SetKnowledgePointFailure(result, $"检测文档字体失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落字体
+    /// </summary>
+    private KnowledgePointResult DetectParagraphFont(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphFont",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "FontFamily", out string expectedFont))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 FontFamily");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            string actualFont = GetParagraphFont(targetParagraph);
+
+            result.ExpectedValue = expectedFont;
+            result.ActualValue = actualFont;
+            result.IsCorrect = TextEquals(actualFont, expectedFont);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 字体: 期望 {expectedFont}, 实际 {actualFont}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落字体失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落字号
+    /// </summary>
+    private KnowledgePointResult DetectParagraphFontSize(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphFontSize",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetIntParameter(parameters, "FontSize", out int expectedSize))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 FontSize");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            int actualSize = GetParagraphFontSize(targetParagraph);
+
+            result.ExpectedValue = expectedSize.ToString();
+            result.ActualValue = actualSize.ToString();
+            result.IsCorrect = actualSize == expectedSize;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 字号: 期望 {expectedSize}, 实际 {actualSize}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落字号失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 检测段落字形
+    /// </summary>
+    private KnowledgePointResult DetectParagraphFontStyle(WordprocessingDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "SetParagraphFontStyle",
+            Parameters = parameters
+        };
+
+        try
+        {
+            if (!TryGetIntParameter(parameters, "ParagraphNumber", out int paragraphNumber) ||
+                !TryGetParameter(parameters, "FontStyle", out string expectedStyle))
+            {
+                SetKnowledgePointFailure(result, "缺少必要参数: ParagraphNumber 或 FontStyle");
+                return result;
+            }
+
+            MainDocumentPart mainPart = document.MainDocumentPart!;
+            var paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
+
+            if (paragraphs == null || paragraphNumber < 1 || paragraphNumber > paragraphs.Count)
+            {
+                SetKnowledgePointFailure(result, $"段落索引超出范围: {paragraphNumber}");
+                return result;
+            }
+
+            Paragraph targetParagraph = paragraphs[paragraphNumber - 1];
+            string actualStyle = GetParagraphFontStyle(targetParagraph);
+
+            result.ExpectedValue = expectedStyle;
+            result.ActualValue = actualStyle;
+            result.IsCorrect = TextEquals(actualStyle, expectedStyle);
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = $"段落 {paragraphNumber} 字形: 期望 {expectedStyle}, 实际 {actualStyle}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测段落字形失败: {ex.Message}");
         }
 
         return result;
