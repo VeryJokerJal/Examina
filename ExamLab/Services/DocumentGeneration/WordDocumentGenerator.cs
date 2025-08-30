@@ -355,47 +355,47 @@ public class WordDocumentGenerator : IDocumentGenerationService
                     WordDocumentGeneratorExtensions.ApplySetImageBorderColor(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetImageShadow:
-                    WordDocumentGeneratorExtensions2.ApplySetImageShadow(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetImageShadow(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetImageWrapStyle:
-                    WordDocumentGeneratorExtensions2.ApplySetImageWrapStyle(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetImageWrapStyle(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetImagePosition:
-                    WordDocumentGeneratorExtensions2.ApplySetImagePosition(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetImagePosition(body, operationPoint);
                     break;
 
                 // 文本框设置
                 case WordKnowledgeType.SetTextBoxBorderColor:
-                    WordDocumentGeneratorExtensions2.ApplySetTextBoxBorderColor(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetTextBoxBorderColor(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetTextBoxContent:
-                    WordDocumentGeneratorExtensions2.ApplySetTextBoxContent(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetTextBoxContent(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetTextBoxTextSize:
-                    WordDocumentGeneratorExtensions2.ApplySetTextBoxTextSize(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetTextBoxTextSize(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetTextBoxPosition:
-                    WordDocumentGeneratorExtensions2.ApplySetTextBoxPosition(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetTextBoxPosition(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetTextBoxWrapStyle:
-                    WordDocumentGeneratorExtensions2.ApplySetTextBoxWrapStyle(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetTextBoxWrapStyle(body, operationPoint);
                     break;
 
                 // 其他操作
                 case WordKnowledgeType.FindAndReplace:
-                    WordDocumentGeneratorExtensions2.ApplyFindAndReplace(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplyFindAndReplace(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetSpecificTextFontSize:
-                    WordDocumentGeneratorExtensions2.ApplySetSpecificTextFontSize(body, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetSpecificTextFontSize(body, operationPoint);
                     break;
                 case WordKnowledgeType.SetPageNumber:
-                    WordDocumentGeneratorExtensions2.ApplySetPageNumber(document, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetPageNumber(document, operationPoint);
                     break;
                 case WordKnowledgeType.SetPageBackground:
-                    WordDocumentGeneratorExtensions2.ApplySetPageBackground(document, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetPageBackground(document, operationPoint);
                     break;
                 case WordKnowledgeType.SetPageBorderColor:
-                    WordDocumentGeneratorExtensions2.ApplySetPageBorderColor(document, operationPoint);
+                    WordDocumentGeneratorExtensions.ApplySetPageBorderColor(document, operationPoint);
                     break;
 
                 // 遗漏的操作点
