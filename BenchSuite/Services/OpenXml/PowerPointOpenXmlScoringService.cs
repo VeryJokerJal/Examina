@@ -280,51 +280,53 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         return operationPointName switch
         {
-            // PowerPoint特定映射 - 幻灯片操作（15个）
-            var name when name.Contains("SlideLayout") => "SetSlideLayout",
-            var name when name.Contains("DeleteSlide") => "DeleteSlide",
-            var name when name.Contains("InsertSlide") => "InsertSlide",
-            var name when name.Contains("SlideFont") => "SetSlideFont",
-            var name when name.Contains("SlideTransition") && name.Contains("Effect") => "SlideTransitionEffect",
-            var name when name.Contains("SlideTransition") && name.Contains("Sound") => "SlideTransitionSound",
-            var name when name.Contains("SlideshowMode") => "SlideshowMode",
-            var name when name.Contains("SlideshowOptions") => "SlideshowOptions",
-            var name when name.Contains("Hyperlink") => "InsertHyperlink",
-            var name when name.Contains("SlideNumber") => "SlideNumber",
-            var name when name.Contains("FooterText") => "FooterText",
-            var name when name.Contains("InsertImage") => "InsertImage",
-            var name when name.Contains("InsertTable") => "InsertTable",
-            var name when name.Contains("InsertSmartArt") => "InsertSmartArt",
-            var name when name.Contains("InsertNote") => "InsertNote",
+            // PowerPoint特定映射 - 根据PowerPointKnowledgeConfig的Name属性（中文名称）映射
+
+            // 幻灯片操作（15个）
+            var name when name.Contains("设置幻灯片版式") => "SetSlideLayout",
+            var name when name.Contains("删除幻灯片") => "DeleteSlide",
+            var name when name.Contains("插入幻灯片") => "InsertSlide",
+            var name when name.Contains("设置幻灯片的字体") => "SetSlideFont",
+            var name when name.Contains("幻灯片切换") && !name.Contains("声音") => "SlideTransitionEffect",
+            var name when name.Contains("幻灯片切换播放声音") => "SlideTransitionSound",
+            var name when name.Contains("幻灯片放映方式") => "SlideshowMode",
+            var name when name.Contains("幻灯片放映选项") => "SlideshowOptions",
+            var name when name.Contains("幻灯片插入超链接") => "InsertHyperlink",
+            var name when name.Contains("幻灯片编号") => "SlideNumber",
+            var name when name.Contains("页脚文字") => "FooterText",
+            var name when name.Contains("幻灯片插入图片") => "InsertImage",
+            var name when name.Contains("幻灯片插入表格") => "InsertTable",
+            var name when name.Contains("幻灯片插入SmartArt图形") => "InsertSmartArt",
+            var name when name.Contains("插入备注") => "InsertNote",
 
             // 文字与字体设置（12个）
-            var name when name.Contains("TextContent") => "InsertTextContent",
-            var name when name.Contains("TextFontSize") => "SetTextFontSize",
-            var name when name.Contains("TextColor") => "SetTextColor",
-            var name when name.Contains("TextStyle") => "SetTextStyle",
-            var name when name.Contains("ElementPosition") => "SetElementPosition",
-            var name when name.Contains("ElementSize") => "SetElementSize",
-            var name when name.Contains("WordArtStyle") => "SetWordArtStyle",
-            var name when name.Contains("AnimationDirection") => "SetAnimationDirection",
-            var name when name.Contains("AnimationStyle") => "SetAnimationStyle",
-            var name when name.Contains("AnimationDuration") => "SetAnimationDuration",
-            var name when name.Contains("TextAlignment") => "SetTextAlignment",
-            var name when name.Contains("AnimationOrder") => "SetAnimationOrder",
+            var name when name.Contains("幻灯片插入文本内容") => "InsertTextContent",
+            var name when name.Contains("幻灯片插入文本字号") => "SetTextFontSize",
+            var name when name.Contains("幻灯片插入文本颜色") => "SetTextColor",
+            var name when name.Contains("幻灯片插入文本字形") => "SetTextStyle",
+            var name when name.Contains("元素位置") => "SetElementPosition",
+            var name when name.Contains("元素高度和宽度设置") => "SetElementSize",
+            var name when name.Contains("艺术字设置") => "SetWordArtStyle",
+            var name when name.Contains("动画效果-方向") => "SetAnimationDirection",
+            var name when name.Contains("动画样式") => "SetAnimationStyle",
+            var name when name.Contains("动画持续时间") => "SetAnimationDuration",
+            var name when name.Contains("文本对齐方式") => "SetTextAlignment",
+            var name when name.Contains("动画顺序") => "SetAnimationOrder",
 
             // 背景样式与设计（1个）
-            var name when name.Contains("ApplyTheme") => "ApplyTheme",
+            var name when name.Contains("设置文稿应用主题") => "ApplyTheme",
 
             // 母版与主题设置（1个）
-            var name when name.Contains("SlideBackground") => "SetSlideBackground",
+            var name when name.Contains("设置幻灯片背景") => "SetSlideBackground",
 
             // 其他（7个）
-            var name when name.Contains("TableContent") => "SetTableContent",
-            var name when name.Contains("TableStyle") => "SetTableStyle",
-            var name when name.Contains("SmartArtStyle") => "SetSmartArtStyle",
-            var name when name.Contains("SmartArtContent") => "SetSmartArtContent",
-            var name when name.Contains("AnimationTiming") => "SetAnimationTiming",
-            var name when name.Contains("ParagraphSpacing") => "SetParagraphSpacing",
-            var name when name.Contains("BackgroundStyle") => "SetBackgroundStyle",
+            var name when name.Contains("单元格内容") => "SetTableContent",
+            var name when name.Contains("表格样式") => "SetTableStyle",
+            var name when name.Contains("SmartArt样式") => "SetSmartArtStyle",
+            var name when name.Contains("SmartArt内容") => "SetSmartArtContent",
+            var name when name.Contains("动画计时与延时设置") => "SetAnimationTiming",
+            var name when name.Contains("段落行距") => "SetParagraphSpacing",
+            var name when name.Contains("设置背景样式") => "SetBackgroundStyle",
 
             _ => base.MapOperationPointNameToKnowledgeType(operationPointName)
         };
