@@ -5,7 +5,7 @@ using ExamLab.Models;
 namespace ExamLab.Services;
 
 /// <summary>
-/// PPT知识点配置服务
+/// PPT操作点配置服务
 /// </summary>
 public class PowerPointKnowledgeService
 {
@@ -19,7 +19,7 @@ public class PowerPointKnowledgeService
     }
 
     /// <summary>
-    /// 获取所有知识点配置
+    /// 获取所有操作点配置
     /// </summary>
     public IEnumerable<PowerPointKnowledgeConfig> GetAllKnowledgeConfigs()
     {
@@ -27,7 +27,7 @@ public class PowerPointKnowledgeService
     }
 
     /// <summary>
-    /// 根据类型获取知识点配置
+    /// 根据类型获取操作点配置
     /// </summary>
     public PowerPointKnowledgeConfig? GetKnowledgeConfig(PowerPointKnowledgeType type)
     {
@@ -35,14 +35,14 @@ public class PowerPointKnowledgeService
     }
 
     /// <summary>
-    /// 根据知识点配置创建操作点
+    /// 根据操作点配置创建操作点
     /// </summary>
     public OperationPoint CreateOperationPoint(PowerPointKnowledgeType type)
     {
         PowerPointKnowledgeConfig? config = GetKnowledgeConfig(type);
         if (config == null)
         {
-            throw new ArgumentException($"未找到知识点类型 {type} 的配置");
+            throw new ArgumentException($"未找到操作点类型 {type} 的配置");
         }
 
         OperationPoint operationPoint = new()
@@ -102,7 +102,7 @@ public class PowerPointKnowledgeService
 
     private void InitializeSlideOperations(Dictionary<PowerPointKnowledgeType, PowerPointKnowledgeConfig> configs)
     {
-        // 知识点1：设置幻灯片版式
+        // 操作点1：设置幻灯片版式
         configs[PowerPointKnowledgeType.SetSlideLayout] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetSlideLayout,
@@ -117,7 +117,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点2：删除幻灯片
+        // 操作点2：删除幻灯片
         configs[PowerPointKnowledgeType.DeleteSlide] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.DeleteSlide,
@@ -132,7 +132,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点3：插入幻灯片
+        // 操作点3：插入幻灯片
         configs[PowerPointKnowledgeType.InsertSlide] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.InsertSlide,
@@ -149,7 +149,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点4：设置幻灯片的字体
+        // 操作点4：设置幻灯片的字体
         configs[PowerPointKnowledgeType.SetSlideFont] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetSlideFont,
@@ -165,7 +165,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点5：幻灯片切换（合并原有的切换效果和切换方式）
+        // 操作点5：幻灯片切换（合并原有的切换效果和切换方式）
         configs[PowerPointKnowledgeType.SlideTransitionEffect] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SlideTransitionEffect,
@@ -182,7 +182,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点7：幻灯片放映方式
+        // 操作点7：幻灯片放映方式
         configs[PowerPointKnowledgeType.SlideshowMode] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SlideshowMode,
@@ -196,7 +196,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点8：幻灯片放映选项（基于COM组件枚举扩展）
+        // 操作点8：幻灯片放映选项（基于COM组件枚举扩展）
         configs[PowerPointKnowledgeType.SlideshowOptions] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SlideshowOptions,
@@ -222,7 +222,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点9：幻灯片插入超链接
+        // 操作点9：幻灯片插入超链接
         configs[PowerPointKnowledgeType.InsertHyperlink] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.InsertHyperlink,
@@ -240,7 +240,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点10：幻灯片切换播放声音
+        // 操作点10：幻灯片切换播放声音
         configs[PowerPointKnowledgeType.SlideTransitionSound] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SlideTransitionSound,
@@ -255,7 +255,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点11：幻灯片编号
+        // 操作点11：幻灯片编号
         configs[PowerPointKnowledgeType.SlideNumber] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SlideNumber,
@@ -268,7 +268,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点12：页脚文字
+        // 操作点12：页脚文字
         configs[PowerPointKnowledgeType.FooterText] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.FooterText,
@@ -281,7 +281,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点13：幻灯片插入图片
+        // 操作点13：幻灯片插入图片
         configs[PowerPointKnowledgeType.InsertImage] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.InsertImage,
@@ -295,7 +295,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点14：幻灯片插入表格
+        // 操作点14：幻灯片插入表格
         configs[PowerPointKnowledgeType.InsertTable] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.InsertTable,
@@ -311,7 +311,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点15：幻灯片插入SmartArt图形
+        // 操作点15：幻灯片插入SmartArt图形
         configs[PowerPointKnowledgeType.InsertSmartArt] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.InsertSmartArt,
@@ -328,7 +328,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点16：插入备注
+        // 操作点16：插入备注
         configs[PowerPointKnowledgeType.InsertNote] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.InsertNote,
@@ -345,7 +345,7 @@ public class PowerPointKnowledgeService
 
     private void InitializeTextAndFontSettings(Dictionary<PowerPointKnowledgeType, PowerPointKnowledgeConfig> configs)
     {
-        // 知识点17：幻灯片插入文本内容
+        // 操作点17：幻灯片插入文本内容
         configs[PowerPointKnowledgeType.InsertTextContent] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.InsertTextContent,
@@ -360,7 +360,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点18：幻灯片插入文本字号
+        // 操作点18：幻灯片插入文本字号
         configs[PowerPointKnowledgeType.SetTextFontSize] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetTextFontSize,
@@ -375,7 +375,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点19：幻灯片插入文本颜色
+        // 操作点19：幻灯片插入文本颜色
         configs[PowerPointKnowledgeType.SetTextColor] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetTextColor,
@@ -390,7 +390,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点20：幻灯片插入文本字形
+        // 操作点20：幻灯片插入文本字形
         configs[PowerPointKnowledgeType.SetTextStyle] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetTextStyle,
@@ -406,7 +406,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点21：元素位置
+        // 操作点21：元素位置
         configs[PowerPointKnowledgeType.SetElementPosition] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetElementPosition,
@@ -422,7 +422,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点22：元素高度和宽度设置
+        // 操作点22：元素高度和宽度设置
         configs[PowerPointKnowledgeType.SetElementSize] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetElementSize,
@@ -438,7 +438,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点23：艺术字设置（合并原有的艺术字字样和文本效果）
+        // 操作点23：艺术字设置（合并原有的艺术字字样和文本效果）
         configs[PowerPointKnowledgeType.SetWordArtStyle] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetWordArtStyle,
@@ -456,7 +456,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点26：动画效果-方向
+        // 操作点26：动画效果-方向
         configs[PowerPointKnowledgeType.SetAnimationDirection] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetAnimationDirection,
@@ -472,7 +472,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点27：动画样式
+        // 操作点27：动画样式
         configs[PowerPointKnowledgeType.SetAnimationStyle] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetAnimationStyle,
@@ -488,7 +488,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点28：动画持续时间
+        // 操作点28：动画持续时间
         configs[PowerPointKnowledgeType.SetAnimationDuration] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetAnimationDuration,
@@ -504,7 +504,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点29：文本对齐方式
+        // 操作点29：文本对齐方式
         configs[PowerPointKnowledgeType.SetTextAlignment] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetTextAlignment,
@@ -520,7 +520,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点30：动画顺序
+        // 操作点30：动画顺序
         configs[PowerPointKnowledgeType.SetAnimationOrder] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetAnimationOrder,
@@ -537,7 +537,7 @@ public class PowerPointKnowledgeService
 
     private void InitializeBackgroundAndDesign(Dictionary<PowerPointKnowledgeType, PowerPointKnowledgeConfig> configs)
     {
-        // 知识点31：设置文稿应用主题
+        // 操作点31：设置文稿应用主题
         configs[PowerPointKnowledgeType.ApplyTheme] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.ApplyTheme,
@@ -554,7 +554,7 @@ public class PowerPointKnowledgeService
 
     private void InitializeMasterAndTheme(Dictionary<PowerPointKnowledgeType, PowerPointKnowledgeConfig> configs)
     {
-        // 知识点32：设置幻灯片背景
+        // 操作点32：设置幻灯片背景
         configs[PowerPointKnowledgeType.SetSlideBackground] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetSlideBackground,
@@ -585,7 +585,7 @@ public class PowerPointKnowledgeService
 
     private void InitializeOtherSettings(Dictionary<PowerPointKnowledgeType, PowerPointKnowledgeConfig> configs)
     {
-        // 知识点33：单元格内容
+        // 操作点33：单元格内容
         configs[PowerPointKnowledgeType.SetTableContent] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetTableContent,
@@ -600,7 +600,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点34：表格样式
+        // 操作点34：表格样式
         configs[PowerPointKnowledgeType.SetTableStyle] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetTableStyle,
@@ -616,7 +616,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点35：SmartArt样式
+        // 操作点35：SmartArt样式
         configs[PowerPointKnowledgeType.SetSmartArtStyle] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetSmartArtStyle,
@@ -632,7 +632,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点36：SmartArt内容
+        // 操作点36：SmartArt内容
         configs[PowerPointKnowledgeType.SetSmartArtContent] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetSmartArtContent,
@@ -647,7 +647,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点37：动画计时与延时设置
+        // 操作点37：动画计时与延时设置
         configs[PowerPointKnowledgeType.SetAnimationTiming] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetAnimationTiming,
@@ -666,7 +666,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点38：段落行距
+        // 操作点38：段落行距
         configs[PowerPointKnowledgeType.SetParagraphSpacing] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetParagraphSpacing,
@@ -681,7 +681,7 @@ public class PowerPointKnowledgeService
             ]
         };
 
-        // 知识点39：设置背景样式
+        // 操作点39：设置背景样式
         configs[PowerPointKnowledgeType.SetBackgroundStyle] = new PowerPointKnowledgeConfig
         {
             KnowledgeType = PowerPointKnowledgeType.SetBackgroundStyle,

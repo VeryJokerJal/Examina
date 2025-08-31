@@ -1813,21 +1813,59 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 验证必需参数
-            string[] requiredParams = ["RowNumber", "Height"];
-            if (!ValidateRequiredParameters(parameters, "SetRowHeight", requiredParams, out string errorDetails))
+            if (!TryGetIntParameter(parameters, "RowNumber", out int rowNumber) ||
+                !TryGetDoubleParameter(parameters, "Height", out double expectedHeight))
             {
-                SetKnowledgePointFailure(result, errorDetails);
+                SetKnowledgePointFailure(result, "缺少必要参数: RowNumber 或 Height");
                 return result;
             }
 
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool rowHeightFound = CheckRowHeightInWorkbook(workbookPart, parameters);
+            WorksheetPart? worksheetPart = GetActiveWorksheet(workbookPart);
 
-            result.ExpectedValue = "行高设置";
-            result.ActualValue = rowHeightFound ? "找到行高设置" : "未找到行高设置";
-            result.IsCorrect = rowHeightFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"行高设置检测: {result.ActualValue}";
+            if (worksheetPart == null)
+            {
+                SetKnowledgePointFailure(result, "无法获取活动工作表");
+                return result;
+            }
+
+            SheetData? sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+            if (sheetData == null)
+            {
+                SetKnowledgePointFailure(result, "工作表中没有数据");
+                return result;
+            }
+
+            List<Row> rows = sheetData.Elements<Row>().Where(r => r.Height?.Value != null).ToList();
+
+            // 创建行高比较函数
+            bool HeightMatches(double? actual, double? expected) =>
+                actual.HasValue && expected.HasValue && Math.Abs(actual.Value - expected.Value) < 0.1;
+
+            bool isMatch = FindMatchingElement(
+                rows,
+                rowNumber,
+                (double?)expectedHeight,
+                row => row.Height?.Value,
+                HeightMatches,
+                out Row? matchedRow,
+                out double? actualHeight,
+                out string errorMessage,
+                "行");
+
+            if (!isMatch)
+            {
+                SetKnowledgePointFailure(result, errorMessage);
+                return result;
+            }
+
+            result.ExpectedValue = expectedHeight.ToString("F1");
+            result.ActualValue = actualHeight?.ToString("F1") ?? "0";
+            result.IsCorrect = true;
+            result.AchievedScore = result.TotalScore;
+            result.Details = rowNumber == -1
+                ? $"行高设置检测(任意匹配): 找到匹配的行高 {actualHeight:F1}"
+                : $"行高设置检测(行{matchedRow?.RowIndex?.Value}): 期望 {expectedHeight:F1}, 实际 {actualHeight:F1}";
         }
         catch (Exception ex)
         {
@@ -1851,21 +1889,85 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             // 验证必需参数
-            string[] requiredParams = ["ColumnLetter", "Width"];
-            if (!ValidateRequiredParameters(parameters, "SetColumnWidth", requiredParams, out string errorDetails))
+            if (!TryGetParameter(parameters, "ColumnLetter", out string columnLetter) ||
+                !TryGetDoubleParameter(parameters, "Width", out double expectedWidth))
             {
-                SetKnowledgePointFailure(result, errorDetails);
+                SetKnowledgePointFailure(result, "缺少必要参数: ColumnLetter 或 Width");
                 return result;
             }
 
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool columnWidthFound = CheckColumnWidthInWorkbook(workbookPart, parameters);
+            WorksheetPart? worksheetPart = GetActiveWorksheet(workbookPart);
 
-            result.ExpectedValue = "列宽设置";
-            result.ActualValue = columnWidthFound ? "找到列宽设置" : "未找到列宽设置";
-            result.IsCorrect = columnWidthFound;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"列宽设置检测: {result.ActualValue}";
+            if (worksheetPart == null)
+            {
+                SetKnowledgePointFailure(result, "无法获取活动工作表");
+                return result;
+            }
+
+            Columns? columnsElement = worksheetPart.Worksheet.Elements<Columns>().FirstOrDefault();
+            if (columnsElement == null)
+            {
+                SetKnowledgePointFailure(result, "工作表中没有列宽设置");
+                return result;
+            }
+
+            List<Column> columns = columnsElement.Elements<Column>().Where(c => c.Width?.Value != null).ToList();
+
+            // 如果指定了具体列字母且不是-1模式，则按列字母匹配
+            if (columnLetter != "-1")
+            {
+                // 将列字母转换为列索引
+                uint columnIndex = ColumnLetterToIndex(columnLetter);
+
+                Column? matchedColumn = columns.FirstOrDefault(c =>
+                    c.Min?.Value <= columnIndex && c.Max?.Value >= columnIndex);
+
+                if (matchedColumn?.Width?.Value != null)
+                {
+                    double actualWidth = matchedColumn.Width.Value;
+                    bool isMatch = Math.Abs(actualWidth - expectedWidth) < 0.1;
+
+                    result.ExpectedValue = expectedWidth.ToString("F1");
+                    result.ActualValue = actualWidth.ToString("F1");
+                    result.IsCorrect = isMatch;
+                    result.AchievedScore = isMatch ? result.TotalScore : 0;
+                    result.Details = $"列宽设置检测(列{columnLetter}): 期望 {expectedWidth:F1}, 实际 {actualWidth:F1}";
+                }
+                else
+                {
+                    SetKnowledgePointFailure(result, $"列 {columnLetter} 没有设置列宽");
+                }
+            }
+            else
+            {
+                // -1 模式：任意匹配
+                bool HeightMatches(double? actual, double? expected) =>
+                    actual.HasValue && expected.HasValue && Math.Abs(actual.Value - expected.Value) < 0.1;
+
+                bool isMatch = FindMatchingElement(
+                    columns,
+                    -1,
+                    (double?)expectedWidth,
+                    column => column.Width?.Value,
+                    HeightMatches,
+                    out Column? matchedColumn,
+                    out double? actualWidth,
+                    out string errorMessage,
+                    "列");
+
+                if (!isMatch)
+                {
+                    SetKnowledgePointFailure(result, errorMessage);
+                    return result;
+                }
+
+                result.ExpectedValue = expectedWidth.ToString("F1");
+                result.ActualValue = actualWidth?.ToString("F1") ?? "0";
+                result.IsCorrect = true;
+                result.AchievedScore = result.TotalScore;
+                result.Details = $"列宽设置检测(任意匹配): 找到匹配的列宽 {actualWidth:F1}";
+            }
         }
         catch (Exception ex)
         {
@@ -4983,5 +5085,111 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 在元素集合中搜索匹配指定条件的元素（支持编号-1的任意匹配模式）
+    /// </summary>
+    /// <typeparam name="TElement">元素类型</typeparam>
+    /// <typeparam name="TValue">期望值的类型</typeparam>
+    /// <param name="elements">元素集合</param>
+    /// <param name="elementNumber">元素编号（-1表示搜索所有元素，找到任意一个匹配的即可）</param>
+    /// <param name="expectedValue">期望值</param>
+    /// <param name="getActualValue">获取元素实际值的函数</param>
+    /// <param name="comparer">比较函数，如果为null则使用默认相等比较</param>
+    /// <param name="matchedElement">匹配的元素</param>
+    /// <param name="actualValue">实际找到的值</param>
+    /// <param name="errorMessage">错误信息</param>
+    /// <param name="elementTypeName">元素类型名称（用于错误信息）</param>
+    /// <returns>是否找到匹配的元素</returns>
+    private static bool FindMatchingElement<TElement, TValue>(
+        IList<TElement>? elements,
+        int elementNumber,
+        TValue expectedValue,
+        Func<TElement, TValue> getActualValue,
+        Func<TValue, TValue, bool>? comparer,
+        out TElement? matchedElement,
+        out TValue? actualValue,
+        out string errorMessage,
+        string elementTypeName = "元素")
+    {
+        matchedElement = default;
+        actualValue = default;
+        errorMessage = string.Empty;
+
+        if (elements == null || elements.Count == 0)
+        {
+            errorMessage = $"没有找到任何{elementTypeName}";
+            return false;
+        }
+
+        // 使用默认比较器如果没有提供
+        comparer ??= EqualityComparer<TValue>.Default.Equals;
+
+        // 如果指定了具体元素索引
+        if (elementNumber != -1)
+        {
+            if (elementNumber < 1 || elementNumber > elements.Count)
+            {
+                errorMessage = $"{elementTypeName}索引超出范围: {elementNumber}，有效范围: 1-{elements.Count}";
+                return false;
+            }
+
+            matchedElement = elements[elementNumber - 1];
+            actualValue = getActualValue(matchedElement);
+            bool isMatch = comparer(actualValue, expectedValue);
+
+            if (!isMatch)
+            {
+                errorMessage = $"{elementTypeName} {elementNumber} 的值不匹配期望值";
+            }
+
+            return isMatch;
+        }
+
+        // -1 表示搜索所有元素，找到任意一个匹配的即可
+        List<string> debugInfo = [];
+        for (int i = 0; i < elements.Count; i++)
+        {
+            TElement element = elements[i];
+            TValue currentValue = getActualValue(element);
+            debugInfo.Add($"{elementTypeName}{i + 1}: {currentValue}");
+
+            if (comparer(currentValue, expectedValue))
+            {
+                matchedElement = element;
+                actualValue = currentValue;
+                System.Diagnostics.Debug.WriteLine($"[{elementTypeName}匹配成功] 在{elementTypeName}{i + 1}找到匹配值: {currentValue}");
+                return true;
+            }
+        }
+
+        // 没有找到匹配的元素，返回第一个元素的值作为实际值
+        if (elements.Count > 0)
+        {
+            matchedElement = elements[0];
+            actualValue = getActualValue(matchedElement);
+        }
+
+        string allValues = string.Join("; ", debugInfo);
+        errorMessage = $"在所有{elementTypeName}中都没有找到匹配期望值'{expectedValue}'的{elementTypeName}。实际值: {allValues}";
+        System.Diagnostics.Debug.WriteLine($"[{elementTypeName}匹配失败] 期望: {expectedValue}, 实际检查的{elementTypeName}: {allValues}");
+        return false;
+    }
+
+    /// <summary>
+    /// 将列字母转换为列索引（A=1, B=2, ..., Z=26, AA=27, etc.）
+    /// </summary>
+    private static uint ColumnLetterToIndex(string columnLetter)
+    {
+        if (string.IsNullOrEmpty(columnLetter))
+            return 1;
+
+        uint result = 0;
+        for (int i = 0; i < columnLetter.Length; i++)
+        {
+            result = result * 26 + (uint)(char.ToUpper(columnLetter[i]) - 'A' + 1);
+        }
+        return result;
     }
 }
