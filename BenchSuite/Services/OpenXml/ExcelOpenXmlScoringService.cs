@@ -341,6 +341,36 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     }
 
     /// <summary>
+    /// 验证必需参数并生成调试信息
+    /// </summary>
+    private bool ValidateRequiredParameters(Dictionary<string, string> parameters, string knowledgePointType, string[] requiredParams, out string errorDetails)
+    {
+        List<string> missingParams = [];
+
+        foreach (string param in requiredParams)
+        {
+            if (!TryGetParameter(parameters, param, out string _))
+            {
+                missingParams.Add(param);
+            }
+        }
+
+        if (missingParams.Count > 0)
+        {
+            string missingParamsList = string.Join("', '", missingParams);
+            errorDetails = $"缺少必需参数: '{missingParamsList}'";
+
+            // 输出详细的调试信息
+            System.Diagnostics.Debug.WriteLine($"[ExcelOpenXmlScoringService] 知识点检测失败 - {knowledgePointType}: {errorDetails}");
+
+            return false;
+        }
+
+        errorDetails = string.Empty;
+        return true;
+    }
+
+    /// <summary>
     /// 检测特定知识点
     /// </summary>
     private KnowledgePointResult DetectSpecificKnowledgePoint(SpreadsheetDocument document, string knowledgePointType, Dictionary<string, string> parameters)
@@ -1638,6 +1668,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["CellRange", "BorderStyle"];
+            if (!ValidateRequiredParameters(parameters, "SetInnerBorderStyle", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool borderStyleFound = CheckInnerBorderStyleInWorkbook(workbookPart, parameters);
 
@@ -1668,6 +1706,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["CellRange", "BorderColor"];
+            if (!ValidateRequiredParameters(parameters, "SetInnerBorderColor", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool borderColorFound = CheckInnerBorderColorInWorkbook(workbookPart, parameters);
 
@@ -1698,6 +1744,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["CellRange", "BorderStyle"];
+            if (!ValidateRequiredParameters(parameters, "SetOuterBorderStyle", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool borderStyleFound = CheckOuterBorderStyleInWorkbook(workbookPart, parameters);
 
@@ -1758,6 +1812,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["RowNumber", "Height"];
+            if (!ValidateRequiredParameters(parameters, "SetRowHeight", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool rowHeightFound = CheckRowHeightInWorkbook(workbookPart, parameters);
 
@@ -1788,6 +1850,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["ColumnLetter", "Width"];
+            if (!ValidateRequiredParameters(parameters, "SetColumnWidth", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool columnWidthFound = CheckColumnWidthInWorkbook(workbookPart, parameters);
 
@@ -1818,6 +1888,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["CellRange", "FillColor"];
+            if (!ValidateRequiredParameters(parameters, "SetCellFillColor", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool fillColorFound = CheckCellFillColorInWorkbook(workbookPart, parameters);
 
@@ -1938,6 +2016,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["NewSheetName"];
+            if (!ValidateRequiredParameters(parameters, "ModifySheetName", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             (bool Found, string SheetName) sheetNameInfo = CheckModifiedSheetNameInWorkbook(workbookPart, parameters);
 
@@ -1968,6 +2054,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["CellRange", "StyleType"];
+            if (!ValidateRequiredParameters(parameters, "SetCellStyleData", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool cellStyleFound = CheckCellStyleDataInWorkbook(workbookPart, parameters);
 
@@ -1998,6 +2092,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["DataRange"];
+            if (!ValidateRequiredParameters(parameters, "Filter", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool filterFound = CheckFilterInWorkbook(workbookPart, parameters);
 
@@ -2028,6 +2130,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["SortColumn", "SortOrder"];
+            if (!ValidateRequiredParameters(parameters, "Sort", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool sortFound = CheckSortInWorkbook(workbookPart, parameters);
 
@@ -2058,6 +2168,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["SourceRange", "TargetLocation"];
+            if (!ValidateRequiredParameters(parameters, "PivotTable", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool pivotTableFound = CheckPivotTableInWorkbook(workbookPart);
 
@@ -2088,6 +2206,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["GroupByColumn", "SummaryFunction"];
+            if (!ValidateRequiredParameters(parameters, "Subtotal", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool subtotalFound = CheckSubtotalInWorkbook(workbookPart, parameters);
 
@@ -2118,6 +2244,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["ConditionRange", "CriteriaRange"];
+            if (!ValidateRequiredParameters(parameters, "AdvancedFilterCondition", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool advancedFilterFound = CheckAdvancedFilterConditionInWorkbook(workbookPart, parameters);
 
@@ -2148,6 +2282,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["DataRange", "OutputRange"];
+            if (!ValidateRequiredParameters(parameters, "AdvancedFilterData", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool advancedFilterDataFound = CheckAdvancedFilterDataInWorkbook(workbookPart, parameters);
 
@@ -2208,6 +2350,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["StyleType"];
+            if (!ValidateRequiredParameters(parameters, "ChartStyle", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             bool chartStyleFound = CheckChartStyleInWorkbook(workbookPart, parameters);
 
@@ -2298,6 +2448,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["TargetSheet"];
+            if (!ValidateRequiredParameters(parameters, "ChartMove", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             WorkbookPart workbookPart = document.WorkbookPart!;
             (bool Found, string Location) chartMoveInfo = CheckChartMoveInWorkbook(workbookPart, parameters);
 
