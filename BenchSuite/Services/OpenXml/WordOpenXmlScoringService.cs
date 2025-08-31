@@ -6331,26 +6331,30 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 简化实现：检查VML文本框
-            // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            // 1. 检查VML文本框
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                string text = shape.InnerText;
-                if (!string.IsNullOrEmpty(text))
+                // 检查是否为文本框
+                DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+                if (textBox != null)
                 {
-                    return text.Trim();
+                    string content = ExtractVmlTextBoxContent(shape);
+                    if (!string.IsNullOrEmpty(content) && content != "无文本内容")
+                    {
+                        return content;
+                    }
                 }
             }
 
-            // 检查Drawing中的文本框
+            // 2. 检查Drawing中的文本框
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                string text = drawing.InnerText;
-                if (!string.IsNullOrEmpty(text))
+                string content = ExtractDrawingTextBoxContent(drawing);
+                if (!string.IsNullOrEmpty(content) && content != "无文本内容")
                 {
-                    return text.Trim();
+                    return content;
                 }
             }
 
@@ -6358,7 +6362,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         }
         catch
         {
-            return "未知";
+            return "内容检测失败";
         }
     }
 
@@ -6369,28 +6373,38 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 简化实现：检查VML文本框
-            // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            // 1. 检查VML文本框
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                IEnumerable<Run> runs = shape.Descendants<Run>();
-                foreach (Run run in runs)
+                // 检查是否为文本框
+                DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+                if (textBox != null)
                 {
-                    RunProperties? runProperties = run.RunProperties;
-                    FontSize? fontSize = runProperties?.FontSize;
-                    if (fontSize?.Val?.Value != null)
+                    int fontSize = ExtractVmlTextBoxFontSize(shape);
+                    if (fontSize > 0)
                     {
-                        return int.Parse(fontSize.Val.Value) / 2;
+                        return fontSize;
                     }
                 }
             }
 
-            return 12; // 默认字号
+            // 2. 检查Drawing中的文本框
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
+            {
+                int fontSize = ExtractDrawingTextBoxFontSize(drawing);
+                if (fontSize > 0)
+                {
+                    return fontSize;
+                }
+            }
+
+            return 0; // 未找到文字大小
         }
         catch
         {
-            return 12;
+            return 0;
         }
     }
 
@@ -6439,16 +6453,30 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 检查VML文本框的环绕设置
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            // 1. 检查VML文本框的环绕设置
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                // 简化实现：检查形状是否包含文本
-                string text = shape.InnerText;
-                if (!string.IsNullOrEmpty(text))
+                // 检查是否为文本框
+                DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+                if (textBox != null)
                 {
-                    // 简化实现：检测到文本框环绕设置
-                    return "检测到环绕方式";
+                    string wrapStyle = ExtractVmlTextBoxWrapStyle(shape);
+                    if (!string.IsNullOrEmpty(wrapStyle) && wrapStyle != "无环绕设置")
+                    {
+                        return wrapStyle;
+                    }
+                }
+            }
+
+            // 2. 检查Drawing中的文本框环绕
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
+            {
+                string wrapStyle = ExtractDrawingTextBoxWrapStyle(drawing);
+                if (!string.IsNullOrEmpty(wrapStyle) && wrapStyle != "无环绕设置")
+                {
+                    return wrapStyle;
                 }
             }
 
@@ -6456,7 +6484,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         }
         catch
         {
-            return "未知";
+            return "环绕检测失败";
         }
     }
 
@@ -6735,8 +6763,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到图片环绕设置
-                return "检测到环绕方式";
+                string wrapStyle = ExtractImageWrapStyle(drawing);
+                if (!string.IsNullOrEmpty(wrapStyle) && wrapStyle != "无环绕设置")
+                {
+                    return wrapStyle;
+                }
             }
 
             return "无环绕设置";
@@ -8393,6 +8424,256 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch
         {
             return (0f, 0f);
+        }
+    }
+
+    /// <summary>
+    /// 从VML文本框中提取内容
+    /// </summary>
+    private static string ExtractVmlTextBoxContent(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            List<string> textContents = [];
+
+            // 1. 检查TextBox中的段落内容
+            DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+            if (textBox != null)
+            {
+                IEnumerable<Paragraph> paragraphs = textBox.Descendants<Paragraph>();
+                foreach (Paragraph paragraph in paragraphs)
+                {
+                    string paragraphText = paragraph.InnerText;
+                    if (!string.IsNullOrEmpty(paragraphText))
+                    {
+                        textContents.Add(paragraphText.Trim());
+                    }
+                }
+            }
+
+            // 2. 检查形状的直接文本内容
+            string directText = shape.InnerText;
+            if (!string.IsNullOrEmpty(directText))
+            {
+                textContents.Add(directText.Trim());
+            }
+
+            // 合并所有文本内容
+            if (textContents.Count > 0)
+            {
+                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
+            }
+
+            return "无文本内容";
+        }
+        catch
+        {
+            return "无文本内容";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文本框内容
+    /// </summary>
+    private static string ExtractDrawingTextBoxContent(Drawing drawing)
+    {
+        try
+        {
+            List<string> textContents = [];
+
+            // 检查Drawing中的文本元素
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
+            {
+                if (!string.IsNullOrEmpty(textElement.Text))
+                {
+                    textContents.Add(textElement.Text.Trim());
+                }
+            }
+
+            // 检查段落文本
+            IEnumerable<Paragraph> paragraphs = drawing.Descendants<Paragraph>();
+            foreach (Paragraph paragraph in paragraphs)
+            {
+                string paragraphText = paragraph.InnerText;
+                if (!string.IsNullOrEmpty(paragraphText))
+                {
+                    textContents.Add(paragraphText.Trim());
+                }
+            }
+
+            // 合并所有文本内容
+            if (textContents.Count > 0)
+            {
+                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
+            }
+
+            return "无文本内容";
+        }
+        catch
+        {
+            return "无文本内容";
+        }
+    }
+
+    /// <summary>
+    /// 从VML文本框中提取字体大小
+    /// </summary>
+    private static int ExtractVmlTextBoxFontSize(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            // 检查Run元素中的字号设置
+            IEnumerable<Run> runs = shape.Descendants<Run>();
+            foreach (Run run in runs)
+            {
+                RunProperties? runProperties = run.RunProperties;
+                FontSize? fontSize = runProperties?.FontSize;
+                if (fontSize?.Val?.Value != null)
+                {
+                    if (int.TryParse(fontSize.Val.Value, out int size))
+                    {
+                        return size / 2; // OpenXML中字号以半点为单位
+                    }
+                }
+            }
+
+            // 检查形状样式中的字号
+            string? style = shape.Style?.Value;
+            if (!string.IsNullOrEmpty(style))
+            {
+                int fontSize = ParseFontSizeFromStyle(style);
+                if (fontSize > 0)
+                {
+                    return fontSize;
+                }
+            }
+
+            return 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文本框字体大小
+    /// </summary>
+    private static int ExtractDrawingTextBoxFontSize(Drawing drawing)
+    {
+        try
+        {
+            // 检查Drawing中的文本运行
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
+            {
+                // 检查文本运行的属性
+                DocumentFormat.OpenXml.Drawing.RunProperties? runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                if (runProperties?.FontSize?.Value != null)
+                {
+                    // Drawing中的字号以百分点为单位，需要除以100
+                    return runProperties.FontSize.Value / 100;
+                }
+            }
+
+            return 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 从VML文本框中提取环绕方式
+    /// </summary>
+    private static string ExtractVmlTextBoxWrapStyle(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            // 检查形状的环绕属性（通过属性访问）
+            OpenXmlAttribute wrapCoordsAttr = shape.GetAttribute("wrapcoords", "");
+            if (!string.IsNullOrEmpty(wrapCoordsAttr.Value))
+            {
+                return "自定义环绕";
+            }
+
+            // 检查样式中的环绕设置
+            string? style = shape.Style?.Value;
+            if (!string.IsNullOrEmpty(style))
+            {
+                if (style.Contains("wrap"))
+                {
+                    return "样式环绕";
+                }
+            }
+
+            return "无环绕设置";
+        }
+        catch
+        {
+            return "无环绕设置";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文本框环绕方式
+    /// </summary>
+    private static string ExtractDrawingTextBoxWrapStyle(Drawing drawing)
+    {
+        try
+        {
+            // 使用已有的图片环绕方式检测逻辑
+            return ExtractImageWrapStyle(drawing);
+        }
+        catch
+        {
+            return "无环绕设置";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取图片环绕方式
+    /// </summary>
+    private static string ExtractImageWrapStyle(Drawing drawing)
+    {
+        try
+        {
+            // 检查Anchor类型的环绕方式
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                // 检查各种环绕类型
+                if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapNone>() != null)
+                    return "无环绕";
+                if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapSquare>() != null)
+                    return "四周型环绕";
+                if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapTight>() != null)
+                    return "紧密型环绕";
+                if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapThrough>() != null)
+                    return "穿越型环绕";
+                // 注意：WrapTopAndBottom可能不存在，使用通用检查
+                IEnumerable<OpenXmlElement> wrapElements = anchor.Elements().Where(e => e.LocalName.Contains("wrap"));
+                if (wrapElements.Any())
+                {
+                    OpenXmlElement wrapElement = wrapElements.First();
+                    return $"{wrapElement.LocalName}环绕";
+                }
+            }
+
+            // Inline类型图片通常跟随文本流
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                return "嵌入式(跟随文本)";
+            }
+
+            return "无环绕设置";
+        }
+        catch
+        {
+            return "无环绕设置";
         }
     }
 }
