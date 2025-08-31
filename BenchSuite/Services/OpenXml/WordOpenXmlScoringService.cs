@@ -430,6 +430,36 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     }
 
     /// <summary>
+    /// 验证必需参数并生成调试信息
+    /// </summary>
+    private bool ValidateRequiredParameters(Dictionary<string, string> parameters, string knowledgePointType, string[] requiredParams, out string errorDetails)
+    {
+        List<string> missingParams = [];
+
+        foreach (string param in requiredParams)
+        {
+            if (!TryGetParameter(parameters, param, out string _))
+            {
+                missingParams.Add(param);
+            }
+        }
+
+        if (missingParams.Count > 0)
+        {
+            string missingParamsList = string.Join("', '", missingParams);
+            errorDetails = $"缺少必需参数: '{missingParamsList}'";
+
+            // 输出详细的调试信息
+            System.Diagnostics.Debug.WriteLine($"[WordOpenXmlScoringService] 知识点检测失败 - {knowledgePointType}: {errorDetails}");
+
+            return false;
+        }
+
+        errorDetails = string.Empty;
+        return true;
+    }
+
+    /// <summary>
     /// 检测特定知识点
     /// </summary>
     private KnowledgePointResult DetectSpecificKnowledgePoint(WordprocessingDocument document, string knowledgePointType, Dictionary<string, string> parameters)
@@ -1881,12 +1911,16 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
         try
         {
-            if (!TryGetParameter(parameters, "PageNumberPosition", out string expectedPosition) ||
-                !TryGetParameter(parameters, "PageNumberFormat", out string expectedFormat))
+            // 验证必需参数
+            string[] requiredParams = ["PageNumberPosition", "PageNumberFormat"];
+            if (!ValidateRequiredParameters(parameters, "SetPageNumber", requiredParams, out string errorDetails))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: PageNumberPosition 或 PageNumberFormat");
+                SetKnowledgePointFailure(result, errorDetails);
                 return result;
             }
+
+            TryGetParameter(parameters, "PageNumberPosition", out string expectedPosition);
+            TryGetParameter(parameters, "PageNumberFormat", out string expectedFormat);
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
             (string Position, string Format) pageNumberInfo = GetPageNumberInfo(mainPart);
@@ -1919,11 +1953,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
         try
         {
-            if (!TryGetParameter(parameters, "BackgroundColor", out string expectedColor))
+            // 验证必需参数
+            string[] requiredParams = ["BackgroundColor"];
+            if (!ValidateRequiredParameters(parameters, "SetPageBackground", requiredParams, out string errorDetails))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: BackgroundColor");
+                SetKnowledgePointFailure(result, errorDetails);
                 return result;
             }
+
+            TryGetParameter(parameters, "BackgroundColor", out string expectedColor);
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
             string actualColor = GetPageBackgroundColor(mainPart);
@@ -2063,11 +2101,15 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
         try
         {
-            if (!TryGetParameter(parameters, "WatermarkText", out string expectedText))
+            // 验证必需参数
+            string[] requiredParams = ["WatermarkText"];
+            if (!ValidateRequiredParameters(parameters, "SetWatermarkText", requiredParams, out string errorDetails))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: WatermarkText");
+                SetKnowledgePointFailure(result, errorDetails);
                 return result;
             }
+
+            TryGetParameter(parameters, "WatermarkText", out string expectedText);
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
             string actualText = GetWatermarkText(mainPart);

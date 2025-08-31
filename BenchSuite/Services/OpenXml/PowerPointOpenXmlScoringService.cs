@@ -314,6 +314,36 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     }
 
     /// <summary>
+    /// 验证必需参数并生成调试信息
+    /// </summary>
+    private bool ValidateRequiredParameters(Dictionary<string, string> parameters, string knowledgePointType, string[] requiredParams, out string errorDetails)
+    {
+        List<string> missingParams = [];
+
+        foreach (string param in requiredParams)
+        {
+            if (!TryGetParameter(parameters, param, out string _))
+            {
+                missingParams.Add(param);
+            }
+        }
+
+        if (missingParams.Count > 0)
+        {
+            string missingParamsList = string.Join("', '", missingParams);
+            errorDetails = $"缺少必需参数: '{missingParamsList}'";
+
+            // 输出详细的调试信息
+            System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 知识点检测失败 - {knowledgePointType}: {errorDetails}");
+
+            return false;
+        }
+
+        errorDetails = string.Empty;
+        return true;
+    }
+
+    /// <summary>
     /// 检测特定知识点
     /// </summary>
     private KnowledgePointResult DetectSpecificKnowledgePoint(PresentationDocument document, string knowledgePointType, Dictionary<string, string> parameters)
@@ -1125,6 +1155,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["SlideIndex"];
+            if (!ValidateRequiredParameters(parameters, "InsertImage", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             int totalImageCount = 0;
             string searchDetails = "";
 
@@ -1223,6 +1261,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["SlideIndex"];
+            if (!ValidateRequiredParameters(parameters, "InsertTable", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             int totalTableCount = 0;
             string searchDetails = "";
 
@@ -1751,6 +1797,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
+            // 验证必需参数
+            string[] requiredParams = ["ThemeName"];
+            if (!ValidateRequiredParameters(parameters, "ApplyTheme", requiredParams, out string errorDetails))
+            {
+                SetKnowledgePointFailure(result, errorDetails);
+                return result;
+            }
+
             PresentationPart presentationPart = document.PresentationPart!;
             string? themeName = GetAppliedTheme(presentationPart);
             bool hasCustomTheme = !string.IsNullOrEmpty(themeName) && !themeName.Equals("Office Theme", StringComparison.OrdinalIgnoreCase);
