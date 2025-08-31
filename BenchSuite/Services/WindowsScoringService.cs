@@ -239,6 +239,9 @@ public class WindowsScoringService : IWindowsScoringService
 
                     // 设置操作点相关信息
                     result.KnowledgePointId = operationPoint.Id;
+                    result.OperationPointId = operationPoint.Id;
+                    result.KnowledgePointName = operationPoint.Name;
+                    result.TotalScore = operationPoint.Score;
                     result.AchievedScore = result.IsCorrect ? operationPoint.Score : 0;
 
                     results.Add(result);
@@ -248,10 +251,13 @@ public class WindowsScoringService : IWindowsScoringService
                     KnowledgePointResult errorResult = new()
                     {
                         KnowledgePointId = operationPoint.Id,
+                        OperationPointId = operationPoint.Id,
+                        KnowledgePointName = operationPoint.Name,
                         KnowledgePointType = operationPoint.Name,
-                        ErrorMessage = $"检测操作点时发生错误: {ex.Message}",
+                        TotalScore = operationPoint.Score,
+                        AchievedScore = 0,
                         IsCorrect = false,
-                        AchievedScore = 0
+                        ErrorMessage = $"检测操作点时发生错误: {ex.Message}"
                     };
                     results.Add(errorResult);
                 }

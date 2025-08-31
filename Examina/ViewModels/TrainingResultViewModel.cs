@@ -623,6 +623,11 @@ public class QuestionResultItem
     /// 状态颜色
     /// </summary>
     public string StatusColor => IsCorrect ? "Green" : "Red";
+
+    /// <summary>
+    /// 格式化的分数显示文本
+    /// </summary>
+    public string ScoreText => $"{AchievedScore:F1} / {TotalScore:F1}";
 }
 
 /// <summary>

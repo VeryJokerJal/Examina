@@ -173,9 +173,12 @@ public class MockWindowsScoringService : IScoringService
             KnowledgePointResult result = new()
             {
                 KnowledgePointId = operationPoint.Id,
+                OperationPointId = operationPoint.Id,
+                KnowledgePointName = operationPoint.Name,
                 KnowledgePointType = operationPoint.Name,
-                IsCorrect = isCorrect,
+                TotalScore = operationPoint.Score,
                 AchievedScore = isCorrect ? operationPoint.Score : 0,
+                IsCorrect = isCorrect,
                 Parameters = operationPoint.Parameters.ToDictionary(p => p.Name, p => p.Value),
                 Details = isCorrect ? $"模拟检测成功: {operationPoint.Name}" : $"模拟检测失败: {operationPoint.Name}"
             };

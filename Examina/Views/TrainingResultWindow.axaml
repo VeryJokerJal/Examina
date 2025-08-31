@@ -232,8 +232,7 @@
 
                                                                 <!--  得分  -->
                                                                 <StackPanel Grid.Column="2" Margin="8,0">
-                                                                    <TextBlock HorizontalAlignment="Right" Classes="content" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
-                                                                    <TextBlock HorizontalAlignment="Right" Classes="content" Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
+                                                                    <TextBlock HorizontalAlignment="Right" Classes="content" VerticalAlignment="Center" Text="{Binding ScoreText}" />
                                                                 </StackPanel>
 
                                                                 <!--  得分率  -->
