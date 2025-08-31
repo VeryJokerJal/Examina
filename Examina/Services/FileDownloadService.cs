@@ -305,21 +305,8 @@ public class FileDownloadService : IFileDownloadService
 
     public string GetDownloadDirectory(FileDownloadTaskType taskType, int relatedId)
     {
-        // 专项训练直接使用基础路径，不创建训练ID子目录
-        if (taskType == FileDownloadTaskType.SpecializedTraining)
-        {
-            return _baseDownloadPath;
-        }
-
-        string typeFolder = taskType switch
-        {
-            FileDownloadTaskType.MockExam => "MockExams",
-            FileDownloadTaskType.OnlineExam => "OnlineExams",
-            FileDownloadTaskType.ComprehensiveTraining => "ComprehensiveTraining",
-            _ => "Unknown"
-        };
-
-        return Path.Combine(_baseDownloadPath, typeFolder, relatedId.ToString());
+        // 所有考试类型都直接使用基础路径，不创建子目录
+        return _baseDownloadPath;
     }
 
     public bool HasSufficientDiskSpace(long requiredSpace, string downloadPath)

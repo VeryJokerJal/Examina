@@ -213,33 +213,14 @@ private Window? GetMainWindow()
 目录结构：
 ```
 C:\河北对口计算机\
-├── MockExams/              # 模拟考试
-│   └── {examId}/
-│       ├── CSharp/
-│       ├── PPT/
-│       ├── WORD/
-│       ├── EXCEL/
-│       └── WINDOWS/
-├── OnlineExams/            # 上机统考（正式考试）
-│   └── {examId}/
-│       ├── CSharp/
-│       ├── PPT/
-│       ├── WORD/
-│       ├── EXCEL/
-│       └── WINDOWS/
-├── ComprehensiveTraining/  # 综合考试
-│   └── {trainingId}/
-│       ├── CSharp/
-│       ├── PPT/
-│       ├── WORD/
-│       ├── EXCEL/
-│       └── WINDOWS/
-├── CSharp/                 # 专项训练 - C#编程
-├── PPT/                    # 专项训练 - PowerPoint
-├── WORD/                   # 专项训练 - Word文档
-├── EXCEL/                  # 专项训练 - Excel表格
-└── WINDOWS/                # 专项训练 - Windows操作
+├── CSharp/                 # C#编程文件
+├── PPT/                    # PowerPoint文件
+├── WORD/                   # Word文档文件
+├── EXCEL/                  # Excel表格文件
+└── WINDOWS/                # Windows操作文件
 ```
+
+**注意**：所有考试类型（模拟考试、上机统考、综合考试、专项训练）都统一使用基础目录 `C:\河北对口计算机\`，不再创建子目录结构。
 
 ### 2. 支持的文件格式
 

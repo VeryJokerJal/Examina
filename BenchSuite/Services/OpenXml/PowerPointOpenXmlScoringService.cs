@@ -519,23 +519,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) ||
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
                 !TryGetParameter(parameters, "LayoutType", out string expectedLayout))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex 或 LayoutType");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 LayoutType");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             // 获取幻灯片版式
@@ -550,7 +550,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 result.ActualValue = actualLayout;
                 result.IsCorrect = TextEquals(normalizedActual, normalizedExpected);
                 result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-                result.Details = $"幻灯片 {slideIndex} 的版式: 期望 {expectedLayout}, 实际 {actualLayout}";
+                result.Details = $"幻灯片 {SlideNumber} 的版式: 期望 {expectedLayout}, 实际 {actualLayout}";
             }
             else
             {
@@ -591,18 +591,18 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
                 result.Details = $"幻灯片数量: 期望 {expectedCount}, 实际 {actualCount}";
             }
-            else if (TryGetIntParameter(parameters, "SlideIndex", out int deletedSlideIndex))
+            else if (TryGetIntParameter(parameters, "SlideNumber", out int deletedSlideNumber))
             {
                 // 检测指定位置的幻灯片是否已被删除
                 result.IsCorrect = actualCount > 0;
-                result.ExpectedValue = $"删除第{deletedSlideIndex}张幻灯片";
+                result.ExpectedValue = $"删除第{deletedSlideNumber}张幻灯片";
                 result.ActualValue = $"当前有{actualCount}张幻灯片";
                 result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
                 result.Details = $"删除幻灯片检测: {result.ActualValue}";
             }
             else
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: ExpectedSlideCount 或 SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: ExpectedSlideCount 或 SlideNumber");
             }
         }
         catch (Exception ex)
@@ -695,16 +695,16 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
-            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
-                                   slideIndex >= 1 && slideIndex <= (slideIds?.Count ?? 0);
+            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) &&
+                                   SlideNumber >= 1 && SlideNumber <= (slideIds?.Count ?? 0);
 
             if (hasSpecificSlide && slideIds != null)
             {
                 // 检测指定幻灯片
-                SlideId slideId = slideIds[slideIndex - 1];
+                SlideId slideId = slideIds[SlideNumber - 1];
                 SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
                 fontFound = CheckSlideForFont(slidePart, expectedFont, actualFonts);
-                searchDetails = $"幻灯片 {slideIndex}";
+                searchDetails = $"幻灯片 {SlideNumber}";
             }
 
             // 如果在指定幻灯片没找到，或者没有指定幻灯片，则搜索所有幻灯片
@@ -770,17 +770,17 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
-            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
-                                   slideIndex >= 1 && slideIndex <= (slideIds?.Count ?? 0);
+            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) &&
+                                   SlideNumber >= 1 && SlideNumber <= (slideIds?.Count ?? 0);
 
             if (hasSpecificSlide && slideIds != null)
             {
                 // 检测指定幻灯片
-                SlideId slideId = slideIds[slideIndex - 1];
+                SlideId slideId = slideIds[SlideNumber - 1];
                 SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
                 allText = GetSlideText(slidePart);
                 textFound = TextContains(allText, expectedText);
-                searchDetails = $"幻灯片 {slideIndex}";
+                searchDetails = $"幻灯片 {SlideNumber}";
             }
 
             // 如果在指定幻灯片没找到文本，或者没有指定幻灯片，则搜索所有幻灯片
@@ -890,17 +890,17 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 支持多种参数名称（兼容新旧版本）
-            if (!parameters.TryGetValue("SlideNumbers", out string? slideIndexesStr))
+            if (!parameters.TryGetValue("SlideNumbers", out string? SlideNumberesStr))
             {
-                if (!parameters.TryGetValue("SlideIndexes", out slideIndexesStr))
+                if (!parameters.TryGetValue("SlideNumberes", out SlideNumberesStr))
                 {
-                    if (parameters.TryGetValue("SlideIndex", out string? singleSlideStr))
+                    if (parameters.TryGetValue("SlideNumber", out string? singleSlideStr))
                     {
-                        slideIndexesStr = singleSlideStr;
+                        SlideNumberesStr = singleSlideStr;
                     }
                     else
                     {
-                        _ = parameters.TryGetValue("SlideNumber", out slideIndexesStr);
+                        _ = parameters.TryGetValue("SlideNumber", out SlideNumberesStr);
                     }
                 }
             }
@@ -913,25 +913,25 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 }
             }
 
-            if (string.IsNullOrEmpty(slideIndexesStr) || string.IsNullOrEmpty(expectedTransition))
+            if (string.IsNullOrEmpty(SlideNumberesStr) || string.IsNullOrEmpty(expectedTransition))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumbers/SlideIndexes 或 TransitionEffect/TransitionType");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumbers/SlideNumberes 或 TransitionEffect/TransitionType");
                 return result;
             }
 
             // 解析幻灯片索引列表
-            string[] slideIndexStrings = slideIndexesStr.Split(',');
-            List<int> slideIndexes = [];
+            string[] SlideNumberStrings = SlideNumberesStr.Split(',');
+            List<int> SlideNumberes = [];
 
-            foreach (string indexStr in slideIndexStrings)
+            foreach (string indexStr in SlideNumberStrings)
             {
                 if (int.TryParse(indexStr.Trim(), out int index))
                 {
-                    slideIndexes.Add(index);
+                    SlideNumberes.Add(index);
                 }
             }
 
-            if (slideIndexes.Count == 0)
+            if (SlideNumberes.Count == 0)
             {
                 SetKnowledgePointFailure(result, "无效的幻灯片索引列表");
                 return result;
@@ -950,15 +950,15 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             List<string> details = [];
             List<string> actualTransitions = [];
 
-            foreach (int slideIndex in slideIndexes)
+            foreach (int SlideNumber in SlideNumberes)
             {
-                if (slideIndex < 1 || slideIndex > slideIds.Count)
+                if (SlideNumber < 1 || SlideNumber > slideIds.Count)
                 {
-                    details.Add($"幻灯片 {slideIndex}: 索引超出范围");
+                    details.Add($"幻灯片 {SlideNumber}: 索引超出范围");
                     continue;
                 }
 
-                SlideId slideId = slideIds[slideIndex - 1];
+                SlideId slideId = slideIds[SlideNumber - 1];
                 SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
                 // 检查切换效果
@@ -970,18 +970,18 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 if (isCorrect)
                 {
                     correctCount++;
-                    details.Add($"幻灯片 {slideIndex}: 切换效果匹配 ({actualTransition})");
+                    details.Add($"幻灯片 {SlideNumber}: 切换效果匹配 ({actualTransition})");
                 }
                 else
                 {
-                    details.Add($"幻灯片 {slideIndex}: 切换效果不匹配 (期望: {expectedTransition}, 实际: {actualTransition})");
+                    details.Add($"幻灯片 {SlideNumber}: 切换效果不匹配 (期望: {expectedTransition}, 实际: {actualTransition})");
                 }
             }
 
             result.ExpectedValue = expectedTransition;
             result.ActualValue = string.Join(", ", actualTransitions.Distinct());
-            result.IsCorrect = correctCount == slideIndexes.Count;
-            result.AchievedScore = result.IsCorrect ? result.TotalScore : (int)((double)correctCount / slideIndexes.Count * result.TotalScore);
+            result.IsCorrect = correctCount == SlideNumberes.Count;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : (int)((double)correctCount / SlideNumberes.Count * result.TotalScore);
             result.Details = string.Join("; ", details);
         }
         catch (Exception ex)
@@ -1061,23 +1061,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) ||
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
                 !TryGetFloatParameter(parameters, "FontSize", out float expectedSize))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex 或 FontSize");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 FontSize");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool sizeFound = false;
@@ -1103,7 +1103,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = string.Join("; ", actualSizes);
             result.IsCorrect = sizeFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 字号检测: 期望 {expectedSize}, 找到的字号 {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 字号检测: 期望 {expectedSize}, 找到的字号 {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1126,23 +1126,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) ||
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
                 !TryGetParameter(parameters, "Color", out string expectedColor))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex 或 Color");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 Color");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool colorFound = false;
@@ -1177,7 +1177,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = string.Join("; ", actualColors);
             result.IsCorrect = colorFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 文本颜色检测: 期望 {expectedColor}, 找到的颜色 {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 文本颜色检测: 期望 {expectedColor}, 找到的颜色 {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1201,7 +1201,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 验证必需参数
-            string[] requiredParams = ["SlideIndex"];
+            string[] requiredParams = ["SlideNumber"];
             if (!ValidateRequiredParameters(parameters, "InsertImage", requiredParams, out string errorDetails))
             {
                 SetKnowledgePointFailure(result, errorDetails);
@@ -1215,16 +1215,16 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
-            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
-                                   slideIndex >= 1 && slideIndex <= (slideIds?.Count ?? 0);
+            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) &&
+                                   SlideNumber >= 1 && SlideNumber <= (slideIds?.Count ?? 0);
 
             if (hasSpecificSlide && slideIds != null)
             {
                 // 检测指定幻灯片
-                SlideId slideId = slideIds[slideIndex - 1];
+                SlideId slideId = slideIds[SlideNumber - 1];
                 SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
                 totalImageCount = CountImagesInSlide(slidePart);
-                searchDetails = $"幻灯片 {slideIndex}";
+                searchDetails = $"幻灯片 {SlideNumber}";
             }
 
             // 如果在指定幻灯片没找到图片，或者没有指定幻灯片，则搜索所有幻灯片
@@ -1307,7 +1307,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 验证必需参数
-            string[] requiredParams = ["SlideIndex"];
+            string[] requiredParams = ["SlideNumber"];
             if (!ValidateRequiredParameters(parameters, "InsertTable", requiredParams, out string errorDetails))
             {
                 SetKnowledgePointFailure(result, errorDetails);
@@ -1321,16 +1321,16 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
             // 尝试获取指定的幻灯片索引
-            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) &&
-                                   slideIndex >= 1 && slideIndex <= (slideIds?.Count ?? 0);
+            bool hasSpecificSlide = TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) &&
+                                   SlideNumber >= 1 && SlideNumber <= (slideIds?.Count ?? 0);
 
             if (hasSpecificSlide && slideIds != null)
             {
                 // 检测指定幻灯片
-                SlideId slideId = slideIds[slideIndex - 1];
+                SlideId slideId = slideIds[SlideNumber - 1];
                 SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
                 totalTableCount = CountTablesInSlide(slidePart);
-                searchDetails = $"幻灯片 {slideIndex}";
+                searchDetails = $"幻灯片 {SlideNumber}";
             }
 
             // 如果在指定幻灯片没找到表格，或者没有指定幻灯片，则搜索所有幻灯片
@@ -1411,23 +1411,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) ||
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
                 !TryGetParameter(parameters, "StyleType", out string expectedStyle))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex 或 StyleType");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 StyleType");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool styleFound = CheckTextStyleInSlide(slidePart, expectedStyle);
@@ -1436,7 +1436,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = styleFound ? expectedStyle : "未找到指定样式";
             result.IsCorrect = styleFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 文本样式检测: 期望 {expectedStyle}, {(styleFound ? "找到" : "未找到")}";
+            result.Details = $"幻灯片 {SlideNumber} 文本样式检测: 期望 {expectedStyle}, {(styleFound ? "找到" : "未找到")}";
         }
         catch (Exception ex)
         {
@@ -1459,23 +1459,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) ||
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
                 !TryGetParameter(parameters, "ElementType", out string elementType))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex 或 ElementType");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 ElementType");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             (bool Found, long X, long Y) positionInfo = GetElementPosition(slidePart, elementType, parameters);
@@ -1484,7 +1484,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = positionInfo.Found ? $"X:{positionInfo.X}, Y:{positionInfo.Y}" : "未找到元素";
             result.IsCorrect = positionInfo.Found && ValidatePosition(positionInfo, parameters);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 元素位置检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 元素位置检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1507,23 +1507,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) ||
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
                 !TryGetParameter(parameters, "ElementType", out string elementType))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex 或 ElementType");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 ElementType");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             (bool Found, long Width, long Height) sizeInfo = GetElementSize(slidePart, elementType, parameters);
@@ -1532,7 +1532,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = sizeInfo.Found ? $"宽:{sizeInfo.Width}, 高:{sizeInfo.Height}" : "未找到元素";
             result.IsCorrect = sizeInfo.Found && ValidateSize(sizeInfo, parameters);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 元素大小检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 元素大小检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1555,23 +1555,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex) ||
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
                 !TryGetParameter(parameters, "Alignment", out string expectedAlignment))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex 或 Alignment");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 Alignment");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             string actualAlignment = GetTextAlignment(slidePart);
@@ -1580,7 +1580,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = actualAlignment;
             result.IsCorrect = TextEquals(actualAlignment, expectedAlignment);
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 文本对齐检测: 期望 {expectedAlignment}, 实际 {actualAlignment}";
+            result.Details = $"幻灯片 {SlideNumber} 文本对齐检测: 期望 {expectedAlignment}, 实际 {actualAlignment}";
         }
         catch (Exception ex)
         {
@@ -1603,22 +1603,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             (bool Found, string Url) = GetHyperlinkInfo(slidePart, parameters);
@@ -1627,7 +1627,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = Found ? Url : "无超链接";
             result.IsCorrect = Found && (string.IsNullOrEmpty(expectedUrl) || TextEquals(Url, expectedUrl));
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 超链接检测: {(Found ? $"找到超链接 {Url}" : "未找到超链接")}";
+            result.Details = $"幻灯片 {SlideNumber} 超链接检测: {(Found ? $"找到超链接 {Url}" : "未找到超链接")}";
         }
         catch (Exception ex)
         {
@@ -1650,22 +1650,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool hasSlideNumber = CheckSlideNumber(slidePart);
@@ -1674,7 +1674,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = hasSlideNumber ? "显示幻灯片编号" : "未显示幻灯片编号";
             result.IsCorrect = hasSlideNumber;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 编号检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 编号检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1697,22 +1697,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             string footerText = GetFooterText(slidePart);
@@ -1722,7 +1722,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = string.IsNullOrEmpty(footerText) ? "无页脚文本" : footerText;
             result.IsCorrect = !string.IsNullOrEmpty(footerText) && (string.IsNullOrEmpty(expectedText) || TextContains(footerText, expectedText));
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 页脚文本检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 页脚文本检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1745,22 +1745,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool smartArtFound = CheckForSmartArt(slidePart);
@@ -1769,7 +1769,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = smartArtFound ? "找到SmartArt图形" : "未找到SmartArt图形";
             result.IsCorrect = smartArtFound;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} SmartArt检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} SmartArt检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1792,22 +1792,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             string noteText = GetSlideNotes(slidePart);
@@ -1817,7 +1817,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = hasNotes ? $"备注内容: {noteText[..Math.Min(50, noteText.Length)]}..." : "无备注";
             result.IsCorrect = hasNotes;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 备注检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 备注检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1881,22 +1881,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             string backgroundInfo = GetSlideBackground(slidePart);
@@ -1906,7 +1906,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = backgroundInfo;
             result.IsCorrect = hasCustomBackground;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 背景检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 背景检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1929,22 +1929,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             (bool Found, string Content) = GetTableContent(slidePart, parameters);
@@ -1953,7 +1953,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = Found ? Content : "未找到表格";
             result.IsCorrect = Found && (string.IsNullOrEmpty(expected) || TextContains(Content, expected));
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 表格内容检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 表格内容检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -1976,22 +1976,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             string tableStyle = GetTableStyle(slidePart);
@@ -2001,7 +2001,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = tableStyle;
             result.IsCorrect = hasCustomStyle;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 表格样式检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 表格样式检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -2024,22 +2024,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool hasAnimationTiming = CheckAnimationTiming(slidePart);
@@ -2048,7 +2048,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = hasAnimationTiming ? "找到动画时间设置" : "未找到动画时间设置";
             result.IsCorrect = hasAnimationTiming;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画时间检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 动画时间检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -2071,22 +2071,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             string animationDuration = GetAnimationDuration(slidePart);
@@ -2096,7 +2096,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = animationDuration;
             result.IsCorrect = hasCustomDuration;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画持续时间检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 动画持续时间检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -2119,22 +2119,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool hasAnimationOrder = CheckAnimationOrder(slidePart);
@@ -2143,7 +2143,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = hasAnimationOrder ? "找到动画顺序设置" : "未找到动画顺序设置";
             result.IsCorrect = hasAnimationOrder;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 动画顺序检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 动画顺序检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
@@ -2256,13 +2256,13 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             // 检查指定的幻灯片或所有幻灯片
             if (TryGetParameter(parameters, "SlideNumbers", out string slideNumbers))
             {
-                string[] slideIndexes = slideNumbers.Split(',');
-                foreach (string slideIndexStr in slideIndexes)
+                string[] SlideNumberes = slideNumbers.Split(',');
+                foreach (string SlideNumberStr in SlideNumberes)
                 {
-                    if (int.TryParse(slideIndexStr.Trim(), out int slideIndex) &&
-                        slideIndex >= 1 && slideIndex <= slideIds.Count)
+                    if (int.TryParse(SlideNumberStr.Trim(), out int SlideNumber) &&
+                        SlideNumber >= 1 && SlideNumber <= slideIds.Count)
                     {
-                        SlideId slideId = slideIds[slideIndex - 1];
+                        SlideId slideId = slideIds[SlideNumber - 1];
                         SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
                         string slideSound = GetTransitionSoundFromSlide(slidePart);
@@ -2584,22 +2584,22 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
         try
         {
-            if (!TryGetIntParameter(parameters, "SlideIndex", out int slideIndex))
+            if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideIndex");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber");
                 return result;
             }
 
             PresentationPart presentationPart = document.PresentationPart!;
             List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
 
-            if (slideIds == null || slideIndex < 1 || slideIndex > slideIds.Count)
+            if (slideIds == null || SlideNumber < 1 || SlideNumber > slideIds.Count)
             {
-                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideIndex}");
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {SlideNumber}");
                 return result;
             }
 
-            SlideId slideId = slideIds[slideIndex - 1];
+            SlideId slideId = slideIds[SlideNumber - 1];
             SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
 
             bool hasWordArt = CheckWordArtStyle(slidePart);
@@ -2608,7 +2608,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             result.ActualValue = hasWordArt ? "找到艺术字样式" : "未找到艺术字样式";
             result.IsCorrect = hasWordArt;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"幻灯片 {slideIndex} 艺术字样式检测: {result.ActualValue}";
+            result.Details = $"幻灯片 {SlideNumber} 艺术字样式检测: {result.ActualValue}";
         }
         catch (Exception ex)
         {
