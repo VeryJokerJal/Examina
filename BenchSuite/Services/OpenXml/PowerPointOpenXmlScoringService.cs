@@ -280,19 +280,15 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         return operationPointName switch
         {
-            // PowerPoint特定映射
+            // PowerPoint特定映射 - 幻灯片操作（15个）
             var name when name.Contains("SlideLayout") => "SetSlideLayout",
             var name when name.Contains("DeleteSlide") => "DeleteSlide",
             var name when name.Contains("InsertSlide") => "InsertSlide",
             var name when name.Contains("SlideFont") => "SetSlideFont",
-            var name when name.Contains("SlideTransition") => "SlideTransitionEffect",
-            var name when name.Contains("TextContent") => "InsertTextContent",
-            var name when name.Contains("TextFontSize") => "SetTextFontSize",
-            var name when name.Contains("TextColor") => "SetTextColor",
-            var name when name.Contains("TextStyle") => "SetTextStyle",
-            var name when name.Contains("ElementPosition") => "SetElementPosition",
-            var name when name.Contains("ElementSize") => "SetElementSize",
-            var name when name.Contains("TextAlignment") => "SetTextAlignment",
+            var name when name.Contains("SlideTransition") && name.Contains("Effect") => "SlideTransitionEffect",
+            var name when name.Contains("SlideTransition") && name.Contains("Sound") => "SlideTransitionSound",
+            var name when name.Contains("SlideshowMode") => "SlideshowMode",
+            var name when name.Contains("SlideshowOptions") => "SlideshowOptions",
             var name when name.Contains("Hyperlink") => "InsertHyperlink",
             var name when name.Contains("SlideNumber") => "SlideNumber",
             var name when name.Contains("FooterText") => "FooterText",
@@ -300,23 +296,36 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             var name when name.Contains("InsertTable") => "InsertTable",
             var name when name.Contains("InsertSmartArt") => "InsertSmartArt",
             var name when name.Contains("InsertNote") => "InsertNote",
-            var name when name.Contains("ApplyTheme") => "ApplyTheme",
-            var name when name.Contains("SlideBackground") => "SetSlideBackground",
-            var name when name.Contains("TableContent") => "SetTableContent",
-            var name when name.Contains("TableStyle") => "SetTableStyle",
-            var name when name.Contains("AnimationTiming") => "SetAnimationTiming",
-            var name when name.Contains("AnimationDuration") => "SetAnimationDuration",
-            var name when name.Contains("AnimationOrder") => "SetAnimationOrder",
-            var name when name.Contains("SlideshowOptions") => "SlideshowOptions",
-            var name when name.Contains("SlideshowMode") => "SlideshowMode",
-            var name when name.Contains("SlideTransitionSound") => "SlideTransitionSound",
+
+            // 文字与字体设置（12个）
+            var name when name.Contains("TextContent") => "InsertTextContent",
+            var name when name.Contains("TextFontSize") => "SetTextFontSize",
+            var name when name.Contains("TextColor") => "SetTextColor",
+            var name when name.Contains("TextStyle") => "SetTextStyle",
+            var name when name.Contains("ElementPosition") => "SetElementPosition",
+            var name when name.Contains("ElementSize") => "SetElementSize",
+            var name when name.Contains("WordArtStyle") => "SetWordArtStyle",
             var name when name.Contains("AnimationDirection") => "SetAnimationDirection",
             var name when name.Contains("AnimationStyle") => "SetAnimationStyle",
+            var name when name.Contains("AnimationDuration") => "SetAnimationDuration",
+            var name when name.Contains("TextAlignment") => "SetTextAlignment",
+            var name when name.Contains("AnimationOrder") => "SetAnimationOrder",
+
+            // 背景样式与设计（1个）
+            var name when name.Contains("ApplyTheme") => "ApplyTheme",
+
+            // 母版与主题设置（1个）
+            var name when name.Contains("SlideBackground") => "SetSlideBackground",
+
+            // 其他（7个）
+            var name when name.Contains("TableContent") => "SetTableContent",
+            var name when name.Contains("TableStyle") => "SetTableStyle",
             var name when name.Contains("SmartArtStyle") => "SetSmartArtStyle",
             var name when name.Contains("SmartArtContent") => "SetSmartArtContent",
+            var name when name.Contains("AnimationTiming") => "SetAnimationTiming",
             var name when name.Contains("ParagraphSpacing") => "SetParagraphSpacing",
             var name when name.Contains("BackgroundStyle") => "SetBackgroundStyle",
-            var name when name.Contains("WordArtStyle") => "SetWordArtStyle",
+
             _ => base.MapOperationPointNameToKnowledgeType(operationPointName)
         };
     }
