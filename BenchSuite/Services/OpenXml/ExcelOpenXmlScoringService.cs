@@ -4537,15 +4537,54 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            string expectedPosition = TryGetParameter(parameters, "LegendPosition", out string expected) ? expected : "";
+            string expectedPosition = TryGetParameter(parameters, "LegendPosition", out string position) ? position : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
             {
-                return (true, "图例位置存在");
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                string legendPosition = GetLegendPosition(chartPart);
+
+                if (!string.IsNullOrEmpty(expectedPosition))
+                {
+                    bool matches = string.IsNullOrEmpty(legendPosition) ? false :
+                                   legendPosition.Contains(expectedPosition, StringComparison.OrdinalIgnoreCase);
+                    return (matches, legendPosition);
+                }
+
+                return (!string.IsNullOrEmpty(legendPosition), legendPosition);
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                string legendPosition = GetLegendPosition(chartPart);
+
+                if (!string.IsNullOrEmpty(legendPosition))
+                {
+                    if (string.IsNullOrEmpty(expectedPosition) ||
+                        legendPosition.Contains(expectedPosition, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return (true, legendPosition);
+                    }
+                }
+            }
+
+            return (false, "未找到匹配的图例位置");
         }
         catch
         {
@@ -4864,22 +4903,49 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有图表和网格线设置
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
+            bool expectedVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) ?
+                                   (TextEquals(visible, "true") || TextEquals(visible, "是")) : true;
+            string expectedColor = TryGetParameter(parameters, "GridlineColor", out string color) ? color : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
+
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
             {
-                bool gridlineVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) &&
-                                     (TextEquals(visible, "true") || TextEquals(visible, "是"));
-
-                if (gridlineVisible || TryGetParameter(parameters, "GridlineColor", out string color))
-                {
-                    return (true, "次要横网格线可见");
-                }
-
-                return (true, "检测到图表网格线设置");
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (bool hasGridlines, string style) = CheckMinorHorizontalGridlines(chartPart, expectedColor);
+
+                if (hasGridlines == expectedVisible)
+                {
+                    return (true, style);
+                }
+
+                return (false, expectedVisible ? "次要横网格线不可见" : "次要横网格线可见");
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                (bool hasGridlines, string style) = CheckMinorHorizontalGridlines(chartPart, expectedColor);
+                if (hasGridlines == expectedVisible)
+                {
+                    return (true, style);
+                }
+            }
+
+            return (false, "未找到匹配的次要横网格线设置");
         }
         catch
         {
@@ -4894,22 +4960,49 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有图表和网格线设置
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
+            bool expectedVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) ?
+                                   (TextEquals(visible, "true") || TextEquals(visible, "是")) : true;
+            string expectedColor = TryGetParameter(parameters, "GridlineColor", out string color) ? color : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
+
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
             {
-                bool gridlineVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) &&
-                                     (TextEquals(visible, "true") || TextEquals(visible, "是"));
-
-                if (gridlineVisible || TryGetParameter(parameters, "GridlineColor", out string color))
-                {
-                    return (true, "主要纵网格线可见");
-                }
-
-                return (true, "检测到图表网格线设置");
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (bool hasGridlines, string style) = CheckMajorVerticalGridlines(chartPart, expectedColor);
+
+                if (hasGridlines == expectedVisible)
+                {
+                    return (true, style);
+                }
+
+                return (false, expectedVisible ? "主要纵网格线不可见" : "主要纵网格线可见");
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                (bool hasGridlines, string style) = CheckMajorVerticalGridlines(chartPart, expectedColor);
+                if (hasGridlines == expectedVisible)
+                {
+                    return (true, style);
+                }
+            }
+
+            return (false, "未找到匹配的主要纵网格线设置");
         }
         catch
         {
@@ -4924,22 +5017,49 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有图表和网格线设置
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
+            bool expectedVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) ?
+                                   (TextEquals(visible, "true") || TextEquals(visible, "是")) : true;
+            string expectedColor = TryGetParameter(parameters, "GridlineColor", out string color) ? color : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
+
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
             {
-                bool gridlineVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) &&
-                                     (TextEquals(visible, "true") || TextEquals(visible, "是"));
-
-                if (gridlineVisible || TryGetParameter(parameters, "GridlineColor", out string color))
-                {
-                    return (true, "次要纵网格线可见");
-                }
-
-                return (true, "检测到图表网格线设置");
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (bool hasGridlines, string style) = CheckMinorVerticalGridlines(chartPart, expectedColor);
+
+                if (hasGridlines == expectedVisible)
+                {
+                    return (true, style);
+                }
+
+                return (false, expectedVisible ? "次要纵网格线不可见" : "次要纵网格线可见");
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                (bool hasGridlines, string style) = CheckMinorVerticalGridlines(chartPart, expectedColor);
+                if (hasGridlines == expectedVisible)
+                {
+                    return (true, style);
+                }
+            }
+
+            return (false, "未找到匹配的次要纵网格线设置");
         }
         catch
         {
@@ -5907,15 +6027,19 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
                         // 检查颜色
                         var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
-                        if (outline?.SolidFill?.RgbColorModelHex?.Val?.Value != null)
+                        if (outline != null)
                         {
-                            string color = outline.SolidFill.RgbColorModelHex.Val.Value;
-                            styleInfo.Add($"颜色: #{color}");
-
-                            if (!string.IsNullOrEmpty(expectedColor) &&
-                                !color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                             {
-                                continue; // 颜色不匹配
+                                string color = solidFill.RgbColorModelHex.Val.Value;
+                                styleInfo.Add($"颜色: #{color}");
+
+                                if (!string.IsNullOrEmpty(expectedColor) &&
+                                    !color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue; // 颜色不匹配
+                                }
                             }
                         }
 
@@ -5931,6 +6055,226 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         catch
         {
             return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 检查图表的次要横网格线
+    /// </summary>
+    private (bool HasGridlines, string Style) CheckMinorHorizontalGridlines(ChartPart chartPart, string expectedColor)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return (false, string.Empty);
+
+            // 检查值轴的次要网格线
+            var valueAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ValueAxis>();
+            foreach (var valueAxis in valueAxes)
+            {
+                var minorGridlines = valueAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines>().FirstOrDefault();
+                if (minorGridlines != null)
+                {
+                    // 检查网格线样式
+                    var shapeProperties = minorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                    if (shapeProperties != null)
+                    {
+                        List<string> styleInfo = ["次要横网格线可见"];
+
+                        // 检查颜色
+                        var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                        if (outline != null)
+                        {
+                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                            {
+                                string color = solidFill.RgbColorModelHex.Val.Value;
+                                styleInfo.Add($"颜色: #{color}");
+
+                                if (!string.IsNullOrEmpty(expectedColor) &&
+                                    !color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue; // 颜色不匹配
+                                }
+                            }
+                        }
+
+                        return (true, string.Join(", ", styleInfo));
+                    }
+
+                    return (true, "次要横网格线可见");
+                }
+            }
+
+            return (false, "次要横网格线不可见");
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 检查图表的主要纵网格线
+    /// </summary>
+    private (bool HasGridlines, string Style) CheckMajorVerticalGridlines(ChartPart chartPart, string expectedColor)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return (false, string.Empty);
+
+            // 检查分类轴的主要网格线
+            var categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
+            foreach (var categoryAxis in categoryAxes)
+            {
+                var majorGridlines = categoryAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MajorGridlines>().FirstOrDefault();
+                if (majorGridlines != null)
+                {
+                    // 检查网格线样式
+                    var shapeProperties = majorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                    if (shapeProperties != null)
+                    {
+                        List<string> styleInfo = ["主要纵网格线可见"];
+
+                        // 检查颜色
+                        var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                        if (outline != null)
+                        {
+                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                            {
+                                string color = solidFill.RgbColorModelHex.Val.Value;
+                                styleInfo.Add($"颜色: #{color}");
+
+                                if (!string.IsNullOrEmpty(expectedColor) &&
+                                    !color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue; // 颜色不匹配
+                                }
+                            }
+                        }
+
+                        return (true, string.Join(", ", styleInfo));
+                    }
+
+                    return (true, "主要纵网格线可见");
+                }
+            }
+
+            return (false, "主要纵网格线不可见");
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 检查图表的次要纵网格线
+    /// </summary>
+    private (bool HasGridlines, string Style) CheckMinorVerticalGridlines(ChartPart chartPart, string expectedColor)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return (false, string.Empty);
+
+            // 检查分类轴的次要网格线
+            var categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
+            foreach (var categoryAxis in categoryAxes)
+            {
+                var minorGridlines = categoryAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines>().FirstOrDefault();
+                if (minorGridlines != null)
+                {
+                    // 检查网格线样式
+                    var shapeProperties = minorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                    if (shapeProperties != null)
+                    {
+                        List<string> styleInfo = ["次要纵网格线可见"];
+
+                        // 检查颜色
+                        var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                        if (outline != null)
+                        {
+                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                            {
+                                string color = solidFill.RgbColorModelHex.Val.Value;
+                                styleInfo.Add($"颜色: #{color}");
+
+                                if (!string.IsNullOrEmpty(expectedColor) &&
+                                    !color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue; // 颜色不匹配
+                                }
+                            }
+                        }
+
+                        return (true, string.Join(", ", styleInfo));
+                    }
+
+                    return (true, "次要纵网格线可见");
+                }
+            }
+
+            return (false, "次要纵网格线不可见");
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 获取图表图例位置
+    /// </summary>
+    private string GetLegendPosition(ChartPart chartPart)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var legend = chart?.Legend;
+
+            if (legend?.LegendPosition?.Val?.Value != null)
+            {
+                var position = legend.LegendPosition.Val.Value;
+
+                if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Bottom)
+                    return "底部";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Top)
+                    return "顶部";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Left)
+                    return "左侧";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Right)
+                    return "右侧";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.TopRight)
+                    return "右上角";
+                else
+                    return position.ToString();
+            }
+
+            // 如果有图例但没有明确位置，返回默认位置
+            if (legend != null)
+            {
+                return "右侧"; // Excel默认图例位置
+            }
+
+            return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
         }
     }
 }
