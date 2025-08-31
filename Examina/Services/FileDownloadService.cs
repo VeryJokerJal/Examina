@@ -535,7 +535,11 @@ public class FileDownloadService : IFileDownloadService
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (string.IsNullOrEmpty(entry.Name))
+                    // 跳过目录条目：检查是否为目录（Name为空或FullName以/结尾，且长度为0）
+                    if (string.IsNullOrEmpty(entry.Name) ||
+                        entry.FullName.EndsWith("/") ||
+                        entry.FullName.EndsWith("\\") ||
+                        (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName)))
                     {
                         continue; // 跳过目录条目
                     }
@@ -586,7 +590,11 @@ public class FileDownloadService : IFileDownloadService
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (string.IsNullOrEmpty(entry.Name))
+                // 跳过目录条目：检查是否为目录（Name为空或FullName以/结尾，且长度为0）
+                if (string.IsNullOrEmpty(entry.Name) ||
+                    entry.FullName.EndsWith("/") ||
+                    entry.FullName.EndsWith("\\") ||
+                    (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName)))
                 {
                     continue;
                 }

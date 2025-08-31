@@ -700,7 +700,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取活动工作表
     /// </summary>
-    private WorksheetPart? GetActiveWorksheet(WorkbookPart workbookPart)
+    private static WorksheetPart? GetActiveWorksheet(WorkbookPart workbookPart)
     {
         try
         {
@@ -754,7 +754,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取指定单元格
     /// </summary>
-    private Cell? GetCell(Worksheet worksheet, string cellReference)
+    private static Cell? GetCell(Worksheet worksheet, string cellReference)
     {
         try
         {
@@ -3047,7 +3047,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的合并单元格
     /// </summary>
-    private (bool Found, int Count) CheckMergedCellsInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static (bool Found, int Count) CheckMergedCellsInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -3413,7 +3413,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的单元格边框
     /// </summary>
-    private bool CheckCellBorderInWorkbook(WorkbookPart workbookPart)
+    private static bool CheckCellBorderInWorkbook(WorkbookPart workbookPart)
     {
         try
         {
@@ -3439,7 +3439,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的单元格背景色
     /// </summary>
-    private bool CheckCellBackgroundColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckCellBackgroundColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -3593,7 +3593,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的图表
     /// </summary>
-    private (bool Found, int Count) CheckChartInWorkbook(WorkbookPart workbookPart)
+    private static (bool Found, int Count) CheckChartInWorkbook(WorkbookPart workbookPart)
     {
         try
         {
@@ -4019,7 +4019,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取工作簿中的工作表数量
     /// </summary>
-    private int GetWorksheetCountInWorkbook(WorkbookPart workbookPart)
+    private static int GetWorksheetCountInWorkbook(WorkbookPart workbookPart)
     {
         try
         {
@@ -4082,8 +4082,6 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             return (false, "检测工作表保护时发生错误");
         }
     }
-
-
 
     /// <summary>
     /// 检查工作簿中的水平对齐
@@ -4156,7 +4154,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的内边框样式
     /// </summary>
-    private bool CheckInnerBorderStyleInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckInnerBorderStyleInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4186,7 +4184,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的内边框颜色
     /// </summary>
-    private bool CheckInnerBorderColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckInnerBorderColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4216,7 +4214,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的外边框样式
     /// </summary>
-    private bool CheckOuterBorderStyleInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckOuterBorderStyleInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4243,7 +4241,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的外边框颜色
     /// </summary>
-    private bool CheckOuterBorderColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckOuterBorderColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4266,14 +4264,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         }
     }
 
-
-
-
-
     /// <summary>
     /// 检查工作簿中的单元格填充颜色
     /// </summary>
-    private bool CheckCellFillColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckCellFillColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4300,7 +4294,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的图案填充样式
     /// </summary>
-    private bool CheckPatternFillStyleInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckPatternFillStyleInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4328,7 +4322,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的图案填充颜色
     /// </summary>
-    private bool CheckPatternFillColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckPatternFillColorInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4355,7 +4349,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的下划线
     /// </summary>
-    private bool CheckUnderlineInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckUnderlineInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4415,7 +4409,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的单元格样式数据
     /// </summary>
-    private bool CheckCellStyleDataInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckCellStyleDataInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4431,7 +4425,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的筛选
     /// </summary>
-    private bool CheckFilterInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckFilterInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -4454,7 +4448,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的排序
     /// </summary>
-    private bool CheckSortInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private static bool CheckSortInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -5161,7 +5155,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取工作表名称
     /// </summary>
-    private string GetWorksheetName(WorkbookPart workbookPart, WorksheetPart worksheetPart)
+    private static string GetWorksheetName(WorkbookPart workbookPart, WorksheetPart worksheetPart)
     {
         try
         {
@@ -5710,7 +5704,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查连续数据填充模式
     /// </summary>
-    private bool CheckSequentialDataFill(List<Cell> cellsWithData)
+    private static bool CheckSequentialDataFill(List<Cell> cellsWithData)
     {
         try
         {
@@ -5746,7 +5740,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查非连续行号
     /// </summary>
-    private bool CheckNonSequentialRows(List<uint> rowIndexes)
+    private static bool CheckNonSequentialRows(List<uint> rowIndexes)
     {
         try
         {
@@ -5774,7 +5768,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查数据排序模式
     /// </summary>
-    private bool CheckDataSortingPattern(WorksheetPart worksheetPart)
+    private static bool CheckDataSortingPattern(WorksheetPart worksheetPart)
     {
         try
         {
@@ -6022,7 +6016,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查筛选状态
     /// </summary>
-    private bool CheckFilterState(WorksheetPart worksheetPart)
+    private static bool CheckFilterState(WorksheetPart worksheetPart)
     {
         try
         {
@@ -6143,7 +6137,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查筛选结果数据
     /// </summary>
-    private bool CheckFilterResultData(WorksheetPart worksheetPart)
+    private static bool CheckFilterResultData(WorksheetPart worksheetPart)
     {
         try
         {
@@ -6235,7 +6229,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取工作簿中的所有图表
     /// </summary>
-    private List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> GetAllCharts(WorkbookPart workbookPart)
+    private static List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> GetAllCharts(WorkbookPart workbookPart)
     {
         List<(WorksheetPart, ChartPart)> charts = [];
 
@@ -6263,7 +6257,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取分类轴数据区域
     /// </summary>
-    private string GetCategoryAxisDataRange(ChartPart chartPart, string expectedRange)
+    private static string GetCategoryAxisDataRange(ChartPart chartPart, string expectedRange)
     {
         try
         {
@@ -6326,7 +6320,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取数值轴数据区域
     /// </summary>
-    private string GetValueAxisDataRange(ChartPart chartPart, string expectedRange)
+    private static string GetValueAxisDataRange(ChartPart chartPart, string expectedRange)
     {
         try
         {
@@ -6406,7 +6400,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取图表标题
     /// </summary>
-    private string GetChartTitle(ChartPart chartPart)
+    private static string GetChartTitle(ChartPart chartPart)
     {
         try
         {
@@ -6458,7 +6452,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取图表标题格式
     /// </summary>
-    private string GetChartTitleFormat(ChartPart chartPart, string expectedFontName, string expectedFontSize, string expectedFontColor)
+    private static string GetChartTitleFormat(ChartPart chartPart, string expectedFontName, string expectedFontSize, string expectedFontColor)
     {
         try
         {
@@ -6543,7 +6537,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查图表的主要横网格线
     /// </summary>
-    private (bool HasGridlines, string Style) CheckMajorHorizontalGridlines(ChartPart chartPart, string expectedColor)
+    private static (bool HasGridlines, string Style) CheckMajorHorizontalGridlines(ChartPart chartPart, string expectedColor)
     {
         try
         {
@@ -6605,7 +6599,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查图表的次要横网格线
     /// </summary>
-    private (bool HasGridlines, string Style) CheckMinorHorizontalGridlines(ChartPart chartPart, string expectedColor)
+    private static (bool HasGridlines, string Style) CheckMinorHorizontalGridlines(ChartPart chartPart, string expectedColor)
     {
         try
         {
@@ -6667,7 +6661,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查图表的主要纵网格线
     /// </summary>
-    private (bool HasGridlines, string Style) CheckMajorVerticalGridlines(ChartPart chartPart, string expectedColor)
+    private static (bool HasGridlines, string Style) CheckMajorVerticalGridlines(ChartPart chartPart, string expectedColor)
     {
         try
         {
@@ -6729,7 +6723,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查图表的次要纵网格线
     /// </summary>
-    private (bool HasGridlines, string Style) CheckMinorVerticalGridlines(ChartPart chartPart, string expectedColor)
+    private static (bool HasGridlines, string Style) CheckMinorVerticalGridlines(ChartPart chartPart, string expectedColor)
     {
         try
         {
@@ -6791,7 +6785,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取图表图例位置
     /// </summary>
-    private string GetLegendPosition(ChartPart chartPart)
+    private static string GetLegendPosition(ChartPart chartPart)
     {
         try
         {
@@ -6807,17 +6801,15 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 {
                     return "底部";
                 }
-                else if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Top)
-                {
-                    return "顶部";
-                }
                 else
                 {
-                    return position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Left
-                        ? "左侧"
-                        : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Right
-                                            ? "右侧"
-                                            : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.TopRight ? "右上角" : position.ToString();
+                    return position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Top
+                        ? "顶部"
+                        : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Left
+                                            ? "左侧"
+                                            : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Right
+                                                                ? "右侧"
+                                                                : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.TopRight ? "右上角" : position.ToString();
                 }
             }
 
@@ -6838,7 +6830,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取图表横坐标轴标题
     /// </summary>
-    private string GetHorizontalAxisTitle(ChartPart chartPart)
+    private static string GetHorizontalAxisTitle(ChartPart chartPart)
     {
         try
         {
@@ -6999,7 +6991,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取系列格式信息
     /// </summary>
-    private string GetSeriesFormatInfo(OpenXmlElement series, string expectedColor)
+    private static string GetSeriesFormatInfo(OpenXmlElement series, string expectedColor)
     {
         try
         {
@@ -7128,7 +7120,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取数据标签位置
     /// </summary>
-    private string GetDataLabelPosition(DocumentFormat.OpenXml.Drawing.Charts.DataLabels dataLabels)
+    private static string GetDataLabelPosition(DocumentFormat.OpenXml.Drawing.Charts.DataLabels dataLabels)
     {
         try
         {
@@ -7145,17 +7137,15 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 {
                     return "内侧末端";
                 }
-                else if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideBase)
-                {
-                    return "内侧基部";
-                }
                 else
                 {
-                    return position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.OutsideEnd
-                        ? "外侧末端"
-                        : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Left
-                                            ? "左侧"
-                                            : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Right ? "右侧" : position.ToString();
+                    return position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideBase
+                        ? "内侧基部"
+                        : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.OutsideEnd
+                                            ? "外侧末端"
+                                            : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Left
+                                                                ? "左侧"
+                                                                : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Right ? "右侧" : position.ToString();
                 }
             }
 
@@ -7253,7 +7243,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取数据标签格式信息
     /// </summary>
-    private string GetDataLabelFormatInfo(DocumentFormat.OpenXml.Drawing.Charts.DataLabels dataLabels, string expectedFontName, string expectedFontSize, string expectedFontColor)
+    private static string GetDataLabelFormatInfo(DocumentFormat.OpenXml.Drawing.Charts.DataLabels dataLabels, string expectedFontName, string expectedFontSize, string expectedFontColor)
     {
         try
         {
@@ -7339,7 +7329,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取图表区域格式
     /// </summary>
-    private string GetChartAreaFormat(ChartPart chartPart, string expectedFillColor, string expectedBorderColor)
+    private static string GetChartAreaFormat(ChartPart chartPart, string expectedFillColor, string expectedBorderColor)
     {
         try
         {
@@ -7417,7 +7407,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取图表基底颜色
     /// </summary>
-    private string GetChartFloorColor(ChartPart chartPart, string expectedColor)
+    private static string GetChartFloorColor(ChartPart chartPart, string expectedColor)
     {
         try
         {
@@ -7486,7 +7476,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取图表边框信息
     /// </summary>
-    private string GetChartBorder(ChartPart chartPart, string expectedStyle, string expectedColor)
+    private static string GetChartBorder(ChartPart chartPart, string expectedStyle, string expectedColor)
     {
         try
         {
@@ -7575,7 +7565,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取条件格式详细信息
     /// </summary>
-    private string GetConditionalFormattingDetails(WorksheetPart worksheetPart, string expectedType, string expectedRange)
+    private static string GetConditionalFormattingDetails(WorksheetPart worksheetPart, string expectedType, string expectedRange)
     {
         try
         {
@@ -7657,7 +7647,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取数据验证详细信息
     /// </summary>
-    private string GetDataValidationDetails(WorksheetPart worksheetPart, string expectedType, string expectedRange)
+    private static string GetDataValidationDetails(WorksheetPart worksheetPart, string expectedType, string expectedRange)
     {
         try
         {
@@ -7746,7 +7736,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取内置数字格式
     /// </summary>
-    private string GetBuiltInNumberFormat(uint formatId)
+    private static string GetBuiltInNumberFormat(uint formatId)
     {
         return formatId switch
         {
@@ -7858,7 +7848,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取纸张大小名称
     /// </summary>
-    private string GetPaperSizeName(uint paperSize)
+    private static string GetPaperSizeName(uint paperSize)
     {
         return paperSize switch
         {
@@ -7881,7 +7871,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取页眉页脚详细信息
     /// </summary>
-    private string GetHeaderFooterDetails(WorksheetPart worksheetPart, string expectedContent)
+    private static string GetHeaderFooterDetails(WorksheetPart worksheetPart, string expectedContent)
     {
         try
         {
@@ -7970,7 +7960,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取冻结窗格详细信息
     /// </summary>
-    private string GetFreezePanesDetails(WorksheetPart worksheetPart)
+    private static string GetFreezePanesDetails(WorksheetPart worksheetPart)
     {
         try
         {
@@ -8018,7 +8008,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 获取工作表保护详细信息
     /// </summary>
-    private string GetWorksheetProtectionDetails(WorksheetPart worksheetPart)
+    private static string GetWorksheetProtectionDetails(WorksheetPart worksheetPart)
     {
         try
         {
@@ -8160,7 +8150,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 解析Excel单元格引用（如A1, B10等）
     /// </summary>
-    private (int Row, int Column)? ParseExcelCellReference(string cellRef)
+    private static (int Row, int Column)? ParseExcelCellReference(string cellRef)
     {
         try
         {

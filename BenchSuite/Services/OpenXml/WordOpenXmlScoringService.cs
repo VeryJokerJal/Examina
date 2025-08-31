@@ -291,13 +291,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             details = $"{paragraphDesc} {operationType}: 期望 {expectedValue}, 实际 {actualValue}";
         }
-        else if (!string.IsNullOrEmpty(expectedValue))
-        {
-            details = $"{paragraphDesc} {operationType}: 期望 {expectedValue}, 检测失败 - {errorMessage}";
-        }
         else
         {
-            details = $"{paragraphDesc} {operationType}检测失败: {errorMessage}";
+            details = !string.IsNullOrEmpty(expectedValue)
+                ? $"{paragraphDesc} {operationType}: 期望 {expectedValue}, 检测失败 - {errorMessage}"
+                : $"{paragraphDesc} {operationType}检测失败: {errorMessage}";
         }
 
         SetKnowledgePointFailure(result, errorMessage, details);
@@ -315,13 +313,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             details = $"{operationType}: 期望 {expectedValue}, 实际 {actualValue}";
         }
-        else if (!string.IsNullOrEmpty(expectedValue))
-        {
-            details = $"{operationType}: 期望 {expectedValue}, 检测失败 - {errorMessage}";
-        }
         else
         {
-            details = $"{operationType}检测失败: {errorMessage}";
+            details = !string.IsNullOrEmpty(expectedValue)
+                ? $"{operationType}: 期望 {expectedValue}, 检测失败 - {errorMessage}"
+                : $"{operationType}检测失败: {errorMessage}";
         }
 
         SetKnowledgePointFailure(result, errorMessage, details);
@@ -910,7 +906,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             // 创建浮点数比较函数
-            bool FloatEquals(float actual, float expected) => Math.Abs(actual - expected) < 0.1f;
+            static bool FloatEquals(float actual, float expected)
+            {
+                return Math.Abs(actual - expected) < 0.1f;
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -968,7 +967,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             // 创建颜色比较函数
-            bool ColorMatches(string actual, string expected) => TextEquals(actual, expected) || ColorEquals(actual, expected);
+            static bool ColorMatches(string actual, string expected)
+            {
+                return TextEquals(actual, expected) || ColorEquals(actual, expected);
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -1031,8 +1033,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             (int FirstLine, int Left, int Right) expectedIndentation = (expectedFirstLine, expectedLeft, expectedRight);
 
             // 创建缩进比较函数
-            bool IndentationEquals((int FirstLine, int Left, int Right) actual, (int FirstLine, int Left, int Right) expected) =>
-                actual.FirstLine == expected.FirstLine && actual.Left == expected.Left && actual.Right == expected.Right;
+            static bool IndentationEquals((int FirstLine, int Left, int Right) actual, (int FirstLine, int Left, int Right) expected)
+            {
+                return actual.FirstLine == expected.FirstLine && actual.Left == expected.Left && actual.Right == expected.Right;
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -1090,7 +1094,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             // 创建浮点数比较函数
-            bool FloatEquals(float actual, float expected) => Math.Abs(actual - expected) < 0.1f;
+            static bool FloatEquals(float actual, float expected)
+            {
+                return Math.Abs(actual - expected) < 0.1f;
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -1203,7 +1210,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             // 创建颜色比较函数
-            bool ColorMatches(string actual, string expected) => TextEquals(actual, expected) || ColorEquals(actual, expected);
+            static bool ColorMatches(string actual, string expected)
+            {
+                return TextEquals(actual, expected) || ColorEquals(actual, expected);
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -1316,7 +1326,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             List<Paragraph>? paragraphs = mainPart.Document.Body?.Elements<Paragraph>().ToList();
 
             // 创建浮点数比较函数
-            bool FloatEquals(float actual, float expected) => Math.Abs(actual - expected) < 0.1f;
+            static bool FloatEquals(float actual, float expected)
+            {
+                return Math.Abs(actual - expected) < 0.1f;
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -1378,9 +1391,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             (string Color, string Pattern) expectedShading = (expectedColor, expectedPattern);
 
             // 创建底纹比较函数
-            bool ShadingEquals((string Color, string Pattern) actual, (string Color, string Pattern) expected) =>
-                (TextEquals(actual.Color, expected.Color) || ColorEquals(actual.Color, expected.Color)) &&
+            static bool ShadingEquals((string Color, string Pattern) actual, (string Color, string Pattern) expected)
+            {
+                return (TextEquals(actual.Color, expected.Color) || ColorEquals(actual.Color, expected.Color)) &&
                 TextEquals(actual.Pattern, expected.Pattern);
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -1497,8 +1512,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             (float Before, float After) expectedSpacing = (expectedBefore, expectedAfter);
 
             // 创建间距比较函数
-            bool SpacingEquals((float Before, float After) actual, (float Before, float After) expected) =>
-                Math.Abs(actual.Before - expected.Before) < 0.1f && Math.Abs(actual.After - expected.After) < 0.1f;
+            static bool SpacingEquals((float Before, float After) actual, (float Before, float After) expected)
+            {
+                return Math.Abs(actual.Before - expected.Before) < 0.1f && Math.Abs(actual.After - expected.After) < 0.1f;
+            }
 
             bool isMatch = FindMatchingParagraph(
                 paragraphs,
@@ -1919,8 +1936,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 return result;
             }
 
-            TryGetParameter(parameters, "PageNumberPosition", out string expectedPosition);
-            TryGetParameter(parameters, "PageNumberFormat", out string expectedFormat);
+            _ = TryGetParameter(parameters, "PageNumberPosition", out string expectedPosition);
+            _ = TryGetParameter(parameters, "PageNumberFormat", out string expectedFormat);
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
             (string Position, string Format) pageNumberInfo = GetPageNumberInfo(mainPart);
@@ -1961,7 +1978,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 return result;
             }
 
-            TryGetParameter(parameters, "BackgroundColor", out string expectedColor);
+            _ = TryGetParameter(parameters, "BackgroundColor", out string expectedColor);
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
             string actualColor = GetPageBackgroundColor(mainPart);
@@ -2109,7 +2126,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 return result;
             }
 
-            TryGetParameter(parameters, "WatermarkText", out string expectedText);
+            _ = TryGetParameter(parameters, "WatermarkText", out string expectedText);
 
             MainDocumentPart mainPart = document.MainDocumentPart!;
             string actualText = GetWatermarkText(mainPart);
@@ -3476,8 +3493,6 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         return result;
     }
 
-
-
     /// <summary>
     /// 在段落中搜索匹配指定条件的段落
     /// </summary>
@@ -3502,7 +3517,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         out string errorMessage)
     {
         matchedParagraph = null;
-        actualValue = default(T);
+        actualValue = default;
         errorMessage = string.Empty;
 
         if (paragraphs == null || paragraphs.Count == 0)
@@ -3591,8 +3606,8 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         out TValue? actualValue,
         out string errorMessage)
     {
-        matchedElement = default(TElement);
-        actualValue = default(TValue);
+        matchedElement = default;
+        actualValue = default;
         errorMessage = string.Empty;
 
         if (elements == null || elements.Count == 0)
@@ -3824,7 +3839,10 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     /// </summary>
     private static string ConvertHexToColorName(string hexColor)
     {
-        if (string.IsNullOrEmpty(hexColor)) return hexColor;
+        if (string.IsNullOrEmpty(hexColor))
+        {
+            return hexColor;
+        }
 
         // 移除#前缀进行比较
         string hex = hexColor.TrimStart('#').ToUpper();
@@ -5420,14 +5438,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 if (inline?.Graphic?.GraphicData != null)
                 {
                     DocumentFormat.OpenXml.Drawing.GraphicData graphicData = inline.Graphic.GraphicData;
-                    if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture")
-                    {
-                        return "图片";
-                    }
-                    else
-                    {
-                        return graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart" ? "图表" : "自选图形";
-                    }
+                    return graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture"
+                        ? "图片"
+                        : graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart" ? "图表" : "自选图形";
                 }
 
                 if (anchor != null)
@@ -5437,14 +5450,9 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                     if (graphic?.GraphicData != null)
                     {
                         DocumentFormat.OpenXml.Drawing.GraphicData graphicData = graphic.GraphicData;
-                        if (graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture")
-                        {
-                            return "浮动图片";
-                        }
-                        else
-                        {
-                            return graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart" ? "浮动图表" : "浮动自选图形";
-                        }
+                        return graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/picture"
+                            ? "浮动图片"
+                            : graphicData.Uri?.Value == "http://schemas.openxmlformats.org/drawingml/2006/chart" ? "浮动图表" : "浮动自选图形";
                     }
                     return "浮动Drawing对象";
                 }
@@ -5872,12 +5880,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 合并所有文本内容
-            if (textContents.Count > 0)
-            {
-                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
-            }
-
-            return "无文字内容";
+            return textContents.Count > 0 ? string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t))) : "无文字内容";
         }
         catch
         {
@@ -6926,15 +6929,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         try
         {
             if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapNone>() != null)
+            {
                 return "无环绕";
-            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapSquare>() != null)
-                return "四周型环绕";
-            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapTight>() != null)
-                return "紧密型环绕";
-            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapThrough>() != null)
-                return "穿越型环绕";
+            }
 
-            return "未知环绕";
+            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapSquare>() != null)
+            {
+                return "四周型环绕";
+            }
+
+            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapTight>() != null)
+            {
+                return "紧密型环绕";
+            }
+
+            return anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapThrough>() != null ? "穿越型环绕" : "未知环绕";
         }
         catch
         {
@@ -7051,7 +7060,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     /// </summary>
     private static bool TextEquals(string actual, string expected)
     {
-        return string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected) || !string.IsNullOrWhiteSpace(actual) && !string.IsNullOrWhiteSpace(expected) && string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
+        return (string.IsNullOrWhiteSpace(actual) && string.IsNullOrWhiteSpace(expected)) || (!string.IsNullOrWhiteSpace(actual) && !string.IsNullOrWhiteSpace(expected) && string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -7434,24 +7443,27 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             {
                 Paragraph paragraph = paragraphs[i];
                 string text = paragraph.InnerText.Trim();
-                if (string.IsNullOrEmpty(text)) continue;
+                if (string.IsNullOrEmpty(text))
+                {
+                    continue;
+                }
 
                 System.Diagnostics.Debug.WriteLine($"\n=== 段落 {i + 1} ===");
-                System.Diagnostics.Debug.WriteLine($"文本内容: {text.Substring(0, Math.Min(50, text.Length))}...");
+                System.Diagnostics.Debug.WriteLine($"文本内容: {text[..Math.Min(50, text.Length)]}...");
                 System.Diagnostics.Debug.WriteLine($"字体: {GetParagraphFont(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"字号: {GetParagraphFontSize(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"字形: {GetParagraphFontStyle(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"文字颜色: {GetParagraphTextColor(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"对齐方式: {GetParagraphAlignment(paragraph)}");
 
-                (int FirstLine, int Left, int Right) indentation = GetParagraphIndentation(paragraph);
-                System.Diagnostics.Debug.WriteLine($"缩进: 首行{indentation.FirstLine}, 左{indentation.Left}, 右{indentation.Right}");
+                (int FirstLine, int Left, int Right) = GetParagraphIndentation(paragraph);
+                System.Diagnostics.Debug.WriteLine($"缩进: 首行{FirstLine}, 左{Left}, 右{Right}");
 
                 System.Diagnostics.Debug.WriteLine($"行间距: {GetParagraphLineSpacing(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"首字下沉: {GetParagraphDropCap(paragraph)}");
 
-                (float Before, float After) spacing = GetParagraphSpacing(paragraph);
-                System.Diagnostics.Debug.WriteLine($"段落间距: 前{spacing.Before}, 后{spacing.After}");
+                (float Before, float After) = GetParagraphSpacing(paragraph);
+                System.Diagnostics.Debug.WriteLine($"段落间距: 前{Before}, 后{After}");
 
                 System.Diagnostics.Debug.WriteLine($"边框颜色: {GetParagraphBorderColor(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"边框样式: {GetParagraphBorderStyle(paragraph)}");
@@ -7508,11 +7520,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             // 解析样式字符串中的font-family属性
             System.Text.RegularExpressions.Match fontMatch = System.Text.RegularExpressions.Regex.Match(style, @"font-family:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            if (fontMatch.Success)
-            {
-                return fontMatch.Groups[1].Value.Trim().Trim('"').Trim('\'');
-            }
-            return string.Empty;
+            return fontMatch.Success ? fontMatch.Groups[1].Value.Trim().Trim('"').Trim('\'') : string.Empty;
         }
         catch
         {
@@ -7765,12 +7773,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         }
 
         // 如果是十六进制颜色值，添加#前缀
-        if (colorValue.Length == 6 && !colorValue.StartsWith("#"))
-        {
-            return $"#{colorValue}";
-        }
-
-        return colorValue;
+        return colorValue.Length == 6 && !colorValue.StartsWith("#") ? $"#{colorValue}" : colorValue;
     }
 
     /// <summary>
@@ -7782,11 +7785,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             // 解析样式字符串中的color属性
             System.Text.RegularExpressions.Match colorMatch = System.Text.RegularExpressions.Regex.Match(style, @"color:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            if (colorMatch.Success)
-            {
-                return NormalizeColorValue(colorMatch.Groups[1].Value.Trim());
-            }
-            return string.Empty;
+            return colorMatch.Success ? NormalizeColorValue(colorMatch.Groups[1].Value.Trim()) : string.Empty;
         }
         catch
         {
@@ -7814,12 +7813,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 合并所有文本内容
-            if (textContents.Count > 0)
-            {
-                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
-            }
-
-            return "无文字内容";
+            return textContents.Count > 0 ? string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t))) : "无文字内容";
         }
         catch
         {
@@ -8107,12 +8101,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             // 检查strokecolor属性
             string? strokeColor = shape.StrokeColor?.Value;
-            if (!string.IsNullOrEmpty(strokeColor))
-            {
-                return NormalizeColorValue(strokeColor);
-            }
-
-            return "无边框颜色";
+            return !string.IsNullOrEmpty(strokeColor) ? NormalizeColorValue(strokeColor) : "无边框颜色";
         }
         catch
         {
@@ -8158,12 +8147,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             System.Text.RegularExpressions.Match strokeMatch = System.Text.RegularExpressions.Regex.Match(style, @"stroke:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            if (strokeMatch.Success)
-            {
-                return NormalizeColorValue(strokeMatch.Groups[1].Value.Trim());
-            }
-
-            return string.Empty;
+            return strokeMatch.Success ? NormalizeColorValue(strokeMatch.Groups[1].Value.Trim()) : string.Empty;
         }
         catch
         {
@@ -8290,12 +8274,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             // 检查主题颜色
             DocumentFormat.OpenXml.Drawing.SchemeColor? schemeColor = shadowElement.Descendants<DocumentFormat.OpenXml.Drawing.SchemeColor>().FirstOrDefault();
-            if (schemeColor?.Val?.Value != null)
-            {
-                return $"主题颜色({schemeColor.Val.Value})";
-            }
-
-            return "默认阴影颜色";
+            return schemeColor?.Val?.Value != null ? $"主题颜色({schemeColor.Val.Value})" : "默认阴影颜色";
         }
         catch
         {
@@ -8378,12 +8357,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 合并所有文本内容
-            if (textContents.Count > 0)
-            {
-                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
-            }
-
-            return "无文本内容";
+            return textContents.Count > 0 ? string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t))) : "无文本内容";
         }
         catch
         {
@@ -8422,12 +8396,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             }
 
             // 合并所有文本内容
-            if (textContents.Count > 0)
-            {
-                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
-            }
-
-            return "无文本内容";
+            return textContents.Count > 0 ? string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t))) : "无文本内容";
         }
         catch
         {
@@ -8565,13 +8534,24 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             {
                 // 检查各种环绕类型
                 if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapNone>() != null)
+                {
                     return "无环绕";
+                }
+
                 if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapSquare>() != null)
+                {
                     return "四周型环绕";
+                }
+
                 if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapTight>() != null)
+                {
                     return "紧密型环绕";
+                }
+
                 if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapThrough>() != null)
+                {
                     return "穿越型环绕";
+                }
                 // 注意：WrapTopAndBottom可能不存在，使用通用检查
                 IEnumerable<OpenXmlElement> wrapElements = anchor.Elements().Where(e => e.LocalName.Contains("wrap"));
                 if (wrapElements.Any())
@@ -8583,12 +8563,7 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
             // Inline类型图片通常跟随文本流
             DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
-            if (inline != null)
-            {
-                return "嵌入式(跟随文本)";
-            }
-
-            return "无环绕设置";
+            return inline != null ? "嵌入式(跟随文本)" : "无环绕设置";
         }
         catch
         {
