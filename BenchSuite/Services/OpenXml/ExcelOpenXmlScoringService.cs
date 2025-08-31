@@ -326,12 +326,18 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             "设置图例格式" => "LegendFormat",
             "设置主要纵坐标轴选项" => "VerticalAxisOptions",
             "设置网格线——主要横网格线" => "MajorHorizontalGridlines",
-            "设置网格线——主要纵网格线" => "MajorVerticalGridlines",
+            "主要纵网格线" => "MajorVerticalGridlines",
             "设置网格线——次要横网格线" => "MinorHorizontalGridlines",
-            "设置网格线——次要纵网格线" => "MinorVerticalGridlines",
+            "次要纵网格线" => "MinorVerticalGridlines",
             "设置主要纵坐标轴标题" => "VerticalAxisTitle",
             "设置主要纵坐标轴标题格式" => "VerticalAxisTitleFormat",
             "设置主要横坐标轴选项" => "HorizontalAxisOptions",
+            "设置数据系列格式" => "DataSeriesFormat",
+            "添加数据标签" => "AddDataLabels",
+            "设置数据标签格式" => "DataLabelsFormat",
+            "设置图表区域格式" => "ChartAreaFormat",
+            "显示图表基底颜色" => "ChartFloorColor",
+            "设置图表边框线" => "ChartBorder",
 
             _ => base.MapOperationPointNameToKnowledgeType(operationPointName)
         };
