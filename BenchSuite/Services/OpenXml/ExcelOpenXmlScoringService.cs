@@ -1327,11 +1327,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool pivotTableFound = CheckPivotTableInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckPivotTableInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数据透视表";
-            result.ActualValue = pivotTableFound ? "找到数据透视表" : "未找到数据透视表";
-            result.IsCorrect = pivotTableFound;
+            result.ActualValue = Found ? $"找到数据透视表: {Details}" : "未找到数据透视表";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"数据透视表检测: {result.ActualValue}";
         }
@@ -1567,11 +1567,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool protectionFound = CheckWorksheetProtectionInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckWorksheetProtectionInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "工作表保护";
-            result.ActualValue = protectionFound ? "找到工作表保护" : "未找到工作表保护";
-            result.IsCorrect = protectionFound;
+            result.ActualValue = Found ? $"找到工作表保护: {Details}" : "未找到工作表保护";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"工作表保护检测: {result.ActualValue}";
         }
@@ -2279,11 +2279,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool pivotTableFound = CheckPivotTableInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckPivotTableInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数据透视表";
-            result.ActualValue = pivotTableFound ? "找到数据透视表" : "未找到数据透视表";
-            result.IsCorrect = pivotTableFound;
+            result.ActualValue = Found ? $"找到数据透视表: {Details}" : "未找到数据透视表";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"数据透视表检测: {result.ActualValue}";
         }
@@ -3653,15 +3653,53 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的数据透视表
     /// </summary>
-    private bool CheckPivotTableInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckPivotTableInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
-            return workbookPart.PivotTableCacheDefinitionParts.Any();
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+
+            var pivotCacheParts = workbookPart.PivotTableCacheDefinitionParts.ToList();
+            if (pivotCacheParts.Count == 0)
+            {
+                return (false, "未找到数据透视表");
+            }
+
+            List<string> pivotDetails = [];
+
+            foreach (var pivotCachePart in pivotCacheParts)
+            {
+                var cacheDefinition = pivotCachePart.PivotCacheDefinition;
+                if (cacheDefinition != null)
+                {
+                    List<string> cacheInfo = ["数据透视表"];
+
+                    // 检查数据源
+                    if (cacheDefinition.CacheSource?.WorksheetSource?.Reference?.Value != null)
+                    {
+                        cacheInfo.Add($"数据源: {cacheDefinition.CacheSource.WorksheetSource.Reference.Value}");
+                    }
+
+                    // 检查记录数
+                    if (cacheDefinition.RecordCount?.Value != null)
+                    {
+                        cacheInfo.Add($"记录数: {cacheDefinition.RecordCount.Value}");
+                    }
+
+                    pivotDetails.Add(string.Join(", ", cacheInfo));
+                }
+            }
+
+            if (pivotDetails.Count > 0)
+            {
+                return (true, string.Join("; ", pivotDetails));
+            }
+
+            return (true, $"找到 {pivotCacheParts.Count} 个数据透视表");
         }
         catch
         {
-            return false;
+            return (false, "检测数据透视表时发生错误");
         }
     }
 
@@ -3983,23 +4021,52 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的工作表保护
     /// </summary>
-    private bool CheckWorksheetProtectionInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckWorksheetProtectionInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
-            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+            List<string> protectionDetails = [];
+
+            List<WorksheetPart> worksheets = workbookPart.WorksheetParts.ToList();
+            if (worksheets.Count == 0)
             {
-                SheetProtection? sheetProtection = worksheetPart.Worksheet.GetFirstChild<SheetProtection>();
-                if (sheetProtection != null)
+                return (false, "未找到工作表");
+            }
+
+            // 如果指定了具体的工作表编号且不是-1
+            if (worksheetNumber != -1)
+            {
+                if (worksheetNumber < 1 || worksheetNumber > worksheets.Count)
                 {
-                    return true;
+                    return (false, $"工作表编号 {worksheetNumber} 超出范围");
+                }
+
+                var worksheetPart = worksheets[worksheetNumber - 1];
+                string protectionInfo = GetWorksheetProtectionDetails(worksheetPart);
+                return (!string.IsNullOrEmpty(protectionInfo), protectionInfo);
+            }
+
+            // -1 模式：任意匹配，检查所有工作表
+            foreach (var worksheetPart in worksheets)
+            {
+                string protectionInfo = GetWorksheetProtectionDetails(worksheetPart);
+                if (!string.IsNullOrEmpty(protectionInfo))
+                {
+                    protectionDetails.Add(protectionInfo);
                 }
             }
-            return false;
+
+            if (protectionDetails.Count > 0)
+            {
+                return (true, string.Join("; ", protectionDetails));
+            }
+
+            return (false, "未找到工作表保护");
         }
         catch
         {
-            return false;
+            return (false, "检测工作表保护时发生错误");
         }
     }
 
@@ -7905,6 +7972,111 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取工作表保护详细信息
+    /// </summary>
+    private string GetWorksheetProtectionDetails(WorksheetPart worksheetPart)
+    {
+        try
+        {
+            SheetProtection? sheetProtection = worksheetPart.Worksheet.GetFirstChild<SheetProtection>();
+            if (sheetProtection == null)
+            {
+                return string.Empty;
+            }
+
+            List<string> protectionInfo = ["工作表保护"];
+
+            // 检查密码保护
+            if (sheetProtection.Password?.Value != null)
+            {
+                protectionInfo.Add("密码保护");
+            }
+
+            // 检查保护选项
+            if (sheetProtection.Sheet?.Value == true)
+            {
+                protectionInfo.Add("保护工作表");
+            }
+
+            if (sheetProtection.Objects?.Value == true)
+            {
+                protectionInfo.Add("保护对象");
+            }
+
+            if (sheetProtection.Scenarios?.Value == true)
+            {
+                protectionInfo.Add("保护方案");
+            }
+
+            if (sheetProtection.FormatCells?.Value == false)
+            {
+                protectionInfo.Add("允许格式化单元格");
+            }
+
+            if (sheetProtection.FormatColumns?.Value == false)
+            {
+                protectionInfo.Add("允许格式化列");
+            }
+
+            if (sheetProtection.FormatRows?.Value == false)
+            {
+                protectionInfo.Add("允许格式化行");
+            }
+
+            if (sheetProtection.InsertColumns?.Value == false)
+            {
+                protectionInfo.Add("允许插入列");
+            }
+
+            if (sheetProtection.InsertRows?.Value == false)
+            {
+                protectionInfo.Add("允许插入行");
+            }
+
+            if (sheetProtection.InsertHyperlinks?.Value == false)
+            {
+                protectionInfo.Add("允许插入超链接");
+            }
+
+            if (sheetProtection.DeleteColumns?.Value == false)
+            {
+                protectionInfo.Add("允许删除列");
+            }
+
+            if (sheetProtection.DeleteRows?.Value == false)
+            {
+                protectionInfo.Add("允许删除行");
+            }
+
+            if (sheetProtection.SelectLockedCells?.Value == false)
+            {
+                protectionInfo.Add("禁止选择锁定单元格");
+            }
+
+            if (sheetProtection.Sort?.Value == false)
+            {
+                protectionInfo.Add("允许排序");
+            }
+
+            if (sheetProtection.AutoFilter?.Value == false)
+            {
+                protectionInfo.Add("允许自动筛选");
+            }
+
+            if (sheetProtection.PivotTables?.Value == false)
+            {
+                protectionInfo.Add("允许数据透视表");
+            }
+
+            return string.Join(", ", protectionInfo);
         }
         catch
         {
