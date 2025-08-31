@@ -1357,11 +1357,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool conditionalFormattingFound = CheckConditionalFormattingInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckConditionalFormattingInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "条件格式";
-            result.ActualValue = conditionalFormattingFound ? "找到条件格式" : "未找到条件格式";
-            result.IsCorrect = conditionalFormattingFound;
+            result.ActualValue = Found ? $"找到条件格式: {Details}" : "未找到条件格式";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"条件格式检测: {result.ActualValue}";
         }
@@ -1387,11 +1387,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool dataValidationFound = CheckDataValidationInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckDataValidationInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数据验证";
-            result.ActualValue = dataValidationFound ? "找到数据验证" : "未找到数据验证";
-            result.IsCorrect = dataValidationFound;
+            result.ActualValue = Found ? $"找到数据验证: {Details}" : "未找到数据验证";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"数据验证检测: {result.ActualValue}";
         }
@@ -3507,46 +3507,96 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的条件格式
     /// </summary>
-    private bool CheckConditionalFormattingInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckConditionalFormattingInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
-            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
+            string expectedType = TryGetParameter(parameters, "FormatType", out string formatType) ? formatType : "";
+            string expectedRange = TryGetParameter(parameters, "Range", out string range) ? range : "";
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+
+            List<WorksheetPart> worksheets = workbookPart.WorksheetParts.ToList();
+            if (worksheets.Count == 0)
             {
-                ConditionalFormatting? conditionalFormatting = worksheetPart.Worksheet.Elements<ConditionalFormatting>().FirstOrDefault();
-                if (conditionalFormatting != null)
+                return (false, "未找到工作表");
+            }
+
+            // 如果指定了具体的工作表编号且不是-1
+            if (worksheetNumber != -1)
+            {
+                if (worksheetNumber < 1 || worksheetNumber > worksheets.Count)
                 {
-                    return true;
+                    return (false, $"工作表编号 {worksheetNumber} 超出范围");
+                }
+
+                var worksheetPart = worksheets[worksheetNumber - 1];
+                string formatDetails = GetConditionalFormattingDetails(worksheetPart, expectedType, expectedRange);
+                return (!string.IsNullOrEmpty(formatDetails), formatDetails);
+            }
+
+            // -1 模式：任意匹配，检查所有工作表
+            foreach (var worksheetPart in worksheets)
+            {
+                string formatDetails = GetConditionalFormattingDetails(worksheetPart, expectedType, expectedRange);
+                if (!string.IsNullOrEmpty(formatDetails))
+                {
+                    return (true, formatDetails);
                 }
             }
-            return false;
+
+            return (false, "未找到匹配的条件格式");
         }
         catch
         {
-            return false;
+            return (false, "检测条件格式时发生错误");
         }
     }
 
     /// <summary>
     /// 检查工作簿中的数据验证
     /// </summary>
-    private bool CheckDataValidationInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckDataValidationInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
-            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
+            string expectedType = TryGetParameter(parameters, "ValidationType", out string validationType) ? validationType : "";
+            string expectedRange = TryGetParameter(parameters, "Range", out string range) ? range : "";
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+
+            List<WorksheetPart> worksheets = workbookPart.WorksheetParts.ToList();
+            if (worksheets.Count == 0)
             {
-                DataValidations? dataValidations = worksheetPart.Worksheet.Elements<DataValidations>().FirstOrDefault();
-                if (dataValidations?.HasChildren == true)
+                return (false, "未找到工作表");
+            }
+
+            // 如果指定了具体的工作表编号且不是-1
+            if (worksheetNumber != -1)
+            {
+                if (worksheetNumber < 1 || worksheetNumber > worksheets.Count)
                 {
-                    return true;
+                    return (false, $"工作表编号 {worksheetNumber} 超出范围");
+                }
+
+                var worksheetPart = worksheets[worksheetNumber - 1];
+                string validationDetails = GetDataValidationDetails(worksheetPart, expectedType, expectedRange);
+                return (!string.IsNullOrEmpty(validationDetails), validationDetails);
+            }
+
+            // -1 模式：任意匹配，检查所有工作表
+            foreach (var worksheetPart in worksheets)
+            {
+                string validationDetails = GetDataValidationDetails(worksheetPart, expectedType, expectedRange);
+                if (!string.IsNullOrEmpty(validationDetails))
+                {
+                    return (true, validationDetails);
                 }
             }
-            return false;
+
+            return (false, "未找到匹配的数据验证");
         }
         catch
         {
-            return false;
+            return (false, "检测数据验证时发生错误");
         }
     }
 
@@ -5312,15 +5362,41 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有图表和基底颜色设置
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
+            string expectedColor = TryGetParameter(parameters, "FloorColor", out string color) ? color : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
+
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
             {
-                string floorColor = TryGetParameter(parameters, "FloorColor", out string color) ? color : "默认颜色";
-                return (true, floorColor);
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                string floorColor = GetChartFloorColor(chartPart, expectedColor);
+                return (!string.IsNullOrEmpty(floorColor), floorColor);
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                string floorColor = GetChartFloorColor(chartPart, expectedColor);
+                if (!string.IsNullOrEmpty(floorColor))
+                {
+                    return (true, floorColor);
+                }
+            }
+
+            return (false, "未找到匹配的图表基底颜色");
         }
         catch
         {
@@ -5335,20 +5411,42 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有图表和边框设置
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
-            {
-                if (TryGetParameter(parameters, "BorderStyle", out string borderStyle) ||
-                    TryGetParameter(parameters, "BorderColor", out string borderColor))
-                {
-                    return (true, "检测到图表边框设置");
-                }
+            string expectedStyle = TryGetParameter(parameters, "BorderStyle", out string borderStyle) ? borderStyle : "";
+            string expectedColor = TryGetParameter(parameters, "BorderColor", out string borderColor) ? borderColor : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
-                return (true, "检测到图表边框");
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
+            {
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                string borderInfo = GetChartBorder(chartPart, expectedStyle, expectedColor);
+                return (!string.IsNullOrEmpty(borderInfo), borderInfo);
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                string borderInfo = GetChartBorder(chartPart, expectedStyle, expectedColor);
+                if (!string.IsNullOrEmpty(borderInfo))
+                {
+                    return (true, borderInfo);
+                }
+            }
+
+            return (false, "未找到匹配的图表边框");
         }
         catch
         {
@@ -6881,6 +6979,404 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
             // 如果有数据标签但没有找到格式信息，返回基本信息
             return "数据标签格式";
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取图表区域格式
+    /// </summary>
+    private string GetChartAreaFormat(ChartPart chartPart, string expectedFillColor, string expectedBorderColor)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return string.Empty;
+
+            List<string> formatInfo = [];
+
+            // 检查图表区域的形状属性
+            var shapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            if (shapeProperties != null)
+            {
+                // 检查填充颜色
+                var solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                {
+                    string fillColor = solidFill.RgbColorModelHex.Val.Value;
+                    formatInfo.Add($"填充颜色: #{fillColor}");
+
+                    if (!string.IsNullOrEmpty(expectedFillColor) &&
+                        !fillColor.Contains(expectedFillColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                    {
+                        return string.Empty; // 填充颜色不匹配
+                    }
+                }
+
+                // 检查边框颜色
+                var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                if (outline != null)
+                {
+                    var outlineSolidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    if (outlineSolidFill?.RgbColorModelHex?.Val?.Value != null)
+                    {
+                        string borderColor = outlineSolidFill.RgbColorModelHex.Val.Value;
+                        formatInfo.Add($"边框颜色: #{borderColor}");
+
+                        if (!string.IsNullOrEmpty(expectedBorderColor) &&
+                            !borderColor.Contains(expectedBorderColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return string.Empty; // 边框颜色不匹配
+                        }
+                    }
+
+                    formatInfo.Add("有边框");
+                }
+
+                if (formatInfo.Count > 0)
+                {
+                    return string.Join(", ", formatInfo);
+                }
+            }
+
+            // 检查图表空间的形状属性
+            var chartSpaceShapeProperties = chartSpace?.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            if (chartSpaceShapeProperties != null)
+            {
+                formatInfo.Add("图表区域有格式设置");
+                return string.Join(", ", formatInfo);
+            }
+
+            return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取图表基底颜色
+    /// </summary>
+    private string GetChartFloorColor(ChartPart chartPart, string expectedColor)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return string.Empty;
+
+            // 检查3D图表的基底（Floor）
+            var floor = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.Floor>().FirstOrDefault();
+            if (floor != null)
+            {
+                var shapeProperties = floor.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                if (shapeProperties != null)
+                {
+                    // 检查填充颜色
+                    var solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                    {
+                        string color = solidFill.RgbColorModelHex.Val.Value;
+
+                        if (string.IsNullOrEmpty(expectedColor) ||
+                            color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return $"基底颜色: #{color}";
+                        }
+                    }
+
+                    // 如果有基底但没有颜色信息
+                    if (string.IsNullOrEmpty(expectedColor))
+                    {
+                        return "图表基底存在";
+                    }
+                }
+            }
+
+            // 检查图表区域的背景颜色作为基底颜色
+            var plotAreaShapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            if (plotAreaShapeProperties != null)
+            {
+                var solidFill = plotAreaShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                {
+                    string color = solidFill.RgbColorModelHex.Val.Value;
+
+                    if (string.IsNullOrEmpty(expectedColor) ||
+                        color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                    {
+                        return $"图表区域背景颜色: #{color}";
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取图表边框信息
+    /// </summary>
+    private string GetChartBorder(ChartPart chartPart, string expectedStyle, string expectedColor)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return string.Empty;
+
+            List<string> borderInfo = [];
+
+            // 检查图表区域的边框
+            var plotAreaShapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            if (plotAreaShapeProperties != null)
+            {
+                var outline = plotAreaShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                if (outline != null)
+                {
+                    borderInfo.Add("图表区域有边框");
+
+                    // 检查边框颜色
+                    var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                    {
+                        string color = solidFill.RgbColorModelHex.Val.Value;
+                        borderInfo.Add($"边框颜色: #{color}");
+
+                        if (!string.IsNullOrEmpty(expectedColor) &&
+                            !color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return string.Empty; // 颜色不匹配
+                        }
+                    }
+
+                    // 检查边框宽度
+                    if (outline.Width?.Value != null)
+                    {
+                        int width = outline.Width.Value / 12700; // 转换为点
+                        borderInfo.Add($"边框宽度: {width}pt");
+                    }
+                }
+            }
+
+            // 检查图表空间的边框
+            var chartSpaceShapeProperties = chartSpace?.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            if (chartSpaceShapeProperties != null)
+            {
+                var outline = chartSpaceShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                if (outline != null)
+                {
+                    if (borderInfo.Count == 0)
+                    {
+                        borderInfo.Add("图表有边框");
+                    }
+
+                    // 检查边框颜色
+                    var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                    {
+                        string color = solidFill.RgbColorModelHex.Val.Value;
+                        if (!borderInfo.Any(info => info.Contains("边框颜色")))
+                        {
+                            borderInfo.Add($"边框颜色: #{color}");
+                        }
+
+                        if (!string.IsNullOrEmpty(expectedColor) &&
+                            !color.Contains(expectedColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return string.Empty; // 颜色不匹配
+                        }
+                    }
+                }
+            }
+
+            return borderInfo.Count > 0 ? string.Join(", ", borderInfo) : string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取条件格式详细信息
+    /// </summary>
+    private string GetConditionalFormattingDetails(WorksheetPart worksheetPart, string expectedType, string expectedRange)
+    {
+        try
+        {
+            var conditionalFormattings = worksheetPart.Worksheet.Elements<ConditionalFormatting>();
+            List<string> formatDetails = [];
+
+            foreach (var conditionalFormatting in conditionalFormattings)
+            {
+                // 检查范围
+                string range = conditionalFormatting.SequenceOfReferences?.InnerText ?? "";
+                if (!string.IsNullOrEmpty(expectedRange) &&
+                    !range.Contains(expectedRange, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue; // 范围不匹配
+                }
+
+                // 检查条件格式规则
+                var conditionalFormattingRules = conditionalFormatting.Elements<ConditionalFormattingRule>();
+                foreach (var rule in conditionalFormattingRules)
+                {
+                    List<string> ruleDetails = [];
+
+                    // 添加范围信息
+                    if (!string.IsNullOrEmpty(range))
+                    {
+                        ruleDetails.Add($"范围: {range}");
+                    }
+
+                    // 检查条件格式类型
+                    if (rule.Type?.Value != null)
+                    {
+                        string ruleType = rule.Type.Value.ToString();
+                        ruleDetails.Add($"类型: {ruleType}");
+
+                        if (!string.IsNullOrEmpty(expectedType) &&
+                            !ruleType.Contains(expectedType, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue; // 类型不匹配
+                        }
+                    }
+
+                    // 检查优先级
+                    if (rule.Priority?.Value != null)
+                    {
+                        ruleDetails.Add($"优先级: {rule.Priority.Value}");
+                    }
+
+                    // 检查格式
+                    if (rule.FormatId?.Value != null)
+                    {
+                        ruleDetails.Add($"格式ID: {rule.FormatId.Value}");
+                    }
+
+                    // 检查公式
+                    var formulas = rule.Elements<Formula>();
+                    foreach (var formula in formulas)
+                    {
+                        if (!string.IsNullOrEmpty(formula.Text))
+                        {
+                            ruleDetails.Add($"公式: {formula.Text}");
+                        }
+                    }
+
+                    if (ruleDetails.Count > 0)
+                    {
+                        formatDetails.Add(string.Join(", ", ruleDetails));
+                    }
+                }
+            }
+
+            return formatDetails.Count > 0 ? string.Join("; ", formatDetails) : string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取数据验证详细信息
+    /// </summary>
+    private string GetDataValidationDetails(WorksheetPart worksheetPart, string expectedType, string expectedRange)
+    {
+        try
+        {
+            var dataValidations = worksheetPart.Worksheet.Elements<DataValidations>().FirstOrDefault();
+            if (dataValidations?.HasChildren != true)
+            {
+                return string.Empty;
+            }
+
+            List<string> validationDetails = [];
+
+            foreach (var dataValidation in dataValidations.Elements<DataValidation>())
+            {
+                List<string> validationInfo = [];
+
+                // 检查范围
+                string range = dataValidation.SequenceOfReferences?.InnerText ?? "";
+                if (!string.IsNullOrEmpty(expectedRange) &&
+                    !range.Contains(expectedRange, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue; // 范围不匹配
+                }
+
+                if (!string.IsNullOrEmpty(range))
+                {
+                    validationInfo.Add($"范围: {range}");
+                }
+
+                // 检查验证类型
+                if (dataValidation.Type?.Value != null)
+                {
+                    string validationType = dataValidation.Type.Value.ToString();
+                    validationInfo.Add($"类型: {validationType}");
+
+                    if (!string.IsNullOrEmpty(expectedType) &&
+                        !validationType.Contains(expectedType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue; // 类型不匹配
+                    }
+                }
+
+                // 检查操作符
+                if (dataValidation.Operator?.Value != null)
+                {
+                    validationInfo.Add($"操作符: {dataValidation.Operator.Value}");
+                }
+
+                // 检查公式1
+                if (!string.IsNullOrEmpty(dataValidation.Formula1?.Text))
+                {
+                    validationInfo.Add($"公式1: {dataValidation.Formula1.Text}");
+                }
+
+                // 检查公式2
+                if (!string.IsNullOrEmpty(dataValidation.Formula2?.Text))
+                {
+                    validationInfo.Add($"公式2: {dataValidation.Formula2.Text}");
+                }
+
+                // 检查提示信息
+                if (!string.IsNullOrEmpty(dataValidation.Prompt?.Value))
+                {
+                    validationInfo.Add($"提示: {dataValidation.Prompt.Value}");
+                }
+
+                // 检查错误信息
+                if (!string.IsNullOrEmpty(dataValidation.Error?.Value))
+                {
+                    validationInfo.Add($"错误信息: {dataValidation.Error.Value}");
+                }
+
+                if (validationInfo.Count > 0)
+                {
+                    validationDetails.Add(string.Join(", ", validationInfo));
+                }
+            }
+
+            return validationDetails.Count > 0 ? string.Join("; ", validationDetails) : string.Empty;
         }
         catch
         {
