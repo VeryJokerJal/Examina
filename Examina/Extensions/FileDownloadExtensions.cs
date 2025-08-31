@@ -139,12 +139,18 @@ public static class FileDownloadHelper
             {
                 // 返回默认路径
                 string baseDownloadPath = @"C:\河北对口计算机";
+
+                // 专项训练直接使用基础路径，不创建训练ID子目录
+                if (taskType == FileDownloadTaskType.SpecializedTraining)
+                {
+                    return baseDownloadPath;
+                }
+
                 string taskTypeFolder = taskType switch
                 {
                     FileDownloadTaskType.MockExam => "模拟考试",
                     FileDownloadTaskType.OnlineExam => "上机统考",
                     FileDownloadTaskType.ComprehensiveTraining => "综合实训",
-                    FileDownloadTaskType.SpecializedTraining => "专项训练",
                     _ => "其他"
                 };
                 return Path.Combine(baseDownloadPath, taskTypeFolder, relatedId.ToString());
@@ -157,6 +163,13 @@ public static class FileDownloadHelper
         {
             // 异常情况下返回默认路径
             string baseDownloadPath = @"C:\河北对口计算机";
+
+            // 专项训练直接使用基础路径，不创建训练ID子目录
+            if (taskType == FileDownloadTaskType.SpecializedTraining)
+            {
+                return baseDownloadPath;
+            }
+
             return Path.Combine(baseDownloadPath, taskType.ToString(), relatedId.ToString());
         }
     }

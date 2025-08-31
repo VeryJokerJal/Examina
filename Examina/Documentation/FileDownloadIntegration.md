@@ -234,13 +234,11 @@ C:\河北对口计算机\
 │       ├── WORD/
 │       ├── EXCEL/
 │       └── WINDOWS/
-└── SpecializedTraining/    # 专项训练
-    └── {trainingId}/
-        ├── CSharp/
-        ├── PPT/
-        ├── WORD/
-        ├── EXCEL/
-        └── WINDOWS/
+├── CSharp/                 # 专项训练 - C#编程
+├── PPT/                    # 专项训练 - PowerPoint
+├── WORD/                   # 专项训练 - Word文档
+├── EXCEL/                  # 专项训练 - Excel表格
+└── WINDOWS/                # 专项训练 - Windows操作
 ```
 
 ### 2. 支持的文件格式
