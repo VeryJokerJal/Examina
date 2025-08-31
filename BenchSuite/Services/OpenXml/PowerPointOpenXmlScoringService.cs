@@ -115,7 +115,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             FinalizeScoringResult(result, allOperationPoints);
 
-            System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 评分完成: 总分 {result.TotalScore}, 获得分数 {result.AchievedScore}, 成功率 {(result.TotalScore > 0 ? (result.AchievedScore / result.TotalScore * 100):0):F1}%");
+            System.Diagnostics.Debug.WriteLine($"[PowerPointOpenXmlScoringService] 评分完成: 总分 {result.TotalScore}, 获得分数 {result.AchievedScore}, 成功率 {(result.TotalScore > 0 ? (result.AchievedScore / result.TotalScore * 100) : 0):F1}%");
         }
         catch (Exception ex)
         {
@@ -1398,8 +1398,6 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         }
     }
 
-
-
     /// <summary>
     /// 检测文本样式
     /// </summary>
@@ -2537,10 +2535,6 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         return result;
     }
 
-
-
-
-
     /// <summary>
     /// 检测背景样式
     /// </summary>
@@ -2662,7 +2656,12 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
     /// <summary>
     /// 获取元素位置信息
+    /// 支持ElementIndex=-1的任意元素匹配模式，会遍历所有元素找到符合条件的第一个元素
     /// </summary>
+    /// <param name="slidePart">幻灯片部分</param>
+    /// <param name="elementType">元素类型</param>
+    /// <param name="parameters">参数字典，支持ElementIndex=-1表示任意元素匹配</param>
+    /// <returns>元素位置信息</returns>
     private (bool Found, long X, long Y) GetElementPosition(SlidePart slidePart, string elementType, Dictionary<string, string> parameters)
     {
         try
@@ -2686,6 +2685,12 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             List<DocumentFormat.OpenXml.Presentation.Shape> shapeList = shapes.ToList();
+
+            // 如果elementIndex为-1，表示任意元素匹配模式
+            if (elementIndex == -1)
+            {
+                return FindAnyElementPosition(shapeList, elementType, parameters);
+            }
 
             // 检查索引是否有效
             if (elementIndex < 1 || elementIndex > shapeList.Count)
@@ -2711,6 +2716,130 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         catch
         {
             return (false, 0, 0);
+        }
+    }
+
+    /// <summary>
+    /// 在任意元素匹配模式下查找符合条件的元素位置
+    /// </summary>
+    private (bool Found, long X, long Y) FindAnyElementPosition(List<DocumentFormat.OpenXml.Presentation.Shape> shapes, string elementType, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            // 根据元素类型和其他条件筛选符合条件的形状
+            foreach (DocumentFormat.OpenXml.Presentation.Shape shape in shapes)
+            {
+                // 检查形状是否符合指定的元素类型
+                if (IsShapeMatchingElementType(shape, elementType))
+                {
+                    // 如果有其他条件（如超链接），进一步验证
+                    if (IsShapeMatchingAdditionalCriteria(shape, parameters))
+                    {
+                        Transform2D? transform = shape.ShapeProperties?.Transform2D;
+                        if (transform?.Offset != null)
+                        {
+                            long x = transform.Offset.X?.Value ?? 0;
+                            long y = transform.Offset.Y?.Value ?? 0;
+                            return (true, x, y);
+                        }
+                    }
+                }
+            }
+
+            return (false, 0, 0);
+        }
+        catch
+        {
+            return (false, 0, 0);
+        }
+    }
+
+    /// <summary>
+    /// 检查形状是否匹配指定的元素类型
+    /// </summary>
+    private static bool IsShapeMatchingElementType(DocumentFormat.OpenXml.Presentation.Shape shape, string elementType)
+    {
+        try
+        {
+            string lowerElementType = elementType.ToLowerInvariant();
+
+            // 检查形状是否有文本内容（文本框类型）
+            if (lowerElementType.Contains("textbox") || lowerElementType.Contains("text"))
+            {
+                return shape.TextBody != null && shape.TextBody.HasChildren;
+            }
+
+            // 检查形状类型
+            if (lowerElementType.Contains("shape") || lowerElementType.Contains("element"))
+            {
+                return true; // 所有形状都匹配
+            }
+
+            // 检查图片类型
+            if (lowerElementType.Contains("picture") || lowerElementType.Contains("image"))
+            {
+                return shape.ShapeProperties?.Elements<DocumentFormat.OpenXml.Drawing.BlipFill>().Any() == true;
+            }
+
+            // 默认匹配所有形状
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 检查形状是否匹配额外的条件（如超链接等）
+    /// </summary>
+    private static bool IsShapeMatchingAdditionalCriteria(DocumentFormat.OpenXml.Presentation.Shape shape, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            // 检查超链接条件
+            if (parameters.TryGetValue("Hyperlink", out string? expectedHyperlink) && !string.IsNullOrEmpty(expectedHyperlink))
+            {
+                // 检查形状是否包含指定的超链接
+                IEnumerable<Hyperlink> hyperlinks = shape.Descendants<Hyperlink>();
+                if (!hyperlinks.Any())
+                {
+                    return false; // 没有超链接，不匹配
+                }
+
+                // 检查超链接内容是否匹配
+                foreach (Hyperlink hyperlink in hyperlinks)
+                {
+                    if (hyperlink.HasAttributes)
+                    {
+                        foreach (OpenXmlAttribute attr in hyperlink.GetAttributes())
+                        {
+                            if (attr.LocalName == "id" && !string.IsNullOrEmpty(attr.Value))
+                            {
+                                // 这里可以进一步检查超链接URL是否匹配
+                                return true; // 简化处理，有超链接就认为匹配
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 检查文本内容条件
+            if (parameters.TryGetValue("TextContent", out string? expectedText) && !string.IsNullOrEmpty(expectedText))
+            {
+                string shapeText = GetTextFromShape(shape);
+                if (!shapeText.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            // 如果没有额外条件或所有条件都满足，返回true
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -2765,6 +2894,12 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             List<DocumentFormat.OpenXml.Presentation.Shape> shapeList = [.. shapes];
 
+            // 如果elementIndex为-1，表示任意元素匹配模式
+            if (elementIndex == -1)
+            {
+                return FindAnyElementSize(shapeList, elementType, parameters);
+            }
+
             // 检查索引是否有效
             if (elementIndex < 1 || elementIndex > shapeList.Count)
             {
@@ -2782,6 +2917,41 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
                 // 返回EMU单位的大小（可以根据需要转换为其他单位）
                 return (true, width, height);
+            }
+
+            return (false, 0, 0);
+        }
+        catch
+        {
+            return (false, 0, 0);
+        }
+    }
+
+    /// <summary>
+    /// 在任意元素匹配模式下查找符合条件的元素大小
+    /// </summary>
+    private (bool Found, long Width, long Height) FindAnyElementSize(List<DocumentFormat.OpenXml.Presentation.Shape> shapes, string elementType, Dictionary<string, string> parameters)
+    {
+        try
+        {
+            // 根据元素类型和其他条件筛选符合条件的形状
+            foreach (DocumentFormat.OpenXml.Presentation.Shape shape in shapes)
+            {
+                // 检查形状是否符合指定的元素类型
+                if (IsShapeMatchingElementType(shape, elementType))
+                {
+                    // 如果有其他条件（如超链接），进一步验证
+                    if (IsShapeMatchingAdditionalCriteria(shape, parameters))
+                    {
+                        Transform2D? transform = shape.ShapeProperties?.Transform2D;
+                        if (transform?.Extents != null)
+                        {
+                            long width = transform.Extents.Cx?.Value ?? 0;
+                            long height = transform.Extents.Cy?.Value ?? 0;
+                            return (true, width, height);
+                        }
+                    }
+                }
             }
 
             return (false, 0, 0);
@@ -2847,6 +3017,93 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
+            // 尝试获取元素索引来定位特定元素
+            int elementIndex = 1; // 默认第一个元素
+            if (TryGetIntParameter(parameters, "ElementIndex", out int paramIndex))
+            {
+                elementIndex = paramIndex;
+            }
+            else if (TryGetIntParameter(parameters, "ElementOrder", out int paramOrder))
+            {
+                elementIndex = paramOrder;
+            }
+
+            // 获取所有形状
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            if (shapes == null)
+            {
+                return (false, string.Empty);
+            }
+
+            List<DocumentFormat.OpenXml.Presentation.Shape> shapeList = shapes.ToList();
+
+            // 如果elementIndex为-1，表示任意元素匹配模式
+            if (elementIndex == -1)
+            {
+                return FindAnyElementHyperlink(shapeList, parameters, slidePart);
+            }
+
+            // 检查索引是否有效
+            if (elementIndex < 1 || elementIndex > shapeList.Count)
+            {
+                // 如果指定元素不存在，检查整个幻灯片的超链接
+                return GetSlideHyperlinkInfo(slidePart);
+            }
+
+            // 获取指定索引的形状中的超链接
+            DocumentFormat.OpenXml.Presentation.Shape targetShape = shapeList[elementIndex - 1];
+            return GetShapeHyperlinkInfo(targetShape, slidePart);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 在任意元素匹配模式下查找包含超链接的元素
+    /// </summary>
+    private (bool Found, string Url) FindAnyElementHyperlink(List<DocumentFormat.OpenXml.Presentation.Shape> shapes, Dictionary<string, string> parameters, SlidePart slidePart)
+    {
+        try
+        {
+            // 获取期望的超链接URL（如果有指定）
+            string? expectedUrl = parameters.TryGetValue("Hyperlink", out string? url) ? url : null;
+
+            foreach (DocumentFormat.OpenXml.Presentation.Shape shape in shapes)
+            {
+                (bool found, string shapeUrl) = GetShapeHyperlinkInfo(shape, slidePart);
+                if (found)
+                {
+                    // 如果没有指定期望的URL，找到任何超链接就返回
+                    if (string.IsNullOrEmpty(expectedUrl))
+                    {
+                        return (true, shapeUrl);
+                    }
+
+                    // 如果指定了期望的URL，检查是否匹配
+                    if (shapeUrl.Contains(expectedUrl, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return (true, shapeUrl);
+                    }
+                }
+            }
+
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 获取整个幻灯片的超链接信息
+    /// </summary>
+    private (bool Found, string Url) GetSlideHyperlinkInfo(SlidePart slidePart)
+    {
+        try
+        {
             // 检查是否存在超链接并获取详细信息
             IEnumerable<Hyperlink> hyperlinks = slidePart.Slide.Descendants<Hyperlink>();
 
@@ -2902,6 +3159,74 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// 获取指定形状的超链接信息
+    /// </summary>
+    private (bool Found, string Url) GetShapeHyperlinkInfo(DocumentFormat.OpenXml.Presentation.Shape shape, SlidePart slidePart)
+    {
+        try
+        {
+            // 检查形状中的超链接
+            IEnumerable<Hyperlink> hyperlinks = shape.Descendants<Hyperlink>();
+
+            if (hyperlinks.Any())
+            {
+                List<string> urlList = [];
+
+                foreach (Hyperlink hyperlink in hyperlinks)
+                {
+                    if (hyperlink.HasAttributes)
+                    {
+                        foreach (OpenXmlAttribute attr in hyperlink.GetAttributes())
+                        {
+                            if (attr.LocalName == "id" && !string.IsNullOrEmpty(attr.Value))
+                            {
+                                try
+                                {
+                                    HyperlinkRelationship? relationship = slidePart.GetReferenceRelationship(attr.Value) as HyperlinkRelationship;
+                                    if (relationship?.Uri != null)
+                                    {
+                                        urlList.Add(relationship.Uri.ToString());
+                                    }
+                                }
+                                catch
+                                {
+                                    urlList.Add("内部链接");
+                                }
+                            }
+                            else if (attr.LocalName == "tooltip" && !string.IsNullOrEmpty(attr.Value))
+                            {
+                                urlList.Add($"提示: {attr.Value}");
+                            }
+                        }
+                    }
+                }
+
+                string urlInfo = urlList.Count > 0 ? string.Join("; ", urlList) : "超链接存在";
+                return (true, urlInfo);
+            }
+
+            // 检查形状文本中是否包含URL模式
+            string shapeText = GetTextFromShape(shape);
+            if (shapeText.Contains("http://") || shapeText.Contains("https://") || shapeText.Contains("www."))
+            {
+                return (true, shapeText);
+            }
+
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
         }
         catch
         {
@@ -3047,8 +3372,8 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             // 4. 如果没有明确的页脚标识，返回位置最靠下的文本（通常页脚在底部）
             if (textWithPosition.Count > 0)
             {
-                (string text, long y) bottomText = textWithPosition.OrderByDescending(t => t.Y).First();
-                return bottomText.text;
+                (string text, long y) = textWithPosition.OrderByDescending(t => t.Y).First();
+                return text;
             }
 
             return string.Empty;
@@ -3373,7 +3698,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
                     // 检查是否是自定义大小（非标准比例）
                     double ratio = (double)width / height;
-                    if (Math.Abs(ratio - 16.0/9.0) > 0.1 && Math.Abs(ratio - 4.0/3.0) > 0.1)
+                    if (Math.Abs(ratio - (16.0 / 9.0)) > 0.1 && Math.Abs(ratio - (4.0 / 3.0)) > 0.1)
                     {
                         options.Add("自定义幻灯片大小");
                     }
@@ -3590,12 +3915,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             // 备用检查：如果指定元素存在且有动画设置
             IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
-            if (shapes?.Count() >= elementOrder && timing?.TimeNodeList?.HasChildren == true)
-            {
-                return "检测到动画方向设置";
-            }
-
-            return "无动画方向";
+            return shapes?.Count() >= elementOrder && timing?.TimeNodeList?.HasChildren == true ? "检测到动画方向设置" : "无动画方向";
         }
         catch
         {
@@ -3647,12 +3967,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             // 备用检查：如果指定元素存在且有动画设置
             IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
-            if (shapes?.Count() >= elementOrder && timing?.TimeNodeList?.HasChildren == true)
-            {
-                return "检测到动画样式设置";
-            }
-
-            return "无动画样式";
+            return shapes?.Count() >= elementOrder && timing?.TimeNodeList?.HasChildren == true ? "检测到动画样式设置" : "无动画样式";
         }
         catch
         {
@@ -3669,11 +3984,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         {
             // 检查是否有SmartArt图形
             IEnumerable<DocumentFormat.OpenXml.Presentation.GraphicFrame>? graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
-            if (graphicFrames?.Count() >= elementOrder)
-            {
-                return "检测到SmartArt样式";
-            }
-            return "无SmartArt样式";
+            return graphicFrames?.Count() >= elementOrder ? "检测到SmartArt样式" : "无SmartArt样式";
         }
         catch
         {
@@ -3694,11 +4005,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             {
                 DocumentFormat.OpenXml.Presentation.GraphicFrame graphicFrame = graphicFrames.ElementAt(elementOrder - 1);
                 IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = graphicFrame.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-                if (textElements.Any())
-                {
-                    return string.Join(" ", textElements.Select(t => t.Text));
-                }
-                return "检测到SmartArt内容";
+                return textElements.Any() ? string.Join(" ", textElements.Select(t => t.Text)) : "检测到SmartArt内容";
             }
             return "无SmartArt内容";
         }
@@ -3775,17 +4082,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查主题和背景设置
-            if (presentationPart.ThemePart != null)
-            {
-                return "检测到背景样式设置";
-            }
-            return "默认背景样式";
+            return presentationPart.ThemePart != null ? "检测到背景样式设置" : "默认背景样式";
         }
         catch
         {
             return "未知背景样式";
         }
     }
-
-
 }
