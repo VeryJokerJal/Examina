@@ -291,7 +291,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "目标幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 }
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" }
             ]
         };
 
@@ -305,7 +305,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片编号", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "TableRows", DisplayName = "表格行数", Description = "表格行数", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, MaxValue = 20 },
                 new() { Name = "TableColumns", DisplayName = "表格列数", Description = "表格列数", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1, MaxValue = 20 }
             ]
@@ -370,7 +370,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "FontSize", DisplayName = "字号值", Description = "字体大小", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 8, MaxValue = 72, DefaultValue = "18" }
             ]
         };
@@ -385,7 +385,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "ColorValue", DisplayName = "颜色值", Description = "RGB颜色值", Type = ParameterType.Color, IsRequired = true, Order = 3, DefaultValue = "#000000" }
             ]
         };
@@ -400,7 +400,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "TextStyle", DisplayName = "字形", Description = "选择文本样式", Type = ParameterType.Enum, IsRequired = true, Order = 3, DefaultValue = "加粗（Bold）",
                     EnumOptions = "加粗（Bold）,斜体（Italic）,下划线（Underline）,删除线（Strikethrough）" }
             ]
@@ -416,7 +416,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "HorizontalPosition", DisplayName = "水平值（自左上角）", Description = "自左上角的水平位置", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 0, DefaultValue = "100" },
                 new() { Name = "VerticalPosition", DisplayName = "垂直值（自左上角）", Description = "自左上角的垂直位置", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 0, DefaultValue = "100" }
             ]
@@ -432,7 +432,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1, DefaultValue = "1" },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1, DefaultValue = "1" },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "ElementHeight", DisplayName = "元素高度", Description = "元素的高度", Type = ParameterType.Number, IsRequired = true, Order = 3, MinValue = 1, DefaultValue = "100" },
                 new() { Name = "ElementWidth", DisplayName = "元素宽度", Description = "元素的宽度", Type = ParameterType.Number, IsRequired = true, Order = 4, MinValue = 1, DefaultValue = "200" }
             ]
@@ -448,7 +448,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "PresetTextEffect", DisplayName = "艺术字预设效果", Description = "选择艺术字预设效果（基于MsoPresetTextEffect枚举）", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "效果1,效果2,效果3,效果4,效果5,效果6,效果7,效果8,效果9,效果10,效果11,效果12,效果13,效果14,效果15,效果16,效果17,效果18,效果19,效果20,效果21,效果22,效果23,效果24,效果25,效果26,效果27,效果28,效果29,效果30" },
                 new() { Name = "TextEffectShape", DisplayName = "艺术字形状效果", Description = "选择艺术字形状效果（基于MsoPresetTextEffectShape枚举）", Type = ParameterType.Enum, IsRequired = false, Order = 4,
@@ -514,7 +514,7 @@ public class PowerPointKnowledgeService
             ParameterTemplates =
             [
                 new() { Name = "SlideNumber", DisplayName = "操作目标幻灯片", Description = "第几张幻灯片", Type = ParameterType.Number, IsRequired = true, Order = 1, MinValue = 1 },
-                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = 1 },
+                new() { Name = "TextBoxOrder", DisplayName = "文本框顺序", Description = "第几个文本框（-1代表任意一个）", Type = ParameterType.Number, IsRequired = true, Order = 2, MinValue = -1, DefaultValue = "-1" },
                 new() { Name = "TextAlignment", DisplayName = "对齐方式", Description = "文本对齐方式", Type = ParameterType.Enum, IsRequired = true, Order = 3,
                     EnumOptions = "左对齐,居中对齐,右对齐,两端对齐（自动调节空格）,均匀分布对齐（常用于中文）" }
             ]
