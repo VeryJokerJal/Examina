@@ -6227,8 +6227,21 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到图片位置设置
-                return (true, "检测到水平位置", "检测到垂直位置");
+                // 检查Inline类型图片（嵌入式图片）
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+                if (inline != null)
+                {
+                    (string horizontal, string vertical) = ParseInlinePosition(inline);
+                    return (true, horizontal, vertical);
+                }
+
+                // 检查Anchor类型图片（浮动图片）
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+                if (anchor != null)
+                {
+                    (string horizontal, string vertical) = ParseAnchorPosition(anchor);
+                    return (true, horizontal, vertical);
+                }
             }
 
             return (false, "", "");
@@ -6237,6 +6250,243 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             return (false, "", "");
         }
+    }
+
+    /// <summary>
+    /// 解析Anchor类型图片的位置信息
+    /// </summary>
+    private static (string Horizontal, string Vertical) ParseAnchorPosition(DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor anchor)
+    {
+        try
+        {
+            string horizontal = "浮动-未知水平位置";
+            string vertical = "浮动-未知垂直位置";
+
+            // 获取水平位置信息
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.HorizontalPosition? hPos = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.HorizontalPosition>();
+            if (hPos != null)
+            {
+                horizontal = ParseHorizontalPosition(hPos);
+            }
+
+            // 获取垂直位置信息
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.VerticalPosition? vPos = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.VerticalPosition>();
+            if (vPos != null)
+            {
+                vertical = ParseVerticalPosition(vPos);
+            }
+
+            // 检查环绕方式以提供更多上下文
+            string wrapType = GetWrapType(anchor);
+
+            // 将环绕信息添加到位置描述中
+            horizontal = $"{horizontal}({wrapType})";
+
+            return (horizontal, vertical);
+        }
+        catch
+        {
+            return ("浮动-解析失败", "浮动-解析失败");
+        }
+    }
+
+    /// <summary>
+    /// 解析水平位置信息
+    /// </summary>
+    private static string ParseHorizontalPosition(DocumentFormat.OpenXml.Drawing.Wordprocessing.HorizontalPosition hPos)
+    {
+        try
+        {
+            string relativeFrom = hPos.RelativeFrom?.Value.ToString() ?? "未知基准";
+
+            // 检查对齐方式（子元素）
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.HorizontalAlignment? hAlign = hPos.HorizontalAlignment;
+            if (hAlign?.InnerText != null)
+            {
+                string align = TranslateAlignment(hAlign.InnerText);
+                return $"浮动-{align}对齐(相对于{TranslateRelativeFrom(relativeFrom)})";
+            }
+
+            // 检查绝对位置偏移（子元素）
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.PositionOffset? posOffset = hPos.PositionOffset;
+            if (posOffset?.InnerText != null && long.TryParse(posOffset.InnerText, out long offsetEmu))
+            {
+                double offsetCm = ConvertEmuToCentimeters(offsetEmu);
+                return $"浮动-绝对位置{offsetCm:F1}cm(相对于{TranslateRelativeFrom(relativeFrom)})";
+            }
+
+            return $"浮动-相对于{TranslateRelativeFrom(relativeFrom)}";
+        }
+        catch
+        {
+            return "浮动-水平位置解析失败";
+        }
+    }
+
+    /// <summary>
+    /// 解析垂直位置信息
+    /// </summary>
+    private static string ParseVerticalPosition(DocumentFormat.OpenXml.Drawing.Wordprocessing.VerticalPosition vPos)
+    {
+        try
+        {
+            string relativeFrom = vPos.RelativeFrom?.Value.ToString() ?? "未知基准";
+
+            // 检查对齐方式（子元素）
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.VerticalAlignment? vAlign = vPos.VerticalAlignment;
+            if (vAlign?.InnerText != null)
+            {
+                string align = TranslateAlignment(vAlign.InnerText);
+                return $"浮动-{align}对齐(相对于{TranslateRelativeFrom(relativeFrom)})";
+            }
+
+            // 检查绝对位置偏移（子元素）
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.PositionOffset? posOffset = vPos.PositionOffset;
+            if (posOffset?.InnerText != null && long.TryParse(posOffset.InnerText, out long offsetEmu))
+            {
+                double offsetCm = ConvertEmuToCentimeters(offsetEmu);
+                return $"浮动-绝对位置{offsetCm:F1}cm(相对于{TranslateRelativeFrom(relativeFrom)})";
+            }
+
+            return $"浮动-相对于{TranslateRelativeFrom(relativeFrom)}";
+        }
+        catch
+        {
+            return "浮动-垂直位置解析失败";
+        }
+    }
+
+    /// <summary>
+    /// 解析Inline类型图片的位置信息
+    /// </summary>
+    private static (string Horizontal, string Vertical) ParseInlinePosition(DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline inline)
+    {
+        try
+        {
+            // Inline图片通常跟随文本流，位置相对固定
+            string horizontal = "嵌入式-跟随文本流";
+            string vertical = "嵌入式-基线对齐";
+
+            // 检查是否有特殊的位置设置
+            // Inline图片可能有距离边距的设置
+            if (inline.DistanceFromTop?.Value != null || inline.DistanceFromBottom?.Value != null ||
+                inline.DistanceFromLeft?.Value != null || inline.DistanceFromRight?.Value != null)
+            {
+                List<string> margins = [];
+
+                if (inline.DistanceFromTop?.Value != null)
+                {
+                    double topCm = ConvertEmuToCentimeters(inline.DistanceFromTop.Value);
+                    margins.Add($"上边距{topCm:F1}cm");
+                }
+
+                if (inline.DistanceFromBottom?.Value != null)
+                {
+                    double bottomCm = ConvertEmuToCentimeters(inline.DistanceFromBottom.Value);
+                    margins.Add($"下边距{bottomCm:F1}cm");
+                }
+
+                if (inline.DistanceFromLeft?.Value != null)
+                {
+                    double leftCm = ConvertEmuToCentimeters(inline.DistanceFromLeft.Value);
+                    margins.Add($"左边距{leftCm:F1}cm");
+                }
+
+                if (inline.DistanceFromRight?.Value != null)
+                {
+                    double rightCm = ConvertEmuToCentimeters(inline.DistanceFromRight.Value);
+                    margins.Add($"右边距{rightCm:F1}cm");
+                }
+
+                if (margins.Count > 0)
+                {
+                    horizontal = $"嵌入式-{string.Join(",", margins)}";
+                    vertical = "嵌入式-有边距设置";
+                }
+            }
+
+            return (horizontal, vertical);
+        }
+        catch
+        {
+            return ("嵌入式-解析失败", "嵌入式-解析失败");
+        }
+    }
+
+    /// <summary>
+    /// 获取环绕类型
+    /// </summary>
+    private static string GetWrapType(DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor anchor)
+    {
+        try
+        {
+            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapNone>() != null)
+                return "无环绕";
+            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapSquare>() != null)
+                return "四周型环绕";
+            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapTight>() != null)
+                return "紧密型环绕";
+            if (anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.WrapThrough>() != null)
+                return "穿越型环绕";
+
+            return "未知环绕";
+        }
+        catch
+        {
+            return "环绕解析失败";
+        }
+    }
+
+    /// <summary>
+    /// 翻译对齐方式
+    /// </summary>
+    private static string TranslateAlignment(string alignment)
+    {
+        return alignment.ToLower() switch
+        {
+            "left" => "左",
+            "center" => "居中",
+            "right" => "右",
+            "top" => "顶部",
+            "middle" => "中间",
+            "bottom" => "底部",
+            "inside" => "内侧",
+            "outside" => "外侧",
+            _ => alignment
+        };
+    }
+
+    /// <summary>
+    /// 翻译相对位置基准
+    /// </summary>
+    private static string TranslateRelativeFrom(string relativeFrom)
+    {
+        return relativeFrom.ToLower() switch
+        {
+            "page" => "页面",
+            "margin" => "页边距",
+            "column" => "列",
+            "character" => "字符",
+            "line" => "行",
+            "paragraph" => "段落",
+            "leftmargin" => "左边距",
+            "rightmargin" => "右边距",
+            "topmargin" => "上边距",
+            "bottommargin" => "下边距",
+            "insidemargin" => "内边距",
+            "outsidemargin" => "外边距",
+            _ => relativeFrom
+        };
+    }
+
+    /// <summary>
+    /// 将EMU单位转换为厘米
+    /// </summary>
+    private static double ConvertEmuToCentimeters(long emu)
+    {
+        // 1 EMU = 1/914400 英寸
+        // 1 英寸 = 2.54 厘米
+        return emu / 914400.0 * 2.54;
     }
 
     /// <summary>
