@@ -6415,34 +6415,38 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 检查VML文本框的父级Shape
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            // 1. 检查VML文本框位置
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                // 简化实现：检查形状是否包含文本
-                string text = shape.InnerText;
-                if (!string.IsNullOrEmpty(text))
+                // 检查是否为文本框
+                DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+                if (textBox != null)
                 {
-                    string? style = shape.Style?.Value;
-                    if (!string.IsNullOrEmpty(style))
+                    (bool hasPos, string horizontal, string vertical) = ExtractVmlTextBoxPosition(shape);
+                    if (hasPos)
                     {
-                        System.Text.RegularExpressions.Match leftMatch = System.Text.RegularExpressions.Regex.Match(style, @"left:([^;]+)");
-                        System.Text.RegularExpressions.Match topMatch = System.Text.RegularExpressions.Regex.Match(style, @"top:([^;]+)");
-
-                        if (leftMatch.Success || topMatch.Success)
-                        {
-                            return (true, leftMatch.Success ? leftMatch.Groups[1].Value : "0",
-                                         topMatch.Success ? topMatch.Groups[1].Value : "0");
-                        }
+                        return (hasPos, horizontal, vertical);
                     }
                 }
             }
 
-            return (false, "", "");
+            // 2. 检查Drawing中的文本框位置
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
+            {
+                (bool hasPos, string horizontal, string vertical) = ExtractDrawingTextBoxPosition(drawing);
+                if (hasPos)
+                {
+                    return (hasPos, horizontal, vertical);
+                }
+            }
+
+            return (false, "无位置信息", "无位置信息");
         }
         catch
         {
-            return (false, "", "");
+            return (false, "位置检测失败", "位置检测失败");
         }
     }
 
@@ -8674,6 +8678,135 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         catch
         {
             return "无环绕设置";
+        }
+    }
+
+    /// <summary>
+    /// 从VML文本框中提取位置信息
+    /// </summary>
+    private static (bool HasPosition, string Horizontal, string Vertical) ExtractVmlTextBoxPosition(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            // 检查形状样式中的位置信息
+            string? style = shape.Style?.Value;
+            if (!string.IsNullOrEmpty(style))
+            {
+                string horizontal = "未知水平位置";
+                string vertical = "未知垂直位置";
+                bool hasPosition = false;
+
+                // 解析left位置
+                System.Text.RegularExpressions.Match leftMatch = System.Text.RegularExpressions.Regex.Match(style, @"left:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (leftMatch.Success)
+                {
+                    string leftValue = leftMatch.Groups[1].Value.Trim();
+                    horizontal = $"水平位置: {leftValue}";
+                    hasPosition = true;
+                }
+
+                // 解析top位置
+                System.Text.RegularExpressions.Match topMatch = System.Text.RegularExpressions.Regex.Match(style, @"top:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (topMatch.Success)
+                {
+                    string topValue = topMatch.Groups[1].Value.Trim();
+                    vertical = $"垂直位置: {topValue}";
+                    hasPosition = true;
+                }
+
+                // 解析position属性
+                System.Text.RegularExpressions.Match positionMatch = System.Text.RegularExpressions.Regex.Match(style, @"position:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (positionMatch.Success)
+                {
+                    string positionType = positionMatch.Groups[1].Value.Trim();
+                    if (!hasPosition)
+                    {
+                        horizontal = $"定位类型: {positionType}";
+                        vertical = $"定位类型: {positionType}";
+                    }
+                    hasPosition = true;
+                }
+
+                if (hasPosition)
+                {
+                    return (true, horizontal, vertical);
+                }
+            }
+
+            // 检查形状的直接位置属性
+            OpenXmlAttribute leftAttr = shape.GetAttribute("left", "");
+            OpenXmlAttribute topAttr = shape.GetAttribute("top", "");
+
+            if (!string.IsNullOrEmpty(leftAttr.Value) || !string.IsNullOrEmpty(topAttr.Value))
+            {
+                string horizontal = !string.IsNullOrEmpty(leftAttr.Value) ? $"左边距: {leftAttr.Value}" : "左边距: 0";
+                string vertical = !string.IsNullOrEmpty(topAttr.Value) ? $"上边距: {topAttr.Value}" : "上边距: 0";
+                return (true, horizontal, vertical);
+            }
+
+            return (false, "无位置信息", "无位置信息");
+        }
+        catch
+        {
+            return (false, "位置解析失败", "位置解析失败");
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文本框位置信息
+    /// </summary>
+    private static (bool HasPosition, string Horizontal, string Vertical) ExtractDrawingTextBoxPosition(Drawing drawing)
+    {
+        try
+        {
+            // 检查是否包含文本内容（判断是否为文本框）
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            if (textElements.Any())
+            {
+                // 使用已有的图片位置检测逻辑
+                (bool hasPos, string horizontal, string vertical) = GetImagePosition(drawing);
+                if (hasPos)
+                {
+                    return (hasPos, $"文本框-{horizontal}", $"文本框-{vertical}");
+                }
+            }
+
+            return (false, "无位置信息", "无位置信息");
+        }
+        catch
+        {
+            return (false, "位置解析失败", "位置解析失败");
+        }
+    }
+
+    /// <summary>
+    /// 从单个Drawing中获取位置信息（辅助方法）
+    /// </summary>
+    private static (bool HasPosition, string Horizontal, string Vertical) GetImagePosition(Drawing drawing)
+    {
+        try
+        {
+            // 检查Inline类型
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                (string horizontal, string vertical) = ParseInlinePosition(inline);
+                return (true, horizontal, vertical);
+            }
+
+            // 检查Anchor类型
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                (string horizontal, string vertical) = ParseAnchorPosition(anchor);
+                return (true, horizontal, vertical);
+            }
+
+            return (false, "无位置信息", "无位置信息");
+        }
+        catch
+        {
+            return (false, "位置解析失败", "位置解析失败");
         }
     }
 }
