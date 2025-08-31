@@ -531,17 +531,52 @@ public class FileDownloadService : IFileDownloadService
                 List<string> entryPaths = [.. archive.Entries.Where(e => !string.IsNullOrEmpty(e.Name)).Select(e => e.FullName).Where(path => !string.IsNullOrEmpty(path))];
                 string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
 
+                // 第一步：创建所有目录结构（包括空目录）
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // 跳过目录条目：检查是否为目录（Name为空或FullName以/结尾，且长度为0）
-                    if (string.IsNullOrEmpty(entry.Name) ||
-                        entry.FullName.EndsWith("/") ||
-                        entry.FullName.EndsWith("\\") ||
-                        (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName)))
+                    // 检查是否为目录条目
+                    bool isDirectory = string.IsNullOrEmpty(entry.Name) ||
+                                     entry.FullName.EndsWith("/") ||
+                                     entry.FullName.EndsWith("\\") ||
+                                     (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName));
+
+                    if (isDirectory)
                     {
-                        continue; // 跳过目录条目
+                        string relativePath = entry.FullName.Replace('\\', '/').TrimEnd('/', '\\');
+
+                        if (!string.IsNullOrEmpty(rootDirToSkip))
+                        {
+                            string rootDirPrefix = rootDirToSkip + "/";
+                            if (relativePath.StartsWith(rootDirPrefix, StringComparison.OrdinalIgnoreCase))
+                            {
+                                relativePath = relativePath[rootDirPrefix.Length..];
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(relativePath))
+                        {
+                            string directoryPath = Path.Combine(extractPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                            _ = Directory.CreateDirectory(directoryPath);
+                        }
+                    }
+                }
+
+                // 第二步：解压所有文件
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // 只处理文件条目
+                    bool isDirectory = string.IsNullOrEmpty(entry.Name) ||
+                                     entry.FullName.EndsWith("/") ||
+                                     entry.FullName.EndsWith("\\") ||
+                                     (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName));
+
+                    if (isDirectory)
+                    {
+                        continue; // 跳过目录条目，因为已经在第一步创建了
                     }
 
                     string relativePath = entry.FullName.Replace('\\', '/');
@@ -586,17 +621,42 @@ public class FileDownloadService : IFileDownloadService
         await Task.Run(() =>
         {
             using ZipArchive archive = ZipFile.OpenRead(zipPath);
+
+            // 第一步：创建所有目录结构（包括空目录）
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // 跳过目录条目：检查是否为目录（Name为空或FullName以/结尾，且长度为0）
-                if (string.IsNullOrEmpty(entry.Name) ||
-                    entry.FullName.EndsWith("/") ||
-                    entry.FullName.EndsWith("\\") ||
-                    (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName)))
+                // 检查是否为目录条目
+                bool isDirectory = string.IsNullOrEmpty(entry.Name) ||
+                                 entry.FullName.EndsWith("/") ||
+                                 entry.FullName.EndsWith("\\") ||
+                                 (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName));
+
+                if (isDirectory)
                 {
-                    continue;
+                    string directoryPath = Path.Combine(extractPath, entry.FullName.TrimEnd('/', '\\'));
+                    if (!string.IsNullOrEmpty(directoryPath) && directoryPath != extractPath)
+                    {
+                        _ = Directory.CreateDirectory(directoryPath);
+                    }
+                }
+            }
+
+            // 第二步：解压所有文件
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // 只处理文件条目
+                bool isDirectory = string.IsNullOrEmpty(entry.Name) ||
+                                 entry.FullName.EndsWith("/") ||
+                                 entry.FullName.EndsWith("\\") ||
+                                 (entry.Length == 0 && entry.CompressedLength == 0 && !string.IsNullOrEmpty(entry.FullName));
+
+                if (isDirectory)
+                {
+                    continue; // 跳过目录条目，因为已经在第一步创建了
                 }
 
                 string destinationPath = Path.Combine(extractPath, entry.FullName);
@@ -628,6 +688,35 @@ public class FileDownloadService : IFileDownloadService
                 List<string> entryPaths = [.. archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!)];
                 string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
 
+                // 第一步：创建所有目录结构（包括空目录）
+                foreach (IArchiveEntry entry in archive.Entries.Where(entry => entry.IsDirectory))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (string.IsNullOrEmpty(entry.Key))
+                    {
+                        continue;
+                    }
+
+                    string relativePath = entry.Key.Replace('\\', '/').TrimEnd('/', '\\');
+
+                    if (!string.IsNullOrEmpty(rootDirToSkip))
+                    {
+                        string rootDirPrefix = rootDirToSkip + "/";
+                        if (relativePath.StartsWith(rootDirPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            relativePath = relativePath[rootDirPrefix.Length..];
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(relativePath))
+                    {
+                        string directoryPath = Path.Combine(extractPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                        _ = Directory.CreateDirectory(directoryPath);
+                    }
+                }
+
+                // 第二步：解压所有文件
                 foreach (IArchiveEntry entry in archive.Entries.Where(entry => !entry.IsDirectory))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -692,6 +781,35 @@ public class FileDownloadService : IFileDownloadService
                 List<string> entryPaths = [.. archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!)];
                 string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
 
+                // 第一步：创建所有目录结构（包括空目录）
+                foreach (IArchiveEntry entry in archive.Entries.Where(entry => entry.IsDirectory))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (string.IsNullOrEmpty(entry.Key))
+                    {
+                        continue;
+                    }
+
+                    string relativePath = entry.Key.Replace('\\', '/').TrimEnd('/', '\\');
+
+                    if (!string.IsNullOrEmpty(rootDirToSkip))
+                    {
+                        string rootDirPrefix = rootDirToSkip + "/";
+                        if (relativePath.StartsWith(rootDirPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            relativePath = relativePath[rootDirPrefix.Length..];
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(relativePath))
+                    {
+                        string directoryPath = Path.Combine(extractPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                        _ = Directory.CreateDirectory(directoryPath);
+                    }
+                }
+
+                // 第二步：解压所有文件
                 foreach (IArchiveEntry entry in archive.Entries.Where(entry => !entry.IsDirectory))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -745,6 +863,22 @@ public class FileDownloadService : IFileDownloadService
         await Task.Run(() =>
         {
             using IArchive archive = ArchiveFactory.Open(archivePath);
+
+            // 第一步：创建所有目录结构（包括空目录）
+            foreach (IArchiveEntry? entry in archive.Entries.Where(entry => entry.IsDirectory))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!string.IsNullOrEmpty(entry.Key))
+                {
+                    string directoryPath = Path.Combine(extractPath, entry.Key.TrimEnd('/', '\\'));
+                    if (!string.IsNullOrEmpty(directoryPath) && directoryPath != extractPath)
+                    {
+                        _ = Directory.CreateDirectory(directoryPath);
+                    }
+                }
+            }
+
+            // 第二步：解压所有文件
             foreach (IArchiveEntry? entry in archive.Entries.Where(entry => !entry.IsDirectory))
             {
                 cancellationToken.ThrowIfCancellationRequested();

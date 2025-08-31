@@ -24,9 +24,9 @@
                     <Button Command="{Binding AddQuestionCommand}" Content="添加题目" Style="{ThemeResource AccentButtonStyle}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <!--<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                     <Button Background="{ThemeResource SystemAccentColorLight2}" Command="{Binding GenerateWordDocumentCommand}" Content="生成Word文档" Foreground="White" Style="{ThemeResource DefaultButtonStyle}" />
-                </StackPanel>
+                </StackPanel>-->
             </Grid>
         </Border>
 
