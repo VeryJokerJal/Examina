@@ -6152,8 +6152,56 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：返回默认边框宽度
-                return 1.0f;
+                float width = ExtractImageBorderWidth(drawing);
+                if (width > 0)
+                {
+                    return width;
+                }
+            }
+
+            return 0f;
+        }
+        catch
+        {
+            return 0f;
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取图片边框宽度
+    /// </summary>
+    private static float ExtractImageBorderWidth(Drawing drawing)
+    {
+        try
+        {
+            // 检查Inline图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = inline.Graphic;
+                if (graphic != null)
+                {
+                    float width = ExtractBorderWidthFromGraphic(graphic);
+                    if (width > 0)
+                    {
+                        return width;
+                    }
+                }
+            }
+
+            // 检查Anchor图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
+                if (graphic != null)
+                {
+                    float width = ExtractBorderWidthFromGraphic(graphic);
+                    if (width > 0)
+                    {
+                        return width;
+                    }
+                }
             }
 
             return 0f;
@@ -6174,15 +6222,63 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到图片边框颜色
-                return "检测到边框颜色";
+                string color = ExtractImageBorderColor(drawing);
+                if (!string.IsNullOrEmpty(color) && color != "无边框颜色")
+                {
+                    return color;
+                }
             }
 
             return "无边框颜色";
         }
         catch
         {
-            return "未知";
+            return "颜色检测失败";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取图片边框颜色
+    /// </summary>
+    private static string ExtractImageBorderColor(Drawing drawing)
+    {
+        try
+        {
+            // 检查Inline图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = inline.Graphic;
+                if (graphic != null)
+                {
+                    string color = ExtractBorderColorFromGraphic(graphic);
+                    if (!string.IsNullOrEmpty(color))
+                    {
+                        return color;
+                    }
+                }
+            }
+
+            // 检查Anchor图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
+                if (graphic != null)
+                {
+                    string color = ExtractBorderColorFromGraphic(graphic);
+                    if (!string.IsNullOrEmpty(color))
+                    {
+                        return color;
+                    }
+                }
+            }
+
+            return "无边框颜色";
+        }
+        catch
+        {
+            return "无边框颜色";
         }
     }
 
@@ -6193,28 +6289,38 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            // 简化实现：检查VML文本框
-            // var textboxes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Textbox>();
-            // 简化实现：检测到文本框边框设置
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            if (shapes.Any())
+            // 1. 检查VML文本框
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                return "检测到文本框边框颜色";
+                // 检查是否为文本框
+                DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+                if (textBox != null)
+                {
+                    string color = ExtractVmlShapeBorderColor(shape);
+                    if (!string.IsNullOrEmpty(color) && color != "无边框颜色")
+                    {
+                        return color;
+                    }
+                }
             }
 
-            // 检查Drawing中的文本框
+            // 2. 检查Drawing中的文本框
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到Drawing文本框
-                return "检测到Drawing文本框边框";
+                string color = ExtractDrawingTextBoxBorderColor(drawing);
+                if (!string.IsNullOrEmpty(color) && color != "无边框颜色")
+                {
+                    return color;
+                }
             }
 
             return "无文本框边框";
         }
         catch
         {
-            return "未知";
+            return "边框颜色检测失败";
         }
     }
 
@@ -6604,8 +6710,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到图片阴影设置
-                return ("检测到阴影类型", "检测到阴影颜色");
+                (string shadowType, string shadowColor) = ExtractImageShadow(drawing);
+                if (shadowType != "无阴影")
+                {
+                    return (shadowType, shadowColor);
+                }
             }
 
             return ("无阴影", "无颜色");
@@ -6648,8 +6757,11 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：返回检测到的图片尺寸
-                return (200f, 300f);
+                (float width, float height) = ExtractImageSize(drawing);
+                if (width > 0 && height > 0)
+                {
+                    return (width, height);
+                }
             }
 
             return (0f, 0f);
@@ -7902,5 +8014,385 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             "sysdashdotdot" => "系统双点划线",
             _ => $"短划线({dashType})"
         };
+    }
+
+    /// <summary>
+    /// 从Graphic中提取边框宽度
+    /// </summary>
+    private static float ExtractBorderWidthFromGraphic(DocumentFormat.OpenXml.Drawing.Graphic graphic)
+    {
+        try
+        {
+            // 检查图形数据中的形状属性
+            DocumentFormat.OpenXml.Drawing.GraphicData? graphicData = graphic.GraphicData;
+            if (graphicData != null)
+            {
+                // 检查图片元素
+                DocumentFormat.OpenXml.Drawing.Pictures.Picture? picture = graphicData.GetFirstChild<DocumentFormat.OpenXml.Drawing.Pictures.Picture>();
+                if (picture != null)
+                {
+                    // 检查形状属性中的线条设置
+                    DocumentFormat.OpenXml.Drawing.Pictures.ShapeProperties? shapeProperties = picture.ShapeProperties;
+                    if (shapeProperties != null)
+                    {
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.GetFirstChild<DocumentFormat.OpenXml.Drawing.Outline>();
+                        if (outline?.Width?.Value != null)
+                        {
+                            // OpenXML中宽度以EMU为单位，转换为磅
+                            return ConvertEmuToPoints(outline.Width.Value);
+                        }
+                    }
+                }
+            }
+
+            return 0f;
+        }
+        catch
+        {
+            return 0f;
+        }
+    }
+
+    /// <summary>
+    /// 将EMU单位转换为磅
+    /// </summary>
+    private static float ConvertEmuToPoints(int emu)
+    {
+        // 1 EMU = 1/914400 英寸
+        // 1 英寸 = 72 磅
+        return emu / 914400.0f * 72.0f;
+    }
+
+    /// <summary>
+    /// 从Graphic中提取边框颜色
+    /// </summary>
+    private static string ExtractBorderColorFromGraphic(DocumentFormat.OpenXml.Drawing.Graphic graphic)
+    {
+        try
+        {
+            // 检查图形数据中的形状属性
+            DocumentFormat.OpenXml.Drawing.GraphicData? graphicData = graphic.GraphicData;
+            if (graphicData != null)
+            {
+                // 检查图片元素
+                DocumentFormat.OpenXml.Drawing.Pictures.Picture? picture = graphicData.GetFirstChild<DocumentFormat.OpenXml.Drawing.Pictures.Picture>();
+                if (picture != null)
+                {
+                    // 检查形状属性中的线条设置
+                    DocumentFormat.OpenXml.Drawing.Pictures.ShapeProperties? shapeProperties = picture.ShapeProperties;
+                    if (shapeProperties != null)
+                    {
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.GetFirstChild<DocumentFormat.OpenXml.Drawing.Outline>();
+                        if (outline != null)
+                        {
+                            // 检查实体填充颜色
+                            DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = outline.GetFirstChild<DocumentFormat.OpenXml.Drawing.SolidFill>();
+                            if (solidFill != null)
+                            {
+                                // 检查RGB颜色
+                                DocumentFormat.OpenXml.Drawing.RgbColorModelHex? rgbColor = solidFill.RgbColorModelHex;
+                                if (rgbColor?.Val?.Value != null)
+                                {
+                                    return $"#{rgbColor.Val.Value}";
+                                }
+
+                                // 检查系统颜色
+                                DocumentFormat.OpenXml.Drawing.SystemColor? systemColor = solidFill.SystemColor;
+                                if (systemColor?.Val?.Value != null)
+                                {
+                                    return systemColor.Val.Value.ToString();
+                                }
+
+                                // 检查主题颜色
+                                DocumentFormat.OpenXml.Drawing.SchemeColor? schemeColor = solidFill.SchemeColor;
+                                if (schemeColor?.Val?.Value != null)
+                                {
+                                    return $"主题颜色({schemeColor.Val.Value})";
+                                }
+                            }
+
+                            // 检查渐变填充
+                            DocumentFormat.OpenXml.Drawing.GradientFill? gradientFill = outline.GetFirstChild<DocumentFormat.OpenXml.Drawing.GradientFill>();
+                            if (gradientFill != null)
+                            {
+                                return "渐变边框颜色";
+                            }
+
+                            // 检查图案填充
+                            DocumentFormat.OpenXml.Drawing.PatternFill? patternFill = outline.GetFirstChild<DocumentFormat.OpenXml.Drawing.PatternFill>();
+                            if (patternFill != null)
+                            {
+                                return "图案边框颜色";
+                            }
+                        }
+                    }
+                }
+            }
+
+            return "无边框颜色";
+        }
+        catch
+        {
+            return "无边框颜色";
+        }
+    }
+
+    /// <summary>
+    /// 从VML形状中提取边框颜色
+    /// </summary>
+    private static string ExtractVmlShapeBorderColor(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            // 检查形状样式中的边框颜色
+            string? style = shape.Style?.Value;
+            if (!string.IsNullOrEmpty(style))
+            {
+                string color = ParseBorderColorFromStyle(style);
+                if (!string.IsNullOrEmpty(color))
+                {
+                    return color;
+                }
+            }
+
+            // 检查strokecolor属性
+            string? strokeColor = shape.StrokeColor?.Value;
+            if (!string.IsNullOrEmpty(strokeColor))
+            {
+                return NormalizeColorValue(strokeColor);
+            }
+
+            return "无边框颜色";
+        }
+        catch
+        {
+            return "无边框颜色";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文本框边框颜色
+    /// </summary>
+    private static string ExtractDrawingTextBoxBorderColor(Drawing drawing)
+    {
+        try
+        {
+            // 检查是否包含文本框相关的形状
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            if (textElements.Any())
+            {
+                // 使用已有的图片边框颜色提取逻辑
+                return ExtractImageBorderColor(drawing);
+            }
+
+            return "无边框颜色";
+        }
+        catch
+        {
+            return "无边框颜色";
+        }
+    }
+
+    /// <summary>
+    /// 从样式字符串中解析边框颜色
+    /// </summary>
+    private static string ParseBorderColorFromStyle(string style)
+    {
+        try
+        {
+            // 解析样式字符串中的border-color或stroke属性
+            System.Text.RegularExpressions.Match borderColorMatch = System.Text.RegularExpressions.Regex.Match(style, @"border-color:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (borderColorMatch.Success)
+            {
+                return NormalizeColorValue(borderColorMatch.Groups[1].Value.Trim());
+            }
+
+            System.Text.RegularExpressions.Match strokeMatch = System.Text.RegularExpressions.Regex.Match(style, @"stroke:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (strokeMatch.Success)
+            {
+                return NormalizeColorValue(strokeMatch.Groups[1].Value.Trim());
+            }
+
+            return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取图片阴影信息
+    /// </summary>
+    private static (string ShadowType, string ShadowColor) ExtractImageShadow(Drawing drawing)
+    {
+        try
+        {
+            // 检查Inline图片的阴影
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = inline.Graphic;
+                if (graphic != null)
+                {
+                    (string shadowType, string shadowColor) = ExtractShadowFromGraphic(graphic);
+                    if (shadowType != "无阴影")
+                    {
+                        return (shadowType, shadowColor);
+                    }
+                }
+            }
+
+            // 检查Anchor图片的阴影
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
+                if (graphic != null)
+                {
+                    (string shadowType, string shadowColor) = ExtractShadowFromGraphic(graphic);
+                    if (shadowType != "无阴影")
+                    {
+                        return (shadowType, shadowColor);
+                    }
+                }
+            }
+
+            return ("无阴影", "无颜色");
+        }
+        catch
+        {
+            return ("无阴影", "无颜色");
+        }
+    }
+
+    /// <summary>
+    /// 从Graphic中提取阴影信息
+    /// </summary>
+    private static (string ShadowType, string ShadowColor) ExtractShadowFromGraphic(DocumentFormat.OpenXml.Drawing.Graphic graphic)
+    {
+        try
+        {
+            // 检查图形数据中的形状属性
+            DocumentFormat.OpenXml.Drawing.GraphicData? graphicData = graphic.GraphicData;
+            if (graphicData != null)
+            {
+                // 检查图片元素
+                DocumentFormat.OpenXml.Drawing.Pictures.Picture? picture = graphicData.GetFirstChild<DocumentFormat.OpenXml.Drawing.Pictures.Picture>();
+                if (picture != null)
+                {
+                    // 检查形状属性中的效果设置
+                    DocumentFormat.OpenXml.Drawing.Pictures.ShapeProperties? shapeProperties = picture.ShapeProperties;
+                    if (shapeProperties != null)
+                    {
+                        // 检查效果列表
+                        DocumentFormat.OpenXml.Drawing.EffectList? effectList = shapeProperties.GetFirstChild<DocumentFormat.OpenXml.Drawing.EffectList>();
+                        if (effectList != null)
+                        {
+                            // 检查外阴影
+                            DocumentFormat.OpenXml.Drawing.OuterShadow? outerShadow = effectList.GetFirstChild<DocumentFormat.OpenXml.Drawing.OuterShadow>();
+                            if (outerShadow != null)
+                            {
+                                string shadowColor = ExtractShadowColor(outerShadow);
+                                return ("外阴影", shadowColor);
+                            }
+
+                            // 检查内阴影
+                            DocumentFormat.OpenXml.Drawing.InnerShadow? innerShadow = effectList.GetFirstChild<DocumentFormat.OpenXml.Drawing.InnerShadow>();
+                            if (innerShadow != null)
+                            {
+                                string shadowColor = ExtractShadowColor(innerShadow);
+                                return ("内阴影", shadowColor);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return ("无阴影", "无颜色");
+        }
+        catch
+        {
+            return ("无阴影", "无颜色");
+        }
+    }
+
+    /// <summary>
+    /// 提取阴影颜色
+    /// </summary>
+    private static string ExtractShadowColor(OpenXmlElement shadowElement)
+    {
+        try
+        {
+            // 检查RGB颜色
+            DocumentFormat.OpenXml.Drawing.RgbColorModelHex? rgbColor = shadowElement.Descendants<DocumentFormat.OpenXml.Drawing.RgbColorModelHex>().FirstOrDefault();
+            if (rgbColor?.Val?.Value != null)
+            {
+                return $"#{rgbColor.Val.Value}";
+            }
+
+            // 检查系统颜色
+            DocumentFormat.OpenXml.Drawing.SystemColor? systemColor = shadowElement.Descendants<DocumentFormat.OpenXml.Drawing.SystemColor>().FirstOrDefault();
+            if (systemColor?.Val?.Value != null)
+            {
+                return systemColor.Val.Value.ToString();
+            }
+
+            // 检查主题颜色
+            DocumentFormat.OpenXml.Drawing.SchemeColor? schemeColor = shadowElement.Descendants<DocumentFormat.OpenXml.Drawing.SchemeColor>().FirstOrDefault();
+            if (schemeColor?.Val?.Value != null)
+            {
+                return $"主题颜色({schemeColor.Val.Value})";
+            }
+
+            return "默认阴影颜色";
+        }
+        catch
+        {
+            return "默认阴影颜色";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取图片尺寸
+    /// </summary>
+    private static (float Width, float Height) ExtractImageSize(Drawing drawing)
+    {
+        try
+        {
+            // 检查Inline图片的尺寸
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent? extent = inline.Extent;
+                if (extent?.Cx?.Value != null && extent?.Cy?.Value != null)
+                {
+                    // 转换EMU为厘米
+                    float widthCm = (float)ConvertEmuToCentimeters(extent.Cx.Value);
+                    float heightCm = (float)ConvertEmuToCentimeters(extent.Cy.Value);
+                    return (widthCm, heightCm);
+                }
+            }
+
+            // 检查Anchor图片的尺寸
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent? extent = anchor.Extent;
+                if (extent?.Cx?.Value != null && extent?.Cy?.Value != null)
+                {
+                    // 转换EMU为厘米
+                    float widthCm = (float)ConvertEmuToCentimeters(extent.Cx.Value);
+                    float heightCm = (float)ConvertEmuToCentimeters(extent.Cy.Value);
+                    return (widthCm, heightCm);
+                }
+            }
+
+            return (0f, 0f);
+        }
+        catch
+        {
+            return (0f, 0f);
+        }
     }
 }
