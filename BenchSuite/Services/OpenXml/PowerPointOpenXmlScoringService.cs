@@ -3227,12 +3227,6 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             return (false, string.Empty);
         }
     }
-        }
-        catch
-        {
-            return (false, string.Empty);
-        }
-    }
 
     /// <summary>
     /// 检查幻灯片编号
