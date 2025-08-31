@@ -236,7 +236,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
             _logger.LogInformation("验证目录结构");
 
             // 直接验证基础目录结构
-            return await ValidateDirectoryStructureAsync();
+            return await ValidateDirectoryStructureAsync(_directoryService.GetBasePath());
         }
         catch (Exception ex)
         {
