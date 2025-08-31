@@ -4995,19 +4995,24 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 }
             }
 
-            // 简化检测：检查是否有多个工作表包含图表
-            int chartsInSheets = 0;
+            // 详细检测：检查所有工作表中的图表位置
+            List<string> chartPositions = [];
+            int sheetIndex = 1;
+
             foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
                 if (worksheetPart.DrawingsPart?.ChartParts.Any() == true)
                 {
-                    chartsInSheets++;
+                    int chartCount = worksheetPart.DrawingsPart.ChartParts.Count();
+                    string sheetName = GetWorksheetName(workbookPart, worksheetPart) ?? $"工作表{sheetIndex}";
+                    chartPositions.Add($"{sheetName}: {chartCount}个图表");
                 }
+                sheetIndex++;
             }
 
-            if (chartsInSheets > 0)
+            if (chartPositions.Count > 0)
             {
-                return (true, "检测到图表位置");
+                return (true, string.Join("; ", chartPositions));
             }
 
             return (false, string.Empty);
@@ -6122,15 +6127,41 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             if (string.IsNullOrEmpty(range) || string.IsNullOrEmpty(value))
                 return false;
 
-            // 简化实现：检查所有单元格中是否包含指定值
+            // 详细实现：检查指定范围内的单元格值
             foreach (Row row in sheetData.Elements<Row>())
             {
                 foreach (Cell cell in row.Elements<Cell>())
                 {
-                    string cellValue = cell.CellValue?.Text ?? "";
-                    if (cellValue.Contains(value, StringComparison.OrdinalIgnoreCase))
+                    string cellRef = cell.CellReference?.Value ?? "";
+
+                    // 如果指定了范围，检查单元格是否在范围内
+                    bool inRange = true;
+                    if (!string.IsNullOrEmpty(range))
                     {
-                        return true;
+                        if (range.Contains(":"))
+                        {
+                            // 范围格式如 "A1:B10"，简单检查是否包含单元格引用
+                            string[] rangeParts = range.Split(':');
+                            if (rangeParts.Length == 2)
+                            {
+                                // 简化检查：如果单元格引用在范围的字母数字范围内
+                                inRange = IsSimpleRangeMatch(cellRef, rangeParts[0], rangeParts[1]);
+                            }
+                        }
+                        else
+                        {
+                            // 单个单元格
+                            inRange = cellRef.Equals(range, StringComparison.OrdinalIgnoreCase);
+                        }
+                    }
+
+                    if (inRange)
+                    {
+                        string cellValue = cell.CellValue?.Text ?? "";
+                        if (cellValue.Contains(value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -6218,12 +6249,34 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         {
             if (string.IsNullOrEmpty(range)) return false;
 
-            // 简化实现：检查是否有任何非空单元格
+            // 详细实现：检查指定范围内是否有数据
             foreach (Row row in sheetData.Elements<Row>())
             {
                 foreach (Cell cell in row.Elements<Cell>())
                 {
-                    if (!string.IsNullOrEmpty(cell.CellValue?.Text))
+                    string cellRef = cell.CellReference?.Value ?? "";
+
+                    // 检查单元格是否在指定范围内
+                    bool inRange = true;
+                    if (!string.IsNullOrEmpty(range))
+                    {
+                        if (range.Contains(":"))
+                        {
+                            // 范围格式如 "A1:B10"
+                            string[] rangeParts = range.Split(':');
+                            if (rangeParts.Length == 2)
+                            {
+                                inRange = IsSimpleRangeMatch(cellRef, rangeParts[0], rangeParts[1]);
+                            }
+                        }
+                        else
+                        {
+                            // 单个单元格
+                            inRange = cellRef.Equals(range, StringComparison.OrdinalIgnoreCase);
+                        }
+                    }
+
+                    if (inRange && !string.IsNullOrEmpty(cell.CellValue?.Text))
                     {
                         return true;
                     }
@@ -8081,6 +8134,26 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         catch
         {
             return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 简单的范围匹配检查
+    /// </summary>
+    private bool IsSimpleRangeMatch(string cellRef, string startCell, string endCell)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(cellRef) || string.IsNullOrEmpty(startCell) || string.IsNullOrEmpty(endCell))
+                return false;
+
+            // 简化实现：检查单元格引用是否在字母顺序范围内
+            return string.Compare(cellRef, startCell, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                   string.Compare(cellRef, endCell, StringComparison.OrdinalIgnoreCase) <= 0;
+        }
+        catch
+        {
+            return false;
         }
     }
 }
