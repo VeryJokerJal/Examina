@@ -22,8 +22,8 @@ public static class IdConflictResolver
             throw new ArgumentNullException(nameof(examModel));
 
         int conflictCount = 0;
-        var usedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var idMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        HashSet<string> usedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, string> idMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // 1. 检查试卷ID
         if (string.IsNullOrWhiteSpace(examModel.Id) || !usedIds.Add(examModel.Id))
@@ -41,7 +41,7 @@ public static class IdConflictResolver
         }
 
         // 2. 检查模块ID
-        foreach (var module in examModel.Modules)
+        foreach (ExamModuleModel module in examModel.Modules)
         {
             if (string.IsNullOrWhiteSpace(module.Id) || !usedIds.Add(module.Id))
             {
@@ -58,7 +58,7 @@ public static class IdConflictResolver
             }
 
             // 3. 检查题目ID
-            foreach (var question in module.Questions)
+            foreach (QuestionModel question in module.Questions)
             {
                 if (string.IsNullOrWhiteSpace(question.Id) || !usedIds.Add(question.Id))
                 {
@@ -75,7 +75,7 @@ public static class IdConflictResolver
                 }
 
                 // 4. 检查操作点ID
-                foreach (var operation in question.OperationPoints)
+                foreach (OperationPointModel operation in question.OperationPoints)
                 {
                     if (string.IsNullOrWhiteSpace(operation.Id) || !usedIds.Add(operation.Id))
                     {
@@ -153,21 +153,21 @@ public static class IdConflictResolver
         if (examModel == null)
             throw new ArgumentNullException(nameof(examModel));
 
-        var result = new IdValidationResult();
-        var seenIds = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        IdValidationResult result = new IdValidationResult();
+        Dictionary<string, List<string>> seenIds = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
         // 收集所有ID
         CollectId(seenIds, examModel.Id, "Exam");
 
-        foreach (var module in examModel.Modules)
+        foreach (ExamModuleModel module in examModel.Modules)
         {
             CollectId(seenIds, module.Id, $"Module[{module.Name}]");
 
-            foreach (var question in module.Questions)
+            foreach (QuestionModel question in module.Questions)
             {
                 CollectId(seenIds, question.Id, $"Question[{question.Title}]");
 
-                foreach (var operation in question.OperationPoints)
+                foreach (OperationPointModel operation in question.OperationPoints)
                 {
                     CollectId(seenIds, operation.Id, $"Operation[{operation.Name}]");
                 }
@@ -175,7 +175,7 @@ public static class IdConflictResolver
         }
 
         // 检查重复
-        foreach (var kvp in seenIds)
+        foreach (KeyValuePair<string, List<string>> kvp in seenIds)
         {
             if (string.IsNullOrWhiteSpace(kvp.Key))
             {
@@ -266,7 +266,7 @@ public class IdValidationResult
         if (IsValid)
             return "所有ID验证通过，无冲突";
 
-        var issues = new List<string>();
+        List<string> issues = new List<string>();
         
         if (EmptyIds.Count > 0)
             issues.Add($"空ID: {EmptyIds.Count}个");

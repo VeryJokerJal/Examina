@@ -1,4 +1,4 @@
-using BenchSuite.Services.OpenXml;
+﻿using BenchSuite.Services.OpenXml;
 using BenchSuite.Models;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -273,7 +273,7 @@ namespace BenchSuite.Tests
         {
             try
             {
-                using var package = new DocumentFormat.OpenXml.Packaging.SpreadsheetDocument();
+                using DocumentFormat.OpenXml.Packaging.SpreadsheetDocument package = new DocumentFormat.OpenXml.Packaging.SpreadsheetDocument();
                 // 这里只是创建一个最基本的文件结构用于测试
                 // 实际实现可能需要更复杂的Excel文件创建逻辑
                 File.WriteAllBytes(filePath, []);
@@ -292,7 +292,7 @@ namespace BenchSuite.Tests
         {
             try
             {
-                using var package = new DocumentFormat.OpenXml.Packaging.PresentationDocument();
+                using DocumentFormat.OpenXml.Packaging.PresentationDocument package = new DocumentFormat.OpenXml.Packaging.PresentationDocument();
                 // 这里只是创建一个最基本的文件结构用于测试
                 File.WriteAllBytes(filePath, []);
             }
@@ -310,7 +310,7 @@ namespace BenchSuite.Tests
         {
             try
             {
-                using var package = new DocumentFormat.OpenXml.Packaging.WordprocessingDocument();
+                using DocumentFormat.OpenXml.Packaging.WordprocessingDocument package = new DocumentFormat.OpenXml.Packaging.WordprocessingDocument();
                 // 这里只是创建一个最基本的文件结构用于测试
                 File.WriteAllBytes(filePath, []);
             }

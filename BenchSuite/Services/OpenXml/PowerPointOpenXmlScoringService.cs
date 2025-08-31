@@ -3175,7 +3175,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查是否有动画设置
-            var shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
             if (shapes?.Count() >= elementOrder)
             {
                 return "检测到动画方向设置";
@@ -3196,7 +3196,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查是否有动画设置
-            var shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
             if (shapes?.Count() >= elementOrder)
             {
                 return "检测到动画样式设置";
@@ -3217,7 +3217,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查是否有SmartArt图形
-            var graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
+            IEnumerable<DocumentFormat.OpenXml.Presentation.GraphicFrame>? graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
             if (graphicFrames?.Count() >= elementOrder)
             {
                 return "检测到SmartArt样式";
@@ -3238,11 +3238,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查SmartArt中的文本内容
-            var graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
+            IEnumerable<DocumentFormat.OpenXml.Presentation.GraphicFrame>? graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
             if (graphicFrames?.Count() >= elementOrder)
             {
-                var graphicFrame = graphicFrames.ElementAt(elementOrder - 1);
-                var textElements = graphicFrame.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+                DocumentFormat.OpenXml.Presentation.GraphicFrame graphicFrame = graphicFrames.ElementAt(elementOrder - 1);
+                IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = graphicFrame.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
                 if (textElements.Any())
                 {
                     return string.Join(" ", textElements.Select(t => t.Text));
@@ -3265,11 +3265,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 简化实现：检查文本框的段落设置
-            var shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
             if (shapes?.Count() >= elementOrder)
             {
-                var shape = shapes.ElementAt(elementOrder - 1);
-                var paragraphs = shape.Descendants<Paragraph>();
+                DocumentFormat.OpenXml.Presentation.Shape shape = shapes.ElementAt(elementOrder - 1);
+                IEnumerable<Paragraph> paragraphs = shape.Descendants<Paragraph>();
                 if (paragraphs.Any())
                 {
                     // 如果有段落设置，返回1.5作为示例
@@ -3312,7 +3312,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             // 检查演示文稿属性中的幻灯片编号设置
-            var presentation = presentationPart.Presentation;
+            Presentation presentation = presentationPart.Presentation;
             if (presentation.HasChildren)
             {
                 // 简化实现：假设有设置就是显示编号
@@ -3336,14 +3336,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             // 检查母版中的页脚设置
             if (presentationPart.SlideMasterParts.Any())
             {
-                var masterPart = presentationPart.SlideMasterParts.First();
-                var footerShapes = masterPart.SlideMaster.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>()
+                SlideMasterPart masterPart = presentationPart.SlideMasterParts.First();
+                IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? footerShapes = masterPart.SlideMaster.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>()
                     .Where(s => s.NonVisualShapeProperties?.NonVisualDrawingProperties?.Name?.Value?.Contains("Footer") == true);
 
                 if (footerShapes?.Any() == true)
                 {
-                    var footerShape = footerShapes.First();
-                    var textElements = footerShape.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+                    DocumentFormat.OpenXml.Presentation.Shape footerShape = footerShapes.First();
+                    IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = footerShape.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
                     if (textElements.Any())
                     {
                         return string.Join(" ", textElements.Select(t => t.Text));

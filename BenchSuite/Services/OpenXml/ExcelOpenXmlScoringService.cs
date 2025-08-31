@@ -1207,11 +1207,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool numberFormatFound = CheckNumberFormatInWorkbook(workbookPart, parameters);
+            (bool Found, string Details) = CheckNumberFormatInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数字格式设置";
-            result.ActualValue = numberFormatFound ? "找到数字格式设置" : "未找到数字格式设置";
-            result.IsCorrect = numberFormatFound;
+            result.ActualValue = Found ? $"找到数字格式设置: {Details}" : "未找到数字格式设置";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"数字格式检测: {result.ActualValue}";
         }
@@ -1447,11 +1447,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool pageSetupFound = CheckPageSetupInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckPageSetupInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "页面设置";
-            result.ActualValue = pageSetupFound ? "找到页面设置" : "未找到页面设置";
-            result.IsCorrect = pageSetupFound;
+            result.ActualValue = Found ? $"找到页面设置: {Details}" : "未找到页面设置";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"页面设置检测: {result.ActualValue}";
         }
@@ -1477,11 +1477,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool printAreaFound = CheckPrintAreaInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckPrintAreaInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "打印区域";
-            result.ActualValue = printAreaFound ? "找到打印区域设置" : "未找到打印区域设置";
-            result.IsCorrect = printAreaFound;
+            result.ActualValue = Found ? $"找到打印区域设置: {Details}" : "未找到打印区域设置";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"打印区域检测: {result.ActualValue}";
         }
@@ -1507,11 +1507,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool headerFooterFound = CheckHeaderFooterInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckHeaderFooterInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "页眉页脚";
-            result.ActualValue = headerFooterFound ? "找到页眉页脚设置" : "未找到页眉页脚设置";
-            result.IsCorrect = headerFooterFound;
+            result.ActualValue = Found ? $"找到页眉页脚设置: {Details}" : "未找到页眉页脚设置";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"页眉页脚检测: {result.ActualValue}";
         }
@@ -3319,11 +3319,14 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的数字格式
     /// </summary>
-    private bool CheckNumberFormatInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
+    private (bool Found, string Details) CheckNumberFormatInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
             string expectedFormat = TryGetParameter(parameters, "NumberFormat", out string format) ? format : "";
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+
+            List<string> formatDetails = [];
 
             WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet != null)
@@ -3335,18 +3338,19 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     foreach (NumberingFormat numFormat in numberingFormats.Elements<NumberingFormat>())
                     {
                         string formatCode = numFormat.FormatCode?.Value ?? "";
+                        uint formatId = numFormat.NumberFormatId?.Value ?? 0;
 
                         if (!string.IsNullOrEmpty(expectedFormat))
                         {
                             if (TextEquals(formatCode, expectedFormat) ||
                                 CheckNumberFormatMatch(formatCode, expectedFormat))
                             {
-                                return true;
+                                formatDetails.Add($"自定义格式 (ID:{formatId}): {formatCode}");
                             }
                         }
                         else if (!string.IsNullOrEmpty(formatCode))
                         {
-                            return true; // 有自定义格式
+                            formatDetails.Add($"自定义格式 (ID:{formatId}): {formatCode}");
                         }
                     }
                 }
@@ -3355,6 +3359,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 CellFormats? cellFormats = stylesPart.Stylesheet.CellFormats;
                 if (cellFormats?.HasChildren == true)
                 {
+                    HashSet<uint> usedFormatIds = [];
                     foreach (CellFormat cellFormat in cellFormats.Elements<CellFormat>())
                     {
                         if (cellFormat.NumberFormatId?.Value != null)
@@ -3363,18 +3368,40 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                             // 检查是否使用了非默认的数字格式
                             if (formatId is > 0 and not 164) // 164是默认的通用格式
                             {
-                                return true;
+                                usedFormatIds.Add(formatId);
                             }
+                        }
+                    }
+
+                    foreach (uint formatId in usedFormatIds)
+                    {
+                        string builtInFormat = GetBuiltInNumberFormat(formatId);
+                        if (!string.IsNullOrEmpty(builtInFormat))
+                        {
+                            if (string.IsNullOrEmpty(expectedFormat) ||
+                                builtInFormat.Contains(expectedFormat, StringComparison.OrdinalIgnoreCase))
+                            {
+                                formatDetails.Add($"内置格式 (ID:{formatId}): {builtInFormat}");
+                            }
+                        }
+                        else
+                        {
+                            formatDetails.Add($"数字格式 (ID:{formatId})");
                         }
                     }
                 }
             }
 
-            return false;
+            if (formatDetails.Count > 0)
+            {
+                return (true, string.Join("; ", formatDetails));
+            }
+
+            return (false, "未找到匹配的数字格式");
         }
         catch
         {
-            return false;
+            return (false, "检测数字格式时发生错误");
         }
     }
 
@@ -3529,13 +3556,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"工作表编号 {worksheetNumber} 超出范围");
                 }
 
-                var worksheetPart = worksheets[worksheetNumber - 1];
+                WorksheetPart worksheetPart = worksheets[worksheetNumber - 1];
                 string formatDetails = GetConditionalFormattingDetails(worksheetPart, expectedType, expectedRange);
                 return (!string.IsNullOrEmpty(formatDetails), formatDetails);
             }
 
             // -1 模式：任意匹配，检查所有工作表
-            foreach (var worksheetPart in worksheets)
+            foreach (WorksheetPart worksheetPart in worksheets)
             {
                 string formatDetails = GetConditionalFormattingDetails(worksheetPart, expectedType, expectedRange);
                 if (!string.IsNullOrEmpty(formatDetails))
@@ -3577,13 +3604,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"工作表编号 {worksheetNumber} 超出范围");
                 }
 
-                var worksheetPart = worksheets[worksheetNumber - 1];
+                WorksheetPart worksheetPart = worksheets[worksheetNumber - 1];
                 string validationDetails = GetDataValidationDetails(worksheetPart, expectedType, expectedRange);
                 return (!string.IsNullOrEmpty(validationDetails), validationDetails);
             }
 
             // -1 模式：任意匹配，检查所有工作表
-            foreach (var worksheetPart in worksheets)
+            foreach (WorksheetPart worksheetPart in worksheets)
             {
                 string validationDetails = GetDataValidationDetails(worksheetPart, expectedType, expectedRange);
                 if (!string.IsNullOrEmpty(validationDetails))
@@ -3633,33 +3660,63 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的页面设置
     /// </summary>
-    private bool CheckPageSetupInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckPageSetupInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
-            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
+            string expectedOrientation = TryGetParameter(parameters, "Orientation", out string orientation) ? orientation : "";
+            string expectedPaperSize = TryGetParameter(parameters, "PaperSize", out string paperSize) ? paperSize : "";
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+
+            List<WorksheetPart> worksheets = workbookPart.WorksheetParts.ToList();
+            if (worksheets.Count == 0)
             {
-                PageSetup? pageSetup = worksheetPart.Worksheet.GetFirstChild<PageSetup>();
-                if (pageSetup != null)
+                return (false, "未找到工作表");
+            }
+
+            // 如果指定了具体的工作表编号且不是-1
+            if (worksheetNumber != -1)
+            {
+                if (worksheetNumber < 1 || worksheetNumber > worksheets.Count)
                 {
-                    return true;
+                    return (false, $"工作表编号 {worksheetNumber} 超出范围");
+                }
+
+                var worksheetPart = worksheets[worksheetNumber - 1];
+                string setupDetails = GetPageSetupDetails(worksheetPart, expectedOrientation, expectedPaperSize);
+                return (!string.IsNullOrEmpty(setupDetails), setupDetails);
+            }
+
+            // -1 模式：任意匹配，检查所有工作表
+            foreach (var worksheetPart in worksheets)
+            {
+                string setupDetails = GetPageSetupDetails(worksheetPart, expectedOrientation, expectedPaperSize);
+                if (!string.IsNullOrEmpty(setupDetails))
+                {
+                    return (true, setupDetails);
                 }
             }
-            return false;
+
+            return (false, "未找到匹配的页面设置");
         }
         catch
         {
-            return false;
+            return (false, "检测页面设置时发生错误");
         }
     }
 
     /// <summary>
     /// 检查工作簿中的打印区域
     /// </summary>
-    private bool CheckPrintAreaInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckPrintAreaInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
+            string expectedRange = TryGetParameter(parameters, "PrintRange", out string range) ? range : "";
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+
+            List<string> printAreaDetails = [];
+
             DefinedNames? definedNames = workbookPart.Workbook.DefinedNames;
             if (definedNames?.HasChildren == true)
             {
@@ -3667,38 +3724,88 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 {
                     if (definedName.Name?.Value == "Print_Area")
                     {
-                        return true;
+                        string printAreaValue = definedName.Text ?? "";
+
+                        // 检查是否匹配指定的工作表
+                        if (worksheetNumber != -1)
+                        {
+                            // 解析打印区域中的工作表引用
+                            if (!printAreaValue.Contains($"Sheet{worksheetNumber}") &&
+                                !printAreaValue.Contains($"工作表{worksheetNumber}"))
+                            {
+                                continue; // 不是指定的工作表
+                            }
+                        }
+
+                        // 检查是否匹配指定的范围
+                        if (!string.IsNullOrEmpty(expectedRange) &&
+                            !printAreaValue.Contains(expectedRange, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue; // 范围不匹配
+                        }
+
+                        printAreaDetails.Add($"打印区域: {printAreaValue}");
                     }
                 }
             }
-            return false;
+
+            if (printAreaDetails.Count > 0)
+            {
+                return (true, string.Join("; ", printAreaDetails));
+            }
+
+            return (false, "未找到匹配的打印区域");
         }
         catch
         {
-            return false;
+            return (false, "检测打印区域时发生错误");
         }
     }
 
     /// <summary>
     /// 检查工作簿中的页眉页脚
     /// </summary>
-    private bool CheckHeaderFooterInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckHeaderFooterInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
-            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
+            string expectedContent = TryGetParameter(parameters, "HeaderFooterContent", out string content) ? content : "";
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+
+            List<WorksheetPart> worksheets = workbookPart.WorksheetParts.ToList();
+            if (worksheets.Count == 0)
             {
-                HeaderFooter? headerFooter = worksheetPart.Worksheet.GetFirstChild<HeaderFooter>();
-                if (headerFooter?.HasChildren == true)
+                return (false, "未找到工作表");
+            }
+
+            // 如果指定了具体的工作表编号且不是-1
+            if (worksheetNumber != -1)
+            {
+                if (worksheetNumber < 1 || worksheetNumber > worksheets.Count)
                 {
-                    return true;
+                    return (false, $"工作表编号 {worksheetNumber} 超出范围");
+                }
+
+                var worksheetPart = worksheets[worksheetNumber - 1];
+                string headerFooterDetails = GetHeaderFooterDetails(worksheetPart, expectedContent);
+                return (!string.IsNullOrEmpty(headerFooterDetails), headerFooterDetails);
+            }
+
+            // -1 模式：任意匹配，检查所有工作表
+            foreach (var worksheetPart in worksheets)
+            {
+                string headerFooterDetails = GetHeaderFooterDetails(worksheetPart, expectedContent);
+                if (!string.IsNullOrEmpty(headerFooterDetails))
+                {
+                    return (true, headerFooterDetails);
                 }
             }
-            return false;
+
+            return (false, "未找到匹配的页眉页脚");
         }
         catch
         {
-            return false;
+            return (false, "检测页眉页脚时发生错误");
         }
     }
 
@@ -4544,13 +4651,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string title = GetChartTitle(chartPart);
 
                 if (!string.IsNullOrEmpty(expectedTitle))
                 {
-                    bool matches = string.IsNullOrEmpty(title) ? false :
-                                   title.Contains(expectedTitle, StringComparison.OrdinalIgnoreCase);
+                    bool matches = !string.IsNullOrEmpty(title) && title.Contains(expectedTitle, StringComparison.OrdinalIgnoreCase);
                     return (matches, title);
                 }
 
@@ -4558,7 +4664,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string title = GetChartTitle(chartPart);
 
@@ -4606,13 +4712,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string legendPosition = GetLegendPosition(chartPart);
 
                 if (!string.IsNullOrEmpty(expectedPosition))
                 {
-                    bool matches = string.IsNullOrEmpty(legendPosition) ? false :
-                                   legendPosition.Contains(expectedPosition, StringComparison.OrdinalIgnoreCase);
+                    bool matches = !string.IsNullOrEmpty(legendPosition) && legendPosition.Contains(expectedPosition, StringComparison.OrdinalIgnoreCase);
                     return (matches, legendPosition);
                 }
 
@@ -4620,7 +4725,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string legendPosition = GetLegendPosition(chartPart);
 
@@ -4716,13 +4821,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string range = GetCategoryAxisDataRange(chartPart, expectedRange);
                 return (!string.IsNullOrEmpty(range), range);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string range = GetCategoryAxisDataRange(chartPart, expectedRange);
                 if (!string.IsNullOrEmpty(range))
@@ -4765,13 +4870,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string range = GetValueAxisDataRange(chartPart, expectedRange);
                 return (!string.IsNullOrEmpty(range), range);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string range = GetValueAxisDataRange(chartPart, expectedRange);
                 if (!string.IsNullOrEmpty(range))
@@ -4816,13 +4921,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string format = GetChartTitleFormat(chartPart, expectedFontName, expectedFontSize, expectedFontColor);
                 return (!string.IsNullOrEmpty(format), format);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string format = GetChartTitleFormat(chartPart, expectedFontName, expectedFontSize, expectedFontColor);
                 if (!string.IsNullOrEmpty(format))
@@ -4865,13 +4970,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string axisTitle = GetHorizontalAxisTitle(chartPart);
 
                 if (!string.IsNullOrEmpty(expectedTitle))
                 {
-                    bool matches = string.IsNullOrEmpty(axisTitle) ? false :
-                                   axisTitle.Contains(expectedTitle, StringComparison.OrdinalIgnoreCase);
+                    bool matches = !string.IsNullOrEmpty(axisTitle) && axisTitle.Contains(expectedTitle, StringComparison.OrdinalIgnoreCase);
                     return (matches, axisTitle);
                 }
 
@@ -4879,7 +4983,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string axisTitle = GetHorizontalAxisTitle(chartPart);
 
@@ -4934,8 +5038,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            bool expectedVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) ?
-                                   (TextEquals(visible, "true") || TextEquals(visible, "是")) : true;
+            bool expectedVisible = !TryGetParameter(parameters, "GridlineVisible", out string visible) || (TextEquals(visible, "true") || TextEquals(visible, "是"));
             string expectedColor = TryGetParameter(parameters, "GridlineColor", out string color) ? color : "";
             int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
@@ -4955,7 +5058,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 (bool hasGridlines, string style) = CheckMajorHorizontalGridlines(chartPart, expectedColor);
 
                 if (hasGridlines == expectedVisible)
@@ -4967,7 +5070,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 (bool hasGridlines, string style) = CheckMajorHorizontalGridlines(chartPart, expectedColor);
                 if (hasGridlines == expectedVisible)
@@ -4991,8 +5094,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            bool expectedVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) ?
-                                   (TextEquals(visible, "true") || TextEquals(visible, "是")) : true;
+            bool expectedVisible = !TryGetParameter(parameters, "GridlineVisible", out string visible) || (TextEquals(visible, "true") || TextEquals(visible, "是"));
             string expectedColor = TryGetParameter(parameters, "GridlineColor", out string color) ? color : "";
             int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
@@ -5012,7 +5114,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 (bool hasGridlines, string style) = CheckMinorHorizontalGridlines(chartPart, expectedColor);
 
                 if (hasGridlines == expectedVisible)
@@ -5024,7 +5126,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 (bool hasGridlines, string style) = CheckMinorHorizontalGridlines(chartPart, expectedColor);
                 if (hasGridlines == expectedVisible)
@@ -5048,8 +5150,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            bool expectedVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) ?
-                                   (TextEquals(visible, "true") || TextEquals(visible, "是")) : true;
+            bool expectedVisible = !TryGetParameter(parameters, "GridlineVisible", out string visible) || (TextEquals(visible, "true") || TextEquals(visible, "是"));
             string expectedColor = TryGetParameter(parameters, "GridlineColor", out string color) ? color : "";
             int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
@@ -5069,7 +5170,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 (bool hasGridlines, string style) = CheckMajorVerticalGridlines(chartPart, expectedColor);
 
                 if (hasGridlines == expectedVisible)
@@ -5081,7 +5182,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 (bool hasGridlines, string style) = CheckMajorVerticalGridlines(chartPart, expectedColor);
                 if (hasGridlines == expectedVisible)
@@ -5105,8 +5206,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            bool expectedVisible = TryGetParameter(parameters, "GridlineVisible", out string visible) ?
-                                   (TextEquals(visible, "true") || TextEquals(visible, "是")) : true;
+            bool expectedVisible = !TryGetParameter(parameters, "GridlineVisible", out string visible) || (TextEquals(visible, "true") || TextEquals(visible, "是"));
             string expectedColor = TryGetParameter(parameters, "GridlineColor", out string color) ? color : "";
             int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
@@ -5126,7 +5226,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 (bool hasGridlines, string style) = CheckMinorVerticalGridlines(chartPart, expectedColor);
 
                 if (hasGridlines == expectedVisible)
@@ -5138,7 +5238,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 (bool hasGridlines, string style) = CheckMinorVerticalGridlines(chartPart, expectedColor);
                 if (hasGridlines == expectedVisible)
@@ -5182,13 +5282,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string format = GetDataSeriesFormat(chartPart, seriesIndex, expectedColor);
                 return (!string.IsNullOrEmpty(format), format);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string format = GetDataSeriesFormat(chartPart, seriesIndex, expectedColor);
                 if (!string.IsNullOrEmpty(format))
@@ -5231,13 +5331,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string labelInfo = GetDataLabelsInfo(chartPart, expectedPosition);
                 return (!string.IsNullOrEmpty(labelInfo), labelInfo);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string labelInfo = GetDataLabelsInfo(chartPart, expectedPosition);
                 if (!string.IsNullOrEmpty(labelInfo))
@@ -5282,13 +5382,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string format = GetDataLabelsFormat(chartPart, expectedFontName, expectedFontSize, expectedFontColor);
                 return (!string.IsNullOrEmpty(format), format);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string format = GetDataLabelsFormat(chartPart, expectedFontName, expectedFontSize, expectedFontColor);
                 if (!string.IsNullOrEmpty(format))
@@ -5332,13 +5432,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string format = GetChartAreaFormat(chartPart, expectedFillColor, expectedBorderColor);
                 return (!string.IsNullOrEmpty(format), format);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string format = GetChartAreaFormat(chartPart, expectedFillColor, expectedBorderColor);
                 if (!string.IsNullOrEmpty(format))
@@ -5381,13 +5481,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string floorColor = GetChartFloorColor(chartPart, expectedColor);
                 return (!string.IsNullOrEmpty(floorColor), floorColor);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string floorColor = GetChartFloorColor(chartPart, expectedColor);
                 if (!string.IsNullOrEmpty(floorColor))
@@ -5431,13 +5531,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return (false, $"图表编号 {chartNumber} 超出范围");
                 }
 
-                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                (WorksheetPart worksheetPart, ChartPart chartPart) = charts[chartNumber - 1];
                 string borderInfo = GetChartBorder(chartPart, expectedStyle, expectedColor);
                 return (!string.IsNullOrEmpty(borderInfo), borderInfo);
             }
 
             // -1 模式：任意匹配，检查所有图表
-            foreach (var (worksheetPart, chartPart) in charts)
+            foreach ((WorksheetPart worksheetPart, ChartPart chartPart) in charts)
             {
                 string borderInfo = GetChartBorder(chartPart, expectedStyle, expectedColor);
                 if (!string.IsNullOrEmpty(borderInfo))
@@ -5950,23 +6050,23 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             // 检查不同类型的图表系列
-            var barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
-            var lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
-            var pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.BarChart> barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.LineChart> lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.PieChart> pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
 
             // 从柱形图中获取分类轴数据
-            foreach (var barChart in barCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChart barChart in barCharts)
             {
-                foreach (var series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
                 {
-                    var categoryAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData? categoryAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData>().FirstOrDefault();
                     if (categoryAxisData?.StringReference?.Formula?.Text != null)
                     {
                         string range = categoryAxisData.StringReference.Formula.Text;
@@ -5979,11 +6079,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 从折线图中获取分类轴数据
-            foreach (var lineChart in lineCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChart lineChart in lineCharts)
             {
-                foreach (var series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
                 {
-                    var categoryAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData? categoryAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData>().FirstOrDefault();
                     if (categoryAxisData?.StringReference?.Formula?.Text != null)
                     {
                         string range = categoryAxisData.StringReference.Formula.Text;
@@ -6010,23 +6110,23 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             // 检查不同类型的图表系列
-            var barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
-            var lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
-            var pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.BarChart> barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.LineChart> lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.PieChart> pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
 
             // 从柱形图中获取数值轴数据
-            foreach (var barChart in barCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChart barChart in barCharts)
             {
-                foreach (var series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
                 {
-                    var valueAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.Values>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.Values? valueAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.Values>().FirstOrDefault();
                     if (valueAxisData?.NumberReference?.Formula?.Text != null)
                     {
                         string range = valueAxisData.NumberReference.Formula.Text;
@@ -6039,11 +6139,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 从折线图中获取数值轴数据
-            foreach (var lineChart in lineCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChart lineChart in lineCharts)
             {
-                foreach (var series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
                 {
-                    var valueAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.Values>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.Values? valueAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.Values>().FirstOrDefault();
                     if (valueAxisData?.NumberReference?.Formula?.Text != null)
                     {
                         string range = valueAxisData.NumberReference.Formula.Text;
@@ -6056,11 +6156,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 从饼图中获取数值数据
-            foreach (var pieChart in pieCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.PieChart pieChart in pieCharts)
             {
-                foreach (var series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
                 {
-                    var valueAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.Values>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.Values? valueAxisData = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.Values>().FirstOrDefault();
                     if (valueAxisData?.NumberReference?.Formula?.Text != null)
                     {
                         string range = valueAxisData.NumberReference.Formula.Text;
@@ -6087,22 +6187,22 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var title = chart?.Title;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.Title? title = chart?.Title;
 
             if (title?.ChartText?.RichText != null)
             {
                 // 尝试从RichText中获取文本
-                var richText = title.ChartText.RichText;
-                var paragraphs = richText.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
+                DocumentFormat.OpenXml.Drawing.Charts.RichText richText = title.ChartText.RichText;
+                IEnumerable<DocumentFormat.OpenXml.Drawing.Paragraph> paragraphs = richText.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
 
-                foreach (var paragraph in paragraphs)
+                foreach (DocumentFormat.OpenXml.Drawing.Paragraph paragraph in paragraphs)
                 {
-                    var runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
-                    foreach (var run in runs)
+                    IEnumerable<DocumentFormat.OpenXml.Drawing.Run> runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
+                    foreach (DocumentFormat.OpenXml.Drawing.Run run in runs)
                     {
-                        var text = run.Text?.Text;
+                        string? text = run.Text?.Text;
                         if (!string.IsNullOrEmpty(text))
                         {
                             return text;
@@ -6114,9 +6214,9 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             // 尝试从StringReference获取标题
             if (title?.ChartText?.StringReference?.StringCache != null)
             {
-                var stringCache = title.ChartText.StringReference.StringCache;
-                var stringPoints = stringCache.Elements<DocumentFormat.OpenXml.Drawing.Charts.StringPoint>();
-                var firstPoint = stringPoints.FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Charts.StringCache stringCache = title.ChartText.StringReference.StringCache;
+                IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.StringPoint> stringPoints = stringCache.Elements<DocumentFormat.OpenXml.Drawing.Charts.StringPoint>();
+                DocumentFormat.OpenXml.Drawing.Charts.StringPoint? firstPoint = stringPoints.FirstOrDefault();
                 if (firstPoint?.NumericValue?.Text != null)
                 {
                     return firstPoint.NumericValue.Text;
@@ -6144,27 +6244,27 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var title = chart?.Title;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.Title? title = chart?.Title;
 
             if (title?.ChartText?.RichText != null)
             {
-                var richText = title.ChartText.RichText;
-                var paragraphs = richText.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
+                DocumentFormat.OpenXml.Drawing.Charts.RichText richText = title.ChartText.RichText;
+                IEnumerable<DocumentFormat.OpenXml.Drawing.Paragraph> paragraphs = richText.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
 
-                foreach (var paragraph in paragraphs)
+                foreach (DocumentFormat.OpenXml.Drawing.Paragraph paragraph in paragraphs)
                 {
-                    var runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
-                    foreach (var run in runs)
+                    IEnumerable<DocumentFormat.OpenXml.Drawing.Run> runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
+                    foreach (DocumentFormat.OpenXml.Drawing.Run run in runs)
                     {
-                        var runProperties = run.RunProperties;
+                        DocumentFormat.OpenXml.Drawing.RunProperties? runProperties = run.RunProperties;
                         if (runProperties != null)
                         {
                             List<string> formatInfo = [];
 
                             // 检查字体名称
-                            var latinFont = runProperties.Elements<DocumentFormat.OpenXml.Drawing.LatinFont>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.LatinFont? latinFont = runProperties.Elements<DocumentFormat.OpenXml.Drawing.LatinFont>().FirstOrDefault();
                             if (latinFont?.Typeface?.Value != null)
                             {
                                 string fontName = latinFont.Typeface.Value;
@@ -6191,7 +6291,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                             }
 
                             // 检查字体颜色
-                            var solidFill = runProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = runProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                             if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                             {
                                 string color = solidFill.RgbColorModelHex.Val.Value;
@@ -6234,30 +6334,30 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return (false, string.Empty);
 
             // 检查值轴的主要网格线
-            var valueAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ValueAxis>();
-            foreach (var valueAxis in valueAxes)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.ValueAxis> valueAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ValueAxis>();
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.ValueAxis valueAxis in valueAxes)
             {
-                var majorGridlines = valueAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MajorGridlines>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Charts.MajorGridlines? majorGridlines = valueAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MajorGridlines>().FirstOrDefault();
                 if (majorGridlines != null)
                 {
                     // 检查网格线样式
-                    var shapeProperties = majorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? shapeProperties = majorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
                     if (shapeProperties != null)
                     {
                         List<string> styleInfo = ["主要横网格线可见"];
 
                         // 检查颜色
-                        var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                         if (outline != null)
                         {
-                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                             if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                             {
                                 string color = solidFill.RgbColorModelHex.Val.Value;
@@ -6293,30 +6393,30 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return (false, string.Empty);
 
             // 检查值轴的次要网格线
-            var valueAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ValueAxis>();
-            foreach (var valueAxis in valueAxes)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.ValueAxis> valueAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ValueAxis>();
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.ValueAxis valueAxis in valueAxes)
             {
-                var minorGridlines = valueAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines? minorGridlines = valueAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines>().FirstOrDefault();
                 if (minorGridlines != null)
                 {
                     // 检查网格线样式
-                    var shapeProperties = minorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? shapeProperties = minorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
                     if (shapeProperties != null)
                     {
                         List<string> styleInfo = ["次要横网格线可见"];
 
                         // 检查颜色
-                        var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                         if (outline != null)
                         {
-                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                             if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                             {
                                 string color = solidFill.RgbColorModelHex.Val.Value;
@@ -6352,30 +6452,30 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return (false, string.Empty);
 
             // 检查分类轴的主要网格线
-            var categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
-            foreach (var categoryAxis in categoryAxes)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis> categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis categoryAxis in categoryAxes)
             {
-                var majorGridlines = categoryAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MajorGridlines>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Charts.MajorGridlines? majorGridlines = categoryAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MajorGridlines>().FirstOrDefault();
                 if (majorGridlines != null)
                 {
                     // 检查网格线样式
-                    var shapeProperties = majorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? shapeProperties = majorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
                     if (shapeProperties != null)
                     {
                         List<string> styleInfo = ["主要纵网格线可见"];
 
                         // 检查颜色
-                        var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                         if (outline != null)
                         {
-                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                             if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                             {
                                 string color = solidFill.RgbColorModelHex.Val.Value;
@@ -6411,30 +6511,30 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return (false, string.Empty);
 
             // 检查分类轴的次要网格线
-            var categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
-            foreach (var categoryAxis in categoryAxes)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis> categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis categoryAxis in categoryAxes)
             {
-                var minorGridlines = categoryAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines? minorGridlines = categoryAxis.Elements<DocumentFormat.OpenXml.Drawing.Charts.MinorGridlines>().FirstOrDefault();
                 if (minorGridlines != null)
                 {
                     // 检查网格线样式
-                    var shapeProperties = minorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? shapeProperties = minorGridlines.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
                     if (shapeProperties != null)
                     {
                         List<string> styleInfo = ["次要纵网格线可见"];
 
                         // 检查颜色
-                        var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                         if (outline != null)
                         {
-                            var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                             if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                             {
                                 string color = solidFill.RgbColorModelHex.Val.Value;
@@ -6470,13 +6570,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var legend = chart?.Legend;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.Legend? legend = chart?.Legend;
 
             if (legend?.LegendPosition?.Val?.Value != null)
             {
-                var position = legend.LegendPosition.Val.Value;
+                DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues position = legend.LegendPosition.Val.Value;
 
                 if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Bottom)
                     return "底部";
@@ -6513,28 +6613,28 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             // 检查分类轴标题
-            var categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
-            foreach (var categoryAxis in categoryAxes)
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis> categoryAxes = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis>();
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.CategoryAxis categoryAxis in categoryAxes)
             {
-                var title = categoryAxis.Title;
+                DocumentFormat.OpenXml.Drawing.Charts.Title? title = categoryAxis.Title;
                 if (title?.ChartText?.RichText != null)
                 {
-                    var richText = title.ChartText.RichText;
-                    var paragraphs = richText.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
+                    DocumentFormat.OpenXml.Drawing.Charts.RichText richText = title.ChartText.RichText;
+                    IEnumerable<DocumentFormat.OpenXml.Drawing.Paragraph> paragraphs = richText.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
 
-                    foreach (var paragraph in paragraphs)
+                    foreach (DocumentFormat.OpenXml.Drawing.Paragraph paragraph in paragraphs)
                     {
-                        var runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
-                        foreach (var run in runs)
+                        IEnumerable<DocumentFormat.OpenXml.Drawing.Run> runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
+                        foreach (DocumentFormat.OpenXml.Drawing.Run run in runs)
                         {
-                            var text = run.Text?.Text;
+                            string? text = run.Text?.Text;
                             if (!string.IsNullOrEmpty(text))
                             {
                                 return text;
@@ -6565,23 +6665,23 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             List<string> formatInfo = [];
 
             // 检查不同类型的图表系列
-            var barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
-            var lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
-            var pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.BarChart> barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.LineChart> lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.PieChart> pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
 
             // 检查柱形图系列
-            foreach (var barChart in barCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChart barChart in barCharts)
             {
-                var series = barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>().ToList();
+                List<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries> series = barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>().ToList();
                 string format = CheckSeriesFormat(series, seriesIndex, expectedColor);
                 if (!string.IsNullOrEmpty(format))
                 {
@@ -6590,9 +6690,9 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查折线图系列
-            foreach (var lineChart in lineCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChart lineChart in lineCharts)
             {
-                var series = lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>().ToList();
+                List<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries> series = lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>().ToList();
                 string format = CheckSeriesFormat(series, seriesIndex, expectedColor);
                 if (!string.IsNullOrEmpty(format))
                 {
@@ -6601,9 +6701,9 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查饼图系列
-            foreach (var pieChart in pieCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.PieChart pieChart in pieCharts)
             {
-                var series = pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>().ToList();
+                List<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries> series = pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>().ToList();
                 string format = CheckSeriesFormat(series, seriesIndex, expectedColor);
                 if (!string.IsNullOrEmpty(format))
                 {
@@ -6636,12 +6736,12 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     return string.Empty;
                 }
 
-                var targetSeries = series[seriesIndex - 1];
+                T targetSeries = series[seriesIndex - 1];
                 return GetSeriesFormatInfo(targetSeries, expectedColor);
             }
 
             // -1 模式：检查所有系列
-            foreach (var seriesItem in series)
+            foreach (T seriesItem in series)
             {
                 string format = GetSeriesFormatInfo(seriesItem, expectedColor);
                 if (!string.IsNullOrEmpty(format))
@@ -6665,13 +6765,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var shapeProperties = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? shapeProperties = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
             if (shapeProperties != null)
             {
                 List<string> formatDetails = [];
 
                 // 检查填充颜色
-                var solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                 if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                 {
                     string color = solidFill.RgbColorModelHex.Val.Value;
@@ -6685,7 +6785,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 }
 
                 // 检查边框
-                var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                 if (outline != null)
                 {
                     formatDetails.Add("有边框");
@@ -6709,25 +6809,25 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             List<string> labelInfo = [];
 
             // 检查不同类型的图表系列中的数据标签
-            var barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
-            var lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
-            var pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.BarChart> barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.LineChart> lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.PieChart> pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
 
             // 检查柱形图系列的数据标签
-            foreach (var barChart in barCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChart barChart in barCharts)
             {
-                foreach (var series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
                 {
-                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.DataLabels? dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
                     if (dataLabels != null)
                     {
                         string position = GetDataLabelPosition(dataLabels);
@@ -6741,11 +6841,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查折线图系列的数据标签
-            foreach (var lineChart in lineCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChart lineChart in lineCharts)
             {
-                foreach (var series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
                 {
-                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.DataLabels? dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
                     if (dataLabels != null)
                     {
                         string position = GetDataLabelPosition(dataLabels);
@@ -6759,11 +6859,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查饼图系列的数据标签
-            foreach (var pieChart in pieCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.PieChart pieChart in pieCharts)
             {
-                foreach (var series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
                 {
-                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.DataLabels? dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
                     if (dataLabels != null)
                     {
                         string position = GetDataLabelPosition(dataLabels);
@@ -6791,10 +6891,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var dataLabelPosition = dataLabels.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabelPosition>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.DataLabelPosition? dataLabelPosition = dataLabels.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabelPosition>().FirstOrDefault();
             if (dataLabelPosition?.Val?.Value != null)
             {
-                var position = dataLabelPosition.Val.Value;
+                DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues position = dataLabelPosition.Val.Value;
 
                 if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Center)
                     return "居中";
@@ -6828,25 +6928,25 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             List<string> formatInfo = [];
 
             // 检查不同类型的图表系列中的数据标签格式
-            var barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
-            var lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
-            var pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.BarChart> barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.LineChart> lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Charts.PieChart> pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
 
             // 检查柱形图系列的数据标签格式
-            foreach (var barChart in barCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChart barChart in barCharts)
             {
-                foreach (var series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
                 {
-                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.DataLabels? dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
                     if (dataLabels != null)
                     {
                         string format = GetDataLabelFormatInfo(dataLabels, expectedFontName, expectedFontSize, expectedFontColor);
@@ -6859,11 +6959,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查折线图系列的数据标签格式
-            foreach (var lineChart in lineCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChart lineChart in lineCharts)
             {
-                foreach (var series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
                 {
-                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.DataLabels? dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
                     if (dataLabels != null)
                     {
                         string format = GetDataLabelFormatInfo(dataLabels, expectedFontName, expectedFontSize, expectedFontColor);
@@ -6876,11 +6976,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查饼图系列的数据标签格式
-            foreach (var pieChart in pieCharts)
+            foreach (DocumentFormat.OpenXml.Drawing.Charts.PieChart pieChart in pieCharts)
             {
-                foreach (var series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
+                foreach (DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
                 {
-                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.Charts.DataLabels? dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
                     if (dataLabels != null)
                     {
                         string format = GetDataLabelFormatInfo(dataLabels, expectedFontName, expectedFontSize, expectedFontColor);
@@ -6907,28 +7007,28 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var textProperties = dataLabels.Elements<DocumentFormat.OpenXml.Drawing.Charts.TextProperties>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.TextProperties? textProperties = dataLabels.Elements<DocumentFormat.OpenXml.Drawing.Charts.TextProperties>().FirstOrDefault();
             if (textProperties != null)
             {
                 List<string> formatDetails = [];
 
                 // 检查字体属性
-                var bodyProperties = textProperties.Elements<DocumentFormat.OpenXml.Drawing.BodyProperties>().FirstOrDefault();
-                var listStyle = textProperties.Elements<DocumentFormat.OpenXml.Drawing.ListStyle>().FirstOrDefault();
-                var paragraphs = textProperties.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
+                DocumentFormat.OpenXml.Drawing.BodyProperties? bodyProperties = textProperties.Elements<DocumentFormat.OpenXml.Drawing.BodyProperties>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.ListStyle? listStyle = textProperties.Elements<DocumentFormat.OpenXml.Drawing.ListStyle>().FirstOrDefault();
+                IEnumerable<DocumentFormat.OpenXml.Drawing.Paragraph> paragraphs = textProperties.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
 
-                foreach (var paragraph in paragraphs)
+                foreach (DocumentFormat.OpenXml.Drawing.Paragraph paragraph in paragraphs)
                 {
-                    var paragraphProperties = paragraph.Elements<DocumentFormat.OpenXml.Drawing.ParagraphProperties>().FirstOrDefault();
-                    var runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
+                    DocumentFormat.OpenXml.Drawing.ParagraphProperties? paragraphProperties = paragraph.Elements<DocumentFormat.OpenXml.Drawing.ParagraphProperties>().FirstOrDefault();
+                    IEnumerable<DocumentFormat.OpenXml.Drawing.Run> runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
 
-                    foreach (var run in runs)
+                    foreach (DocumentFormat.OpenXml.Drawing.Run run in runs)
                     {
-                        var runProperties = run.RunProperties;
+                        DocumentFormat.OpenXml.Drawing.RunProperties? runProperties = run.RunProperties;
                         if (runProperties != null)
                         {
                             // 检查字体名称
-                            var latinFont = runProperties.Elements<DocumentFormat.OpenXml.Drawing.LatinFont>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.LatinFont? latinFont = runProperties.Elements<DocumentFormat.OpenXml.Drawing.LatinFont>().FirstOrDefault();
                             if (latinFont?.Typeface?.Value != null)
                             {
                                 string fontName = latinFont.Typeface.Value;
@@ -6955,7 +7055,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                             }
 
                             // 检查字体颜色
-                            var solidFill = runProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = runProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                             if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                             {
                                 string color = solidFill.RgbColorModelHex.Val.Value;
@@ -6993,20 +7093,20 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace? chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             List<string> formatInfo = [];
 
             // 检查图表区域的形状属性
-            var shapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? shapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
             if (shapeProperties != null)
             {
                 // 检查填充颜色
-                var solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                 if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                 {
                     string fillColor = solidFill.RgbColorModelHex.Val.Value;
@@ -7020,10 +7120,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 }
 
                 // 检查边框颜色
-                var outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                 if (outline != null)
                 {
-                    var outlineSolidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.SolidFill? outlineSolidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                     if (outlineSolidFill?.RgbColorModelHex?.Val?.Value != null)
                     {
                         string borderColor = outlineSolidFill.RgbColorModelHex.Val.Value;
@@ -7046,7 +7146,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查图表空间的形状属性
-            var chartSpaceShapeProperties = chartSpace?.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? chartSpaceShapeProperties = chartSpace?.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
             if (chartSpaceShapeProperties != null)
             {
                 formatInfo.Add("图表区域有格式设置");
@@ -7068,21 +7168,21 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             // 检查3D图表的基底（Floor）
-            var floor = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.Floor>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.Floor? floor = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.Floor>().FirstOrDefault();
             if (floor != null)
             {
-                var shapeProperties = floor.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? shapeProperties = floor.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
                 if (shapeProperties != null)
                 {
                     // 检查填充颜色
-                    var solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = shapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                     if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                     {
                         string color = solidFill.RgbColorModelHex.Val.Value;
@@ -7103,10 +7203,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查图表区域的背景颜色作为基底颜色
-            var plotAreaShapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? plotAreaShapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
             if (plotAreaShapeProperties != null)
             {
-                var solidFill = plotAreaShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = plotAreaShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                 if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                 {
                     string color = solidFill.RgbColorModelHex.Val.Value;
@@ -7134,25 +7234,25 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var chartSpace = chartPart.ChartSpace;
-            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
-            var plotArea = chart?.PlotArea;
+            DocumentFormat.OpenXml.Drawing.Charts.ChartSpace? chartSpace = chartPart.ChartSpace;
+            DocumentFormat.OpenXml.Drawing.Charts.Chart? chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            DocumentFormat.OpenXml.Drawing.Charts.PlotArea? plotArea = chart?.PlotArea;
 
             if (plotArea == null) return string.Empty;
 
             List<string> borderInfo = [];
 
             // 检查图表区域的边框
-            var plotAreaShapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? plotAreaShapeProperties = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
             if (plotAreaShapeProperties != null)
             {
-                var outline = plotAreaShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Outline? outline = plotAreaShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                 if (outline != null)
                 {
                     borderInfo.Add("图表区域有边框");
 
                     // 检查边框颜色
-                    var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                     if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                     {
                         string color = solidFill.RgbColorModelHex.Val.Value;
@@ -7175,10 +7275,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             // 检查图表空间的边框
-            var chartSpaceShapeProperties = chartSpace?.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
+            DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties? chartSpaceShapeProperties = chartSpace?.Elements<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>().FirstOrDefault();
             if (chartSpaceShapeProperties != null)
             {
-                var outline = chartSpaceShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
+                DocumentFormat.OpenXml.Drawing.Outline? outline = chartSpaceShapeProperties.Elements<DocumentFormat.OpenXml.Drawing.Outline>().FirstOrDefault();
                 if (outline != null)
                 {
                     if (borderInfo.Count == 0)
@@ -7187,7 +7287,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     }
 
                     // 检查边框颜色
-                    var solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                    DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = outline.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
                     if (solidFill?.RgbColorModelHex?.Val?.Value != null)
                     {
                         string color = solidFill.RgbColorModelHex.Val.Value;
@@ -7220,10 +7320,10 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var conditionalFormattings = worksheetPart.Worksheet.Elements<ConditionalFormatting>();
+            IEnumerable<ConditionalFormatting> conditionalFormattings = worksheetPart.Worksheet.Elements<ConditionalFormatting>();
             List<string> formatDetails = [];
 
-            foreach (var conditionalFormatting in conditionalFormattings)
+            foreach (ConditionalFormatting conditionalFormatting in conditionalFormattings)
             {
                 // 检查范围
                 string range = conditionalFormatting.SequenceOfReferences?.InnerText ?? "";
@@ -7234,8 +7334,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 }
 
                 // 检查条件格式规则
-                var conditionalFormattingRules = conditionalFormatting.Elements<ConditionalFormattingRule>();
-                foreach (var rule in conditionalFormattingRules)
+                IEnumerable<ConditionalFormattingRule> conditionalFormattingRules = conditionalFormatting.Elements<ConditionalFormattingRule>();
+                foreach (ConditionalFormattingRule rule in conditionalFormattingRules)
                 {
                     List<string> ruleDetails = [];
 
@@ -7271,8 +7371,8 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                     }
 
                     // 检查公式
-                    var formulas = rule.Elements<Formula>();
-                    foreach (var formula in formulas)
+                    IEnumerable<Formula> formulas = rule.Elements<Formula>();
+                    foreach (Formula formula in formulas)
                     {
                         if (!string.IsNullOrEmpty(formula.Text))
                         {
@@ -7302,7 +7402,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            var dataValidations = worksheetPart.Worksheet.Elements<DataValidations>().FirstOrDefault();
+            DataValidations? dataValidations = worksheetPart.Worksheet.Elements<DataValidations>().FirstOrDefault();
             if (dataValidations?.HasChildren != true)
             {
                 return string.Empty;
@@ -7310,7 +7410,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
 
             List<string> validationDetails = [];
 
-            foreach (var dataValidation in dataValidations.Elements<DataValidation>())
+            foreach (DataValidation dataValidation in dataValidations.Elements<DataValidation>())
             {
                 List<string> validationInfo = [];
 
@@ -7377,6 +7477,230 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             return validationDetails.Count > 0 ? string.Join("; ", validationDetails) : string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取内置数字格式
+    /// </summary>
+    private string GetBuiltInNumberFormat(uint formatId)
+    {
+        return formatId switch
+        {
+            0 => "常规",
+            1 => "0",
+            2 => "0.00",
+            3 => "#,##0",
+            4 => "#,##0.00",
+            9 => "0%",
+            10 => "0.00%",
+            11 => "0.00E+00",
+            12 => "# ?/?",
+            13 => "# ??/??",
+            14 => "m/d/yy",
+            15 => "d-mmm-yy",
+            16 => "d-mmm",
+            17 => "mmm-yy",
+            18 => "h:mm AM/PM",
+            19 => "h:mm:ss AM/PM",
+            20 => "h:mm",
+            21 => "h:mm:ss",
+            22 => "m/d/yy h:mm",
+            37 => "#,##0 ;(#,##0)",
+            38 => "#,##0 ;[Red](#,##0)",
+            39 => "#,##0.00;(#,##0.00)",
+            40 => "#,##0.00;[Red](#,##0.00)",
+            45 => "mm:ss",
+            46 => "[h]:mm:ss",
+            47 => "mmss.0",
+            48 => "##0.0E+0",
+            49 => "@",
+            _ => string.Empty
+        };
+    }
+
+    /// <summary>
+    /// 获取页面设置详细信息
+    /// </summary>
+    private string GetPageSetupDetails(WorksheetPart worksheetPart, string expectedOrientation, string expectedPaperSize)
+    {
+        try
+        {
+            PageSetup? pageSetup = worksheetPart.Worksheet.GetFirstChild<PageSetup>();
+            if (pageSetup == null)
+            {
+                return string.Empty;
+            }
+
+            List<string> setupDetails = [];
+
+            // 检查页面方向
+            if (pageSetup.Orientation?.Value != null)
+            {
+                string orientation = pageSetup.Orientation.Value.ToString();
+                string orientationText = orientation switch
+                {
+                    "Portrait" => "纵向",
+                    "Landscape" => "横向",
+                    _ => orientation
+                };
+                setupDetails.Add($"方向: {orientationText}");
+
+                if (!string.IsNullOrEmpty(expectedOrientation) &&
+                    !orientationText.Contains(expectedOrientation, StringComparison.OrdinalIgnoreCase) &&
+                    !orientation.Contains(expectedOrientation, StringComparison.OrdinalIgnoreCase))
+                {
+                    return string.Empty; // 方向不匹配
+                }
+            }
+
+            // 检查纸张大小
+            if (pageSetup.PaperSize?.Value != null)
+            {
+                uint paperSizeValue = pageSetup.PaperSize.Value;
+                string paperSizeText = GetPaperSizeName(paperSizeValue);
+                setupDetails.Add($"纸张: {paperSizeText}");
+
+                if (!string.IsNullOrEmpty(expectedPaperSize) &&
+                    !paperSizeText.Contains(expectedPaperSize, StringComparison.OrdinalIgnoreCase))
+                {
+                    return string.Empty; // 纸张大小不匹配
+                }
+            }
+
+            // 检查其他设置
+            if (pageSetup.FitToWidth?.Value != null)
+            {
+                setupDetails.Add($"适合宽度: {pageSetup.FitToWidth.Value}页");
+            }
+            if (pageSetup.FitToHeight?.Value != null)
+            {
+                setupDetails.Add($"适合高度: {pageSetup.FitToHeight.Value}页");
+            }
+
+            // 检查缩放
+            if (pageSetup.Scale?.Value != null)
+            {
+                setupDetails.Add($"缩放: {pageSetup.Scale.Value}%");
+            }
+
+            return setupDetails.Count > 0 ? string.Join(", ", setupDetails) : "页面设置存在";
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取纸张大小名称
+    /// </summary>
+    private string GetPaperSizeName(uint paperSize)
+    {
+        return paperSize switch
+        {
+            1 => "Letter (8.5 x 11 in)",
+            5 => "Legal (8.5 x 14 in)",
+            8 => "A3 (297 x 420 mm)",
+            9 => "A4 (210 x 297 mm)",
+            11 => "A5 (148 x 210 mm)",
+            13 => "B4 (250 x 354 mm)",
+            17 => "B5 (182 x 257 mm)",
+            20 => "Envelope #10 (4.125 x 9.5 in)",
+            27 => "Envelope DL (110 x 220 mm)",
+            28 => "Envelope C5 (162 x 229 mm)",
+            34 => "Envelope B5 (176 x 250 mm)",
+            37 => "Envelope Monarch (3.875 x 7.5 in)",
+            _ => $"纸张大小 {paperSize}"
+        };
+    }
+
+    /// <summary>
+    /// 获取页眉页脚详细信息
+    /// </summary>
+    private string GetHeaderFooterDetails(WorksheetPart worksheetPart, string expectedContent)
+    {
+        try
+        {
+            HeaderFooter? headerFooter = worksheetPart.Worksheet.GetFirstChild<HeaderFooter>();
+            if (headerFooter?.HasChildren != true)
+            {
+                return string.Empty;
+            }
+
+            List<string> headerFooterDetails = [];
+
+            // 检查奇数页页眉
+            if (headerFooter.OddHeader?.Text != null)
+            {
+                string oddHeader = headerFooter.OddHeader.Text;
+                if (string.IsNullOrEmpty(expectedContent) ||
+                    oddHeader.Contains(expectedContent, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerFooterDetails.Add($"奇数页页眉: {oddHeader}");
+                }
+            }
+
+            // 检查奇数页页脚
+            if (headerFooter.OddFooter?.Text != null)
+            {
+                string oddFooter = headerFooter.OddFooter.Text;
+                if (string.IsNullOrEmpty(expectedContent) ||
+                    oddFooter.Contains(expectedContent, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerFooterDetails.Add($"奇数页页脚: {oddFooter}");
+                }
+            }
+
+            // 检查偶数页页眉
+            if (headerFooter.EvenHeader?.Text != null)
+            {
+                string evenHeader = headerFooter.EvenHeader.Text;
+                if (string.IsNullOrEmpty(expectedContent) ||
+                    evenHeader.Contains(expectedContent, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerFooterDetails.Add($"偶数页页眉: {evenHeader}");
+                }
+            }
+
+            // 检查偶数页页脚
+            if (headerFooter.EvenFooter?.Text != null)
+            {
+                string evenFooter = headerFooter.EvenFooter.Text;
+                if (string.IsNullOrEmpty(expectedContent) ||
+                    evenFooter.Contains(expectedContent, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerFooterDetails.Add($"偶数页页脚: {evenFooter}");
+                }
+            }
+
+            // 检查首页页眉
+            if (headerFooter.FirstHeader?.Text != null)
+            {
+                string firstHeader = headerFooter.FirstHeader.Text;
+                if (string.IsNullOrEmpty(expectedContent) ||
+                    firstHeader.Contains(expectedContent, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerFooterDetails.Add($"首页页眉: {firstHeader}");
+                }
+            }
+
+            // 检查首页页脚
+            if (headerFooter.FirstFooter?.Text != null)
+            {
+                string firstFooter = headerFooter.FirstFooter.Text;
+                if (string.IsNullOrEmpty(expectedContent) ||
+                    firstFooter.Contains(expectedContent, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerFooterDetails.Add($"首页页脚: {firstFooter}");
+                }
+            }
+
+            return headerFooterDetails.Count > 0 ? string.Join("; ", headerFooterDetails) : string.Empty;
         }
         catch
         {

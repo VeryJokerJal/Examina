@@ -6689,20 +6689,20 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
                 System.Diagnostics.Debug.WriteLine($"文字颜色: {GetParagraphTextColor(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"对齐方式: {GetParagraphAlignment(paragraph)}");
 
-                var indentation = GetParagraphIndentation(paragraph);
+                (int FirstLine, int Left, int Right) indentation = GetParagraphIndentation(paragraph);
                 System.Diagnostics.Debug.WriteLine($"缩进: 首行{indentation.FirstLine}, 左{indentation.Left}, 右{indentation.Right}");
 
                 System.Diagnostics.Debug.WriteLine($"行间距: {GetParagraphLineSpacing(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"首字下沉: {GetParagraphDropCap(paragraph)}");
 
-                var spacing = GetParagraphSpacing(paragraph);
+                (float Before, float After) spacing = GetParagraphSpacing(paragraph);
                 System.Diagnostics.Debug.WriteLine($"段落间距: 前{spacing.Before}, 后{spacing.After}");
 
                 System.Diagnostics.Debug.WriteLine($"边框颜色: {GetParagraphBorderColor(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"边框样式: {GetParagraphBorderStyle(paragraph)}");
                 System.Diagnostics.Debug.WriteLine($"边框宽度: {GetParagraphBorderWidth(paragraph)}");
 
-                var shading = GetParagraphShading(paragraph);
+                (string Color, string Pattern) shading = GetParagraphShading(paragraph);
                 System.Diagnostics.Debug.WriteLine($"底纹: 颜色{shading.Color}, 图案{shading.Pattern}");
             }
         }
