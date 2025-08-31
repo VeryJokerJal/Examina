@@ -57,7 +57,7 @@ public class MainWindowViewModel : ViewModelBase
     /// <summary>
     /// 当前内容视图
     /// </summary>
-    [Reactive] public Microsoft.UI.Xaml.Controls.UserControl? CurrentContentView { get; set; }
+    [Reactive] public UserControl? CurrentContentView { get; set; }
 
     /// <summary>
     /// 当前选中的选项卡索引
@@ -529,7 +529,7 @@ public class MainWindowViewModel : ViewModelBase
             }
 
             // 4. 解析项目文件（XML格式）
-            Models.ImportExport.ExamExportDto? projectDto = null;
+            ExamExportDto? projectDto = null;
             try
             {
                 projectDto = XmlSerializationService.DeserializeFromXml(fileContent);
@@ -610,7 +610,7 @@ public class MainWindowViewModel : ViewModelBase
             }
 
             // 4. 解析文件内容
-            Models.ImportExport.ExamExportDto? importDto = null;
+            ExamExportDto? importDto = null;
 
             if (file.FileType.Equals(".json", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -628,7 +628,7 @@ public class MainWindowViewModel : ViewModelBase
 
                 try
                 {
-                    importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+                    importDto = System.Text.Json.JsonSerializer.Deserialize<ExamExportDto>(fileContent, jsonOptions);
                 }
                 catch (System.Text.Json.JsonException jsonEx)
                 {
@@ -1130,7 +1130,7 @@ public class MainWindowViewModel : ViewModelBase
             }
 
             // 解析项目文件
-            Models.ImportExport.ExamExportDto projectDto = XmlSerializationService.DeserializeFromXml(fileContent);
+            ExamExportDto projectDto = XmlSerializationService.DeserializeFromXml(fileContent);
             if (projectDto?.Exam == null)
             {
                 return;

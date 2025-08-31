@@ -1613,7 +1613,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     /// <summary>
     /// 解析参数类型字符串为ParameterType枚举（增强版，支持更多类型和详细日志）
     /// </summary>
-    private static BenchSuite.Models.ParameterType ParseParameterType(string? parameterTypeString)
+    private static ParameterType ParseParameterType(string? parameterTypeString)
     {
         if (string.IsNullOrWhiteSpace(parameterTypeString))
         {
@@ -1625,13 +1625,13 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         string normalized = parameterTypeString.ToLowerInvariant().Trim();
 
         // 首先尝试直接解析枚举
-        if (Enum.TryParse<BenchSuite.Models.ParameterType>(parameterTypeString, true, out BenchSuite.Models.ParameterType directResult))
+        if (Enum.TryParse(parameterTypeString, true, out ParameterType directResult))
         {
             System.Diagnostics.Debug.WriteLine($"[ParseParameterType] 直接解析成功: '{originalInput}' → {directResult}");
             return directResult;
         }
 
-        BenchSuite.Models.ParameterType result = normalized switch
+        ParameterType result = normalized switch
         {
             // 文本类型变体
             "string" or "text" or "str" or "字符串" or "文本" => BenchSuite.Models.ParameterType.Text,
@@ -1863,7 +1863,7 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
         string originalInput = moduleTypeString;
 
         // 首先尝试直接解析
-        if (Enum.TryParse<ModuleType>(moduleTypeString, true, out ModuleType result))
+        if (Enum.TryParse(moduleTypeString, true, out ModuleType result))
         {
             System.Diagnostics.Debug.WriteLine($"[ParseModuleType] 直接解析成功: '{originalInput}' → {result}");
             return result;

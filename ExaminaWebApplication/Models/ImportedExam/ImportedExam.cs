@@ -509,5 +509,5 @@ public class ImportedExam
     /// <summary>
     /// 文件关联列表
     /// </summary>
-    public virtual ICollection<ExaminaWebApplication.Models.FileUpload.ExamFileAssociation> FileAssociations { get; set; } = [];
+    public virtual ICollection<FileUpload.ExamFileAssociation> FileAssociations { get; set; } = [];
 }

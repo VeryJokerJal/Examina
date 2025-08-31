@@ -646,7 +646,7 @@ public class LoginViewModel : ViewModelBase
                 mainWindow.Show();
 
                 // 关闭登录窗口
-                if (desktop.MainWindow is Examina.Views.LoginWindow loginWindow)
+                if (desktop.MainWindow is LoginWindow loginWindow)
                 {
                     loginWindow.Close();
                 }

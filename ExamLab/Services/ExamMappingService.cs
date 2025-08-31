@@ -156,7 +156,7 @@ public static class ExamMappingService
         };
 
         // 解析模块类型
-        if (Enum.TryParse<ModuleType>(moduleDto.Type, true, out ModuleType moduleType))
+        if (Enum.TryParse(moduleDto.Type, true, out ModuleType moduleType))
         {
             module.Type = moduleType;
         }
@@ -265,7 +265,7 @@ public static class ExamMappingService
 
         // 解析C#题目类型
         if (!string.IsNullOrEmpty(questionDto.CSharpQuestionType) &&
-            Enum.TryParse<CSharpQuestionType>(questionDto.CSharpQuestionType, true, out CSharpQuestionType csharpType))
+            Enum.TryParse(questionDto.CSharpQuestionType, true, out CSharpQuestionType csharpType))
         {
             question.CSharpQuestionType = csharpType;
         }
@@ -324,7 +324,7 @@ public static class ExamMappingService
         };
 
         // 解析模块类型
-        if (Enum.TryParse<ModuleType>(operationPointDto.ModuleType, true, out ModuleType moduleType))
+        if (Enum.TryParse(operationPointDto.ModuleType, true, out ModuleType moduleType))
         {
             operationPoint.ModuleType = moduleType;
         }
@@ -385,7 +385,7 @@ public static class ExamMappingService
         };
 
         // 解析参数类型
-        if (Enum.TryParse<ParameterType>(parameterDto.Type, true, out ParameterType parameterType))
+        if (Enum.TryParse(parameterDto.Type, true, out ParameterType parameterType))
         {
             parameter.Type = parameterType;
         }

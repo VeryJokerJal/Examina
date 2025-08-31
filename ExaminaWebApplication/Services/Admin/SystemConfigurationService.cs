@@ -317,7 +317,7 @@ public class SystemConfigurationService : ISystemConfigurationService
             int sessionExpirationDays = await GetIntConfigurationValueAsync(SystemConfigurationKeys.DeviceSessionExpirationDays, 30);
 
             DeviceKickoutPolicy kickoutPolicy = DeviceKickoutPolicy.KickoutOldest;
-            if (Enum.TryParse<DeviceKickoutPolicy>(kickoutPolicyValue, out DeviceKickoutPolicy parsedPolicy))
+            if (Enum.TryParse(kickoutPolicyValue, out DeviceKickoutPolicy parsedPolicy))
             {
                 kickoutPolicy = parsedPolicy;
             }

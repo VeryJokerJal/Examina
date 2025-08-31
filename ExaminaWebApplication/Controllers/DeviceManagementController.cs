@@ -49,7 +49,7 @@ public class DeviceManagementController : Controller
             viewModel.Users = users;
 
             // 使用新的GetAllDevicesAsync方法获取设备信息
-            List<Models.DeviceInfo> allDevices = await _deviceService.GetAllDevicesAsync(includeInactive, searchKeyword, userRole);
+            List<DeviceInfo> allDevices = await _deviceService.GetAllDevicesAsync(includeInactive, searchKeyword, userRole);
 
             // 分页
             List<DeviceInfo> pagedDevices = [.. allDevices

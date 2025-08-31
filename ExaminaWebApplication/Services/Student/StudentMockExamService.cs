@@ -42,7 +42,7 @@ public class StudentMockExamService : IStudentMockExamService
         try
         {
             // 验证学生用户存在且为学生角色
-            Models.User? student = await _context.Users
+            User? student = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
 
             if (student == null)
@@ -147,7 +147,7 @@ public class StudentMockExamService : IStudentMockExamService
         try
         {
             // 验证学生用户存在且为学生角色
-            Models.User? student = await _context.Users
+            User? student = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
 
             if (student == null)
@@ -1016,7 +1016,7 @@ public class StudentMockExamService : IStudentMockExamService
                 studentUserId, mockExamId);
 
             // 验证学生用户存在且为学生角色
-            Models.User? student = await _context.Users
+            User? student = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
 
             if (student == null)
@@ -1024,7 +1024,7 @@ public class StudentMockExamService : IStudentMockExamService
                 _logger.LogWarning("权限验证失败：用户不存在或不是活跃学生，用户ID: {UserId}", studentUserId);
 
                 // 进一步检查用户是否存在
-                Models.User? anyUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == studentUserId);
+                User? anyUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == studentUserId);
                 if (anyUser == null)
                 {
                     _logger.LogWarning("用户完全不存在，用户ID: {UserId}", studentUserId);

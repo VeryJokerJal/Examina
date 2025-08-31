@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ExamLab.Models;
@@ -27,7 +27,7 @@ public class PathTypeJsonConverter : JsonConverter<PathType>
                     }
 
                     // 尝试按名称解析枚举
-                    if (Enum.TryParse<PathType>(stringValue, true, out PathType result))
+                    if (Enum.TryParse(stringValue, true, out PathType result))
                     {
                         return result;
                     }

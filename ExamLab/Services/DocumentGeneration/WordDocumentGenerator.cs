@@ -1536,7 +1536,7 @@ public class WordDocumentGenerator : IDocumentGenerationService
             if (valAttribute != "clear" && valAttribute != "solid")
             {
                 // 对于自定义值，我们需要直接操作XML
-                shading.SetAttribute(new DocumentFormat.OpenXml.OpenXmlAttribute("w", "val",
+                shading.SetAttribute(new OpenXmlAttribute("w", "val",
                     "http://schemas.openxmlformats.org/wordprocessingml/2006/main", valAttribute));
             }
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ExamLab.Models;
@@ -27,7 +27,7 @@ public class ModuleTypeJsonConverter : JsonConverter<ModuleType>
                     }
 
                     // 尝试按名称解析枚举
-                    if (Enum.TryParse<ModuleType>(stringValue, true, out ModuleType result))
+                    if (Enum.TryParse(stringValue, true, out ModuleType result))
                     {
                         return result;
                     }

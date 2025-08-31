@@ -576,7 +576,7 @@ public class OverviewViewModel : ViewModelBase
     /// </summary>
     private void SelectStatisticType(object? parameter)
     {
-        if (parameter is string typeString && Enum.TryParse<StatisticType>(typeString, out StatisticType type))
+        if (parameter is string typeString && Enum.TryParse(typeString, out StatisticType type))
         {
             SelectedStatisticType = type;
             CurrentPage = 1;

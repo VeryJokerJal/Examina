@@ -28,7 +28,7 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
         try
         {
             // 验证学生用户存在且为学生角色
-            Models.User? student = await _context.Users
+            User? student = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
 
             if (student == null)
@@ -134,7 +134,7 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
         try
         {
             // 验证学生用户存在且为学生角色
-            Models.User? student = await _context.Users
+            User? student = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
 
             if (student == null)
@@ -225,7 +225,7 @@ public class StudentSpecialPracticeService : IStudentSpecialPracticeService
         try
         {
             // 验证学生用户存在且为学生角色
-            Models.User? student = await _context.Users
+            User? student = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == studentUserId && u.Role == Models.UserRole.Student && u.IsActive);
 
             if (student == null)

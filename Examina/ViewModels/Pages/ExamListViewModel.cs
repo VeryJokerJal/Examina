@@ -724,7 +724,7 @@ public class ExamListViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"ExamListViewModel: 准备显示全屏考试结果窗口（异步评分模式） - {examName}");
 
             // 创建全屏结果窗口并显示
-            Views.Dialogs.FullScreenExamResultWindow resultWindow = Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResult(
+            FullScreenExamResultWindow resultWindow = Views.Dialogs.FullScreenExamResultWindow.ShowFullScreenExamResult(
                 examName,
                 examType,
                 isSuccessful,
@@ -892,7 +892,7 @@ public class ExamListViewModel : ViewModelBase
     /// <summary>
     /// 执行异步评分（全屏窗口版本）
     /// </summary>
-    private async Task PerformAsyncScoringAsync(int examId, Views.Dialogs.FullScreenExamResultWindow resultWindow)
+    private async Task PerformAsyncScoringAsync(int examId, FullScreenExamResultWindow resultWindow)
     {
         try
         {

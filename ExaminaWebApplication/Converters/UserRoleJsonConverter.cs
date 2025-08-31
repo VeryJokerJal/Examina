@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using ExaminaWebApplication.Models;
 
@@ -26,7 +26,7 @@ public class UserRoleJsonConverter : JsonConverter<UserRole>
                     }
 
                     // 尝试按名称解析枚举（忽略大小写）
-                    if (Enum.TryParse<UserRole>(stringValue, true, out UserRole result))
+                    if (Enum.TryParse(stringValue, true, out UserRole result))
                     {
                         return result;
                     }

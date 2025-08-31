@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.FileUpload;
@@ -65,7 +65,7 @@ public class SpecializedTrainingFileAssociation
     /// 关联的专项训练
     /// </summary>
     [ForeignKey(nameof(SpecializedTrainingId))]
-    public virtual ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining? SpecializedTraining { get; set; }
+    public virtual ImportedSpecializedTraining.ImportedSpecializedTraining? SpecializedTraining { get; set; }
 
     /// <summary>
     /// 关联的文件

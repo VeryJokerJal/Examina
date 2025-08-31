@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Examina.ViewModels;
 using System.Threading.Tasks;
@@ -50,7 +50,7 @@ public partial class TrainingResultWindow : Window
     /// </summary>
     private static string BuildDetailsMessage(TrainingResultViewModel viewModel)
     {
-        System.Text.StringBuilder sb = new();
+        StringBuilder sb = new();
 
         sb.AppendLine($"训练名称: {viewModel.TrainingName}");
         sb.AppendLine($"完成时间: {viewModel.CompletionTime:yyyy-MM-dd HH:mm:ss}");

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.FileUpload;
@@ -65,7 +65,7 @@ public class ExamFileAssociation
     /// 关联的考试
     /// </summary>
     [ForeignKey(nameof(ExamId))]
-    public virtual ExaminaWebApplication.Models.ImportedExam.ImportedExam? Exam { get; set; }
+    public virtual ImportedExam.ImportedExam? Exam { get; set; }
 
     /// <summary>
     /// 关联的文件

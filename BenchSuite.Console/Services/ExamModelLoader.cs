@@ -197,7 +197,7 @@ public static class ExamModelLoader
             // 添加自定义转换器
             options.Converters.Add(new ModuleTypeJsonConverter());
             options.Converters.Add(new ParameterTypeJsonConverter());
-            options.Converters.Add(new BenchSuite.Converters.CSharpQuestionTypeJsonConverter());
+            options.Converters.Add(new CSharpQuestionTypeJsonConverter());
 
             if (verbose)
             {

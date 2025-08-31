@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExaminaWebApplication.Models.FileUpload;
@@ -65,7 +65,7 @@ public class ComprehensiveTrainingFileAssociation
     /// 关联的综合训练
     /// </summary>
     [ForeignKey(nameof(ComprehensiveTrainingId))]
-    public virtual ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining? ComprehensiveTraining { get; set; }
+    public virtual ImportedComprehensiveTraining.ImportedComprehensiveTraining? ComprehensiveTraining { get; set; }
 
     /// <summary>
     /// 关联的文件

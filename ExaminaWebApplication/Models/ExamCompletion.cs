@@ -105,7 +105,7 @@ public class ExamCompletion
     /// 关联的考试
     /// </summary>
     [ForeignKey(nameof(ExamId))]
-    public virtual Models.ImportedExam.ImportedExam? Exam { get; set; }
+    public virtual ImportedExam.ImportedExam? Exam { get; set; }
 
     #endregion
 }

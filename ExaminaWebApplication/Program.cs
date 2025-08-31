@@ -24,7 +24,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestHeaderCount = 100;
 
     // 从配置中读取请求超时，默认为10分钟
-    int requestTimeoutSeconds = builder.Configuration.GetValue<int>("Performance:RequestTimeoutSeconds", 600);
+    int requestTimeoutSeconds = builder.Configuration.GetValue("Performance:RequestTimeoutSeconds", 600);
     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(requestTimeoutSeconds);
     options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
 });
@@ -44,7 +44,7 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
     // 从配置中读取最大文件大小，优先使用FileUpload配置，其次使用Performance配置
-    long maxFileSize = builder.Configuration.GetValue<long>("FileUpload:MaxFileSize",
+    long maxFileSize = builder.Configuration.GetValue("FileUpload:MaxFileSize",
         builder.Configuration.GetValue<long>("Performance:MaxRequestBodySize", 524288000));
 
     // 设置最大请求体大小

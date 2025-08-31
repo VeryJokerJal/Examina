@@ -376,11 +376,11 @@ public class SpecializedExamViewModel : ViewModelBase
         // 创建对应的View，设置适当的DataContext
         CurrentContentView = CurrentContentViewModel switch
         {
-            WindowsModuleViewModel => new Views.WindowsModuleView { DataContext = this },
-            CSharpModuleViewModel csharpVM => new Views.CSharpModuleView(csharpVM) { MainWindowViewModel = _mainWindowViewModel },
-            PowerPointModuleViewModel => new Views.PowerPointModuleView { DataContext = this },
-            ExcelModuleViewModel => new Views.ExcelModuleView { DataContext = this },
-            WordModuleViewModel => new Views.WordModuleView { DataContext = this },
+            WindowsModuleViewModel => new WindowsModuleView { DataContext = this },
+            CSharpModuleViewModel csharpVM => new CSharpModuleView(csharpVM) { MainWindowViewModel = _mainWindowViewModel },
+            PowerPointModuleViewModel => new PowerPointModuleView { DataContext = this },
+            ExcelModuleViewModel => new ExcelModuleView { DataContext = this },
+            WordModuleViewModel => new WordModuleView { DataContext = this },
             _ => null
         };
     }
@@ -824,7 +824,7 @@ public class SpecializedExamViewModel : ViewModelBase
             }
 
             // 4. 智能解析文件内容
-            Models.ImportExport.ExamExportDto? importDto = null;
+            ExamExportDto? importDto = null;
             SpecializedExamImportResult? directImportResult = null;
 
             try
@@ -859,7 +859,7 @@ public class SpecializedExamViewModel : ViewModelBase
                     // 如果专项试卷格式失败，尝试通用格式
                     if (directImportResult == null)
                     {
-                        importDto = System.Text.Json.JsonSerializer.Deserialize<Models.ImportExport.ExamExportDto>(fileContent, jsonOptions);
+                        importDto = System.Text.Json.JsonSerializer.Deserialize<ExamExportDto>(fileContent, jsonOptions);
                     }
                 }
                 else if (file.FileType.Equals(".xml", StringComparison.InvariantCultureIgnoreCase))

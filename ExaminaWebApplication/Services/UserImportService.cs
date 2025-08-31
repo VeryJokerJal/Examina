@@ -90,7 +90,7 @@ public class UserImportService
                     }
 
                     // 创建非组织学生
-                    Models.Organization.Dto.NonOrganizationStudentDto? studentDto =
+                    NonOrganizationStudentDto? studentDto =
                         await _nonOrganizationStudentService.CreateStudentAsync(
                             userData.RealName,
                             userData.PhoneNumber,

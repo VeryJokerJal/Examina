@@ -202,7 +202,7 @@ public class JwtService : IJwtService
         {
             ClaimsPrincipal? claims = GetClaimsFromToken(token);
             Claim? roleClaim = claims?.FindFirst(ClaimTypes.Role);
-            return roleClaim != null && Enum.TryParse<UserRole>(roleClaim.Value, out UserRole role) ? role : null;
+            return roleClaim != null && Enum.TryParse(roleClaim.Value, out UserRole role) ? role : null;
         }
         catch (Exception ex)
         {

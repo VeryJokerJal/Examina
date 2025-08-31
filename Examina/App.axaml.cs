@@ -234,12 +234,12 @@ public partial class App : Application
         _ = services.AddSingleton<IDirectoryCleanupService, DirectoryCleanupService>();
 
         // 注册ViewModels
-        _ = services.AddTransient<LoginViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new LoginViewModel(authService);
         });
-        _ = services.AddTransient<MainViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             IWindowManagerService windowManager = provider.GetRequiredService<IWindowManagerService>();
@@ -253,7 +253,7 @@ public partial class App : Application
             return new MainViewModel(authService, windowManager, leaderboardFactory, leaderboardWithTypeFactory);
         });
         _ = services.AddTransient<UserInfoCompletionViewModel>();
-        _ = services.AddTransient<LoadingViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new LoadingViewModel(authService);
@@ -261,7 +261,7 @@ public partial class App : Application
         _ = services.AddTransient<ProfileViewModel>();
         _ = services.AddTransient<ChangePasswordViewModel>();
         _ = services.AddTransient<SchoolBindingViewModel>();
-        _ = services.AddTransient<ExamListViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IStudentExamService examService = provider.GetRequiredService<IStudentExamService>();
             IStudentFormalExamService formalExamService = provider.GetRequiredService<IStudentFormalExamService>();
@@ -270,24 +270,24 @@ public partial class App : Application
             return new ExamListViewModel(examService, formalExamService, authService, enhancedService);
         });
         // UnifiedExamViewModel不在DI容器中注册，由MainViewModel直接创建以避免循环依赖
-        _ = services.AddTransient<ComprehensiveTrainingListViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IStudentComprehensiveTrainingService trainingService = provider.GetRequiredService<IStudentComprehensiveTrainingService>();
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new ComprehensiveTrainingListViewModel(trainingService, authService);
         });
-        _ = services.AddTransient<MockExamViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IStudentMockExamService mockExamService = provider.GetRequiredService<IStudentMockExamService>();
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new MockExamViewModel(mockExamService, authService);
         });
-        _ = services.AddTransient<ExamViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();
             return new ExamViewModel(authService);
         });
-        _ = services.AddTransient<LeaderboardViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             RankingService rankingService = provider.GetRequiredService<RankingService>();
             ILogger<LeaderboardViewModel> logger = provider.GetRequiredService<ILogger<LeaderboardViewModel>>();
@@ -311,7 +311,7 @@ public partial class App : Application
             // 直接创建带特定排行榜类型的实例，确保一次性正确初始化
             return new LeaderboardViewModel(rankingService, logger, comprehensiveTrainingService, studentExamService, rankingTypeId, studentMockExamService);
         });
-        _ = services.AddTransient<SpecializedTrainingListViewModel>(provider =>
+        _ = services.AddTransient(provider =>
         {
             IStudentSpecializedTrainingService trainingService = provider.GetRequiredService<IStudentSpecializedTrainingService>();
             IAuthenticationService authService = provider.GetRequiredService<IAuthenticationService>();

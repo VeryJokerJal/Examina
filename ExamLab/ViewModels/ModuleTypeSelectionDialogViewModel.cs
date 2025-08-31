@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -52,7 +52,7 @@ public class ModuleTypeSelectionDialogViewModel : ViewModelBase
         InitializeModuleTypes();
 
         // 初始化命令
-        ConfirmCommand = ReactiveCommand.Create<ModuleType?>(Confirm, this.WhenAnyValue(x => x.SelectedModuleType).Select(x => x != null));
+        ConfirmCommand = ReactiveCommand.Create(Confirm, this.WhenAnyValue(x => x.SelectedModuleType).Select(x => x != null));
         CancelCommand = ReactiveCommand.Create(Cancel);
     }
 

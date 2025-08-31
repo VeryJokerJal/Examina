@@ -94,7 +94,7 @@ public class StatisticTypeToBackgroundConverter : IValueConverter
     {
         if (value is StatisticType selectedType && parameter is string targetTypeString)
         {
-            if (Enum.TryParse<StatisticType>(targetTypeString, out StatisticType parsedTargetType))
+            if (Enum.TryParse(targetTypeString, out StatisticType parsedTargetType))
             {
                 // 只有选中状态才显示背景色，未选中状态返回透明
                 if (selectedType == parsedTargetType)

@@ -211,7 +211,7 @@ public static class SpecializedExamMappingService
         {
             try
             {
-                using System.Text.Json.JsonDocument doc = JsonDocument.Parse(extendedConfigString);
+                using JsonDocument doc = JsonDocument.Parse(extendedConfigString);
                 JsonElement root = doc.RootElement;
 
                 if (root.TryGetProperty("IsSpecializedExam", out JsonElement isSpecializedElement) &&
@@ -220,7 +220,7 @@ public static class SpecializedExamMappingService
                     // 恢复ModuleType
                     if (root.TryGetProperty("ModuleType", out JsonElement moduleTypeElement))
                     {
-                        if (Enum.TryParse<ModuleType>(moduleTypeElement.GetString(), out ModuleType moduleType))
+                        if (Enum.TryParse(moduleTypeElement.GetString(), out ModuleType moduleType))
                         {
                             specializedExam.ModuleType = moduleType;
                         }
@@ -245,7 +245,7 @@ public static class SpecializedExamMappingService
                     }
                 }
             }
-            catch (System.Text.Json.JsonException)
+            catch (JsonException)
             {
                 // 如果解析失败，使用默认值
             }
@@ -365,7 +365,7 @@ public static class SpecializedExamMappingService
         };
 
         // 解析模块类型
-        if (Enum.TryParse<ModuleType>(moduleDto.Type, true, out ModuleType moduleType))
+        if (Enum.TryParse(moduleDto.Type, true, out ModuleType moduleType))
         {
             module.Type = moduleType;
         }
@@ -437,7 +437,7 @@ public static class SpecializedExamMappingService
 
         // 解析C#题目类型
         if (!string.IsNullOrEmpty(questionDto.CSharpQuestionType) &&
-            Enum.TryParse<CSharpQuestionType>(questionDto.CSharpQuestionType, true, out CSharpQuestionType csharpType))
+            Enum.TryParse(questionDto.CSharpQuestionType, true, out CSharpQuestionType csharpType))
         {
             question.CSharpQuestionType = csharpType;
         }
@@ -477,7 +477,7 @@ public static class SpecializedExamMappingService
         };
 
         // 解析模块类型
-        if (Enum.TryParse<ModuleType>(operationPointDto.ModuleType, true, out ModuleType moduleType))
+        if (Enum.TryParse(operationPointDto.ModuleType, true, out ModuleType moduleType))
         {
             operationPoint.ModuleType = moduleType;
         }
@@ -510,7 +510,7 @@ public static class SpecializedExamMappingService
         };
 
         // 解析参数类型
-        if (Enum.TryParse<ParameterType>(parameterDto.Type, true, out ParameterType parameterType))
+        if (Enum.TryParse(parameterDto.Type, true, out ParameterType parameterType))
         {
             parameter.Type = parameterType;
         }
@@ -654,7 +654,7 @@ public static class SpecializedExamMappingService
         // 只转换匹配目标类型的模块
         foreach (ModuleDto moduleDto in examDto.Modules)
         {
-            if (Enum.TryParse<ModuleType>(moduleDto.Type, true, out ModuleType moduleType) &&
+            if (Enum.TryParse(moduleDto.Type, true, out ModuleType moduleType) &&
                 moduleType == selectedModuleType)
             {
                 specializedExam.Modules.Add(FromModuleDtoToExamModule(moduleDto));
@@ -697,7 +697,7 @@ public static class SpecializedExamMappingService
         // 从模块中获取第一个类型
         if (examDto.Modules.Count > 0)
         {
-            if (Enum.TryParse<ModuleType>(examDto.Modules[0].Type, true, out ModuleType moduleType))
+            if (Enum.TryParse(examDto.Modules[0].Type, true, out ModuleType moduleType))
             {
                 return moduleType;
             }
@@ -750,7 +750,7 @@ public static class SpecializedExamMappingService
         };
 
         // 解析模块类型
-        if (Enum.TryParse<ModuleType>(examDto.ModuleType, true, out ModuleType moduleType))
+        if (Enum.TryParse(examDto.ModuleType, true, out ModuleType moduleType))
         {
             specializedExam.ModuleType = moduleType;
         }

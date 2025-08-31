@@ -3269,7 +3269,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             if (shapes?.Count() >= elementOrder)
             {
                 var shape = shapes.ElementAt(elementOrder - 1);
-                var paragraphs = shape.Descendants<DocumentFormat.OpenXml.Drawing.Paragraph>();
+                var paragraphs = shape.Descendants<Paragraph>();
                 if (paragraphs.Any())
                 {
                     // 如果有段落设置，返回1.5作为示例

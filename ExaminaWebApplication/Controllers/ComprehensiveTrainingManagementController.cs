@@ -409,7 +409,7 @@ public class ComprehensiveTrainingManagementController : Controller
     /// 更新综合实训名称
     /// </summary>
     [HttpPut("api/comprehensive-training/{id}/name")]
-    public async Task<IActionResult> UpdateComprehensiveTrainingName(int id, [FromBody] ExaminaWebApplication.Models.Api.Admin.UpdateComprehensiveTrainingNameRequestDto request)
+    public async Task<IActionResult> UpdateComprehensiveTrainingName(int id, [FromBody] Models.Api.Admin.UpdateComprehensiveTrainingNameRequestDto request)
     {
         try
         {
@@ -419,7 +419,7 @@ public class ComprehensiveTrainingManagementController : Controller
             // 验证请求数据
             if (string.IsNullOrWhiteSpace(request.Name))
             {
-                return BadRequest(new ExaminaWebApplication.Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
+                return BadRequest(new Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
                 {
                     Success = false,
                     Message = "综合实训名称不能为空"
@@ -433,7 +433,7 @@ public class ComprehensiveTrainingManagementController : Controller
             {
                 _logger.LogWarning("更新综合实训名称失败，用户ID: {UserId}, 训练ID: {TrainingId}, 新名称: {NewName}",
                     userId, id, request.Name);
-                return BadRequest(new ExaminaWebApplication.Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
+                return BadRequest(new Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
                 {
                     Success = false,
                     Message = "更新综合实训名称失败，训练不存在、您无权限操作、名称已存在或包含非法字符"
@@ -443,7 +443,7 @@ public class ComprehensiveTrainingManagementController : Controller
             _logger.LogInformation("更新综合实训名称成功，用户ID: {UserId}, 训练ID: {TrainingId}, 新名称: {NewName}",
                 userId, id, request.Name);
 
-            return Ok(new ExaminaWebApplication.Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
+            return Ok(new Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
             {
                 Success = true,
                 Message = "综合实训名称更新成功",
@@ -454,7 +454,7 @@ public class ComprehensiveTrainingManagementController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "更新综合实训名称失败，训练ID: {TrainingId}", id);
-            return StatusCode(500, new ExaminaWebApplication.Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
+            return StatusCode(500, new Models.Api.Admin.UpdateComprehensiveTrainingNameResponseDto
             {
                 Success = false,
                 Message = "更新综合实训名称失败，服务器内部错误"
@@ -466,7 +466,7 @@ public class ComprehensiveTrainingManagementController : Controller
     /// 更新专项训练名称
     /// </summary>
     [HttpPut("api/specialized-training/{id}/name")]
-    public async Task<IActionResult> UpdateSpecializedTrainingName(int id, [FromBody] ExaminaWebApplication.Models.Api.Admin.UpdateSpecializedTrainingNameRequestDto request)
+    public async Task<IActionResult> UpdateSpecializedTrainingName(int id, [FromBody] Models.Api.Admin.UpdateSpecializedTrainingNameRequestDto request)
     {
         try
         {
@@ -476,7 +476,7 @@ public class ComprehensiveTrainingManagementController : Controller
             // 验证请求数据
             if (string.IsNullOrWhiteSpace(request.Name))
             {
-                return BadRequest(new ExaminaWebApplication.Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
+                return BadRequest(new Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
                 {
                     Success = false,
                     Message = "专项训练名称不能为空"
@@ -490,7 +490,7 @@ public class ComprehensiveTrainingManagementController : Controller
             {
                 _logger.LogWarning("更新专项训练名称失败，用户ID: {UserId}, 训练ID: {TrainingId}, 新名称: {NewName}",
                     userId, id, request.Name);
-                return BadRequest(new ExaminaWebApplication.Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
+                return BadRequest(new Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
                 {
                     Success = false,
                     Message = "更新专项训练名称失败，训练不存在、您无权限操作、名称已存在或包含非法字符"
@@ -500,7 +500,7 @@ public class ComprehensiveTrainingManagementController : Controller
             _logger.LogInformation("更新专项训练名称成功，用户ID: {UserId}, 训练ID: {TrainingId}, 新名称: {NewName}",
                 userId, id, request.Name);
 
-            return Ok(new ExaminaWebApplication.Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
+            return Ok(new Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
             {
                 Success = true,
                 Message = "专项训练名称更新成功",
@@ -511,7 +511,7 @@ public class ComprehensiveTrainingManagementController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "更新专项训练名称失败，训练ID: {TrainingId}", id);
-            return StatusCode(500, new ExaminaWebApplication.Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
+            return StatusCode(500, new Models.Api.Admin.UpdateSpecializedTrainingNameResponseDto
             {
                 Success = false,
                 Message = "更新专项训练名称失败，服务器内部错误"

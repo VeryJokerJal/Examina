@@ -213,7 +213,7 @@ public class LoginController : Controller
     private UserRole GetCurrentUserRole()
     {
         string? roleString = User.FindFirst(ClaimTypes.Role)?.Value;
-        return Enum.TryParse<UserRole>(roleString, out UserRole role) ? role : UserRole.Student;
+        return Enum.TryParse(roleString, out UserRole role) ? role : UserRole.Student;
     }
 
     /// <summary>

@@ -508,5 +508,5 @@ public class ImportedComprehensiveTraining
     /// <summary>
     /// 文件关联列表
     /// </summary>
-    public virtual ICollection<ExaminaWebApplication.Models.FileUpload.ComprehensiveTrainingFileAssociation> FileAssociations { get; set; } = [];
+    public virtual ICollection<FileUpload.ComprehensiveTrainingFileAssociation> FileAssociations { get; set; } = [];
 }

@@ -105,7 +105,7 @@ public class ComprehensiveTrainingCompletion
     /// 综合训练
     /// </summary>
     [ForeignKey(nameof(TrainingId))]
-    public virtual Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining? Training { get; set; }
+    public virtual ImportedComprehensiveTraining.ImportedComprehensiveTraining? Training { get; set; }
 
     #endregion
 }

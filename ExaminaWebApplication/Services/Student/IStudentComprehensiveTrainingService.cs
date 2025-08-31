@@ -66,7 +66,7 @@ public interface IStudentComprehensiveTrainingService
     /// <param name="trainingId">训练ID</param>
     /// <param name="request">完成信息</param>
     /// <returns>是否标记成功</returns>
-    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, Models.Api.Student.CompleteTrainingRequest request);
+    Task<bool> MarkTrainingAsCompletedAsync(int studentUserId, int trainingId, CompleteTrainingRequest request);
 
     /// <summary>
     /// 标记综合训练为开始状态

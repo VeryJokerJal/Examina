@@ -312,7 +312,7 @@ public class ImportedSpecializedTraining
     /// <summary>
     /// 文件关联列表
     /// </summary>
-    public virtual ICollection<ExaminaWebApplication.Models.FileUpload.SpecializedTrainingFileAssociation> FileAssociations { get; set; } = [];
+    public virtual ICollection<FileUpload.SpecializedTrainingFileAssociation> FileAssociations { get; set; } = [];
 
     /// <summary>
     /// 将对象序列化为JSON字符串，如果对象为null则返回null

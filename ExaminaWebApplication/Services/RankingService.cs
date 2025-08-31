@@ -388,7 +388,7 @@ public class RankingService
         try
         {
             // 查找学生组织关系
-            ExaminaWebApplication.Models.Organization.StudentOrganization? studentOrg = await _context.StudentOrganizations
+            Models.Organization.StudentOrganization? studentOrg = await _context.StudentOrganizations
                 .Include(so => so.Organization)
                 .ThenInclude(o => o.ParentOrganization)
                 .Where(so => so.StudentId == userId && so.IsActive)

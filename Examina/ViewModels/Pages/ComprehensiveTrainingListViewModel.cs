@@ -653,7 +653,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
                             maxScore = scoringResult.TotalScore;
 
                             // 序列化评分结果
-                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResult, new System.Text.Json.JsonSerializerOptions
+                            benchSuiteScoringResultJson = System.Text.Json.JsonSerializer.Serialize(scoringResult, new JsonSerializerOptions
                             {
                                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
                                 WriteIndented = true

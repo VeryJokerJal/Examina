@@ -18,7 +18,7 @@ public partial class LoadingWindow : Window
     /// <summary>
     /// 窗口加载完成后开始自动认证
     /// </summary>
-    protected override async void OnOpened(System.EventArgs e)
+    protected override async void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
 

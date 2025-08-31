@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -165,7 +165,7 @@ public class ExamCanStartConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is Examina.Models.Exam.StudentExamDto exam)
+        if (value is Models.Exam.StudentExamDto exam)
         {
             // 考试可以开始的条件：状态为Published或InProgress，且在时间范围内
             bool timeValid = exam.StartTime.HasValue && exam.EndTime.HasValue &&
@@ -196,7 +196,7 @@ public class ExamCompletedNoOptionsConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is Examina.Models.Exam.StudentExamDto exam)
+        if (value is Models.Exam.StudentExamDto exam)
         {
             // 显示"联考已完成"的条件：考试已结束且不允许重考和重做
             bool showCompleted = exam.Status == "Completed" && !exam.AllowRetake && !exam.AllowPractice;

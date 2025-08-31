@@ -41,14 +41,14 @@ public class ExamManagementController : Controller
         try
         {
             int userId = GetCurrentUserId();
-            List<ExaminaWebApplication.Models.Api.Admin.AdminExamDto> exams = await _adminExamService.GetExamsAsync(userId);
+            List<Models.Api.Admin.AdminExamDto> exams = await _adminExamService.GetExamsAsync(userId);
             return View(exams);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取考试列表失败");
             TempData["ErrorMessage"] = "获取考试列表失败，请稍后重试";
-            return View(new List<ExaminaWebApplication.Models.Api.Admin.AdminExamDto>());
+            return View(new List<Models.Api.Admin.AdminExamDto>());
         }
     }
 

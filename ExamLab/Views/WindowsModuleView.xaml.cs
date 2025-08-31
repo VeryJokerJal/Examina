@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ExamLab.ViewModels;
 using ExamLab.Models;
@@ -29,7 +29,7 @@ public sealed partial class WindowsModuleView : UserControl
         DataContext = viewModel;
     }
 
-    private void OnDataContextChanged(Microsoft.UI.Xaml.FrameworkElement sender, Microsoft.UI.Xaml.DataContextChangedEventArgs args)
+    private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
         ViewModel = DataContext as WindowsModuleViewModel;
     }
