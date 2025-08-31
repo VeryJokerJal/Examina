@@ -528,8 +528,8 @@ public class FileDownloadService : IFileDownloadService
 
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
 
-                List<string> entryPaths = [.. archive.Entries.Where(e => !string.IsNullOrEmpty(e.Name)).Select(e => e.FullName).Where(path => !string.IsNullOrEmpty(path))];
-                string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
+                // 禁用智能目录扁平化，保持完整的目录结构
+                string? rootDirToSkip = null;
 
                 // 第一步：创建所有目录结构（包括空目录）
                 foreach (ZipArchiveEntry entry in archive.Entries)
@@ -685,8 +685,8 @@ public class FileDownloadService : IFileDownloadService
 
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
 
-                List<string> entryPaths = [.. archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!)];
-                string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
+                // 禁用智能目录扁平化，保持完整的目录结构
+                string? rootDirToSkip = null;
 
                 // 第一步：创建所有目录结构（包括空目录）
                 foreach (IArchiveEntry entry in archive.Entries.Where(entry => entry.IsDirectory))
@@ -778,8 +778,8 @@ public class FileDownloadService : IFileDownloadService
 
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(archiveFileName);
 
-                List<string> entryPaths = [.. archive.Entries.Where(e => !e.IsDirectory && !string.IsNullOrEmpty(e.Key)).Select(e => e.Key!)];
-                string? rootDirToSkip = GetRootDirectoryToSkip(entryPaths, fileNameWithoutExtension);
+                // 禁用智能目录扁平化，保持完整的目录结构
+                string? rootDirToSkip = null;
 
                 // 第一步：创建所有目录结构（包括空目录）
                 foreach (IArchiveEntry entry in archive.Entries.Where(entry => entry.IsDirectory))
