@@ -5211,21 +5211,43 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有图表和标签格式设置
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
-            {
-                if (TryGetParameter(parameters, "FontName", out string fontName) ||
-                    TryGetParameter(parameters, "FontSize", out string fontSize) ||
-                    TryGetParameter(parameters, "FontColor", out string fontColor))
-                {
-                    return (true, "检测到数据标签格式设置");
-                }
+            string expectedFontName = TryGetParameter(parameters, "FontName", out string fontName) ? fontName : "";
+            string expectedFontSize = TryGetParameter(parameters, "FontSize", out string fontSize) ? fontSize : "";
+            string expectedFontColor = TryGetParameter(parameters, "FontColor", out string fontColor) ? fontColor : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
-                return (true, "检测到数据标签");
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
+            {
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                string format = GetDataLabelsFormat(chartPart, expectedFontName, expectedFontSize, expectedFontColor);
+                return (!string.IsNullOrEmpty(format), format);
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                string format = GetDataLabelsFormat(chartPart, expectedFontName, expectedFontSize, expectedFontColor);
+                if (!string.IsNullOrEmpty(format))
+                {
+                    return (true, format);
+                }
+            }
+
+            return (false, "未找到匹配的数据标签格式");
         }
         catch
         {
@@ -5240,20 +5262,42 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     {
         try
         {
-            // 简化实现：检查是否有图表和区域格式设置
-            (bool Found, int Count) = CheckChartInWorkbook(workbookPart);
-            if (Found)
-            {
-                if (TryGetParameter(parameters, "FillColor", out string fillColor) ||
-                    TryGetParameter(parameters, "BorderColor", out string borderColor))
-                {
-                    return (true, "检测到图表区域格式设置");
-                }
+            string expectedFillColor = TryGetParameter(parameters, "FillColor", out string fillColor) ? fillColor : "";
+            string expectedBorderColor = TryGetParameter(parameters, "BorderColor", out string borderColor) ? borderColor : "";
+            int chartNumber = TryGetIntParameter(parameters, "ChartNumber", out int chartNum) ? chartNum : -1;
 
-                return (true, "检测到图表区域");
+            // 获取所有图表
+            List<(WorksheetPart WorksheetPart, ChartPart ChartPart)> charts = GetAllCharts(workbookPart);
+
+            if (charts.Count == 0)
+            {
+                return (false, "未找到图表");
             }
 
-            return (false, string.Empty);
+            // 如果指定了具体的图表编号且不是-1
+            if (chartNumber != -1)
+            {
+                if (chartNumber < 1 || chartNumber > charts.Count)
+                {
+                    return (false, $"图表编号 {chartNumber} 超出范围");
+                }
+
+                var (worksheetPart, chartPart) = charts[chartNumber - 1];
+                string format = GetChartAreaFormat(chartPart, expectedFillColor, expectedBorderColor);
+                return (!string.IsNullOrEmpty(format), format);
+            }
+
+            // -1 模式：任意匹配，检查所有图表
+            foreach (var (worksheetPart, chartPart) in charts)
+            {
+                string format = GetChartAreaFormat(chartPart, expectedFillColor, expectedBorderColor);
+                if (!string.IsNullOrEmpty(format))
+                {
+                    return (true, format);
+                }
+            }
+
+            return (false, "未找到匹配的图表区域格式");
         }
         catch
         {
@@ -6553,6 +6597,290 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取数据标签信息
+    /// </summary>
+    private string GetDataLabelsInfo(ChartPart chartPart, string expectedPosition)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return string.Empty;
+
+            List<string> labelInfo = [];
+
+            // 检查不同类型的图表系列中的数据标签
+            var barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
+            var lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
+            var pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
+
+            // 检查柱形图系列的数据标签
+            foreach (var barChart in barCharts)
+            {
+                foreach (var series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
+                {
+                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    if (dataLabels != null)
+                    {
+                        string position = GetDataLabelPosition(dataLabels);
+                        if (string.IsNullOrEmpty(expectedPosition) ||
+                            position.Contains(expectedPosition, StringComparison.OrdinalIgnoreCase))
+                        {
+                            labelInfo.Add($"柱形图数据标签: {position}");
+                        }
+                    }
+                }
+            }
+
+            // 检查折线图系列的数据标签
+            foreach (var lineChart in lineCharts)
+            {
+                foreach (var series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
+                {
+                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    if (dataLabels != null)
+                    {
+                        string position = GetDataLabelPosition(dataLabels);
+                        if (string.IsNullOrEmpty(expectedPosition) ||
+                            position.Contains(expectedPosition, StringComparison.OrdinalIgnoreCase))
+                        {
+                            labelInfo.Add($"折线图数据标签: {position}");
+                        }
+                    }
+                }
+            }
+
+            // 检查饼图系列的数据标签
+            foreach (var pieChart in pieCharts)
+            {
+                foreach (var series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
+                {
+                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    if (dataLabels != null)
+                    {
+                        string position = GetDataLabelPosition(dataLabels);
+                        if (string.IsNullOrEmpty(expectedPosition) ||
+                            position.Contains(expectedPosition, StringComparison.OrdinalIgnoreCase))
+                        {
+                            labelInfo.Add($"饼图数据标签: {position}");
+                        }
+                    }
+                }
+            }
+
+            return labelInfo.Count > 0 ? string.Join(", ", labelInfo) : string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取数据标签位置
+    /// </summary>
+    private string GetDataLabelPosition(DocumentFormat.OpenXml.Drawing.Charts.DataLabels dataLabels)
+    {
+        try
+        {
+            var dataLabelPosition = dataLabels.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabelPosition>().FirstOrDefault();
+            if (dataLabelPosition?.Val?.Value != null)
+            {
+                var position = dataLabelPosition.Val.Value;
+
+                if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Center)
+                    return "居中";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideEnd)
+                    return "内侧末端";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideBase)
+                    return "内侧基部";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.OutsideEnd)
+                    return "外侧末端";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Left)
+                    return "左侧";
+                else if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Right)
+                    return "右侧";
+                else
+                    return position.ToString();
+            }
+
+            // 如果有数据标签但没有明确位置，返回默认位置
+            return "默认位置";
+        }
+        catch
+        {
+            return "数据标签";
+        }
+    }
+
+    /// <summary>
+    /// 获取数据标签格式
+    /// </summary>
+    private string GetDataLabelsFormat(ChartPart chartPart, string expectedFontName, string expectedFontSize, string expectedFontColor)
+    {
+        try
+        {
+            var chartSpace = chartPart.ChartSpace;
+            var chart = chartSpace?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Chart>();
+            var plotArea = chart?.PlotArea;
+
+            if (plotArea == null) return string.Empty;
+
+            List<string> formatInfo = [];
+
+            // 检查不同类型的图表系列中的数据标签格式
+            var barCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChart>();
+            var lineCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChart>();
+            var pieCharts = plotArea.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChart>();
+
+            // 检查柱形图系列的数据标签格式
+            foreach (var barChart in barCharts)
+            {
+                foreach (var series in barChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.BarChartSeries>())
+                {
+                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    if (dataLabels != null)
+                    {
+                        string format = GetDataLabelFormatInfo(dataLabels, expectedFontName, expectedFontSize, expectedFontColor);
+                        if (!string.IsNullOrEmpty(format))
+                        {
+                            formatInfo.Add($"柱形图数据标签格式: {format}");
+                        }
+                    }
+                }
+            }
+
+            // 检查折线图系列的数据标签格式
+            foreach (var lineChart in lineCharts)
+            {
+                foreach (var series in lineChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.LineChartSeries>())
+                {
+                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    if (dataLabels != null)
+                    {
+                        string format = GetDataLabelFormatInfo(dataLabels, expectedFontName, expectedFontSize, expectedFontColor);
+                        if (!string.IsNullOrEmpty(format))
+                        {
+                            formatInfo.Add($"折线图数据标签格式: {format}");
+                        }
+                    }
+                }
+            }
+
+            // 检查饼图系列的数据标签格式
+            foreach (var pieChart in pieCharts)
+            {
+                foreach (var series in pieChart.Elements<DocumentFormat.OpenXml.Drawing.Charts.PieChartSeries>())
+                {
+                    var dataLabels = series.Elements<DocumentFormat.OpenXml.Drawing.Charts.DataLabels>().FirstOrDefault();
+                    if (dataLabels != null)
+                    {
+                        string format = GetDataLabelFormatInfo(dataLabels, expectedFontName, expectedFontSize, expectedFontColor);
+                        if (!string.IsNullOrEmpty(format))
+                        {
+                            formatInfo.Add($"饼图数据标签格式: {format}");
+                        }
+                    }
+                }
+            }
+
+            return formatInfo.Count > 0 ? string.Join(", ", formatInfo) : string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取数据标签格式信息
+    /// </summary>
+    private string GetDataLabelFormatInfo(DocumentFormat.OpenXml.Drawing.Charts.DataLabels dataLabels, string expectedFontName, string expectedFontSize, string expectedFontColor)
+    {
+        try
+        {
+            var textProperties = dataLabels.Elements<DocumentFormat.OpenXml.Drawing.Charts.TextProperties>().FirstOrDefault();
+            if (textProperties != null)
+            {
+                List<string> formatDetails = [];
+
+                // 检查字体属性
+                var bodyProperties = textProperties.Elements<DocumentFormat.OpenXml.Drawing.BodyProperties>().FirstOrDefault();
+                var listStyle = textProperties.Elements<DocumentFormat.OpenXml.Drawing.ListStyle>().FirstOrDefault();
+                var paragraphs = textProperties.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>();
+
+                foreach (var paragraph in paragraphs)
+                {
+                    var paragraphProperties = paragraph.Elements<DocumentFormat.OpenXml.Drawing.ParagraphProperties>().FirstOrDefault();
+                    var runs = paragraph.Elements<DocumentFormat.OpenXml.Drawing.Run>();
+
+                    foreach (var run in runs)
+                    {
+                        var runProperties = run.RunProperties;
+                        if (runProperties != null)
+                        {
+                            // 检查字体名称
+                            var latinFont = runProperties.Elements<DocumentFormat.OpenXml.Drawing.LatinFont>().FirstOrDefault();
+                            if (latinFont?.Typeface?.Value != null)
+                            {
+                                string fontName = latinFont.Typeface.Value;
+                                formatDetails.Add($"字体: {fontName}");
+
+                                if (!string.IsNullOrEmpty(expectedFontName) &&
+                                    !fontName.Contains(expectedFontName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue; // 字体不匹配
+                                }
+                            }
+
+                            // 检查字体大小
+                            if (runProperties.FontSize?.Value != null)
+                            {
+                                int fontSize = runProperties.FontSize.Value / 100;
+                                formatDetails.Add($"大小: {fontSize}pt");
+
+                                if (!string.IsNullOrEmpty(expectedFontSize) &&
+                                    !fontSize.ToString().Contains(expectedFontSize))
+                                {
+                                    continue; // 字体大小不匹配
+                                }
+                            }
+
+                            // 检查字体颜色
+                            var solidFill = runProperties.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                            if (solidFill?.RgbColorModelHex?.Val?.Value != null)
+                            {
+                                string color = solidFill.RgbColorModelHex.Val.Value;
+                                formatDetails.Add($"颜色: #{color}");
+
+                                if (!string.IsNullOrEmpty(expectedFontColor) &&
+                                    !color.Contains(expectedFontColor.Replace("#", ""), StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue; // 颜色不匹配
+                                }
+                            }
+
+                            if (formatDetails.Count > 0)
+                            {
+                                return string.Join(", ", formatDetails);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 如果有数据标签但没有找到格式信息，返回基本信息
+            return "数据标签格式";
         }
         catch
         {
