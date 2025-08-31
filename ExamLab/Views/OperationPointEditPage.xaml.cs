@@ -313,11 +313,11 @@ public sealed partial class OperationPointEditPage : Page
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
-        if (int.TryParse(parameter.Value, out int currentValue))
+        if (double.TryParse(parameter.Value, out double currentValue))
         {
             numberBox.Value = currentValue;
         }
-        else if (int.TryParse(parameter.DefaultValue, out int defaultValue))
+        else if (double.TryParse(parameter.DefaultValue, out double defaultValue))
         {
             numberBox.Value = defaultValue;
         }

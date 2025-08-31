@@ -209,7 +209,7 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
             // 验证数字类型参数
             if (parameter.Type == ParameterType.Number && !string.IsNullOrWhiteSpace(parameter.Value))
             {
-                if (!int.TryParse(parameter.Value, out int numValue))
+                if (!double.TryParse(parameter.Value, out double numValue))
                 {
                     SetError($"参数 '{parameter.DisplayName}' 必须是有效的数字");
                     return false;
@@ -218,7 +218,7 @@ public class PowerPointModuleViewModel : ModuleViewModelBase
                 if (parameter.MinValue.HasValue && numValue < parameter.MinValue.Value)
                 {
                     // 如果值为-1，则允许（-1代表通配符，匹配任意值）
-                    if (numValue != -1)
+                    if (Math.Abs(numValue - (-1)) >= 0.001)
                     {
                         SetError($"参数 '{parameter.DisplayName}' 不能小于 {parameter.MinValue.Value}（输入-1表示匹配任意值）");
                         return false;
