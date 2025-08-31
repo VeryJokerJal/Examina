@@ -4849,25 +4849,94 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
+            // 1. 检查页眉中的水印
             foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+                string font = ExtractWatermarkFontFromHeader(headerPart);
+                if (!string.IsNullOrEmpty(font) && font != "未找到字体")
                 {
-                    // 简化实现：检查形状是否包含文本
-                    string text = shape.InnerText;
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        // 简化实现：返回默认水印字体
-                        return "华文中宋";
-                    }
+                    return font;
                 }
             }
-            return "默认字体";
+
+            // 2. 检查文档背景中的水印
+            DocumentBackground? documentBackground = mainPart.Document.DocumentBackground;
+            if (documentBackground != null)
+            {
+                string font = ExtractWatermarkFontFromBackground(documentBackground);
+                if (!string.IsNullOrEmpty(font) && font != "未找到字体")
+                {
+                    return font;
+                }
+            }
+
+            return "无水印字体";
         }
         catch
         {
-            return "未知字体";
+            return "字体检测失败";
+        }
+    }
+
+    /// <summary>
+    /// 从页眉中提取水印字体
+    /// </summary>
+    private static string ExtractWatermarkFontFromHeader(HeaderPart headerPart)
+    {
+        try
+        {
+            // 检查VML形状中的字体设置
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            {
+                string text = shape.InnerText;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    // 检查形状的样式属性中的字体
+                    string? style = shape.Style?.Value;
+                    if (!string.IsNullOrEmpty(style))
+                    {
+                        string font = ParseFontFromStyle(style);
+                        if (!string.IsNullOrEmpty(font))
+                        {
+                            return font;
+                        }
+                    }
+
+                    // 检查TextPath中的字体设置
+                    DocumentFormat.OpenXml.Vml.TextPath? textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                    if (textPath != null)
+                    {
+                        OpenXmlAttribute fontFamilyAttr = textPath.GetAttribute("fontfamily", "");
+                        if (!string.IsNullOrEmpty(fontFamilyAttr.Value))
+                        {
+                            return fontFamilyAttr.Value.Trim('"');
+                        }
+                    }
+
+                    // 检查Run元素中的字体设置
+                    IEnumerable<Run> runs = shape.Descendants<Run>();
+                    foreach (Run run in runs)
+                    {
+                        RunProperties? runProperties = run.RunProperties;
+                        RunFonts? runFonts = runProperties?.RunFonts;
+                        if (runFonts != null)
+                        {
+                            string? fontName = runFonts.Ascii?.Value ?? runFonts.EastAsia?.Value ?? runFonts.ComplexScript?.Value;
+                            if (!string.IsNullOrEmpty(fontName))
+                            {
+                                return fontName;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return "未找到字体";
+        }
+        catch
+        {
+            return "未找到字体";
         }
     }
 
@@ -4878,25 +4947,96 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
+            // 1. 检查页眉中的水印字号
             foreach (HeaderPart headerPart in mainPart.HeaderParts)
             {
-                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-                foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+                int fontSize = ExtractWatermarkFontSizeFromHeader(headerPart);
+                if (fontSize > 0)
                 {
-                    // 简化实现：检查形状是否包含文本
-                    string text = shape.InnerText;
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        // 简化实现：返回默认水印字号
-                        return 36;
-                    }
+                    return fontSize;
                 }
             }
-            return 36; // 默认水印字号
+
+            // 2. 检查文档背景中的水印字号
+            DocumentBackground? documentBackground = mainPart.Document.DocumentBackground;
+            if (documentBackground != null)
+            {
+                int fontSize = ExtractWatermarkFontSizeFromBackground(documentBackground);
+                if (fontSize > 0)
+                {
+                    return fontSize;
+                }
+            }
+
+            return 0; // 未找到水印字号
         }
         catch
         {
-            return 36;
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 从页眉中提取水印字号
+    /// </summary>
+    private static int ExtractWatermarkFontSizeFromHeader(HeaderPart headerPart)
+    {
+        try
+        {
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            {
+                string text = shape.InnerText;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    // 检查形状的样式属性中的字号
+                    string? style = shape.Style?.Value;
+                    if (!string.IsNullOrEmpty(style))
+                    {
+                        int fontSize = ParseFontSizeFromStyle(style);
+                        if (fontSize > 0)
+                        {
+                            return fontSize;
+                        }
+                    }
+
+                    // 检查TextPath中的字号设置
+                    DocumentFormat.OpenXml.Vml.TextPath? textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                    if (textPath != null)
+                    {
+                        OpenXmlAttribute fontSizeAttr = textPath.GetAttribute("fontsize", "");
+                        if (!string.IsNullOrEmpty(fontSizeAttr.Value))
+                        {
+                            if (int.TryParse(fontSizeAttr.Value.Replace("pt", ""), out int size))
+                            {
+                                return size;
+                            }
+                        }
+                    }
+
+                    // 检查Run元素中的字号设置
+                    IEnumerable<Run> runs = shape.Descendants<Run>();
+                    foreach (Run run in runs)
+                    {
+                        RunProperties? runProperties = run.RunProperties;
+                        FontSize? fontSize = runProperties?.FontSize;
+                        if (fontSize?.Val?.Value != null)
+                        {
+                            // OpenXML中字号以半点为单位，需要除以2
+                            if (int.TryParse(fontSize.Val.Value, out int sizeValue))
+                            {
+                                return sizeValue / 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return 0;
+        }
+        catch
+        {
+            return 0;
         }
     }
 
@@ -5310,23 +5450,20 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
 
                     if (numberingProperties?.NumberingId?.Val?.Value != null)
                     {
-                        // 简化实现：根据编号ID判断类型
                         int numberingId = numberingProperties.NumberingId.Val.Value;
+                        int levelIndex = numberingProperties.NumberingLevelReference?.Val?.Value ?? 0;
 
-                        // 检查编号定义部分以确定类型
+                        // 检查编号定义部分以确定具体类型
                         if (mainPart.NumberingDefinitionsPart?.Numbering != null)
                         {
-                            Numbering numbering = mainPart.NumberingDefinitionsPart.Numbering;
-                            NumberingInstance? numberingInstance = numbering.Elements<NumberingInstance>()
-                                .FirstOrDefault(ni => ni.NumberID?.Value == numberingId);
-
-                            if (numberingInstance != null)
+                            string numberingType = AnalyzeNumberingType(mainPart.NumberingDefinitionsPart.Numbering, numberingId, levelIndex);
+                            if (!string.IsNullOrEmpty(numberingType) && numberingType != "未知编号")
                             {
-                                return "检测到编号列表";
+                                return numberingType;
                             }
                         }
 
-                        return "项目符号";
+                        return "检测到编号";
                     }
                 }
             }
@@ -5542,27 +5679,100 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            // 1. 检查VML自选图形
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                // 简化实现：检查形状中的文本格式
-                IEnumerable<Run> runs = shape.Descendants<Run>();
-                foreach (Run run in runs)
+                int fontSize = ExtractTextSizeFromVmlShape(shape);
+                if (fontSize > 0)
+                {
+                    return fontSize;
+                }
+            }
+
+            // 2. 检查Drawing自选图形
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
+            {
+                int fontSize = ExtractTextSizeFromDrawing(drawing);
+                if (fontSize > 0)
+                {
+                    return fontSize;
+                }
+            }
+
+            return 0; // 未找到文字大小
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 从VML形状中提取文字大小
+    /// </summary>
+    private static int ExtractTextSizeFromVmlShape(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            // 检查形状是否包含文本
+            string text = shape.InnerText;
+            if (string.IsNullOrEmpty(text))
+            {
+                return 0;
+            }
+
+            // 1. 检查Run元素中的字号设置
+            IEnumerable<Run> runs = shape.Descendants<Run>();
+            foreach (Run run in runs)
+            {
+                RunProperties? runProperties = run.RunProperties;
+                FontSize? fontSize = runProperties?.FontSize;
+                if (fontSize?.Val?.Value != null)
+                {
+                    if (int.TryParse(fontSize.Val.Value, out int size))
+                    {
+                        return size / 2; // OpenXML中字号以半点为单位
+                    }
+                }
+            }
+
+            // 2. 检查形状样式中的字号
+            string? style = shape.Style?.Value;
+            if (!string.IsNullOrEmpty(style))
+            {
+                int fontSize = ParseFontSizeFromStyle(style);
+                if (fontSize > 0)
+                {
+                    return fontSize;
+                }
+            }
+
+            // 3. 检查TextBox中的字号设置
+            DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+            if (textBox != null)
+            {
+                IEnumerable<Run> textBoxRuns = textBox.Descendants<Run>();
+                foreach (Run run in textBoxRuns)
                 {
                     RunProperties? runProperties = run.RunProperties;
                     FontSize? fontSize = runProperties?.FontSize;
                     if (fontSize?.Val?.Value != null)
                     {
-                        return int.Parse(fontSize.Val.Value) / 2;
+                        if (int.TryParse(fontSize.Val.Value, out int size))
+                        {
+                            return size / 2;
+                        }
                     }
                 }
             }
 
-            return 12; // 默认字号
+            return 0;
         }
         catch
         {
-            return 12;
+            return 0;
         }
     }
 
@@ -5573,27 +5783,94 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            // 1. 检查VML自选图形
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                // 简化实现：检查形状中的文本颜色
-                IEnumerable<Run> runs = shape.Descendants<Run>();
-                foreach (Run run in runs)
+                string color = ExtractTextColorFromVmlShape(shape);
+                if (!string.IsNullOrEmpty(color) && color != "未找到颜色")
+                {
+                    return color;
+                }
+            }
+
+            // 2. 检查Drawing自选图形
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
+            {
+                string color = ExtractTextColorFromDrawing(drawing);
+                if (!string.IsNullOrEmpty(color) && color != "未找到颜色")
+                {
+                    return color;
+                }
+            }
+
+            return "无文字颜色";
+        }
+        catch
+        {
+            return "颜色检测失败";
+        }
+    }
+
+    /// <summary>
+    /// 从VML形状中提取文字颜色
+    /// </summary>
+    private static string ExtractTextColorFromVmlShape(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            // 检查形状是否包含文本
+            string text = shape.InnerText;
+            if (string.IsNullOrEmpty(text))
+            {
+                return "未找到颜色";
+            }
+
+            // 1. 检查Run元素中的颜色设置
+            IEnumerable<Run> runs = shape.Descendants<Run>();
+            foreach (Run run in runs)
+            {
+                RunProperties? runProperties = run.RunProperties;
+                Color? color = runProperties?.Color;
+                if (color?.Val?.Value != null)
+                {
+                    return NormalizeColorValue(color.Val.Value);
+                }
+            }
+
+            // 2. 检查形状样式中的颜色
+            string? style = shape.Style?.Value;
+            if (!string.IsNullOrEmpty(style))
+            {
+                string color = ParseColorFromStyle(style);
+                if (!string.IsNullOrEmpty(color))
+                {
+                    return color;
+                }
+            }
+
+            // 3. 检查TextBox中的颜色设置
+            DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+            if (textBox != null)
+            {
+                IEnumerable<Run> textBoxRuns = textBox.Descendants<Run>();
+                foreach (Run run in textBoxRuns)
                 {
                     RunProperties? runProperties = run.RunProperties;
                     Color? color = runProperties?.Color;
                     if (color?.Val?.Value != null)
                     {
-                        return color.Val.Value;
+                        return NormalizeColorValue(color.Val.Value);
                     }
                 }
             }
 
-            return "默认文字颜色";
+            return "未找到颜色";
         }
         catch
         {
-            return "未知";
+            return "未找到颜色";
         }
     }
 
@@ -5604,14 +5881,25 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
     {
         try
         {
-            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> shapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
-            foreach (DocumentFormat.OpenXml.Vml.Shape shape in shapes)
+            // 1. 检查VML自选图形
+            IEnumerable<DocumentFormat.OpenXml.Vml.Shape> vmlShapes = mainPart.Document.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+            foreach (DocumentFormat.OpenXml.Vml.Shape shape in vmlShapes)
             {
-                // 简化实现：检查形状中的文本内容
-                string text = shape.InnerText;
-                if (!string.IsNullOrEmpty(text))
+                string content = ExtractTextContentFromVmlShape(shape);
+                if (!string.IsNullOrEmpty(content) && content != "无文字内容")
                 {
-                    return text.Trim();
+                    return content;
+                }
+            }
+
+            // 2. 检查Drawing自选图形
+            IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
+            foreach (Drawing drawing in drawings)
+            {
+                string content = ExtractTextContentFromDrawing(drawing);
+                if (!string.IsNullOrEmpty(content) && content != "无文字内容")
+                {
+                    return content;
                 }
             }
 
@@ -5619,7 +5907,66 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         }
         catch
         {
-            return "未知";
+            return "内容检测失败";
+        }
+    }
+
+    /// <summary>
+    /// 从VML形状中提取文字内容
+    /// </summary>
+    private static string ExtractTextContentFromVmlShape(DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        try
+        {
+            List<string> textContents = [];
+
+            // 1. 检查形状的直接文本内容
+            string directText = shape.InnerText;
+            if (!string.IsNullOrEmpty(directText))
+            {
+                textContents.Add(directText.Trim());
+            }
+
+            // 2. 检查TextBox中的文本内容
+            DocumentFormat.OpenXml.Vml.TextBox? textBox = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextBox>();
+            if (textBox != null)
+            {
+                IEnumerable<Paragraph> paragraphs = textBox.Descendants<Paragraph>();
+                foreach (Paragraph paragraph in paragraphs)
+                {
+                    string paragraphText = paragraph.InnerText;
+                    if (!string.IsNullOrEmpty(paragraphText))
+                    {
+                        textContents.Add(paragraphText.Trim());
+                    }
+                }
+            }
+
+            // 3. 检查Run元素中的文本
+            IEnumerable<Run> runs = shape.Descendants<Run>();
+            foreach (Run run in runs)
+            {
+                IEnumerable<Text> texts = run.Elements<Text>();
+                foreach (Text text in texts)
+                {
+                    if (!string.IsNullOrEmpty(text.Text))
+                    {
+                        textContents.Add(text.Text.Trim());
+                    }
+                }
+            }
+
+            // 合并所有文本内容
+            if (textContents.Count > 0)
+            {
+                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
+            }
+
+            return "无文字内容";
+        }
+        catch
+        {
+            return "无文字内容";
         }
     }
 
@@ -5665,15 +6012,63 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到图片边框设置
-                return "检测到边框复合类型";
+                string compoundType = ExtractImageBorderCompoundType(drawing);
+                if (!string.IsNullOrEmpty(compoundType) && compoundType != "无边框")
+                {
+                    return compoundType;
+                }
             }
 
             return "无边框设置";
         }
         catch
         {
-            return "未知";
+            return "检测失败";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取图片边框复合类型
+    /// </summary>
+    private static string ExtractImageBorderCompoundType(Drawing drawing)
+    {
+        try
+        {
+            // 检查Inline图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = inline.Graphic;
+                if (graphic != null)
+                {
+                    string compoundType = ExtractBorderCompoundFromGraphic(graphic);
+                    if (!string.IsNullOrEmpty(compoundType))
+                    {
+                        return compoundType;
+                    }
+                }
+            }
+
+            // 检查Anchor图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
+                if (graphic != null)
+                {
+                    string compoundType = ExtractBorderCompoundFromGraphic(graphic);
+                    if (!string.IsNullOrEmpty(compoundType))
+                    {
+                        return compoundType;
+                    }
+                }
+            }
+
+            return "无边框";
+        }
+        catch
+        {
+            return "无边框";
         }
     }
 
@@ -5687,15 +6082,63 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
             IEnumerable<Drawing> drawings = mainPart.Document.Descendants<Drawing>();
             foreach (Drawing drawing in drawings)
             {
-                // 简化实现：检测到图片边框设置
-                return "检测到短划线类型";
+                string dashType = ExtractImageBorderDashType(drawing);
+                if (!string.IsNullOrEmpty(dashType) && dashType != "无短划线")
+                {
+                    return dashType;
+                }
             }
 
             return "无短划线设置";
         }
         catch
         {
-            return "未知";
+            return "检测失败";
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取图片边框短划线类型
+    /// </summary>
+    private static string ExtractImageBorderDashType(Drawing drawing)
+    {
+        try
+        {
+            // 检查Inline图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline? inline = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline>();
+            if (inline != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = inline.Graphic;
+                if (graphic != null)
+                {
+                    string dashType = ExtractDashTypeFromGraphic(graphic);
+                    if (!string.IsNullOrEmpty(dashType))
+                    {
+                        return dashType;
+                    }
+                }
+            }
+
+            // 检查Anchor图片的边框
+            DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor? anchor = drawing.GetFirstChild<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>();
+            if (anchor != null)
+            {
+                DocumentFormat.OpenXml.Drawing.Graphic? graphic = anchor.GetFirstChild<DocumentFormat.OpenXml.Drawing.Graphic>();
+                if (graphic != null)
+                {
+                    string dashType = ExtractDashTypeFromGraphic(graphic);
+                    if (!string.IsNullOrEmpty(dashType))
+                    {
+                        return dashType;
+                    }
+                }
+            }
+
+            return "无短划线";
+        }
+        catch
+        {
+            return "无短划线";
         }
     }
 
@@ -6960,5 +7403,504 @@ public class WordOpenXmlScoringService : OpenXmlScoringServiceBase, IWordScoring
         {
             System.Diagnostics.Debug.WriteLine($"[调试] 输出段落格式信息失败: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 从文档背景中提取水印字体
+    /// </summary>
+    private static string ExtractWatermarkFontFromBackground(DocumentBackground documentBackground)
+    {
+        try
+        {
+            DocumentFormat.OpenXml.Vml.Background? background = documentBackground.GetFirstChild<DocumentFormat.OpenXml.Vml.Background>();
+            if (background != null)
+            {
+                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> backgroundShapes = background.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (DocumentFormat.OpenXml.Vml.Shape shape in backgroundShapes)
+                {
+                    DocumentFormat.OpenXml.Vml.TextPath? textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                    if (textPath != null)
+                    {
+                        OpenXmlAttribute fontFamilyAttr = textPath.GetAttribute("fontfamily", "");
+                        if (!string.IsNullOrEmpty(fontFamilyAttr.Value))
+                        {
+                            return fontFamilyAttr.Value.Trim('"');
+                        }
+                    }
+                }
+            }
+            return "未找到字体";
+        }
+        catch
+        {
+            return "未找到字体";
+        }
+    }
+
+    /// <summary>
+    /// 从样式字符串中解析字体
+    /// </summary>
+    private static string ParseFontFromStyle(string style)
+    {
+        try
+        {
+            // 解析样式字符串中的font-family属性
+            System.Text.RegularExpressions.Match fontMatch = System.Text.RegularExpressions.Regex.Match(style, @"font-family:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (fontMatch.Success)
+            {
+                return fontMatch.Groups[1].Value.Trim().Trim('"').Trim('\'');
+            }
+            return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 从文档背景中提取水印字号
+    /// </summary>
+    private static int ExtractWatermarkFontSizeFromBackground(DocumentBackground documentBackground)
+    {
+        try
+        {
+            DocumentFormat.OpenXml.Vml.Background? background = documentBackground.GetFirstChild<DocumentFormat.OpenXml.Vml.Background>();
+            if (background != null)
+            {
+                IEnumerable<DocumentFormat.OpenXml.Vml.Shape> backgroundShapes = background.Descendants<DocumentFormat.OpenXml.Vml.Shape>();
+                foreach (DocumentFormat.OpenXml.Vml.Shape shape in backgroundShapes)
+                {
+                    DocumentFormat.OpenXml.Vml.TextPath? textPath = shape.Descendants<DocumentFormat.OpenXml.Vml.TextPath>().FirstOrDefault();
+                    if (textPath != null)
+                    {
+                        OpenXmlAttribute fontSizeAttr = textPath.GetAttribute("fontsize", "");
+                        if (!string.IsNullOrEmpty(fontSizeAttr.Value))
+                        {
+                            if (int.TryParse(fontSizeAttr.Value.Replace("pt", ""), out int size))
+                            {
+                                return size;
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 从样式字符串中解析字号
+    /// </summary>
+    private static int ParseFontSizeFromStyle(string style)
+    {
+        try
+        {
+            // 解析样式字符串中的font-size属性
+            System.Text.RegularExpressions.Match sizeMatch = System.Text.RegularExpressions.Regex.Match(style, @"font-size:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (sizeMatch.Success)
+            {
+                string sizeStr = sizeMatch.Groups[1].Value.Trim();
+                if (int.TryParse(sizeStr.Replace("pt", "").Replace("px", ""), out int size))
+                {
+                    return size;
+                }
+            }
+            return 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 分析编号类型
+    /// </summary>
+    private static string AnalyzeNumberingType(Numbering numbering, int numberingId, int levelIndex)
+    {
+        try
+        {
+            // 查找编号实例
+            NumberingInstance? numberingInstance = numbering.Elements<NumberingInstance>()
+                .FirstOrDefault(ni => ni.NumberID?.Value == numberingId);
+
+            if (numberingInstance == null)
+            {
+                return "未知编号";
+            }
+
+            // 获取抽象编号ID
+            int? abstractNumId = numberingInstance.AbstractNumId?.Val?.Value;
+            if (abstractNumId == null)
+            {
+                return "未知编号";
+            }
+
+            // 查找抽象编号定义
+            AbstractNum? abstractNum = numbering.Elements<AbstractNum>()
+                .FirstOrDefault(an => an.AbstractNumberId?.Value == abstractNumId);
+
+            if (abstractNum == null)
+            {
+                return "未知编号";
+            }
+
+            // 查找指定级别的编号定义
+            Level? level = abstractNum.Elements<Level>()
+                .FirstOrDefault(l => l.LevelIndex?.Value == levelIndex);
+
+            if (level == null)
+            {
+                return "未知编号";
+            }
+
+            // 分析编号格式
+            NumberingFormat? numberingFormat = level.NumberingFormat;
+            if (numberingFormat?.Val?.Value != null)
+            {
+                return TranslateNumberingFormat(numberingFormat.Val.Value.ToString());
+            }
+
+            // 检查级别文本以确定是否为项目符号
+            LevelText? levelText = level.LevelText;
+            if (levelText?.Val?.Value != null)
+            {
+                string text = levelText.Val.Value;
+                if (IsSymbolBullet(text))
+                {
+                    return $"项目符号({text})";
+                }
+            }
+
+            return "编号列表";
+        }
+        catch
+        {
+            return "未知编号";
+        }
+    }
+
+    /// <summary>
+    /// 翻译编号格式
+    /// </summary>
+    private static string TranslateNumberingFormat(string format)
+    {
+        return format.ToLower() switch
+        {
+            "decimal" => "阿拉伯数字编号",
+            "upperroman" => "大写罗马数字编号",
+            "lowerroman" => "小写罗马数字编号",
+            "upperletter" => "大写字母编号",
+            "lowerletter" => "小写字母编号",
+            "ordinal" => "序数编号",
+            "cardinaltext" => "基数文本编号",
+            "ordinaltext" => "序数文本编号",
+            "hex" => "十六进制编号",
+            "chicago" => "芝加哥编号",
+            "ideographdigital" => "中文数字编号",
+            "japanesecounting" => "日文计数编号",
+            "aiueo" => "日文假名编号",
+            "iroha" => "日文伊吕波编号",
+            "decimalfullwidth" => "全角阿拉伯数字编号",
+            "bullet" => "项目符号",
+            _ => $"其他编号格式({format})"
+        };
+    }
+
+    /// <summary>
+    /// 判断是否为符号项目符号
+    /// </summary>
+    private static bool IsSymbolBullet(string text)
+    {
+        // 常见的项目符号字符
+        char[] bulletChars = ['•', '◦', '▪', '▫', '■', '□', '●', '○', '★', '☆', '♦', '♢', '→', '⇒'];
+        return text.Length == 1 && bulletChars.Contains(text[0]);
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文字大小
+    /// </summary>
+    private static int ExtractTextSizeFromDrawing(Drawing drawing)
+    {
+        try
+        {
+            // 检查Drawing中的文本运行
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
+            {
+                // 检查文本运行的属性
+                DocumentFormat.OpenXml.Drawing.RunProperties? runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+                if (runProperties?.FontSize?.Value != null)
+                {
+                    // Drawing中的字号以百分点为单位，需要除以100
+                    return runProperties.FontSize.Value / 100;
+                }
+            }
+
+            return 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文字颜色
+    /// </summary>
+    private static string ExtractTextColorFromDrawing(Drawing drawing)
+    {
+        try
+        {
+            // 检查Drawing中的文本运行
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
+            {
+                // 检查文本运行的属性
+                DocumentFormat.OpenXml.Drawing.RunProperties? runProperties = textElement.Parent?.Elements<DocumentFormat.OpenXml.Drawing.RunProperties>().FirstOrDefault();
+
+                // 检查实体颜色
+                DocumentFormat.OpenXml.Drawing.SolidFill? solidFill = runProperties?.Elements<DocumentFormat.OpenXml.Drawing.SolidFill>().FirstOrDefault();
+                if (solidFill != null)
+                {
+                    // 检查RGB颜色
+                    DocumentFormat.OpenXml.Drawing.RgbColorModelHex? rgbColor = solidFill.RgbColorModelHex;
+                    if (rgbColor?.Val?.Value != null)
+                    {
+                        return $"#{rgbColor.Val.Value}";
+                    }
+
+                    // 检查系统颜色
+                    DocumentFormat.OpenXml.Drawing.SystemColor? systemColor = solidFill.SystemColor;
+                    if (systemColor?.Val?.Value != null)
+                    {
+                        return systemColor.Val.Value.ToString();
+                    }
+                }
+            }
+
+            return "未找到颜色";
+        }
+        catch
+        {
+            return "未找到颜色";
+        }
+    }
+
+    /// <summary>
+    /// 标准化颜色值
+    /// </summary>
+    private static string NormalizeColorValue(string colorValue)
+    {
+        if (string.IsNullOrEmpty(colorValue))
+        {
+            return "未知颜色";
+        }
+
+        // 如果是十六进制颜色值，添加#前缀
+        if (colorValue.Length == 6 && !colorValue.StartsWith("#"))
+        {
+            return $"#{colorValue}";
+        }
+
+        return colorValue;
+    }
+
+    /// <summary>
+    /// 从样式字符串中解析颜色
+    /// </summary>
+    private static string ParseColorFromStyle(string style)
+    {
+        try
+        {
+            // 解析样式字符串中的color属性
+            System.Text.RegularExpressions.Match colorMatch = System.Text.RegularExpressions.Regex.Match(style, @"color:\s*([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (colorMatch.Success)
+            {
+                return NormalizeColorValue(colorMatch.Groups[1].Value.Trim());
+            }
+            return string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 从Drawing中提取文字内容
+    /// </summary>
+    private static string ExtractTextContentFromDrawing(Drawing drawing)
+    {
+        try
+        {
+            List<string> textContents = [];
+
+            // 检查Drawing中的文本元素
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = drawing.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
+            {
+                if (!string.IsNullOrEmpty(textElement.Text))
+                {
+                    textContents.Add(textElement.Text.Trim());
+                }
+            }
+
+            // 合并所有文本内容
+            if (textContents.Count > 0)
+            {
+                return string.Join(" ", textContents.Distinct().Where(t => !string.IsNullOrEmpty(t)));
+            }
+
+            return "无文字内容";
+        }
+        catch
+        {
+            return "无文字内容";
+        }
+    }
+
+    /// <summary>
+    /// 从Graphic中提取边框复合类型
+    /// </summary>
+    private static string ExtractBorderCompoundFromGraphic(DocumentFormat.OpenXml.Drawing.Graphic graphic)
+    {
+        try
+        {
+            // 检查图形数据中的形状属性
+            DocumentFormat.OpenXml.Drawing.GraphicData? graphicData = graphic.GraphicData;
+            if (graphicData != null)
+            {
+                // 检查图片元素
+                DocumentFormat.OpenXml.Drawing.Pictures.Picture? picture = graphicData.GetFirstChild<DocumentFormat.OpenXml.Drawing.Pictures.Picture>();
+                if (picture != null)
+                {
+                    // 检查形状属性中的线条设置
+                    DocumentFormat.OpenXml.Drawing.Pictures.ShapeProperties? shapeProperties = picture.ShapeProperties;
+                    if (shapeProperties != null)
+                    {
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.GetFirstChild<DocumentFormat.OpenXml.Drawing.Outline>();
+                        if (outline != null)
+                        {
+                            // 检查复合线条类型
+                            if (outline.CompoundLineType?.Value != null)
+                            {
+                                return TranslateCompoundLineType(outline.CompoundLineType.Value.ToString());
+                            }
+
+                            // 如果有边框但没有复合类型，返回简单边框
+                            if (outline.Width?.Value != null || outline.GetFirstChild<DocumentFormat.OpenXml.Drawing.SolidFill>() != null)
+                            {
+                                return "简单边框";
+                            }
+                        }
+                    }
+                }
+            }
+
+            return "无边框";
+        }
+        catch
+        {
+            return "无边框";
+        }
+    }
+
+    /// <summary>
+    /// 翻译复合线条类型
+    /// </summary>
+    private static string TranslateCompoundLineType(string compoundType)
+    {
+        return compoundType.ToLower() switch
+        {
+            "single" => "单线边框",
+            "double" => "双线边框",
+            "thickThin" => "粗细复合边框",
+            "thinThick" => "细粗复合边框",
+            "triple" => "三线边框",
+            _ => $"复合边框({compoundType})"
+        };
+    }
+
+    /// <summary>
+    /// 从Graphic中提取短划线类型
+    /// </summary>
+    private static string ExtractDashTypeFromGraphic(DocumentFormat.OpenXml.Drawing.Graphic graphic)
+    {
+        try
+        {
+            // 检查图形数据中的形状属性
+            DocumentFormat.OpenXml.Drawing.GraphicData? graphicData = graphic.GraphicData;
+            if (graphicData != null)
+            {
+                // 检查图片元素
+                DocumentFormat.OpenXml.Drawing.Pictures.Picture? picture = graphicData.GetFirstChild<DocumentFormat.OpenXml.Drawing.Pictures.Picture>();
+                if (picture != null)
+                {
+                    // 检查形状属性中的线条设置
+                    DocumentFormat.OpenXml.Drawing.Pictures.ShapeProperties? shapeProperties = picture.ShapeProperties;
+                    if (shapeProperties != null)
+                    {
+                        DocumentFormat.OpenXml.Drawing.Outline? outline = shapeProperties.GetFirstChild<DocumentFormat.OpenXml.Drawing.Outline>();
+                        if (outline != null)
+                        {
+                            // 检查预设短划线类型
+                            DocumentFormat.OpenXml.Drawing.PresetDash? presetDash = outline.GetFirstChild<DocumentFormat.OpenXml.Drawing.PresetDash>();
+                            if (presetDash?.Val?.Value != null)
+                            {
+                                return TranslateDashType(presetDash.Val.Value.ToString());
+                            }
+
+                            // 检查自定义短划线
+                            DocumentFormat.OpenXml.Drawing.CustomDash? customDash = outline.GetFirstChild<DocumentFormat.OpenXml.Drawing.CustomDash>();
+                            if (customDash != null)
+                            {
+                                return "自定义短划线";
+                            }
+
+                            // 如果有边框但没有短划线设置，返回实线
+                            if (outline.Width?.Value != null || outline.GetFirstChild<DocumentFormat.OpenXml.Drawing.SolidFill>() != null)
+                            {
+                                return "实线";
+                            }
+                        }
+                    }
+                }
+            }
+
+            return "无短划线";
+        }
+        catch
+        {
+            return "无短划线";
+        }
+    }
+
+    /// <summary>
+    /// 翻译短划线类型
+    /// </summary>
+    private static string TranslateDashType(string dashType)
+    {
+        return dashType.ToLower() switch
+        {
+            "solid" => "实线",
+            "dot" => "点线",
+            "dash" => "短划线",
+            "dashdot" => "点划线",
+            "dashdotdot" => "双点划线",
+            "longdash" => "长划线",
+            "longdashdot" => "长点划线",
+            "longdashdotdot" => "长双点划线",
+            "sysdash" => "系统短划线",
+            "sysdot" => "系统点线",
+            "sysdashdot" => "系统点划线",
+            "sysdashdotdot" => "系统双点划线",
+            _ => $"短划线({dashType})"
+        };
     }
 }
