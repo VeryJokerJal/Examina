@@ -8138,7 +8138,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     }
 
     /// <summary>
-    /// 简单的范围匹配检查
+    /// Excel范围匹配检查
     /// </summary>
     private bool IsSimpleRangeMatch(string cellRef, string startCell, string endCell)
     {
@@ -8147,13 +8147,67 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             if (string.IsNullOrEmpty(cellRef) || string.IsNullOrEmpty(startCell) || string.IsNullOrEmpty(endCell))
                 return false;
 
-            // 简化实现：检查单元格引用是否在字母顺序范围内
+            // 详细实现：解析Excel单元格引用并进行精确的范围匹配
+            var cellPos = ParseExcelCellReference(cellRef);
+            var startPos = ParseExcelCellReference(startCell);
+            var endPos = ParseExcelCellReference(endCell);
+
+            if (cellPos.HasValue && startPos.HasValue && endPos.HasValue)
+            {
+                var (cellRow, cellCol) = cellPos.Value;
+                var (startRow, startCol) = startPos.Value;
+                var (endRow, endCol) = endPos.Value;
+
+                return cellRow >= startRow && cellRow <= endRow &&
+                       cellCol >= startCol && cellCol <= endCol;
+            }
+
+            // 回退到字符串比较（用于非标准格式）
             return string.Compare(cellRef, startCell, StringComparison.OrdinalIgnoreCase) >= 0 &&
                    string.Compare(cellRef, endCell, StringComparison.OrdinalIgnoreCase) <= 0;
         }
         catch
         {
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 解析Excel单元格引用（如A1, B10等）
+    /// </summary>
+    private (int Row, int Column)? ParseExcelCellReference(string cellRef)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(cellRef))
+                return null;
+
+            // 分离字母和数字部分
+            int i = 0;
+            while (i < cellRef.Length && char.IsLetter(cellRef[i]))
+                i++;
+
+            if (i == 0 || i == cellRef.Length)
+                return null;
+
+            string columnPart = cellRef.Substring(0, i);
+            string rowPart = cellRef.Substring(i);
+
+            if (!int.TryParse(rowPart, out int row))
+                return null;
+
+            // 将列字母转换为数字（A=1, B=2, ..., Z=26, AA=27等）
+            int column = 0;
+            for (int j = 0; j < columnPart.Length; j++)
+            {
+                column = column * 26 + (char.ToUpper(columnPart[j]) - 'A' + 1);
+            }
+
+            return (row, column);
+        }
+        catch
+        {
+            return null;
         }
     }
 }
