@@ -2151,6 +2151,21 @@ public class BenchSuiteIntegrationService : IBenchSuiteIntegrationService
     }
 
     /// <summary>
+    /// 从JsonElement中获取数值属性（支持整数和小数）
+    /// </summary>
+    private static double? GetJsonNumberProperty(JsonElement element, string propertyName)
+    {
+        return element.TryGetProperty(propertyName, out JsonElement property)
+            ? property.ValueKind switch
+            {
+                JsonValueKind.Number => property.GetDouble(),
+                JsonValueKind.String when double.TryParse(property.GetString(), out double value) => value,
+                _ => null
+            }
+            : null;
+    }
+
+    /// <summary>
     /// 从JsonElement中获取布尔属性
     /// </summary>
     private static bool? GetJsonBoolProperty(JsonElement element, string propertyName)

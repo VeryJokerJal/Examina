@@ -243,6 +243,15 @@ public abstract class OpenXmlScoringServiceBase : IScoringService
     }
 
     /// <summary>
+    /// 安全获取Number类型参数（支持整数和小数）
+    /// </summary>
+    protected bool TryGetNumberParameter(Dictionary<string, string> parameters, string key, out double value)
+    {
+        value = 0d;
+        return TryGetParameter(parameters, key, out string strValue) && double.TryParse(strValue, out value);
+    }
+
+    /// <summary>
     /// 标准化文本比较
     /// </summary>
     protected bool TextEquals(string? text1, string? text2, bool ignoreCase = true)

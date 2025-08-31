@@ -189,8 +189,8 @@ namespace BenchSuite.Services
                 return string.Empty;
             }
 
-            // 尝试解析为整数
-            if (!int.TryParse(parameterValue, out int intValue))
+            // 尝试解析为数字（支持整数和小数）
+            if (!double.TryParse(parameterValue, out double doubleValue))
             {
                 // 不是数字，直接返回原值
                 context.SetResolvedParameter(parameterName, parameterValue);
@@ -198,7 +198,7 @@ namespace BenchSuite.Services
             }
 
             // 如果是-1（通配符），生成随机值
-            if (intValue == -1)
+            if (Math.Abs(doubleValue - (-1)) < 0.001)
             {
                 if (maxValue <= 0)
                 {
@@ -214,9 +214,9 @@ namespace BenchSuite.Services
             }
 
             // 验证数值范围
-            if (intValue < 0)
+            if (doubleValue < 0)
             {
-                throw new ArgumentException($"参数 '{parameterName}' 的值 {intValue} 无效，不支持负数（除-1外）");
+                throw new ArgumentException($"参数 '{parameterName}' 的值 {doubleValue} 无效，不支持负数（除-1外）");
             }
 
             // 普通数字，直接返回
@@ -271,9 +271,9 @@ namespace BenchSuite.Services
                     continue;
                 }
 
-                if (int.TryParse(trimmedValue, out int intValue))
+                if (double.TryParse(trimmedValue, out double doubleValue))
                 {
-                    if (intValue == -1)
+                    if (Math.Abs(doubleValue - (-1)) < 0.001)
                     {
                         if (maxValue <= 0)
                         {
@@ -284,7 +284,7 @@ namespace BenchSuite.Services
                         int randomValue = context.GenerateRandomNumber(1, maxValue);
                         resolvedValues.Add(randomValue.ToString());
                     }
-                    else if (intValue < 0)
+                    else if (doubleValue < 0)
                     {
                         errors.Add($"值 '{trimmedValue}' 无效，不支持负数（除-1外）");
                         continue;
@@ -323,6 +323,19 @@ namespace BenchSuite.Services
         {
             string resolvedValue = context.GetResolvedParameter(parameterName);
             return int.TryParse(resolvedValue, out int result) ? result : defaultValue;
+        }
+
+        /// <summary>
+        /// 获取解析后的双精度浮点数值
+        /// </summary>
+        /// <param name="parameterName">参数名称</param>
+        /// <param name="context">解析上下文</param>
+        /// <param name="defaultValue">默认值</param>
+        /// <returns>解析后的双精度浮点数值</returns>
+        public static double GetResolvedDoubleValue(string parameterName, ParameterResolutionContext context, double defaultValue = 0.0)
+        {
+            string resolvedValue = context.GetResolvedParameter(parameterName);
+            return double.TryParse(resolvedValue, out double result) ? result : defaultValue;
         }
 
         /// <summary>
