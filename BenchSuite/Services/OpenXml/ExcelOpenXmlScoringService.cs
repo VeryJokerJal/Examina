@@ -973,13 +973,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool fontFound = CheckFontInWorkbook(workbookPart, expectedFont);
+            (bool Found, string Details) = CheckFontInWorkbook(workbookPart, expectedFont, parameters);
 
             result.ExpectedValue = expectedFont;
-            result.ActualValue = fontFound ? expectedFont : "未找到指定字体";
-            result.IsCorrect = fontFound;
+            result.ActualValue = Found ? $"找到字体: {Details}" : "未找到指定字体";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"单元格字体检测: 期望 {expectedFont}, {(fontFound ? "找到" : "未找到")}";
+            result.Details = $"单元格字体检测: 期望 {expectedFont}, {(Found ? "找到" : "未找到")}";
         }
         catch (Exception ex)
         {
@@ -1009,13 +1009,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool styleFound = CheckFontStyleInWorkbook(workbookPart, expectedStyle);
+            (bool Found, string Details) = CheckFontStyleInWorkbook(workbookPart, expectedStyle, parameters);
 
             result.ExpectedValue = expectedStyle;
-            result.ActualValue = styleFound ? expectedStyle : "未找到指定样式";
-            result.IsCorrect = styleFound;
+            result.ActualValue = Found ? $"找到样式: {Details}" : "未找到指定样式";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"字体样式检测: 期望 {expectedStyle}, {(styleFound ? "找到" : "未找到")}";
+            result.Details = $"字体样式检测: 期望 {expectedStyle}, {(Found ? "找到" : "未找到")}";
         }
         catch (Exception ex)
         {
@@ -1117,13 +1117,13 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool alignmentFound = CheckCellAlignmentInWorkbook(workbookPart, expectedAlignment);
+            (bool Found, string Details) = CheckCellAlignmentInWorkbook(workbookPart, expectedAlignment, parameters);
 
             result.ExpectedValue = expectedAlignment;
-            result.ActualValue = alignmentFound ? expectedAlignment : "未找到指定对齐方式";
-            result.IsCorrect = alignmentFound;
+            result.ActualValue = Found ? $"找到对齐方式: {Details}" : "未找到指定对齐方式";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
-            result.Details = $"单元格对齐检测: 期望 {expectedAlignment}, {(alignmentFound ? "找到" : "未找到")}";
+            result.Details = $"单元格对齐检测: 期望 {expectedAlignment}, {(Found ? "找到" : "未找到")}";
         }
         catch (Exception ex)
         {
@@ -1297,11 +1297,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool sortFound = CheckDataSortInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckDataSortInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "数据排序";
-            result.ActualValue = sortFound ? "找到数据排序" : "未找到数据排序";
-            result.IsCorrect = sortFound;
+            result.ActualValue = Found ? $"找到数据排序: {Details}" : "未找到数据排序";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"数据排序检测: {result.ActualValue}";
         }
@@ -1417,11 +1417,11 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
         try
         {
             WorkbookPart workbookPart = document.WorkbookPart!;
-            bool freezePanesFound = CheckFreezePanesInWorkbook(workbookPart);
+            (bool Found, string Details) = CheckFreezePanesInWorkbook(workbookPart, parameters);
 
             result.ExpectedValue = "冻结窗格";
-            result.ActualValue = freezePanesFound ? "找到冻结窗格" : "未找到冻结窗格";
-            result.IsCorrect = freezePanesFound;
+            result.ActualValue = Found ? $"找到冻结窗格: {Details}" : "未找到冻结窗格";
+            result.IsCorrect = Found;
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
             result.Details = $"冻结窗格检测: {result.ActualValue}";
         }
@@ -3119,62 +3119,142 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的字体
     /// </summary>
-    private bool CheckFontInWorkbook(WorkbookPart workbookPart, string expectedFont)
+    private (bool Found, string Details) CheckFontInWorkbook(WorkbookPart workbookPart, string expectedFont, Dictionary<string, string> parameters)
     {
         try
         {
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+            List<string> fontDetails = [];
+
             WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Fonts?.HasChildren == true)
             {
                 foreach (Font font in stylesPart.Stylesheet.Fonts.Elements<Font>())
                 {
                     string? fontName = font.FontName?.Val?.Value;
-                    if (fontName != null && TextEquals(fontName, expectedFont))
+                    if (fontName != null)
                     {
-                        return true;
+                        if (string.IsNullOrEmpty(expectedFont) || TextEquals(fontName, expectedFont))
+                        {
+                            List<string> fontInfo = [$"字体: {fontName}"];
+
+                            // 检查字体大小
+                            if (font.FontSize?.Val?.Value != null)
+                            {
+                                fontInfo.Add($"大小: {font.FontSize.Val.Value}pt");
+                            }
+
+                            // 检查字体颜色
+                            if (font.Color?.Rgb?.Value != null)
+                            {
+                                fontInfo.Add($"颜色: #{font.Color.Rgb.Value}");
+                            }
+
+                            // 检查字体样式
+                            if (font.Bold?.Val?.Value == true)
+                            {
+                                fontInfo.Add("粗体");
+                            }
+                            if (font.Italic?.Val?.Value == true)
+                            {
+                                fontInfo.Add("斜体");
+                            }
+                            if (font.Underline != null)
+                            {
+                                fontInfo.Add("下划线");
+                            }
+
+                            fontDetails.Add(string.Join(", ", fontInfo));
+                        }
                     }
                 }
             }
-            return false;
+
+            if (fontDetails.Count > 0)
+            {
+                return (true, string.Join("; ", fontDetails));
+            }
+
+            return (false, "未找到匹配的字体");
         }
         catch
         {
-            return false;
+            return (false, "检测字体时发生错误");
         }
     }
 
     /// <summary>
     /// 检查工作簿中的字体样式
     /// </summary>
-    private bool CheckFontStyleInWorkbook(WorkbookPart workbookPart, string expectedStyle)
+    private (bool Found, string Details) CheckFontStyleInWorkbook(WorkbookPart workbookPart, string expectedStyle, Dictionary<string, string> parameters)
     {
         try
         {
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+            List<string> styleDetails = [];
+
             WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.Fonts?.HasChildren == true)
             {
                 foreach (Font font in stylesPart.Stylesheet.Fonts.Elements<Font>())
                 {
-                    bool hasStyle = expectedStyle.ToLowerInvariant() switch
-                    {
-                        "bold" or "粗体" => font.Bold != null,
-                        "italic" or "斜体" => font.Italic != null,
-                        "underline" or "下划线" => font.Underline != null,
-                        "strikethrough" or "删除线" => font.Strike != null,
-                        _ => false
-                    };
+                    List<string> foundStyles = [];
 
-                    if (hasStyle)
+                    if (font.Bold != null)
+                        foundStyles.Add("粗体");
+                    if (font.Italic != null)
+                        foundStyles.Add("斜体");
+                    if (font.Underline != null)
+                        foundStyles.Add("下划线");
+                    if (font.Strike != null)
+                        foundStyles.Add("删除线");
+
+                    if (foundStyles.Count > 0)
                     {
-                        return true;
+                        bool matches = false;
+                        if (string.IsNullOrEmpty(expectedStyle))
+                        {
+                            matches = true;
+                        }
+                        else
+                        {
+                            string lowerExpected = expectedStyle.ToLowerInvariant();
+                            foreach (string style in foundStyles)
+                            {
+                                if (lowerExpected.Contains("bold") && style == "粗体" ||
+                                    lowerExpected.Contains("粗体") && style == "粗体" ||
+                                    lowerExpected.Contains("italic") && style == "斜体" ||
+                                    lowerExpected.Contains("斜体") && style == "斜体" ||
+                                    lowerExpected.Contains("underline") && style == "下划线" ||
+                                    lowerExpected.Contains("下划线") && style == "下划线" ||
+                                    lowerExpected.Contains("strikethrough") && style == "删除线" ||
+                                    lowerExpected.Contains("删除线") && style == "删除线")
+                                {
+                                    matches = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (matches)
+                        {
+                            string fontName = font.FontName?.Val?.Value ?? "未知字体";
+                            styleDetails.Add($"{fontName}: {string.Join(", ", foundStyles)}");
+                        }
                     }
                 }
             }
-            return false;
+
+            if (styleDetails.Count > 0)
+            {
+                return (true, string.Join("; ", styleDetails));
+            }
+
+            return (false, "未找到匹配的字体样式");
         }
         catch
         {
-            return false;
+            return (false, "检测字体样式时发生错误");
         }
     }
 
@@ -3235,31 +3315,85 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的单元格对齐
     /// </summary>
-    private bool CheckCellAlignmentInWorkbook(WorkbookPart workbookPart, string expectedAlignment)
+    private (bool Found, string Details) CheckCellAlignmentInWorkbook(WorkbookPart workbookPart, string expectedAlignment, Dictionary<string, string> parameters)
     {
         try
         {
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+            List<string> alignmentDetails = [];
+
             WorkbookStylesPart? stylesPart = workbookPart.WorkbookStylesPart;
             if (stylesPart?.Stylesheet?.CellFormats?.HasChildren == true)
             {
                 foreach (CellFormat cellFormat in stylesPart.Stylesheet.CellFormats.Elements<CellFormat>())
                 {
                     Alignment? alignment = cellFormat.Alignment;
-                    if (alignment?.Horizontal?.Value != null)
+                    if (alignment != null)
                     {
-                        string alignmentValue = alignment.Horizontal.Value.ToString();
-                        if (TextEquals(alignmentValue, expectedAlignment))
+                        List<string> alignmentInfo = [];
+
+                        // 检查水平对齐
+                        if (alignment.Horizontal?.Value != null)
                         {
-                            return true;
+                            string horizontalValue = alignment.Horizontal.Value.ToString();
+                            string horizontalText = horizontalValue switch
+                            {
+                                "Left" => "左对齐",
+                                "Center" => "居中对齐",
+                                "Right" => "右对齐",
+                                "Justify" => "两端对齐",
+                                _ => horizontalValue
+                            };
+                            alignmentInfo.Add($"水平: {horizontalText}");
+                        }
+
+                        // 检查垂直对齐
+                        if (alignment.Vertical?.Value != null)
+                        {
+                            string verticalValue = alignment.Vertical.Value.ToString();
+                            string verticalText = verticalValue switch
+                            {
+                                "Top" => "顶端对齐",
+                                "Center" => "居中对齐",
+                                "Bottom" => "底端对齐",
+                                _ => verticalValue
+                            };
+                            alignmentInfo.Add($"垂直: {verticalText}");
+                        }
+
+                        if (alignmentInfo.Count > 0)
+                        {
+                            bool matches = false;
+                            if (string.IsNullOrEmpty(expectedAlignment))
+                            {
+                                matches = true;
+                            }
+                            else
+                            {
+                                string alignmentText = string.Join(", ", alignmentInfo);
+                                matches = alignmentText.Contains(expectedAlignment, StringComparison.OrdinalIgnoreCase) ||
+                                         TextEquals(alignment.Horizontal?.Value.ToString() ?? "", expectedAlignment);
+                            }
+
+                            if (matches)
+                            {
+                                alignmentDetails.Add(string.Join(", ", alignmentInfo));
+                            }
                         }
                     }
                 }
             }
-            return false;
+
+            if (alignmentDetails.Count > 0)
+            {
+                return (true, string.Join("; ", alignmentDetails.Distinct()));
+            }
+
+            return (false, "未找到匹配的对齐方式");
         }
         catch
         {
-            return false;
+            return (false, "检测对齐方式时发生错误");
         }
     }
 
@@ -3472,7 +3606,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的数据排序
     /// </summary>
-    private bool CheckDataSortInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckDataSortInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
@@ -3482,7 +3616,7 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 SortState? sortState = worksheetPart.Worksheet.Elements<SortState>().FirstOrDefault();
                 if (sortState != null)
                 {
-                    return true;
+                    return (true, "找到排序状态");
                 }
 
                 // 检查自动筛选（通常与排序相关）
@@ -3496,23 +3630,23 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                         // 检查是否有排序相关的筛选条件
                         if (filterColumn.HasChildren)
                         {
-                            return true;
+                            return (true, "找到筛选排序条件");
                         }
                     }
-                    return true; // 有自动筛选就认为可能有排序
+                    return (true, "找到自动筛选（可能有排序）"); // 有自动筛选就认为可能有排序
                 }
 
                 // 检查数据是否呈现排序特征
                 if (CheckDataSortingPattern(worksheetPart))
                 {
-                    return true;
+                    return (true, "检测到数据排序模式");
                 }
             }
-            return false;
+            return (false, "未找到数据排序");
         }
         catch
         {
-            return false;
+            return (false, "检测数据排序时发生错误");
         }
     }
 
@@ -3630,30 +3764,52 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
     /// <summary>
     /// 检查工作簿中的冻结窗格
     /// </summary>
-    private bool CheckFreezePanesInWorkbook(WorkbookPart workbookPart)
+    private (bool Found, string Details) CheckFreezePanesInWorkbook(WorkbookPart workbookPart, Dictionary<string, string> parameters)
     {
         try
         {
-            foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
+            int worksheetNumber = TryGetIntParameter(parameters, "WorksheetNumber", out int wsNum) ? wsNum : -1;
+            List<string> freezeDetails = [];
+
+            List<WorksheetPart> worksheets = workbookPart.WorksheetParts.ToList();
+            if (worksheets.Count == 0)
             {
-                SheetViews? sheetViews = worksheetPart.Worksheet.GetFirstChild<SheetViews>();
-                if (sheetViews?.HasChildren == true)
+                return (false, "未找到工作表");
+            }
+
+            // 如果指定了具体的工作表编号且不是-1
+            if (worksheetNumber != -1)
+            {
+                if (worksheetNumber < 1 || worksheetNumber > worksheets.Count)
                 {
-                    foreach (SheetView sheetView in sheetViews.Elements<SheetView>())
-                    {
-                        Pane? pane = sheetView.Pane;
-                        if (pane?.State?.Value == DocumentFormat.OpenXml.Spreadsheet.PaneStateValues.Frozen)
-                        {
-                            return true;
-                        }
-                    }
+                    return (false, $"工作表编号 {worksheetNumber} 超出范围");
+                }
+
+                var worksheetPart = worksheets[worksheetNumber - 1];
+                string freezeInfo = GetFreezePanesDetails(worksheetPart);
+                return (!string.IsNullOrEmpty(freezeInfo), freezeInfo);
+            }
+
+            // -1 模式：任意匹配，检查所有工作表
+            foreach (var worksheetPart in worksheets)
+            {
+                string freezeInfo = GetFreezePanesDetails(worksheetPart);
+                if (!string.IsNullOrEmpty(freezeInfo))
+                {
+                    freezeDetails.Add(freezeInfo);
                 }
             }
-            return false;
+
+            if (freezeDetails.Count > 0)
+            {
+                return (true, string.Join("; ", freezeDetails));
+            }
+
+            return (false, "未找到冻结窗格");
         }
         catch
         {
-            return false;
+            return (false, "检测冻结窗格时发生错误");
         }
     }
 
@@ -7701,6 +7857,54 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             }
 
             return headerFooterDetails.Count > 0 ? string.Join("; ", headerFooterDetails) : string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 获取冻结窗格详细信息
+    /// </summary>
+    private string GetFreezePanesDetails(WorksheetPart worksheetPart)
+    {
+        try
+        {
+            SheetViews? sheetViews = worksheetPart.Worksheet.GetFirstChild<SheetViews>();
+            if (sheetViews?.HasChildren == true)
+            {
+                foreach (SheetView sheetView in sheetViews.Elements<SheetView>())
+                {
+                    Pane? pane = sheetView.Pane;
+                    if (pane?.State?.Value == DocumentFormat.OpenXml.Spreadsheet.PaneStateValues.Frozen)
+                    {
+                        List<string> freezeInfo = ["冻结窗格"];
+
+                        // 检查冻结位置
+                        if (pane.TopLeftCell?.Value != null)
+                        {
+                            freezeInfo.Add($"冻结位置: {pane.TopLeftCell.Value}");
+                        }
+
+                        // 检查水平分割位置
+                        if (pane.HorizontalSplit?.Value != null)
+                        {
+                            freezeInfo.Add($"水平分割: {pane.HorizontalSplit.Value}行");
+                        }
+
+                        // 检查垂直分割位置
+                        if (pane.VerticalSplit?.Value != null)
+                        {
+                            freezeInfo.Add($"垂直分割: {pane.VerticalSplit.Value}列");
+                        }
+
+                        return string.Join(", ", freezeInfo);
+                    }
+                }
+            }
+
+            return string.Empty;
         }
         catch
         {
