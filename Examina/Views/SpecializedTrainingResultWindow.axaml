@@ -59,12 +59,12 @@
         <!-- 主要内容区域 -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <!-- 答题概览 -->
+                <!-- 成绩概览 -->
                 <Border Classes="section">
                     <StackPanel>
-                        <TextBlock Classes="header" Text="答题概览" />
+                        <TextBlock Classes="header" Text="成绩概览" />
 
-                        <!-- 状态卡片 -->
+                        <!-- 分数卡片 -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -73,35 +73,36 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- 总题数 -->
+                            <!-- 总分 -->
                             <Border Grid.Column="0" Classes="status-card">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding TotalQuestions}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="总题数" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="12" Text="{Binding TotalScore, StringFormat={}总分: {0:F1}}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="得分" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 得分率 -->
+                            <Border Grid.Column="1" Classes="status-card">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="得分率" />
                                 </StackPanel>
                             </Border>
 
                             <!-- 正确率 -->
-                            <Border Grid.Column="1" Classes="status-card">
+                            <Border Grid.Column="2" Classes="status-card">
                                 <StackPanel HorizontalAlignment="Center">
                                     <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding CorrectRate, StringFormat={}{0:F1}%}" />
                                     <TextBlock HorizontalAlignment="Center" FontSize="10" Text="正确率" />
                                 </StackPanel>
                             </Border>
 
-                            <!-- 正确题数 -->
-                            <Border Grid.Column="2" Classes="status-card">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="Green" Text="{Binding CorrectQuestions}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="正确题数" />
-                                </StackPanel>
-                            </Border>
-
-                            <!-- 错误题数 -->
+                            <!-- 成绩等级 -->
                             <Border Grid.Column="3" Classes="status-card">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="Red" Text="{Binding IncorrectQuestions}" />
-                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="错误题数" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding Grade}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="成绩等级" />
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -109,6 +110,7 @@
                         <!-- 其他信息 -->
                         <Grid Margin="0,15,0,0">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -125,8 +127,13 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Classes="content" Text="成绩等级:" />
-                                <TextBlock Classes="content" FontWeight="SemiBold" Text="{Binding Grade}" />
+                                <TextBlock Classes="content" Text="正确题目:" />
+                                <TextBlock Classes="content" Foreground="Green" Text="{Binding CorrectQuestions}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Classes="content" Text="错误题目:" />
+                                <TextBlock Classes="content" Foreground="Red" Text="{Binding IncorrectQuestions}" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>

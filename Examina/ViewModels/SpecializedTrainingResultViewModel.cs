@@ -11,6 +11,9 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
 {
     private string _title = string.Empty;
     private string _trainingName = string.Empty;
+    private double _totalScore = 0;
+    private double _achievedScore = 0;
+    private double _scoreRate = 0;
     private string _grade = string.Empty;
     private DateTime _completionTime = DateTime.Now;
     private TimeSpan _duration = TimeSpan.Zero;
@@ -34,6 +37,33 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
     {
         get => _trainingName;
         set => this.RaiseAndSetIfChanged(ref _trainingName, value);
+    }
+
+    /// <summary>
+    /// 总分
+    /// </summary>
+    public double TotalScore
+    {
+        get => _totalScore;
+        set => this.RaiseAndSetIfChanged(ref _totalScore, value);
+    }
+
+    /// <summary>
+    /// 得分
+    /// </summary>
+    public double AchievedScore
+    {
+        get => _achievedScore;
+        set => this.RaiseAndSetIfChanged(ref _achievedScore, value);
+    }
+
+    /// <summary>
+    /// 得分率（百分比）
+    /// </summary>
+    public double ScoreRate
+    {
+        get => _scoreRate;
+        set => this.RaiseAndSetIfChanged(ref _scoreRate, value);
     }
 
     /// <summary>
@@ -124,6 +154,14 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
         TrainingName = trainingName;
         Title = $"专项训练结果 - {trainingName}";
 
+        // 计算总分和得分（与综合实训保持一致）
+        double totalScore = scoringResults.Values.Sum(r => r.TotalScore);
+        double achievedScore = scoringResults.Values.Sum(r => r.AchievedScore);
+
+        TotalScore = totalScore;
+        AchievedScore = achievedScore;
+        ScoreRate = totalScore > 0 ? achievedScore / totalScore * 100 : 0;
+
         // 计算正确率
         int totalQuestions = scoringResults.Values.Sum(r => r.KnowledgePointResults.Count);
         int correctQuestions = scoringResults.Values.Sum(r => r.KnowledgePointResults.Count(kp => kp.IsCorrect));
@@ -136,8 +174,8 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
         CompletionTime = DateTime.Now;
         Duration = CompletionTime - startTime;
 
-        // 根据正确率计算等级（不显示分数，只显示等级）
-        Grade = CalculateGrade(CorrectRate);
+        // 根据得分率计算等级（与综合实训保持一致）
+        Grade = CalculateGrade(ScoreRate);
 
         // 清空现有数据
         ModuleResults.Clear();
@@ -186,11 +224,11 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// 计算成绩等级（基于正确率）
+    /// 计算成绩等级（基于得分率）
     /// </summary>
-    private static string CalculateGrade(double correctRate)
+    private static string CalculateGrade(double scoreRate)
     {
-        return correctRate switch
+        return scoreRate switch
         {
             >= 90 => "优秀",
             >= 80 => "良好",
