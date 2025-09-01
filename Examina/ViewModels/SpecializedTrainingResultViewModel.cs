@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using BenchSuite.Models;
 using Examina.Models.BenchSuite;
 using Examina.Models.Enums;
 using Examina.ViewModels.Base;
@@ -122,7 +124,7 @@ public class SpecializedTrainingResultViewModel : ViewModelBase
     /// <param name="trainingName">训练名称</param>
     /// <param name="scoringResults">BenchSuite评分结果字典（按模块类型分组）</param>
     /// <param name="startTime">训练开始时间</param>
-    public void SetTrainingResult(string trainingName, Dictionary<ModuleType, ScoringResult> scoringResults, DateTime startTime)
+    public void SetTrainingResult(string trainingName, Dictionary<BenchSuite.Models.ModuleType, BenchSuite.Models.ScoringResult> scoringResults, DateTime startTime)
     {
         TrainingName = trainingName;
         Title = $"专项训练结果 - {trainingName}";
@@ -147,10 +149,10 @@ public class SpecializedTrainingResultViewModel : ViewModelBase
         QuestionResults.Clear();
 
         // 处理模块结果
-        foreach (KeyValuePair<ModuleType, ScoringResult> kvp in scoringResults)
+        foreach (KeyValuePair<BenchSuite.Models.ModuleType, BenchSuite.Models.ScoringResult> kvp in scoringResults)
         {
-            ModuleType moduleType = kvp.Key;
-            ScoringResult result = kvp.Value;
+            BenchSuite.Models.ModuleType moduleType = kvp.Key;
+            BenchSuite.Models.ScoringResult result = kvp.Value;
 
             SpecializedModuleResultItem moduleItem = new()
             {
@@ -167,7 +169,7 @@ public class SpecializedTrainingResultViewModel : ViewModelBase
             ModuleResults.Add(moduleItem);
 
             // 处理题目结果
-            foreach (QuestionResult question in result.Questions)
+            foreach (BenchSuite.Models.QuestionResult question in result.Questions)
             {
                 SpecializedQuestionResultItem questionItem = new()
                 {
@@ -202,14 +204,14 @@ public class SpecializedTrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 获取模块显示名称
     /// </summary>
-    private static string GetModuleDisplayName(ModuleType moduleType)
+    private static string GetModuleDisplayName(BenchSuite.Models.ModuleType moduleType)
     {
         return moduleType switch
         {
-            ModuleType.CSharp => "C#",
-            ModuleType.Database => "数据库",
-            ModuleType.Web => "Web开发",
-            ModuleType.Algorithm => "算法",
+            BenchSuite.Models.ModuleType.CSharp => "C#",
+            BenchSuite.Models.ModuleType.Database => "数据库",
+            BenchSuite.Models.ModuleType.Web => "Web开发",
+            BenchSuite.Models.ModuleType.Algorithm => "算法",
             _ => moduleType.ToString()
         };
     }
@@ -221,7 +223,7 @@ public class SpecializedTrainingResultViewModel : ViewModelBase
 public class SpecializedModuleResultItem : ViewModelBase
 {
     private string _moduleName = string.Empty;
-    private ModuleType _moduleType;
+    private BenchSuite.Models.ModuleType _moduleType;
     private int _totalQuestions;
     private int _correctQuestions;
     private int _incorrectQuestions;
@@ -235,7 +237,7 @@ public class SpecializedModuleResultItem : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _moduleName, value);
     }
 
-    public ModuleType ModuleType
+    public BenchSuite.Models.ModuleType ModuleType
     {
         get => _moduleType;
         set => this.RaiseAndSetIfChanged(ref _moduleType, value);
