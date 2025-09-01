@@ -144,9 +144,6 @@
         <DataTemplate DataType="{x:Type vm:OverviewViewModel}">
             <views:OverviewView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:ExamViewModel}">
-            <views:ExamView />
-        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PracticeViewModel}">
             <views:PracticeView />
         </DataTemplate>
@@ -158,9 +155,6 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
             <views:ProfileView />
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:ExamListViewModel}">
-            <views:ExamListView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:UnifiedExamViewModel}">
             <views:UnifiedExamView />
