@@ -362,56 +362,56 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         return true;
     }
 
-        /// <summary>
-        /// 从多个候选键中读取字符串参数，返回第一个命中的键
-        /// </summary>
-        private static bool TryGetAnyParameter(Dictionary<string, string> parameters, out string value, params string[] keys)
+    /// <summary>
+    /// 从多个候选键中读取字符串参数，返回第一个命中的键
+    /// </summary>
+    private static bool TryGetAnyParameter(Dictionary<string, string> parameters, out string value, params string[] keys)
+    {
+        foreach (string key in keys)
         {
-            foreach (string key in keys)
+            if (parameters.TryGetValue(key, out string? v) && !string.IsNullOrWhiteSpace(v))
             {
-                if (parameters.TryGetValue(key, out string? v) && !string.IsNullOrWhiteSpace(v))
-                {
-                    value = v;
-                    return true;
-                }
+                value = v;
+                return true;
             }
-            value = string.Empty;
-            return false;
         }
+        value = string.Empty;
+        return false;
+    }
 
-        /// <summary>
-        /// 从多个候选键中读取整型参数，返回第一个命中的键
-        /// </summary>
-        private static bool TryGetAnyIntParameter(Dictionary<string, string> parameters, out int value, params string[] keys)
+    /// <summary>
+    /// 从多个候选键中读取整型参数，返回第一个命中的键
+    /// </summary>
+    private static bool TryGetAnyIntParameter(Dictionary<string, string> parameters, out int value, params string[] keys)
+    {
+        foreach (string key in keys)
         {
-            foreach (string key in keys)
+            if (parameters.TryGetValue(key, out string? v) && int.TryParse(v, out int parsed))
             {
-                if (parameters.TryGetValue(key, out string? v) && int.TryParse(v, out int parsed))
-                {
-                    value = parsed;
-                    return true;
-                }
+                value = parsed;
+                return true;
             }
-            value = 0;
-            return false;
         }
+        value = 0;
+        return false;
+    }
 
-        /// <summary>
-        /// 从多个候选键中读取浮点参数，返回第一个命中的键
-        /// </summary>
-        private static bool TryGetAnyFloatParameter(Dictionary<string, string> parameters, out float value, params string[] keys)
+    /// <summary>
+    /// 从多个候选键中读取浮点参数，返回第一个命中的键
+    /// </summary>
+    private static bool TryGetAnyFloatParameter(Dictionary<string, string> parameters, out float value, params string[] keys)
+    {
+        foreach (string key in keys)
         {
-            foreach (string key in keys)
+            if (parameters.TryGetValue(key, out string? v) && float.TryParse(v, out float parsed))
             {
-                if (parameters.TryGetValue(key, out string? v) && float.TryParse(v, out float parsed))
-                {
-                    value = parsed;
-                    return true;
-                }
+                value = parsed;
+                return true;
             }
-            value = 0f;
-            return false;
         }
+        value = 0f;
+        return false;
+    }
 
 
     /// <summary>
@@ -542,6 +542,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 case "SetWordArtStyle":
                 case "SetWordArtEffect":
                     result = DetectWordArtStyle(document, parameters);
+                    break;
+                case "DetectTextInputBox":
+                case "CheckTextInputBox":
+                case "InsertTextBox":
+                    result = DetectTextInputBox(document, parameters);
                     break;
                 default:
                     result.Details = $"不支持的知识点类型: {knowledgePointType}";
@@ -2707,6 +2712,69 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     }
 
     /// <summary>
+    /// 检测文本输入框
+    /// </summary>
+    private KnowledgePointResult DetectTextInputBox(PresentationDocument document, Dictionary<string, string> parameters)
+    {
+        KnowledgePointResult result = new()
+        {
+            KnowledgePointType = "DetectTextInputBox",
+            Parameters = parameters
+        };
+
+        try
+        {
+            // 获取幻灯片编号参数（可选）
+            int slideNumber = 0;
+            if (TryGetIntParameter(parameters, "SlideNumber", out int specifiedSlide))
+            {
+                slideNumber = specifiedSlide;
+            }
+
+            PresentationPart presentationPart = document.PresentationPart!;
+            List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.Elements<SlideId>().ToList();
+
+            if (slideIds == null || slideIds.Count == 0)
+            {
+                SetKnowledgePointFailure(result, "演示文稿中没有幻灯片");
+                return result;
+            }
+
+            // 如果指定了幻灯片编号，检查范围
+            if (slideNumber > 0 && (slideNumber < 1 || slideNumber > slideIds.Count))
+            {
+                SetKnowledgePointFailure(result, $"幻灯片索引超出范围: {slideNumber}");
+                return result;
+            }
+
+            (bool found, int count, string details) = GetTextInputBoxInfo(presentationPart, slideIds, slideNumber);
+
+            // 检查期望的文本输入框数量
+            bool hasExpectedCount = true;
+            string expectedCountStr = "任意数量";
+            if (TryGetIntParameter(parameters, "ExpectedCount", out int expectedCount))
+            {
+                hasExpectedCount = count >= expectedCount;
+                expectedCountStr = $"至少{expectedCount}个";
+            }
+
+            result.ExpectedValue = $"文本输入框({expectedCountStr})";
+            result.ActualValue = found ? $"找到{count}个文本输入框" : "未找到文本输入框";
+            result.IsCorrect = found && hasExpectedCount;
+            result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
+            result.Details = slideNumber > 0 ?
+                $"幻灯片 {slideNumber} 文本输入框检测: {details}" :
+                $"全部幻灯片文本输入框检测: {details}";
+        }
+        catch (Exception ex)
+        {
+            SetKnowledgePointFailure(result, $"检测文本输入框失败: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 检查幻灯片中的文本样式
     /// </summary>
     private bool CheckTextStyleInSlide(SlidePart slidePart, string expectedStyle)
@@ -2852,9 +2920,11 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             string lowerElementType = elementType.ToLowerInvariant();
 
             // 检查形状是否有文本内容（文本框类型）
-            if (lowerElementType.Contains("textbox") || lowerElementType.Contains("text"))
+            if (lowerElementType.Contains("textbox") || lowerElementType.Contains("text") ||
+                lowerElementType.Contains("input") || lowerElementType.Contains("文本框") ||
+                lowerElementType.Contains("输入框"))
             {
-                return shape.TextBody != null && shape.TextBody.HasChildren;
+                return IsTextInputBox(shape);
             }
 
             // 检查形状类型
@@ -2863,10 +2933,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 return true; // 所有形状都匹配
             }
 
+            // 检查占位符类型
+            if (lowerElementType.Contains("placeholder") || lowerElementType.Contains("占位符"))
+            {
+                return shape.NonVisualShapeProperties?.ApplicationNonVisualDrawingProperties?.PlaceholderShape != null;
+            }
+
             // 检查图片类型
             if (lowerElementType.Contains("picture") || lowerElementType.Contains("image"))
             {
                 return shape.ShapeProperties?.Elements<DocumentFormat.OpenXml.Drawing.BlipFill>().Any() == true;
+            }
+
+            // 检查表格类型（注意：表格通常在GraphicFrame中，这里检查的是形状中的表格引用）
+            if (lowerElementType.Contains("table") || lowerElementType.Contains("表格"))
+            {
+                // 形状本身不是表格，但可能包含表格引用
+                return false;
             }
 
             // 默认匹配所有形状
@@ -3106,7 +3189,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            List<string> urlList = new List<string>();
+            List<string> urlList = [];
 
             // 1) 解析 a:hlinkClick / a:hlinkMouseOver（RunProperties 或 NonVisualDrawingProperties 等位置）
             IEnumerable<DocumentFormat.OpenXml.Drawing.HyperlinkOnClick> clickLinks = element.Descendants<DocumentFormat.OpenXml.Drawing.HyperlinkOnClick>();
@@ -3348,22 +3431,6 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
             }
 
             return (false, string.Empty);
-        }
-        catch
-        {
-            return (false, string.Empty);
-        }
-    }
-
-    /// <summary>
-    /// 获取指定形状的超链接信息
-    /// </summary>
-    private (bool Found, string Url) GetShapeHyperlinkInfo(DocumentFormat.OpenXml.Presentation.Shape shape, SlidePart slidePart)
-    {
-        try
-        {
-            // 统一改为 Element 解析（保持方法以兼容旧调用）
-            return GetElementHyperlinkInfo(shape, slidePart);
         }
         catch
         {
@@ -4224,6 +4291,271 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         catch
         {
             return "未知背景样式";
+        }
+    }
+
+    /// <summary>
+    /// 获取文本输入框信息
+    /// </summary>
+    private static (bool Found, int Count, string Details) GetTextInputBoxInfo(PresentationPart presentationPart, List<SlideId> slideIds, int slideNumber)
+    {
+        try
+        {
+            int totalCount = 0;
+            List<string> detailsList = [];
+
+            // 如果指定了幻灯片编号，只检查该幻灯片
+            if (slideNumber > 0)
+            {
+                SlideId slideId = slideIds[slideNumber - 1];
+                SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+                (int count, List<string> types) = CountTextInputBoxesInSlide(slidePart);
+                totalCount = count;
+                if (count > 0)
+                {
+                    detailsList.Add($"幻灯片{slideNumber}: {count}个文本输入框 ({string.Join(", ", types)})");
+                }
+            }
+            else
+            {
+                // 检查所有幻灯片
+                for (int i = 0; i < slideIds.Count; i++)
+                {
+                    SlideId slideId = slideIds[i];
+                    SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId!);
+                    (int count, List<string> types) = CountTextInputBoxesInSlide(slidePart);
+                    totalCount += count;
+                    if (count > 0)
+                    {
+                        detailsList.Add($"幻灯片{i + 1}: {count}个文本输入框 ({string.Join(", ", types)})");
+                    }
+                }
+            }
+
+            string details = totalCount > 0 ? string.Join("; ", detailsList) : "未找到文本输入框";
+            return (totalCount > 0, totalCount, details);
+        }
+        catch (Exception ex)
+        {
+            return (false, 0, $"检测失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 统计幻灯片中的文本输入框数量和类型
+    /// </summary>
+    private static (int Count, List<string> Types) CountTextInputBoxesInSlide(SlidePart slidePart)
+    {
+        try
+        {
+            int count = 0;
+            List<string> types = [];
+
+            // 1. 检查普通形状中的文本框
+            IEnumerable<DocumentFormat.OpenXml.Presentation.Shape>? shapes = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.Shape>();
+            if (shapes != null)
+            {
+                foreach (DocumentFormat.OpenXml.Presentation.Shape shape in shapes)
+                {
+                    if (IsTextInputBox(shape))
+                    {
+                        count++;
+                        string type = GetTextInputBoxType(shape);
+                        if (!types.Contains(type))
+                        {
+                            types.Add(type);
+                        }
+                    }
+                }
+            }
+
+            // 2. 检查表格中的文本输入区域
+            IEnumerable<DocumentFormat.OpenXml.Presentation.GraphicFrame>? graphicFrames = slidePart.Slide.CommonSlideData?.ShapeTree?.Elements<DocumentFormat.OpenXml.Presentation.GraphicFrame>();
+            if (graphicFrames != null)
+            {
+                foreach (DocumentFormat.OpenXml.Presentation.GraphicFrame frame in graphicFrames)
+                {
+                    int tableCellCount = CountTableCellTextInputs(frame);
+                    if (tableCellCount > 0)
+                    {
+                        count += tableCellCount;
+                        if (!types.Contains("表格单元格"))
+                        {
+                            types.Add("表格单元格");
+                        }
+                    }
+
+                    // 检查SmartArt中的文本输入
+                    int smartArtCount = CountSmartArtTextInputs(frame);
+                    if (smartArtCount > 0)
+                    {
+                        count += smartArtCount;
+                        if (!types.Contains("SmartArt文本"))
+                        {
+                            types.Add("SmartArt文本");
+                        }
+                    }
+                }
+            }
+
+            return (count, types);
+        }
+        catch
+        {
+            return (0, []);
+        }
+    }
+
+    /// <summary>
+    /// 判断形状是否为文本输入框
+    /// </summary>
+    private static bool IsTextInputBox(DocumentFormat.OpenXml.Presentation.Shape shape)
+    {
+        try
+        {
+            // 1. 检查是否有文本主体
+            if (shape.TextBody == null || !shape.TextBody.HasChildren)
+            {
+                return false;
+            }
+
+            // 2. 检查占位符类型
+            PlaceholderValues? placeholderType = shape.NonVisualShapeProperties?.ApplicationNonVisualDrawingProperties?.PlaceholderShape?.Type?.Value;
+            if (placeholderType != null)
+            {
+                // 文本相关的占位符类型
+                return placeholderType == PlaceholderValues.Title ||
+                       placeholderType == PlaceholderValues.Body ||
+                       placeholderType == PlaceholderValues.CenteredTitle ||
+                       placeholderType == PlaceholderValues.Object ||
+                       placeholderType == PlaceholderValues.Footer ||
+                       placeholderType == PlaceholderValues.Header;
+            }
+
+            // 3. 检查形状名称
+            string? shapeName = shape.NonVisualShapeProperties?.NonVisualDrawingProperties?.Name?.Value;
+            if (!string.IsNullOrEmpty(shapeName))
+            {
+                string lowerName = shapeName.ToLowerInvariant();
+                if (lowerName.Contains("textbox") || lowerName.Contains("text box") ||
+                    lowerName.Contains("文本框") || lowerName.Contains("标题") ||
+                    lowerName.Contains("内容"))
+                {
+                    return true;
+                }
+            }
+
+            // 4. 检查是否有可编辑的文本内容
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = shape.TextBody.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            return textElements.Any();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取文本输入框的类型
+    /// </summary>
+    private static string GetTextInputBoxType(DocumentFormat.OpenXml.Presentation.Shape shape)
+    {
+        try
+        {
+            // 检查占位符类型
+            PlaceholderValues? placeholderType = shape.NonVisualShapeProperties?.ApplicationNonVisualDrawingProperties?.PlaceholderShape?.Type?.Value;
+            if (placeholderType != null)
+            {
+                if (placeholderType == PlaceholderValues.Title)
+                    return "标题占位符";
+                else if (placeholderType == PlaceholderValues.Body)
+                    return "内容占位符";
+                else if (placeholderType == PlaceholderValues.CenteredTitle)
+                    return "居中标题占位符";
+                else if (placeholderType == PlaceholderValues.Object)
+                    return "对象占位符";
+                else if (placeholderType == PlaceholderValues.Footer)
+                    return "页脚占位符";
+                else if (placeholderType == PlaceholderValues.Header)
+                    return "页眉占位符";
+                else
+                    return "其他占位符";
+            }
+
+            // 检查形状名称
+            string? shapeName = shape.NonVisualShapeProperties?.NonVisualDrawingProperties?.Name?.Value;
+            if (!string.IsNullOrEmpty(shapeName))
+            {
+                string lowerName = shapeName.ToLowerInvariant();
+                if (lowerName.Contains("textbox") || lowerName.Contains("text box") || lowerName.Contains("文本框"))
+                {
+                    return "文本框";
+                }
+            }
+
+            return "文本形状";
+        }
+        catch
+        {
+            return "未知类型";
+        }
+    }
+
+    /// <summary>
+    /// 统计表格单元格中的文本输入数量
+    /// </summary>
+    private static int CountTableCellTextInputs(DocumentFormat.OpenXml.Presentation.GraphicFrame frame)
+    {
+        try
+        {
+            // 检查是否包含表格
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Table> tables = frame.Descendants<DocumentFormat.OpenXml.Drawing.Table>();
+            int count = 0;
+
+            foreach (DocumentFormat.OpenXml.Drawing.Table table in tables)
+            {
+                IEnumerable<DocumentFormat.OpenXml.Drawing.TableCell> cells = table.Descendants<DocumentFormat.OpenXml.Drawing.TableCell>();
+                foreach (DocumentFormat.OpenXml.Drawing.TableCell cell in cells)
+                {
+                    // 检查单元格是否有文本内容或可以输入文本
+                    if (cell.TextBody != null && cell.TextBody.HasChildren)
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 统计SmartArt中的文本输入数量
+    /// </summary>
+    private static int CountSmartArtTextInputs(DocumentFormat.OpenXml.Presentation.GraphicFrame frame)
+    {
+        try
+        {
+            // 检查是否包含SmartArt（通过检查图形数据）
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Graphic> graphics = frame.Descendants<DocumentFormat.OpenXml.Drawing.Graphic>();
+            int count = 0;
+
+            foreach (DocumentFormat.OpenXml.Drawing.Graphic graphic in graphics)
+            {
+                // 检查是否有文本内容（SmartArt通常包含文本元素）
+                IEnumerable<DocumentFormat.OpenXml.Drawing.Text> texts = graphic.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+                count += texts.Count();
+            }
+
+            return count;
+        }
+        catch
+        {
+            return 0;
         }
     }
 }

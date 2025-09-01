@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Examina.Views.Pages.SpecializedTrainingListView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Examina.Models.SpecializedTraining" xmlns:vm="using:Examina.ViewModels.Pages" xmlns:converters="using:Examina.Converters" d:DesignHeight="450" d:DesignWidth="800" x:DataType="vm:SpecializedTrainingListViewModel" mc:Ignorable="d">
+﻿<UserControl x:Class="Examina.Views.Pages.SpecializedTrainingListView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="using:Examina.Converters" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Examina.Models.SpecializedTraining" xmlns:vm="using:Examina.ViewModels.Pages" d:DesignHeight="450" d:DesignWidth="800" x:DataType="vm:SpecializedTrainingListViewModel" mc:Ignorable="d">
 
     <UserControl.Resources>
         <converters:DebugMultiValueConverter x:Key="DebugConverter" />
@@ -22,7 +22,7 @@
         <Border Grid.Row="1" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
             <Grid RowDefinitions="Auto,Auto">
                 <!--  第一行：搜索和筛选  -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,10">
+                <Grid Grid.Row="0" Margin="0,0,0,10" ColumnDefinitions="*,Auto,Auto,Auto">
                     <!--  搜索框  -->
                     <TextBox Grid.Column="0" Margin="0,0,10,0" Text="{Binding SearchKeyword}" Watermark="搜索专项训练..." />
 
@@ -47,10 +47,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <RadioButton Content="{Binding DisplayText}"
-                                           IsChecked="{Binding IsSelected}"
-                                           Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).SortCommand}"
-                                           CommandParameter="{Binding Value}" />
+                                <RadioButton Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).SortCommand}" CommandParameter="{Binding Value}" Content="{Binding DisplayText}" IsChecked="{Binding IsSelected}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -91,14 +88,7 @@
                 <ItemsControl IsVisible="{Binding HasTrainings}" ItemsSource="{Binding Trainings}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:StudentSpecializedTrainingDto">
-                            <Border Margin="0,0,0,10" Padding="20" Background="Transparent" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="8">
-                                <Border.Styles>
-                                    <Style Selector="Border:pointerover">
-                                        <Setter Property="Background" Value="{DynamicResource LayerFillColorAltBrush}" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-                                    </Style>
-                                </Border.Styles>
-
+                            <Border Margin="0,0,0,10" Padding="20" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <!--  训练信息  -->
                                     <StackPanel Grid.Column="0" Spacing="8">
@@ -134,9 +124,7 @@
 
                                     <!--  操作按钮  -->
                                     <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-                                        <Button MinWidth="100" Padding="15,8" Classes="accent"
-                                                Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartTrainingCommand}"
-                                                CommandParameter="{Binding}">
+                                        <Button MinWidth="100" Padding="15,8" Classes="accent" Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).StartTrainingCommand}" CommandParameter="{Binding}">
                                             <Button.Content>
                                                 <MultiBinding Converter="{StaticResource ButtonTextConverter}">
                                                     <Binding Path="$parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).HasFullAccess" />
