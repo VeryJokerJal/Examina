@@ -1114,12 +1114,12 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     {
         try
         {
-            // 创建训练结果ViewModel
-            TrainingResultViewModel resultViewModel = new();
+            // 创建综合实训结果ViewModel
+            ComprehensiveTrainingResultViewModel resultViewModel = new();
             resultViewModel.SetTrainingResult(trainingName, scoringResult, _trainingStartTime);
 
-            // 创建训练结果窗口
-            TrainingResultWindow resultWindow = new()
+            // 创建综合实训结果窗口
+            ComprehensiveTrainingResultWindow resultWindow = new()
             {
                 DataContext = resultViewModel
             };

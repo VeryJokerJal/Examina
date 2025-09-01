@@ -1,0 +1,255 @@
+﻿﻿<Window x:Class="Examina.Views.ComprehensiveTrainingResultWindow" 
+        xmlns="https://github.com/avaloniaui" 
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:vm="using:Examina.ViewModels" 
+        Title="{Binding Title}" 
+        Width="1000" 
+        Height="800" 
+        d:DesignHeight="800" 
+        d:DesignWidth="1000" 
+        x:DataType="vm:ComprehensiveTrainingResultViewModel" 
+        Icon="/Assets/icon.ico" 
+        WindowStartupLocation="CenterScreen" 
+        mc:Ignorable="d">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.header">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style Selector="TextBlock.subheader">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+        <Style Selector="TextBlock.content">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,2" />
+        </Style>
+        <Style Selector="Border.section">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Margin" Value="0,0,0,15" />
+        </Style>
+        <Style Selector="Border.score-card">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="15" />
+            <Setter Property="Margin" Value="5" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  标题区域  -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Classes="header" FontSize="24" Text="{Binding Title}" />
+            <TextBlock FontSize="16" Foreground="{DynamicResource TextFillColorSecondary}" Text="{Binding TrainingName}" />
+        </StackPanel>
+
+        <!--  主要内容区域  -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!--  成绩概览  -->
+                <Border Classes="section">
+                    <StackPanel>
+                        <TextBlock Classes="header" Text="成绩概览" />
+
+                        <!--  分数卡片  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!--  总分  -->
+                            <Border Grid.Column="0" Classes="score-card">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="12" Text="{Binding TotalScore, StringFormat={}总分: {0:F1}}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="得分" />
+                                </StackPanel>
+                            </Border>
+
+                            <!--  得分率  -->
+                            <Border Grid.Column="1" Classes="score-card">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="得分率" />
+                                </StackPanel>
+                            </Border>
+
+                            <!--  正确率  -->
+                            <Border Grid.Column="2" Classes="score-card">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding CorrectRate, StringFormat={}{0:F1}%}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="正确率" />
+                                </StackPanel>
+                            </Border>
+
+                            <!--  成绩等级  -->
+                            <Border Grid.Column="3" Classes="score-card">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Text="{Binding Grade}" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="10" Text="成绩等级" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!--  其他信息  -->
+                        <Grid Margin="0,15,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Classes="content" Text="完成时间:" />
+                                <TextBlock Classes="content" Text="{Binding CompletionTime, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Classes="content" Text="训练耗时:" />
+                                <TextBlock Classes="content" Text="{Binding Duration, StringFormat={}{0:hh\\:mm\\:ss}}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Classes="content" Text="正确题目:" />
+                                <TextBlock Classes="content" Foreground="Green" Text="{Binding CorrectQuestions}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Classes="content" Text="错误题目:" />
+                                <TextBlock Classes="content" Foreground="Red" Text="{Binding IncorrectQuestions}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!--  模块详情（每个模块一个Expander）  -->
+                <ItemsControl ItemsSource="{Binding ModuleResults}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="section">
+                                <Expander IsExpanded="False">
+                                    <Expander.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!--  模块基本信息  -->
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Classes="subheader" Text="{Binding ModuleName}" />
+                                                <TextBlock Classes="content" IsVisible="{Binding HasError}" Foreground="Red" Text="{Binding ErrorMessage}" />
+
+                                                <!--  AI分析结果（仅C#模块显示）  -->
+                                                <Border Margin="0,8,0,0" Padding="12" Background="{DynamicResource SystemFillColorAttentionBackground}" CornerRadius="6" IsVisible="{Binding HasAIAnalysis}">
+                                                    <StackPanel>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <TextBlock Grid.Column="0" Classes="subheader" Foreground="{DynamicResource SystemFillColorAttention}" Text="🤖 AI逻辑性分析" />
+
+                                                            <TextBlock Grid.Column="1" Margin="8,0" Classes="content" FontWeight="SemiBold" Text="{Binding AILogicalScore, StringFormat={}评分: {0}/100}" />
+
+                                                            <TextBlock Grid.Column="2" Margin="8,0" Classes="content" FontWeight="SemiBold" Text="{Binding AIScoreGrade, StringFormat={}({0})}" />
+                                                        </Grid>
+
+                                                        <!--  AI推理步骤  -->
+                                                        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AIReasoningSteps}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Margin="0,2">
+                                                                        <TextBlock Classes="content" FontWeight="SemiBold" Text="{Binding Explanation}" />
+                                                                        <TextBlock Classes="content" IsVisible="{Binding Output, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding Output}" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!--  处理时间  -->
+                                                        <TextBlock Margin="0,4,0,0" Classes="content" FontSize="11" Foreground="{DynamicResource TextFillColorSecondary}" Text="{Binding AIProcessingTime, StringFormat={}处理耗时: {0}ms}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <!--  得分信息  -->
+                                            <TextBlock Grid.Column="1" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding AchievedScore, StringFormat={}{0:F1}}" />
+
+                                            <TextBlock Grid.Column="2" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding TotalScore, StringFormat={}/ {0:F1}}" />
+
+                                            <TextBlock Grid.Column="3" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding ScoreRate, StringFormat={}({0:F1}%)}" />
+                                        </Grid>
+                                    </Expander.Header>
+
+                                    <Expander.Content>
+                                        <StackPanel Margin="0,10,0,0">
+                                            <!--  模块详细信息  -->
+                                            <TextBlock Classes="content" IsVisible="{Binding Details, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding Details}" TextWrapping="Wrap" />
+
+                                            <!--  该模块的题目列表  -->
+                                            <ItemsControl ItemsSource="{Binding $parent[Window].((vm:ComprehensiveTrainingResultViewModel)DataContext).QuestionResults}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,5" Padding="10" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4" IsVisible="{Binding ModuleName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <!--  状态图标  -->
+                                                                <TextBlock Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center" FontSize="16" Text="{Binding StatusIcon}" />
+
+                                                                <!--  题目信息  -->
+                                                                <StackPanel Grid.Column="1">
+                                                                    <TextBlock Classes="content" FontWeight="SemiBold" Text="{Binding QuestionTitle}" />
+                                                                    <TextBlock Classes="content" IsVisible="{Binding Details, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding Details}" TextWrapping="Wrap" />
+                                                                    <TextBlock Classes="content" IsVisible="{Binding HasError}" Foreground="Red" Text="{Binding ErrorMessage}" />
+                                                                </StackPanel>
+
+                                                                <!--  得分率  -->
+                                                                <TextBlock Grid.Column="2" Margin="8,0" VerticalAlignment="Center" Classes="content" Text="{Binding ScoreRate, StringFormat={}{0:F1}%}" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Expander.Content>
+                                </Expander>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  底部按钮区域  -->
+        <StackPanel Grid.Row="2" Margin="0,20,0,0" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="12">
+            <Button Padding="20,8" Click="CloseButton_Click" Content="确定" />
+        </StackPanel>
+    </Grid>
+</Window>

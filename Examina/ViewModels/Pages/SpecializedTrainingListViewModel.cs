@@ -1143,12 +1143,12 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         try
         {
-            // 创建训练结果ViewModel
-            TrainingResultViewModel resultViewModel = new();
+            // 创建专项训练结果ViewModel
+            SpecializedTrainingResultViewModel resultViewModel = new();
             resultViewModel.SetTrainingResult(trainingName, scoringResults, _trainingStartTime);
 
-            // 创建训练结果窗口
-            TrainingResultWindow resultWindow = new()
+            // 创建专项训练结果窗口
+            SpecializedTrainingResultWindow resultWindow = new()
             {
                 DataContext = resultViewModel
             };
@@ -1159,14 +1159,14 @@ public class SpecializedTrainingListViewModel : ViewModelBase
             // 等待窗口关闭
             await resultWindow.WaitForCloseAsync();
 
-            System.Diagnostics.Debug.WriteLine("训练结果窗口已显示并关闭");
+            System.Diagnostics.Debug.WriteLine("专项训练结果窗口已显示并关闭");
 
             // 窗口关闭后显示主窗口
             CloseTrainingAndShowMainWindow();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"显示训练结果窗口失败: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"显示专项训练结果窗口失败: {ex.Message}");
             // 如果显示结果窗口失败，也要显示主窗口
             CloseTrainingAndShowMainWindow();
         }

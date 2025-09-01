@@ -94,8 +94,12 @@
                                         <!--  训练详情  -->
                                         <StackPanel Orientation="Horizontal" Spacing="20">
                                             <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock FontSize="14" Text="📊" />
-                                                <TextBlock FontSize="14" Text="{Binding TotalScore, StringFormat={}{0} 分}" />
+                                                <TextBlock FontSize="14" Text="📝" />
+                                                <TextBlock FontSize="14" Text="{Binding QuestionCount, StringFormat={}{0} 题}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock FontSize="14" Text="⏱️" />
+                                                <TextBlock FontSize="14" Text="{Binding Duration, StringFormat={}{0} 分钟}" />
                                             </StackPanel>
                                         </StackPanel>
 
