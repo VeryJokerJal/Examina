@@ -4,15 +4,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using BenchSuite.Models;
 using Examina.Models.BenchSuite;
-using Examina.Models.Enums;
-using Examina.ViewModels.Base;
+using ReactiveUI;
 
 namespace Examina.ViewModels;
 
 /// <summary>
 /// 专项训练结果视图模型（无分数版本）
 /// </summary>
-public class SpecializedTrainingResultViewModel : ViewModelBase
+public class SpecializedTrainingResultViewModel : ReactiveObject
 {
     private string _title = string.Empty;
     private string _trainingName = string.Empty;
@@ -220,7 +219,7 @@ public class SpecializedTrainingResultViewModel : ViewModelBase
 /// <summary>
 /// 专项训练模块结果项
 /// </summary>
-public class SpecializedModuleResultItem : ViewModelBase
+public class SpecializedModuleResultItem : ReactiveObject
 {
     private string _moduleName = string.Empty;
     private BenchSuite.Models.ModuleType _moduleType;
@@ -285,7 +284,7 @@ public class SpecializedModuleResultItem : ViewModelBase
 /// <summary>
 /// 专项训练题目结果项
 /// </summary>
-public class SpecializedQuestionResultItem : ViewModelBase
+public class SpecializedQuestionResultItem : ReactiveObject
 {
     private string _questionTitle = string.Empty;
     private bool _isCorrect;

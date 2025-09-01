@@ -1,16 +1,16 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using BenchSuite.Models;
 using Examina.Models.BenchSuite;
-using Examina.Models.Enums;
-using Examina.ViewModels.Base;
+using ReactiveUI;
 
 namespace Examina.ViewModels;
 
 /// <summary>
 /// 综合实训结果视图模型（完整分数版本）
 /// </summary>
-public class ComprehensiveTrainingResultViewModel : ViewModelBase
+public class ComprehensiveTrainingResultViewModel : ReactiveObject
 {
     private string _title = string.Empty;
     private string _trainingName = string.Empty;
@@ -182,7 +182,7 @@ public class ComprehensiveTrainingResultViewModel : ViewModelBase
         QuestionResults.Clear();
 
         // 处理模块结果
-        foreach (ModuleResult moduleResult in benchSuiteResult.ModuleResults)
+        foreach (BenchSuite.Models.ModuleResult moduleResult in benchSuiteResult.ModuleResults)
         {
             ComprehensiveModuleResultItem moduleItem = new()
             {
@@ -199,7 +199,7 @@ public class ComprehensiveTrainingResultViewModel : ViewModelBase
             };
 
             // 处理AI分析结果（如果是C#模块）
-            if (moduleResult.ModuleType == ModuleType.CSharp && moduleResult is CSharpModuleResult csharpResult)
+            if (moduleResult.ModuleType == BenchSuite.Models.ModuleType.CSharp && moduleResult is BenchSuite.Models.CSharpModuleResult csharpResult)
             {
                 ProcessAIAnalysisResult(moduleItem, csharpResult);
             }
@@ -207,7 +207,7 @@ public class ComprehensiveTrainingResultViewModel : ViewModelBase
             ModuleResults.Add(moduleItem);
 
             // 处理题目结果
-            foreach (QuestionResult question in moduleResult.Questions)
+            foreach (BenchSuite.Models.QuestionResult question in moduleResult.Questions)
             {
                 ComprehensiveQuestionResultItem questionItem = new()
                 {
@@ -236,11 +236,11 @@ public class ComprehensiveTrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 处理AI分析结果
     /// </summary>
-    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, CSharpModuleResult csharpResult)
+    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, BenchSuite.Models.CSharpModuleResult csharpResult)
     {
         if (csharpResult.AILogicalResult != null && csharpResult.AILogicalResult.IsSuccess)
         {
-            AILogicalAnalysisResult aiResult = csharpResult.AILogicalResult.Result!;
+            BenchSuite.Models.AILogicalAnalysisResult aiResult = csharpResult.AILogicalResult.Result!;
             
             moduleItem.HasAIAnalysis = true;
             moduleItem.AILogicalScore = aiResult.LogicalScore;
@@ -249,7 +249,7 @@ public class ComprehensiveTrainingResultViewModel : ViewModelBase
 
             // 处理推理步骤
             moduleItem.AIReasoningSteps.Clear();
-            foreach (ReasoningStep step in aiResult.Steps)
+            foreach (BenchSuite.Models.ReasoningStep step in aiResult.Steps)
             {
                 moduleItem.AIReasoningSteps.Add(new AIReasoningStepItem
                 {
@@ -293,14 +293,15 @@ public class ComprehensiveTrainingResultViewModel : ViewModelBase
     /// <summary>
     /// 获取模块显示名称
     /// </summary>
-    private static string GetModuleDisplayName(ModuleType moduleType)
+    private static string GetModuleDisplayName(BenchSuite.Models.ModuleType moduleType)
     {
         return moduleType switch
         {
-            ModuleType.CSharp => "C#",
-            ModuleType.Database => "数据库",
-            ModuleType.Web => "Web开发",
-            ModuleType.Algorithm => "算法",
+            BenchSuite.Models.ModuleType.CSharp => "C#",
+            BenchSuite.Models.ModuleType.Excel => "Excel",
+            BenchSuite.Models.ModuleType.Word => "Word",
+            BenchSuite.Models.ModuleType.PowerPoint => "PowerPoint",
+            BenchSuite.Models.ModuleType.Windows => "Windows",
             _ => moduleType.ToString()
         };
     }
@@ -342,10 +343,10 @@ public class ComprehensiveTrainingResultViewModel : ViewModelBase
 /// <summary>
 /// 综合实训模块结果项
 /// </summary>
-public class ComprehensiveModuleResultItem : ViewModelBase
+public class ComprehensiveModuleResultItem : ReactiveObject
 {
     private string _moduleName = string.Empty;
-    private ModuleType _moduleType;
+    private BenchSuite.Models.ModuleType _moduleType;
     private double _totalScore;
     private double _achievedScore;
     private double _scoreRate;
@@ -365,7 +366,7 @@ public class ComprehensiveModuleResultItem : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _moduleName, value);
     }
 
-    public ModuleType ModuleType
+    public BenchSuite.Models.ModuleType ModuleType
     {
         get => _moduleType;
         set => this.RaiseAndSetIfChanged(ref _moduleType, value);
@@ -451,7 +452,7 @@ public class ComprehensiveModuleResultItem : ViewModelBase
 /// <summary>
 /// 综合实训题目结果项
 /// </summary>
-public class ComprehensiveQuestionResultItem : ViewModelBase
+public class ComprehensiveQuestionResultItem : ReactiveObject
 {
     private string _questionTitle = string.Empty;
     private double _totalScore;
@@ -518,25 +519,4 @@ public class ComprehensiveQuestionResultItem : ViewModelBase
     }
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-}
-
-/// <summary>
-/// AI推理步骤项
-/// </summary>
-public class AIReasoningStepItem : ViewModelBase
-{
-    private string _explanation = string.Empty;
-    private string _output = string.Empty;
-
-    public string Explanation
-    {
-        get => _explanation;
-        set => this.RaiseAndSetIfChanged(ref _explanation, value);
-    }
-
-    public string Output
-    {
-        get => _output;
-        set => this.RaiseAndSetIfChanged(ref _output, value);
-    }
 }
