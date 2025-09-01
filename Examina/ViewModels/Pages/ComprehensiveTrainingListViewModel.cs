@@ -6,6 +6,7 @@ using BenchSuite.Models;
 using Examina.Extensions;
 using Examina.Models;
 using Examina.Models.BenchSuite;
+using Examina.Models.Enums;
 using Examina.Models.Exam;
 using Examina.Services;
 using Examina.ViewModels.Dialogs;
@@ -31,12 +32,23 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     private bool _hasFullAccess;
     private bool _isUpdatingPermissions = false;
     private DateTime _trainingStartTime;
+    private SortOption _selectedSortOption = SortOption.TimeLatest;
     private const int PageSize = 20;
 
     /// <summary>
     /// 综合训练列表
     /// </summary>
     public ObservableCollection<StudentComprehensiveTrainingDto> Trainings { get; } = [];
+
+    /// <summary>
+    /// 排序选项列表
+    /// </summary>
+    public ObservableCollection<SortOptionItem> SortOptions { get; } = [];
+
+    /// <summary>
+    /// 原始训练数据（用于排序）
+    /// </summary>
+    private List<StudentComprehensiveTrainingDto> _originalTrainings = [];
 
     /// <summary>
     /// 是否正在加载
@@ -89,6 +101,21 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 选中的排序选项
+    /// </summary>
+    public SortOption SelectedSortOption
+    {
+        get => _selectedSortOption;
+        set
+        {
+            if (this.RaiseAndSetIfChanged(ref _selectedSortOption, value))
+            {
+                ApplySorting();
+            }
+        }
+    }
+
+    /// <summary>
     /// 开始训练按钮文本
     /// </summary>
     public string StartButtonText => HasFullAccess ? "开始答题" : "试做";
@@ -126,6 +153,11 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<StudentComprehensiveTrainingDto, Unit> StartTrainingCommand { get; }
 
+    /// <summary>
+    /// 排序命令
+    /// </summary>
+    public ReactiveCommand<SortOption, Unit> SortCommand { get; }
+
     public ComprehensiveTrainingListViewModel(
         IStudentComprehensiveTrainingService studentComprehensiveTrainingService,
         IAuthenticationService authenticationService,
@@ -135,6 +167,9 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         _authenticationService = authenticationService;
         _enhancedExamToolbarService = enhancedExamToolbarService;
 
+        // 初始化排序选项
+        InitializeSortOptions();
+
         // 创建命令
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
         LoadMoreCommand = ReactiveCommand.CreateFromTask(
@@ -142,6 +177,7 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             this.WhenAnyValue(x => x.HasMoreData, x => x.IsLoading, (hasMore, loading) => hasMore && !loading)
         );
         StartTrainingCommand = ReactiveCommand.CreateFromTask<StudentComprehensiveTrainingDto>(StartTrainingAsync);
+        SortCommand = ReactiveCommand.Create<SortOption>(ApplySortOption);
 
         // 初始化用户权限状态
         _ = UpdateUserPermissionsAsync();
@@ -171,11 +207,16 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
             List<StudentComprehensiveTrainingDto> trainings =
                 await _studentComprehensiveTrainingService.GetAvailableTrainingsAsync(CurrentPage, PageSize);
 
+            // 保存原始数据并应用排序
+            _originalTrainings.Clear();
+            _originalTrainings.AddRange(trainings);
+            List<StudentComprehensiveTrainingDto> sortedTrainings = ApplySortingToList(_originalTrainings);
+
             // 更新UI
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 Trainings.Clear();
-                foreach (StudentComprehensiveTrainingDto training in trainings)
+                foreach (StudentComprehensiveTrainingDto training in sortedTrainings)
                 {
                     Trainings.Add(training);
                 }
@@ -214,9 +255,14 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
 
             if (trainings.Count > 0)
             {
+                // 添加到原始数据并重新排序
+                _originalTrainings.AddRange(trainings);
+                List<StudentComprehensiveTrainingDto> sortedTrainings = ApplySortingToList(_originalTrainings);
+
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    foreach (StudentComprehensiveTrainingDto training in trainings)
+                    Trainings.Clear();
+                    foreach (StudentComprehensiveTrainingDto training in sortedTrainings)
                     {
                         Trainings.Add(training);
                     }
@@ -1248,5 +1294,65 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         }
 
         return moduleFilePaths;
+    }
+
+    /// <summary>
+    /// 初始化排序选项
+    /// </summary>
+    private void InitializeSortOptions()
+    {
+        SortOptions.Clear();
+        SortOptions.Add(new SortOptionItem(SortOption.NameAscending));
+        SortOptions.Add(new SortOptionItem(SortOption.NameDescending));
+        SortOptions.Add(new SortOptionItem(SortOption.TimeEarliest));
+        SortOptions.Add(new SortOptionItem(SortOption.TimeLatest, true)); // 默认选中
+    }
+
+    /// <summary>
+    /// 应用排序选项
+    /// </summary>
+    /// <param name="sortOption">排序选项</param>
+    private void ApplySortOption(SortOption sortOption)
+    {
+        SelectedSortOption = sortOption;
+
+        // 更新排序选项的选中状态
+        foreach (SortOptionItem item in SortOptions)
+        {
+            item.IsSelected = item.Value == sortOption;
+        }
+    }
+
+    /// <summary>
+    /// 应用排序
+    /// </summary>
+    private void ApplySorting()
+    {
+        if (_originalTrainings.Count == 0) return;
+
+        List<StudentComprehensiveTrainingDto> sortedTrainings = ApplySortingToList(_originalTrainings);
+
+        Trainings.Clear();
+        foreach (StudentComprehensiveTrainingDto training in sortedTrainings)
+        {
+            Trainings.Add(training);
+        }
+    }
+
+    /// <summary>
+    /// 对训练列表应用排序
+    /// </summary>
+    /// <param name="trainings">训练列表</param>
+    /// <returns>排序后的训练列表</returns>
+    private List<StudentComprehensiveTrainingDto> ApplySortingToList(List<StudentComprehensiveTrainingDto> trainings)
+    {
+        return SelectedSortOption switch
+        {
+            SortOption.NameAscending => trainings.OrderBy(t => t.Name).ToList(),
+            SortOption.NameDescending => trainings.OrderByDescending(t => t.Name).ToList(),
+            SortOption.TimeEarliest => trainings.OrderBy(t => t.ImportedAt).ToList(),
+            SortOption.TimeLatest => trainings.OrderByDescending(t => t.ImportedAt).ToList(),
+            _ => trainings.ToList()
+        };
     }
 }

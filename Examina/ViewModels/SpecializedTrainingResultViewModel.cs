@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using BenchSuite.Models;
-using Examina.Models.BenchSuite;
 using ReactiveUI;
 
 namespace Examina.ViewModels;
@@ -168,7 +164,7 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
             ModuleResults.Add(moduleItem);
 
             // 处理题目结果（使用知识点结果）
-            foreach (BenchSuite.Models.KnowledgePointResult knowledgePoint in result.KnowledgePointResults)
+            foreach (KnowledgePointResult knowledgePoint in result.KnowledgePointResults)
             {
                 SpecializedQuestionResultItem questionItem = new()
                 {
@@ -193,7 +189,7 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
         return correctRate switch
         {
             >= 90 => "优秀",
-            >= 80 => "良好", 
+            >= 80 => "良好",
             >= 70 => "中等",
             >= 60 => "及格",
             _ => "不及格"

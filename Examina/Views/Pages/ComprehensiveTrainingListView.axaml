@@ -9,23 +9,44 @@
         <vm:ComprehensiveTrainingListViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!--  标题栏  -->
         <Border Grid.Row="0" Padding="20,15" Background="{DynamicResource SystemAccentColor}">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="24" Text="🎯" />
                 <TextBlock VerticalAlignment="Center" FontSize="20" FontWeight="Bold" Foreground="White" Text="综合实训" />
                 <TextBlock Margin="20,0,0,0" VerticalAlignment="Center" FontSize="14" Foreground="White" Opacity="0.8" Text="{Binding TotalCount, StringFormat={}共 {0} 个训练项目}" />
             </StackPanel>
         </Border>
 
+        <!--  排序选择栏  -->
+        <Border Grid.Row="1" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center" Text="排序方式:" />
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding SortOptions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="10" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Content="{Binding DisplayText}"
+                                       IsChecked="{Binding IsSelected}"
+                                       Command="{Binding $parent[UserControl].((vm:ComprehensiveTrainingListViewModel)DataContext).SortCommand}"
+                                       CommandParameter="{Binding Value}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+
         <!--  主内容区域  -->
-        <ScrollViewer Grid.Row="1" Padding="20">
+        <ScrollViewer Grid.Row="2" Padding="20">
             <StackPanel Spacing="15">
                 <!--  错误消息  -->
                 <Border Padding="15" Background="#FFEBEE" BorderBrush="#F44336" BorderThickness="1" CornerRadius="5" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="16" Text="⚠️" />
+                        <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="16" Text="错误:" />
                         <TextBlock VerticalAlignment="Center" Foreground="#D32F2F" Text="{Binding ErrorMessage}" />
                     </StackPanel>
                 </Border>
@@ -33,7 +54,7 @@
                 <!--  加载指示器  -->
                 <Border Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5" IsVisible="{Binding IsLoading}">
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="16" Text="🔄" />
+                        <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="16" Text="加载中:" />
                         <TextBlock VerticalAlignment="Center" Text="正在加载综合训练列表..." />
                     </StackPanel>
                 </Border>
@@ -131,25 +152,11 @@
         </ScrollViewer>
 
         <!--  底部操作栏  -->
-        <Border Grid.Row="2" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="3" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" Spacing="15">
-                <Button Command="{Binding RefreshCommand}" Content="刷新">
-                    <Button.Content>
-                        <StackPanel Orientation="Horizontal" Spacing="5">
-                            <TextBlock FontSize="14" Text="🔄" />
-                            <TextBlock Text="刷新" />
-                        </StackPanel>
-                    </Button.Content>
-                </Button>
+                <Button Command="{Binding RefreshCommand}" Content="刷新" />
 
-                <Button Command="{Binding LoadMoreCommand}" Content="加载更多" IsVisible="{Binding HasMoreData}">
-                    <Button.Content>
-                        <StackPanel Orientation="Horizontal" Spacing="5">
-                            <TextBlock FontSize="14" Text="⬇️" />
-                            <TextBlock Text="加载更多" />
-                        </StackPanel>
-                    </Button.Content>
-                </Button>
+                <Button Command="{Binding LoadMoreCommand}" Content="加载更多" IsVisible="{Binding HasMoreData}" />
 
                 <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding Trainings.Count, StringFormat={}已显示 {0} 项}" />
             </StackPanel>

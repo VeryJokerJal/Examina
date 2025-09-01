@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using BenchSuite.Models;
 using Examina.Extensions;
 using Examina.Models;
+using Examina.Models.Enums;
 using Examina.Models.SpecializedTraining;
 using Examina.Services;
 using Examina.Views;
@@ -33,6 +34,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     private bool _hasFullAccess;
     private string _searchKeyword = string.Empty;
     private string _selectedModuleType = string.Empty;
+    private SortOption _selectedSortOption = SortOption.TimeLatest;
     private const int PageSize = 20;
 
     /// <summary>
@@ -44,6 +46,16 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     /// 可用的模块类型列表
     /// </summary>
     public ObservableCollection<string> ModuleTypes { get; } = [];
+
+    /// <summary>
+    /// 排序选项列表
+    /// </summary>
+    public ObservableCollection<SortOptionItem> SortOptions { get; } = [];
+
+    /// <summary>
+    /// 原始训练数据（用于排序）
+    /// </summary>
+    private List<StudentSpecializedTrainingDto> _originalTrainings = [];
 
 
 
@@ -99,6 +111,21 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     {
         get => _selectedModuleType;
         set => this.RaiseAndSetIfChanged(ref _selectedModuleType, value);
+    }
+
+    /// <summary>
+    /// 选中的排序选项
+    /// </summary>
+    public SortOption SelectedSortOption
+    {
+        get => _selectedSortOption;
+        set
+        {
+            if (this.RaiseAndSetIfChanged(ref _selectedSortOption, value))
+            {
+                ApplySorting();
+            }
+        }
     }
 
 
@@ -188,6 +215,11 @@ public class SpecializedTrainingListViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ClearFilterCommand { get; }
 
     /// <summary>
+    /// 排序命令
+    /// </summary>
+    public ReactiveCommand<SortOption, Unit> SortCommand { get; }
+
+    /// <summary>
     /// 开始训练命令
     /// </summary>
     public ReactiveCommand<StudentSpecializedTrainingDto, Unit> StartTrainingCommand { get; }
@@ -211,12 +243,16 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         _benchSuiteDirectoryService = AppServiceManager.GetService<IBenchSuiteDirectoryService>();
         _openXmlScoringManager = AppServiceManager.GetService<OpenXmlScoringManager>();
 
+        // 初始化排序选项
+        InitializeSortOptions();
+
         // 初始化命令
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
         LoadMoreCommand = ReactiveCommand.CreateFromTask(LoadMoreAsync, this.WhenAnyValue(x => x.IsLoading, x => x.HasMoreData, (loading, hasMore) => !loading && hasMore));
         SearchCommand = ReactiveCommand.CreateFromTask(SearchAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
         FilterCommand = ReactiveCommand.CreateFromTask(FilterAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
         ClearFilterCommand = ReactiveCommand.CreateFromTask(ClearFilterAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
+        SortCommand = ReactiveCommand.Create<SortOption>(ApplySortOption);
         StartTrainingCommand = ReactiveCommand.CreateFromTask<StudentSpecializedTrainingDto>(StartTrainingAsync, this.WhenAnyValue(x => x.IsLoading).Select(loading => !loading));
 
         // 初始化用户权限状态
@@ -1380,9 +1416,16 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         if (!append)
         {
             Trainings.Clear();
+            _originalTrainings.Clear();
         }
 
-        foreach (StudentSpecializedTrainingDto training in trainings)
+        // 保存原始数据
+        _originalTrainings.AddRange(trainings);
+
+        // 应用排序
+        List<StudentSpecializedTrainingDto> sortedTrainings = ApplySortingToList(_originalTrainings);
+
+        foreach (StudentSpecializedTrainingDto training in sortedTrainings)
         {
             System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 加载训练: {training.Name}, EnableTrial: {training.EnableTrial}, QuestionCount: {training.QuestionCount}, Duration: {training.Duration}");
             Trainings.Add(training);
@@ -1517,6 +1560,66 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         // 如果没有directoryService，返回原路径
         System.Diagnostics.Debug.WriteLine($"警告: IBenchSuiteDirectoryService不可用，无法转换路径: {filePath}");
         return filePath;
+    }
+
+    /// <summary>
+    /// 初始化排序选项
+    /// </summary>
+    private void InitializeSortOptions()
+    {
+        SortOptions.Clear();
+        SortOptions.Add(new SortOptionItem(SortOption.NameAscending));
+        SortOptions.Add(new SortOptionItem(SortOption.NameDescending));
+        SortOptions.Add(new SortOptionItem(SortOption.TimeEarliest));
+        SortOptions.Add(new SortOptionItem(SortOption.TimeLatest, true)); // 默认选中
+    }
+
+    /// <summary>
+    /// 应用排序选项
+    /// </summary>
+    /// <param name="sortOption">排序选项</param>
+    private void ApplySortOption(SortOption sortOption)
+    {
+        SelectedSortOption = sortOption;
+
+        // 更新排序选项的选中状态
+        foreach (SortOptionItem item in SortOptions)
+        {
+            item.IsSelected = item.Value == sortOption;
+        }
+    }
+
+    /// <summary>
+    /// 应用排序
+    /// </summary>
+    private void ApplySorting()
+    {
+        if (_originalTrainings.Count == 0) return;
+
+        List<StudentSpecializedTrainingDto> sortedTrainings = ApplySortingToList(_originalTrainings);
+
+        Trainings.Clear();
+        foreach (StudentSpecializedTrainingDto training in sortedTrainings)
+        {
+            Trainings.Add(training);
+        }
+    }
+
+    /// <summary>
+    /// 对训练列表应用排序
+    /// </summary>
+    /// <param name="trainings">训练列表</param>
+    /// <returns>排序后的训练列表</returns>
+    private List<StudentSpecializedTrainingDto> ApplySortingToList(List<StudentSpecializedTrainingDto> trainings)
+    {
+        return SelectedSortOption switch
+        {
+            SortOption.NameAscending => trainings.OrderBy(t => t.Name).ToList(),
+            SortOption.NameDescending => trainings.OrderByDescending(t => t.Name).ToList(),
+            SortOption.TimeEarliest => trainings.OrderBy(t => t.ImportedAt).ToList(),
+            SortOption.TimeLatest => trainings.OrderByDescending(t => t.ImportedAt).ToList(),
+            _ => trainings.ToList()
+        };
     }
 }
 

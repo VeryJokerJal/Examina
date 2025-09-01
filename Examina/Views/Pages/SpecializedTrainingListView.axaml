@@ -13,7 +13,6 @@
         <!--  标题栏  -->
         <Border Grid.Row="0" Padding="20,15" Background="{DynamicResource SystemAccentColor}">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="24" Text="🎯" />
                 <TextBlock VerticalAlignment="Center" FontSize="20" FontWeight="Bold" Foreground="White" Text="专项训练" />
                 <TextBlock Margin="20,0,0,0" VerticalAlignment="Center" FontSize="14" Foreground="White" Opacity="0.8" Text="{Binding TotalCount, StringFormat={}共 {0} 个训练项目}" />
             </StackPanel>
@@ -21,18 +20,41 @@
 
         <!--  搜索和筛选栏  -->
         <Border Grid.Row="1" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                <!--  搜索框  -->
-                <TextBox Grid.Column="0" Margin="0,0,10,0" Text="{Binding SearchKeyword}" Watermark="搜索专项训练..." />
+            <Grid RowDefinitions="Auto,Auto">
+                <!--  第一行：搜索和筛选  -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,10">
+                    <!--  搜索框  -->
+                    <TextBox Grid.Column="0" Margin="0,0,10,0" Text="{Binding SearchKeyword}" Watermark="搜索专项训练..." />
 
-                <!--  模块类型筛选  -->
-                <ComboBox Grid.Column="1" MinWidth="120" Margin="0,0,10,0" ItemsSource="{Binding ModuleTypes}" PlaceholderText="选择模块类型" SelectedItem="{Binding SelectedModuleType}" />
+                    <!--  模块类型筛选  -->
+                    <ComboBox Grid.Column="1" MinWidth="120" Margin="0,0,10,0" ItemsSource="{Binding ModuleTypes}" PlaceholderText="选择模块类型" SelectedItem="{Binding SelectedModuleType}" />
 
-                <!--  搜索按钮  -->
-                <Button Grid.Column="2" Margin="0,0,10,0" Classes="accent" Command="{Binding SearchCommand}" Content="搜索" />
+                    <!--  搜索按钮  -->
+                    <Button Grid.Column="2" Margin="0,0,10,0" Classes="accent" Command="{Binding SearchCommand}" Content="搜索" />
 
-                <!--  清除筛选按钮  -->
-                <Button Grid.Column="3" Margin="0,0,0,0" Command="{Binding ClearFilterCommand}" Content="清除" />
+                    <!--  清除筛选按钮  -->
+                    <Button Grid.Column="3" Margin="0,0,0,0" Command="{Binding ClearFilterCommand}" Content="清除" />
+                </Grid>
+
+                <!--  第二行：排序选项  -->
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+                    <TextBlock Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center" Text="排序方式:" />
+                    <ItemsControl Grid.Column="1" ItemsSource="{Binding SortOptions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="10" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton Content="{Binding DisplayText}"
+                                           IsChecked="{Binding IsSelected}"
+                                           Command="{Binding $parent[UserControl].((vm:SpecializedTrainingListViewModel)DataContext).SortCommand}"
+                                           CommandParameter="{Binding Value}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
             </Grid>
         </Border>
 
@@ -42,7 +64,7 @@
                 <!--  错误消息  -->
                 <Border Padding="15" Background="#FFEBEE" BorderBrush="#F44336" BorderThickness="1" CornerRadius="5" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="16" Text="⚠️" />
+                        <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" FontSize="16" Text="错误:" />
                         <TextBlock VerticalAlignment="Center" Foreground="#D32F2F" Text="{Binding ErrorMessage}" />
                     </StackPanel>
                 </Border>
