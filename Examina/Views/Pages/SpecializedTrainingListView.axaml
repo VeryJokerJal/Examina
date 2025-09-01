@@ -113,18 +113,6 @@
                                         <!--  训练描述  -->
                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding Description}" TextWrapping="Wrap" />
 
-                                        <!--  训练详情  -->
-                                        <StackPanel Orientation="Horizontal" Spacing="20">
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock FontSize="14" Text="题目:" />
-                                                <TextBlock FontSize="14" Text="{Binding QuestionCount, StringFormat={}{0} 题}" />
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock FontSize="14" Text="时长:" />
-                                                <TextBlock FontSize="14" Text="{Binding Duration, StringFormat={}{0} 分钟}" />
-                                            </StackPanel>
-                                        </StackPanel>
-
                                         <!--  标签  -->
                                         <ItemsControl IsVisible="{Binding TagList.Count, Converter={x:Static ObjectConverters.IsNotNull}}" ItemsSource="{Binding TagList}">
                                             <ItemsControl.ItemsPanel>
