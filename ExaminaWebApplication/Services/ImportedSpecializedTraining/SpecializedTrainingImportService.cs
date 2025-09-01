@@ -147,8 +147,8 @@ public class SpecializedTrainingImportService
                     _logger.LogInformation("专项训练导入成功：{Name}，ID：{Id}，导入者：{ImportedBy}",
                         importedSpecializedTraining.Name, importedSpecializedTraining.Id, importedBy);
 
-                    // 自动创建导入文件的关联
-                    await CreateImportFileAssociationAsync(importedSpecializedTraining.Id, fileName, fileSize, importedBy);
+                    // 注释掉自动创建导入文件的关联，避免JSON文件被错误添加到文件关联系统
+                    // await CreateImportFileAssociationAsync(importedSpecializedTraining.Id, fileName, fileSize, importedBy);
                 }
                 catch (Exception ex)
                 {
@@ -564,6 +564,43 @@ public class SpecializedTrainingImportService
         {
             _logger.LogError(ex, "创建专项训练导入文件关联时发生错误：SpecializedTrainingId={SpecializedTrainingId}, FileName={FileName}",
                 specializedTrainingId, fileName);
+        }
+    }
+
+    /// <summary>
+    /// 更新专项训练试用设置
+    /// </summary>
+    /// <param name="specializedTrainingId">专项训练ID</param>
+    /// <param name="enableTrial">是否启用试用</param>
+    /// <param name="userId">用户ID</param>
+    /// <returns>更新是否成功</returns>
+    public async Task<bool> UpdateTrialSettingAsync(int specializedTrainingId, bool enableTrial, int userId)
+    {
+        try
+        {
+            ImportedSpecializedTrainingEntity? specializedTraining = await _context.ImportedSpecializedTrainings
+                .FirstOrDefaultAsync(st => st.Id == specializedTrainingId && st.ImportedBy == userId);
+
+            if (specializedTraining == null)
+            {
+                _logger.LogWarning("专项训练不存在或用户无权限更新试用设置: SpecializedTrainingId={SpecializedTrainingId}, UserId={UserId}",
+                    specializedTrainingId, userId);
+                return false;
+            }
+
+            specializedTraining.EnableTrial = enableTrial;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("专项训练试用设置更新成功: SpecializedTrainingId={SpecializedTrainingId}, EnableTrial={EnableTrial}, UserId={UserId}",
+                specializedTrainingId, enableTrial, userId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新专项训练试用设置失败: SpecializedTrainingId={SpecializedTrainingId}, UserId={UserId}",
+                specializedTrainingId, userId);
+            return false;
         }
     }
 

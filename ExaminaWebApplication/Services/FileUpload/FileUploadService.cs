@@ -467,11 +467,43 @@ public class FileUploadService : IFileUploadService
                 return false;
             }
 
-            _context.ExamFileAssociations.Remove(association);
-            await _context.SaveChangesAsync();
+            // 使用事务确保关联删除和文件删除的一致性
+            using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 删除关联记录
+                _context.ExamFileAssociations.Remove(association);
 
-            _logger.LogInformation("取消文件与考试关联成功: ExamId={ExamId}, FileId={FileId}", examId, fileId);
-            return true;
+                // 检查文件是否还有其他关联，如果没有则删除文件记录
+                bool hasOtherAssociations = await _context.ExamFileAssociations
+                    .AnyAsync(a => a.FileId == fileId && a.ExamId != examId) ||
+                    await _context.SpecializedTrainingFileAssociations.AnyAsync(a => a.FileId == fileId) ||
+                    await _context.ComprehensiveTrainingFileAssociations.AnyAsync(a => a.FileId == fileId);
+
+                if (!hasOtherAssociations)
+                {
+                    // 如果文件没有其他关联，则软删除文件记录
+                    UploadedFile? file = await _context.UploadedFiles.FindAsync(fileId);
+                    if (file != null && !file.IsDeleted)
+                    {
+                        file.IsDeleted = true;
+                        file.DeletedAt = DateTime.UtcNow;
+                        file.DeletedBy = association.CreatedBy; // 使用关联创建者作为删除者
+                        _logger.LogInformation("文件记录已软删除: FileId={FileId}", fileId);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("取消文件与考试关联成功: ExamId={ExamId}, FileId={FileId}", examId, fileId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         catch (Exception ex)
         {
@@ -495,11 +527,43 @@ public class FileUploadService : IFileUploadService
                 return false;
             }
 
-            _context.ComprehensiveTrainingFileAssociations.Remove(association);
-            await _context.SaveChangesAsync();
+            // 使用事务确保关联删除和文件删除的一致性
+            using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 删除关联记录
+                _context.ComprehensiveTrainingFileAssociations.Remove(association);
 
-            _logger.LogInformation("取消文件与综合训练关联成功: ComprehensiveTrainingId={ComprehensiveTrainingId}, FileId={FileId}", comprehensiveTrainingId, fileId);
-            return true;
+                // 检查文件是否还有其他关联，如果没有则删除文件记录
+                bool hasOtherAssociations = await _context.ComprehensiveTrainingFileAssociations
+                    .AnyAsync(a => a.FileId == fileId && a.ComprehensiveTrainingId != comprehensiveTrainingId) ||
+                    await _context.ExamFileAssociations.AnyAsync(a => a.FileId == fileId) ||
+                    await _context.SpecializedTrainingFileAssociations.AnyAsync(a => a.FileId == fileId);
+
+                if (!hasOtherAssociations)
+                {
+                    // 如果文件没有其他关联，则软删除文件记录
+                    UploadedFile? file = await _context.UploadedFiles.FindAsync(fileId);
+                    if (file != null && !file.IsDeleted)
+                    {
+                        file.IsDeleted = true;
+                        file.DeletedAt = DateTime.UtcNow;
+                        file.DeletedBy = association.CreatedBy; // 使用关联创建者作为删除者
+                        _logger.LogInformation("文件记录已软删除: FileId={FileId}", fileId);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("取消文件与综合训练关联成功: ComprehensiveTrainingId={ComprehensiveTrainingId}, FileId={FileId}", comprehensiveTrainingId, fileId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         catch (Exception ex)
         {
@@ -523,11 +587,43 @@ public class FileUploadService : IFileUploadService
                 return false;
             }
 
-            _context.SpecializedTrainingFileAssociations.Remove(association);
-            await _context.SaveChangesAsync();
+            // 使用事务确保关联删除和文件删除的一致性
+            using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 删除关联记录
+                _context.SpecializedTrainingFileAssociations.Remove(association);
 
-            _logger.LogInformation("取消文件与专项训练关联成功: SpecializedTrainingId={SpecializedTrainingId}, FileId={FileId}", specializedTrainingId, fileId);
-            return true;
+                // 检查文件是否还有其他关联，如果没有则删除文件记录
+                bool hasOtherAssociations = await _context.SpecializedTrainingFileAssociations
+                    .AnyAsync(a => a.FileId == fileId && a.SpecializedTrainingId != specializedTrainingId) ||
+                    await _context.ExamFileAssociations.AnyAsync(a => a.FileId == fileId) ||
+                    await _context.ComprehensiveTrainingFileAssociations.AnyAsync(a => a.FileId == fileId);
+
+                if (!hasOtherAssociations)
+                {
+                    // 如果文件没有其他关联，则软删除文件记录
+                    UploadedFile? file = await _context.UploadedFiles.FindAsync(fileId);
+                    if (file != null && !file.IsDeleted)
+                    {
+                        file.IsDeleted = true;
+                        file.DeletedAt = DateTime.UtcNow;
+                        file.DeletedBy = association.CreatedBy; // 使用关联创建者作为删除者
+                        _logger.LogInformation("文件记录已软删除: FileId={FileId}", fileId);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("取消文件与专项训练关联成功: SpecializedTrainingId={SpecializedTrainingId}, FileId={FileId}", specializedTrainingId, fileId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         catch (Exception ex)
         {

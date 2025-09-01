@@ -119,6 +119,7 @@ public class ExamManagementController : Controller
     /// <summary>
     /// 考试导入页面
     /// </summary>
+    [HttpGet("ImportExam")]
     public IActionResult ImportExam()
     {
         return View();

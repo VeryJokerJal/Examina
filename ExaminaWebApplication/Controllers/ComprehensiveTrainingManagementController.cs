@@ -401,6 +401,39 @@ public class ComprehensiveTrainingManagementController : Controller
         }
     }
 
+    /// <summary>
+    /// 更新专项训练试用设置
+    /// </summary>
+    /// <param name="id">专项训练ID</param>
+    /// <param name="enableTrial">是否启用试用</param>
+    /// <returns>更新结果</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateSpecializedTrainingTrialSetting(int id, bool enableTrial)
+    {
+        try
+        {
+            // 暂时使用固定的用户ID，后续可以改为从登录用户获取
+            int userId = 1; // 使用管理员用户ID
+
+            bool success = await _specializedTrainingImportService.UpdateTrialSettingAsync(id, enableTrial, userId);
+
+            if (success)
+            {
+                return Json(new { success = true, message = $"专项训练试用设置已{(enableTrial ? "启用" : "禁用")}" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "更新失败，专项训练不存在或您没有权限" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "更新专项训练试用设置失败: {SpecializedTrainingId}", id);
+            return Json(new { success = false, message = "更新失败，请稍后重试" });
+        }
+    }
+
     #endregion
 
     #region API端点

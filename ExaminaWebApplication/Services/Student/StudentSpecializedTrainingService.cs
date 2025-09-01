@@ -30,12 +30,12 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     {
         try
         {
-            // 目前简化权限验证：所有启用的专项训练都对学生可见
+            // 只显示启用且开放试用功能的专项训练
             // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
 
             // 首先获取总数，用于性能优化决策
             int totalCount = await _context.ImportedSpecializedTrainings
-                .Where(t => t.IsEnabled)
+                .Where(t => t.IsEnabled && t.EnableTrial)
                 .CountAsync();
 
             List<ImportedSpecializedTrainingEntity> trainings;
@@ -46,7 +46,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             {
                 // 小数据量：在内存中进行真正的随机排序
                 List<ImportedSpecializedTrainingEntity> allTrainings = await _context.ImportedSpecializedTrainings
-                    .Where(t => t.IsEnabled)
+                    .Where(t => t.IsEnabled && t.EnableTrial)
                     .Include(t => t.Modules)
                     .Include(t => t.Questions)
                     .ToListAsync();
@@ -65,7 +65,7 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
             {
                 // 大数据量：使用数据库层面的随机排序（性能更好但随机性稍弱）
                 trainings = await _context.ImportedSpecializedTrainings
-                    .Where(t => t.IsEnabled)
+                    .Where(t => t.IsEnabled && t.EnableTrial)
                     .Include(t => t.Modules)
                     .Include(t => t.Questions)
                     .OrderBy(x => Guid.NewGuid()) // 使用GUID进行随机排序
@@ -170,7 +170,15 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
                 return false;
             }
 
-            // 目前简化权限验证：所有启用的专项训练都对学生可见
+            // 检查试用功能设置
+            if (!training.EnableTrial)
+            {
+                _logger.LogWarning("专项训练试用功能已禁用，学生无法访问，训练ID: {TrainingId}, 学生ID: {StudentUserId}",
+                    trainingId, studentUserId);
+                return false;
+            }
+
+            // 目前简化权限验证：所有启用试用功能的专项训练都对学生可见
             // 后续可以根据组织关系、权限设置等进行更细粒度的权限控制
             return true;
         }
@@ -189,9 +197,9 @@ public class StudentSpecializedTrainingService : IStudentSpecializedTrainingServ
     {
         try
         {
-            // 目前简化权限验证：所有启用的专项训练都对学生可见
+            // 只统计启用且开放试用功能的专项训练
             int count = await _context.ImportedSpecializedTrainings
-                .CountAsync(t => t.IsEnabled);
+                .CountAsync(t => t.IsEnabled && t.EnableTrial);
 
             _logger.LogInformation("获取学生可访问专项训练总数成功，学生ID: {StudentUserId}, 总数: {Count}",
                 studentUserId, count);
