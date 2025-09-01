@@ -362,6 +362,58 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         return true;
     }
 
+        /// <summary>
+        /// 从多个候选键中读取字符串参数，返回第一个命中的键
+        /// </summary>
+        private static bool TryGetAnyParameter(Dictionary<string, string> parameters, out string value, params string[] keys)
+        {
+            foreach (string key in keys)
+            {
+                if (parameters.TryGetValue(key, out string? v) && !string.IsNullOrWhiteSpace(v))
+                {
+                    value = v;
+                    return true;
+                }
+            }
+            value = string.Empty;
+            return false;
+        }
+
+        /// <summary>
+        /// 从多个候选键中读取整型参数，返回第一个命中的键
+        /// </summary>
+        private static bool TryGetAnyIntParameter(Dictionary<string, string> parameters, out int value, params string[] keys)
+        {
+            foreach (string key in keys)
+            {
+                if (parameters.TryGetValue(key, out string? v) && int.TryParse(v, out int parsed))
+                {
+                    value = parsed;
+                    return true;
+                }
+            }
+            value = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// 从多个候选键中读取浮点参数，返回第一个命中的键
+        /// </summary>
+        private static bool TryGetAnyFloatParameter(Dictionary<string, string> parameters, out float value, params string[] keys)
+        {
+            foreach (string key in keys)
+            {
+                if (parameters.TryGetValue(key, out string? v) && float.TryParse(v, out float parsed))
+                {
+                    value = parsed;
+                    return true;
+                }
+            }
+            value = 0f;
+            return false;
+        }
+
+
     /// <summary>
     /// 检测特定知识点
     /// </summary>
@@ -520,9 +572,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
-                !TryGetParameter(parameters, "LayoutType", out string expectedLayout))
+                !TryGetAnyParameter(parameters, out string expectedLayout, "LayoutType", "Layout"))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 LayoutType");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 Layout/LayoutType");
                 return result;
             }
 
@@ -849,6 +901,30 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                             fontFound = true;
                         }
                     }
+
+                    // 检查 EastAsianFont（中文等东亚文字）
+                    EastAsianFont? eastAsianFont = runProperties.Elements<EastAsianFont>().FirstOrDefault();
+                    if (eastAsianFont?.Typeface?.Value != null)
+                    {
+                        string eaFont = eastAsianFont.Typeface.Value;
+                        actualFonts.Add(eaFont);
+                        if (TextEquals(eaFont, expectedFont))
+                        {
+                            fontFound = true;
+                        }
+                    }
+
+                    // 检查 ComplexScriptFont（复杂脚本）
+                    ComplexScriptFont? csFont = runProperties.Elements<ComplexScriptFont>().FirstOrDefault();
+                    if (csFont?.Typeface?.Value != null)
+                    {
+                        string cFont = csFont.Typeface.Value;
+                        actualFonts.Add(cFont);
+                        if (TextEquals(cFont, expectedFont))
+                        {
+                            fontFound = true;
+                        }
+                    }
                 }
             }
         }
@@ -1127,9 +1203,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
-                !TryGetParameter(parameters, "Color", out string expectedColor))
+                !TryGetAnyParameter(parameters, out string expectedColor, "Color", "ColorValue"))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 Color");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 Color/ColorValue");
                 return result;
             }
 
@@ -1154,7 +1230,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 RunProperties? runProperties = textElement.Parent?.Elements<RunProperties>().FirstOrDefault();
                 if (runProperties != null)
                 {
-                    // 检查SolidFill颜色
+                    // 检查SolidFill颜色（RGB）
                     SolidFill? solidFill = runProperties.Elements<SolidFill>().FirstOrDefault();
                     if (solidFill != null)
                     {
@@ -1165,6 +1241,18 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                             actualColors.Add(colorHex);
 
                             if (TextEquals(colorHex, expectedColor))
+                            {
+                                colorFound = true;
+                            }
+                        }
+
+                        // 兼容主题色 SchemeColor
+                        SchemeColor? schemeColor = solidFill.Elements<SchemeColor>().FirstOrDefault();
+                        if (schemeColor?.Val?.Value != null)
+                        {
+                            string schemeName = schemeColor.Val.Value.ToString();
+                            actualColors.Add($"Scheme:{schemeName}");
+                            if (TextEquals(schemeName, expectedColor))
                             {
                                 colorFound = true;
                             }
@@ -1412,9 +1500,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
-                !TryGetParameter(parameters, "StyleType", out string expectedStyle))
+                !TryGetAnyParameter(parameters, out string expectedStyle, "StyleType", "TextStyle"))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 StyleType");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 TextStyle/StyleType");
                 return result;
             }
 
@@ -1556,9 +1644,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         try
         {
             if (!TryGetIntParameter(parameters, "SlideNumber", out int SlideNumber) ||
-                !TryGetParameter(parameters, "Alignment", out string expectedAlignment))
+                !TryGetAnyParameter(parameters, out string expectedAlignment, "Alignment", "TextAlignment"))
             {
-                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 Alignment");
+                SetKnowledgePointFailure(result, "缺少必要参数: SlideNumber 或 TextAlignment/Alignment");
                 return result;
             }
 
@@ -1623,7 +1711,7 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             (bool Found, string Url) = GetHyperlinkInfo(slidePart, parameters);
 
-            result.ExpectedValue = TryGetParameter(parameters, "ExpectedUrl", out string expectedUrl) ? expectedUrl : "存在超链接";
+            result.ExpectedValue = TryGetAnyParameter(parameters, out string expectedUrl, "ExpectedUrl", "Hyperlink", "Url") ? expectedUrl : "存在超链接";
             result.ActualValue = Found ? Url : "无超链接";
             result.IsCorrect = Found && (string.IsNullOrEmpty(expectedUrl) || TextEquals(Url, expectedUrl));
             result.AchievedScore = result.IsCorrect ? result.TotalScore : 0;
@@ -3011,6 +3099,91 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     }
 
     /// <summary>
+    /// 通用获取元素（形状/图片/图形框架/整张幻灯片）上的超链接信息
+    /// 优先解析 HyperlinkOnClick/HyperlinkOnMouseOver 关系，其次回退到 Drawing.Hyperlink，再回退文本URL模式
+    /// </summary>
+    private (bool Found, string Url) GetElementHyperlinkInfo(OpenXmlElement element, SlidePart slidePart)
+    {
+        try
+        {
+            List<string> urlList = new List<string>();
+
+            // 1) 解析 a:hlinkClick / a:hlinkMouseOver（RunProperties 或 NonVisualDrawingProperties 等位置）
+            IEnumerable<DocumentFormat.OpenXml.Drawing.HyperlinkOnClick> clickLinks = element.Descendants<DocumentFormat.OpenXml.Drawing.HyperlinkOnClick>();
+            foreach (DocumentFormat.OpenXml.Drawing.HyperlinkOnClick hoc in clickLinks)
+            {
+                if (!string.IsNullOrEmpty(hoc.Id))
+                {
+                    HyperlinkRelationship? rel = slidePart.HyperlinkRelationships?.FirstOrDefault(r => r.Id == hoc.Id);
+                    urlList.Add(rel?.Uri?.ToString() ?? "内部链接");
+                }
+            }
+
+            IEnumerable<DocumentFormat.OpenXml.Drawing.HyperlinkOnMouseOver> hoverLinks = element.Descendants<DocumentFormat.OpenXml.Drawing.HyperlinkOnMouseOver>();
+            foreach (DocumentFormat.OpenXml.Drawing.HyperlinkOnMouseOver hov in hoverLinks)
+            {
+                if (!string.IsNullOrEmpty(hov.Id))
+                {
+                    HyperlinkRelationship? rel = slidePart.HyperlinkRelationships?.FirstOrDefault(r => r.Id == hov.Id);
+                    urlList.Add(rel?.Uri?.ToString() ?? "内部链接");
+                }
+            }
+
+            // 2) 回退：解析 Drawing.Hyperlink（如果存在）
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Hyperlink> drHyperlinks = element.Descendants<DocumentFormat.OpenXml.Drawing.Hyperlink>();
+            foreach (DocumentFormat.OpenXml.Drawing.Hyperlink hyperlink in drHyperlinks)
+            {
+                if (hyperlink.HasAttributes)
+                {
+                    foreach (OpenXmlAttribute attr in hyperlink.GetAttributes())
+                    {
+                        if (attr.LocalName == "id" && !string.IsNullOrEmpty(attr.Value))
+                        {
+                            try
+                            {
+                                HyperlinkRelationship? relationship = slidePart.GetReferenceRelationship(attr.Value) as HyperlinkRelationship;
+                                urlList.Add(relationship?.Uri?.ToString() ?? "内部链接");
+                            }
+                            catch
+                            {
+                                urlList.Add("内部链接");
+                            }
+                        }
+                        else if (attr.LocalName == "tooltip" && !string.IsNullOrEmpty(attr.Value))
+                        {
+                            urlList.Add($"提示: {attr.Value}");
+                        }
+                    }
+                }
+            }
+
+            if (urlList.Count > 0)
+            {
+                string urlInfo = string.Join("; ", urlList.Distinct());
+                return (true, urlInfo);
+            }
+
+            // 3) 最后回退：形状/段落文本中包含 URL 模式
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = element.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+            foreach (DocumentFormat.OpenXml.Drawing.Text text in textElements)
+            {
+                if (text.Text.Contains("http://", StringComparison.OrdinalIgnoreCase) ||
+                    text.Text.Contains("https://", StringComparison.OrdinalIgnoreCase) ||
+                    text.Text.Contains("www.", StringComparison.OrdinalIgnoreCase))
+                {
+                    return (true, text.Text);
+                }
+            }
+
+            return (false, string.Empty);
+        }
+        catch
+        {
+            return (false, string.Empty);
+        }
+    }
+
+    /// <summary>
     /// 获取超链接信息
     /// </summary>
     private (bool Found, string Url) GetHyperlinkInfo(SlidePart slidePart, Dictionary<string, string> parameters)
@@ -3019,13 +3192,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
         {
             // 尝试获取元素索引来定位特定元素
             int elementIndex = 1; // 默认第一个元素
-            if (TryGetIntParameter(parameters, "ElementIndex", out int paramIndex))
+            if (TryGetAnyIntParameter(parameters, out int anyIndex, "ElementIndex", "ElementOrder", "TextBoxNumber", "TextBoxOrder"))
             {
-                elementIndex = paramIndex;
-            }
-            else if (TryGetIntParameter(parameters, "ElementOrder", out int paramOrder))
-            {
-                elementIndex = paramOrder;
+                elementIndex = anyIndex;
             }
 
             // 获取所有形状
@@ -3050,9 +3219,9 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
                 return GetSlideHyperlinkInfo(slidePart);
             }
 
-            // 获取指定索引的形状中的超链接
+            // 获取指定索引的形状中的超链接（优先解析 hlinkClick / hlinkMouseOver）
             DocumentFormat.OpenXml.Presentation.Shape targetShape = shapeList[elementIndex - 1];
-            return GetShapeHyperlinkInfo(targetShape, slidePart);
+            return GetElementHyperlinkInfo(targetShape, slidePart);
         }
         catch
         {
@@ -3067,12 +3236,23 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            // 获取期望的超链接URL（如果有指定）
-            string? expectedUrl = parameters.TryGetValue("Hyperlink", out string? url) ? url : null;
+            // 获取期望的超链接URL与链接文本（如果有指定）
+            string? expectedUrl = TryGetAnyParameter(parameters, out string anyUrl, "ExpectedUrl", "Hyperlink", "Url") ? anyUrl : null;
+            string? linkText = TryGetAnyParameter(parameters, out string lt, "LinkText", "ExpectedText") ? lt : null;
 
             foreach (DocumentFormat.OpenXml.Presentation.Shape shape in shapes)
             {
-                (bool found, string shapeUrl) = GetShapeHyperlinkInfo(shape, slidePart);
+                // 若指定了链接文本，先过滤文本不匹配的形状
+                if (!string.IsNullOrEmpty(linkText))
+                {
+                    string shapeText = GetTextFromShape(shape);
+                    if (string.IsNullOrEmpty(shapeText) || !shapeText.Contains(linkText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                }
+
+                (bool found, string shapeUrl) = GetElementHyperlinkInfo(shape, slidePart);
                 if (found)
                 {
                     // 如果没有指定期望的URL，找到任何超链接就返回
@@ -3104,9 +3284,15 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            // 检查是否存在超链接并获取详细信息
-            IEnumerable<Hyperlink> hyperlinks = slidePart.Slide.Descendants<Hyperlink>();
+            // 优先：解析整张幻灯片上任意元素的 hlinkClick/hlinkMouseOver
+            (bool found, string url) = GetElementHyperlinkInfo(slidePart.Slide, slidePart);
+            if (found)
+            {
+                return (true, url);
+            }
 
+            // 回退：检查 Drawing.Hyperlink
+            IEnumerable<DocumentFormat.OpenXml.Drawing.Hyperlink> hyperlinks = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Hyperlink>();
             if (hyperlinks.Any())
             {
                 List<string> urlList = [];
@@ -3150,11 +3336,14 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
 
             // 也检查文本中是否包含URL模式
             IEnumerable<DocumentFormat.OpenXml.Drawing.Text> textElements = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-            foreach (DocumentFormat.OpenXml.Drawing.Text text in textElements)
+            foreach (DocumentFormat.OpenXml.Drawing.Text textElement in textElements)
             {
-                if (text.Text.Contains("http://") || text.Text.Contains("https://") || text.Text.Contains("www."))
+                string textContent = textElement.Text ?? string.Empty;
+                if (textContent.Contains("http://", StringComparison.OrdinalIgnoreCase) ||
+                    textContent.Contains("https://", StringComparison.OrdinalIgnoreCase) ||
+                    textContent.Contains("www.", StringComparison.OrdinalIgnoreCase))
                 {
-                    return (true, text.Text);
+                    return (true, textContent);
                 }
             }
 
@@ -3173,54 +3362,8 @@ public class PowerPointOpenXmlScoringService : OpenXmlScoringServiceBase, IPower
     {
         try
         {
-            // 检查形状中的超链接
-            IEnumerable<Hyperlink> hyperlinks = shape.Descendants<Hyperlink>();
-
-            if (hyperlinks.Any())
-            {
-                List<string> urlList = [];
-
-                foreach (Hyperlink hyperlink in hyperlinks)
-                {
-                    if (hyperlink.HasAttributes)
-                    {
-                        foreach (OpenXmlAttribute attr in hyperlink.GetAttributes())
-                        {
-                            if (attr.LocalName == "id" && !string.IsNullOrEmpty(attr.Value))
-                            {
-                                try
-                                {
-                                    HyperlinkRelationship? relationship = slidePart.GetReferenceRelationship(attr.Value) as HyperlinkRelationship;
-                                    if (relationship?.Uri != null)
-                                    {
-                                        urlList.Add(relationship.Uri.ToString());
-                                    }
-                                }
-                                catch
-                                {
-                                    urlList.Add("内部链接");
-                                }
-                            }
-                            else if (attr.LocalName == "tooltip" && !string.IsNullOrEmpty(attr.Value))
-                            {
-                                urlList.Add($"提示: {attr.Value}");
-                            }
-                        }
-                    }
-                }
-
-                string urlInfo = urlList.Count > 0 ? string.Join("; ", urlList) : "超链接存在";
-                return (true, urlInfo);
-            }
-
-            // 检查形状文本中是否包含URL模式
-            string shapeText = GetTextFromShape(shape);
-            if (shapeText.Contains("http://") || shapeText.Contains("https://") || shapeText.Contains("www."))
-            {
-                return (true, shapeText);
-            }
-
-            return (false, string.Empty);
+            // 统一改为 Element 解析（保持方法以兼容旧调用）
+            return GetElementHyperlinkInfo(shape, slidePart);
         }
         catch
         {
