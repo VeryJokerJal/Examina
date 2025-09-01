@@ -199,9 +199,9 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
             };
 
             // 处理AI分析结果（如果是C#模块）
-            if (moduleResult.ModuleType == BenchSuite.Models.ModuleType.CSharp && moduleResult is BenchSuite.Models.CSharpModuleResult csharpResult)
+            if (moduleResult.ModuleType == BenchSuite.Models.ModuleType.CSharp)
             {
-                ProcessAIAnalysisResult(moduleItem, csharpResult);
+                ProcessAIAnalysisResult(moduleItem, moduleResult);
             }
 
             ModuleResults.Add(moduleItem);
@@ -236,28 +236,11 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
     /// <summary>
     /// 处理AI分析结果
     /// </summary>
-    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, BenchSuite.Models.CSharpModuleResult csharpResult)
+    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, BenchSuite.Models.ModuleResult moduleResult)
     {
-        if (csharpResult.AILogicalResult != null && csharpResult.AILogicalResult.IsSuccess)
-        {
-            BenchSuite.Models.AILogicalAnalysisResult aiResult = csharpResult.AILogicalResult.Result!;
-            
-            moduleItem.HasAIAnalysis = true;
-            moduleItem.AILogicalScore = aiResult.LogicalScore;
-            moduleItem.AIScoreGrade = CalculateAIGrade(aiResult.LogicalScore);
-            moduleItem.AIProcessingTime = aiResult.ProcessingTimeMs;
-
-            // 处理推理步骤
-            moduleItem.AIReasoningSteps.Clear();
-            foreach (BenchSuite.Models.ReasoningStep step in aiResult.Steps)
-            {
-                moduleItem.AIReasoningSteps.Add(new AIReasoningStepItem
-                {
-                    Explanation = step.Explanation,
-                    Output = step.Output
-                });
-            }
-        }
+        // 目前ModuleResult不包含AI分析结果，这个功能暂时禁用
+        // 如果需要AI分析结果，需要从其他地方获取或者修改ModuleResult结构
+        moduleItem.HasAIAnalysis = false;
     }
 
     /// <summary>
