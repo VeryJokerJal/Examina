@@ -1384,7 +1384,7 @@ public class SpecializedTrainingListViewModel : ViewModelBase
 
         foreach (StudentSpecializedTrainingDto training in trainings)
         {
-            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 加载训练: {training.Name}, EnableTrial: {training.EnableTrial}");
+            System.Diagnostics.Debug.WriteLine($"[SpecializedTraining] 加载训练: {training.Name}, EnableTrial: {training.EnableTrial}, QuestionCount: {training.QuestionCount}, Duration: {training.Duration}");
             Trainings.Add(training);
         }
 
