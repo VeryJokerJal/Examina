@@ -1,6 +1,9 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using Examina.Models;
+using Examina.Models.Enums;
 using Examina.Models.Ranking;
 using Examina.Services;
 using Microsoft.Extensions.Logging;
@@ -85,15 +88,15 @@ public class LeaderboardViewModel : ViewModelBase
     public bool ShowExamFilter { get; set; } = true;
 
     /// <summary>
-    /// 排序类型列表
+    /// 排序选项列表
     /// </summary>
-    public ObservableCollection<SortTypeItem> SortTypes { get; } = [];
+    public ObservableCollection<SortOptionItem> SortOptions { get; } = [];
 
     /// <summary>
-    /// 选中的排序类型
+    /// 选中的排序选项
     /// </summary>
     [Reactive]
-    public SortTypeItem? SelectedSortType { get; set; }
+    public SortOption SelectedSortOption { get; set; } = SortOption.RankAscending;
 
     #endregion
 
@@ -119,6 +122,11 @@ public class LeaderboardViewModel : ViewModelBase
     /// </summary>
     public ICommand SwitchSortTypeCommand { get; }
 
+    /// <summary>
+    /// 排序命令
+    /// </summary>
+    public ICommand SortCommand { get; }
+
     #endregion
 
     #region 构造函数
@@ -129,10 +137,11 @@ public class LeaderboardViewModel : ViewModelBase
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
         SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
         SwitchSortTypeCommand = new DelegateCommand<SortTypeItem>(SwitchSortType);
+        SortCommand = new DelegateCommand<SortOption>(ApplySortOption);
 
         InitializeLeaderboardTypes();
         InitializeExamFilters();
-        InitializeSortTypes();
+        InitializeSortOptions();
 
         _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
             .Where(type => type != null)
@@ -159,9 +168,8 @@ public class LeaderboardViewModel : ViewModelBase
                 OnExamFilterChanged(filter!);
             });
 
-        _ = this.WhenAnyValue(x => x.SelectedSortType)
-            .Where(sortType => sortType != null)
-            .Subscribe(sortType => OnSortTypeChanged(sortType!));
+        _ = this.WhenAnyValue(x => x.SelectedSortOption)
+            .Subscribe(sortOption => ApplySorting());
     }
 
     public LeaderboardViewModel(
@@ -181,10 +189,11 @@ public class LeaderboardViewModel : ViewModelBase
         SwitchLeaderboardTypeCommand = new DelegateCommand<LeaderboardTypeItem>(SwitchLeaderboardType);
         SwitchExamFilterCommand = new DelegateCommand<ExamFilterItem>(SwitchExamFilter);
         SwitchSortTypeCommand = new DelegateCommand<SortTypeItem>(SwitchSortType);
+        SortCommand = new DelegateCommand<SortOption>(ApplySortOption);
 
         InitializeLeaderboardTypes();
         InitializeExamFilters();
-        InitializeSortTypes();
+        InitializeSortOptions();
 
         _ = this.WhenAnyValue(x => x.SelectedLeaderboardType)
             .Where(type => type != null)
@@ -195,9 +204,8 @@ public class LeaderboardViewModel : ViewModelBase
             .Where(filter => filter != null)
             .Subscribe(filter => OnExamFilterChanged(filter!));
 
-        _ = this.WhenAnyValue(x => x.SelectedSortType)
-            .Where(sortType => sortType != null)
-            .Subscribe(sortType => OnSortTypeChanged(sortType!));
+        _ = this.WhenAnyValue(x => x.SelectedSortOption)
+            .Subscribe(sortOption => ApplySorting());
     }
 
     public LeaderboardViewModel(
@@ -274,45 +282,18 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 初始化排序类型列表
+    /// 初始化排序选项列表
     /// </summary>
-    private void InitializeSortTypes()
+    private void InitializeSortOptions()
     {
-        SortTypes.Clear();
-
-        SortTypes.Add(new SortTypeItem
-        {
-            Id = "score",
-            Name = "按分数排序",
-            Description = "按考试分数从高到低排序",
-            Icon = "🏆"
-        });
-
-        SortTypes.Add(new SortTypeItem
-        {
-            Id = "school",
-            Name = "按学校排序",
-            Description = "按学校名称排序",
-            Icon = "🏫"
-        });
-
-        SortTypes.Add(new SortTypeItem
-        {
-            Id = "class",
-            Name = "按班级排序",
-            Description = "按班级名称排序",
-            Icon = "👥"
-        });
-
-        SortTypes.Add(new SortTypeItem
-        {
-            Id = "time",
-            Name = "按时间排序",
-            Description = "按完成时间排序",
-            Icon = "⏰"
-        });
-
-        SelectedSortType = SortTypes.FirstOrDefault();
+        SortOptions.Clear();
+        SortOptions.Add(new SortOptionItem(SortOption.RankAscending, true)); // 默认选中
+        SortOptions.Add(new SortOptionItem(SortOption.ScoreDescending));
+        SortOptions.Add(new SortOptionItem(SortOption.ScoreAscending));
+        SortOptions.Add(new SortOptionItem(SortOption.TimeLatest));
+        SortOptions.Add(new SortOptionItem(SortOption.TimeEarliest));
+        SortOptions.Add(new SortOptionItem(SortOption.NameAscending));
+        SortOptions.Add(new SortOptionItem(SortOption.NameDescending));
     }
 
     /// <summary>
@@ -394,7 +375,7 @@ public class LeaderboardViewModel : ViewModelBase
         {
             IsLoading = false;
 
-            if (LeaderboardData.Any() && SelectedSortType != null)
+            if (LeaderboardData.Any())
             {
                 ApplySorting();
             }
@@ -437,7 +418,7 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 切换排序类型
+    /// 切换排序类型（向后兼容性方法）
     /// </summary>
     private void SwitchSortType(SortTypeItem? sortType)
     {
@@ -446,8 +427,17 @@ public class LeaderboardViewModel : ViewModelBase
             return;
         }
 
-        SelectedSortType = sortType;
-        ApplySorting();
+        // 映射旧的排序类型到新的排序选项
+        SortOption newSortOption = sortType.Id switch
+        {
+            "score" => SortOption.ScoreDescending,
+            "school" => SortOption.NameAscending, // 学校排序映射到用户名排序
+            "class" => SortOption.NameAscending,  // 班级排序映射到用户名排序
+            "time" => SortOption.TimeLatest,
+            _ => SortOption.RankAscending
+        };
+
+        ApplySortOption(newSortOption);
     }
 
     /// <summary>
@@ -490,13 +480,13 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 排序类型变化处理
+    /// 排序类型变化处理（向后兼容性方法）
     /// </summary>
     private void OnSortTypeChanged(SortTypeItem sortType)
     {
         if (!IsLoading && LeaderboardData.Any())
         {
-            ApplySorting();
+            SwitchSortType(sortType);
         }
     }
 
@@ -691,35 +681,59 @@ public class LeaderboardViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 应用排序选项
+    /// </summary>
+    /// <param name="sortOption">排序选项</param>
+    private void ApplySortOption(SortOption sortOption)
+    {
+        SelectedSortOption = sortOption;
+
+        // 更新排序选项的选中状态
+        foreach (SortOptionItem item in SortOptions)
+        {
+            item.IsSelected = item.Value == sortOption;
+        }
+    }
+
+    /// <summary>
     /// 应用排序
     /// </summary>
     private void ApplySorting()
     {
-        if (SelectedSortType == null || !LeaderboardData.Any())
+        if (!LeaderboardData.Any())
         {
             return;
         }
 
         try
         {
-            List<LeaderboardEntry> sortedData = SelectedSortType.Id switch
+            List<LeaderboardEntry> sortedData = SelectedSortOption switch
             {
-                "score" => [.. LeaderboardData.OrderByDescending(x => x.Score)
-                                         .ThenBy(x => x.CompletionTime)
-                                         .ThenBy(x => x.CompletionDate)],
-                "school" => [.. LeaderboardData.OrderBy(x => x.SchoolName)
-                                          .ThenBy(x => x.ClassName)
-                                          .ThenByDescending(x => x.Score)],
-                "class" => [.. LeaderboardData.OrderBy(x => x.ClassName)
-                                         .ThenBy(x => x.SchoolName)
-                                         .ThenByDescending(x => x.Score)],
-                "time" => [.. LeaderboardData.OrderBy(x => x.CompletionDate).ThenByDescending(x => x.Score)],
-                _ => [.. LeaderboardData.OrderByDescending(x => x.Score).ThenBy(x => x.CompletionTime)]
+                SortOption.RankAscending => [.. LeaderboardData.OrderBy(x => x.Rank)],
+                SortOption.ScoreDescending => [.. LeaderboardData.OrderByDescending(x => x.Score)
+                                                           .ThenBy(x => x.CompletionTime)
+                                                           .ThenBy(x => x.CompletionDate)],
+                SortOption.ScoreAscending => [.. LeaderboardData.OrderBy(x => x.Score)
+                                                          .ThenByDescending(x => x.CompletionTime)
+                                                          .ThenByDescending(x => x.CompletionDate)],
+                SortOption.TimeLatest => [.. LeaderboardData.OrderByDescending(x => x.CompletionDate)
+                                                      .ThenByDescending(x => x.Score)],
+                SortOption.TimeEarliest => [.. LeaderboardData.OrderBy(x => x.CompletionDate)
+                                                        .ThenByDescending(x => x.Score)],
+                SortOption.NameAscending => [.. LeaderboardData.OrderBy(x => x.Username)
+                                                         .ThenByDescending(x => x.Score)],
+                SortOption.NameDescending => [.. LeaderboardData.OrderByDescending(x => x.Username)
+                                                          .ThenByDescending(x => x.Score)],
+                _ => [.. LeaderboardData.OrderBy(x => x.Rank)]
             };
 
-            for (int i = 0; i < sortedData.Count; i++)
+            // 只有在非排名排序时才重新计算排名
+            if (SelectedSortOption != SortOption.RankAscending)
             {
-                sortedData[i].Rank = i + 1;
+                for (int i = 0; i < sortedData.Count; i++)
+                {
+                    sortedData[i].Rank = i + 1;
+                }
             }
 
             LeaderboardData.Clear();

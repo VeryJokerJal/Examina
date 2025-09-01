@@ -90,13 +90,12 @@
 								<th>训练信息</th>
 								<th>类型/状态</th>
 								<th>训练设置</th>
-								<th>内容统计</th>
 								<th>导入信息</th>
 								<th>操作</th>
 							</tr>
 						</thead>
 						<tbody>
-							@foreach (var comprehensiveTraining in Model.OrderByDescending(e => e.ImportedAt))
+							@foreach (ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTraining comprehensiveTraining in Model.OrderByDescending(e => e.ImportedAt))
 							{
 								<tr>
 									<td>
@@ -149,13 +148,6 @@
 											<small class="text-muted">总分:</small> <strong>@comprehensiveTraining.TotalScore 分</strong><br>
 											<small class="text-muted">时长:</small> <strong>@comprehensiveTraining.DurationMinutes 分钟</strong><br>
 											<small class="text-muted">及格:</small> <strong>@comprehensiveTraining.PassingScore 分</strong>
-										</div>
-									</td>
-									<td>
-										<div>
-											<small class="text-muted">科目:</small> <strong>@comprehensiveTraining.Subjects.Count</strong><br>
-											<small class="text-muted">模块:</small> <strong>@comprehensiveTraining.Modules.Count</strong><br>
-											<small class="text-muted">题目:</small> <strong>@(comprehensiveTraining.Subjects.Sum(s => s.Questions.Count) + comprehensiveTraining.Modules.Sum(m => m.Questions.Count))</strong>
 										</div>
 									</td>
 									<td>

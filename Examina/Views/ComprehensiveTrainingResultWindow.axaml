@@ -209,10 +209,10 @@
                                             <TextBlock Classes="content" IsVisible="{Binding Details, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding Details}" TextWrapping="Wrap" />
 
                                             <!--  该模块的题目列表  -->
-                                            <ItemsControl ItemsSource="{Binding $parent[Window].((vm:ComprehensiveTrainingResultViewModel)DataContext).QuestionResults}">
+                                            <ItemsControl ItemsSource="{Binding ModuleQuestions}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border Margin="0,5" Padding="10" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4" IsVisible="{Binding ModuleName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                        <Border Margin="0,5" Padding="10" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="Auto" />

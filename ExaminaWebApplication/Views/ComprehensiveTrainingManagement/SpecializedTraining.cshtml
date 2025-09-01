@@ -1,4 +1,4 @@
-@model List<ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining>
+﻿@model List<ExaminaWebApplication.Models.ImportedSpecializedTraining.ImportedSpecializedTraining>
 @{
     ViewData["Title"] = "专项训练管理";
 }
@@ -66,6 +66,28 @@
     .specialized-training-page .glass-table thead th:hover::before {
         left: 100%;
     }
+
+    /* 响应式设计 */
+    @@media (max-width: 768px) {
+        .specialized-training-page .glass-table {
+            font-size: 0.875rem;
+        }
+
+        .specialized-training-page .btn-group-sm .btn {
+            padding: 0.25rem 0.4rem;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .specialized-training-page .glass-table thead th,
+        .specialized-training-page .glass-table tbody td {
+            padding: 0.5rem 0.25rem;
+        }
+    }
 </style>
 
 <!-- 页面标题横幅 -->
@@ -129,21 +151,53 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card text-center">
-                <div class="card-body">
-                    <i class="bi bi-question-circle display-4 text-warning mb-2"></i>
-                    <h3 class="fw-bold">@Model.Sum(t => t.Questions.Count)</h3>
-                    <p class="text-muted mb-0">题目总数</p>
-                </div>
-            </div>
-        </div>
+
         <div class="col-md-3">
             <div class="glass-card text-center">
                 <div class="card-body">
                     <i class="bi bi-check-circle display-4 text-info mb-2"></i>
                     <h3 class="fw-bold">@Model.Count(t => t.IsEnabled)</h3>
                     <p class="text-muted mb-0">启用的训练</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 试用功能统计 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-play-circle display-4 text-success mb-2"></i>
+                    <h3 class="fw-bold">@Model.Count(t => t.EnableTrial)</h3>
+                    <p class="text-muted mb-0">开放试用</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-pause-circle display-4 text-warning mb-2"></i>
+                    <h3 class="fw-bold">@Model.Count(t => !t.EnableTrial)</h3>
+                    <p class="text-muted mb-0">关闭试用</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-shield-check display-4 text-primary mb-2"></i>
+                    <h3 class="fw-bold">@Model.Count(t => t.IsEnabled && t.EnableTrial)</h3>
+                    <p class="text-muted mb-0">可用训练</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-collection display-4 text-info mb-2"></i>
+                    <h3 class="fw-bold">@Model.Sum(t => t.Modules.Count)</h3>
+                    <p class="text-muted mb-0">总模块数</p>
                 </div>
             </div>
         </div>
@@ -176,10 +230,8 @@
                             <tr>
                                 <th>训练名称</th>
                                 <th>模块类型</th>
-                                <th>总分</th>
-                                <th>时长</th>
-                                <th>题目数</th>
                                 <th>状态</th>
+                                <th>试用功能</th>
                                 <th>导入时间</th>
                                 <th>操作</th>
                             </tr>
@@ -222,9 +274,6 @@
                                     <td>
                                         <span class="badge bg-info">@training.ModuleType</span>
                                     </td>
-                                    <td>@training.TotalScore 分</td>
-                                    <td>@training.Duration 分钟</td>
-                                    <td>@training.Questions.Count</td>
                                     <td>
                                         @if (training.IsEnabled)
                                         {
@@ -233,6 +282,20 @@
                                         else
                                         {
                                             <span class="badge bg-secondary">禁用</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (training.EnableTrial)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-play-circle me-1"></i>开放试用
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-pause-circle me-1"></i>关闭试用
+                                            </span>
                                         }
                                     </td>
                                     <td>
@@ -306,7 +369,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const moduleTypeFilter = document.getElementById('moduleTypeFilter');
     const table = document.getElementById('specializedTrainingTable');
-    
+
+    // 验证必要元素是否存在
+    if (!searchInput || !moduleTypeFilter || !table) {
+        console.warn('页面元素未完全加载，某些功能可能不可用');
+        return;
+    }
+
     // 搜索功能
     searchInput.addEventListener('input', filterTable);
     moduleTypeFilter.addEventListener('change', filterTable);
@@ -485,4 +554,6 @@ function startEditSpecializedTrainingName(trainingId, currentName) {
             }
         }, 3000);
     }
+
+
 </script>

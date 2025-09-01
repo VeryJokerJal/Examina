@@ -90,13 +90,12 @@
 								<th>考试信息</th>
 								<th>类型/状态</th>
 								<th>考试设置</th>
-								<th>内容统计</th>
 								<th>导入信息</th>
 								<th>操作</th>
 							</tr>
 						</thead>
 						<tbody>
-							@foreach (var exam in Model.OrderByDescending(e => e.ImportedAt))
+							@foreach (ExaminaWebApplication.Models.ImportedExam.ImportedExam exam in Model.OrderByDescending(e => e.ImportedAt))
 							{
 								<tr data-exam-name="@exam.Name.ToLower()"
 									data-exam-description="@(exam.Description?.ToLower() ?? "")"
@@ -130,7 +129,7 @@
 											@if (!string.IsNullOrEmpty(exam.Tags))
 											{
 												<div class="mt-1">
-													@foreach (var tag in exam.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+													@foreach (string tag in exam.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
 													{
 														<span class="badge bg-light text-dark me-1">@tag.Trim()</span>
 													}
@@ -168,13 +167,6 @@
 											{
 												<div><strong>重考:</strong> 最多 @exam.MaxRetakeCount 次</div>
 											}
-										</div>
-									</td>
-									<td>
-										<div class="small">
-											<div><i class="bi bi-collection me-1"></i>科目: @exam.Subjects.Count</div>
-											<div><i class="bi bi-grid-3x3-gap me-1"></i>模块: @exam.Modules.Count</div>
-											<div><i class="bi bi-question-circle me-1"></i>题目: @(exam.Subjects.Sum(s => s.QuestionCount) + exam.Modules.Sum(m => m.Questions.Count))</div>
 										</div>
 									</td>
 									<td>

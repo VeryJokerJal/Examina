@@ -161,8 +161,6 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
                 ErrorMessage = result.ErrorMessage ?? string.Empty
             };
 
-            ModuleResults.Add(moduleItem);
-
             // 处理题目结果（使用知识点结果）
             foreach (KnowledgePointResult knowledgePoint in result.KnowledgePointResults)
             {
@@ -176,8 +174,14 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
                     ErrorMessage = knowledgePoint.ErrorMessage ?? string.Empty
                 };
 
+                // 将题目添加到对应模块的题目列表中
+                moduleItem.ModuleQuestions.Add(questionItem);
+
+                // 同时添加到全局题目列表中（用于统计）
                 QuestionResults.Add(questionItem);
             }
+
+            ModuleResults.Add(moduleItem);
         }
     }
 
@@ -276,6 +280,11 @@ public class SpecializedModuleResultItem : ReactiveObject
     }
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    /// <summary>
+    /// 属于该模块的题目结果列表
+    /// </summary>
+    public ObservableCollection<SpecializedQuestionResultItem> ModuleQuestions { get; } = [];
 }
 
 /// <summary>

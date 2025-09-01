@@ -1,4 +1,4 @@
-﻿<Application x:Class="Examina.App" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sty="using:FluentAvalonia.Styling" xmlns:views="clr-namespace:Examina.Views.Pages" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" xmlns:converters="clr-namespace:Examina.Converters" xmlns:vmFileDownload="clr-namespace:Examina.ViewModels.FileDownload" xmlns:viewsFileDownload="clr-namespace:Examina.Views.FileDownload" RequestedThemeVariant="Default">
+﻿<Application x:Class="Examina.App" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="clr-namespace:Examina.Converters" xmlns:sty="using:FluentAvalonia.Styling" xmlns:views="clr-namespace:Examina.Views.Pages" xmlns:viewsFileDownload="clr-namespace:Examina.Views.FileDownload" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" xmlns:vmFileDownload="clr-namespace:Examina.ViewModels.FileDownload" RequestedThemeVariant="Default">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Resources>
@@ -173,9 +173,6 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SpecializedTrainingListViewModel}">
             <views:SpecializedTrainingListView />
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type vmFileDownload:FileDownloadPreparationViewModel}">
-            <viewsFileDownload:FileDownloadPreparationView />
         </DataTemplate>
     </Application.DataTemplates>
 </Application>

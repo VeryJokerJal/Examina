@@ -1,34 +1,60 @@
-﻿<UserControl x:Class="Examina.Views.Pages.LeaderboardView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:LeaderboardViewModel" mc:Ignorable="d">
+﻿<UserControl x:Class="Examina.Views.Pages.LeaderboardView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="using:Examina.Converters" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:vm="clr-namespace:Examina.ViewModels.Pages" d:DesignHeight="600" d:DesignWidth="800" x:DataType="vm:LeaderboardViewModel" mc:Ignorable="d">
 
-    <ScrollViewer>
-        <StackPanel Margin="24" Spacing="24">
+    <UserControl.Resources>
+        <converters:DebugMultiValueConverter x:Key="DebugConverter" />
+        <converters:TrainingButtonTextConverter x:Key="ButtonTextConverter" />
+    </UserControl.Resources>
 
-            <!--  页面标题  -->
-            <TextBlock FontFamily="Microsoft YaHei" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="{Binding PageTitle}" />
-
-            <!--  排行榜类型选择  -->
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="排行榜类型:" />
-                <ComboBox MinWidth="200" DisplayMemberBinding="{Binding Name}" FontFamily="Microsoft YaHei" ItemsSource="{Binding LeaderboardTypes}" SelectedItem="{Binding SelectedLeaderboardType}" />
-
-                <!--  试卷筛选器  -->
-                <TextBlock VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" IsVisible="{Binding ShowExamFilter}" Text="试卷筛选:" />
-                <ComboBox MinWidth="150" DisplayMemberBinding="{Binding DisplayName}" FontFamily="Microsoft YaHei" IsVisible="{Binding ShowExamFilter}" ItemsSource="{Binding ExamFilters}" SelectedItem="{Binding SelectedExamFilter}" />
-
-                <!--  排序类型选择  -->
-                <TextBlock VerticalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" Text="排序方式:" />
-                <ComboBox MinWidth="150" DisplayMemberBinding="{Binding Name}" FontFamily="Microsoft YaHei" ItemsSource="{Binding SortTypes}" SelectedItem="{Binding SelectedSortType}" />
-
-                <Button Padding="12,6" Command="{Binding RefreshLeaderboardCommand}" Content="刷新" FontFamily="Microsoft YaHei" />
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!--  标题栏  -->
+        <Border Grid.Row="0" Padding="20,15" Background="{DynamicResource SystemAccentColor}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" FontSize="20" FontWeight="Bold" Foreground="White" Text="{Binding PageTitle}" />
             </StackPanel>
+        </Border>
 
-            <!--  内容区域  -->
-            <Border MinHeight="400" Padding="0" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8">
+        <!--  筛选和排序栏  -->
+        <Border Grid.Row="1" Padding="20,15" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            <Grid RowDefinitions="Auto,Auto">
+                <!--  第一行：排行榜类型和试卷筛选  -->
+                <Grid Grid.Row="0" Margin="0,0,0,10" ColumnDefinitions="Auto,*,Auto,*,Auto">
+                    <!--  排行榜类型选择  -->
+                    <TextBlock Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center" Text="排行榜类型:" />
+                    <ComboBox Grid.Column="1" MinWidth="200" Margin="0,0,20,0" DisplayMemberBinding="{Binding Name}" ItemsSource="{Binding LeaderboardTypes}" SelectedItem="{Binding SelectedLeaderboardType}" />
 
-                <!--  使用Grid作为容器来支持多个子元素  -->
-                <Grid>
-                    <!--  排行榜数据  -->
-                    <DataGrid FontFamily="Microsoft YaHei" GridLinesVisibility="Horizontal" HeadersVisibility="Column" IsReadOnly="True" IsVisible="{Binding !IsLoading}" ItemsSource="{Binding LeaderboardData}">
+                    <!--  试卷筛选器  -->
+                    <TextBlock Grid.Column="2" Margin="0,0,10,0" VerticalAlignment="Center" IsVisible="{Binding ShowExamFilter}" Text="试卷筛选:" />
+                    <ComboBox Grid.Column="3" MinWidth="150" Margin="0,0,20,0" DisplayMemberBinding="{Binding DisplayName}" IsVisible="{Binding ShowExamFilter}" ItemsSource="{Binding ExamFilters}" SelectedItem="{Binding SelectedExamFilter}" />
+
+                    <!--  刷新按钮  -->
+                    <Button Grid.Column="4" Classes="accent" Command="{Binding RefreshLeaderboardCommand}" Content="刷新" />
+                </Grid>
+
+                <!--  第二行：排序选项  -->
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+                    <TextBlock Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center" Text="排序方式:" />
+                    <ItemsControl Grid.Column="1" ItemsSource="{Binding SortOptions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="10" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton Command="{Binding $parent[UserControl].((vm:LeaderboardViewModel)DataContext).SortCommand}" CommandParameter="{Binding Value}" Content="{Binding DisplayText}" IsChecked="{Binding IsSelected}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!--  主内容区域  -->
+        <ScrollViewer Grid.Row="2" Padding="20">
+            <StackPanel Spacing="15">
+                <!--  排行榜数据  -->
+                <Border MinHeight="400" Padding="20" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" IsVisible="{Binding !IsLoading}">
+                    <DataGrid GridLinesVisibility="Horizontal" HeadersVisibility="Column" IsReadOnly="True" ItemsSource="{Binding LeaderboardData}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Width="80" Binding="{Binding Rank}" Header="排名" />
                             <DataGridTextColumn Width="150" Binding="{Binding Username}" Header="用户名" />
@@ -39,38 +65,48 @@
                             <DataGridTextColumn Width="180" Binding="{Binding CompletionDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Header="完成时间" />
                         </DataGrid.Columns>
                     </DataGrid>
+                </Border>
 
-                    <!--  加载状态  -->
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsLoading}" Spacing="12">
+                <!--  加载状态  -->
+                <Border Padding="40" HorizontalAlignment="Center" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5" IsVisible="{Binding IsLoading}">
+                    <StackPanel HorizontalAlignment="Center" Spacing="10">
                         <ProgressBar Width="200" IsIndeterminate="True" />
-                        <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="正在加载排行榜数据..." />
+                        <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="正在加载排行榜数据..." />
                     </StackPanel>
+                </Border>
 
-                    <!--  错误信息  -->
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Spacing="12">
-                        <TextBlock HorizontalAlignment="Center" FontSize="48" Text="⚠️" />
-                        <TextBlock MaxWidth="400" HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
-                        <Button Padding="12,6" HorizontalAlignment="Center" Command="{Binding RefreshLeaderboardCommand}" Content="重试" />
+                <!--  错误状态  -->
+                <Border Padding="40" HorizontalAlignment="Center" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5">
+                    <Border.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="!IsLoading" />
+                            <Binding Converter="{x:Static StringConverters.IsNotNullOrEmpty}" Path="ErrorMessage" />
+                        </MultiBinding>
+                    </Border.IsVisible>
+                    <StackPanel HorizontalAlignment="Center" Spacing="10">
+                        <TextBlock HorizontalAlignment="Center" FontSize="48" Opacity="0.5" Text="❌" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="加载失败" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+                        <Button Classes="accent" Command="{Binding RefreshLeaderboardCommand}" Content="重试" />
                     </StackPanel>
+                </Border>
 
-                    <!--  空数据状态  -->
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                        <StackPanel.IsVisible>
-                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="!IsLoading" />
-                                <Binding Converter="{x:Static StringConverters.IsNullOrEmpty}" Path="ErrorMessage" />
-                                <Binding Converter="{x:Static ObjectConverters.Equal}" ConverterParameter="0" Path="LeaderboardData.Count" />
-                            </MultiBinding>
-                        </StackPanel.IsVisible>
-
-                        <TextBlock HorizontalAlignment="Center" FontSize="48" Text="📊" />
-                        <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="暂无排行榜数据" />
-                        <TextBlock HorizontalAlignment="Center" FontFamily="Microsoft YaHei" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="当前还没有完成的考试或训练记录" />
+                <!--  空状态  -->
+                <Border Padding="40" HorizontalAlignment="Center" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="5">
+                    <Border.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="!IsLoading" />
+                            <Binding Converter="{x:Static StringConverters.IsNullOrEmpty}" Path="ErrorMessage" />
+                            <Binding Converter="{x:Static ObjectConverters.Equal}" ConverterParameter="0" Path="LeaderboardData.Count" />
+                        </MultiBinding>
+                    </Border.IsVisible>
+                    <StackPanel HorizontalAlignment="Center" Spacing="10">
+                        <TextBlock HorizontalAlignment="Center" FontSize="48" Opacity="0.5" Text="📊" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="暂无排行榜数据" />
+                        <TextBlock HorizontalAlignment="Center" FontSize="14" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="当前还没有完成的考试或训练记录" />
                     </StackPanel>
-
-                </Grid>
-            </Border>
-
-        </StackPanel>
-    </ScrollViewer>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

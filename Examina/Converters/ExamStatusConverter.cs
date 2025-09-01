@@ -16,14 +16,7 @@ public class ExamStatusConverter : IValueConverter
             if (examWithPermissions.Exam.StartTime.HasValue && examWithPermissions.Exam.EndTime.HasValue)
             {
                 DateTime now = DateTime.Now;
-                if (now < examWithPermissions.Exam.StartTime.Value)
-                {
-                    return "即将开始";
-                }
-                else
-                {
-                    return now > examWithPermissions.Exam.EndTime.Value ? "联考已结束" : "联考正在进行中";
-                }
+                return now < examWithPermissions.Exam.StartTime.Value ? "即将开始" : now > examWithPermissions.Exam.EndTime.Value ? "联考已结束" : "联考正在进行中";
             }
 
             return examWithPermissions.Exam.Status switch
@@ -57,14 +50,7 @@ public class ExamButtonTextConverter : IValueConverter
             if (exam.StartTime.HasValue && exam.EndTime.HasValue)
             {
                 DateTime now = DateTime.Now;
-                if (now < exam.StartTime.Value)
-                {
-                    return "即将开始";
-                }
-                else
-                {
-                    return now > exam.EndTime.Value ? "查看结果" : "开始考试";
-                }
+                return now < exam.StartTime.Value ? "即将开始" : now > exam.EndTime.Value ? "查看结果" : "开始考试";
             }
 
             return exam.Status switch

@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Text;
 using BenchSuite.Models;
 using Examina.Models.BenchSuite;
 using ReactiveUI;
@@ -205,8 +206,6 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
                 ProcessAIAnalysisResult(moduleItem, moduleResult);
             }
 
-            ModuleResults.Add(moduleItem);
-
             // 处理题目结果（使用知识点结果）
             foreach (KnowledgePointResult knowledgePoint in moduleResult.KnowledgePointResults)
             {
@@ -223,8 +222,14 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
                     ErrorMessage = knowledgePoint.ErrorMessage ?? string.Empty
                 };
 
+                // 将题目添加到对应模块的题目列表中
+                moduleItem.ModuleQuestions.Add(questionItem);
+
+                // 同时添加到全局题目列表中（用于统计）
                 QuestionResults.Add(questionItem);
             }
+
+            ModuleResults.Add(moduleItem);
         }
 
         // 更新统计信息
@@ -431,6 +436,11 @@ public class ComprehensiveModuleResultItem : ReactiveObject
     }
 
     public ObservableCollection<AIReasoningStepItem> AIReasoningSteps { get; } = [];
+
+    /// <summary>
+    /// 属于该模块的题目结果列表
+    /// </summary>
+    public ObservableCollection<ComprehensiveQuestionResultItem> ModuleQuestions { get; } = [];
 }
 
 /// <summary>

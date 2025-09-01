@@ -23,7 +23,22 @@ public enum SortOption
     /// <summary>
     /// 按时间最晚排序（创建时间或导入时间降序）
     /// </summary>
-    TimeLatest
+    TimeLatest,
+
+    /// <summary>
+    /// 按分数从高到低排序
+    /// </summary>
+    ScoreDescending,
+
+    /// <summary>
+    /// 按分数从低到高排序
+    /// </summary>
+    ScoreAscending,
+
+    /// <summary>
+    /// 按排名排序（默认排序方式）
+    /// </summary>
+    RankAscending
 }
 
 /// <summary>
@@ -44,6 +59,9 @@ public static class SortOptionExtensions
             SortOption.NameDescending => "按名称Z-A排序",
             SortOption.TimeEarliest => "按时间最早排序",
             SortOption.TimeLatest => "按时间最晚排序",
+            SortOption.ScoreDescending => "按分数从高到低排序",
+            SortOption.ScoreAscending => "按分数从低到高排序",
+            SortOption.RankAscending => "按排名排序",
             _ => "未知排序"
         };
     }
@@ -61,6 +79,9 @@ public static class SortOptionExtensions
             SortOption.NameDescending => "名称降序",
             SortOption.TimeEarliest => "时间升序",
             SortOption.TimeLatest => "时间降序",
+            SortOption.ScoreDescending => "分数降序",
+            SortOption.ScoreAscending => "分数升序",
+            SortOption.RankAscending => "排名升序",
             _ => "未知"
         };
     }

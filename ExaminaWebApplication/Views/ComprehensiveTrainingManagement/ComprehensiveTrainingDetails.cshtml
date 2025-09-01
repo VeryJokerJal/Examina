@@ -3,6 +3,35 @@
 	ViewData["Title"] = $"综合训练详情 - {Model.Name}";
 }
 
+<style>
+	/* 响应式设计优化 */
+	@@media (max-width: 768px) {
+		.row.g-3 .col-4 {
+			flex: 0 0 100%;
+			max-width: 100%;
+			margin-bottom: 1rem;
+		}
+
+		.glass-card .card-body .row.g-3 {
+			margin: 0;
+		}
+
+		.glass-card .card-body .row.g-3 > div {
+			padding: 0.5rem;
+		}
+	}
+
+	@@media (max-width: 576px) {
+		.h4 {
+			font-size: 1.25rem;
+		}
+
+		.glass-card .card-body {
+			padding: 1rem;
+		}
+	}
+</style>
+
 <!-- 页面标题横幅 -->
 <div class="glass-card glass-card-primary py-4 mb-4">
 	<div class="container">
@@ -52,7 +81,7 @@
 							{
 								<div class="mb-3">
 									<strong>标签：</strong>
-									@foreach (var tag in Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+									@foreach (string tag in Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
 									{
 										<span class="badge bg-secondary me-1">@tag.Trim()</span>
 									}
@@ -154,25 +183,19 @@
 				</div>
 				<div class="card-body">
 					<div class="row g-3">
-						<div class="col-6">
-							<div class="text-center">
-								<div class="h4 text-primary mb-1">@Model.Subjects.Count</div>
-								<small class="text-muted">科目数</small>
-							</div>
-						</div>
-						<div class="col-6">
+						<div class="col-4">
 							<div class="text-center">
 								<div class="h4 text-success mb-1">@Model.Modules.Count</div>
 								<small class="text-muted">模块数</small>
 							</div>
 						</div>
-						<div class="col-6">
+						<div class="col-4">
 							<div class="text-center">
 								<div class="h4 text-warning mb-1">@(Model.Subjects.Sum(s => s.Questions.Count) + Model.Modules.Sum(m => m.Questions.Count))</div>
 								<small class="text-muted">题目数</small>
 							</div>
 						</div>
-						<div class="col-6">
+						<div class="col-4">
 							<div class="text-center">
 								<div class="h4 text-info mb-1">@(Model.Subjects.SelectMany(s => s.Questions).SelectMany(q => q.OperationPoints).Count() + Model.Modules.SelectMany(m => m.Questions).SelectMany(q => q.OperationPoints).Count())</div>
 								<small class="text-muted">操作点数</small>
@@ -198,7 +221,7 @@
 					</div>
 					<div class="card-body">
 						<div class="row">
-							@foreach (var subject in Model.Subjects.OrderBy(s => s.SortOrder))
+							@foreach (ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTrainingSubject subject in Model.Subjects.OrderBy(s => s.SortOrder))
 							{
 								<div class="col-md-6 mb-3">
 									<div class="glass-card glass-card-accent">
@@ -246,7 +269,7 @@
 					</div>
 					<div class="card-body">
 						<div class="row">
-							@foreach (var module in Model.Modules.OrderBy(m => m.Order))
+							@foreach (ExaminaWebApplication.Models.ImportedComprehensiveTraining.ImportedComprehensiveTrainingModule module in Model.Modules.OrderBy(m => m.Order))
 							{
 								<div class="col-md-6 mb-3">
 									<div class="glass-card glass-card-accent">
