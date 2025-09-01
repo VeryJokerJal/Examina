@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -123,14 +123,14 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
     /// <param name="trainingName">训练名称</param>
     /// <param name="scoringResults">BenchSuite评分结果字典（按模块类型分组）</param>
     /// <param name="startTime">训练开始时间</param>
-    public void SetTrainingResult(string trainingName, Dictionary<BenchSuite.Models.ModuleType, BenchSuite.Models.ScoringResult> scoringResults, DateTime startTime)
+    public void SetTrainingResult(string trainingName, Dictionary<ModuleType, ScoringResult> scoringResults, DateTime startTime)
     {
         TrainingName = trainingName;
         Title = $"专项训练结果 - {trainingName}";
 
         // 计算正确率
-        int totalQuestions = scoringResults.Values.Sum(r => r.Questions.Count);
-        int correctQuestions = scoringResults.Values.Sum(r => r.Questions.Count(q => q.IsCorrect));
+        int totalQuestions = scoringResults.Values.Sum(r => r.KnowledgePointResults.Count);
+        int correctQuestions = scoringResults.Values.Sum(r => r.KnowledgePointResults.Count(kp => kp.IsCorrect));
 
         TotalQuestions = totalQuestions;
         CorrectQuestions = correctQuestions;
@@ -148,36 +148,36 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
         QuestionResults.Clear();
 
         // 处理模块结果
-        foreach (KeyValuePair<BenchSuite.Models.ModuleType, BenchSuite.Models.ScoringResult> kvp in scoringResults)
+        foreach (KeyValuePair<ModuleType, ScoringResult> kvp in scoringResults)
         {
-            BenchSuite.Models.ModuleType moduleType = kvp.Key;
-            BenchSuite.Models.ScoringResult result = kvp.Value;
+            ModuleType moduleType = kvp.Key;
+            ScoringResult result = kvp.Value;
 
             SpecializedModuleResultItem moduleItem = new()
             {
                 ModuleName = GetModuleDisplayName(moduleType),
                 ModuleType = moduleType,
-                TotalQuestions = result.Questions.Count,
-                CorrectQuestions = result.Questions.Count(q => q.IsCorrect),
-                IncorrectQuestions = result.Questions.Count(q => !q.IsCorrect),
-                CorrectRate = result.Questions.Count > 0 ? result.Questions.Count(q => q.IsCorrect) / (double)result.Questions.Count * 100 : 0,
+                TotalQuestions = result.KnowledgePointResults.Count,
+                CorrectQuestions = result.KnowledgePointResults.Count(kp => kp.IsCorrect),
+                IncorrectQuestions = result.KnowledgePointResults.Count(kp => !kp.IsCorrect),
+                CorrectRate = result.KnowledgePointResults.Count > 0 ? result.KnowledgePointResults.Count(kp => kp.IsCorrect) / (double)result.KnowledgePointResults.Count * 100 : 0,
                 Details = result.Details ?? string.Empty,
                 ErrorMessage = result.ErrorMessage ?? string.Empty
             };
 
             ModuleResults.Add(moduleItem);
 
-            // 处理题目结果
-            foreach (BenchSuite.Models.QuestionResult question in result.Questions)
+            // 处理题目结果（使用知识点结果）
+            foreach (BenchSuite.Models.KnowledgePointResult knowledgePoint in result.KnowledgePointResults)
             {
                 SpecializedQuestionResultItem questionItem = new()
                 {
-                    QuestionTitle = question.Title,
-                    IsCorrect = question.IsCorrect,
-                    StatusIcon = question.IsCorrect ? "✅" : "❌",
+                    QuestionTitle = knowledgePoint.KnowledgePointName,
+                    IsCorrect = knowledgePoint.IsCorrect,
+                    StatusIcon = knowledgePoint.IsCorrect ? "✅" : "❌",
                     ModuleName = GetModuleDisplayName(moduleType),
-                    Details = question.Details ?? string.Empty,
-                    ErrorMessage = question.ErrorMessage ?? string.Empty
+                    Details = knowledgePoint.Details ?? string.Empty,
+                    ErrorMessage = knowledgePoint.ErrorMessage ?? string.Empty
                 };
 
                 QuestionResults.Add(questionItem);
@@ -203,14 +203,15 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
     /// <summary>
     /// 获取模块显示名称
     /// </summary>
-    private static string GetModuleDisplayName(BenchSuite.Models.ModuleType moduleType)
+    private static string GetModuleDisplayName(ModuleType moduleType)
     {
         return moduleType switch
         {
             BenchSuite.Models.ModuleType.CSharp => "C#",
-            BenchSuite.Models.ModuleType.Database => "数据库",
-            BenchSuite.Models.ModuleType.Web => "Web开发",
-            BenchSuite.Models.ModuleType.Algorithm => "算法",
+            BenchSuite.Models.ModuleType.Excel => "Excel",
+            BenchSuite.Models.ModuleType.Word => "Word",
+            BenchSuite.Models.ModuleType.PowerPoint => "PowerPoint",
+            BenchSuite.Models.ModuleType.Windows => "Windows",
             _ => moduleType.ToString()
         };
     }
@@ -222,7 +223,7 @@ public class SpecializedTrainingResultViewModel : ReactiveObject
 public class SpecializedModuleResultItem : ReactiveObject
 {
     private string _moduleName = string.Empty;
-    private BenchSuite.Models.ModuleType _moduleType;
+    private ModuleType _moduleType;
     private int _totalQuestions;
     private int _correctQuestions;
     private int _incorrectQuestions;
@@ -236,7 +237,7 @@ public class SpecializedModuleResultItem : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _moduleName, value);
     }
 
-    public BenchSuite.Models.ModuleType ModuleType
+    public ModuleType ModuleType
     {
         get => _moduleType;
         set => this.RaiseAndSetIfChanged(ref _moduleType, value);

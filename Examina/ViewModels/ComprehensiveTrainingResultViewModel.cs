@@ -1,6 +1,4 @@
-using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using BenchSuite.Models;
 using Examina.Models.BenchSuite;
 using ReactiveUI;
@@ -182,10 +180,10 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
         QuestionResults.Clear();
 
         // 处理模块结果
-        foreach (KeyValuePair<BenchSuite.Models.ModuleType, BenchSuite.Models.ScoringResult> kvp in benchSuiteResult.ModuleResults)
+        foreach (KeyValuePair<ModuleType, ScoringResult> kvp in benchSuiteResult.ModuleResults)
         {
-            BenchSuite.Models.ModuleType moduleType = kvp.Key;
-            BenchSuite.Models.ScoringResult moduleResult = kvp.Value;
+            ModuleType moduleType = kvp.Key;
+            ScoringResult moduleResult = kvp.Value;
 
             ComprehensiveModuleResultItem moduleItem = new()
             {
@@ -210,7 +208,7 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
             ModuleResults.Add(moduleItem);
 
             // 处理题目结果（使用知识点结果）
-            foreach (BenchSuite.Models.KnowledgePointResult knowledgePoint in moduleResult.KnowledgePointResults)
+            foreach (KnowledgePointResult knowledgePoint in moduleResult.KnowledgePointResults)
             {
                 ComprehensiveQuestionResultItem questionItem = new()
                 {
@@ -239,7 +237,7 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
     /// <summary>
     /// 处理AI分析结果
     /// </summary>
-    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, BenchSuite.Models.ScoringResult moduleResult)
+    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, ScoringResult moduleResult)
     {
         // 目前ModuleResult不包含AI分析结果，这个功能暂时禁用
         // 如果需要AI分析结果，需要从其他地方获取或者修改ModuleResult结构
@@ -255,7 +253,7 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
         {
             >= 90 => "优秀",
             >= 80 => "良好",
-            >= 70 => "中等", 
+            >= 70 => "中等",
             >= 60 => "及格",
             _ => "不及格"
         };
@@ -279,7 +277,7 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
     /// <summary>
     /// 获取模块显示名称
     /// </summary>
-    private static string GetModuleDisplayName(BenchSuite.Models.ModuleType moduleType)
+    private static string GetModuleDisplayName(ModuleType moduleType)
     {
         return moduleType switch
         {
@@ -307,21 +305,21 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
     /// </summary>
     private void GenerateDetailedScoringInfo()
     {
-        System.Text.StringBuilder sb = new();
-        
-        sb.AppendLine($"训练名称: {TrainingName}");
-        sb.AppendLine($"总分: {TotalScore:F1}");
-        sb.AppendLine($"得分: {AchievedScore:F1}");
-        sb.AppendLine($"得分率: {ScoreRate:F1}%");
-        sb.AppendLine($"成绩等级: {Grade}");
-        sb.AppendLine();
-        
-        sb.AppendLine("模块详情:");
+        StringBuilder sb = new();
+
+        _ = sb.AppendLine($"训练名称: {TrainingName}");
+        _ = sb.AppendLine($"总分: {TotalScore:F1}");
+        _ = sb.AppendLine($"得分: {AchievedScore:F1}");
+        _ = sb.AppendLine($"得分率: {ScoreRate:F1}%");
+        _ = sb.AppendLine($"成绩等级: {Grade}");
+        _ = sb.AppendLine();
+
+        _ = sb.AppendLine("模块详情:");
         foreach (ComprehensiveModuleResultItem module in ModuleResults)
         {
-            sb.AppendLine($"  {module.ModuleName}: {module.AchievedScore:F1}/{module.TotalScore:F1} ({module.ScoreRate:F1}%)");
+            _ = sb.AppendLine($"  {module.ModuleName}: {module.AchievedScore:F1}/{module.TotalScore:F1} ({module.ScoreRate:F1}%)");
         }
-        
+
         DetailedScoringInfo = sb.ToString();
     }
 }
@@ -332,7 +330,7 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
 public class ComprehensiveModuleResultItem : ReactiveObject
 {
     private string _moduleName = string.Empty;
-    private BenchSuite.Models.ModuleType _moduleType;
+    private ModuleType _moduleType;
     private double _totalScore;
     private double _achievedScore;
     private double _scoreRate;
@@ -352,7 +350,7 @@ public class ComprehensiveModuleResultItem : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _moduleName, value);
     }
 
-    public BenchSuite.Models.ModuleType ModuleType
+    public ModuleType ModuleType
     {
         get => _moduleType;
         set => this.RaiseAndSetIfChanged(ref _moduleType, value);
