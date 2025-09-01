@@ -51,7 +51,8 @@ public class WordKnowledgeService
             Name = config.Name,
             Description = config.Description,
             ModuleType = ModuleType.Word,
-            WordKnowledgeType = type
+            WordKnowledgeType = type,
+            Score = 1.0
         };
 
         // 根据参数模板创建配置参数
@@ -68,7 +69,8 @@ public class WordKnowledgeService
                 EnumOptions = template.EnumOptions,
                 MinValue = template.MinValue,
                 MaxValue = template.MaxValue,
-                DefaultValue = template.DefaultValue
+                DefaultValue = template.DefaultValue,
+                Value = template.DefaultValue
             };
 
             operationPoint.Parameters.Add(parameter);

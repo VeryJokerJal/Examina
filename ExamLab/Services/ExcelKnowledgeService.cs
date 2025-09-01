@@ -53,7 +53,7 @@ public class ExcelKnowledgeService
             Description = config.Description,
             ModuleType = ModuleType.Excel,
             ExcelKnowledgeType = type,
-            Score = 5.0,
+            Score = 1.0,
             IsEnabled = true,
             CreatedTime = DateTime.UtcNow.ToString("yyyy-MM-dd")
         };

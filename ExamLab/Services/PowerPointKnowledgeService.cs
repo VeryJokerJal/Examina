@@ -50,7 +50,8 @@ public class PowerPointKnowledgeService
             Name = config.Name,
             Description = config.Description,
             ModuleType = ModuleType.PowerPoint,
-            PowerPointKnowledgeType = type
+            PowerPointKnowledgeType = type,
+            Score = 1.0
         };
 
         // 根据模板创建参数
