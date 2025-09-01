@@ -45,6 +45,16 @@ public static class AICodeAnalysisService
         public CodeImprovementResponse? ImprovementSuggestions { get; set; }
 
         /// <summary>
+        /// 扣分评估结果
+        /// </summary>
+        public AIDeductionAssessmentResponse? DeductionAssessment { get; set; }
+
+        /// <summary>
+        /// 生成的CSharpScoringResult列表
+        /// </summary>
+        public List<CSharpScoringResult> ScoringResults { get; set; } = [];
+
+        /// <summary>
         /// 分析耗时（毫秒）
         /// </summary>
         public long AnalysisTimeMs { get; set; }
@@ -110,6 +120,20 @@ public static class AICodeAnalysisService
             {
                 result.ImprovementSuggestions = await GenerateImprovementSuggestionsAsync(
                     projectCode, codeChunks, analysisOptions);
+            }
+
+            if (analysisOptions.IncludeDeductionAssessment)
+            {
+                AIDeductionAssessmentService.DeductionAssessmentResult deductionResult =
+                    await AIDeductionAssessmentService.AssessSingleCodeDeductionsAsync(
+                        projectCode.CombinedSourceCode,
+                        projectCode.ProjectName + ".cs");
+
+                if (deductionResult.IsSuccess)
+                {
+                    result.DeductionAssessment = deductionResult.AssessmentResponse;
+                    result.ScoringResults = deductionResult.ScoringResults;
+                }
             }
 
             result.IsSuccess = true;
@@ -187,6 +211,19 @@ public static class AICodeAnalysisService
             {
                 result.ImprovementSuggestions = await GenerateImprovementSuggestionsAsync(
                     projectCode, codeChunks, analysisOptions);
+            }
+
+            if (analysisOptions.IncludeDeductionAssessment)
+            {
+                AIDeductionAssessmentService.DeductionAssessmentResult deductionResult =
+                    await AIDeductionAssessmentService.AssessSingleCodeDeductionsAsync(
+                        sourceCode, fileName);
+
+                if (deductionResult.IsSuccess)
+                {
+                    result.DeductionAssessment = deductionResult.AssessmentResponse;
+                    result.ScoringResults = deductionResult.ScoringResults;
+                }
             }
 
             result.IsSuccess = true;
@@ -455,6 +492,11 @@ public class CodeAnalysisOptions
     /// 是否包含改进建议
     /// </summary>
     public bool IncludeImprovementSuggestions { get; set; } = true;
+
+    /// <summary>
+    /// 是否包含扣分评估
+    /// </summary>
+    public bool IncludeDeductionAssessment { get; set; } = true;
 
     /// <summary>
     /// 最大代码块大小（字符数）

@@ -711,6 +711,248 @@ public static class AIJsonSchemas
             "additionalProperties": false
         }
         """;
+
+    /// <summary>
+    /// AI扣分评估JSON Schema
+    /// </summary>
+    public const string AIDeductionAssessmentSchema = """
+        {
+            "type": "object",
+            "properties": {
+                "is_success": { "type": "boolean" },
+                "error_message": { "type": "string" },
+                "deduction_points": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "deduction_id": { "type": "string" },
+                            "issue_type": { "type": "string" },
+                            "issue_category": {
+                                "type": "string",
+                                "enum": ["logic_error", "performance_issue", "code_style", "security_vulnerability", "maintainability", "readability", "best_practice_violation", "algorithm_efficiency", "error_handling", "design_pattern"]
+                            },
+                            "severity": {
+                                "type": "string",
+                                "enum": ["low", "medium", "high", "critical"]
+                            },
+                            "deduction_score": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100
+                            },
+                            "description": { "type": "string" },
+                            "location_info": {
+                                "type": "object",
+                                "properties": {
+                                    "file_name": { "type": "string" },
+                                    "line_number": { "type": "integer", "minimum": 1 },
+                                    "column_number": { "type": "integer", "minimum": 1 },
+                                    "method_name": { "type": "string" },
+                                    "class_name": { "type": "string" },
+                                    "code_snippet": { "type": "string" }
+                                },
+                                "additionalProperties": false
+                            },
+                            "deduction_reason": { "type": "string" },
+                            "improvement_suggestion": { "type": "string" },
+                            "example_code": { "type": "string" },
+                            "impact_scope": {
+                                "type": "string",
+                                "enum": ["local", "method", "class", "module", "system"]
+                            },
+                            "is_critical": { "type": "boolean" }
+                        },
+                        "required": ["deduction_id", "issue_type", "issue_category", "severity", "deduction_score", "description", "location_info", "deduction_reason", "improvement_suggestion", "impact_scope", "is_critical"],
+                        "additionalProperties": false
+                    }
+                },
+                "total_deduction": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "assessment_summary": { "type": "string" },
+                "overall_quality_grade": {
+                    "type": "string",
+                    "enum": ["A", "B", "C", "D", "F"]
+                },
+                "issue_category_stats": {
+                    "type": "object",
+                    "additionalProperties": { "type": "integer", "minimum": 0 }
+                }
+            },
+            "required": ["is_success", "deduction_points", "total_deduction", "assessment_summary", "overall_quality_grade", "issue_category_stats"],
+            "additionalProperties": false
+        }
+        """;
+}
+
+/// <summary>
+/// AI扣分评估模型
+/// </summary>
+public class AIDeductionAssessmentResponse
+{
+    /// <summary>
+    /// 评估是否成功
+    /// </summary>
+    [JsonPropertyName("is_success")]
+    public bool IsSuccess { get; set; }
+
+    /// <summary>
+    /// 错误信息
+    /// </summary>
+    [JsonPropertyName("error_message")]
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// 识别出的扣分点列表
+    /// </summary>
+    [JsonPropertyName("deduction_points")]
+    public List<DeductionPoint> DeductionPoints { get; set; } = [];
+
+    /// <summary>
+    /// 总扣分数
+    /// </summary>
+    [JsonPropertyName("total_deduction")]
+    public double TotalDeduction { get; set; }
+
+    /// <summary>
+    /// 评估摘要
+    /// </summary>
+    [JsonPropertyName("assessment_summary")]
+    public string AssessmentSummary { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 代码整体质量评级
+    /// </summary>
+    [JsonPropertyName("overall_quality_grade")]
+    public string OverallQualityGrade { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 主要问题类别统计
+    /// </summary>
+    [JsonPropertyName("issue_category_stats")]
+    public Dictionary<string, int> IssueCategoryStats { get; set; } = [];
+}
+
+/// <summary>
+/// 扣分点
+/// </summary>
+public class DeductionPoint
+{
+    /// <summary>
+    /// 扣分点ID
+    /// </summary>
+    [JsonPropertyName("deduction_id")]
+    public string DeductionId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 问题类型
+    /// </summary>
+    [JsonPropertyName("issue_type")]
+    public string IssueType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 问题类别
+    /// </summary>
+    [JsonPropertyName("issue_category")]
+    public string IssueCategory { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 严重程度
+    /// </summary>
+    [JsonPropertyName("severity")]
+    public string Severity { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 扣分数值
+    /// </summary>
+    [JsonPropertyName("deduction_score")]
+    public double DeductionScore { get; set; }
+
+    /// <summary>
+    /// 问题描述
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 具体位置信息
+    /// </summary>
+    [JsonPropertyName("location_info")]
+    public LocationInfo LocationInfo { get; set; } = new();
+
+    /// <summary>
+    /// 扣分理由
+    /// </summary>
+    [JsonPropertyName("deduction_reason")]
+    public string DeductionReason { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 改进建议
+    /// </summary>
+    [JsonPropertyName("improvement_suggestion")]
+    public string ImprovementSuggestion { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 示例代码（如果适用）
+    /// </summary>
+    [JsonPropertyName("example_code")]
+    public string? ExampleCode { get; set; }
+
+    /// <summary>
+    /// 影响范围
+    /// </summary>
+    [JsonPropertyName("impact_scope")]
+    public string ImpactScope { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 是否为关键问题
+    /// </summary>
+    [JsonPropertyName("is_critical")]
+    public bool IsCritical { get; set; }
+}
+
+/// <summary>
+/// 位置信息
+/// </summary>
+public class LocationInfo
+{
+    /// <summary>
+    /// 文件名
+    /// </summary>
+    [JsonPropertyName("file_name")]
+    public string? FileName { get; set; }
+
+    /// <summary>
+    /// 行号
+    /// </summary>
+    [JsonPropertyName("line_number")]
+    public int? LineNumber { get; set; }
+
+    /// <summary>
+    /// 列号
+    /// </summary>
+    [JsonPropertyName("column_number")]
+    public int? ColumnNumber { get; set; }
+
+    /// <summary>
+    /// 方法名
+    /// </summary>
+    [JsonPropertyName("method_name")]
+    public string? MethodName { get; set; }
+
+    /// <summary>
+    /// 类名
+    /// </summary>
+    [JsonPropertyName("class_name")]
+    public string? ClassName { get; set; }
+
+    /// <summary>
+    /// 代码片段
+    /// </summary>
+    [JsonPropertyName("code_snippet")]
+    public string? CodeSnippet { get; set; }
 }
 
 /// <summary>
@@ -833,6 +1075,106 @@ public static class AIPromptTemplates
         - 说明改进的理由和预期收益
         - 评估实施的难度和复杂度
         - 按优先级排序改进建议
+
+        请严格按照JSON Schema格式返回结果。
+        """;
+
+    /// <summary>
+    /// AI扣分评估提示词模板
+    /// </summary>
+    public const string AIDeductionAssessmentPrompt = """
+        你是一个专业的代码评审专家和评分系统。请对以下C#代码进行详细的扣分评估，识别所有需要扣分的问题点。
+
+        代码信息：
+        - 项目名称：{projectName}
+        - 文件数量：{fileCount}
+        - 代码行数：{lineCount}
+
+        源代码：
+        ```csharp
+        {sourceCode}
+        ```
+
+        评估要求：
+        1. 仔细分析代码，识别所有可能的问题点
+        2. 为每个问题点分配合适的扣分数值
+        3. 提供详细的问题描述和改进建议
+        4. 确定问题的严重程度和影响范围
+
+        扣分类别和标准：
+
+        **逻辑错误 (logic_error)**：
+        - 严重逻辑错误：15-25分
+        - 中等逻辑错误：8-15分
+        - 轻微逻辑错误：3-8分
+
+        **性能问题 (performance_issue)**：
+        - 严重性能问题：10-20分
+        - 中等性能问题：5-10分
+        - 轻微性能问题：2-5分
+
+        **代码风格 (code_style)**：
+        - 严重风格问题：5-10分
+        - 中等风格问题：2-5分
+        - 轻微风格问题：1-3分
+
+        **安全漏洞 (security_vulnerability)**：
+        - 严重安全问题：20-30分
+        - 中等安全问题：10-20分
+        - 轻微安全问题：5-10分
+
+        **可维护性 (maintainability)**：
+        - 严重可维护性问题：8-15分
+        - 中等可维护性问题：4-8分
+        - 轻微可维护性问题：2-4分
+
+        **可读性 (readability)**：
+        - 严重可读性问题：6-12分
+        - 中等可读性问题：3-6分
+        - 轻微可读性问题：1-3分
+
+        **最佳实践违反 (best_practice_violation)**：
+        - 严重违反：8-15分
+        - 中等违反：4-8分
+        - 轻微违反：2-4分
+
+        **算法效率 (algorithm_efficiency)**：
+        - 严重效率问题：12-20分
+        - 中等效率问题：6-12分
+        - 轻微效率问题：3-6分
+
+        **错误处理 (error_handling)**：
+        - 缺乏关键错误处理：10-18分
+        - 错误处理不完善：5-10分
+        - 轻微错误处理问题：2-5分
+
+        **设计模式 (design_pattern)**：
+        - 严重设计问题：10-18分
+        - 中等设计问题：5-10分
+        - 轻微设计问题：2-5分
+
+        严重程度定义：
+        - critical：影响程序正确性或安全性的关键问题
+        - high：影响程序功能或性能的重要问题
+        - medium：影响代码质量但不影响功能的问题
+        - low：轻微的风格或优化问题
+
+        影响范围定义：
+        - system：影响整个系统
+        - module：影响整个模块
+        - class：影响整个类
+        - method：影响单个方法
+        - local：影响局部代码
+
+        请为每个识别出的问题创建一个独立的扣分点，包含：
+        1. 唯一的扣分点ID
+        2. 问题类型和类别
+        3. 具体的扣分数值
+        4. 详细的问题描述
+        5. 准确的位置信息
+        6. 扣分理由说明
+        7. 具体的改进建议
+        8. 示例代码（如果适用）
 
         请严格按照JSON Schema格式返回结果。
         """;
