@@ -182,44 +182,47 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
         QuestionResults.Clear();
 
         // 处理模块结果
-        foreach (BenchSuite.Models.ModuleResult moduleResult in benchSuiteResult.ModuleResults)
+        foreach (KeyValuePair<BenchSuite.Models.ModuleType, BenchSuite.Models.ScoringResult> kvp in benchSuiteResult.ModuleResults)
         {
+            BenchSuite.Models.ModuleType moduleType = kvp.Key;
+            BenchSuite.Models.ScoringResult moduleResult = kvp.Value;
+
             ComprehensiveModuleResultItem moduleItem = new()
             {
-                ModuleName = GetModuleDisplayName(moduleResult.ModuleType),
-                ModuleType = moduleResult.ModuleType,
+                ModuleName = GetModuleDisplayName(moduleType),
+                ModuleType = moduleType,
                 TotalScore = moduleResult.TotalScore,
                 AchievedScore = moduleResult.AchievedScore,
                 ScoreRate = moduleResult.TotalScore > 0 ? moduleResult.AchievedScore / moduleResult.TotalScore * 100 : 0,
-                TotalQuestions = moduleResult.Questions.Count,
-                CorrectQuestions = moduleResult.Questions.Count(q => q.IsCorrect),
-                IncorrectQuestions = moduleResult.Questions.Count(q => !q.IsCorrect),
+                TotalQuestions = moduleResult.KnowledgePointResults.Count,
+                CorrectQuestions = moduleResult.KnowledgePointResults.Count(kp => kp.IsCorrect),
+                IncorrectQuestions = moduleResult.KnowledgePointResults.Count(kp => !kp.IsCorrect),
                 Details = moduleResult.Details ?? string.Empty,
                 ErrorMessage = moduleResult.ErrorMessage ?? string.Empty
             };
 
             // 处理AI分析结果（如果是C#模块）
-            if (moduleResult.ModuleType == BenchSuite.Models.ModuleType.CSharp)
+            if (moduleType == BenchSuite.Models.ModuleType.CSharp)
             {
                 ProcessAIAnalysisResult(moduleItem, moduleResult);
             }
 
             ModuleResults.Add(moduleItem);
 
-            // 处理题目结果
-            foreach (BenchSuite.Models.QuestionResult question in moduleResult.Questions)
+            // 处理题目结果（使用知识点结果）
+            foreach (BenchSuite.Models.KnowledgePointResult knowledgePoint in moduleResult.KnowledgePointResults)
             {
                 ComprehensiveQuestionResultItem questionItem = new()
                 {
-                    QuestionTitle = question.Title,
-                    TotalScore = question.TotalScore,
-                    AchievedScore = question.AchievedScore,
-                    ScoreRate = question.TotalScore > 0 ? question.AchievedScore / question.TotalScore * 100 : 0,
-                    IsCorrect = question.IsCorrect,
-                    StatusIcon = question.IsCorrect ? "✅" : "❌",
-                    ModuleName = GetModuleDisplayName(moduleResult.ModuleType),
-                    Details = question.Details ?? string.Empty,
-                    ErrorMessage = question.ErrorMessage ?? string.Empty
+                    QuestionTitle = knowledgePoint.KnowledgePointName,
+                    TotalScore = knowledgePoint.TotalScore,
+                    AchievedScore = knowledgePoint.AchievedScore,
+                    ScoreRate = knowledgePoint.TotalScore > 0 ? knowledgePoint.AchievedScore / knowledgePoint.TotalScore * 100 : 0,
+                    IsCorrect = knowledgePoint.IsCorrect,
+                    StatusIcon = knowledgePoint.IsCorrect ? "✅" : "❌",
+                    ModuleName = GetModuleDisplayName(moduleType),
+                    Details = knowledgePoint.Details ?? string.Empty,
+                    ErrorMessage = knowledgePoint.ErrorMessage ?? string.Empty
                 };
 
                 QuestionResults.Add(questionItem);
@@ -236,7 +239,7 @@ public class ComprehensiveTrainingResultViewModel : ReactiveObject
     /// <summary>
     /// 处理AI分析结果
     /// </summary>
-    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, BenchSuite.Models.ModuleResult moduleResult)
+    private static void ProcessAIAnalysisResult(ComprehensiveModuleResultItem moduleItem, BenchSuite.Models.ScoringResult moduleResult)
     {
         // 目前ModuleResult不包含AI分析结果，这个功能暂时禁用
         // 如果需要AI分析结果，需要从其他地方获取或者修改ModuleResult结构
