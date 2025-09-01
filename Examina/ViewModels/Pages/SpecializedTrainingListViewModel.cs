@@ -121,10 +121,8 @@ public class SpecializedTrainingListViewModel : ViewModelBase
         get => _selectedSortOption;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _selectedSortOption, value))
-            {
-                ApplySorting();
-            }
+            this.RaiseAndSetIfChanged(ref _selectedSortOption, value);
+            ApplySorting();
         }
     }
 

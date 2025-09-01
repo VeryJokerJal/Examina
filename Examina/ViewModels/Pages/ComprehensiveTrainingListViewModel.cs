@@ -108,10 +108,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         get => _selectedSortOption;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _selectedSortOption, value))
-            {
-                ApplySorting();
-            }
+            this.RaiseAndSetIfChanged(ref _selectedSortOption, value);
+            ApplySorting();
         }
     }
 
@@ -1350,8 +1348,8 @@ public class ComprehensiveTrainingListViewModel : ViewModelBase
         {
             SortOption.NameAscending => trainings.OrderBy(t => t.Name).ToList(),
             SortOption.NameDescending => trainings.OrderByDescending(t => t.Name).ToList(),
-            SortOption.TimeEarliest => trainings.OrderBy(t => t.ImportedAt).ToList(),
-            SortOption.TimeLatest => trainings.OrderByDescending(t => t.ImportedAt).ToList(),
+            SortOption.TimeEarliest => trainings.OrderBy(t => t.Id).ToList(),
+            SortOption.TimeLatest => trainings.OrderByDescending(t => t.Id).ToList(),
             _ => trainings.ToList()
         };
     }
