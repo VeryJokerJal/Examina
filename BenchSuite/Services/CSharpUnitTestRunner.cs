@@ -1,7 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
-using BenchSuite.Models;
+﻿using BenchSuite.Models;
 using System.Reflection;
 using System.Text;
 
@@ -9,6 +6,7 @@ namespace BenchSuite.Services;
 
 /// <summary>
 /// C#单元测试运行器 - 自动运行测试用例并检查结果
+/// 现在使用MSBuild编译机制，提供更好的项目支持和测试框架兼容性
 /// </summary>
 public static class CSharpUnitTestRunner
 {
@@ -33,8 +31,11 @@ public static class CSharpUnitTestRunner
             // 合并学生代码和测试代码
             string combinedCode = CombineCodeWithTests(studentCode, testCode);
 
-            // 编译代码
-            CompilationResult compilationResult = CSharpCompilationChecker.CompileCode(combinedCode, GetTestReferences(references));
+            // 使用MSBuild编译代码
+            CompilationResult compilationResult = await CSharpCompilationChecker.CompileCodeAsync(
+                combinedCode,
+                GetTestReferences(references),
+                "net9.0");
 
             if (!compilationResult.IsSuccess)
             {

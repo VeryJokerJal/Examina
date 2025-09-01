@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
 using BenchSuite.Models;
 using System.Reflection;
 using System.Text;
@@ -9,6 +8,7 @@ namespace BenchSuite.Services;
 
 /// <summary>
 /// C#编译检查器 - 验证代码是否能正确编译和运行
+/// 现在使用MSBuild API进行编译，提供更好的项目支持和诊断信息
 /// </summary>
 public static class CSharpCompilationChecker
 {
@@ -20,9 +20,53 @@ public static class CSharpCompilationChecker
     /// <returns>编译结果</returns>
     public static CompilationResult CompileCode(string sourceCode, List<string>? references = null)
     {
+        // 使用新的MSBuild编译器
+        return CompileCodeAsync(sourceCode, references).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// 异步编译C#代码
+    /// </summary>
+    /// <param name="sourceCode">源代码</param>
+    /// <param name="references">引用程序集路径列表</param>
+    /// <param name="targetFramework">目标框架</param>
+    /// <returns>编译结果</returns>
+    public static async Task<CompilationResult> CompileCodeAsync(
+        string sourceCode,
+        List<string>? references = null,
+        string targetFramework = "net9.0")
+    {
+        try
+        {
+            // 使用MSBuild编译器进行编译
+            return await CSharpMSBuildCompiler.CompileCodeAsync(
+                sourceCode,
+                targetFramework,
+                references,
+                "Library");
+        }
+        catch (Exception ex)
+        {
+            // 如果MSBuild编译失败，回退到Roslyn编译（兼容性保证）
+            return CompileCodeWithRoslyn(sourceCode, references, ex);
+        }
+    }
+
+    /// <summary>
+    /// 使用Roslyn编译器作为回退方案（已弃用，保留用于兼容性）
+    /// </summary>
+    /// <param name="sourceCode">源代码</param>
+    /// <param name="references">引用程序集路径列表</param>
+    /// <param name="msbuildException">MSBuild异常</param>
+    /// <returns>编译结果</returns>
+    [Obsolete("此方法已弃用，建议直接使用MSBuild编译。保留仅用于紧急回退。")]
+    private static CompilationResult CompileCodeWithRoslyn(string sourceCode, List<string>? references, Exception msbuildException)
+    {
         CompilationResult result = new()
         {
-            IsSuccess = false
+            IsSuccess = false,
+            Details = $"⚠️ MSBuild编译失败，尝试Roslyn回退编译。MSBuild错误: {msbuildException.Message}\n" +
+                     "注意：Roslyn回退编译功能已弃用，建议检查MSBuild配置。"
         };
 
         DateTime startTime = DateTime.Now;
@@ -54,23 +98,20 @@ public static class CSharpCompilationChecker
 
             // 创建编译
             CSharpCompilation compilation = CSharpCompilation.Create(
-                assemblyName: "StudentCode",
+                assemblyName: "StudentCode_Fallback",
                 syntaxTrees: [syntaxTree],
                 references: metadataReferences,
                 options: compilationOptions);
 
             // 编译到内存流
             using MemoryStream ms = new();
-            EmitResult emitResult = compilation.Emit(ms);
-
-            DateTime endTime = DateTime.Now;
-            result.CompilationTimeMs = (long)(endTime - startTime).TotalMilliseconds;
+            Microsoft.CodeAnalysis.Emit.EmitResult emitResult = compilation.Emit(ms);
 
             if (emitResult.Success)
             {
                 result.IsSuccess = true;
                 result.AssemblyBytes = ms.ToArray();
-                result.Details = "编译成功";
+                result.Details += "\n✅ Roslyn回退编译成功（建议修复MSBuild配置）";
 
                 // 处理警告
                 foreach (Diagnostic diagnostic in emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning))
@@ -87,8 +128,7 @@ public static class CSharpCompilationChecker
             }
             else
             {
-                result.IsSuccess = false;
-                result.Details = "编译失败";
+                result.Details += "\n❌ Roslyn回退编译也失败";
 
                 // 处理错误
                 foreach (Diagnostic diagnostic in emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error))
@@ -120,20 +160,21 @@ public static class CSharpCompilationChecker
         }
         catch (Exception ex)
         {
-            DateTime endTime = DateTime.Now;
-            result.CompilationTimeMs = (long)(endTime - startTime).TotalMilliseconds;
-            result.IsSuccess = false;
-            result.Details = $"编译过程中发生异常: {ex.Message}";
-            
+            result.Details += $"\n❌ Roslyn回退编译异常: {ex.Message}";
             result.Errors.Add(new CompilationError
             {
-                Code = "EXCEPTION",
+                Code = "ROSLYN_FALLBACK_EXCEPTION",
                 Message = ex.Message,
                 Line = 0,
                 Column = 0,
-                FileName = "编译器",
+                FileName = "Roslyn回退编译器",
                 Severity = "Error"
             });
+        }
+        finally
+        {
+            DateTime endTime = DateTime.Now;
+            result.CompilationTimeMs = (long)(endTime - startTime).TotalMilliseconds;
         }
 
         return result;
@@ -148,70 +189,17 @@ public static class CSharpCompilationChecker
     /// <param name="parameters">方法参数</param>
     /// <returns>执行结果</returns>
     public static (bool Success, string Output, string Error) TryExecuteCode(
-        CompilationResult compilationResult, 
-        string entryPointClass = "Program", 
+        CompilationResult compilationResult,
+        string entryPointClass = "Program",
         string entryPointMethod = "Main",
         object[]? parameters = null)
     {
-        if (!compilationResult.IsSuccess || compilationResult.AssemblyBytes == null)
-        {
-            return (false, "", "编译失败，无法执行");
-        }
-
-        try
-        {
-            // 加载程序集
-            Assembly assembly = Assembly.Load(compilationResult.AssemblyBytes);
-
-            // 查找入口点类型
-            Type? entryType = assembly.GetTypes().FirstOrDefault(t => t.Name == entryPointClass);
-            if (entryType == null)
-            {
-                return (false, "", $"未找到入口点类: {entryPointClass}");
-            }
-
-            // 查找入口点方法
-            MethodInfo? entryMethod = entryType.GetMethod(entryPointMethod, BindingFlags.Public | BindingFlags.Static);
-            if (entryMethod == null)
-            {
-                return (false, "", $"未找到入口点方法: {entryPointMethod}");
-            }
-
-            // 捕获控制台输出
-            StringBuilder output = new();
-            StringBuilder error = new();
-
-            using (StringWriter outputWriter = new(output))
-            using (StringWriter errorWriter = new(error))
-            {
-                TextWriter originalOut = Console.Out;
-                TextWriter originalError = Console.Error;
-
-                try
-                {
-                    Console.SetOut(outputWriter);
-                    Console.SetError(errorWriter);
-
-                    // 执行方法
-                    object? result = entryMethod.Invoke(null, parameters);
-
-                    return (true, output.ToString(), error.ToString());
-                }
-                finally
-                {
-                    Console.SetOut(originalOut);
-                    Console.SetError(originalError);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            return (false, "", $"执行异常: {ex.Message}");
-        }
+        // 使用MSBuild编译器的执行方法
+        return CSharpMSBuildCompiler.TryExecuteCode(compilationResult, entryPointClass, entryPointMethod, parameters);
     }
 
     /// <summary>
-    /// 获取默认的程序集引用
+    /// 获取默认的程序集引用（用于Roslyn回退编译）
     /// </summary>
     /// <returns>元数据引用列表</returns>
     private static List<MetadataReference> GetDefaultReferences()
@@ -219,7 +207,7 @@ public static class CSharpCompilationChecker
         List<MetadataReference> references = [];
 
         // 添加基本的.NET引用
-        string[] basicAssemblies = 
+        string[] basicAssemblies =
         [
             "System.Runtime",
             "System.Console",
@@ -252,7 +240,7 @@ public static class CSharpCompilationChecker
             string runtimePath = Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "";
             if (!string.IsNullOrEmpty(runtimePath))
             {
-                string[] coreLibs = 
+                string[] coreLibs =
                 [
                     "System.Private.CoreLib.dll",
                     "System.Runtime.dll",
@@ -275,6 +263,33 @@ public static class CSharpCompilationChecker
         }
 
         return references;
+    }
+
+    /// <summary>
+    /// 获取支持的目标框架列表
+    /// </summary>
+    /// <returns>目标框架列表</returns>
+    public static List<string> GetSupportedTargetFrameworks()
+    {
+        return
+        [
+            "net9.0",
+            "net8.0",
+            "net7.0",
+            "net6.0",
+            "netstandard2.1",
+            "netstandard2.0"
+        ];
+    }
+
+    /// <summary>
+    /// 检查是否支持指定的目标框架
+    /// </summary>
+    /// <param name="targetFramework">目标框架</param>
+    /// <returns>是否支持</returns>
+    public static bool IsSupportedTargetFramework(string targetFramework)
+    {
+        return GetSupportedTargetFrameworks().Contains(targetFramework, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>

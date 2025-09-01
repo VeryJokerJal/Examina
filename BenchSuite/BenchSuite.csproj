@@ -106,6 +106,10 @@
 
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="17.8.3" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.8.3" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.8.3" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.8.3" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.8" />
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
     <!-- Roslyn packages for C# code analysis and compilation -->
