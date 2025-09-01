@@ -204,7 +204,7 @@ public static class CompilationPerformanceBenchmark
     private static void GenerateOverallAnalysis(List<PerformanceResult> results)
     {
         Console.WriteLine("📈 总体性能分析:");
-        Console.WriteLine("=" * 50);
+        Console.WriteLine(new string('=', 50));
 
         double avgRatio = results.Where(r => r.PerformanceRatio > 0).Average(r => r.PerformanceRatio);
         long avgMSBuildTime = (long)results.Average(r => r.MSBuildTimeMs);

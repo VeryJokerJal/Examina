@@ -262,7 +262,7 @@ public static class AIDeductionAssessmentTests
                            assessmentResult.AssessmentResponse != null &&
                            assessmentResult.AssessmentResponse.IssueCategoryStats.Count > 0;
 
-            if (result.Passed)
+            if (result.Passed && assessmentResult.AssessmentResponse != null)
             {
                 Dictionary<string, int> stats = assessmentResult.AssessmentResponse.IssueCategoryStats;
                 result.Output = $"识别的类别: {string.Join(", ", stats.Keys)}";
@@ -325,13 +325,13 @@ public static class AIDeductionAssessmentTests
                            assessmentResult.AssessmentResponse != null &&
                            assessmentResult.AssessmentResponse.DeductionPoints.Count > 0;
 
-            if (result.Passed)
+            if (result.Passed && assessmentResult.AssessmentResponse != null)
             {
                 List<string> severities = assessmentResult.AssessmentResponse.DeductionPoints
                     .Select(dp => dp.Severity)
                     .Distinct()
                     .ToList();
-                
+
                 result.Output = $"识别的严重程度: {string.Join(", ", severities)}";
             }
 
@@ -381,12 +381,12 @@ public static class AIDeductionAssessmentTests
                            assessmentResult.AssessmentResponse != null &&
                            assessmentResult.AssessmentResponse.DeductionPoints.Count > 0;
 
-            if (result.Passed)
+            if (result.Passed && assessmentResult.AssessmentResponse != null)
             {
                 DeductionPoint firstPoint = assessmentResult.AssessmentResponse.DeductionPoints[0];
                 bool hasLocationInfo = firstPoint.LocationInfo != null &&
                                      !string.IsNullOrEmpty(firstPoint.LocationInfo.FileName);
-                
+
                 result.Passed = hasLocationInfo;
                 result.Output = $"位置信息: 文件={firstPoint.LocationInfo?.FileName}, 行号={firstPoint.LocationInfo?.LineNumber}";
             }

@@ -267,6 +267,16 @@ public class CSharpScoringResult
     public DateTime EndTime { get; set; }
 
     /// <summary>
+    /// 编译耗时（毫秒）
+    /// </summary>
+    public long CompilationTimeMs { get; set; }
+
+    /// <summary>
+    /// 执行耗时（毫秒）
+    /// </summary>
+    public long ExecutionTimeMs { get; set; }
+
+    /// <summary>
     /// 耗时（毫秒）
     /// </summary>
     public long ElapsedMilliseconds => (long)(EndTime - StartTime).TotalMilliseconds;

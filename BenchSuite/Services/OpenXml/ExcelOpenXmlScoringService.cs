@@ -6797,20 +6797,15 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
             {
                 DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues position = legend.LegendPosition.Val.Value;
 
-                if (position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Bottom)
-                {
-                    return "底部";
-                }
-                else
-                {
-                    return position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Top
+                return position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Bottom
+                    ? "底部"
+                    : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Top
                         ? "顶部"
                         : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Left
                                             ? "左侧"
                                             : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.Right
                                                                 ? "右侧"
                                                                 : position == DocumentFormat.OpenXml.Drawing.Charts.LegendPositionValues.TopRight ? "右上角" : position.ToString();
-                }
             }
 
             // 如果有图例但没有明确位置，返回默认位置
@@ -7133,19 +7128,17 @@ public class ExcelOpenXmlScoringService : OpenXmlScoringServiceBase, IExcelScori
                 {
                     return "居中";
                 }
-                else if (position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideEnd)
-                {
-                    return "内侧末端";
-                }
                 else
                 {
-                    return position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideBase
-                        ? "内侧基部"
-                        : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.OutsideEnd
-                                            ? "外侧末端"
-                                            : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Left
-                                                                ? "左侧"
-                                                                : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Right ? "右侧" : position.ToString();
+                    return position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideEnd
+                        ? "内侧末端"
+                        : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.InsideBase
+                                            ? "内侧基部"
+                                            : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.OutsideEnd
+                                                                ? "外侧末端"
+                                                                : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Left
+                                                                                    ? "左侧"
+                                                                                    : position == DocumentFormat.OpenXml.Drawing.Charts.DataLabelPositionValues.Right ? "右侧" : position.ToString();
                 }
             }
 

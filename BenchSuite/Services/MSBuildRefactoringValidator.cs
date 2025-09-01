@@ -326,7 +326,7 @@ public class DiagnosticTest
         StringBuilder summary = new();
         
         summary.AppendLine("🎉 MSBuild重构验证完成");
-        summary.AppendLine("=" * 50);
+        summary.AppendLine(new string('=', 50));
         summary.AppendLine($"验证状态: {(result.IsSuccess ? "✅ 成功" : "❌ 失败")}");
         summary.AppendLine($"验证时间: {result.TotalValidationTime.TotalSeconds:F2} 秒");
         summary.AppendLine($"成功项目: {result.SuccessItems.Count}");
@@ -385,7 +385,7 @@ public class DiagnosticTest
         StringBuilder report = new();
         
         report.AppendLine("📋 BenchSuite C#评分逻辑重构完成报告");
-        report.AppendLine("=" * 60);
+        report.AppendLine(new string('=', 60));
         report.AppendLine($"重构完成时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         report.AppendLine();
         
